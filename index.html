@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ═══ Open Graph — WhatsApp / Facebook / Telegram preview ═══ -->
+    <meta property="og:type"         content="website">
+    <meta property="og:site_name"    content="نظام مدارس الأحد">
+    <meta property="og:title"        content="نظام مدارس الأحد">
+    <meta property="og:description"  content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات والمزيد">
+    <meta property="og:url"          content="https://sunday-school.rf.gd/">
+    <meta property="og:image"        content="https://sunday-school.rf.gd/imgs/Thumbnail-300x.png">
+    <meta property="og:image:width"  content="300">
+    <meta property="og:image:height" content="300">
+    <meta property="og:image:type"   content="image/png">
+    <meta property="og:image:alt"    content="نظام مدارس الأحد">
+    <meta property="og:locale"       content="ar_AR">
+
+    <!-- ═══ Twitter / X Card ═══ -->
+    <meta name="twitter:card"        content="summary">
+    <meta name="twitter:title"       content="نظام مدارس الأحد">
+    <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات والمزيد">
+    <meta name="twitter:image"       content="https://sunday-school.rf.gd/imgs/Thumbnail-300x.png">
+
+    <!-- ═══ Standard meta ═══ -->
+    <title>نظام مدارس الأحد</title>
+    <meta name="description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات والمزيد">
+
+    <!-- Facebook Verification -->
+    <meta name="facebook-domain-verification" content="hp0d2j5rjf51gc5j0ak6djiauvpthr">
+    <meta property="fb:app_id" content="422015245890190">
+    
+    <!-- Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Minimal critical CSS */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; direction: rtl; }
+        .hidden-for-crawlers { display: none; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --primary-bg: #eef2ff;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --border: #e2e8f0;
+            --coupon: #8b5cf6;
+            --coupon-light: #ede9fe;
+            --coupon-dark: #7c3aed;
+            --coupon-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-2xl: 48px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            --spacing-3xl: 64px;
+
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 25px -5px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, 0.18);
+            
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 50%, #e0e7ff 100%);
+            color: var(--dark);
+            line-height: 1.7;
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+            position: relative;
+            font-size: 14px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        /* ===== TOP SECTION (Header + Cover + Button) ===== */
+        .top-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--success) 25%, 
+                var(--coupon) 50%, 
+                var(--warning) 75%, 
+                var(--primary) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: -200% 0; }
+            50% { background-position: 200% 0; }
+        }
+
+        .title {
+font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: var(--spacing-sm);
+    background: linear-gradient(135deg, #d4ebff, var(--primary-dark), #c0a4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+    letter-spacing: -0.02em;
+        }
+.title.main {
+    font-size: 3rem;
+}
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* ===== COVER SECTION ===== */
+        .cover-section {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: var(--radius-lg);
+        }
+
+        .cover-overlay {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            text-align: center;
+        }
+
+        .cover-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: var(--spacing-md);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cover-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: var(--spacing-xl);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* ===== START BUTTON ===== */
+        .start-btn {
+            background: linear-gradient(135deg, var(--success), #0da271);
+            color: white;
+            border: none;
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            z-index: 1;
+            grid-column: 1 / -1;
+                max-width: 200px;
+             justify-self: center;
+            margin-top: var(--spacing-md);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6);
+        }
+
+        .start-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .start-btn i {
+            transition: var(--transition-normal);
+        }
+
+        .start-btn:hover i {
+            transform: translateY(3px);
+        }
+
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* ===== USER CARDS ===== */
+        .user-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transform: scaleX(0);
+            transition: var(--transition-normal);
+        }
+
+        .user-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .user-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .user-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-lg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(135deg, var(--primary-bg), rgba(165, 180, 252, 0.3));
+            color: var(--primary);
+            transition: var(--transition-normal);
+        }
+
+        .user-card:hover .user-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .user-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark);
+            letter-spacing: -0.01em;
+        }
+
+        .user-description {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.6;
+        }
+
+        .user-action {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--primary);
+            font-weight: 600;
+            transition: var(--transition-normal);
+        }
+
+        .user-card:hover .user-action {
+            transform: translateX(-8px);
+            color: var(--primary-dark);
+        }
+
+        /* ===== FEATURES ===== */
+        .features-section {
+            background: linear-gradient(135deg, rgb(228 230 255) 0%, rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
+            background: var(--primary-dark);
+            color: var(--light);
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark);
+        }
+
+        .feature-desc {
+            color: var(--secondary);
+            font-size: 0.85rem;
+        }
+
+        .mfeatures-section{
+            background: linear-gradient(135deg, rgb(228 230 255) 0%, rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.02em;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: var(--transition-normal);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .footer-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .footer-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .copyright {
+            color: var(--secondary);
+            font-size: 0.85rem;
+text-align: end;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-sm);
+                font-size: 12px;
+            }
+
+            .container {
+                padding: 0 var(--spacing-sm);
+            }
+        .copyright {
+text-align: center;
+        }
+            /* إعادة الترتيب للجوال */
+            .top-section {
+                display: block;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .header {
+                padding: var(--spacing-md);
+                margin-bottom: var(--spacing-md);
+                border-radius: var(--radius-md);
+                height: auto;
+            }
+
+            .title {
+                font-size: 1.2rem;
+            }
+.title.main {
+    font-size: 2rem;
+}
+
+            .subtitle {
+                font-size: 0.8rem;
+            }
+
+            .cover-section {
+                margin-bottom: var(--spacing-md);
+                height: 300px;
+            }
+
+            .cover-image {
+                border-radius: var(--radius-md);
+            }
+
+            .cover-title {
+                font-size: 1.8rem;
+            }
+
+            .cover-subtitle {
+                font-size: 1rem;
+                margin-bottom: var(--spacing-lg);
+            }
+
+            .start-btn {
+                display: none !important; /* إخفاء الزر على الجوال */
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-sm);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .stat-card {
+                padding: var(--spacing-sm);
+                border-radius: var(--radius-md);
+            }
+
+            .stat-icon {
+                font-size: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.1rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .user-cards {
+                gap: var(--spacing-sm);
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .user-card {
+                padding: var(--spacing-md);
+                border-radius: var(--radius-md);
+            }
+
+            .user-icon {
+                font-size: 2.2rem;
+                width: 60px;
+                height: 60px;
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .user-title {
+                font-size: 1.1rem;
+            }
+
+            .features-section {
+                display: none;
+                padding: var(--spacing-md);
+                border-radius: var(--radius-md);
+            }
+
+              .mfeatures-section {
+                 display: block;
+                padding: var(--spacing-md);
+                border-radius: var(--radius-md);
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-sm);
+            }
+
+            .feature-item {
+                padding: var(--spacing-md);
+            }
+
+            .feature-icon {
+                font-size: 1.5rem;
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn {
+                padding: var(--spacing-sm) var(--spacing-md);
+                font-size: 0.8rem;
+            }
+
+            .footer {
+                padding: var(--spacing-md);
+                border-radius: var(--radius-md);
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cover-section {
+                height: 250px;
+            }
+            
+            .cover-title {
+                font-size: 1.5rem;
+            }
+            
+            .cover-subtitle {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hidden content for WhatsApp crawler (non-JS fallback) -->
+    <div class="hidden-for-crawlers" aria-hidden="true">
+        <h1>Sunday School</h1>
+        <p>نظام متكامل لإدارة وتتبع نشاط الأطفال في مدارس الأحد</p>
+        <img src="https://sunday-school.rf.gd/imgs/Thumbnail-300x.jpg" alt="Sunday School Management System">
+        <a href="https://sunday-school.rf.gd">https://sunday-school.rf.gd</a>
+    </div>
+    
+    <div class="container">
+        <!-- Top Section: Header + Cover + Button -->
+        <div class="top-section">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="title main">نظام مدارس الأحد</h1>
+                <p class="subtitle">نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
+                
+                <!-- Hidden Stats Section -->
+                <div class="stats-grid" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value">1,250+</div>
+                        <div class="stat-label">طفل مسجل</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <div class="stat-value">45+</div>
+                        <div class="stat-label">كنيسة تستخدم النظام</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-value">250K+</div>
+                        <div class="stat-label">كوبون تم توزيعه</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">معدل حضور</div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Cover Section -->
+            <section class="cover-section" id="cover">
+                <img src="imgs/Sunday-School.png" alt="Sunday School Cover" class="cover-image">
+                <div class="cover-overlay" style="display: none;">
+                    <h1 class="cover-title" >نظام مدارس الأحد</h1>
+                    <p class="cover-subtitle" >نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
+                </div>
+            </section>
+            
+        </div>
+<!-- Features Section -->
+        <section class="features-section">
+            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
+                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="feature-title">نظام الكوبونات</h3>
+                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">تقارير وإحصائيات</h3>
+                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
+                </div>
+            </div>
+  <!-- Start Button -->
+            <button class="start-btn" onclick="scrollToSelection()">
+                ابدأ الآن
+                <i class="fas fa-arrow-down"></i>
+            </button>        
+        </section>
+          
+        <!-- User Type Selection -->
+        <section id="user-selection" style="margin-bottom: var(--spacing-xl);">
+            <h2 class="title" style="text-align: center;">اختر نوع المستخدم للبدء</h2>
+            <div class="user-cards">
+                <div class="user-card" onclick="selectUser('kid')">
+                    <div class="user-icon">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <h3 class="user-title">طفل</h3>
+                    <p class="user-description">
+                        مشاهدة ملفي الشخصي، الكوبونات، سجل الحضور
+                    </p>
+                    <div class="user-action">
+                        <span>الدخول كـ طفل</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </div>
+
+                <div class="user-card" onclick="selectUser('uncle')">
+                    <div class="user-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 class="user-title">انكل / طنط</h3>
+                    <p class="user-description">
+                        إدارة الأطفال، تسجيل الحضور، تعديل المعلومات، وإرسال الإعلانات
+                    </p>
+                    <div class="user-action">
+                        <span>الدخول كـ انكل / طنط</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- Features Section -->
+        <section class="mfeatures-section">
+            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
+                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="feature-title">نظام الكوبونات</h3>
+                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">تقارير وإحصائيات</h3>
+                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
+                </div>
+            </div>
+        </section>
+             <!-- Footer -->
+<style>
+     /* ── FOOTER ── */
+    :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #a5b4fc;
+    --primary-bg: #eef2ff;
+    --secondary: #64748b;
+    --success: #10b981;
+    --success-dark: #059669;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --dark: #1e293b;
+    --border: #e2e8f0;
+    --coupon: #8b5cf6;
+    --coupon-dark: #7c3aed;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+    --r-full: 9999px;
+    --sh-sm: 0 2px 8px -2px rgba(0, 0, 0, .08);
+    --sh-md: 0 8px 25px -5px rgba(0, 0, 0, .12);
+    --sh-lg: 0 20px 40px -10px rgba(0, 0, 0, .15);
+    --sh-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
+    --t: .25s cubic-bezier(.4, 0, .2, 1);
+}
+        .site-footer {
+background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--r-xl);
+    border: 1px solid rgba(255, 255, 255, .85);
+    padding: 18px 22px;
+    margin-top: 10px;
+        }
+        .footer-inner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+        .footer-brand { display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit; }
+        .brand-icon { width:36px; height:36px; background:var(--primary); border-radius:var(--r-sm); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .brand-icon img { width:100%; height:100%; object-fit:cover; }
+        .brand-name { font-size:.92rem; font-weight:800; color:var(--dark); }
+        .footer-copy { font-size:.78rem; color:var(--secondary); text-align:end; line-height:1.6; }
+        .footer-links { display:flex; justify-content:center; gap:18px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border); }
+        .footer-link { color:var(--primary); text-decoration:none; font-size:.84rem; font-weight:600; display:flex; align-items:center; gap:5px; transition:var(--t); }
+        .footer-link:hover { color:var(--primary-dark); transform:translateY(-2px); }
+            /* ── MOBILE ── */
+        @media(max-width:480px) {
+            .footer-inner { flex-direction:column; text-align:center; }
+            .footer-copy { text-align:center; }
+            .footer-links { gap:14px; }
+        }
+        </style>
+        
+<footer class="site-footer">
+        <div class="footer-inner">
+            <a href="https://sunday-school.rf.gd/" class="footer-brand">
+                <div class="brand-icon">
+                    <img src="/logo.png" alt="Logo" onerror="this.parentElement.innerHTML='&lt;i class=\'fas fa-cross\' style=\'color:#fff;font-size:15px\'&gt;&lt;/i&gt;'">
+                </div>
+                <span class="brand-name">نظام مدارس الأحد 2026</span>
+            </a>
+            <div class="footer-copy">مُكْثِرِينَ فِي عَمَلِ ٱلرَّبِّ كُلَّ حِينٍ، عَالِمِينَ أَنَّ تَعَبَكُمْ لَيْسَ بَاطِلًا فِي ٱلرَّبِّ.”<br><span>كُورِنْثُوسَ ٱلأُولَى ١٥:‏٥٨</span></div>
+        </div>
+        <div class="footer-links">
+            <a href="/help/" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
+            <a href="https://api.whatsapp.com/send?phone=201037011355" class="footer-link"><i class="fab fa-whatsapp"></i> تواصل معنا</a>
+            <a href="/about" class="footer-link"><i class="fas fa-info-circle"></i> حول التطبيق</a>
+        </div>
+    </footer>
+    </div>
+
+    <script>
+        // بيانات إحصائية ديناميكية
+        const stats = {
+            totalKids: 1250,
+            activeChurches: 45,
+            totalCoupons: 250000,
+            attendanceRate: 95
+        };
+
+        // دالة لتحديث الإحصائيات
+        function updateStats() {
+            document.querySelectorAll('.stat-value')[0].textContent = `${stats.totalKids.toLocaleString()}+`;
+            document.querySelectorAll('.stat-value')[1].textContent = `${stats.activeChurches}+`;
+            document.querySelectorAll('.stat-value')[2].textContent = `${stats.totalCoupons.toLocaleString()}+`;
+            document.querySelectorAll('.stat-value')[3].textContent = `${stats.attendanceRate}%`;
+        }
+
+        // دالة اختيار المستخدم
+        function selectUser(type) {
+            const card = event.currentTarget;
+            
+            // تأثير النقر
+            card.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                card.style.transform = 'translateY(-8px) scale(1.02)';
+                
+                // الانتقال بعد التأثير
+                setTimeout(() => {
+                    if (type === 'kid') {
+                        window.location.href = '/kids/';
+                    } else if (type === 'uncle') {
+                        window.location.href = '/login/';
+                    }
+                }, 300);
+            }, 150);
+        }
+
+        // دالة التمرير للأسفل إلى قسم اختيار المستخدم
+        function scrollToSelection() {
+            document.getElementById('user-selection').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            
+            // إضافة تأثيرات عند التمرير
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // مراقبة العناصر لإضافة تأثيرات التمرير
+            document.querySelectorAll('.stat-card, .user-card, .feature-item').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                observer.observe(el);
+            });
+        });
+
+        // جعل الدوال متاحة عالمياً
+        window.selectUser = selectUser;
+        window.scrollToSelection = scrollToSelection;
+    </script>
+</body>
+</html>

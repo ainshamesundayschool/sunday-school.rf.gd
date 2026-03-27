@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المتفوقين</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --gold:#f5c518; --silver:#c8d0dc; --bronze:#e08a3c;
+  --bg:#0d1020; --surface:#161b30; --surface2:#1e2445;
+  --accent:#7c5cfc; --accent2:#fc5c7d; --teal:#00d4c8;
+  --text:#eef0ff; --muted:#7a80a8; --glow:rgba(124,92,252,0.4);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.num{font-family:'Tajawal',sans-serif;direction:ltr;unicode-bidi:isolate;}
+#stars-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.blob{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.blob1{width:700px;height:700px;background:#6040e0;opacity:0.38;top:-250px;right:-150px;animation:bF 14s ease-in-out infinite;}
+.blob2{width:550px;height:550px;background:#e03060;opacity:0.30;bottom:-180px;left:-120px;animation:bF 18s ease-in-out infinite reverse;}
+.blob3{width:380px;height:380px;background:#00c4d4;opacity:0.24;top:38%;left:38%;animation:bF 11s ease-in-out infinite 3s;}
+.blob4{width:260px;height:260px;background:#f5c518;opacity:0.16;top:60%;right:10%;animation:bF 9s ease-in-out infinite 1s;}
+@keyframes bF{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.06)}66%{transform:translate(-22px,28px) scale(0.94)}}
+
+/* ═══ INTRO ═══ */
+#introScreen{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,#1a1060 0%,#0a0c1a 70%);text-align:center;padding:30px;}
+.intro-icon-ring{width:130px;height:130px;margin:0 auto 28px;position:relative;animation:introFloat 3s ease-in-out infinite;}
+@keyframes introFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.intro-glow{position:absolute;inset:-18px;border-radius:50%;background:radial-gradient(circle,rgba(245,197,24,0.32) 0%,transparent 70%);animation:glowP 2s ease-in-out infinite;}
+@keyframes glowP{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
+.intro-title{font-family:'Tajawal',sans-serif;font-size:clamp(2rem,7vw,3.6rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,#d4b8ff 45%,#fc5c7d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;line-height:1.1;}
+.intro-sub{color:var(--muted);font-size:1rem;margin-bottom:14px;}
+.intro-church{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:40px;padding:7px 18px;font-size:0.85rem;color:#b0b8e0;margin-bottom:40px;backdrop-filter:blur(12px);}
+.intro-church i{color:var(--accent);}
+.start-btn{position:relative;overflow:hidden;background:linear-gradient(135deg,#7c5cfc,#fc5c7d);border:none;border-radius:60px;color:#fff;font-family:'Cairo',sans-serif;font-size:1.15rem;font-weight:800;padding:18px 52px;cursor:pointer;box-shadow:0 8px 40px rgba(124,92,252,0.55);animation:btnP 2.4s ease-in-out infinite;transition:transform 0.15s;}
+.start-btn:hover{transform:scale(1.05);}
+.start-btn:active{transform:scale(0.97);}
+.start-btn i{margin-left:10px;}
+.btn-shine{position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);transform:skewX(-20deg);animation:bS 2.8s ease-in-out infinite 1s;}
+@keyframes bS{0%,100%{left:-60%}50%{left:120%}}
+@keyframes btnP{0%,100%{box-shadow:0 8px 40px rgba(124,92,252,0.55),0 0 0 0 rgba(124,92,252,0.4)}50%{box-shadow:0 8px 40px rgba(124,92,252,0.55),0 0 0 16px rgba(124,92,252,0)}}
+.intro-dots{display:flex;gap:10px;margin-top:32px;}
+.intro-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);animation:dB 1.4s ease-in-out infinite;}
+.intro-dot:nth-child(2){animation-delay:0.2s;}.intro-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes dB{0%,100%{transform:translateY(0);opacity:0.3}50%{transform:translateY(-8px);opacity:1}}
+
+/* ═══ SUSPENSE ═══ */
+#suspenseScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;background:#05080f;text-align:center;}
+.sus-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,92,252,0.18) 0%,transparent 70%);}
+.cd-wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;}
+.cd-label{font-size:0.85rem;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;animation:fI 0.5s ease;}
+.cd-num{font-family:'Tajawal',sans-serif;direction:ltr;font-size:clamp(9rem,26vw,15rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#fff,#a88aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:cS 0.9s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes cS{from{opacity:0;transform:scale(2.5)}to{opacity:1;transform:scale(1)}}
+.cd-ring{position:absolute;width:260px;height:260px;border-radius:50%;border:2px solid rgba(124,92,252,0.35);top:50%;left:50%;transform:translate(-50%,-50%);animation:rE 1s ease-out forwards;}
+@keyframes rE{from{transform:translate(-50%,-50%) scale(0.4);opacity:1}to{transform:translate(-50%,-50%) scale(1.9);opacity:0}}
+.cd-msg{font-size:1.05rem;color:#8888cc;margin-top:22px;animation:fI 0.5s ease 0.3s both;}
+.cd-bar-wrap{width:220px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin:16px auto 0;overflow:hidden;}
+.cd-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;width:0%;transition:width 0.88s linear;}
+@keyframes fI{from{opacity:0}to{opacity:1}}
+
+/* ═══ MAIN ═══ */
+#mainPage{display:none;position:relative;z-index:1;}
+.page{max-width:920px;margin:0 auto;padding:20px 20px 90px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0;margin-bottom:6px;}
+.church-badge{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:40px;padding:8px 20px;font-size:0.83rem;color:#b0b8d8;backdrop-filter:blur(12px);}
+.church-badge i{color:var(--accent);}
+.topbar-actions{display:flex;gap:8px;}
+.icon-btn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.07);color:#b0b8d8;cursor:pointer;font-size:0.95rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px);}
+.icon-btn:hover{background:rgba(124,92,252,0.25);border-color:var(--accent);color:#fff;}
+.icon-btn.active{background:rgba(124,92,252,0.35);border-color:var(--accent);color:#fff;}
+.page-header{text-align:center;padding:16px 0 34px;}
+.page-title{font-family:'Tajawal',sans-serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,#d0c0ff 45%,#fc5c7d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;animation:fDn 0.7s ease both;}
+.page-subtitle{color:var(--muted);font-size:0.9rem;animation:fDn 0.7s ease 0.1s both;}
+@keyframes fDn{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sI{from{opacity:0;transform:scale(0.78)}to{opacity:1;transform:scale(1)}}
+@keyframes slideR{to{opacity:1;transform:translateX(0)}}
+
+/* ═══ CHAMPION ═══ */
+.champion-wrap{margin:0 auto 52px;max-width:500px;animation:sI 0.9s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;}
+.champion-card{position:relative;overflow:hidden;background:linear-gradient(150deg,#20165a,#2e1080,#1a0c40);border-radius:28px;padding:44px 36px 36px;text-align:center;border:1.5px solid rgba(245,197,24,0.45);box-shadow:0 0 80px rgba(245,197,24,0.2),0 0 0 1px rgba(245,197,24,0.08),0 28px 70px rgba(0,0,0,0.55);}
+.champion-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,rgba(245,197,24,0.2) 0%,transparent 65%);pointer-events:none;}
+.champion-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,197,24,0.75),transparent);}
+.champion-ring{width:140px;height:140px;margin:0 auto 22px;position:relative;}
+.ring-svg{position:absolute;inset:0;width:100%;height:100%;animation:spR 7s linear infinite;}
+@keyframes spR{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.champion-avatar{position:absolute;inset:12px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#f5c518,#ff9500);display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-weight:900;color:#1a0800;font-family:'Tajawal',sans-serif;border:3px solid rgba(245,197,24,0.7);box-shadow:0 0 35px rgba(245,197,24,0.55);}
+.champion-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.crown-icon{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:2rem;color:var(--gold);filter:drop-shadow(0 0 14px rgba(245,197,24,0.9));animation:crF 2.6s ease-in-out infinite;}
+@keyframes crF{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+.champ-rank-badge{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#ff9500);display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:900;color:#1a0800;box-shadow:0 4px 14px rgba(245,197,24,0.5);}
+.champion-name{font-family:'Tajawal',sans-serif;font-size:1.85rem;font-weight:900;color:#fff;margin-bottom:5px;text-shadow:0 2px 24px rgba(245,197,24,0.5);}
+.champion-class{font-size:0.88rem;color:rgba(245,197,24,0.75);margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:7px;}
+.champion-stats{display:flex;gap:14px;}
+.champ-stat{background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:16px 20px;flex:1;backdrop-filter:blur(6px);}
+.champ-stat-icon{font-size:0.82rem;color:var(--muted);margin-bottom:6px;}
+.champ-stat-val{font-family:'Tajawal',sans-serif;direction:ltr;unicode-bidi:isolate;font-size:2.1rem;font-weight:900;display:block;line-height:1;margin-bottom:4px;}
+.champ-stat-val.gold{background:linear-gradient(135deg,#f5c518,#ffda6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.champ-stat-val.teal{background:linear-gradient(135deg,#00d4c8,#43e97b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.champ-stat-lbl{font-size:0.72rem;color:var(--muted);}
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.particle{position:absolute;width:5px;height:5px;border-radius:50%;animation:pB var(--dur,3s) ease-out var(--delay,0s) infinite;}
+@keyframes pB{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+
+/* ═══ PODIUM ═══ */
+.podium-section{margin-bottom:44px;}
+.section-label{text-align:center;font-size:0.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:92px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.section-label::before,.section-label::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14));}
+.section-label::after{background:linear-gradient(270deg,transparent,rgba(255,255,255,0.14));}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;height:195px;}
+.podium-item{flex:1;max-width:155px;display:flex;flex-direction:column;align-items:center;position:relative;}
+.podium-avatar{border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;margin-bottom:8px;flex-shrink:0;}
+.podium-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.podium-avatar-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.podium-name{font-size:0.76rem;font-weight:700;text-align:center;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.podium-coupons{font-size:0.73rem;margin-bottom:6px;font-family:'Tajawal',sans-serif;direction:ltr;unicode-bidi:isolate;}
+.podium-base{width:100%;border-radius:14px 14px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;position:relative;overflow:hidden;}
+.podium-base::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px;}
+.podium-medal{font-size:1.3rem;margin-bottom:2px;}
+.podium-rank-num{font-family:'Tajawal',sans-serif;direction:ltr;font-size:0.9rem;font-weight:800;}
+.podium-days{font-size:0.62rem;opacity:0.65;margin-top:2px;font-family:'Tajawal',sans-serif;direction:ltr;}
+.p1 .podium-avatar{width:68px;height:68px;border:3px solid var(--gold);box-shadow:0 0 24px rgba(245,197,24,0.55);}
+.p1 .podium-base{height:128px;background:linear-gradient(160deg,#2e2408,#1c1500);border:1px solid rgba(245,197,24,0.4);}
+.p1 .podium-base::before{background:var(--gold);box-shadow:0 0 12px var(--gold);}
+.p1 .podium-medal,.p1 .podium-rank-num{color:var(--gold);}
+.p1 .podium-coupons{color:var(--gold);}
+.p1 .podium-avatar-inner{background:linear-gradient(135deg,#f5c518,#ff9500);color:#1a0800;}
+.p2 .podium-avatar{width:56px;height:56px;border:2px solid var(--silver);box-shadow:0 0 14px rgba(200,208,220,0.45);}
+.p2 .podium-base{height:96px;background:linear-gradient(160deg,#1c2030,#121620);border:1px solid rgba(200,208,220,0.28);}
+.p2 .podium-base::before{background:var(--silver);}
+.p2 .podium-medal,.p2 .podium-rank-num{color:var(--silver);}
+.p2 .podium-coupons{color:var(--silver);}
+.p2 .podium-avatar-inner{background:linear-gradient(135deg,#c8d0dc,#8896aa);color:#0a0c14;}
+.p3 .podium-avatar{width:50px;height:50px;border:2px solid var(--bronze);box-shadow:0 0 12px rgba(224,138,60,0.4);}
+.p3 .podium-base{height:74px;background:linear-gradient(160deg,#221608,#160f04);border:1px solid rgba(224,138,60,0.28);}
+.p3 .podium-base::before{background:var(--bronze);}
+.p3 .podium-medal,.p3 .podium-rank-num{color:var(--bronze);}
+.p3 .podium-coupons{color:var(--bronze);}
+.p3 .podium-avatar-inner{background:linear-gradient(135deg,#e08a3c,#b86020);color:#fff;}
+.p2{animation:pR 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;}
+.p1{animation:pR 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;}
+.p3{animation:pR 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.45s both;}
+@keyframes pR{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ LIST ═══ */
+.lb-list{display:flex;flex-direction:column;gap:10px;}
+.lb-row{display:grid;grid-template-columns:42px 52px 1fr 80px;align-items:center;gap:14px;background:var(--surface);border-radius:18px;padding:14px 18px;border:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;opacity:0;transform:translateX(28px);}
+.lb-row:hover{transform:translateX(-5px);box-shadow:0 10px 36px rgba(0,0,0,0.35);border-color:rgba(124,92,252,0.3);}
+.lb-row.visible{animation:slideR 0.55s cubic-bezier(0.34,1.2,0.64,1) forwards;}
+@keyframes slideR{to{opacity:1;transform:translateX(0)}}
+.lb-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--att-pct,0%);background:linear-gradient(90deg,rgba(124,92,252,0.12) 0%,transparent 100%);border-radius:18px 0 0 18px;transition:width 1.3s ease;}
+.lb-rank{font-family:'Tajawal',sans-serif;direction:ltr;font-size:1.15rem;font-weight:900;color:var(--muted);text-align:center;}
+.lb-rank.r4{color:#e0c040;}.lb-rank.r5{color:#d4834a;}
+.lb-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;border:2px solid rgba(255,255,255,0.09);}
+.lb-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.lb-avatar-inner{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.lb-info{min-width:0;}
+.lb-name{font-weight:700;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8ecff;}
+.lb-meta{display:flex;align-items:center;gap:9px;margin-top:4px;flex-wrap:wrap;}
+.lb-class{font-size:0.7rem;color:var(--muted);background:rgba(255,255,255,0.07);padding:2px 9px;border-radius:20px;}
+.lb-days{font-size:0.7rem;color:var(--muted);display:flex;align-items:center;gap:4px;}
+.lb-days i{color:var(--teal);font-size:0.62rem;}
+.att-bar{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:7px;overflow:hidden;}
+.att-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--teal));width:0%;transition:width 1.5s ease;}
+.lb-right{text-align:center;}
+.lb-coupons{font-family:'Tajawal',sans-serif;direction:ltr;unicode-bidi:isolate;font-size:1.45rem;font-weight:900;line-height:1;display:block;}
+.lb-coupon-lbl{font-size:0.6rem;color:var(--muted);margin-top:2px;}
+.av-0{background:linear-gradient(135deg,#7c5cfc,#5c3cdc);color:#fff;}
+.av-1{background:linear-gradient(135deg,#fc5c7d,#dc3c5d);color:#fff;}
+.av-2{background:linear-gradient(135deg,#00d4c8,#0094af);color:#000;}
+.av-3{background:linear-gradient(135deg,#43e97b,#38d9d9);color:#000;}
+.av-4{background:linear-gradient(135deg,#f6d365,#fda085);color:#000;}
+.av-5{background:linear-gradient(135deg,#a18cd1,#fbc2eb);color:#000;}
+.av-6{background:linear-gradient(135deg,#84fab0,#8fd3f4);color:#000;}
+.av-7{background:linear-gradient(135deg,#fd7c5a,#ffa07a);color:#fff;}
+.av-8{background:linear-gradient(135deg,#4facfe,#00f2fe);color:#000;}
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:14px;}
+.spinner{width:46px;height:46px;border:3px solid rgba(124,92,252,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{color:var(--muted);font-size:0.9rem;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state i{font-size:3rem;opacity:0.25;display:block;margin-bottom:16px;}
+.confetti-piece{position:fixed;pointer-events:none;z-index:9999;animation:cfF var(--dur,2s) ease-out var(--delay,0s) forwards;}
+@keyframes cfF{0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(0.3);opacity:0;}}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 20px;background:linear-gradient(to top,rgba(13,16,32,0.95),transparent);pointer-events:none;}
+.bottom-bar>*{pointer-events:all;}
+.refresh-btn{display:flex;align-items:center;gap:9px;background:rgba(124,92,252,0.2);border:1px solid rgba(124,92,252,0.35);border-radius:40px;color:#c0b0ff;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:700;padding:10px 22px;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.2s;}
+.refresh-btn:hover{background:rgba(124,92,252,0.4);border-color:var(--accent);color:#fff;}
+.refresh-btn.spinning i{animation:spin 0.8s linear infinite;}
+@media(max-width:600px){.lb-row{grid-template-columns:34px 42px 1fr 64px;gap:10px;padding:12px 13px;}.champion-card{padding:34px 22px 28px;}.podium{gap:8px;height:172px;}}
+
+/* ═══ LOGIN MODAL ═══ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(5,8,18,0.85);backdrop-filter:blur(14px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:linear-gradient(150deg,#161b30,#1e2448);
+  border:1px solid rgba(124,92,252,0.3);
+  border-radius:24px;width:100%;max-width:420px;
+  box-shadow:0 0 60px rgba(124,92,252,0.25),0 32px 80px rgba(0,0,0,0.6);
+  animation:modalPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  overflow:hidden;position:relative;
+}
+@keyframes modalPop{from{opacity:0;transform:scale(0.85) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,92,252,0.7),transparent);}
+
+.modal-header{padding:28px 28px 20px;text-align:center;position:relative;}
+.modal-close{
+  position:absolute;top:18px;left:18px;
+  width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.06);color:var(--muted);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:0.85rem;transition:all 0.2s;
+}
+.modal-close:hover{background:rgba(252,92,125,0.2);border-color:var(--accent2);color:var(--accent2);}
+.modal-icon{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 14px;
+  background:linear-gradient(135deg,rgba(124,92,252,0.25),rgba(252,92,125,0.15));
+  border:1.5px solid rgba(124,92,252,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;color:var(--accent);
+  box-shadow:0 0 24px rgba(124,92,252,0.3);
+}
+.modal-title{font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:4px;}
+.modal-subtitle{font-size:0.82rem;color:var(--muted);}
+
+/* Login tabs */
+.login-tabs{display:flex;gap:0;margin:0 28px 0;border-radius:12px;overflow:hidden;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);}
+.login-tab{flex:1;padding:10px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:700;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.login-tab.active{background:linear-gradient(135deg,rgba(124,92,252,0.4),rgba(252,92,125,0.2));color:#fff;}
+.login-tab i{font-size:0.8rem;}
+
+.modal-body{padding:20px 28px 28px;}
+.login-panel{display:none;}
+.login-panel.active{display:block;}
+
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:0.78rem;font-weight:700;color:#9da8cc;margin-bottom:7px;display:flex;align-items:center;gap:7px;}
+.form-label i{color:var(--accent);font-size:0.72rem;}
+.form-input{
+  width:100%;padding:12px 16px;
+  background:rgba(255,255,255,0.06);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:12px;color:#fff;
+  font-family:'Cairo',sans-serif;font-size:0.9rem;
+  transition:all 0.2s;outline:none;
+}
+.form-input:focus{border-color:var(--accent);background:rgba(124,92,252,0.1);box-shadow:0 0 0 3px rgba(124,92,252,0.15);}
+.form-input::placeholder{color:rgba(255,255,255,0.2);}
+.pass-wrap{position:relative;}
+.pass-toggle{position:absolute;left:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;transition:color 0.2s;padding:4px;}
+.pass-toggle:hover{color:#fff;}
+
+.login-btn{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#7c5cfc,#fc5c7d);
+  color:#fff;font-family:'Cairo',sans-serif;font-size:0.98rem;font-weight:800;
+  cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
+  box-shadow:0 6px 24px rgba(124,92,252,0.4);margin-top:4px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(124,92,252,0.5);}
+.login-btn:active{transform:translateY(0);}
+.login-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.login-btn .btn-shine{position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transform:skewX(-20deg);}
+.login-btn:hover .btn-shine{animation:bS 0.6s ease forwards;}
+
+/* Error / success states */
+.form-error{
+  display:none;align-items:center;gap:8px;
+  background:rgba(252,92,125,0.12);border:1px solid rgba(252,92,125,0.3);
+  border-radius:10px;padding:10px 14px;margin-bottom:14px;
+  font-size:0.82rem;color:#fc8fa8;
+}
+.form-error.show{display:flex;}
+.form-error i{flex-shrink:0;}
+.form-success{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 20px;text-align:center;gap:12px;
+}
+.form-success.show{display:flex;}
+.success-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(0,212,200,0.2),rgba(67,233,123,0.1));
+  border:2px solid rgba(67,233,123,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;color:#43e97b;
+  animation:successPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes successPop{from{transform:scale(0)}to{transform:scale(1)}}
+.success-name{font-family:'Tajawal',sans-serif;font-size:1.2rem;font-weight:900;color:#fff;}
+.success-sub{font-size:0.8rem;color:var(--muted);}
+
+/* Currently logged in card */
+.logged-in-card{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;padding:14px 16px;margin-bottom:18px;
+}
+.logged-in-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:900;color:#fff;
+  flex-shrink:0;border:2px solid rgba(124,92,252,0.4);
+}
+.logged-in-info{flex:1;min-width:0;}
+.logged-in-name{font-weight:700;font-size:0.92rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.logged-in-church{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+.logged-in-status{display:flex;align-items:center;gap:5px;font-size:0.72rem;color:#43e97b;margin-top:4px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#43e97b;animation:statusPulse 2s ease-in-out infinite;}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.switch-divider{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.switch-divider::before,.switch-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08);}
+.switch-divider span{font-size:0.75rem;color:var(--muted);white-space:nowrap;}
+
+.logout-btn{
+  width:100%;padding:11px;border:1.5px solid rgba(252,92,125,0.3);
+  border-radius:12px;background:rgba(252,92,125,0.08);
+  color:#fc8fa8;font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:700;
+  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:10px;
+}
+.logout-btn:hover{background:rgba(252,92,125,0.18);border-color:var(--accent2);color:#fff;}
+
+/* Account button in topbar */
+.acct-btn{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
+  border-radius:40px;padding:7px 14px 7px 10px;
+  color:#b0b8d8;font-family:'Cairo',sans-serif;font-size:0.78rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;backdrop-filter:blur(8px);
+  max-width:180px;
+}
+.acct-btn:hover{background:rgba(124,92,252,0.2);border-color:rgba(124,92,252,0.4);color:#fff;}
+.acct-avatar-sm{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Tajawal',sans-serif;font-size:0.72rem;font-weight:900;color:#fff;
+}
+.acct-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;}
+.acct-dot{width:7px;height:7px;border-radius:50%;background:#43e97b;flex-shrink:0;box-shadow:0 0 6px #43e97b;}
+.acct-dot.offline{background:var(--muted);box-shadow:none;}
+
+/* Intro login button */
+.intro-login-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+  border-radius:40px;padding:9px 20px;color:#b0b8e0;
+  font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;backdrop-filter:blur(10px);
+  margin-bottom:20px;
+}
+.intro-login-btn:hover{background:rgba(124,92,252,0.2);border-color:rgba(124,92,252,0.4);color:#fff;}
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+<div class="blob blob1"></div><div class="blob blob2"></div>
+<div class="blob blob3"></div><div class="blob blob4"></div>
+
+<!-- ═══ INTRO SCREEN ═══ -->
+<div id="introScreen">
+  <div class="intro-icon-ring">
+    <div class="intro-glow"></div>
+    <svg viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="65" cy="65" r="60" stroke="rgba(245,197,24,0.15)" stroke-width="1.5"/>
+      <circle cx="65" cy="65" r="60" stroke="url(#ig)" stroke-width="2.5" stroke-dasharray="85 290" stroke-linecap="round" style="animation:spIntro 5s linear infinite;transform-origin:65px 65px;"/>
+      <!-- Trophy body -->
+      <path d="M44 30h42v30c0 11.6-9.4 21-21 21s-21-9.4-21-21V30z" fill="rgba(245,197,24,0.88)"/>
+      <path d="M44 40H32c0 13 7 20 14 22M86 40h12c0 13-7 20-14 22" stroke="rgba(245,197,24,0.75)" stroke-width="3" stroke-linecap="round"/>
+      <rect x="56" y="81" width="18" height="7" rx="2.5" fill="rgba(245,197,24,0.8)"/>
+      <rect x="47" y="88" width="36" height="6" rx="2.5" fill="rgba(245,197,24,0.6)"/>
+      <!-- Star on trophy -->
+      <path d="M65 38l2.4 7.4h7.8l-6.3 4.6 2.4 7.4L65 53l-6.3 4.4 2.4-7.4-6.3-4.6h7.8z" fill="rgba(255,255,255,0.9)"/>
+      <defs>
+        <linearGradient id="ig" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f5c518"/><stop offset="100%" stop-color="#ff9500"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <h1 class="intro-title">لوحة المتفوقين</h1>
+  <p class="intro-sub">اكتشف أبطال مدارس الأحد</p>
+  <div class="intro-church">
+    <i class="fas fa-church"></i>
+    <span id="introBadge">جاري التحميل...</span>
+  </div>
+  <button class="intro-login-btn" id="introLoginBtn" onclick="openLoginModal()">
+    <i class="fas fa-sign-in-alt"></i>
+    <span id="introLoginLabel">تسجيل الدخول</span>
+  </button>
+
+  <button class="start-btn" id="startBtn" onclick="beginSuspense()">
+    <div class="btn-shine"></div>
+    <i class="fas fa-play"></i>
+    ابدأ العرض
+  </button>
+  <div class="intro-dots">
+    <div class="intro-dot"></div><div class="intro-dot"></div><div class="intro-dot"></div>
+  </div>
+</div>
+
+<!-- ═══ SUSPENSE COUNTDOWN ═══ -->
+<div id="suspenseScreen">
+  <div class="sus-bg"></div>
+  <div class="cd-wrap">
+    <div class="cd-label" id="cdLabel">استعد للكشف</div>
+    <div style="position:relative;display:inline-block;">
+      <span class="cd-num" id="cdNum">3</span>
+      <div class="cd-ring" id="cdRing"></div>
+    </div>
+    <p class="cd-msg" id="cdMsg">من سيحتل القمة؟</p>
+    <div class="cd-bar-wrap"><div class="cd-bar" id="cdBar"></div></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN PAGE ═══ -->
+<div id="mainPage">
+  <div class="page">
+    <div class="topbar">
+      <div class="church-badge">
+        <i class="fas fa-church"></i>
+        <span id="churchNameBadge">مدارس الأحد</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="acct-btn" id="acctBtn" onclick="openLoginModal()" title="الحساب">
+          <div class="acct-avatar-sm" id="acctAvatarSm">؟</div>
+          <span class="acct-label" id="acctLabel">تسجيل الدخول</span>
+          <div class="acct-dot offline" id="acctDot"></div>
+        </button>
+        <button class="icon-btn" id="refreshIconBtn" onclick="loadLeaderboard(true)" title="تحديث">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="ملء الشاشة">
+          <i class="fas fa-expand"></i>
+        </button>
+      </div>
+    </div>
+    <header class="page-header">
+      <h1 class="page-title">
+        <i class="fas fa-trophy" style="font-size:0.82em;margin-left:10px;vertical-align:middle;"></i>لوحة المتفوقين
+      </h1>
+      <p class="page-subtitle">مرتبون حسب الكوبونات وأيام الحضور</p>
+    </header>
+    <div id="mainContent">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <p class="loading-txt">جاري تحميل البيانات...</p>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="refresh-btn" id="refreshBtn" onclick="loadLeaderboard(true)">
+      <i class="fas fa-sync-alt"></i> تحديث البيانات
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes spIntro{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+
+<script>
+// ══ STARS ══
+(function(){
+  const c=document.getElementById('stars-canvas'),ctx=c.getContext('2d');let stars=[];
+  function resize(){c.width=innerWidth;c.height=innerHeight;stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.6+0.2,a:Math.random(),da:Math.random()*0.007+0.002,sp:Math.random()*0.12+0.04});}
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0)s.da*=-1;s.y+=s.sp;if(s.y>c.height)s.y=0;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(210,220,255,${s.a})`;ctx.fill();});requestAnimationFrame(draw);}
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+const API_URL='/api.php';
+const AV=['av-0','av-1','av-2','av-3','av-4','av-5','av-6','av-7','av-8'];
+let _students=[],_attMap={},_churchName='مدارس الأحد';
+let _currentLoginTab='church',_isLoggedIn=false,_sessionInfo=null;
+
+const esc=s=>String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// Always English numbers
+const fmtNum=n=>Number(n).toLocaleString('en-US');
+const initials=name=>{const p=(name||'').trim().split(' ');return p.length>=2?p[0][0]+p[1][0]:(p[0]||'?')[0];};
+const avCol=i=>AV[i%AV.length];
+
+function animateCount(el,target,duration=1300){
+  const start=performance.now();
+  function step(now){
+    const t=Math.min((now-start)/duration,1),ease=1-Math.pow(1-t,3);
+    el.textContent=fmtNum(Math.round(target*ease));
+    if(t<1)requestAnimationFrame(step);else el.textContent=fmtNum(target);
+  }
+  requestAnimationFrame(step);
+}
+
+function confetti(x,y,count=55){
+  const colors=['#f5c518','#fc5c7d','#7c5cfc','#43e97b','#00d4c8','#fda085','#fff'];
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    const angle=Math.random()*Math.PI*2,dist=90+Math.random()*160,dur=1.3+Math.random()*1.1,size=5+Math.random()*9;
+    el.style.cssText=`left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'3px'};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;--dur:${dur}s;--delay:${Math.random()*0.25}s;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),(dur+0.6)*1000);
+  }
+}
+
+function spawnParticles(container){
+  const pColors=['#f5c518','#ffe066','#fff8c0','#ffb300','#ffd700'];
+  const pc=container.querySelector('.particles');if(!pc)return;
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div');p.className='particle';
+    const angle=(i/16)*Math.PI*2,dist=55+Math.random()*60,dur=2.2+Math.random()*2;
+    p.style.cssText=`left:50%;top:50%;background:${pColors[i%pColors.length]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--dur:${dur}s;--delay:${Math.random()*1.5}s;`;
+    pc.appendChild(p);
+  }
+}
+
+// ══ FETCH ══
+async function fetchSession(){try{const fd=new FormData();fd.append('action','getSessionInfo');const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json());return d.success?d:null;}catch(e){return null;}}
+async function fetchStudents(){const fd=new FormData();fd.append('action','getData');const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));return d.success?(d.data||[]):[];}
+function buildAttMap(students){const m={};students.forEach(s=>{const att=s['_allAttendance']||{};m[s['_studentId']]=Object.values(att).filter(v=>v==='ح').length;});return m;}
+
+// ══ PREFETCH ══
+async function prefetchData(){
+  const [sess,students]=await Promise.all([fetchSession(),fetchStudents()]);
+  _churchName=sess?.church_name||localStorage.getItem('churchName')||'مدارس الأحد';
+  _students=students;_attMap=buildAttMap(students);
+  document.getElementById('introBadge').textContent=_churchName;
+  document.getElementById('churchNameBadge').textContent=_churchName;
+  updateSessionUI(sess);
+}
+
+// ══ SUSPENSE ══
+function beginSuspense(){
+  const intro=document.getElementById('introScreen');
+  intro.style.transition='opacity 0.5s';intro.style.opacity='0';
+  setTimeout(()=>{intro.style.display='none';document.getElementById('suspenseScreen').style.display='flex';runCountdown();},500);
+}
+
+const susMsgs=['من حضر أكثر الأيام؟','من جمع أكثر الكوبونات؟','الجواب على وشك الظهور...'];
+
+function runCountdown(){
+  const numEl=document.getElementById('cdNum'),barEl=document.getElementById('cdBar'),
+        msgEl=document.getElementById('cdMsg'),lblEl=document.getElementById('cdLabel'),
+        ringEl=document.getElementById('cdRing');
+  let count=3;
+  barEl.style.transition='none';barEl.style.width='0%';
+
+  function tick(){
+    numEl.textContent=count;
+    numEl.style.animation='none';void numEl.offsetWidth;numEl.style.animation='cS 0.9s cubic-bezier(0.34,1.56,0.64,1)';
+    ringEl.style.animation='none';void ringEl.offsetWidth;ringEl.style.animation='rE 0.9s ease-out forwards';
+    msgEl.textContent=susMsgs[3-count]||'';msgEl.style.animation='none';void msgEl.offsetWidth;msgEl.style.animation='fI 0.4s ease 0.3s both';
+    barEl.style.transition='width 0.88s linear';barEl.style.width=((4-count)/3*100)+'%';
+    if(count>1){count--;setTimeout(tick,1100);}
+    else{setTimeout(()=>{numEl.textContent='!';lblEl.textContent='انطلق';msgEl.textContent='إليكم المتفوقون...';barEl.style.width='100%';setTimeout(revealLeaderboard,900);},1100);}
+  }
+  tick();
+}
+
+function revealLeaderboard(){
+  const sus=document.getElementById('suspenseScreen'),main=document.getElementById('mainPage');
+  sus.style.transition='opacity 0.6s';sus.style.opacity='0';
+  setTimeout(()=>{sus.style.display='none';main.style.display='block';renderPage(_students,_attMap,_churchName);},600);
+}
+
+// ══ RENDER ══
+function renderPage(students,attMap,churchName){
+  if(!students.length){
+    document.getElementById('mainContent').innerHTML=`<div class="empty-state"><i class="fas fa-trophy"></i><h3>لا يوجد أطفال مسجلون بعد</h3><p>سيظهر المتفوقون هنا بعد إضافة الأطفال</p></div>`;
+    return;
+  }
+  const sorted=[...students].sort((a,b)=>{const cd=(b['كوبونات']||0)-(a['كوبونات']||0);if(cd!==0)return cd;return(attMap[b['_studentId']]||0)-(attMap[a['_studentId']]||0);});
+  const top10=sorted.slice(0,10),champion=top10[0];
+  const maxAtt=Math.max(...top10.map(s=>attMap[s['_studentId']]||0),1);
+  let html='';
+
+  // CHAMPION
+  const cAtt=attMap[champion['_studentId']]||0,cInit=initials(champion['الاسم']);
+  html+=`<div class="champion-wrap"><div class="champion-card" id="championCard">
+    <div class="particles"></div>
+    <div class="champ-rank-badge">1</div>
+    <div class="crown-icon"><i class="fas fa-crown"></i></div>
+    <div class="champion-ring">
+      <svg class="ring-svg" viewBox="0 0 140 140" fill="none">
+        <circle cx="70" cy="70" r="64" stroke="rgba(245,197,24,0.13)" stroke-width="2"/>
+        <circle cx="70" cy="70" r="64" stroke="url(#cg)" stroke-width="3" stroke-dasharray="90 310" stroke-linecap="round"/>
+        <circle cx="70" cy="70" r="52" stroke="rgba(245,197,24,0.08)" stroke-width="1" stroke-dasharray="20 15"/>
+        <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f5c518"/><stop offset="100%" stop-color="#ff9500"/></linearGradient></defs>
+      </svg>
+      <div class="champion-avatar">${champion['صورة']?`<img src="${esc(champion['صورة'])}" onerror="this.style.display='none'">${cInit}`:cInit}</div>
+    </div>
+    <div class="champion-name">${esc(champion['الاسم'])}</div>
+    <div class="champion-class"><i class="fas fa-graduation-cap"></i> ${esc(champion['الفصل']||'---')}</div>
+    <div class="champion-stats">
+      <div class="champ-stat">
+        <div class="champ-stat-icon"><i class="fas fa-coins"></i></div>
+        <span class="champ-stat-val gold count-up" data-target="${champion['كوبونات']||0}">0</span>
+        <div class="champ-stat-lbl">كوبون</div>
+      </div>
+      <div class="champ-stat">
+        <div class="champ-stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <span class="champ-stat-val teal count-up" data-target="${cAtt}">0</span>
+        <div class="champ-stat-lbl">يوم حضور</div>
+      </div>
+    </div>
+  </div></div>`;
+
+  // PODIUM
+  if(top10.length>=2){
+    html+=`<div class="podium-section"><div class="section-label"><i class="fas fa-medal"></i> المنصة الثلاثية</div><div class="podium">`;
+    const order=[top10[1],top10[0],top10.length>2?top10[2]:null];
+    const cls=['p2','p1','p3'];
+    const medalIcons=[
+      `<i class="fas fa-medal" style="color:var(--silver)"></i>`,
+      `<i class="fas fa-trophy" style="color:var(--gold)"></i>`,
+      `<i class="fas fa-medal" style="color:var(--bronze)"></i>`
+    ];
+    const ranks=[2,1,3];
+    order.forEach((s,i)=>{
+      if(!s){html+=`<div class="podium-item ${cls[i]}"></div>`;return;}
+      const att2=attMap[s['_studentId']]||0,init2=initials(s['الاسم']),col2=avCol(ranks[i]-1);
+      html+=`<div class="podium-item ${cls[i]}">
+        <div class="podium-avatar">${s['صورة']?`<img src="${esc(s['صورة'])}" onerror="this.style.display='none'"><div class="podium-avatar-inner ${col2}" style="display:none;">${init2}</div>`:`<div class="podium-avatar-inner ${col2}">${init2}</div>`}</div>
+        <div class="podium-name">${esc(s['الاسم'])}</div>
+        <div class="podium-coupons"><i class="fas fa-coins" style="font-size:0.62rem;opacity:0.7;margin-left:3px;"></i>${fmtNum(s['كوبونات']||0)}</div>
+        <div class="podium-base">
+          <div class="podium-medal">${medalIcons[i]}</div>
+          <div class="podium-rank-num">${ranks[i]}</div>
+          <div class="podium-days"><i class="fas fa-calendar-check" style="margin-left:3px;font-size:0.55rem;"></i>${att2}</div>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  }
+
+  // LIST 4-10
+  const rest=top10.slice(3);
+  if(rest.length){
+    html+=`<div class="section-label" style="margin:8px 0 14px;"><i class="fas fa-list-ol"></i> المراكز 4 – 10</div><div class="lb-list" id="lbList">`;
+    rest.forEach((s,idx)=>{
+      const rank=idx+4,att3=attMap[s['_studentId']]||0,attPct=Math.round((att3/maxAtt)*100);
+      const init3=initials(s['الاسم']),col3=avCol(rank-1),coupons=s['كوبونات']||0;
+      const couponColor=rank===4?'#e8c040':rank===5?'#e0883c':'#a0aac4';
+      html+=`<div class="lb-row" style="--att-pct:${attPct}%;animation-delay:${idx*0.07}s;">
+        <div class="lb-rank ${rank===4?'r4':rank===5?'r5':''}">${rank}</div>
+        <div class="lb-avatar">${s['صورة']?`<img src="${esc(s['صورة'])}" onerror="this.style.display='none'"><div class="lb-avatar-inner ${col3}" style="display:none;">${init3}</div>`:`<div class="lb-avatar-inner ${col3}">${init3}</div>`}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(s['الاسم'])}</div>
+          <div class="lb-meta">
+            <span class="lb-class"><i class="fas fa-chalkboard" style="font-size:0.58rem;margin-left:3px;"></i>${esc(s['الفصل']||'---')}</span>
+            <span class="lb-days"><i class="fas fa-calendar-check"></i>${att3} يوم</span>
+          </div>
+          <div class="att-bar"><div class="att-bar-fill" data-width="${attPct}"></div></div>
+        </div>
+        <div class="lb-right">
+          <span class="lb-coupons count-up" data-target="${coupons}" style="color:${couponColor}">0</span>
+          <div class="lb-coupon-lbl"><i class="fas fa-coins" style="font-size:0.55rem;margin-left:2px;"></i>كوبون</div>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  document.getElementById('mainContent').innerHTML=html;
+
+  requestAnimationFrame(()=>{
+    spawnParticles(document.getElementById('championCard'));
+    document.querySelectorAll('.champion-stats .count-up').forEach(el=>animateCount(el,parseInt(el.dataset.target)||0,1600));
+    setTimeout(()=>document.querySelectorAll('#lbList .count-up').forEach(el=>animateCount(el,parseInt(el.dataset.target)||0,1000)),350);
+    const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.08});
+    document.querySelectorAll('.lb-row').forEach(r=>io.observe(r));
+    setTimeout(()=>document.querySelectorAll('.att-bar-fill').forEach(el=>{el.style.width=el.dataset.width+'%';}),500);
+    const card=document.getElementById('championCard');
+    if(card){const rect=card.getBoundingClientRect();setTimeout(()=>confetti(rect.left+rect.width/2,rect.top+rect.height/3,65),800);}
+  });
+}
+
+// ══ RELOAD ══
+async function loadLeaderboard(manual=false){
+  if(manual){
+    [document.getElementById('refreshBtn'),document.getElementById('refreshIconBtn')]
+      .forEach(b=>{b?.classList.add('spinning');setTimeout(()=>b?.classList.remove('spinning'),1400);});
+  }
+  try{
+    const [sess,students]=await Promise.all([fetchSession(),fetchStudents()]);
+    _churchName=sess?.church_name||localStorage.getItem('churchName')||'مدارس الأحد';
+    _students=students;_attMap=buildAttMap(students);
+    updateSessionUI(sess);
+    document.getElementById('churchNameBadge').textContent=_churchName;
+    renderPage(_students,_attMap,_churchName);
+  }catch(e){
+    document.getElementById('mainContent').innerHTML=`<div class="empty-state"><i class="fas fa-circle-exclamation"></i><h3>خطأ في تحميل البيانات</h3><p>${esc(e.message||'تحقق من الاتصال')}</p></div>`;
+  }
+}
+
+// ══ FULLSCREEN ══
+function toggleFullscreen(){
+  const btn=document.getElementById('fullscreenBtn');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    btn.querySelector('i').className='fas fa-compress';btn.classList.add('active');
+  } else {
+    document.exitFullscreen();
+    btn.querySelector('i').className='fas fa-expand';btn.classList.remove('active');
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('fullscreenBtn');
+  if(!document.fullscreenElement){btn.querySelector('i').className='fas fa-expand';btn.classList.remove('active');}
+});
+
+// ══ SESSION UI ══
+function updateSessionUI(sess){
+  _sessionInfo=sess; _isLoggedIn=!!sess;
+  const acctLabel=document.getElementById('acctLabel');
+  const acctAvatar=document.getElementById('acctAvatarSm');
+  const acctDot=document.getElementById('acctDot');
+  const introLabel=document.getElementById('introLoginLabel');
+  const introIcon=document.getElementById('introLoginBtn')?.querySelector('i');
+  if(sess){
+    const name=sess.uncle_name||sess.church_name||'المسؤول';
+    acctAvatar.textContent=initials(name);
+    acctLabel.textContent=name;
+    acctDot.classList.remove('offline');
+    if(introLabel) introLabel.textContent='تبديل الحساب';
+    if(introIcon) introIcon.className='fas fa-user-circle';
+  } else {
+    acctAvatar.textContent='؟';
+    acctLabel.textContent='تسجيل الدخول';
+    acctDot.classList.add('offline');
+    if(introLabel) introLabel.textContent='تسجيل الدخول';
+    if(introIcon) introIcon.className='fas fa-sign-in-alt';
+  }
+}
+
+// ══ LOGIN MODAL ══
+function openLoginModal(){
+  const modal=document.getElementById('loginModal');
+  const liState=document.getElementById('loggedInState');
+  const logoutBtn=document.getElementById('logoutBtn');
+  document.getElementById('formError').classList.remove('show');
+  document.getElementById('formSuccess').classList.remove('show');
+  document.getElementById('panelChurch').classList.add('active');
+  document.getElementById('panelUncle').classList.remove('active');
+  document.getElementById('loginTabs').style.display='flex';
+  document.getElementById('panelChurch').style.display='';
+  document.getElementById('panelUncle').style.display='';
+
+  if(_isLoggedIn && _sessionInfo){
+    const name=_sessionInfo.uncle_name||_sessionInfo.church_name||'المسؤول';
+    document.getElementById('liName').textContent=name;
+    document.getElementById('liChurch').textContent=_sessionInfo.church_name||'';
+    document.getElementById('liAvatar').textContent=initials(name);
+    liState.style.display='block';
+    logoutBtn.style.display='flex';
+    document.getElementById('modalTitle').textContent='تبديل الحساب';
+    document.getElementById('modalSubtitle').textContent='سجّل دخولاً بحساب مختلف';
+    document.getElementById('modalIcon').innerHTML='<i class="fas fa-user-circle"></i>';
+  } else {
+    liState.style.display='none';
+    logoutBtn.style.display='none';
+    document.getElementById('modalTitle').textContent='تسجيل الدخول';
+    document.getElementById('modalSubtitle').textContent='سجّل دخولك لعرض بيانات كنيستك';
+    document.getElementById('modalIcon').innerHTML='<i class="fas fa-sign-in-alt"></i>';
+  }
+  modal.classList.add('open');
+  setTimeout(()=>document.getElementById('churchCodeInput')?.focus(),320);
+}
+
+function closeLoginModal(){
+  document.getElementById('loginModal').classList.remove('open');
+  ['churchCodeInput','churchPassInput','uncleUserInput','unclePassInput']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('formError').classList.remove('show');
+  document.getElementById('formSuccess').classList.remove('show');
+}
+
+function handleOverlayClick(e){
+  if(e.target===document.getElementById('loginModal')) closeLoginModal();
+}
+
+function switchLoginTab(tab){
+  _currentLoginTab=tab;
+  document.getElementById('tabChurch').classList.toggle('active',tab==='church');
+  document.getElementById('tabUncle').classList.toggle('active',tab==='uncle');
+  document.getElementById('panelChurch').classList.toggle('active',tab==='church');
+  document.getElementById('panelUncle').classList.toggle('active',tab==='uncle');
+  document.getElementById('formError').classList.remove('show');
+  setTimeout(()=>document.querySelector('.login-panel.active input')?.focus(),100);
+}
+
+function togglePass(inputId,btn){
+  const inp=document.getElementById(inputId);
+  const isText=inp.type==='text';
+  inp.type=isText?'password':'text';
+  btn.querySelector('i').className=isText?'fas fa-eye':'fas fa-eye-slash';
+}
+
+function showFormError(msg){
+  document.getElementById('formErrorMsg').textContent=msg;
+  document.getElementById('formError').classList.add('show');
+}
+
+async function doLogin(){
+  document.getElementById('formError').classList.remove('show');
+  let fd=new FormData(),btnId;
+  if(_currentLoginTab==='church'){
+    const code=document.getElementById('churchCodeInput').value.trim();
+    const pass=document.getElementById('churchPassInput').value;
+    if(!code||!pass){showFormError('أدخل رمز الكنيسة وكلمة المرور');return;}
+    fd.append('action','login');fd.append('church_code',code);fd.append('password',pass);
+    btnId='loginBtnChurch';
+  } else {
+    const user=document.getElementById('uncleUserInput').value.trim();
+    const pass=document.getElementById('unclePassInput').value;
+    if(!user||!pass){showFormError('أدخل اسم المستخدم وكلمة المرور');return;}
+    fd.append('action','uncleLogin');fd.append('username',user);fd.append('password',pass);
+    btnId='loginBtnUncle';
+  }
+  const btn=document.getElementById(btnId);
+  btn.disabled=true;
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+  try{
+    const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json());
+    if(d.success){
+      const name=d.uncle?.name||d.church_name||d.uncle_name||'مرحباً';
+      document.getElementById('successName').textContent=name;
+      document.getElementById('formSuccess').classList.add('show');
+      document.getElementById('panelChurch').style.display='none';
+      document.getElementById('panelUncle').style.display='none';
+      document.getElementById('loginTabs').style.display='none';
+      document.getElementById('loggedInState').style.display='none';
+      document.getElementById('logoutBtn').style.display='none';
+      setTimeout(async()=>{
+        const [sess,students]=await Promise.all([fetchSession(),fetchStudents()]);
+        _churchName=sess?.church_name||'مدارس الأحد';
+        _students=students;_attMap=buildAttMap(students);
+        updateSessionUI(sess);
+        document.getElementById('churchNameBadge').textContent=_churchName;
+        document.getElementById('introBadge').textContent=_churchName;
+        closeLoginModal();
+        if(document.getElementById('mainPage').style.display!=='none') renderPage(_students,_attMap,_churchName);
+      },1600);
+    } else {
+      showFormError(d.message||'بيانات غير صحيحة');
+      btn.disabled=false;
+      btn.innerHTML='<div class="btn-shine"></div><i class="fas fa-sign-in-alt"></i> دخول';
+    }
+  }catch(e){
+    showFormError('خطأ في الاتصال. تحقق من الشبكة.');
+    btn.disabled=false;
+    btn.innerHTML='<div class="btn-shine"></div><i class="fas fa-sign-in-alt"></i> دخول';
+  }
+}
+
+async function doLogout(){
+  try{await fetch(API_URL,{method:'POST',body:new URLSearchParams({action:'logout'})});}catch(e){}
+  localStorage.clear();
+  _isLoggedIn=false;_sessionInfo=null;_students=[];_attMap={};_churchName='مدارس الأحد';
+  updateSessionUI(null);
+  document.getElementById('churchNameBadge').textContent='مدارس الأحد';
+  document.getElementById('introBadge').textContent='مدارس الأحد';
+  closeLoginModal();
+  if(document.getElementById('mainPage').style.display!=='none'){
+    document.getElementById('mainContent').innerHTML=`<div class="empty-state"><i class="fas fa-sign-in-alt"></i><h3>سجّل الدخول لعرض البيانات</h3><p>انقر على زر الحساب في الأعلى</p></div>`;
+  }
+}
+
+// Escape closes modal
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLoginModal();});
+
+// ══ BOOT ══
+prefetchData();
+setInterval(()=>{if(document.getElementById('mainPage').style.display!=='none')loadLeaderboard();},60000);
+</script>
+
+<!-- ═══ LOGIN MODAL ═══ -->
+<div class="modal-overlay" id="loginModal" onclick="handleOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-icon" id="modalIcon"><i class="fas fa-sign-in-alt"></i></div>
+      <div class="modal-title" id="modalTitle">تسجيل الدخول</div>
+      <div class="modal-subtitle" id="modalSubtitle">سجّل دخولك لعرض بيانات كنيستك</div>
+    </div>
+    <div class="login-tabs" id="loginTabs">
+      <button class="login-tab active" id="tabChurch" onclick="switchLoginTab('church')">
+        <i class="fas fa-church"></i> كنيسة
+      </button>
+      <button class="login-tab" id="tabUncle" onclick="switchLoginTab('uncle')">
+        <i class="fas fa-user-tie"></i> خادم
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="loggedInState" style="display:none;">
+        <div class="logged-in-card">
+          <div class="logged-in-avatar" id="liAvatar">م</div>
+          <div class="logged-in-info">
+            <div class="logged-in-name" id="liName">المسؤول</div>
+            <div class="logged-in-church" id="liChurch">مدارس الأحد</div>
+            <div class="logged-in-status"><div class="status-dot"></div> متصل</div>
+          </div>
+        </div>
+        <div class="switch-divider"><span>تبديل إلى حساب آخر</span></div>
+      </div>
+      <div class="form-error" id="formError">
+        <i class="fas fa-circle-exclamation"></i>
+        <span id="formErrorMsg">خطأ في تسجيل الدخول</span>
+      </div>
+      <div class="form-success" id="formSuccess">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <div class="success-name" id="successName"></div>
+        <div class="success-sub">تم تسجيل الدخول بنجاح</div>
+      </div>
+      <!-- Church panel -->
+      <div class="login-panel active" id="panelChurch">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-hashtag"></i> رمز الكنيسة</label>
+          <input type="text" id="churchCodeInput" class="form-input" placeholder="مثال: mark_church"
+            onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-lock"></i> كلمة المرور</label>
+          <div class="pass-wrap">
+            <input type="password" id="churchPassInput" class="form-input" placeholder="••••••••"
+              onkeydown="if(event.key==='Enter')doLogin()" style="padding-left:44px;">
+            <button class="pass-toggle" onclick="togglePass('churchPassInput',this)" tabindex="-1">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button class="login-btn" id="loginBtnChurch" onclick="doLogin()">
+          <div class="btn-shine"></div>
+          <i class="fas fa-sign-in-alt"></i> دخول
+        </button>
+      </div>
+      <!-- Uncle panel -->
+      <div class="login-panel" id="panelUncle">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-user"></i> اسم المستخدم</label>
+          <input type="text" id="uncleUserInput" class="form-input" placeholder="أدخل اسم المستخدم"
+            onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-lock"></i> كلمة المرور</label>
+          <div class="pass-wrap">
+            <input type="password" id="unclePassInput" class="form-input" placeholder="••••••••"
+              onkeydown="if(event.key==='Enter')doLogin()" style="padding-left:44px;">
+            <button class="pass-toggle" onclick="togglePass('unclePassInput',this)" tabindex="-1">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button class="login-btn" id="loginBtnUncle" onclick="doLogin()">
+          <div class="btn-shine"></div>
+          <i class="fas fa-sign-in-alt"></i> دخول
+        </button>
+      </div>
+      <!-- Logout -->
+      <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

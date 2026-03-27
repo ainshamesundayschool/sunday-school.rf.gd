@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المساعدة — نظام مدارس الأحد</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --brand: #5b6cf5;
+    --brand-d: #4154e8;
+    --brand-l: #a5b0fb;
+    --brand-bg: #eef0ff;
+    --ok: #10b981;
+    --ok-bg: #d1fae5;
+    --warn: #f59e0b;
+    --cou: #8b5cf6;
+    --cou-bg: #ede9fe;
+    --err: #ef4444;
+    --t1: #1a1d2e;
+    --t2: #4b5068;
+    --t3: #8b90a8;
+    --bg: #f4f5fb;
+    --surf: #ffffff;
+    --bdr: #e4e6f0;
+    --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 9999px;
+    --sh: 0 4px 20px -4px rgba(91,108,245,.13);
+    --sh-lg: 0 16px 48px -8px rgba(91,108,245,.18);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--t1);
+    min-height: 100vh;
+  }
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91,108,245,.08) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139,92,246,.06) 0%, transparent 55%);
+    pointer-events:none;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top:0; z-index:100;
+    display:flex; align-items:center; gap:14px;
+    padding: 0 24px; height:62px;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--bdr);
+    box-shadow: 0 2px 12px -4px rgba(91,108,245,.1);
+  }
+  .topbar-logo {
+    width:38px; height:38px; border-radius:10px;
+    background: linear-gradient(135deg,var(--brand),var(--brand-d));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1rem; box-shadow: 0 4px 12px rgba(91,108,245,.3);
+    flex-shrink:0;
+  }
+  .topbar-title { font-size:1rem; font-weight:800; color:var(--t1); }
+  .topbar-sub { font-size:.7rem; color:var(--t3); margin-top:-1px; }
+  .topbar-back {
+    margin-right:auto;
+    display:flex; align-items:center; gap:6px;
+    padding:7px 14px; border-radius:var(--r-full);
+    background:var(--brand-bg); color:var(--brand);
+    font-size:.82rem; font-weight:700; text-decoration:none;
+    border:1.5px solid rgba(91,108,245,.2);
+    transition:all .18s;
+  }
+  .topbar-back:hover { background:var(--brand); color:#fff; }
+
+  /* ── PAGE ── */
+  .page { max-width:860px; margin:0 auto; padding:32px 20px 64px; position:relative; z-index:1; }
+
+  /* ── HERO ── */
+  .hero {
+    text-align:center;
+    background: linear-gradient(135deg,var(--brand),var(--brand-d));
+    border-radius: var(--r-xl);
+    padding: 48px 32px 40px;
+    margin-bottom: 40px;
+    color:#fff;
+    position:relative; overflow:hidden;
+    box-shadow: var(--sh-lg);
+  }
+  .hero::before {
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 20% 50%, rgba(255,255,255,.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,.08) 0%, transparent 40%);
+    pointer-events:none;
+  }
+  .hero-icon {
+    width:72px; height:72px; border-radius:50%;
+    background:rgba(255,255,255,.2);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 18px;
+    font-size:2rem;
+    box-shadow: 0 0 0 12px rgba(255,255,255,.08);
+  }
+  .hero h1 { font-size:1.8rem; font-weight:900; margin-bottom:8px; }
+  .hero p { font-size:.92rem; opacity:.88; max-width:480px; margin:0 auto 28px; line-height:1.65; }
+  .join-btn {
+    display:inline-flex; align-items:center; gap:10px;
+    padding:14px 30px; border-radius:var(--r-full);
+    background:#25d366; color:#fff;
+    font-family:'Cairo',sans-serif; font-size:1rem; font-weight:800;
+    text-decoration:none;
+    box-shadow: 0 6px 20px rgba(37,211,102,.4);
+    transition:all .2s;
+    border:none; cursor:pointer;
+  }
+  .join-btn:hover { transform:translateY(-2px); box-shadow: 0 10px 28px rgba(37,211,102,.5); background:#22c55e; }
+  .join-btn i { font-size:1.2rem; }
+
+  /* ── SECTION HEADER ── */
+  .sec-hdr {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px; margin-top:40px;
+  }
+  .sec-hdr-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:linear-gradient(135deg,var(--brand),var(--cou));
+  }
+  .sec-hdr h2 { font-size:1.05rem; font-weight:800; color:var(--t1); }
+  .sec-hdr span { font-size:.75rem; color:var(--t3); margin-right:auto; font-weight:600; }
+
+  /* ── FEATURE GRID ── */
+  .feat-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+    gap:14px;
+    margin-bottom:12px;
+  }
+  .feat-card {
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-lg);
+    padding:20px 18px;
+    box-shadow: var(--sh);
+    transition:all .18s;
+  }
+  .feat-card:hover { transform:translateY(-3px); box-shadow:var(--sh-lg); border-color:var(--brand-l); }
+  .feat-icon {
+    width:44px; height:44px; border-radius:var(--r-md);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; margin-bottom:12px; flex-shrink:0;
+  }
+  .feat-card h3 { font-size:.9rem; font-weight:800; color:var(--t1); margin-bottom:5px; }
+  .feat-card p { font-size:.8rem; color:var(--t2); line-height:1.6; }
+
+  /* ── FAQ ── */
+  .faq-list { display:flex; flex-direction:column; gap:10px; }
+  .faq-item {
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-lg);
+    overflow:hidden;
+    box-shadow: var(--sh);
+    transition:border-color .18s;
+  }
+  .faq-item.open { border-color:var(--brand-l); }
+  .faq-q {
+    display:flex; align-items:center; gap:12px;
+    padding:16px 20px; cursor:pointer;
+    user-select:none;
+    transition:background .15s;
+  }
+  .faq-q:hover { background:var(--brand-bg); }
+  .faq-q-icon {
+    width:32px; height:32px; border-radius:var(--r-sm);
+    background:var(--brand-bg); color:var(--brand);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.8rem; flex-shrink:0;
+  }
+  .faq-item.open .faq-q-icon { background:var(--brand); color:#fff; }
+  .faq-q-text { flex:1; font-size:.88rem; font-weight:700; color:var(--t1); }
+  .faq-chevron { color:var(--t3); font-size:.7rem; transition:transform .25s; }
+  .faq-item.open .faq-chevron { transform:rotate(180deg); color:var(--brand); }
+  .faq-a {
+    max-height:0; overflow:hidden;
+    transition:max-height .35s ease, padding .25s;
+    padding:0 20px; font-size:.84rem; color:var(--t2); line-height:1.7;
+  }
+  .faq-item.open .faq-a { max-height:300px; padding:0 20px 18px; }
+  .faq-a ul { padding-right:18px; margin-top:6px; }
+  .faq-a ul li { margin-bottom:4px; }
+
+  /* ── STEPS ── */
+  .steps-list { display:flex; flex-direction:column; gap:10px; }
+  .step-row {
+    display:flex; align-items:flex-start; gap:14px;
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-lg);
+    padding:16px 20px;
+    box-shadow: var(--sh);
+  }
+  .step-num {
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,var(--brand),var(--brand-d));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:.82rem; font-weight:800;
+    box-shadow: 0 3px 8px rgba(91,108,245,.3);
+  }
+  .step-row h4 { font-size:.88rem; font-weight:800; color:var(--t1); margin-bottom:3px; }
+  .step-row p  { font-size:.8rem; color:var(--t2); line-height:1.55; }
+
+  /* ── CONTACT BANNER ── */
+  .contact-banner {
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+    border:1.5px solid #6ee7b7;
+    border-radius:var(--r-xl);
+    padding:22px 24px;
+    margin-top:40px;
+    box-shadow: 0 4px 16px rgba(16,185,129,.12);
+  }
+  .contact-banner-icon {
+    width:52px; height:52px; border-radius:50%;
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem; color:#25d366;
+    flex-shrink:0; box-shadow:0 2px 8px rgba(37,211,102,.2);
+  }
+  .contact-banner h3 { font-size:.95rem; font-weight:800; color:#065f46; margin-bottom:3px; }
+  .contact-banner p  { font-size:.8rem; color:#065f46; opacity:.8; }
+  .contact-banner a {
+    margin-right:auto;
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 22px; border-radius:var(--r-full);
+    background:#25d366; color:#fff;
+    font-family:'Cairo',sans-serif; font-size:.85rem; font-weight:800;
+    text-decoration:none; white-space:nowrap;
+    box-shadow:0 4px 14px rgba(37,211,102,.35);
+    transition:all .18s;
+  }
+  .contact-banner a:hover { background:#22c55e; transform:translateY(-1px); }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    text-align:center; margin-top:48px; color:var(--t3);
+    font-size:.78rem; line-height:1.7;
+  }
+  .page-footer a { color:var(--brand); text-decoration:none; }
+  .page-footer a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-logo"><i class="fas fa-church"></i></div>
+  <div>
+    <div class="topbar-title">نظام مدارس الأحد</div>
+    <div class="topbar-sub">المساعدة والدعم</div>
+  </div>
+  <a href="/" class="topbar-back"><i class="fas fa-arrow-right"></i> الرئيسية</a>
+</nav>
+
+<main class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-icon"><i class="fas fa-headset"></i></div>
+    <h1>كيف نقدر نساعدك؟</h1>
+    <p>نظام مدارس الأحد هو منصة متكاملة لإدارة الحضور والكوبونات والرحلات والمهام لمدارس الأحد. إذا كنت تريد إضافة كنيستك للنظام أرسل لنا رسالة.</p>
+    <a href="https://api.whatsapp.com/send?phone=201037011355&text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A5%D8%B6%D8%A7%D9%81%D8%A9%20%D9%83%D9%86%D9%8A%D8%B3%D8%AA%D9%8A%20%D9%84%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%AF%D8%A7%D8%B1%D8%B3%20%D8%A7%D9%84%D8%A3%D8%AD%D8%AF"
+       target="_blank" class="join-btn">
+      <i class="fab fa-whatsapp"></i>
+      أريد إضافة كنيستي للنظام
+    </a>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="sec-hdr">
+    <div class="sec-hdr-dot"></div>
+    <h2>مميزات النظام</h2>
+    <span>كل ما تحتاجه في مكان واحد</span>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#dbeafe;color:#2563eb"><i class="fas fa-calendar-check"></i></div>
+      <h3>تسجيل الحضور</h3>
+      <p>سجّل حضور وغياب الأطفال بسهولة، مع دعم وضع السحب السريع (Swipe Mode) للتسجيل الفوري عبر تمرير بطاقات الأطفال.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:var(--cou-bg);color:var(--cou)"><i class="fas fa-ticket-alt"></i></div>
+      <h3>نظام الكوبونات</h3>
+      <p>يحصل كل طفل تلقائياً على ١٠٠ كوبون عند تسجيل حضوره. يمكن إضافة كوبونات التزام يدوياً بقيم ٣٠، ٥٠، ١٠٠ وأكثر.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-tasks"></i></div>
+      <h3>المهام والاختبارات</h3>
+      <p>أنشئ اختبارات MCQ وأسئلة صح/خطأ وأسئلة مفتوحة مع مؤقت، وامنح كوبونات تلقائياً حسب نسبة الإجابات الصحيحة.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fce7f3;color:#db2777"><i class="fas fa-bus"></i></div>
+      <h3>الرحلات والتسجيل</h3>
+      <p>أدِر الرحلات وسجّل الأطفال وتابع المدفوعات ومتبقي كل طفل، مع إمكانية التصدير CSV.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-bullhorn"></i></div>
+      <h3>الإعلانات</h3>
+      <p>أرسل إعلانات نصية أو أزراراً بروابط لفصل محدد أو لجميع الأطفال، تظهر مباشرة في ملف الطفل.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-child"></i></div>
+      <h3>ملف الطفل الشخصي</h3>
+      <p>لكل طفل ملف شخصي يعرض كوبوناته وحضوره وإعلاناته وأسئلته، ويمكن مشاركته برابط عام.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-layer-group"></i></div>
+      <h3>الفصول المدمجة</h3>
+      <p>ادمج عدة فصول في عرض واحد لتسجيل الحضور لمجموعات، مفيد للخدام المسؤولين عن أكثر من فصل.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fff7ed;color:#ea580c"><i class="fas fa-wifi"></i></div>
+      <h3>العمل أوفلاين</h3>
+      <p>يعمل النظام بدون إنترنت ويحفظ التغييرات محلياً، ثم يرفعها تلقائياً عند عودة الاتصال.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fce7f3;color:#be185d"><i class="fas fa-birthday-cake"></i></div>
+      <h3>أعياد الميلاد</h3>
+      <p>يُنبّهك النظام تلقائياً بأعياد ميلاد الأطفال اليوم، مع إمكانية إرسال تهنئة WhatsApp مباشرة.</p>
+    </div>
+  </div>
+
+  <!-- HOW TO START -->
+  <div class="sec-hdr">
+    <div class="sec-hdr-dot"></div>
+    <h2>كيف تبدأ مع النظام؟</h2>
+    <span>خطوات بسيطة</span>
+  </div>
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-num">١</div>
+      <div>
+        <h4>تواصل معنا عبر واتساب</h4>
+        <p>أرسل رسالة للمطور وأخبره باسم كنيستك وعدد الأطفال والفصول تقريباً حتى نُعدّ لك حساباً.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">٢</div>
+      <div>
+        <h4>إعداد الكنيسة والفصول</h4>
+        <p>بعد إنشاء الحساب، يمكن تخصيص أسماء الفصول وإضافة الخدام من لوحة التحكم .</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">٣</div>
+      <div>
+        <h4>إضافة الأطفال</h4>
+        <p>يمكن إضافة الأطفال يدوياً أو استيراد ملف CSV. قالب الاستيراد متاح بضغطة زر من الإعدادات.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">٤</div>
+      <div>
+        <h4>ابدأ التسجيل الأسبوعي</h4>
+        <p>في كل جمعة (أو اليوم المحدد لكنيستك) افتح الفصل وسجّل الحضور. يمكن استخدام وضع السحب السريع للتسجيل الأسرع.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">٥</div>
+      <div>
+        <h4>تابع النتائج والإحصائيات</h4>
+        <p>من الصفحة الرئيسية تظهر إحصائيات شاملة لكل فصل، وجداول الحضور قابلة للتصدير PDF و CSV.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="sec-hdr">
+    <div class="sec-hdr-dot"></div>
+    <h2>الأسئلة الشائعة</h2>
+    <span>إجابات سريعة</span>
+  </div>
+  <div class="faq-list" id="faqList">
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">هل النظام مجاني؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">نعم، النظام مجاني تماماً. للمزيد تواصل معنا.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">كيف يمكن للطفل رؤية ملفه الشخصي وكوبوناته؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        لكل طفل رابط شخصي يمكن مشاركته. الطفل يسجل دخول برقم التليفون وكلمة المرور، ويرى كوبوناته وسجل حضوره وإعلانات الكنيسة والمهام.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">كيف تعمل الكوبونات تلقائياً؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        عند تسجيل حضور الطفل يُضاف له تلقائياً ١٠٠ كوبون حضور. يمكن الخادم إضافة كوبونات التزام يدوياً. كوبونات المهام تُمنح تلقائياً بعد تسليم الاختبار حسب النسبة المئوية.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">ماذا يحدث إذا غلقت الإنترنت أثناء تسجيل الحضور؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        النظام يحفظ كل التغييرات على الجهاز محلياً فوراً. عند عودة الإنترنت يُرفع كل شيء تلقائياً. ستجد رسالة "جارٍ رفع X تغيير تلقائياً".
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">هل يمكن إضافة أكثر من خادم لنفس الكنيسة؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        نعم، يمكن إضافة عدد غير محدود من الخدام بأدوار مختلفة:
+        <ul>
+          <li><strong>admin:</strong> صلاحيات كاملة لإدارة الكنيسة</li>
+          <li><strong>uncle:</strong> يرى فصله فقط أو الكل حسب الإعدادات</li>
+          <li><strong>developer:</strong> صلاحيات النظام الكاملة</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">كيف أعدّل أسماء الفصول لتناسب كنيستي؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        من لوحة التحكم ← الإعدادات ← إدارة الفصول يمكنك إضافة وحذف وتعديل أسماء الفصول وألوانها وترتيبها بالسحب والإفلات.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">هل يمكن إنشاء مهام ذات وقت محدد؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        نعم، عند إنشاء مهمة يمكن تفعيل المؤقت بعدد دقائق. الوقت يُسجَّل على السيرفر فلا يمكن التحايل عليه بإغلاق الصفحة. عند انتهاء الوقت تُرسل الإجابات تلقائياً.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">كيف أُغيّر يوم الحضور من الجمعة لأحد أو غيره؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        من لوحة التحكم ← الإعدادات ← يوم الحضور، اختر أي يوم من الأسبوع. سيتغير عرض التقويم في ملف الطفل وكذلك الجمع/الأيام الظاهرة في السجل التاريخي.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">هل يمكن تثبيت النظام كتطبيق على الهاتف؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        نعم، النظام PWA (Progressive Web App). على Android: ستظهر رسالة "تثبيت التطبيق" في المتصفح. على iPhone: افتح Safari ← زر المشاركة ← إضافة إلى الشاشة الرئيسية.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <div class="faq-q-icon"><i class="fas fa-question"></i></div>
+        <div class="faq-q-text">كيف يمكن تسجيل دخول الطفل لملفه؟</div>
+        <i class="fas fa-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">
+        الطفل يدخل على <strong>/kids/login</strong> ويكتب رقم تليفونه وكلمة المرور. إذا لم يكن لديه كلمة مرور بعد، يمكن إعدادها من نفس الصفحة.
+      </div>
+    </div>
+
+  </div><!-- end faq-list -->
+
+  <!-- CONTACT BANNER -->
+  <div class="contact-banner">
+    <div class="contact-banner-icon"><i class="fab fa-whatsapp"></i></div>
+    <div>
+      <h3>تواصل معنا مباشرة</h3>
+      <p>أرسل رسالة واتساب إذا أردت إضافة كنيستك أو واجهتك مشكلة</p>
+    </div>
+    <a href="https://api.whatsapp.com/send?phone=201037011355&text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A5%D8%B6%D8%A7%D9%81%D8%A9%20%D9%83%D9%86%D9%8A%D8%B3%D8%AA%D9%8A%20%D9%84%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%AF%D8%A7%D8%B1%D8%B3%20%D8%A7%D9%84%D8%A3%D8%AD%D8%AF" target="_blank">
+      <i class="fab fa-whatsapp"></i> واتساب
+    </a>
+  </div>
+
+  <!-- FOOTER LINKS -->
+  <div class="page-footer">
+    <a href="/about">حول النظام</a> · <a href="/">الرئيسية</a> · <a href="https://api.whatsapp.com/send?phone=201037011355" target="_blank">تواصل</a><br>
+    نظام مدارس الأحد © 2026 — مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ
+  </div>
+
+</main>
+
+<script>
+function toggleFaq(qEl) {
+  const item = qEl.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  // Open this one (if it wasn't already open)
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>

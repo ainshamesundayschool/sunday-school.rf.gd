@@ -1,0 +1,55 @@
+RewriteEngine On
+
+# CACHE CONTROL HEADERS - Simplified version
+<IfModule mod_headers.c>
+    # Disable caching for HTML files
+    <FilesMatch "\.(html|htm|php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# Fix 1: Remove trailing slashes
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+# Fix 2: Remove duplicate query parameters (including i=1)
+RewriteCond %{QUERY_STRING} ^(.*)&?i=1&?(.*)$ [NC]
+RewriteRule ^(.*)$ /$1?%1%2 [R=301,L]
+
+# Allow access to existing files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Redirect to homepage if root is accessed
+RewriteRule ^$ /index.html [L]
+
+# Redirect /kids to kids.html
+RewriteRule ^kids/?$ /kids.html [L]
+
+# Fix 3: Add QSA flag to preserve existing query strings
+RewriteRule ^kids/?$ /kids.html [L,QSA]
+
+# Redirect /login to login.html
+RewriteRule ^login/?$ /login.html [L,QSA]
+
+# Handle /uncle/dashboard
+RewriteRule ^uncle/dashboard/?$ /uncle/dashboard/index.php [L,QSA]
+
+# Fix 4: This line seems problematic - it redirects dashboard to dev
+# Consider removing or fixing this duplicate rule
+# RewriteRule ^uncle/dashboard/?$ /uncle/dev/ [L]
+
+# Handle API calls
+RewriteRule ^api/(.*)$ /api.php?request=$1 [L,QSA]
+
+# Fix 5: Better API handling with query string preservation
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^api/(.*)$ /api.php?request=$1 [L,QSA]
+
+# Redirect all other requests to api.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /api.php [L,QSA]

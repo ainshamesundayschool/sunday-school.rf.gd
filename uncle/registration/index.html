@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل خادم جديد</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --brand:#5b6cf5;--brand-dark:#4354e8;--brand-light:#a5b0ff;--brand-bg:#eef0ff;--brand-glow:rgba(91,108,245,.18);
+  --success:#10b981;--success-dark:#059669;--success-bg:#d1fae5;
+  --danger:#ef4444;--danger-dark:#dc2626;--danger-bg:#fee2e2;
+  --warning:#f59e0b;--warning-dark:#d97706;--warning-bg:#fef3c7;
+  --bg:#f3f4f9;--surface:#fff;--surface-2:#f7f8fc;--surface-3:#eef0f8;
+  --border:rgba(91,108,245,.12);--border-solid:#e4e6f0;
+  --text:#1a1d2e;--text-2:#4b5068;--text-3:#8b90a8;
+  --shadow-sm:0 2px 8px -2px rgba(0,0,0,.07);--shadow-md:0 8px 24px -4px rgba(0,0,0,.10);--shadow-lg:0 20px 48px -8px rgba(0,0,0,.14);
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:24px;--r-2xl:32px;--r-full:9999px;
+  --ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.16,1,.3,1);--t:.22s;
+}
+html,body{height:100%;font-family:'Baloo Bhaijaan 2',cursive;background:var(--bg);color:var(--text);overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 15% -5%,rgba(91,108,245,.13) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 40% at 85% 105%,rgba(91,108,245,.09) 0%,transparent 55%);}
+
+.fs{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;
+  background:var(--surface);border-bottom:1px solid var(--border-solid);box-shadow:var(--shadow-sm);
+  position:sticky;top:0;z-index:100;animation:slideDown .5s var(--spring) both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.topbar-brand{display:flex;align-items:center;gap:12px;}
+.topbar-logo{width:44px;height:44px;border-radius:var(--r-md);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));box-shadow:0 4px 14px var(--brand-glow);}
+.topbar-logo img{width:100%;height:100%;object-fit:contain;}
+.topbar-title{font-size:1rem;font-weight:800;color:var(--text);}
+.topbar-sub{font-size:.76rem;color:var(--text-3);font-weight:500;}
+.church-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brand-bg);
+  border:1px solid var(--border);padding:6px 16px;border-radius:var(--r-full);
+  font-size:.8rem;font-weight:700;color:var(--brand);}
+
+/* ── STEP RAIL ── */
+.step-rail{background:var(--surface);border-bottom:1px solid var(--border-solid);padding:0 48px;
+  animation:slideDown .5s .06s var(--spring) both;}
+.rail-inner{display:flex;max-width:960px;margin:0 auto;}
+.rail-tab{flex:1;display:flex;align-items:center;gap:10px;padding:16px 0;
+  border-bottom:3px solid transparent;transition:border-color .3s var(--ease);position:relative;}
+.rail-tab.active{border-bottom-color:var(--brand);}
+.rail-tab.done{border-bottom-color:var(--brand-light);}
+.rail-tab:not(:last-child)::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:1px;height:28px;background:var(--border-solid);}
+.rail-num{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.76rem;font-weight:800;background:var(--surface-3);color:var(--text-3);border:2px solid var(--border-solid);transition:all .3s var(--spring);}
+.rail-tab.active .rail-num{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 0 0 4px var(--brand-bg);}
+.rail-tab.done   .rail-num{background:var(--brand);border-color:var(--brand);color:white;}
+.rail-info strong{display:block;font-size:.82rem;font-weight:700;color:var(--text-3);transition:color .3s;}
+.rail-tab.active .rail-info strong{color:var(--brand);}
+.rail-tab.done   .rail-info strong{color:var(--text-2);}
+.rail-info span{font-size:.7rem;color:var(--text-3);font-weight:500;}
+
+.prog-strip{height:3px;background:var(--border-solid);}
+.prog-fill{height:100%;width:5%;background:linear-gradient(90deg,var(--brand),var(--brand-light));transition:width .45s var(--ease);}
+
+/* ── CONTENT ── */
+.content{flex:1;display:flex;flex-direction:column;align-items:center;padding:48px 24px 72px;animation:fadeUp .5s .1s var(--ease) both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.panel{display:none;width:100%;max-width:800px;}
+.panel.active{display:block;animation:panelIn .4s var(--spring) both;}
+@keyframes panelIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.ph{text-align:center;margin-bottom:32px;}
+.ph-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:var(--r-xl);
+  background:linear-gradient(135deg,var(--brand-bg),#dde0ff);
+  display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:1.8rem;
+  box-shadow:0 0 0 8px rgba(91,108,245,.07);}
+.ph h2{font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;}
+.ph p{font-size:.93rem;color:var(--text-3);font-weight:500;}
+.ph .step-meta{font-size:.72rem;color:var(--text-3);font-weight:600;margin-bottom:4px;}
+
+.fc{background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border-solid);
+  box-shadow:var(--shadow-md);padding:32px 36px;margin-bottom:18px;}
+.sec-label{display:flex;align-items:center;gap:10px;font-size:.72rem;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--brand);margin-bottom:20px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border-solid);}
+
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.fr.full{grid-template-columns:1fr;}
+@media(max-width:580px){.fr{grid-template-columns:1fr;}}
+.ff{display:flex;flex-direction:column;gap:7px;}
+.ff label{font-size:.84rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:7px;}
+.ff label i{color:var(--brand-light);font-size:.78rem;}
+.req{color:var(--danger);}
+.ff input,.ff select,.ff textarea{width:100%;padding:13px 16px;border:1.5px solid var(--border-solid);
+  border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',cursive;font-size:.95rem;
+  background:var(--surface-2);color:var(--text);
+  transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease),background var(--t);outline:none;}
+.ff input:focus,.ff select:focus{border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 4px var(--brand-glow);}
+.ff input.err,.ff select.err{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.ff small{font-size:.74rem;color:var(--text-3);}
+
+/* password strength */
+.pwd-strength{height:4px;border-radius:var(--r-full);background:var(--border-solid);margin-top:4px;overflow:hidden;}
+.pwd-strength-bar{height:100%;width:0%;border-radius:var(--r-full);transition:width .3s var(--ease),background .3s;}
+
+/* ── ALERT ── */
+.alert{display:none;padding:13px 16px;border-radius:var(--r-sm);font-size:.88rem;font-weight:600;
+  align-items:center;gap:10px;margin-bottom:16px;}
+.alert.on{display:flex;}
+.alert-err{background:var(--danger-bg);color:var(--danger-dark);border:1px solid rgba(239,68,68,.2);}
+.alert-ok{background:var(--success-bg);color:var(--success-dark);border:1px solid rgba(16,185,129,.2);}
+.alert-warn{background:var(--warning-bg);color:var(--warning-dark);border:1px solid rgba(245,158,11,.2);}
+
+/* ── REVIEW ── */
+.rv-block{background:var(--surface);border:1px solid var(--border-solid);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.rv-head{padding:12px 20px;font-size:.73rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--brand);background:var(--brand-bg);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;gap:9px;}
+.rv-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;font-size:.9rem;border-bottom:1px solid var(--border-solid);}
+.rv-row:last-child{border-bottom:none;}
+.rv-lbl{color:var(--text-3);font-weight:600;}
+.rv-val{color:var(--text);font-weight:700;}
+
+/* ── ACTIONS ── */
+.act-bar{display:flex;align-items:center;gap:14px;width:100%;max-width:800px;margin-top:4px;}
+.btn{padding:14px 26px;border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',cursive;
+  font-size:.98rem;font-weight:700;cursor:pointer;border:none;
+  display:flex;align-items:center;justify-content:center;gap:9px;transition:all var(--t) var(--ease);}
+.btn-back{background:transparent;border:2px solid var(--border-solid);color:var(--text-2);flex-shrink:0;}
+.btn-back:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg);}
+.btn-next{flex:1;font-size:1rem;background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  color:white;box-shadow:0 6px 20px var(--brand-glow);}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--brand-glow);}
+.btn-next:active{transform:translateY(0);}
+.btn-next:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;
+  border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.spin.on{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FULLSCREEN STATES ── */
+.fs-state{display:none;flex:1;align-items:center;justify-content:center;padding:60px 24px;}
+.fs-state.on{display:flex;}
+.state-card{max-width:560px;width:100%;background:var(--surface);border-radius:var(--r-2xl);
+  border:1px solid var(--border-solid);box-shadow:var(--shadow-lg);padding:52px 44px;text-align:center;
+  animation:fadeUp .5s var(--spring) both;}
+.state-icon{width:80px;height:80px;margin:0 auto 22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;}
+.state-icon.danger {background:linear-gradient(135deg,var(--danger),var(--danger-dark));box-shadow:0 8px 28px rgba(239,68,68,.3);}
+.state-icon.success{background:linear-gradient(135deg,var(--success),var(--success-dark));box-shadow:0 8px 28px rgba(16,185,129,.3);}
+.state-icon.pending{background:linear-gradient(135deg,var(--warning),var(--warning-dark));box-shadow:0 8px 28px rgba(245,158,11,.3);}
+.state-card h2{font-size:1.6rem;font-weight:900;margin-bottom:10px;}
+.state-card p{color:var(--text-3);font-size:.92rem;line-height:1.8;}
+
+.btn-login{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:14px 28px;
+  border-radius:var(--r-sm);background:linear-gradient(135deg,var(--success),var(--success-dark));
+  color:white;font-family:'Baloo Bhaijaan 2',cursive;font-size:.97rem;font-weight:700;
+  cursor:pointer;border:none;box-shadow:0 6px 20px rgba(16,185,129,.3);text-decoration:none;
+  transition:all var(--t) var(--ease);}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(16,185,129,.4);}
+
+/* ── CHURCH PASSWORD GATE ── */
+.gate-screen{display:none;flex:1;align-items:center;justify-content:center;padding:60px 24px;}
+.gate-screen.on{display:flex;}
+.gate-card{max-width:440px;width:100%;background:var(--surface);border-radius:var(--r-2xl);
+  border:1px solid var(--border-solid);box-shadow:var(--shadow-lg);padding:48px 40px;text-align:center;
+  animation:fadeUp .5s var(--spring) both;}
+.gate-icon{width:76px;height:76px;margin:0 auto 20px;border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:white;
+  box-shadow:0 8px 28px var(--brand-glow);}
+.gate-card h2{font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:8px;}
+.gate-card p{font-size:.88rem;color:var(--text-3);margin-bottom:28px;line-height:1.7;}
+.gate-input-wrap{position:relative;text-align:right;}
+.gate-input-wrap input{width:100%;padding:14px 16px 14px 48px;border:1.5px solid var(--border-solid);
+  border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',cursive;font-size:.97rem;
+  background:var(--surface-2);color:var(--text);outline:none;
+  transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease);}
+.gate-input-wrap input:focus{border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 4px var(--brand-glow);}
+.gate-input-wrap input.err{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.gate-toggle{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--text-3);font-size:.9rem;padding:4px;}
+.gate-toggle:hover{color:var(--brand);}
+.gate-err{display:none;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;
+  border-radius:var(--r-sm);background:var(--danger-bg);color:var(--danger-dark);
+  font-size:.83rem;font-weight:600;border:1px solid rgba(239,68,68,.2);}
+.gate-err.on{display:flex;}
+.gate-attempts{font-size:.74rem;color:var(--text-3);margin-top:8px;}
+.gate-attempts span{color:var(--danger);font-weight:700;}
+.gate-btn{width:100%;margin-top:20px;padding:14px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:white;
+  font-family:'Baloo Bhaijaan 2',cursive;font-size:1rem;font-weight:700;cursor:pointer;border:none;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:0 6px 20px var(--brand-glow);transition:all var(--t) var(--ease);}
+.gate-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 28px var(--brand-glow);}
+.gate-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+.gate-locked{display:none;flex-direction:column;align-items:center;gap:10px;margin-top:18px;
+  padding:14px 16px;border-radius:var(--r-sm);background:var(--danger-bg);
+  border:1px solid rgba(239,68,68,.2);font-size:.85rem;color:var(--danger-dark);font-weight:600;}
+.gate-locked.on{display:flex;}
+.gate-countdown{font-size:1.3rem;font-weight:900;color:var(--danger);}
+
+/* ── LOADING ── */
+.loading-screen{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-screen.on{display:flex;}
+.big-spin{width:48px;height:48px;border:4px solid var(--border-solid);border-top-color:var(--brand);
+  border-radius:50%;animation:spin .8s linear infinite;}
+.loading-screen p{color:var(--text-3);font-size:.9rem;font-weight:600;}
+
+/* ── CLASS CHECKBOXES ── */
+.class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:4px;}
+.class-chip{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r-sm);
+  border:1.5px solid var(--border-solid);background:var(--surface-2);cursor:pointer;
+  font-size:.88rem;font-weight:600;color:var(--text-2);transition:all var(--t) var(--ease);user-select:none;}
+.class-chip:hover{border-color:var(--brand);background:var(--brand-bg);color:var(--brand);}
+.class-chip.selected{border-color:var(--brand);background:var(--brand-bg);color:var(--brand);}
+.class-chip input[type=checkbox]{display:none;}
+.class-chip i{font-size:.8rem;}
+
+@media(max-width:640px){
+  .topbar{padding:14px 18px;}
+  .step-rail{padding:0 18px;}
+  .rail-info span{display:none;}
+  .content{padding:28px 14px 52px;}
+  .fc{padding:22px 18px;}
+  .state-card{padding:36px 22px;}
+  .act-bar{flex-direction:column-reverse;}
+  .btn-back{width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="fs" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">
+        <img src="/logo.png" alt="Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-church\' style=\'color:white;font-size:1.1rem\'></i>'">
+      </div>
+      <div>
+        <div class="topbar-title" id="topTitle">تسجيل خادم جديد</div>
+        <div class="topbar-sub" id="topSub">جاري تحميل بيانات الكنيسة...</div>
+      </div>
+    </div>
+    <div class="church-badge" id="churchBadge"><i class="fas fa-spinner fa-spin"></i> <span id="badgeText">جاري التحميل</span></div>
+  </div>
+
+  <!-- STEP RAIL -->
+  <div class="step-rail" id="stepRail">
+    <div class="rail-inner">
+      <div class="rail-tab active" id="rt1">
+        <div class="rail-num" id="rn1"><i class="fas fa-user" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>البيانات الشخصية</strong><span>الاسم والتواصل</span></div>
+      </div>
+      <div class="rail-tab" id="rt2">
+        <div class="rail-num" id="rn2"><i class="fas fa-lock" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>بيانات الدخول</strong><span>اسم المستخدم وكلمة المرور</span></div>
+      </div>
+      <div class="rail-tab" id="rt3">
+        <div class="rail-num" id="rn3"><i class="fas fa-chalkboard-teacher" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>الفصول</strong><span>اختيار الفصول</span></div>
+      </div>
+      <div class="rail-tab" id="rt4">
+        <div class="rail-num" id="rn4"><i class="fas fa-check" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>مراجعة وإرسال</strong><span>تأكيد البيانات</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="prog-strip" id="progStrip"><div class="prog-fill" id="progFill"></div></div>
+
+  <!-- CHURCH PASSWORD GATE -->
+  <div class="gate-screen" id="gateScreen">
+    <div class="gate-card">
+      <div class="gate-icon"><i class="fas fa-shield-halved"></i></div>
+      <h2>كلمة سر الكنيسة</h2>
+      <p>هذا النظام مخصص لخدام الكنيسة فقط.<br>أدخل كلمة السر التي أعطاها لك المسؤول للمتابعة.</p>
+
+      <div class="gate-input-wrap">
+        <input type="password" id="gatePassword" placeholder="أدخل كلمة سر الكنيسة"
+          onkeydown="if(event.key==='Enter')verifyGate()"
+          oninput="document.getElementById('gateErr').classList.remove('on');this.classList.remove('err')" />
+        <button class="gate-toggle" type="button" onclick="toggleGatePwd()" id="gateToggle">
+          <i class="fas fa-eye" id="gateEyeIcon"></i>
+        </button>
+      </div>
+
+      <div class="gate-err" id="gateErr">
+        <i class="fas fa-circle-exclamation"></i>
+        <span id="gateErrTxt">كلمة السر غير صحيحة، حاول مرة أخرى</span>
+      </div>
+      <div class="gate-attempts" id="gateAttemptsWrap" style="display:none;">
+        المحاولات المتبقية: <span id="gateAttemptsLeft">5</span>
+      </div>
+
+      <div class="gate-locked" id="gateLocked">
+        <i class="fas fa-lock" style="font-size:1.4rem"></i>
+        تم إيقاف المحاولات مؤقتاً بسبب إدخال خاطئ متكرر
+        <div class="gate-countdown" id="gateCountdown">05:00</div>
+        حاول مرة أخرى بعد انتهاء الوقت
+      </div>
+
+      <button class="gate-btn" id="gateBtn" onclick="verifyGate()">
+        <i class="fas fa-unlock-alt"></i> دخول
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="big-spin"></div>
+    <p>جاري تحميل بيانات الكنيسة...</p>
+  </div>
+
+  <!-- INVALID CHURCH -->
+  <div class="fs-state" id="invalidScreen">
+    <div class="state-card">
+      <div class="state-icon danger"><i class="fas fa-ban"></i></div>
+      <h2 style="color:var(--danger);">كنيسة غير موجودة</h2>
+      <p>لم يتم العثور على الكنيسة المطلوبة.<br>تحقق من صحة الرابط وحاول مرة أخرى.</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content" id="mainContent" style="display:none;">
+
+    <!-- ══ STEP 1 : البيانات الشخصية ══ -->
+    <div class="panel active" id="p1">
+      <div class="ph">
+        <div class="step-meta">الخطوة 1 من 4</div>
+        <div class="ph-icon"><i class="fas fa-user-tie"></i></div>
+        <h2>البيانات الشخصية</h2>
+        <p>اسمك الكامل ورقم تليفونك</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-id-card"></i> هويتك</div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-user"></i> الاسم الكامل <span class="req">*</span></label>
+            <input type="text" id="uncleName" placeholder="اسمك الكامل" autocomplete="off" />
+          </div>
+        </div>
+        <!-- ★ NEW: Phone number field -->
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-mobile-screen"></i> رقم التليفون <span class="req">*</span></label>
+            <input type="tel" id="unclePhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" />
+            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم</small>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-err" id="err1"><i class="fas fa-circle-exclamation"></i><span id="errTxt1"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-next" onclick="nextStep()">التالي &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2 : بيانات الدخول ══ -->
+    <div class="panel" id="p2">
+      <div class="ph">
+        <div class="step-meta">الخطوة 2 من 4</div>
+        <div class="ph-icon"><i class="fas fa-lock"></i></div>
+        <h2>بيانات الدخول</h2>
+        <p>اسم المستخدم وكلمة المرور للنظام</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-key"></i> بيانات الحساب</div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-at"></i> اسم المستخدم <span class="req">*</span></label>
+            <input type="text" id="uncleUsername" placeholder="مثال: john_doe" autocomplete="off"
+              oninput="this.value=this.value.replace(/[^a-zA-Z0-9_.]/g,'')" />
+            <small>أحرف إنجليزية وأرقام و _ و . فقط</small>
+          </div>
+        </div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-lock"></i> كلمة المرور <span class="req">*</span></label>
+            <input type="password" id="unclePassword" placeholder="على الأقل 6 أحرف"
+              oninput="updatePwdStrength(this.value)" />
+            <div class="pwd-strength"><div class="pwd-strength-bar" id="pwdBar"></div></div>
+            <small id="pwdHint">أدخل كلمة مرور قوية</small>
+          </div>
+        </div>
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-lock"></i> تأكيد كلمة المرور <span class="req">*</span></label>
+            <input type="password" id="unclePasswordConfirm" placeholder="أعد كتابة كلمة المرور" />
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-err" id="err2"><i class="fas fa-circle-exclamation"></i><span id="errTxt2"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" onclick="nextStep()">التالي &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3 : الفصول ══ -->
+    <div class="panel" id="p3">
+      <div class="ph">
+        <div class="step-meta">الخطوة 3 من 4</div>
+        <div class="ph-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+        <h2>الفصول التي تخدم فيها</h2>
+        <p>اختر الفصل أو الفصول التي ستكون مسؤولاً عنها</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-layer-group"></i> الفصول المتاحة</div>
+        <div class="class-grid" id="classGrid">
+          <p style="color:var(--text-3);font-size:.88rem;">جاري تحميل الفصول...</p>
+        </div>
+        <small style="margin-top:12px;display:block;color:var(--text-3);">
+          <i class="fas fa-info-circle"></i> يمكنك اختيار أكثر من فصل. إذا كنت غير متأكد اتركها وسيحددها لك المسؤول لاحقاً.
+        </small>
+      </div>
+      <div class="alert alert-err" id="err3"><i class="fas fa-circle-exclamation"></i><span id="errTxt3"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" onclick="nextStep()">مراجعة الطلب &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4 : مراجعة ══ -->
+    <div class="panel" id="p4">
+      <div class="ph">
+        <div class="step-meta">الخطوة 4 من 4</div>
+        <div class="ph-icon"><i class="fas fa-clipboard-check"></i></div>
+        <h2>مراجعة البيانات</h2>
+        <p>تأكد من صحة جميع البيانات قبل إنشاء الحساب</p>
+      </div>
+
+      <div class="rv-block">
+        <div class="rv-head"><i class="fas fa-church"></i> الكنيسة</div>
+        <div class="rv-row"><span class="rv-lbl">اسم الكنيسة</span><span class="rv-val" id="rv-church">—</span></div>
+      </div>
+      <div class="rv-block">
+        <div class="rv-head"><i class="fas fa-user-tie"></i> بيانات الخادم</div>
+        <div class="rv-row"><span class="rv-lbl">الاسم الكامل</span><span class="rv-val" id="rv-name">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">رقم التليفون</span><span class="rv-val" id="rv-phone">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">اسم المستخدم</span><span class="rv-val" id="rv-username">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">كلمة المرور</span><span class="rv-val">••••••</span></div>
+        <div class="rv-row"><span class="rv-lbl">الفصول المختارة</span><span class="rv-val" id="rv-classes">—</span></div>
+      </div>
+
+      <div class="alert alert-err" id="err4"><i class="fas fa-circle-exclamation"></i><span id="errTxt4"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" id="submitBtn" onclick="submitForm()">
+          <span id="submitTxt"><i class="fas fa-user-plus"></i> &nbsp;إنشاء الحساب</span>
+          <div class="spin" id="submitSpin"></div>
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:.74rem;color:var(--text-3);">
+        <i class="fas fa-shield-halved" style="color:var(--brand-light)"></i>
+        بياناتك محمية ولن تُشارك مع أي طرف ثالث
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- SUCCESS -->
+  <div class="fs-state" id="successScreen">
+    <div class="state-card">
+      <div class="state-icon success"><i class="fas fa-user-check"></i></div>
+      <h2>تم إنشاء الحساب!</h2>
+      <p>تم تسجيل <strong id="sucName"></strong> كخادم في كنيسة <strong id="sucChurch"></strong> بنجاح.<br>
+         يمكنك الآن تسجيل الدخول باستخدام اسم المستخدم وكلمة المرور التي اخترتهما.</p>
+      <div style="margin-top:24px;">
+        <a href="/login" class="btn-login"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول الآن</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+'use strict';
+const API = '/api.php';
+const urlParams  = new URLSearchParams(location.search);
+const churchCode = urlParams.get('church') || '';
+
+let churchId   = null;
+let churchName = '';
+let classes    = [];
+let selectedClasses = [];
+let step       = 1;
+const TOTAL    = 4;
+
+/* ════════════════ API HELPER ════════════════ */
+async function apiFetch(data) {
+  const fd = new FormData();
+  Object.entries(data).forEach(([k,v]) => fd.append(k,v));
+  let res;
+  try {
+    res = await fetch(API, {method:'POST', body:fd});
+  } catch(e) {
+    throw new Error('فشل الاتصال بالخادم — تحقق من الإنترنت');
+  }
+  if (!res.ok) throw new Error('خطأ من الخادم: ' + res.status);
+  const text = await res.text();
+  const idx  = text.indexOf('{');
+  if (idx < 0) throw new Error('استجابة غير متوقعة من الخادم');
+  return JSON.parse(text.slice(idx));
+}
+
+/* ════════════════ APPLY CHURCH TYPE ════════════════ */
+function applyChurchType(churchType) {
+  if (churchType === 'youth') {
+    let ys = document.getElementById('youth-theme-uncle');
+    if (!ys) {
+      ys = document.createElement('style');
+      ys.id = 'youth-theme-uncle';
+      document.head.appendChild(ys);
+    }
+    ys.textContent = ':root{--brand:#7c3aed!important;--brand-dark:#5b21b6!important;--brand-light:#c4b5fd!important;--brand-bg:#ede9fe!important;--brand-glow:rgba(124,58,237,.18)!important;}';
+    try { localStorage.setItem('churchType','youth'); } catch(e) {}
+  } else {
+    try { localStorage.setItem('churchType','kids'); } catch(e) {}
+  }
+}
+
+/* ════════════════ INIT ════════════════ */
+async function init() {
+  document.getElementById('loadingScreen').classList.add('on');
+
+  if (!churchCode) { showInvalid(); return; }
+
+  try {
+    /* 1. Resolve church — auto_login returns church_type */
+    let info = await apiFetch({ action:'auto_login', church_code: churchCode });
+
+    if (!info.success || !info.church_id) {
+      const asId = parseInt(churchCode);
+      if (asId > 0) {
+        info = await apiFetch({ action:'getPublicChurchInfo', church_id: asId });
+      }
+    }
+
+    if (!info.success || !info.church_id) { showInvalid(); return; }
+
+    churchId   = info.church_id;
+    churchName = info.church_name || info.name || 'الكنيسة';
+
+    /* ── Apply youth/kids theme from church_type ── */
+    applyChurchType(info.church_type || 'kids');
+
+    document.getElementById('badgeText').textContent = churchName;
+    document.getElementById('topSub').textContent    = 'كنيسة ' + churchName;
+    document.getElementById('churchBadge').querySelector('i').className = 'fas fa-church';
+
+    /* 2. Load classes */
+    const cls = await apiFetch({ action:'getPublicChurchClasses', church_id: churchId });
+    if (cls.success && cls.classes?.length) {
+      classes = cls.classes;
+      renderClassGrid();
+    } else {
+      document.getElementById('classGrid').innerHTML =
+        '<p style="color:var(--text-3);font-size:.88rem;">لا توجد فصول متاحة حالياً</p>';
+    }
+
+    showForm();
+
+  } catch(e) {
+    console.error(e);
+    if (!churchId) showInvalid();
+    else showForm();
+  } finally {
+    document.getElementById('loadingScreen').classList.remove('on');
+  }
+}
+
+/* ════════════════ SCREENS ════════════════ */
+function showForm() {
+  document.getElementById('mainContent').style.display = 'flex';
+  document.getElementById('mainContent').style.flexDirection = 'column';
+  document.getElementById('mainContent').style.alignItems = 'center';
+  updateRail(1);
+}
+function showInvalid() {
+  document.getElementById('stepRail').style.display  = 'none';
+  document.getElementById('progStrip').style.display = 'none';
+  document.getElementById('loadingScreen').classList.remove('on');
+  document.getElementById('invalidScreen').classList.add('on');
+  document.getElementById('badgeText').textContent = 'غير معروفة';
+  document.getElementById('churchBadge').querySelector('i').className = 'fas fa-ban';
+}
+
+/* ════════════════ CLASS GRID ════════════════ */
+function renderClassGrid() {
+  const grid = document.getElementById('classGrid');
+  grid.innerHTML = '';
+  classes.forEach(c => {
+    const chip = document.createElement('label');
+    chip.className = 'class-chip';
+    chip.innerHTML = `
+      <input type="checkbox" value="${c.arabic_name}" onchange="toggleClass(this)">
+      <i class="fas fa-users"></i>
+      ${c.arabic_name}`;
+    grid.appendChild(chip);
+  });
+}
+
+function toggleClass(cb) {
+  const name = cb.value;
+  const chip = cb.closest('.class-chip');
+  if (cb.checked) {
+    if (!selectedClasses.includes(name)) selectedClasses.push(name);
+    chip.classList.add('selected');
+  } else {
+    selectedClasses = selectedClasses.filter(c => c !== name);
+    chip.classList.remove('selected');
+  }
+}
+
+/* ════════════════ STEPPER ════════════════ */
+function updateRail(s) {
+  for (let i = 1; i <= TOTAL; i++) {
+    const tab = document.getElementById('rt' + i);
+    const num = document.getElementById('rn' + i);
+    tab.classList.remove('active','done');
+    if (i < s) { tab.classList.add('done'); num.innerHTML = '<i class="fas fa-check" style="font-size:.68rem"></i>'; }
+    else if (i === s) tab.classList.add('active');
+  }
+  document.getElementById('progFill').style.width = (((s-1)/TOTAL)*90+5) + '%';
+}
+function showPanel(s) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p' + s).classList.add('active');
+}
+
+/* ════════════════ HELPERS ════════════════ */
+const val = id => (document.getElementById(id)?.value || '').trim();
+function showErr(s, msg) {
+  const el = document.getElementById('err' + s);
+  document.getElementById('errTxt' + s).textContent = msg;
+  el.classList.add('on');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(() => el.classList.remove('on'), 6000);
+}
+function focusErr(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('err');
+  el.focus();
+  el.addEventListener('input', () => el.classList.remove('err'), {once:true});
+}
+
+/* ── password strength ── */
+function updatePwdStrength(pwd) {
+  const bar  = document.getElementById('pwdBar');
+  const hint = document.getElementById('pwdHint');
+  let score  = 0;
+  if (pwd.length >= 6)  score++;
+  if (pwd.length >= 10) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const pct   = (score / 5) * 100;
+  const color = score <= 1 ? 'var(--danger)' : score <= 3 ? 'var(--warning)' : 'var(--success)';
+  const label = score <= 1 ? 'ضعيفة' : score <= 3 ? 'متوسطة' : 'قوية';
+  bar.style.width    = pct + '%';
+  bar.style.background = color;
+  hint.textContent   = pwd ? 'قوة كلمة المرور: ' + label : 'أدخل كلمة مرور قوية';
+  hint.style.color   = pwd ? color : 'var(--text-3)';
+}
+
+/* ════════════════ VALIDATION ════════════════ */
+function v1() {
+  if (!val('uncleName'))  { showErr(1,'الرجاء إدخال اسمك الكامل'); focusErr('uncleName'); return false; }
+  const ph = val('unclePhone').replace(/\D/g,'');
+  if (!ph || !ph.startsWith('01') || ph.length !== 11) {
+    showErr(1,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('unclePhone'); return false;
+  }
+  return true;
+}
+function v2() {
+  if (!val('uncleUsername'))  { showErr(2,'الرجاء إدخال اسم المستخدم'); focusErr('uncleUsername'); return false; }
+  if (val('uncleUsername').length < 3) { showErr(2,'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'); focusErr('uncleUsername'); return false; }
+  if (!val('unclePassword'))  { showErr(2,'الرجاء إدخال كلمة المرور'); focusErr('unclePassword'); return false; }
+  if (val('unclePassword').length < 6) { showErr(2,'كلمة المرور يجب أن تكون 6 أحرف على الأقل'); focusErr('unclePassword'); return false; }
+  if (val('unclePassword') !== val('unclePasswordConfirm')) {
+    showErr(2,'كلمتا المرور غير متطابقتين'); focusErr('unclePasswordConfirm'); return false;
+  }
+  return true;
+}
+function v3() {
+  // Classes are optional — no validation needed
+  return true;
+}
+
+/* ════════════════ REVIEW ════════════════ */
+function fillReview() {
+  document.getElementById('rv-church').textContent   = churchName || '—';
+  document.getElementById('rv-name').textContent     = val('uncleName')    || '—';
+  document.getElementById('rv-phone').textContent    = val('unclePhone')   || '—';
+  document.getElementById('rv-username').textContent = val('uncleUsername') || '—';
+  document.getElementById('rv-classes').textContent  = selectedClasses.length
+    ? selectedClasses.join(' · ')
+    : 'لم يتم الاختيار بعد';
+}
+
+/* ════════════════ NAVIGATION ════════════════ */
+function nextStep() {
+  if (step === 1 && !v1()) return;
+  if (step === 2 && !v2()) return;
+  if (step === 3 && !v3()) return;
+  if (step === TOTAL) return;
+  if (step === 3) fillReview();
+  step++;
+  showPanel(step);
+  updateRail(step);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function prevStep() {
+  if (step <= 1) return;
+  step--;
+  showPanel(step);
+  updateRail(step);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════════════════ SUBMIT ════════════════ */
+async function submitForm() {
+  const btn  = document.getElementById('submitBtn');
+  const spin = document.getElementById('submitSpin');
+  const txt  = document.getElementById('submitTxt');
+  btn.disabled = true; spin.classList.add('on'); txt.style.display = 'none';
+  document.getElementById('progFill').style.width = '90%';
+
+  const name     = val('uncleName');
+  const phone    = val('unclePhone').replace(/\D/g,'');
+  const username = val('uncleUsername');
+  const password = val('unclePassword');
+
+  try {
+    const data = await apiFetch({
+      action:      'registerUncleWithChurchCode',
+      church_code: churchCode,
+      name,
+      phone,
+      username,
+      password,
+      classes:     JSON.stringify(selectedClasses)
+    });
+
+    document.getElementById('progFill').style.width = '100%';
+    await new Promise(r => setTimeout(r, 300));
+
+    if (data.success) {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('stepRail').style.display    = 'none';
+      document.getElementById('progStrip').style.display   = 'none';
+      document.getElementById('sucName').textContent        = name;
+      document.getElementById('sucChurch').textContent      = churchName;
+      document.getElementById('successScreen').classList.add('on');
+    } else {
+      showErr(4, data.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+      btn.disabled = false; spin.classList.remove('on'); txt.style.display = '';
+      document.getElementById('progFill').style.width = '85%';
+    }
+  } catch(e) {
+    showErr(4, 'فشل الاتصال بالخادم، يرجى التحقق من الإنترنت');
+    btn.disabled = false; spin.classList.remove('on'); txt.style.display = '';
+    document.getElementById('progFill').style.width = '85%';
+  }
+}
+
+/* ════════════════ CHURCH PASSWORD GATE ════════════════
+ *
+ *  HOW TO SET THE PASSWORD:
+ *  1. Choose your church password (e.g. "StMark2024!")
+ *  2. Go to: https://emn178.github.io/online-tools/sha256.html
+ *     OR run in browser console: 
+ *       crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourPassword'))
+ *         .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+ *  3. Paste the resulting hash below as CHURCH_PASSWORD_HASH
+ *
+ *  DEFAULT PASSWORD IS: Kaneesa2024
+ *  Replace the hash below with yours to change it.
+ * ═══════════════════════════════════════════════════════ */
+
+// SHA-256 of "Kaneesa2024"  ← CHANGE THIS HASH to change the password
+const CHURCH_PASSWORD_HASH = 'd7f8da736cd3937efa4d050485aaf4540f3d256949e685a93b986fe1a92915ef';
+
+// Gate state
+let gateAttempts   = 0;
+const MAX_ATTEMPTS = 5;
+let lockTimer      = null;
+
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+async function verifyGate() {
+  const input = document.getElementById('gatePassword');
+  const pwd   = input.value;
+  if (!pwd) { input.classList.add('err'); input.focus(); return; }
+
+  const btn = document.getElementById('gateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin on" style="border-top-color:white;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:block"></div>';
+
+  const hash = await sha256(pwd);
+
+  if (hash === CHURCH_PASSWORD_HASH) {
+    // ✅ Correct — clear gate and start the real init
+    try { sessionStorage.setItem('churchGateOk','1'); } catch(e){}
+    document.getElementById('gateScreen').classList.remove('on');
+    document.getElementById('stepRail').style.display  = '';
+    document.getElementById('progStrip').style.display = '';
+    init();
+  } else {
+    // ❌ Wrong password
+    gateAttempts++;
+    const remaining = MAX_ATTEMPTS - gateAttempts;
+    input.classList.add('err');
+    input.value = '';
+
+    if (remaining <= 0) {
+      startLockout();
+    } else {
+      const errEl = document.getElementById('gateErr');
+      document.getElementById('gateErrTxt').textContent = 'كلمة السر غير صحيحة';
+      errEl.classList.add('on');
+      document.getElementById('gateAttemptsWrap').style.display = 'block';
+      document.getElementById('gateAttemptsLeft').textContent   = remaining;
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-unlock-alt"></i> دخول';
+      input.focus();
+    }
+  }
+}
+
+function startLockout() {
+  const btn     = document.getElementById('gateBtn');
+  const locked  = document.getElementById('gateLocked');
+  const errEl   = document.getElementById('gateErr');
+  const input   = document.getElementById('gatePassword');
+  errEl.classList.remove('on');
+  locked.classList.add('on');
+  btn.style.display   = 'none';
+  input.disabled      = true;
+  document.getElementById('gateAttemptsWrap').style.display = 'none';
+
+  let seconds = 5 * 60; // 5 minutes
+  const tick  = () => {
+    const m = String(Math.floor(seconds/60)).padStart(2,'0');
+    const s = String(seconds % 60).padStart(2,'0');
+    document.getElementById('gateCountdown').textContent = m + ':' + s;
+    if (--seconds < 0) {
+      clearInterval(lockTimer);
+      locked.classList.remove('on');
+      btn.style.display = '';
+      btn.disabled      = false;
+      btn.innerHTML     = '<i class="fas fa-unlock-alt"></i> دخول';
+      input.disabled    = false;
+      input.focus();
+      gateAttempts = 0;
+    }
+  };
+  tick();
+  lockTimer = setInterval(tick, 1000);
+}
+
+function toggleGatePwd() {
+  const input = document.getElementById('gatePassword');
+  const icon  = document.getElementById('gateEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+function bootGate() {
+  // Hide rail & strip until gate passes
+  document.getElementById('stepRail').style.display  = 'none';
+  document.getElementById('progStrip').style.display = 'none';
+
+  // If already passed in this session, skip gate
+  try {
+    if (sessionStorage.getItem('churchGateOk') === '1') { init(); return; }
+  } catch(e) {}
+
+  document.getElementById('gateScreen').classList.add('on');
+  document.getElementById('gatePassword').focus();
+}
+
+/* ════════════════ BOOT ════════════════ */
+bootGate();
+</script>
+</body>
+</html>

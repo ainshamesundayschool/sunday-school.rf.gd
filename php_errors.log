@@ -1,0 +1,264 @@
+[27-Mar-2026 23:24:49 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:49 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:50 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:50 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:52 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:52 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:54 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:24:54 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:22 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:22 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:23 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:23 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:24 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:24 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:26 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:28 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:28 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:28 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:29 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:25:29 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:14 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:14 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:16 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:16 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:16 Europe/Berlin] PHP Warning:  require_once(config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\api.php on line 45
+[27-Mar-2026 23:26:16 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\api.php:45
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\api.php on line 45
+[28-Mar-2026 00:30:11 Africa/Cairo] API Action: 
+[28-Mar-2026 00:30:12 Africa/Cairo] API Action: 
+[28-Mar-2026 00:31:13 Africa/Cairo] API Action: 
+[28-Mar-2026 00:31:14 Africa/Cairo] API Action: 
+[28-Mar-2026 00:31:15 Africa/Cairo] API Action: 
+[28-Mar-2026 00:31:22 Africa/Cairo] API Action: uncleLogin
+[28-Mar-2026 00:31:23 Africa/Cairo] API Action: getCurrentUncle
+[28-Mar-2026 00:31:23 Africa/Cairo] API Action: getChurchSettings
+[28-Mar-2026 00:31:23 Africa/Cairo] API Action: getData
+[28-Mar-2026 00:31:23 Africa/Cairo] === getData() called ===
+[28-Mar-2026 00:31:23 Africa/Cairo] Church ID from getChurchId(): 1
+[28-Mar-2026 00:31:23 Africa/Cairo] Church found: كنيسة الاخوة بعين شمس (ID: 1)
+[28-Mar-2026 00:31:23 Africa/Cairo] Total students in database for church ID 1: 169
+[28-Mar-2026 00:31:23 Africa/Cairo] Processing student records...
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 0, Name: Peter1111, Class ID: 17, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 0, Name: tePeter Fayez, Class ID: 17, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 284, Name: Testing Agent, Class ID: 17, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 251, Name: أندرو تامر, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 258, Name: أيثان ابرام, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 253, Name: إيهاب رائد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 272, Name: اوليفير سعيد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 270, Name: برسيس باسم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 279, Name: بولا ماهر, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 254, Name: بيشوي هاني, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 281, Name: تيا ابراهيم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 245, Name: تيا اسعد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 243, Name: جاسمين يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 266, Name: جريسي جون عادل, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 249, Name: جوستاف متى, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 262, Name: جون ابراهيم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 267, Name: جون ارميا, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 283, Name: جون رامي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 282, Name: جوناثان امجد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 255, Name: جوناثان ماريو, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 244, Name: جونستا يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 261, Name: جوي ابراهيم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 268, Name: جوي ارميا ابراهيم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 247, Name: جوي رامي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 248, Name: جوي وجدي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 263, Name: جويس داود لطيف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 242, Name: جيسون باسم, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 273, Name: جيسون ساهر, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 239, Name: جيسيكا يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 256, Name: چاك ماريو, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 250, Name: دانيال عوض, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 269, Name: رافي مايكل, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 277, Name: رافي هاني, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 257, Name: روز رائد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 252, Name: زكريا رائد, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 271, Name: سارة نادي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 260, Name: عمانوئيل يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 240, Name: فادي ابرام, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 237, Name: فان دايك يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 278, Name: كارول منير, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 280, Name: كارين موسي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 264, Name: لورين سمير بولس, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 275, Name: ليديا محسن, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 259, Name: ماثيو رأفت, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 241, Name: ماثيو يوسف, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 458, Name: مارفي روماني, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 265, Name: ماير يوسف محسن, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 236, Name: مايكل علاء, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 238, Name: ميلا البير, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 276, Name: نتالي بيتر, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 246, Name: هيلين رامي, Class ID: 1, Class: حضانة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 430, Name: أوليفر وائل, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 285, Name: إيلاريا سامي سمير, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 286, Name: ايمى مايكل يوسف, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 422, Name: جاستن مينا, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 289, Name: جورج عماد, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 292, Name: جويس رائف, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 429, Name: دميانا محب, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 298, Name: شادي عادل, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 821, Name: عزيزه, Class ID: 18, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 287, Name: عماد ابرام, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 459, Name: كارول منير, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 428, Name: مارتن مارك, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 291, Name: مارلين رائد زكريا, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 453, Name: ميرا هاني, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 290, Name: ميلكر مايكل سعيد, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 297, Name: هيفين شهاد, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 293, Name: وليم تامر وليم, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 288, Name: يوثام يوسف صفوت, Class ID: 2, Class: أولى
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 303, Name: باتريك عادل وحيد, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 315, Name: ترنيم يوسف, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 445, Name: جوسيانا مدحت, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 300, Name: جوناثان جمال جاب الله نصر الله, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 312, Name: چوثام وليم, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 299, Name: چيسى اسحق, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 311, Name: داني باسم, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 304, Name: دانيلا وافي, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 313, Name: فرانك فادي, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 314, Name: كرستيانو مينا, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 305, Name: كلاريس متى, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 308, Name: كوين شول, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 301, Name: ماركو مدحت, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 310, Name: مولي, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 302, Name: ميرا مدحت كمال, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 307, Name: ميرال ڤيكتور, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 309, Name: يوأنا محب, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 306, Name: يوستينا يوسف, Class ID: 3, Class: تانية
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 327, Name: انطون اكرامي, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 318, Name: باتريك سامي, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 317, Name: بتول سامي سمير, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 326, Name: بيتر هاني, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 330, Name: بيرلي رائف, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 324, Name: بيير جرجس, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 316, Name: توني مايكل, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 320, Name: جيسي مينا, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 325, Name: جيسيكا جوزيف, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 323, Name: روني فادي, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 331, Name: فريدة ايمن, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 319, Name: ماري جرجس, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 328, Name: مارينا اكرامي, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 321, Name: مريم محسن, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 329, Name: ميرا باسم, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 322, Name: هنا مايكل يوسف عوض, Class ID: 4, Class: تالتة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 336, Name: Sofia maher, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 334, Name: الفريد سامح عبدالله ميلاد, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 460, Name: ان صمويل, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 350, Name: باسم بيتر, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 337, Name: توماس عماد جورج, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 348, Name: جورج ايمن, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 344, Name: جونير اشرف, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 343, Name: جوي باسم, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 333, Name: جيسى وجدى شكرالله, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 339, Name: دانيال وائل, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 332, Name: ديفيد مدحت, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 451, Name: رفيق ميلاد, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 345, Name: سبيرجن مايكل, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 411, Name: ستيفين مينا عبد المسيح, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 412, Name: ستيفين مينا عبد المسيح, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 342, Name: سيلينا ايمن ثروت, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 346, Name: عطية شول, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 335, Name: فادي ڤيكتور اسحق, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 340, Name: كاراس مجدى, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 338, Name: لينور عادل, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 341, Name: مارك, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 351, Name: ميرنا ايهاب, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 349, Name: يؤانا باسم, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 347, Name: يوسف شهاب, Class ID: 5, Class: رابعة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 352, Name: ايمي امجد, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 410, Name: باولو باسم, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 361, Name: جوناثان فليمون سمير, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 363, Name: جويس يوسف, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 358, Name: رونزا كمال, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 357, Name: ساندرا سعيد, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 824, Name: ساندي يوسف, Class ID: 22, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 825, Name: كارين منير, Class ID: 22, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 359, Name: كارين منير،, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 356, Name: كيفين بشري نادي, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 826, Name: لافينا مينا, Class ID: 22, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 362, Name: لوسيندا صادق شوقى, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 354, Name: مارتن ابراهيم, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 370, Name: مارك نادي, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 353, Name: ماير نبيل, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 368, Name: مايلي بيتر, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 355, Name: مريم يوسف, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 367, Name: هولي رائف, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 365, Name: يوسف بهاء, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 364, Name: يوسف توفيق, Class ID: 6, Class: خامسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 456, Name: Kevin Emel, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 381, Name: إيرينى هانى رزق, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 380, Name: البير باسم تقي رزق, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 378, Name: ايساف جرجس, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 387, Name: بيتر سامي, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 389, Name: جورج وجدى, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 390, Name: جولي سامي سمير, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 372, Name: جوناثان سامح, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 383, Name: جويس  ديفيد, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 385, Name: جويس اسامه, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 373, Name: جينيفير فيليب عادل, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 391, Name: چوني مينا, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 374, Name: ساندي عماد, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 384, Name: ساندي عوني, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 388, Name: سلفيا لطفي شكر, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 376, Name: شادي ارميا, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 382, Name: ماثيو باسم, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 379, Name: ميرانو البير, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 386, Name: هاني توفيق, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 371, Name: يوسف صمؤيل, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 377, Name: يوسف عوض عدلي, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Student found - ID: 375, Name: يوسف يسري, Class ID: 7, Class: سادسة
+[28-Mar-2026 00:31:23 Africa/Cairo] Total students processed: 169
+[28-Mar-2026 00:31:23 Africa/Cairo] Students with NULL class: 0
+[28-Mar-2026 00:31:23 Africa/Cairo] Classes loaded: 7
+[28-Mar-2026 00:31:23 Africa/Cairo] Simple count verification: 169 students
+[28-Mar-2026 00:31:25 Africa/Cairo] API Action: getNotifications
+[28-Mar-2026 00:32:24 Africa/Cairo] API Action: getNotifications

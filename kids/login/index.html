@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - بوابة الطفل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-dark: #4338ca;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 50%, #e0e7ff 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.02) 0%, transparent 30%);
+            z-index: -1;
+        }
+
+        /* Login Container */
+        .login-container {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative Top Border */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--success) 25%, 
+                var(--warning) 50%, 
+                var(--primary) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: -200% 0; }
+            50% { background-position: 200% 0; }
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            margin: 0 auto 15px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+            letter-spacing: -0.02em;
+        }
+
+        .login-subtitle {
+            color: var(--secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* Login Type Selector */
+        .login-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: var(--light);
+            padding: 6px;
+            border-radius: var(--radius-md);
+        }
+
+        .login-type-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            color: var(--secondary);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .login-type-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .login-type-btn:hover:not(.active) {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            font-size: 18px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 50px 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: var(--transition);
+            background: var(--light);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .password-toggle {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--light);
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            padding: 15px;
+            transition: var(--transition);
+            border-radius: var(--radius-sm);
+            font-size: 17px;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+            background: rgb(226 225 255);
+        }
+
+        /* Remember Me - Hidden */
+        .remember-me {
+            display: none;
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Cairo', sans-serif;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: var(--transition);
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #3730a3);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .login-btn i {
+            margin-left: 8px;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 2px solid #fecaca;
+            color: var(--danger);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.5s;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Warning Message */
+        .warning-message {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            color: #92400e;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Form Container */
+        .form-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Password Setup Container */
+        .password-setup-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .password-setup-container.active {
+            display: block;
+        }
+
+        /* Forgot Password Link */
+        .forgot-password-link {
+            text-align: center;
+            margin: var(--spacing-md) 0;
+            display: none;
+        }
+
+        .forgot-password-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+
+        .forgot-password-link a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 24px;
+                margin: 0 10px;
+            }
+
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .login-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .login-type-btn {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .login-container {
+                padding: 24px 20px;
+            }
+
+            .form-input {
+                padding: 12px 45px 12px 14px;
+            }
+
+            .login-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Pattern -->
+    <div class="background-pattern"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo">
+                <i class="fas fa-child"></i>
+            </div>
+            <h1 class="login-title">بوابة الطفل</h1>
+            <p class="login-subtitle">أدخل بيانات الدخول للوصول إلى الملف الشخصي</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="phoneErrorMessage"></div>
+        <div class="error-message" id="usernameErrorMessage"></div>
+        <div class="error-message" id="setupErrorMessage"></div>
+
+        <!-- Warning Message -->
+        <div class="warning-message" id="phonePasswordWarning">
+            <i class="fas fa-key"></i>
+            لديك كلمة مرور مسجلة، الرجاء إدخالها
+        </div>
+
+        <!-- Login Type Selector: hidden, unified input handles both -->
+
+        <!-- Phone Login Form -->
+        <div class="form-container active" id="phoneLoginForm">
+            <form class="login-form" data-login-type="phone">
+                <!-- Unified identifier Input -->
+                <div class="form-group">
+                    <label for="phoneInput" class="form-label">رقم الهاتف أو اسم المستخدم</label>
+                    <div class="input-container">
+                        <i class="fas fa-user-circle input-icon"></i>
+                        <input type="text" 
+                               id="phoneInput" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل رقم الهاتف أو اسم المستخدم"
+                               autocomplete="username">
+                    </div>
+                </div>
+
+                <!-- Password Field (Shown only if user has password) -->
+                <div class="form-group" id="phonePasswordField" style="display: none;">
+                    <label for="phonePasswordInput" class="form-label">كلمة المرور</label>
+                    <div class="input-container">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" 
+                               id="phonePasswordInput" 
+                               class="form-input" 
+                               placeholder="أدخل كلمة المرور"
+                               autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-target="phonePasswordInput">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Forgot Password Link -->
+                <div class="forgot-password-link" id="forgotPasswordLink">
+                    <a href="#">
+                        <i class="fas fa-key"></i>
+                        نسيت كلمة المرور؟
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn" id="phoneLoginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span id="phoneLoginText">تسجيل الدخول</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Username Login Form -->
+        <div class="form-container" id="usernameLoginForm">
+            <form class="login-form" data-login-type="username">
+                <!-- Username Input -->
+                <div class="form-group">
+                    <label for="usernameInput" class="form-label">اسم المستخدم</label>
+                    <div class="input-container">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" 
+                               id="usernameInput" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل اسم المستخدم"
+                               autocomplete="username">
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="form-group">
+                    <label for="passwordInput" class="form-label">كلمة المرور</label>
+                    <div class="input-container">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" 
+                               id="passwordInput" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل كلمة المرور"
+                               autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-target="passwordInput">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn" id="usernameLoginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span id="usernameLoginText">تسجيل الدخول</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Password Setup Container -->
+        <div class="password-setup-container" id="passwordSetupContainer">
+            <!-- Will be populated dynamically -->
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p class="loading-text" id="loadingText">جاري تسجيل الدخول...</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <a href="/kids/" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                <i class="fas fa-arrow-right"></i>
+                العودة للصفحة الرئيسية
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentLoginType = 'phone';
+        let phoneLoginHasPassword = false;
+        let currentPhoneForSetup = '';
+
+        // DOM Elements
+        const elements = {
+            phoneInput: document.getElementById('phoneInput'),
+            phonePasswordInput: document.getElementById('phonePasswordInput'),
+            phonePasswordField: document.getElementById('phonePasswordField'),
+            phonePasswordWarning: document.getElementById('phonePasswordWarning'),
+            phoneLoginBtn: document.getElementById('phoneLoginBtn'),
+            phoneLoginText: document.getElementById('phoneLoginText'),
+            phoneErrorMessage: document.getElementById('phoneErrorMessage'),
+            
+            usernameInput: document.getElementById('usernameInput'),
+            passwordInput: document.getElementById('passwordInput'),
+            usernameLoginBtn: document.getElementById('usernameLoginBtn'),
+            usernameLoginText: document.getElementById('usernameLoginText'),
+            usernameErrorMessage: document.getElementById('usernameErrorMessage'),
+            
+            forgotPasswordLink: document.getElementById('forgotPasswordLink'),
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loadingText'),
+            
+            phoneLoginForm: document.getElementById('phoneLoginForm'),
+            usernameLoginForm: document.getElementById('usernameLoginForm'),
+            passwordSetupContainer: document.getElementById('passwordSetupContainer'),
+            setupErrorMessage: document.getElementById('setupErrorMessage')
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkIfLoggedIn();
+            setupEventListeners();
+        });
+
+        function checkIfLoggedIn() {
+            const savedUsername = localStorage.getItem('savedUsername');
+            const savedPassword = localStorage.getItem('savedPassword');
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+
+            if (rememberMe && savedUsername && savedPassword) {
+                // Detect if it's a phone number or username and use the right endpoint
+                const isPhone = /^\d{7,}$/.test(savedUsername.replace(/[\s\-\+\(\)]/g,''));
+                if (isPhone) {
+                    attemptUnifiedLogin(savedUsername, savedPassword, true);
+                } else {
+                    attemptUsernameLogin(savedUsername, savedPassword, true, true);
+                }
+            }
+        }
+
+        function setupEventListeners() {
+            // Login type switching
+            document.querySelectorAll('.login-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    switchTab(type);
+                });
+            });
+
+            // Phone login form — also handles username input
+            document.querySelector('[data-login-type="phone"]').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const identifier = elements.phoneInput.value.trim();
+                if (!identifier) {
+                    showPhoneError('الرجاء إدخال رقم الهاتف أو اسم المستخدم');
+                    return;
+                }
+
+                // Detect: if input has any non-digit chars → treat as username → show password field directly
+                const isUsernameInput = /[^\d\s\+\-\(\)]/.test(identifier);
+
+                if (isUsernameInput) {
+                    // Username: need password field shown
+                    if (!phoneLoginHasPassword) {
+                        phoneLoginHasPassword = true;
+                        elements.phonePasswordWarning.style.display = 'none';
+                        elements.phonePasswordField.style.display = 'block';
+                        elements.forgotPasswordLink.style.display = 'none';
+                        elements.phoneLoginText.textContent = 'تسجيل الدخول';
+                        elements.phonePasswordInput.focus();
+                        return;
+                    }
+                    const password = elements.phonePasswordInput.value.trim();
+                    if (!password) { showPhoneError('الرجاء إدخال كلمة المرور'); return; }
+                    // Use kidLogin which handles both phone and username
+                    attemptUnifiedLogin(identifier, password);
+                } else {
+                    // Phone number
+                    if (phoneLoginHasPassword) {
+                        const password = elements.phonePasswordInput.value.trim();
+                        if (!password) { showPhoneError('الرجاء إدخال كلمة المرور'); return; }
+                        attemptPhoneLoginWithPassword(identifier, password);
+                    } else {
+                        checkPhonePassword(identifier);
+                    }
+                }
+            });
+
+            // Username login form
+            document.querySelector('[data-login-type="username"]').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = elements.usernameInput.value.trim();
+                const password = elements.passwordInput.value.trim();
+                
+                if (!username || !password) {
+                    showUsernameError('الرجاء إدخال اسم المستخدم وكلمة المرور');
+                    return;
+                }
+                
+                attemptUsernameLogin(username, password, false);
+            });
+
+            // Forgot password link
+            elements.forgotPasswordLink.querySelector('a').addEventListener('click', function(e) {
+                e.preventDefault();
+                showPasswordRecovery();
+            });
+
+            // Toggle password visibility
+            document.querySelectorAll('.password-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const passwordInput = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+
+            // Enter key support
+            elements.phoneInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.querySelector('[data-login-type="phone"]').dispatchEvent(new Event('submit'));
+                }
+            });
+
+            elements.phonePasswordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.querySelector('[data-login-type="phone"]').dispatchEvent(new Event('submit'));
+                }
+            });
+
+            elements.usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    elements.passwordInput.focus();
+                }
+            });
+
+            elements.passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.querySelector('[data-login-type="username"]').dispatchEvent(new Event('submit'));
+                }
+            });
+        }
+
+        function switchTab(tabType) {
+            currentLoginType = tabType;
+            
+            // Update tabs
+            document.querySelectorAll('.login-type-btn').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabType) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Update forms
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+
+            if (tabType === 'phone') {
+                elements.phoneLoginForm.classList.add('active');
+                elements.passwordSetupContainer.classList.remove('active');
+                // Reset phone password state
+                phoneLoginHasPassword = false;
+                elements.phonePasswordWarning.style.display = 'none';
+                elements.phonePasswordField.style.display = 'none';
+                elements.forgotPasswordLink.style.display = 'none';
+                elements.phoneLoginText.textContent = 'تسجيل الدخول';
+            } else {
+                elements.usernameLoginForm.classList.add('active');
+                elements.passwordSetupContainer.classList.remove('active');
+            }
+
+            // Clear errors
+            clearErrors();
+        }
+
+        // ===== UNIFIED LOGIN (username OR phone via kidLogin endpoint) =====
+        function attemptUnifiedLogin(identifier, password, isAutoLogin = false) {
+            if (!isAutoLogin) showLoading('جاري تسجيل الدخول...');
+
+            const formData = new FormData();
+            formData.append('action', 'kidLogin');
+            formData.append('username', identifier);
+            formData.append('password', password);
+
+            fetch('api.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (!isAutoLogin) hideLoading();
+                if (data.success && data.data && data.data.length > 0) {
+                    localStorage.setItem('savedUsername', identifier);
+                    localStorage.setItem('savedPassword', password);
+                    localStorage.setItem('rememberMe', 'true');
+                    showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
+                    setTimeout(() => { window.location.href = '/kids/profile/'; }, 1500);
+                } else {
+                    if (!isAutoLogin) showPhoneError(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+                    else {
+                        localStorage.removeItem('savedUsername');
+                        localStorage.removeItem('savedPassword');
+                        localStorage.removeItem('rememberMe');
+                    }
+                }
+            })
+            .catch(() => {
+                if (!isAutoLogin) { hideLoading(); showPhoneError('خطأ في الاتصال بالخادم'); }
+            });
+        }
+
+        // ===== PHONE LOGIN WITH PASSWORD CHECK =====
+        function checkPhonePassword(phone) {
+            showLoading('جاري التحقق من رقم الهاتف...');
+            
+            const formData = new FormData();
+            formData.append('action', 'checkKidPasswordByPhone');
+            formData.append('phone', cleanPhoneNumber(phone));
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    if (data.has_password) {
+                        // User has password - show password field
+                        phoneLoginHasPassword = true;
+                        elements.phonePasswordWarning.style.display = 'block';
+                        elements.phonePasswordField.style.display = 'block';
+                        elements.forgotPasswordLink.style.display = 'block';
+                        elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
+                        elements.phonePasswordInput.focus();
+                    } else {
+                        // User doesn't have password - show setup
+                        currentPhoneForSetup = cleanPhoneNumber(phone);
+                        showPasswordSetup(phone, data.student_id);
+                    }
+                } else {
+                    // If check fails, try normal phone login
+                    attemptPhoneLogin(phone);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Password check error:', error);
+                // Fallback to normal phone login
+                attemptPhoneLogin(phone);
+            });
+        }
+
+        function attemptPhoneLoginWithPassword(phone, password) {
+            showLoading('جاري تسجيل الدخول...');
+            
+            const formData = new FormData();
+            formData.append('action', 'kidLoginByPhoneWithPassword');
+            formData.append('phone', cleanPhoneNumber(phone));
+            formData.append('password', password);
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    // Save login credentials
+                    localStorage.setItem('savedUsername', cleanPhoneNumber(phone));
+                    localStorage.setItem('savedPassword', password);
+                    localStorage.setItem('rememberMe', 'true');
+                    
+                    // Redirect to profile
+                    showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
+                    setTimeout(() => {
+                        window.location.href = '/kids/profile/';
+                    }, 1500);
+                } else {
+                    showPhoneError(data.message || 'كلمة المرور غير صحيحة');
+                    elements.phonePasswordInput.value = '';
+                    elements.phonePasswordInput.focus();
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showPhoneError('خطأ في الاتصال بالخادم');
+            });
+        }
+
+        function attemptPhoneLogin(phone) {
+            showLoading('جاري البحث عن الطفل...');
+            
+            const formData = new FormData();
+            formData.append('action', 'getStudentByPhone');
+            formData.append('phone', cleanPhoneNumber(phone));
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    // Save phone in localStorage
+                    localStorage.setItem('userPhone', cleanPhoneNumber(phone));
+                    localStorage.setItem('loginType', 'phone');
+                    
+                    // Redirect to profile
+                    showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
+                    setTimeout(() => {
+                        window.location.href = '/kids/profile/';
+                    }, 1500);
+                } else {
+                    showPhoneError(data.message || 'رقم الهاتف غير مسجل');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showPhoneError('خطأ في الاتصال بالخادم');
+            });
+        }
+
+        // ===== USERNAME LOGIN =====
+        function attemptUsernameLogin(username, password, rememberMe, isAutoLogin = false) {
+            if (!isAutoLogin) {
+                showLoading('جاري تسجيل الدخول...');
+            }
+            
+            const formData = new FormData();
+            formData.append('action', 'kidLogin');
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!isAutoLogin) hideLoading();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    // Save login credentials
+                    localStorage.setItem('savedUsername', username);
+                    localStorage.setItem('savedPassword', password);
+                    localStorage.setItem('rememberMe', 'true');
+                    
+                    // Redirect to profile
+                    showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
+                    setTimeout(() => {
+                        window.location.href = '/kids/profile/';
+                    }, 1500);
+                } else {
+                    if (!isAutoLogin) {
+                        showUsernameError(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+                    } else {
+                        // Auto-login failed, clear saved credentials
+                        localStorage.removeItem('savedUsername');
+                        localStorage.removeItem('savedPassword');
+                        localStorage.removeItem('rememberMe');
+                    }
+                }
+            })
+            .catch(error => {
+                if (!isAutoLogin) hideLoading();
+                if (!isAutoLogin) {
+                    showUsernameError('خطأ في الاتصال بالخادم');
+                }
+            });
+        }
+
+        // ===== PASSWORD SETUP =====
+        function showPasswordSetup(phone, studentId) {
+            const container = elements.passwordSetupContainer;
+            const phoneLoginForm = elements.phoneLoginForm;
+            
+            phoneLoginForm.classList.remove('active');
+            container.classList.add('active');
+            
+            container.innerHTML = `
+                <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-key"></i>
+                    إعداد كلمة المرور الأولى
+                </h3>
+                
+                <div style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+                     color: #0369a1;
+                     padding: 16px;
+                     border-radius: var(--radius-md);
+                     margin-bottom: 20px;
+                     border: 2px solid #0ea5e9;
+                     text-align: center;">
+                    <i class="fas fa-info-circle" style="font-size: 1.2rem; margin-bottom: 8px; display: block;"></i>
+                    <p style="margin: 0; font-weight: 600;">
+                        هذه هي المرة الأولى التي تسجل فيها الدخول. يرجى إعداد كلمة مرور لحسابك.
+                    </p>
+                    <p style="margin: 8px 0 0 0; font-size: 0.9rem;">
+                        <i class="fas fa-phone"></i>
+                        رقم هاتفك: <strong>${phone}</strong>
+                    </p>
+                </div>
+                
+                <form id="passwordSetupForm">
+                    <div class="form-group">
+                        <label for="newPassword" class="form-label">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+                        <div class="input-container">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" 
+                                   id="newPassword" 
+                                   class="form-input" 
+                                   required 
+                                   placeholder="كلمة المرور الجديدة"
+                                   autocomplete="new-password">
+                            <button type="button" class="password-toggle" data-target="newPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">تأكيد كلمة المرور</label>
+                        <div class="input-container">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" 
+                                   id="confirmPassword" 
+                                   class="form-input" 
+                                   required 
+                                   placeholder="تأكيد كلمة المرور"
+                                   autocomplete="new-password">
+                            <button type="button" class="password-toggle" data-target="confirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="login-btn" id="setupPasswordBtn">
+                        <i class="fas fa-save"></i>
+                        <span id="setupPasswordText">حفظ كلمة المرور والمتابعة</span>
+                    </button>
+                    
+                    <button type="button" class="login-btn" id="skipPasswordBtn" style="
+                        background: var(--secondary);
+                        margin-top: 10px;
+                    ">
+                        <i class="fas fa-forward"></i>
+                        تخطي وتسجيل الدخول بدون كلمة مرور
+                    </button>
+                </form>
+            `;
+
+            // Add event listeners for password setup
+            setTimeout(() => {
+                document.getElementById('passwordSetupForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    setupNewPassword(phone, studentId);
+                });
+
+                document.getElementById('skipPasswordBtn').addEventListener('click', function() {
+                    skipPasswordSetup(phone);
+                });
+
+                document.querySelectorAll('.password-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function() {
+                        const targetId = this.dataset.target;
+                        const passwordInput = document.getElementById(targetId);
+                        const icon = this.querySelector('i');
+                        
+                        if (passwordInput.type === 'password') {
+                            passwordInput.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            passwordInput.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                });
+            }, 100);
+        }
+
+        function setupNewPassword(phone, studentId) {
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            
+            if (!newPassword || !confirmPassword) {
+                showSetupError('الرجاء إدخال كلمة المرور وتأكيدها');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showSetupError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showSetupError('كلمة المرور وتأكيدها غير متطابقين');
+                return;
+            }
+            
+            showLoading('جاري حفظ كلمة المرور...');
+            
+            const formData = new FormData();
+            formData.append('action', 'setupStudentPassword');
+            formData.append('studentId', studentId);
+            formData.append('phone', cleanPhoneNumber(phone));
+            formData.append('password', newPassword);
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success) {
+                    // Save credentials
+                    localStorage.setItem('savedUsername', cleanPhoneNumber(phone));
+                    localStorage.setItem('savedPassword', newPassword);
+                    localStorage.setItem('rememberMe', 'true');
+                    
+                    // Login with new password
+                    attemptPhoneLoginWithPassword(phone, newPassword);
+                } else {
+                    showSetupError(data.message || 'فشل في حفظ كلمة المرور');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showSetupError('خطأ في الاتصال بالخادم');
+            });
+        }
+
+        function skipPasswordSetup(phone) {
+            // Just login with phone (no password)
+            localStorage.setItem('userPhone', cleanPhoneNumber(phone));
+            localStorage.setItem('loginType', 'phone');
+            window.location.href = '/kids/profile/';
+        }
+
+        // ===== PASSWORD RECOVERY =====
+        function showPasswordRecovery() {
+            const phone = elements.phoneInput.value.trim();
+            if (!phone) {
+                showPhoneError('الرجاء إدخال رقم الهاتف أولاً');
+                return;
+            }
+            
+            alert('إذا نسيت كلمة المرور، يرجى التواصل مع إدارة المدرسة أو المعلم المسؤول عن حسابك.');
+        }
+
+        // ===== HELPER FUNCTIONS =====
+        function cleanPhoneNumber(phone) {
+            if (!phone) return '';
+            return phone.toString().replace(/[^\d]/g, '');
+        }
+
+        function showLoading(message) {
+            elements.loadingText.textContent = message;
+            elements.loading.style.display = 'block';
+            document.querySelectorAll('.login-btn').forEach(btn => btn.disabled = true);
+        }
+
+        function hideLoading() {
+            elements.loading.style.display = 'none';
+            document.querySelectorAll('.login-btn').forEach(btn => btn.disabled = false);
+        }
+
+        function showPhoneError(message) {
+            clearErrors();
+            elements.phoneErrorMessage.textContent = message;
+            elements.phoneErrorMessage.style.display = 'block';
+        }
+
+        function showUsernameError(message) {
+            clearErrors();
+            elements.usernameErrorMessage.textContent = message;
+            elements.usernameErrorMessage.style.display = 'block';
+        }
+
+        function showSetupError(message) {
+            clearErrors();
+            elements.setupErrorMessage.textContent = message;
+            elements.setupErrorMessage.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            clearErrors();
+            elements.phoneErrorMessage.style.background = 'linear-gradient(135deg, #d1fae5, #a7f3d0)';
+            elements.phoneErrorMessage.style.borderColor = '#a7f3d0';
+            elements.phoneErrorMessage.style.color = '#065f46';
+            elements.phoneErrorMessage.textContent = message;
+            elements.phoneErrorMessage.style.display = 'block';
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+                el.style.background = 'linear-gradient(135deg, #fef2f2, #fee2e2)';
+                el.style.borderColor = '#fecaca';
+                el.style.color = 'var(--danger)';
+            });
+            elements.phonePasswordWarning.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

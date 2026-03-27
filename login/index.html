@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+
+<!-- HTML Meta Tags -->
+<title>Sunday School</title>
+<meta name="description" content="A Comprehensive System for Managing and Tracking Children Activities in Sunday Schools">
+
+<!-- Facebook Meta Tags -->
+<meta property="og:url" content="https://sunday-school.rf.gd/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sunday School">
+<meta property="og:description" content="A Comprehensive System for Managing and Tracking Children Activities in Sunday Schools">
+<meta property="og:image:width" content="300">
+<meta property="og:image:height" content="300">
+<meta property="og:image" content="https://sunday-school.rf.gd/Thumbnail-300x.png">
+
+<!-- Twitter Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:domain" content="sunday-school.rf.gd">
+<meta property="twitter:url" content="https://sunday-school.rf.gd/">
+<meta name="twitter:title" content="Sunday School">
+<meta name="twitter:description" content="A Comprehensive System for Managing and Tracking Children Activities in Sunday Schools">
+<meta name="twitter:image" content="https://sunday-school.rf.gd/Sunday-School.png">
+
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - نظام مدارس الأحد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-dark: #4338ca;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 50%, #e0e7ff 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.02) 0%, transparent 30%);
+            z-index: -1;
+        }
+
+        /* Login Container */
+        .login-container {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative Top Border */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--success) 25%, 
+                var(--warning) 50%, 
+                var(--primary) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: -200% 0; }
+            50% { background-position: 200% 0; }
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            margin: 0 auto;
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+            letter-spacing: -0.02em;
+        }
+
+        .login-subtitle {
+            color: var(--secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* Login Type Selector */
+        .login-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: var(--light);
+            padding: 6px;
+            border-radius: var(--radius-md);
+        }
+
+        .login-type-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            color: var(--secondary);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .login-type-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .login-type-btn:hover:not(.active) {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            font-size: 18px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 50px 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: var(--transition);
+            background: var(--light);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .password-toggle {
+position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--light);
+    border: none;
+    color: var(--secondary);
+    cursor: pointer;
+    padding: 15px;
+    transition: var(--transition);
+    border-radius: var(--radius-sm);
+    font-size: 17px;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+            background: rgb(226 225 255);
+        }
+
+        /* Remember Me */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .remember-me label {
+            cursor: pointer;
+            color: var(--secondary);
+            user-select: none;
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Cairo', sans-serif;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: var(--transition);
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #3730a3);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .login-btn i {
+            margin-left: 8px;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 2px solid #fecaca;
+            color: var(--danger);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.5s;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Form Container */
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 24px;
+                margin: 0 10px;
+            }
+
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .login-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .login-type-btn {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .login-container {
+                padding: 24px 20px;
+            }
+
+            .form-input {
+                padding: 12px 45px 12px 14px;
+            }
+
+            .login-btn {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* For Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            .login-container,
+            .form-input,
+            .login-btn,
+            .password-toggle {
+                animation: none;
+                transition: none;
+            }
+        }
+
+        /* Accessibility */
+        .form-input:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            .login-container {
+                border: 2px solid var(--dark);
+            }
+            
+            .form-input {
+                border: 2px solid var(--dark);
+            }
+            
+            .login-btn {
+                border: 2px solid var(--primary-dark);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Pattern -->
+    <div class="background-pattern"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo">
+                 <a href="https://sunday-school.rf.gd/">
+                <img src="/logo.png" alt="Sunday School" style="width: 60px;height: auto; box-shadow: var(--shadow-sm); border-radius: 20px;">
+                     </a>
+            </div>
+            <h1 class="login-title">نظام مدارس الأحد</h1>
+            <p class="login-subtitle">الرجاء تسجيل الدخول للمتابعة</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Login Type Selector -->
+        <div class="login-type-selector">
+            <button type="button" class="login-type-btn active" data-type="uncle">
+                <i class="fas fa-user"></i> دخول المستخدم
+            </button>
+            <button type="button" class="login-type-btn" data-type="church">
+                <i class="fas fa-church"></i> دخول الكنيسة
+            </button>
+        </div>
+
+        <!-- Church Login Form -->
+        <div class="form-container " id="churchLoginForm">
+            <form class="login-form" data-login-type="church">
+                <!-- Church Code -->
+                <div class="form-group">
+                    <label for="churchCode" class="form-label">رمز الكنيسة</label>
+                    <div class="input-container">
+                        <i class="fas fa-church input-icon"></i>
+                        <input type="text" 
+                               id="churchCode" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل رمز الكنيسة"
+                               autocomplete="organization">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="churchPassword" class="form-label">كلمة المرور</label>
+                    <div class="input-container">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" 
+                               id="churchPassword" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل كلمة المرور"
+                               autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-target="churchPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberChurch" checked>
+                    <label for="rememberChurch">تذكرني</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </button>
+            </form>
+        </div>
+
+        <!-- Uncle Login Form -->
+        <div class="form-container active" id="uncleLoginForm">
+            <form class="login-form" data-login-type="uncle">
+                <!-- Username -->
+                <div class="form-group">
+                    <label for="uncleUsername" class="form-label">اسم المستخدم</label>
+                    <div class="input-container">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" 
+                               id="uncleUsername" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل اسم المستخدم"
+                               autocomplete="username">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="unclePassword" class="form-label">كلمة المرور</label>
+                    <div class="input-container">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" 
+                               id="unclePassword" 
+                               class="form-input" 
+                               required 
+                               placeholder="أدخل كلمة المرور"
+                               autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-target="unclePassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberUncle" checked>
+                    <label for="rememberUncle">تذكرني</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p class="loading-text">جاري تسجيل الدخول...</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer" id="loginFooter">
+            نظام إدارة مدارس الأحد - 2026
+        </div>
+    </div>
+
+    <script>
+    // ══════════════════════════════════════════════════════════
+    // LOGIN PAGE — AUTO-LOGIN + FORM LOGIC
+    // ══════════════════════════════════════════════════════════
+    'use strict';
+
+    const API = '/api.php';
+
+    // ── Helpers ───────────────────────────────────────────────
+    function showError(message) {
+        const el = document.getElementById('errorMessage');
+        el.style.cssText = 'background:linear-gradient(135deg,#fef2f2,#fee2e2);border:2px solid #fecaca;color:var(--danger);padding:16px;border-radius:var(--radius-md);margin-bottom:20px;display:block;font-weight:600;text-align:center;animation:shake .5s;';
+        el.textContent = message;
+    }
+
+    function showSuccess(message) {
+        const el = document.getElementById('errorMessage');
+        el.style.cssText = 'background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:2px solid #a7f3d0;color:#065f46;padding:16px;border-radius:var(--radius-md);margin-bottom:20px;display:block;font-weight:600;text-align:center;';
+        el.textContent = message;
+    }
+
+    function showForms() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loginFooter').style.display = 'block';
+        const activeType = document.querySelector('.login-type-btn.active')?.dataset.type || 'uncle';
+        document.getElementById('churchLoginForm').style.display  = activeType === 'church' ? 'block' : 'none';
+        document.getElementById('uncleLoginForm').style.display   = activeType === 'uncle'  ? 'block' : 'none';
+        // Restore form-container active class
+        document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+        document.getElementById(activeType === 'church' ? 'churchLoginForm' : 'uncleLoginForm').classList.add('active');
+    }
+
+    function showLoading(text) {
+        document.querySelectorAll('.form-container').forEach(f => { f.style.display = 'none'; f.classList.remove('active'); });
+        document.getElementById('loginFooter').style.display  = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        const ld = document.getElementById('loading');
+        ld.style.display = 'flex';
+        const lt = ld.querySelector('.loading-text');
+        if (lt && text) lt.textContent = text;
+    }
+
+    function saveCredentials(loginType, data, churchCode, username) {
+        localStorage.setItem('loginType',  loginType);
+        localStorage.setItem('loggedIn',   'true');
+        if (loginType === 'church') {
+            localStorage.setItem('churchCode', churchCode);
+            localStorage.setItem('churchName', data.church_name  || '');
+            localStorage.setItem('churchId',   data.church_id    || '');
+            ['uncleLoggedIn','uncleId','uncleName','uncleRole','uncleImage','uncleUsername'].forEach(k => localStorage.removeItem(k));
+        } else {
+            localStorage.setItem('uncleUsername', username);
+            localStorage.setItem('uncleLoggedIn', 'true');
+            localStorage.setItem('uncleId',       data.uncle?.id        || '');
+            localStorage.setItem('uncleName',     data.uncle?.name      || '');
+            localStorage.setItem('uncleRole',     data.uncle?.role      || 'uncle');
+            localStorage.setItem('uncleImage',    data.uncle?.image_url || '');
+            localStorage.setItem('churchName',    data.church_name      || '');
+            localStorage.setItem('churchCode',    data.church_code      || '');
+        }
+    }
+
+    function getRedirectTarget() {
+        // Respect ?redirect= param so pages can send users back after login
+        const params = new URLSearchParams(window.location.search);
+        return params.get('redirect') || null;
+    }
+
+    function redirectToDashboard(loginType, role) {
+        const dest = getRedirectTarget();
+        if (dest) { window.location.href = dest; return; }
+        if (loginType === 'church') {
+            window.location.href = '/uncle/church/dashboard/';
+        } else {
+            window.location.href = role === 'developer' ? '/uncle/church/' : '/uncle/dashboard/';
+        }
+    }
+
+    // ── Login type tab switching ──────────────────────────────
+    document.querySelectorAll('.login-type-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+            document.getElementById(this.dataset.type === 'church' ? 'churchLoginForm' : 'uncleLoginForm').classList.add('active');
+            document.getElementById('errorMessage').style.display = 'none';
+        });
+    });
+
+    // ── Password visibility toggle ────────────────────────────
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function () {
+            const input = document.getElementById(this.dataset.target);
+            const icon  = this.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+            else                           { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+        });
+    });
+
+    // ── Core login fetch ──────────────────────────────────────
+    async function doLogin(loginType, identifier, password) {
+        const fd = new FormData();
+        if (loginType === 'church') {
+            fd.append('action', 'login');
+            fd.append('church_code', identifier);
+            fd.append('password', password);
+        } else {
+            fd.append('action', 'uncleLogin');
+            fd.append('username', identifier);
+            fd.append('password', password);
+        }
+        const r = await fetch(API, { method: 'POST', body: fd, credentials: 'include' });
+        return r.json();
+    }
+
+    // ── Form submit handler ───────────────────────────────────
+    document.querySelectorAll('.login-form').forEach(form => {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const loginType = this.dataset.loginType;
+            let identifier = '', password = '';
+            if (loginType === 'church') {
+                identifier = document.getElementById('churchCode').value.trim();
+                password   = document.getElementById('churchPassword').value;
+            } else {
+                identifier = document.getElementById('uncleUsername').value.trim();
+                password   = document.getElementById('unclePassword').value;
+            }
+            if (!identifier || !password) { showError('الرجاء ملء جميع الحقول'); return; }
+            showLoading('جاري تسجيل الدخول...');
+            try {
+                const data = await doLogin(loginType, identifier, password);
+                if (data.success) {
+                    saveCredentials(loginType, data, identifier, identifier);
+                    showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
+                    const role = data.uncle?.role || localStorage.getItem('uncleRole') || 'uncle';
+                    setTimeout(() => redirectToDashboard(loginType, role), 500);
+                } else {
+                    showError(data.message || 'فشل في تسجيل الدخول');
+                    showForms();
+                }
+            } catch (err) {
+                showError('خطأ في الاتصال بالخادم');
+                showForms();
+            }
+        });
+    });
+
+    // ── Auto-login on page load ───────────────────────────────
+    // Strategy:
+    // 1. If credentials exist, always try restore_session first → redirect if success
+    // 2. If session restore fails, try silent re-login with saved password
+    // 3. If both fail (wrong creds), show form — but NEVER delete loggedIn flag
+    //    (a network hiccup should not wipe the user's login state)
+    window.addEventListener('load', async function () {
+        const loginType = localStorage.getItem('loginType')  || 'uncle';
+        const loggedIn  = localStorage.getItem('loggedIn')   === 'true'
+                       || localStorage.getItem('uncleLoggedIn') === 'true';
+        const cc        = localStorage.getItem('churchCode');
+        const un        = localStorage.getItem('uncleUsername');
+        const ATTEMPT_KEY = '_loginRestoreAttempted'; // sessionStorage — resets per tab
+
+        // ── No saved credentials at all → show form ────────
+        if (!loggedIn && !cc && !un) { showForms(); return; }
+
+        // ── Helper: pre-fill form for a returning user ─────
+        function preFillForm() {
+            if (loginType === 'uncle' && un) {
+                document.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('[data-type="uncle"]')?.classList.add('active');
+                document.getElementById('churchLoginForm')?.classList.remove('active');
+                document.getElementById('uncleLoginForm')?.classList.add('active');
+                document.getElementById('uncleUsername').value = un;
+            } else if (loginType === 'church' && cc) {
+                document.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('[data-type="church"]')?.classList.add('active');
+                document.getElementById('uncleLoginForm')?.classList.remove('active');
+                document.getElementById('churchLoginForm')?.classList.add('active');
+                document.getElementById('churchCode').value = cc;
+            }
+        }
+
+        // ── Already attempted this tab → show pre-filled form
+        if (sessionStorage.getItem(ATTEMPT_KEY) === '1') { preFillForm(); showForms(); return; }
+
+        showLoading('جاري استعادة الجلسة...');
+        sessionStorage.setItem(ATTEMPT_KEY, '1'); // mark before any async op
+
+        // ── Step 1: Try server session restore ─────────────
+        if (navigator.onLine) {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'restore_session');
+                if (loginType === 'church' && cc) fd.append('church_code', cc);
+                else if (un)                      fd.append('username', un);
+                else { showForms(); return; }
+
+                const r = await fetch(API, { method: 'POST', body: fd, credentials: 'include' });
+                const d = await r.json();
+
+                if (d.success) {
+                    const role = d.uncle?.role || d.uncle_role || localStorage.getItem('uncleRole') || 'uncle';
+                    localStorage.setItem('uncleRole', role);
+                    redirectToDashboard(loginType, role);
+                    return;
+                }
+                // restore_session returned success:false means user not in DB — truly invalid
+                // Only in this specific case do we clear credentials
+                if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
+                    localStorage.removeItem('loggedIn');
+                    localStorage.removeItem('uncleLoggedIn');
+                    showForms();
+                    return;
+                }
+            } catch (e) {
+                // Network error — fall through to silent re-login attempt
+            }
+
+            // ── Step 2: Try silent re-login with saved password ─
+            const savedPwdUncle = localStorage.getItem('unclePassword');
+            const savedPwd      = localStorage.getItem('savedPassword');
+            const identifier    = loginType === 'church' ? cc : un;
+            const password      = savedPwdUncle || savedPwd;
+
+            if (identifier && password) {
+                try {
+                    showLoading('جاري تسجيل الدخول تلقائياً...');
+                    const data = await doLogin(loginType, identifier, password);
+                    if (data.success) {
+                        saveCredentials(loginType, data, identifier, identifier);
+                        if (data.uncle?.role) localStorage.setItem('uncleRole', data.uncle.role);
+                        redirectToDashboard(loginType, data.uncle?.role || localStorage.getItem('uncleRole') || 'uncle');
+                        return;
+                    }
+                } catch (e) { /* network error */ }
+            }
+        }
+
+        // ── Step 3: Failed (or offline) — show pre-filled form
+        // Do NOT clear loggedIn — a network error or session expiry
+        // is not the same as the user logging out.
+        preFillForm();
+        showForms();
+    });
+
+    // ── Keyboard shortcuts ────────────────────────────────────
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            document.querySelector('.form-container.active .login-form')?.dispatchEvent(new Event('submit', { bubbles: true }));
+        }
+    });
+    </script>
+</body>
+</html>

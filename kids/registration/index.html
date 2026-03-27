@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>تسجيل طفل جديد</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --brand:#5b6cf5;--brand-dark:#4354e8;--brand-light:#a5b0ff;--brand-bg:#eef0ff;--brand-glow:rgba(91,108,245,.18);
+  --success:#10b981;--success-dark:#059669;--success-bg:#d1fae5;
+  --danger:#ef4444;--danger-dark:#dc2626;--danger-bg:#fee2e2;
+  --warning:#f59e0b;--warning-dark:#d97706;--warning-bg:#fef3c7;
+  --bg:#f3f4f9;--surface:#fff;--surface-2:#f7f8fc;--surface-3:#eef0f8;
+  --border:rgba(91,108,245,.12);--border-solid:#e4e6f0;
+  --text:#1a1d2e;--text-2:#4b5068;--text-3:#8b90a8;
+  --shadow-sm:0 2px 8px -2px rgba(0,0,0,.07);--shadow-md:0 8px 24px -4px rgba(0,0,0,.10);--shadow-lg:0 20px 48px -8px rgba(0,0,0,.14);
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:24px;--r-2xl:32px;--r-full:9999px;
+  --ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.16,1,.3,1);--t:.22s;
+}
+html,body{height:100%;font-family:'Baloo Bhaijaan 2',cursive;background:var(--bg);color:var(--text);overflow-x:hidden;user-select:none;touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 15% -5%,rgba(91,108,245,.13) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 40% at 85% 105%,rgba(91,108,245,.09) 0%,transparent 55%);}
+
+.fs{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;
+  background:var(--surface);border-bottom:1px solid var(--border-solid);box-shadow:var(--shadow-sm);
+  position:sticky;top:0;z-index:100;animation:slideDown .5s var(--spring) both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.topbar-brand{display:flex;align-items:center;gap:12px;}
+.topbar-logo{width:44px;height:44px;border-radius:var(--r-md);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));box-shadow:0 4px 14px var(--brand-glow);}
+.topbar-logo img{width:100%;height:100%;object-fit:contain;}
+.topbar-title{font-size:1rem;font-weight:800;color:var(--text);}
+.topbar-sub{font-size:.76rem;color:var(--text-3);font-weight:500;}
+.church-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brand-bg);
+  border:1px solid var(--border);padding:6px 16px;border-radius:var(--r-full);
+  font-size:.8rem;font-weight:700;color:var(--brand);}
+
+/* ── STEP RAIL ── */
+.step-rail{background:var(--surface);border-bottom:1px solid var(--border-solid);padding:0 48px;
+  animation:slideDown .5s .06s var(--spring) both;}
+.rail-inner{display:flex;max-width:960px;margin:0 auto;}
+.rail-tab{flex:1;display:flex;align-items:center;gap:10px;padding:16px 0;
+  border-bottom:3px solid transparent;transition:border-color .3s var(--ease);position:relative;}
+.rail-tab.active{border-bottom-color:var(--brand);}
+.rail-tab.done{border-bottom-color:var(--brand-light);}
+.rail-tab:not(:last-child)::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:1px;height:28px;background:var(--border-solid);}
+.rail-num{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.76rem;font-weight:800;background:var(--surface-3);color:var(--text-3);border:2px solid var(--border-solid);transition:all .3s var(--spring);}
+.rail-tab.active .rail-num{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 0 0 4px var(--brand-bg);}
+.rail-tab.done   .rail-num{background:var(--brand);border-color:var(--brand);color:white;}
+.rail-info strong{display:block;font-size:.82rem;font-weight:700;color:var(--text-3);transition:color .3s;}
+.rail-tab.active .rail-info strong{color:var(--brand);}
+.rail-tab.done   .rail-info strong{color:var(--text-2);}
+.rail-info span{font-size:.7rem;color:var(--text-3);font-weight:500;}
+
+.prog-strip{height:3px;background:var(--border-solid);}
+.prog-fill{height:100%;width:5%;background:linear-gradient(90deg,var(--brand),var(--brand-light));transition:width .45s var(--ease);}
+
+/* ── CONTENT ── */
+.content{flex:1;display:flex;flex-direction:column;align-items:center;padding:48px 24px 72px;animation:fadeUp .5s .1s var(--ease) both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.panel{display:none;width:100%;max-width:800px;}
+.panel.active{display:block;animation:panelIn .4s var(--spring) both;}
+@keyframes panelIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.ph{text-align:center;margin-bottom:32px;}
+.ph-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:var(--r-xl);
+  background:linear-gradient(135deg,var(--brand-bg),#dde0ff);
+  display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:1.8rem;
+  box-shadow:0 0 0 8px rgba(91,108,245,.07);}
+.ph h2{font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;}
+.ph p{font-size:.93rem;color:var(--text-3);font-weight:500;}
+.ph .step-meta{font-size:.72rem;color:var(--text-3);font-weight:600;margin-bottom:4px;}
+
+.fc{background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border-solid);
+  box-shadow:var(--shadow-md);padding:32px 36px;margin-bottom:18px;}
+.sec-label{display:flex;align-items:center;gap:10px;font-size:.72rem;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--brand);margin-bottom:20px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border-solid);}
+
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.fr.full{grid-template-columns:1fr;}
+@media(max-width:580px){.fr{grid-template-columns:1fr;}}
+.ff{display:flex;flex-direction:column;gap:7px;}
+.ff label{font-size:.84rem;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:7px;}
+.ff label i{color:var(--brand-light);font-size:.78rem;}
+.req{color:var(--danger);}
+.ff input,.ff select,.ff textarea{width:100%;padding:13px 16px;border:1.5px solid var(--border-solid);
+  border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',cursive;font-size:.95rem;
+  background:var(--surface-2);color:var(--text);
+  transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease),background var(--t);outline:none;}
+.ff input:focus,.ff select:focus{border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 4px var(--brand-glow);}
+.ff input.err,.ff select.err{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.ff small{font-size:.74rem;color:var(--text-3);}
+
+/* ── ALERT ── */
+.alert{display:none;padding:13px 16px;border-radius:var(--r-sm);font-size:.88rem;font-weight:600;
+  align-items:center;gap:10px;margin-bottom:16px;}
+.alert.on{display:flex;}
+.alert-err{background:var(--danger-bg);color:var(--danger-dark);border:1px solid rgba(239,68,68,.2);}
+.alert-ok{background:var(--success-bg);color:var(--success-dark);border:1px solid rgba(16,185,129,.2);}
+.alert-warn{background:var(--warning-bg);color:var(--warning-dark);border:1px solid rgba(245,158,11,.2);}
+
+/* ── REVIEW ── */
+.rv-block{background:var(--surface);border:1px solid var(--border-solid);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.rv-head{padding:12px 20px;font-size:.73rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--brand);background:var(--brand-bg);border-bottom:1px solid var(--border-solid);display:flex;align-items:center;gap:9px;}
+.rv-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;font-size:.9rem;border-bottom:1px solid var(--border-solid);}
+.rv-row:last-child{border-bottom:none;}
+.rv-lbl{color:var(--text-3);font-weight:600;}
+.rv-val{color:var(--text);font-weight:700;}
+
+/* ── ACTIONS ── */
+.act-bar{display:flex;align-items:center;gap:14px;width:100%;max-width:800px;margin-top:4px;}
+.btn{padding:14px 26px;border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',cursive;
+  font-size:.98rem;font-weight:700;cursor:pointer;border:none;
+  display:flex;align-items:center;justify-content:center;gap:9px;transition:all var(--t) var(--ease);}
+.btn-back{background:transparent;border:2px solid var(--border-solid);color:var(--text-2);flex-shrink:0;}
+.btn-back:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg);}
+.btn-next{flex:1;font-size:1rem;background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  color:white;box-shadow:0 6px 20px var(--brand-glow);}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--brand-glow);}
+.btn-next:active{transform:translateY(0);}
+.btn-next:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;
+  border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.spin.on{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FULLSCREEN STATES ── */
+.fs-state{display:none;flex:1;align-items:center;justify-content:center;padding:60px 24px;}
+.fs-state.on{display:flex;}
+.state-card{max-width:560px;width:100%;background:var(--surface);border-radius:var(--r-2xl);
+  border:1px solid var(--border-solid);box-shadow:var(--shadow-lg);padding:52px 44px;text-align:center;
+  animation:fadeUp .5s var(--spring) both;}
+.state-icon{width:80px;height:80px;margin:0 auto 22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;}
+.state-icon.danger {background:linear-gradient(135deg,var(--danger),var(--danger-dark));box-shadow:0 8px 28px rgba(239,68,68,.3);}
+.state-icon.success{background:linear-gradient(135deg,var(--success),var(--success-dark));box-shadow:0 8px 28px rgba(16,185,129,.3);}
+.state-icon.pending{background:linear-gradient(135deg,var(--warning),var(--warning-dark));box-shadow:0 8px 28px rgba(245,158,11,.3);}
+.state-card h2{font-size:1.6rem;font-weight:900;margin-bottom:10px;}
+.state-card p{color:var(--text-3);font-size:.92rem;line-height:1.8;}
+
+/* ── PENDING STATUS ── */
+.pending-list{margin-top:24px;text-align:right;}
+.pending-item{background:var(--surface-2);border:1px solid var(--border-solid);border-radius:var(--r-lg);
+  padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.pending-item-info strong{display:block;font-size:.92rem;font-weight:800;color:var(--text);}
+.pending-item-info span{font-size:.78rem;color:var(--text-3);}
+.status-chip{padding:5px 12px;border-radius:var(--r-full);font-size:.75rem;font-weight:700;flex-shrink:0;}
+.chip-pending {background:var(--warning-bg);color:var(--warning-dark);}
+.chip-approved{background:var(--success-bg);color:var(--success-dark);}
+.chip-rejected{background:var(--danger-bg); color:var(--danger-dark);}
+
+.btn-login{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:14px 28px;
+  border-radius:var(--r-sm);background:linear-gradient(135deg,var(--success),var(--success-dark));
+  color:white;font-family:'Baloo Bhaijaan 2',cursive;font-size:.97rem;font-weight:700;
+  cursor:pointer;border:none;box-shadow:0 6px 20px rgba(16,185,129,.3);text-decoration:none;
+  transition:all var(--t) var(--ease);}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(16,185,129,.4);}
+
+.btn-new-reg{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:12px 24px;
+  border-radius:var(--r-sm);background:transparent;border:2px solid var(--border-solid);
+  color:var(--text-2);font-family:'Baloo Bhaijaan 2',cursive;font-size:.92rem;font-weight:700;
+  cursor:pointer;transition:all var(--t) var(--ease);}
+.btn-new-reg:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg);}
+
+/* ── LOADING ── */
+.loading-screen{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-screen.on{display:flex;}
+.big-spin{width:48px;height:48px;border:4px solid var(--border-solid);border-top-color:var(--brand);
+  border-radius:50%;animation:spin .8s linear infinite;}
+.loading-screen p{color:var(--text-3);font-size:.9rem;font-weight:600;}
+
+@media(max-width:640px){
+  .topbar{padding:14px 18px;}
+  .step-rail{padding:0 18px;}
+  .rail-info span{display:none;}
+  .content{padding:28px 14px 52px;}
+  .fc{padding:22px 18px;}
+  .state-card{padding:36px 22px;}
+  .act-bar{flex-direction:column-reverse;}
+  .btn-back{width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="fs" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">
+        <img src="/logo.png" alt="Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-church\' style=\'color:white;font-size:1.1rem\'></i>'">
+      </div>
+      <div>
+        <div class="topbar-title" id="topTitle">تسجيل طفل جديد</div>
+        <div class="topbar-sub" id="topSub">جاري تحميل بيانات الكنيسة...</div>
+      </div>
+    </div>
+    <div class="church-badge" id="churchBadge"><i class="fas fa-spinner fa-spin"></i> <span id="badgeText">جاري التحميل</span></div>
+  </div>
+
+  <!-- STEP RAIL -->
+  <div class="step-rail" id="stepRail">
+    <div class="rail-inner">
+      <div class="rail-tab active" id="rt1">
+        <div class="rail-num" id="rn1"><i class="fas fa-user" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>البيانات الأساسية</strong><span>الاسم والفصل</span></div>
+      </div>
+      <div class="rail-tab" id="rt2">
+        <div class="rail-num" id="rn2"><i class="fas fa-calendar" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>البيانات الشخصية</strong><span>الميلاد والتواصل</span></div>
+      </div>
+      <div class="rail-tab" id="rt3">
+        <div class="rail-num" id="rn3"><i class="fas fa-map-marker-alt" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>العنوان والبريد</strong><span>الموقع والإشعارات</span></div>
+      </div>
+      <div class="rail-tab" id="rt4">
+        <div class="rail-num" id="rn4"><i class="fas fa-lock" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>الحساب والصورة</strong><span>اسم المستخدم وكلمة المرور</span></div>
+      </div>
+      <div class="rail-tab" id="rt5">
+        <div class="rail-num" id="rn5"><i class="fas fa-check" style="font-size:.68rem"></i></div>
+        <div class="rail-info"><strong>مراجعة وإرسال</strong><span>تأكيد البيانات</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="prog-strip" id="progStrip"><div class="prog-fill" id="progFill"></div></div>
+
+  <!-- LOADING -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="big-spin"></div>
+    <p>جاري تحميل بيانات الكنيسة...</p>
+  </div>
+
+  <!-- INVALID CHURCH -->
+  <div class="fs-state" id="invalidScreen">
+    <div class="state-card">
+      <div class="state-icon danger"><i class="fas fa-ban"></i></div>
+      <h2 style="color:var(--danger);">كنيسة غير موجودة</h2>
+      <p>لم يتم العثور على الكنيسة المطلوبة.<br>تحقق من صحة الرابط وحاول مرة أخرى.</p>
+    </div>
+  </div>
+
+  <!-- EXISTING REGISTRATIONS -->
+  <div class="fs-state" id="existingScreen">
+    <div class="state-card" style="max-width:600px;">
+      <div class="state-icon pending"><i class="fas fa-clock"></i></div>
+      <h2>لديك تسجيلات سابقة</h2>
+      <p>وجدنا طلبات تسجيل سابقة مرتبطة بهذا الجهاز في كنيسة <strong id="existChurchName"></strong></p>
+      <div class="pending-list" id="pendingList"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8px;">
+        <div id="loginBtnWrap" style="display:none;">
+          <a href="/kids/login/" class="btn-login"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول الآن</a>
+        </div>
+        <button class="btn-new-reg" onclick="startFresh()"><i class="fas fa-plus"></i> <span class="lbl-new-reg">تسجيل طفل آخر</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div id="cropModal" style="display:none;position:fixed;inset:0;z-index:1000;background:#000;flex-direction:column;">
+    <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-bottom:1px solid var(--border-solid);">
+      <h3 style="margin:0;font-size:1rem;color:var(--text);">قص الصورة</h3>
+      <button onclick="closeCropModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text);padding:4px 8px;">✕</button>
+    </div>
+    
+    <div id="cropPreview" style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:grab;touch-action:none;">
+      <img id="cropImg" style="max-width:none;max-height:none;position:absolute;" />
+    </div>
+    
+    <div style="padding:16px;background:var(--surface);border-top:1px solid var(--border-solid);display:flex;gap:12px;">
+      <button onclick="cropZoomOut()" style="flex:0.3;padding:12px;border-radius:var(--r-sm);border:1.5px solid var(--border-solid);background:transparent;color:var(--text-2);font-weight:700;cursor:pointer;font-size:1.2rem;">−</button>
+      <button onclick="closeCropModal()" style="flex:1;padding:12px;border-radius:var(--r-sm);border:1.5px solid var(--border-solid);background:transparent;color:var(--text-2);font-weight:700;cursor:pointer;font-family:'Baloo Bhaijaan 2',cursive;">إلغاء</button>
+      <button onclick="cropZoomIn()" style="flex:0.3;padding:12px;border-radius:var(--r-sm);border:1.5px solid var(--border-solid);background:transparent;color:var(--text-2);font-weight:700;cursor:pointer;font-size:1.2rem;">+</button>
+      <button onclick="applyCrop()" style="flex:1;padding:12px;border-radius:var(--r-sm);border:none;background:var(--brand);color:white;font-weight:700;cursor:pointer;font-family:'Baloo Bhaijaan 2',cursive;">تطبيق</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content" id="mainContent" style="display:none;">
+
+    <!-- ══ STEP 1 : الاسم والفصل ══ -->
+    <div class="panel active" id="p1">
+      <div class="ph">
+        <div class="step-meta">الخطوة 1 من 5</div>
+        <div class="ph-icon"><i class="fas fa-user-graduate"></i></div>
+        <h2>البيانات الأساسية</h2>
+        <p id="lbl-step1-sub">اسم الطفل والفصل الدراسي</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label" id="lbl-identity"><i class="fas fa-id-card"></i> هوية الطفل</div>
+
+        <!-- Profile picture upload -->
+        <div class="fr full" style="margin-bottom:18px;">
+          <div class="ff" style="align-items:center;">
+            <label><i class="fas fa-camera"></i> صورة الملف الشخصي <span style="font-size:.72rem;color:var(--text-3);">(اختياري)</span></label>
+            <div style="display:flex;align-items:center;gap:18px;margin-top:4px;">
+              <div id="avatarPreviewWrap" style="position:relative;width:90px;height:90px;flex-shrink:0;">
+                <div id="avatarPreview" style="width:90px;height:90px;border-radius:50%;background:var(--brand-bg);border:2.5px dashed var(--brand-light);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;transition:border-color .2s;" onclick="document.getElementById('kidAvatar').click()">
+                  <i class="fas fa-user-circle" style="font-size:2.8rem;color:var(--brand-light);"></i>
+                </div>
+                <button type="button" id="removeAvatarBtn" onclick="removeAvatar()" style="display:none;position:absolute;top:-4px;left:-4px;width:24px;height:24px;border-radius:50%;background:var(--danger);border:none;color:white;font-size:.6rem;cursor:pointer;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>
+              </div>
+              <div>
+                <button type="button" onclick="document.getElementById('kidAvatar').click()" style="padding:9px 18px;border-radius:var(--r-sm);background:var(--brand-bg);border:1.5px solid var(--border);color:var(--brand);font-family:'Baloo Bhaijaan 2',cursive;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;margin-bottom:6px;transition:all .2s;">
+                  <i class="fas fa-upload"></i> رفع صورة
+                </button>
+                <p style="font-size:.72rem;color:var(--text-3);margin:0;">JPG أو PNG · اي حجم</p>
+              </div>
+            </div>
+            <input type="file" id="kidAvatar" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarChange(event)">
+          </div>
+        </div>
+
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-user"></i> الاسم الكامل <span class="req">*</span></label>
+            <input type="text" id="kidName" placeholder="اسم الطفل كاملاً" autocomplete="off" data-placeholder-kids="اسم الطفل كاملاً" data-placeholder-youth="اسم الشاب كاملاً" />
+          </div>
+        </div>
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-graduation-cap"></i> الفصل <span class="req">*</span></label>
+            <select id="kidClass">
+              <option value="">— اختر الفصل —</option>
+            </select>
+            <small id="classHint">جاري تحميل الفصول...</small>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-err" id="err1"><i class="fas fa-circle-exclamation"></i><span id="errTxt1"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-next" onclick="nextStep()">التالي &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2 : الميلاد والتليفون ══ -->
+    <div class="panel" id="p2">
+      <div class="ph">
+        <div class="step-meta">الخطوة 2 من 5</div>
+        <div class="ph-icon"><i class="fas fa-calendar-days"></i></div>
+        <h2>البيانات الشخصية</h2>
+        <p>تاريخ الميلاد ورقم التليفون</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-circle-info"></i> التفاصيل</div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-cake-candles"></i> تاريخ الميلاد <span class="req">*</span></label>
+            <input type="text" id="kidBirthday" placeholder="22/11/2010" maxlength="10" inputmode="numeric" />
+            <small><i class="fas fa-calendar-alt"></i> يوم/شهر/سنة — مثال: 15/06/2012</small>
+          </div>
+        </div>
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-mobile-screen"></i> رقم التليفون <span class="req">*</span></label>
+            <input type="tel" id="kidPhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" />
+            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم</small>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-err" id="err2"><i class="fas fa-circle-exclamation"></i><span id="errTxt2"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" onclick="nextStep()">التالي &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3 : العنوان والبريد ══ -->
+    <div class="panel" id="p3">
+      <div class="ph">
+        <div class="step-meta">الخطوة 3 من 5</div>
+        <div class="ph-icon"><i class="fas fa-map-location-dot"></i></div>
+        <h2>العنوان والبريد الإلكتروني</h2>
+        <p>لتسهيل التواصل وإرسال الإشعارات</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-location-dot"></i> بيانات التواصل</div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-map-pin"></i> العنوان <span class="req">*</span></label>
+            <input type="text" id="kidAddress" placeholder="مثال: مصر الجديدة، القاهرة" />
+          </div>
+        </div>
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+            <input type="email" id="kidEmail" placeholder="example@email.com" />
+            <small>ستصلك رسائل إلكترونية عند قبول أو رفض طلب التسجيل</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom church fields injected here by renderCustomFields() -->
+      <div id="customFieldsContainer"></div>
+
+      <div class="alert alert-err" id="err3"><i class="fas fa-circle-exclamation"></i><span id="errTxt3"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" onclick="nextStep()">التالي &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4 : الحساب ══ -->
+    <div class="panel" id="p4">
+      <div class="ph">
+        <div class="step-meta">الخطوة 4 من 5</div>
+        <div class="ph-icon"><i class="fas fa-lock"></i></div>
+        <h2>بيانات الحساب</h2>
+        <p>كلمة المرور للدخول لاحقاً</p>
+      </div>
+      <div class="fc">
+        <div class="sec-label"><i class="fas fa-user-shield"></i> بيانات تسجيل الدخول</div>
+        <div class="fr full" style="display:none;">
+          <div class="ff">
+            <label><i class="fas fa-at"></i> اسم المستخدم </label>
+            <input type="text" id="kidUsername" placeholder="مثال: peter2014" autocomplete="off" inputmode="latin" style="direction:ltr;text-align:left;" />
+            <small>يمكن استخدام اسم المستخدم <strong>أو</strong> رقم التليفون للدخول لاحقاً</small>
+          </div>
+        </div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-lock"></i> كلمة المرور <span class="req">*</span></label>
+            <div style="position:relative;">
+              <input type="password" id="kidPassword" placeholder="••••••••" autocomplete="new-password" style="direction:ltr;text-align:left;padding-left:44px;" />
+              <button type="button" onclick="togglePwd('kidPassword','eyeBtn1')" id="eyeBtn1" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:.9rem;padding:4px;"><i class="fas fa-eye"></i></button>
+            </div>
+            <small>6 أحرف على الأقل</small>
+          </div>
+        </div>
+        <div class="fr full" style="margin-bottom:0">
+          <div class="ff">
+            <label><i class="fas fa-lock-open"></i> تأكيد كلمة المرور <span class="req">*</span></label>
+            <div style="position:relative;">
+              <input type="password" id="kidPasswordConfirm" placeholder="••••••••" autocomplete="new-password" style="direction:ltr;text-align:left;padding-left:44px;" />
+              <button type="button" onclick="togglePwd('kidPasswordConfirm','eyeBtn2')" id="eyeBtn2" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:.9rem;padding:4px;"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:14px 16px;background:var(--brand-bg);border-radius:var(--r-sm);border:1px solid var(--border);font-size:.82rem;color:var(--text-2);">
+          <i class="fas fa-info-circle" style="color:var(--brand);margin-left:6px;"></i>
+          يمكنك تسجيل الدخول لاحقاً باستخدام <strong>رقم التليفون</strong> مع نفس كلمة المرور.
+        </div>
+      </div>
+      <div class="alert alert-err" id="err4"><i class="fas fa-circle-exclamation"></i><span id="errTxt4"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" onclick="nextStep()">مراجعة الطلب &nbsp;<i class="fas fa-arrow-left"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 5 : مراجعة ══ -->
+    <div class="panel" id="p5">
+      <div class="ph">
+        <div class="step-meta">الخطوة 5 من 5</div>
+        <div class="ph-icon"><i class="fas fa-clipboard-check"></i></div>
+        <h2>مراجعة الطلب</h2>
+        <p>تأكد من صحة جميع البيانات قبل الإرسال</p>
+      </div>
+
+      <div class="rv-block">
+        <div class="rv-head"><i class="fas fa-church"></i> الكنيسة</div>
+        <div class="rv-row"><span class="rv-lbl">اسم الكنيسة</span><span class="rv-val" id="rv-church">—</span></div>
+      </div>
+      <div class="rv-block">
+        <div class="rv-head" id="lbl-rv-head"><i class="fas fa-user-graduate"></i> بيانات الطفل</div>
+        <div class="rv-row" id="rv-avatar-row" style="display:none">
+          <span class="rv-lbl">الصورة الشخصية</span>
+          <span class="rv-val"><img id="rv-avatar-img" src="" alt="صورة" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border-solid);"></span>
+        </div>
+        <div class="rv-row"><span class="rv-lbl">الاسم الكامل</span><span class="rv-val" id="rv-name">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">الفصل</span><span class="rv-val" id="rv-class">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">تاريخ الميلاد</span><span class="rv-val" id="rv-bday">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">رقم التليفون</span><span class="rv-val" id="rv-phone">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">العنوان</span><span class="rv-val" id="rv-address">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">البريد الإلكتروني</span><span class="rv-val" id="rv-email">—</span></div>
+      </div>
+
+      <div class="rv-block">
+        <div class="rv-head"><i class="fas fa-user-shield"></i> بيانات الحساب</div>
+        <div class="rv-row" id="rv-username-row" style="display:none;"><span class="rv-lbl">اسم المستخدم</span><span class="rv-val" id="rv-username">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">كلمة المرور</span><span class="rv-val" style="color:var(--text-3);font-size:.8rem;">محمية ●●●●●●</span></div>
+      </div>
+
+      <!-- Custom fields review block — shown only if church has custom fields -->
+      <div class="rv-block" id="rv-custom-block" style="display:none">
+        <div class="rv-head"><i class="fas fa-list-check"></i> بيانات إضافية</div>
+        <div id="rv-custom-rows"></div>
+      </div>
+
+      <div class="alert alert-err" id="err5"><i class="fas fa-circle-exclamation"></i><span id="errTxt5"></span></div>
+      <div class="act-bar">
+        <button class="btn btn-back" onclick="prevStep()"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-next" id="submitBtn" onclick="submitForm()">
+          <span id="submitTxt"><i class="fas fa-paper-plane"></i> &nbsp;إرسال طلب التسجيل</span>
+          <div class="spin" id="submitSpin"></div>
+        </button>
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:.74rem;color:var(--text-3);">
+        <i class="fas fa-shield-halved" style="color:var(--brand-light)"></i>
+        بياناتك محمية ولن تُشارك مع أي طرف ثالث
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- SUCCESS -->
+  <div class="fs-state" id="successScreen">
+    <div class="state-card">
+      <div class="state-icon success"><i class="fas fa-paper-plane"></i></div>
+      <h2>تم إرسال الطلب!</h2>
+      <p>تم إرسال طلب تسجيل <strong id="sucName"></strong> بنجاح إلى كنيسة <strong id="sucChurch"></strong>.<br>
+         ستصلك إشعارات على البريد الإلكتروني إن كان مُدخَلاً.</p>
+      <div id="sucStatusMsg" style="margin-top:24px;">
+        <div style="background:var(--warning-bg);border-radius:var(--r-md);padding:16px;font-size:.86rem;color:var(--warning-dark);text-align:right;">
+          <i class="fas fa-clock"></i> &nbsp;حالة طلبك الآن: <strong>قيد المراجعة</strong><br>
+          <small>يمكنك إغلاق هذه الصفحة والعودة لاحقاً للتحقق من حالة الطلب</small>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:20px;">
+        <div id="sucLoginWrap" style="display:none;">
+          <a href="/kids/login/" class="btn-login"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول الآن</a>
+        </div>
+        <button class="btn-new-reg" onclick="startFresh()"><i class="fas fa-plus"></i> <span class="lbl-new-reg">تسجيل طفل آخر</span></button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+'use strict';
+const API = '/api.php';
+const LS_KEY = 'sunday_school_regs';
+const urlParams = new URLSearchParams(location.search);
+const churchCode = urlParams.get('church') || '';
+
+let churchId     = null;
+let churchName   = '';
+let classes      = [];
+let customFields = [];   // [{key, name, icon, placeholder, required}]
+let step         = 1;
+const TOTAL      = 5;
+let avatarBase64 = null; // base64 string of chosen profile picture
+
+/* ════════════════ LOCALSTORAGE ════════════════ */
+function getRegs() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch{ return []; }
+}
+function saveReg(reg) {
+  const regs = getRegs();
+  regs.push(reg);
+  localStorage.setItem(LS_KEY, JSON.stringify(regs));
+}
+function updateRegStatus(id, status) {
+  const regs = getRegs().map(r => r.id == id ? {...r, status} : r);
+  localStorage.setItem(LS_KEY, JSON.stringify(regs));
+}
+function getRegsForChurch(cid) {
+  return getRegs().filter(r => String(r.churchId) === String(cid));
+}
+
+/* ════════════════ API HELPERS ════════════════ */
+async function apiFetch(data) {
+  const fd = new FormData();
+  Object.entries(data).forEach(([k,v]) => fd.append(k,v));
+  let res;
+  try {
+    res = await fetch(API, {method:'POST', body:fd});
+  } catch(networkErr) {
+    console.error('Network error calling', API, networkErr);
+    throw new Error('فشل الاتصال بالخادم — تحقق من الإنترنت');
+  }
+  if (!res.ok) {
+    console.error('HTTP error', res.status, res.statusText, 'URL:', API);
+    throw new Error('خطأ من الخادم: ' + res.status);
+  }
+  const text = await res.text();
+  const idx  = text.indexOf('{');
+  if (idx < 0) {
+    console.error('Non-JSON response from', API, ':', text.slice(0, 300));
+    throw new Error('استجابة غير متوقعة من الخادم');
+  }
+  return JSON.parse(text.slice(idx));
+}
+
+/* ════════════════ AVATAR HELPERS ════════════════ */
+let cropState = {
+  image: null,
+  scale: 1,
+  offsetX: 0,
+  offsetY: 0,
+  isDragging: false,
+  startX: 0,
+  startY: 0
+};
+
+function handleAvatarChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    alert('الرجاء اختيار ملف صورة');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    cropState.image = e.target.result;
+    cropState.scale = 1;
+    cropState.offsetX = 0;
+    cropState.offsetY = 0;
+    openCropModal();
+  };
+  reader.readAsDataURL(file);
+}
+
+function openCropModal() {
+  document.getElementById('cropModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  const img = document.getElementById('cropImg');
+  img.src = cropState.image;
+  
+  img.onload = function() {
+    renderCrop();
+    setupCropDrag();
+  };
+}
+
+function closeCropModal() {
+  document.getElementById('cropModal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+  document.getElementById('kidAvatar').value = '';
+}
+
+function renderCrop() {
+  const preview = document.getElementById('cropPreview');
+  const img = document.getElementById('cropImg');
+  
+  const containerWidth = preview.offsetWidth;
+  const containerHeight = preview.offsetHeight;
+  
+  const baseScale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
+  const finalScale = baseScale * cropState.scale;
+  
+  img.style.width = (img.naturalWidth * finalScale) + 'px';
+  img.style.height = (img.naturalHeight * finalScale) + 'px';
+  img.style.left = (containerWidth / 2 - img.offsetWidth / 2 + cropState.offsetX) + 'px';
+  img.style.top = (containerHeight / 2 - img.offsetHeight / 2 + cropState.offsetY) + 'px';
+}
+
+function setupCropDrag() {
+  const img = document.getElementById('cropImg');
+  const preview = document.getElementById('cropPreview');
+  
+  img.addEventListener('mousedown', startCropDrag);
+  img.addEventListener('touchstart', startCropDrag);
+}
+
+function startCropDrag(e) {
+  e.preventDefault();
+  cropState.isDragging = true;
+  cropState.startX = e.touches ? e.touches[0].clientX : e.clientX;
+  cropState.startY = e.touches ? e.touches[0].clientY : e.clientY;
+  
+  document.addEventListener('mousemove', cropDrag);
+  document.addEventListener('touchmove', cropDrag, { passive: false });
+  document.addEventListener('mouseup', endCropDrag);
+  document.addEventListener('touchend', endCropDrag);
+}
+
+function cropDrag(e) {
+  if (!cropState.isDragging) return;
+  e.preventDefault();
+  
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  
+  cropState.offsetX += x - cropState.startX;
+  cropState.offsetY += y - cropState.startY;
+  cropState.startX = x;
+  cropState.startY = y;
+  
+  renderCrop();
+}
+
+function endCropDrag() {
+  cropState.isDragging = false;
+  document.removeEventListener('mousemove', cropDrag);
+  document.removeEventListener('touchmove', cropDrag);
+  document.removeEventListener('mouseup', endCropDrag);
+  document.removeEventListener('touchend', endCropDrag);
+}
+
+function cropZoomIn() {
+  cropState.scale = Math.min(cropState.scale + 0.2, 3);
+  renderCrop();
+}
+
+function cropZoomOut() {
+  cropState.scale = Math.max(cropState.scale - 0.2, 1);
+  renderCrop();
+}
+
+function applyCrop() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 300;
+  canvas.height = 300;
+  
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.arc(150, 150, 150, 0, Math.PI * 2);
+  ctx.clip();
+  
+  const img = document.getElementById('cropImg');
+  const preview = document.getElementById('cropPreview');
+  const containerWidth = preview.offsetWidth;
+  const containerHeight = preview.offsetHeight;
+  const baseScale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
+  const finalScale = baseScale * cropState.scale;
+  
+  const drawX = containerWidth / 2 - img.naturalWidth * finalScale / 2 + cropState.offsetX;
+  const drawY = containerHeight / 2 - img.naturalHeight * finalScale / 2 + cropState.offsetY;
+  
+  const ratio = 300 / Math.min(containerWidth, containerHeight);
+  
+  ctx.drawImage(
+    img,
+    (drawX) * ratio,
+    (drawY) * ratio,
+    img.naturalWidth * finalScale * ratio,
+    img.naturalHeight * finalScale * ratio
+  );
+  
+  canvas.toBlob(function(blob) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      avatarBase64 = e.target.result;
+      updateAvatarPreview();
+      closeCropModal();
+    };
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg', 0.9);
+}
+
+function updateAvatarPreview() {
+  const preview = document.getElementById('avatarPreview');
+  preview.innerHTML = `<img src="${avatarBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+  preview.style.border = '2.5px solid var(--brand)';
+  const btn = document.getElementById('removeAvatarBtn');
+  if (btn) btn.style.display = 'flex';
+}
+
+function removeAvatar() {
+  avatarBase64 = null;
+  document.getElementById('avatarPreview').innerHTML = '<i class="fas fa-user-circle" style="font-size:2.8rem;color:var(--brand-light);"></i>';
+  document.getElementById('avatarPreview').style.border = '2.5px dashed var(--brand-light)';
+  document.getElementById('kidAvatar').value = '';
+  const btn = document.getElementById('removeAvatarBtn');
+  if (btn) btn.style.display = 'none';
+}
+function togglePwd(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (btn) btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+  } else {
+    inp.type = 'password';
+    if (btn) btn.innerHTML = '<i class="fas fa-eye"></i>';
+  }
+}
+
+/* ════════════════ APPLY CHURCH TYPE THEME ════════════════ */
+// Track current type globally so validators can read it
+let isYouth = false;
+
+function applyChurchType(churchType) {
+  isYouth = (churchType === 'youth');
+
+  if (isYouth) {
+    // ── Theme ──
+    let ys = document.getElementById('youth-theme-reg');
+    if (!ys) {
+      ys = document.createElement('style');
+      ys.id = 'youth-theme-reg';
+      document.head.appendChild(ys);
+    }
+    ys.textContent = ':root{--brand:#7c3aed!important;--brand-dark:#5b21b6!important;--brand-light:#c4b5fd!important;--brand-bg:#ede9fe!important;--brand-glow:rgba(124,58,237,.18)!important;}';
+    try { localStorage.setItem('churchType','youth'); } catch(e) {}
+
+    // ── Text labels → youth ──
+    document.getElementById('topTitle').textContent                         = 'تسجيل شاب جديد';
+    document.title                                                           = 'تسجيل شاب جديد';
+    const s1 = document.getElementById('lbl-step1-sub');
+    if (s1) s1.textContent                                                   = 'اسم الشاب والفصل الدراسي';
+    const id = document.getElementById('lbl-identity');
+    if (id) id.innerHTML                                                     = '<i class="fas fa-id-card"></i> هوية الشاب';
+    const rv = document.getElementById('lbl-rv-head');
+    if (rv) rv.innerHTML                                                     = '<i class="fas fa-user-graduate"></i> بيانات الشاب';
+    const kn = document.getElementById('kidName');
+    if (kn) kn.placeholder                                                   = kn.dataset.placeholderYouth || 'اسم الشاب كاملاً';
+    document.querySelectorAll('.lbl-new-reg').forEach(el => el.textContent  = 'تسجيل شاب آخر');
+    // Success screen existing-reg button text
+    const existBtn = document.querySelector('#existingScreen .btn-new-reg .lbl-new-reg');
+    if (existBtn) existBtn.textContent                                       = 'تسجيل شاب آخر';
+
+  } else {
+    // ── Remove youth theme ──
+    const ys = document.getElementById('youth-theme-reg');
+    if (ys) ys.textContent = '';
+    try { localStorage.setItem('churchType','kids'); } catch(e) {}
+
+    // ── Text labels → kids ──
+    document.getElementById('topTitle').textContent                         = 'تسجيل طفل جديد';
+    document.title                                                           = 'تسجيل طفل جديد';
+    const s1 = document.getElementById('lbl-step1-sub');
+    if (s1) s1.textContent                                                   = 'اسم الطفل والفصل الدراسي';
+    const id = document.getElementById('lbl-identity');
+    if (id) id.innerHTML                                                     = '<i class="fas fa-id-card"></i> هوية الطفل';
+    const rv = document.getElementById('lbl-rv-head');
+    if (rv) rv.innerHTML                                                     = '<i class="fas fa-user-graduate"></i> بيانات الطفل';
+    const kn = document.getElementById('kidName');
+    if (kn) kn.placeholder                                                   = kn.dataset.placeholderKids  || 'اسم الطفل كاملاً';
+    document.querySelectorAll('.lbl-new-reg').forEach(el => el.textContent  = 'تسجيل طفل آخر');
+  }
+}
+
+/* ════════════════ INIT ════════════════ */
+async function init() {
+  document.getElementById('loadingScreen').classList.add('on');
+
+  if (!churchCode) { showInvalid(); return; }
+
+  try {
+    /* 1. resolve church code → id + church_type via auto_login */
+    let info = await apiFetch({ action:'auto_login', church_code: churchCode });
+
+    /* Fallback: if auto_login failed, try getPublicChurchInfo with numeric id */
+    if (!info.success || !info.church_id) {
+      const asId = parseInt(churchCode);
+      if (asId > 0) {
+        info = await apiFetch({ action:'getPublicChurchInfo', church_id: asId });
+      }
+    }
+
+    if (!info.success || !info.church_id) { showInvalid(); return; }
+
+    churchId   = info.church_id;
+    churchName = info.church_name || info.name || 'الكنيسة';
+
+    /* ── FIX: auto_login now returns church_type — use it directly ── */
+    const churchType = info.church_type || 'kids';
+    applyChurchType(churchType);
+
+    document.getElementById('badgeText').textContent  = churchName;
+    document.getElementById('topSub').textContent     = 'كنيسة ' + churchName;
+    document.getElementById('churchBadge').querySelector('i').className = 'fas fa-church';
+
+    /* 2. load classes */
+    const cls = await apiFetch({ action:'getPublicChurchClasses', church_id: churchId });
+    if (cls.success && cls.classes?.length) {
+      classes = cls.classes;
+      customFields = cls.custom_fields || [];
+      const sel = document.getElementById('kidClass');
+      classes.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.arabic_name;
+        o.textContent = c.arabic_name;
+        sel.appendChild(o);
+      });
+      document.getElementById('classHint').textContent = cls.has_custom
+        ? 'فصول مخصصة لهذه الكنيسة'
+        : 'الفصول الافتراضية';
+      renderCustomFields();
+    }
+
+    /* 3. check existing registrations in localStorage */
+    const existing = getRegsForChurch(churchId);
+    if (existing.length) {
+      await refreshStatuses(existing);
+      const updated = getRegsForChurch(churchId);
+      showExistingScreen(updated);
+      return;
+    }
+
+    /* 4. show form */
+    showForm();
+
+  } catch(e) {
+    console.error(e);
+    if (!churchId) {
+      showInvalid();
+    } else {
+      showForm();
+    }
+  } finally {
+    document.getElementById('loadingScreen').classList.remove('on');
+  }
+}
+
+async function refreshStatuses(regs) {
+  for (const reg of regs) {
+    try {
+      const r = await apiFetch({ action:'checkRegistrationStatus', phone: reg.phone, church_id: churchId });
+      if (r.success && r.registrations?.length) {
+        const match = r.registrations.find(x => String(x.id) === String(reg.id));
+        if (match && match.status && match.status !== reg.status) {
+          updateRegStatus(reg.id, match.status);
+          reg.status = match.status;
+        }
+      }
+    } catch(e) {
+      // silently ignore
+    }
+  }
+}
+
+/* ════════════════ SCREENS ════════════════ */
+function showForm() {
+  document.getElementById('mainContent').style.display = 'flex';
+  document.getElementById('mainContent').style.flexDirection = 'column';
+  document.getElementById('mainContent').style.alignItems = 'center';
+  updateRail(1);
+}
+function showInvalid() {
+  document.getElementById('stepRail').style.display  = 'none';
+  document.getElementById('progStrip').style.display = 'none';
+  document.getElementById('loadingScreen').classList.remove('on');
+  document.getElementById('invalidScreen').classList.add('on');
+  document.getElementById('badgeText').textContent = 'غير معروفة';
+  document.getElementById('churchBadge').querySelector('i').className = 'fas fa-ban';
+}
+function showExistingScreen(regs) {
+  const stepRailEl  = document.getElementById('stepRail');
+  const progStripEl = document.getElementById('progStrip');
+  if (stepRailEl)  stepRailEl.style.display  = 'none';
+  if (progStripEl) progStripEl.style.display = 'none';
+
+  const list = document.getElementById('pendingList');
+  if (list) list.innerHTML = '';
+  let hasApproved = false;
+
+  regs.forEach(reg => {
+    if (reg.status === 'approved') hasApproved = true;
+    const statusMap = { pending:'قيد المراجعة', approved:'تم القبول ✓', rejected:'مرفوض' };
+    const chipMap   = { pending:'chip-pending',  approved:'chip-approved',  rejected:'chip-rejected' };
+    const div = document.createElement('div');
+    div.className = 'pending-item';
+    div.innerHTML = `
+      <div class="pending-item-info">
+        <strong>${reg.name}</strong>
+        <span>${reg.class} · ${reg.phone}</span>
+      </div>
+      <span class="status-chip ${chipMap[reg.status] || 'chip-pending'}">${statusMap[reg.status] || reg.status}</span>`;
+    if (list) list.appendChild(div);
+  });
+
+  const iconEl     = document.querySelector('#existingScreen .state-icon');
+  const titleEl    = document.querySelector('#existingScreen h2');
+  const subtitleEl = document.querySelector('#existingScreen p');
+  const loginBtnEl = document.getElementById('loginBtnWrap');
+
+  if (hasApproved) {
+    if (iconEl)     { iconEl.className = 'state-icon success'; iconEl.innerHTML = '<i class="fas fa-check-circle"></i>'; }
+    if (titleEl)    titleEl.textContent = 'تم قبول طلبك! 🎉';
+    if (subtitleEl) subtitleEl.innerHTML = `تم قبول تسجيلك في كنيسة <strong>${churchName}</strong>.<br>يمكنك تسجيل الدخول أو ${isYouth ? 'تسجيل شاب آخر' : 'تسجيل طفل آخر'}.`;
+    if (loginBtnEl) loginBtnEl.style.display = 'block';
+  } else {
+    if (iconEl)     { iconEl.className = 'state-icon pending'; iconEl.innerHTML = '<i class="fas fa-clock"></i>'; }
+    if (titleEl)    titleEl.textContent = 'طلباتك السابقة';
+    if (subtitleEl) subtitleEl.innerHTML = `طلبات التسجيل في كنيسة <strong>${churchName}</strong>`;
+    if (loginBtnEl) loginBtnEl.style.display = 'none';
+  }
+
+  const existChurchNameEl = document.getElementById('existChurchName');
+  if (existChurchNameEl) existChurchNameEl.textContent = churchName;
+  const existingScreenEl  = document.getElementById('existingScreen');
+  if (existingScreenEl)  existingScreenEl.classList.add('on');
+}
+
+function startFresh() {
+  document.getElementById('existingScreen').classList.remove('on');
+  document.getElementById('successScreen').classList.remove('on');
+  document.getElementById('stepRail').style.display  = '';
+  document.getElementById('progStrip').style.display = '';
+  step = 1;
+  showPanel(1);
+  updateRail(1);
+  ['kidName','kidClass','kidBirthday','kidPhone','kidAddress','kidEmail','kidUsername','kidPassword','kidPasswordConfirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  removeAvatar();
+  customFields.forEach(field => {
+    const el = document.getElementById('cf_' + field.key);
+    if (el) el.value = '';
+  });
+  if (document.getElementById('kidClass').options.length > 1)
+    document.getElementById('kidClass').selectedIndex = 0;
+  showForm();
+}
+
+/* ════════════════ STEPPER ════════════════ */
+function updateRail(s) {
+  for (let i = 1; i <= TOTAL; i++) {
+    const tab = document.getElementById('rt' + i);
+    const num = document.getElementById('rn' + i);
+    if (!tab) continue;
+    tab.classList.remove('active','done');
+    if (i < s) { tab.classList.add('done'); num.innerHTML = '<i class="fas fa-check" style="font-size:.68rem"></i>'; }
+    else if (i === s) tab.classList.add('active');
+  }
+  document.getElementById('progFill').style.width = (((s-1)/TOTAL)*90+5) + '%';
+}
+function showPanel(s) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p' + s).classList.add('active');
+}
+
+/* ════════════════ HELPERS ════════════════ */
+const val = id => (document.getElementById(id)?.value || '').trim();
+function showErr(s, msg) {
+  const el = document.getElementById('err' + s);
+  document.getElementById('errTxt' + s).textContent = msg;
+  el.classList.add('on');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(() => el.classList.remove('on'), 6000);
+}
+function focusErr(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('err');
+  el.focus();
+  el.addEventListener('input', () => el.classList.remove('err'), {once:true});
+}
+
+/* ─ birthday auto-format ─ */
+document.getElementById('kidBirthday').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'');
+  if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5);
+  this.value = v.slice(0,10);
+});
+
+/* ════════════════ VALIDATION ════════════════ */
+function v1() {
+  if (!val('kidName'))  { showErr(1, isYouth ? 'الرجاء إدخال اسم الشاب' : 'الرجاء إدخال اسم الطفل'); focusErr('kidName'); return false; }
+  if (!val('kidClass')) { showErr(1,'الرجاء اختيار الفصل');    focusErr('kidClass'); return false; }
+  return true;
+}
+function v2() {
+  const bd = val('kidBirthday');
+  if (!bd) { showErr(2,'الرجاء إدخال تاريخ الميلاد'); focusErr('kidBirthday'); return false; }
+  const parts = bd.split('/');
+  if (parts.length !== 3 || parts[0].length < 1 || parts[1].length < 1 || parts[2].length !== 4) {
+    showErr(2,'تاريخ الميلاد غير صحيح — استخدم DD/MM/YYYY'); focusErr('kidBirthday'); return false;
+  }
+  const ph = val('kidPhone').replace(/\D/g,'');
+  if (!ph || !ph.startsWith('01') || ph.length !== 11) {
+    showErr(2,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('kidPhone'); return false;
+  }
+  return true;
+}
+function v3() {
+  if (!val('kidAddress')) { showErr(3,'الرجاء إدخال العنوان'); focusErr('kidAddress'); return false; }
+  for (const field of customFields) {
+    const isRequired = field.required === true;
+    if (!isRequired) continue;
+    const el = document.getElementById('cf_' + field.key);
+    if (el && !el.value.trim()) {
+      showErr(3, 'الرجاء إدخال: ' + field.name);
+      focusErr('cf_' + field.key);
+      return false;
+    }
+  }
+  return true;
+}
+function v4() {
+  const uname = val('kidUsername');
+  if (uname && uname.length < 3) { showErr(4,'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'); focusErr('kidUsername'); return false; }
+  if (uname && !/^[a-zA-Z0-9_\u0600-\u06FF]+$/.test(uname)) { showErr(4,'اسم المستخدم يحتوي على أحرف غير مسموح بها'); focusErr('kidUsername'); return false; }
+  const pwd = document.getElementById('kidPassword').value;
+  if (!pwd || pwd.length < 6) { showErr(4,'كلمة المرور يجب أن تكون 6 أحرف على الأقل'); focusErr('kidPassword'); return false; }
+  const pwd2 = document.getElementById('kidPasswordConfirm').value;
+  if (pwd !== pwd2) { showErr(4,'كلمة المرور غير متطابقة'); focusErr('kidPasswordConfirm'); return false; }
+  return true;
+}
+
+/* ════════════════ REVIEW ════════════════ */
+function fillReview() {
+  document.getElementById('rv-church').textContent  = churchName || '—';
+  document.getElementById('rv-name').textContent    = val('kidName')    || '—';
+  document.getElementById('rv-class').textContent   = val('kidClass')   || '—';
+  document.getElementById('rv-bday').textContent    = val('kidBirthday')|| '—';
+  document.getElementById('rv-phone').textContent   = val('kidPhone')   || '—';
+  document.getElementById('rv-address').textContent = val('kidAddress') || '—';
+  document.getElementById('rv-email').textContent   = val('kidEmail')   || '—';
+  document.getElementById('rv-username').textContent= val('kidUsername')|| '—';
+  const rvUsernameRow = document.getElementById('rv-username-row');
+  if (rvUsernameRow) rvUsernameRow.style.display = val('kidUsername') ? '' : 'none';
+
+  // Avatar in review
+  const avatarRow = document.getElementById('rv-avatar-row');
+  const avatarImg = document.getElementById('rv-avatar-img');
+  if (avatarBase64 && avatarRow && avatarImg) {
+    avatarImg.src = avatarBase64;
+    avatarRow.style.display = '';
+  } else if (avatarRow) {
+    avatarRow.style.display = 'none';
+  }
+
+  const customBlock = document.getElementById('rv-custom-block');
+  const customRows  = document.getElementById('rv-custom-rows');
+  customRows.innerHTML = '';
+  if (customFields.length) {
+    customFields.forEach(field => {
+      const el  = document.getElementById('cf_' + field.key);
+      const v   = el ? el.value.trim() : '';
+      const row = document.createElement('div');
+      row.className = 'rv-row';
+      row.innerHTML = `<span class="rv-lbl">${field.name}</span><span class="rv-val">${v || '—'}</span>`;
+      customRows.appendChild(row);
+    });
+    customBlock.style.display = '';
+  } else {
+    customBlock.style.display = 'none';
+  }
+}
+
+/* ════════════════ NAVIGATION ════════════════ */
+function nextStep() {
+  if (step === 1 && !v1()) return;
+  if (step === 2 && !v2()) return;
+  if (step === 3 && !v3()) return;
+  if (step === 4 && !v4()) return;
+  if (step === TOTAL) return;
+  if (step === 4) fillReview();
+  step++;
+  showPanel(step);
+  updateRail(step);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function prevStep() {
+  if (step <= 1) return;
+  step--;
+  showPanel(step);
+  updateRail(step);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════════════════ SUBMIT ════════════════ */
+async function submitForm() {
+  const btn  = document.getElementById('submitBtn');
+  const spin = document.getElementById('submitSpin');
+  const txt  = document.getElementById('submitTxt');
+  btn.disabled = true; spin.classList.add('on'); txt.style.display = 'none';
+  document.getElementById('progFill').style.width = '90%';
+
+  const name     = val('kidName');
+  const klass    = val('kidClass');
+  const phone    = val('kidPhone').replace(/\D/g,'');
+  const email    = val('kidEmail');
+  const address  = val('kidAddress');
+  const bday     = val('kidBirthday');
+  const username = val('kidUsername');
+  const password = document.getElementById('kidPassword').value;
+
+  const extraData = {};
+  customFields.forEach(field => {
+    const el = document.getElementById('cf_' + field.key);
+    if (el) extraData[field.key] = el.value.trim();
+  });
+
+  try {
+    const fd = new FormData();
+    fd.append('action',     'submitRegistrationRequest');
+    fd.append('churchId',   churchId);
+    fd.append('name',       name);
+    fd.append('class',      klass);
+    fd.append('birthday',   bday);
+    fd.append('phone',      phone);
+    fd.append('email',      email);
+    fd.append('address',    address);
+    if (username) fd.append('username', username);
+    fd.append('password',   password);
+    fd.append('extra_data', JSON.stringify(extraData));
+    if (avatarBase64) fd.append('profile_pic', avatarBase64);
+
+    let res;
+    try { res = await fetch(API, {method:'POST', body:fd}); }
+    catch(networkErr) { throw new Error('فشل الاتصال بالخادم — تحقق من الإنترنت'); }
+    if (!res.ok) throw new Error('خطأ من الخادم: ' + res.status);
+    const text = await res.text();
+    const idx  = text.indexOf('{');
+    if (idx < 0) throw new Error('استجابة غير متوقعة من الخادم');
+    const data = JSON.parse(text.slice(idx));
+
+    document.getElementById('progFill').style.width = '100%';
+    await new Promise(r => setTimeout(r, 300));
+
+    if (data.success) {
+      const reg = {
+        id:        data.registration_id || Date.now(),
+        churchId,
+        churchName,
+        name,
+        class:     klass,
+        phone,
+        email,
+        address,
+        birthday:  bday,
+        status:    data.auto_approved ? 'approved' : 'pending',
+        submittedAt: new Date().toISOString()
+      };
+      saveReg(reg);
+
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('stepRail').style.display    = 'none';
+      document.getElementById('progStrip').style.display   = 'none';
+      document.getElementById('sucName').textContent       = name;
+      document.getElementById('sucChurch').textContent     = churchName;
+
+      // Show appropriate success message
+      const sucMsgEl = document.getElementById('sucStatusMsg');
+      if (sucMsgEl) {
+        if (data.auto_approved) {
+          sucMsgEl.innerHTML = `<div style="background:var(--success-bg);border-radius:var(--r-md);padding:16px;font-size:.86rem;color:var(--success-dark);text-align:right;">
+            <i class="fas fa-check-circle"></i> &nbsp;تم القبول تلقائياً! <strong>مرحباً بك</strong><br>
+            <small>تم إضافة ${name} مباشرة إلى فصل ${klass}</small>
+          </div>`;
+          document.getElementById('sucLoginWrap').style.display = 'block';
+        } else {
+          sucMsgEl.innerHTML = `<div style="background:var(--warning-bg);border-radius:var(--r-md);padding:16px;font-size:.86rem;color:var(--warning-dark);text-align:right;">
+            <i class="fas fa-clock"></i> &nbsp;حالة طلبك الآن: <strong>قيد المراجعة</strong><br>
+            <small>يمكنك إغلاق هذه الصفحة والعودة لاحقاً للتحقق من حالة الطلب</small>
+          </div>`;
+        }
+      }
+      document.getElementById('successScreen').classList.add('on');
+
+    } else {
+      showErr(5, data.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+      btn.disabled = false; spin.classList.remove('on'); txt.style.display = '';
+      document.getElementById('progFill').style.width = '85%';
+    }
+  } catch(e) {
+    showErr(5, e.message || 'فشل الاتصال بالخادم، يرجى التحقق من الإنترنت');
+    btn.disabled = false; spin.classList.remove('on'); txt.style.display = '';
+    document.getElementById('progFill').style.width = '85%';
+  }
+}
+
+/* ════════════════ CUSTOM FIELDS ════════════════ */
+function renderCustomFields() {
+  const container = document.getElementById('customFieldsContainer');
+  container.innerHTML = '';
+  if (!customFields.length) return;
+
+  const card = document.createElement('div');
+  card.className = 'fc';
+  card.style.marginBottom = '18px';
+
+  const label = document.createElement('div');
+  label.className = 'sec-label';
+  label.innerHTML = '<i class="fas fa-list-check"></i> بيانات إضافية خاصة بالكنيسة';
+  card.appendChild(label);
+
+  customFields.forEach((field, idx) => {
+    const isRequired = field.required === true;
+    const isLast     = idx === customFields.length - 1;
+    const row = document.createElement('div');
+    row.className = 'fr full';
+    if (isLast) row.style.marginBottom = '0';
+
+    const iconClass = field.icon || 'fas fa-pen-to-square';
+    row.innerHTML = `
+      <div class="ff">
+        <label>
+          <i class="${iconClass}"></i>
+          ${field.name}
+          ${isRequired ? '<span class="req">*</span>' : ''}
+        </label>
+        <input
+          type="text"
+          id="cf_${field.key}"
+          placeholder="${field.placeholder || field.name}"
+          data-cf-key="${field.key}"
+          data-cf-required="${isRequired}"
+          autocomplete="off"
+        />
+      </div>`;
+    card.appendChild(row);
+  });
+
+  container.appendChild(card);
+}
+
+/* ════════════════ BOOT ════════════════ */
+init();
+</script>
+</body>
+</html>

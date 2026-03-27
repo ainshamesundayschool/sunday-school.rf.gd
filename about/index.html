@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حول النظام — مدارس الأحد</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --brand: #5b6cf5;
+    --brand-d: #4154e8;
+    --brand-l: #a5b0fb;
+    --brand-bg: #eef0ff;
+    --ok: #10b981;
+    --cou: #8b5cf6;
+    --t1: #1a1d2e;
+    --t2: #4b5068;
+    --t3: #8b90a8;
+    --bg: #f4f5fb;
+    --surf: #ffffff;
+    --bdr: #e4e6f0;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-full:9999px;
+    --sh: 0 4px 20px -4px rgba(91,108,245,.13);
+    --sh-lg: 0 16px 48px -8px rgba(91,108,245,.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:'Cairo',sans-serif;
+    background:var(--bg); color:var(--t1);
+    min-height:100vh;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 10% -5%, rgba(91,108,245,.09) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139,92,246,.06) 0%, transparent 55%);
+    pointer-events:none;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; gap:14px;
+    padding:0 24px; height:62px;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--bdr);
+    box-shadow:0 2px 12px -4px rgba(91,108,245,.1);
+  }
+  .topbar-logo {
+    width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-d));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1rem;
+    box-shadow:0 4px 12px rgba(91,108,245,.3); flex-shrink:0;
+  }
+  .topbar-title  { font-size:1rem; font-weight:800; color:var(--t1); }
+  .topbar-sub    { font-size:.7rem; color:var(--t3); margin-top:-1px; }
+  .topbar-back {
+    margin-right:auto;
+    display:flex; align-items:center; gap:6px;
+    padding:7px 14px; border-radius:var(--r-full);
+    background:var(--brand-bg); color:var(--brand);
+    font-size:.82rem; font-weight:700; text-decoration:none;
+    border:1.5px solid rgba(91,108,245,.2); transition:all .18s;
+  }
+  .topbar-back:hover { background:var(--brand); color:#fff; }
+
+  /* ── PAGE ── */
+  .page { max-width:820px; margin:0 auto; padding:32px 20px 64px; position:relative; z-index:1; }
+
+  /* ── HERO ── */
+  .hero {
+    text-align:center;
+    padding:52px 32px 44px;
+    background:linear-gradient(145deg,#1a1d2e 0%,#2d3278 60%,#3b3ea8 100%);
+    border-radius:var(--r-xl);
+    color:#fff;
+    margin-bottom:40px;
+    position:relative; overflow:hidden;
+    box-shadow:var(--sh-lg);
+  }
+  .hero::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 75% 30%, rgba(91,108,245,.4) 0%, transparent 50%),
+               radial-gradient(circle at 20% 80%, rgba(139,92,246,.25) 0%, transparent 45%);
+  }
+  .hero-verse {
+    font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+    opacity:.6; margin-bottom:14px; font-weight:600;
+  }
+  .hero-app-icon {
+    width:80px; height:80px; border-radius:22px;
+    background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.2);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 18px; font-size:2.2rem;
+    box-shadow:0 0 0 10px rgba(255,255,255,.06), var(--sh-lg);
+  }
+  .hero h1 { font-size:2rem; font-weight:900; margin-bottom:8px; line-height:1.2; }
+  .hero h1 span { color:var(--brand-l); }
+  .hero p  { font-size:.9rem; opacity:.82; max-width:520px; margin:0 auto 30px; line-height:1.7; }
+  .hero-badges {
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+  }
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 15px; border-radius:var(--r-full);
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+    font-size:.78rem; font-weight:700; color:#fff;
+    backdrop-filter:blur(4px);
+  }
+
+  /* ── CREATOR CARD ── */
+  .creator-section {
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-xl);
+    overflow:hidden;
+    box-shadow:var(--sh-lg);
+    margin-bottom:32px;
+    position:relative;
+  }
+  .creator-top {
+    background:linear-gradient(135deg,var(--brand),var(--brand-d));
+    padding:18px 24px;
+    display:flex; align-items:center; gap:8px;
+    color:#fff; font-size:.8rem; font-weight:700; letter-spacing:.05em;
+  }
+  .creator-body {
+    padding:28px 24px;
+    display:flex; align-items:center; gap:24px;
+    flex-wrap:wrap;
+  }
+  .creator-avatar {
+    width:88px; height:88px; border-radius:50%;
+    object-fit:cover;
+    border:3px solid var(--brand-l);
+    box-shadow:0 0 0 6px rgba(91,108,245,.12), var(--sh);
+    flex-shrink:0;
+    background:var(--brand-bg);
+  }
+  .creator-avatar-fallback {
+    width:88px; height:88px; border-radius:50%;
+    background:linear-gradient(135deg,var(--brand-bg),#ede9fe);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem; color:var(--brand);
+    border:3px solid var(--brand-l);
+    box-shadow:0 0 0 6px rgba(91,108,245,.12), var(--sh);
+    flex-shrink:0;
+  }
+  .creator-info { flex:1; min-width:180px; }
+  .creator-name { font-size:1.25rem; font-weight:900; color:var(--t1); margin-bottom:2px; }
+  .creator-church {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--brand-bg); color:var(--brand);
+    padding:4px 12px; border-radius:var(--r-full);
+    font-size:.75rem; font-weight:700; margin-bottom:12px;
+    border:1px solid rgba(91,108,245,.2);
+  }
+  .creator-bio { font-size:.84rem; color:var(--t2); line-height:1.65; }
+  .creator-actions { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .creator-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 18px; border-radius:var(--r-full);
+    font-family:'Cairo',sans-serif; font-size:.82rem; font-weight:700;
+    text-decoration:none; transition:all .18s; border:none; cursor:pointer;
+  }
+  .creator-btn.wa  { background:#25d366; color:#fff; box-shadow:0 3px 10px rgba(37,211,102,.3); }
+  .creator-btn.wa:hover { background:#22c55e; transform:translateY(-1px); }
+  .creator-btn.br  { background:var(--brand-bg); color:var(--brand); border:1.5px solid rgba(91,108,245,.2); }
+  .creator-btn.br:hover { background:var(--brand); color:#fff; }
+
+  /* ── STATS ── */
+  .stats-row {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px; margin-bottom:32px;
+  }
+  .stat-card {
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-lg);
+    padding:20px 16px; text-align:center;
+    box-shadow:var(--sh);
+    transition:all .18s;
+  }
+  .stat-card:hover { transform:translateY(-3px); box-shadow:var(--sh-lg); border-color:var(--brand-l); }
+  .stat-val { font-size:2rem; font-weight:900; color:var(--brand); line-height:1; }
+  .stat-lbl { font-size:.75rem; color:var(--t3); margin-top:5px; font-weight:600; }
+
+  /* ── SECTION HEADER ── */
+  .sec-hdr {
+    display:flex; align-items:center; gap:10px;
+    margin:36px 0 18px;
+  }
+  .sec-hdr-dot { width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,var(--brand),var(--cou)); }
+  .sec-hdr h2 { font-size:1.05rem; font-weight:800; color:var(--t1); }
+
+  /* ── TECH STACK ── */
+  .tech-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    gap:12px; margin-bottom:12px;
+  }
+  .tech-card {
+    background:var(--surf);
+    border:1px solid var(--bdr);
+    border-radius:var(--r-lg);
+    padding:16px 14px;
+    display:flex; align-items:center; gap:11px;
+    box-shadow:var(--sh); transition:all .18s;
+  }
+  .tech-card:hover { border-color:var(--brand-l); transform:translateY(-2px); }
+  .tech-icon {
+    width:36px; height:36px; border-radius:var(--r-sm);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; flex-shrink:0;
+  }
+  .tech-name { font-size:.83rem; font-weight:700; color:var(--t1); }
+  .tech-desc { font-size:.7rem; color:var(--t3); margin-top:1px; }
+
+  /* ── VERSE ── */
+  .verse-card {
+    text-align:center;
+    background:linear-gradient(135deg,var(--brand-bg),#ede9fe);
+    border:1.5px solid rgba(91,108,245,.2);
+    border-radius:var(--r-xl);
+    padding:32px 28px;
+    margin-top:36px;
+    position:relative; overflow:hidden;
+  }
+  .verse-card::before {
+    content:'\201C'; position:absolute; top:-10px; right:20px;
+    font-size:8rem; color:rgba(91,108,245,.08); line-height:1;
+    font-family:serif;
+  }
+  .verse-text {
+    font-size:1.05rem; font-weight:700; color:var(--brand);
+    line-height:1.7; margin-bottom:10px;
+  }
+  .verse-ref  { font-size:.78rem; color:var(--t3); font-weight:600; }
+
+  /* ── TIMELINE ── */
+  .timeline { display:flex; flex-direction:column; gap:0; position:relative; }
+  .timeline::before {
+    content:''; position:absolute; top:20px; bottom:20px; right:19px;
+    width:2px; background:linear-gradient(to bottom,var(--brand-l),transparent);
+  }
+  .tl-item { display:flex; gap:18px; padding-bottom:22px; position:relative; }
+  .tl-dot {
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
+    background:var(--surf); border:2px solid var(--brand-l);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--brand); font-size:.82rem;
+    box-shadow:0 0 0 4px var(--brand-bg), var(--sh);
+    z-index:1;
+  }
+  .tl-content {
+    background:var(--surf); border:1px solid var(--bdr);
+    border-radius:var(--r-lg); padding:14px 18px;
+    box-shadow:var(--sh); flex:1;
+  }
+  .tl-content h4 { font-size:.88rem; font-weight:800; color:var(--t1); margin-bottom:3px; }
+  .tl-content p  { font-size:.8rem; color:var(--t2); line-height:1.55; }
+  .tl-tag {
+    display:inline-block; font-size:.65rem; font-weight:700;
+    padding:2px 8px; border-radius:var(--r-full);
+    background:var(--brand-bg); color:var(--brand);
+    margin-bottom:6px; letter-spacing:.03em;
+  }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    text-align:center; margin-top:48px;
+    color:var(--t3); font-size:.78rem; line-height:1.8;
+  }
+  .page-footer a { color:var(--brand); text-decoration:none; }
+  .page-footer a:hover { text-decoration:underline; }
+
+  @media(max-width:560px) {
+    .stats-row { grid-template-columns:1fr 1fr; }
+    .creator-body { flex-direction:column; align-items:center; text-align:center; }
+    .creator-actions { justify-content:center; }
+    .creator-church { justify-content:center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-logo"><i class="fas fa-church"></i></div>
+  <div>
+    <div class="topbar-title">نظام مدارس الأحد</div>
+    <div class="topbar-sub">حول التطبيق</div>
+  </div>
+  <a href="/" class="topbar-back"><i class="fas fa-arrow-right"></i> الرئيسية</a>
+</nav>
+
+<main class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-verse">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ</div>
+    <div class="hero-app-icon"><i class="fas fa-church"></i></div>
+    <h1>نظام <span>مدارس الأحد</span></h1>
+    <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات، الرحلات، المهام والاختبارات في تطبيق واحد.</p>
+    <div class="hero-badges">
+      <div class="hero-badge"><i class="fas fa-shield-alt"></i> مجاني</div>
+      <div class="hero-badge"><i class="fas fa-wifi"></i> يعمل أوفلاين</div>
+      <div class="hero-badge"><i class="fas fa-mobile-alt"></i> متوافق مع الهاتف</div>
+      <div class="hero-badge"><i class="fas fa-language"></i> عربي بالكامل</div>
+    </div>
+  </div>
+
+  <!-- CREATOR -->
+  <div class="creator-section">
+    <div class="creator-top">
+      <i class="fas fa-star"></i> المطوّر
+    </div>
+    <div class="creator-body">
+      <img
+        src="/Peter%20Fayez.png"
+        alt="Peter Fayez"
+        class="creator-avatar"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="creator-avatar-fallback" style="display:none">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="creator-info">
+        <div class="creator-name">Peter Fayez</div>
+        <div class="creator-church">
+          <i class="fas fa-church" style="font-size:.7rem"></i>
+          كنيسة الأخوة بعين شمس
+        </div>
+        <p class="creator-bio">
+نظام مدارس الأحد هو مشروع يهدف إلى تسهيل متابعة الأطفال والخدام، وتوفير أدوات رقمية متكاملة لإدارة الحضور والكوبونات والتقارير.
+
+        </p>
+        <div class="creator-actions">
+          <a href="https://api.whatsapp.com/send?phone=201210868837&text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20Peter%20%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%AF%D8%A7%D8%B1%D8%B3%20%D8%A7%D9%84%D8%A3%D8%AD%D8%AF"
+             target="_blank" class="creator-btn wa">
+            <i class="fab fa-whatsapp"></i> واتساب
+          </a>
+          <a href="/help/" class="creator-btn br">
+            <i class="fas fa-question-circle"></i> المساعدة
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-val" id="statKids">—</div>
+      <div class="stat-lbl">طفل مسجّل</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statServants">—</div>
+      <div class="stat-lbl">خادم</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statChurches">—</div>
+      <div class="stat-lbl">كنيسة</div>
+    </div>
+  </div>
+
+  <!-- MISSION -->
+  <div class="verse-card">
+    <div class="verse-text">
+      «مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ، عَالِمِينَ أَنَّ تَعَبَكُمْ لَيْسَ بَاطِلاً فِي الرَّبِّ.»
+    </div>
+    <div class="verse-ref">— كورنثوس الأولى ١٥:٥٨</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <a href="/help/">المساعدة</a> · <a href="/">الرئيسية</a> · <a href="https://api.whatsapp.com/send?phone=201210868837" target="_blank">تواصل</a><br>
+    تصميم وتطوير: <strong style="color:var(--brand)">Peter Fayez</strong> — كنيسة الأخوة بعين شمس<br>
+    نظام مدارس الأحد © 2026
+  </div>
+
+</main>
+
+<script>
+// Load live stats
+(async () => {
+  try {
+    const API = (() => {
+      const segs = location.pathname.replace(/\/[^/]*$/,'').split('/').filter(Boolean);
+      return segs.map(() => '../').join('') + 'api.php';
+    })();
+    const fd = new FormData(); fd.append('action','getPublicStats');
+    const res = await fetch(API, {method:'POST', body:fd});
+    const d = await res.json();
+    if (d.success) {
+      animateCounter('statKids',     d.kids_count     || 0);
+      animateCounter('statServants', d.servants_count || 0);
+      animateCounter('statChurches', d.churches_count || 0);
+    }
+  } catch(e) { /* silent */ }
+})();
+
+function animateCounter(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dur = 1200, step = 16;
+  const steps = dur / step;
+  let cur = 0;
+  const inc = target / steps;
+  const iv = setInterval(() => {
+    cur = Math.min(cur + inc, target);
+    el.textContent = Math.floor(cur).toLocaleString('ar-EG');
+    if (cur >= target) clearInterval(iv);
+  }, step);
+}
+</script>
+</body>
+</html>
