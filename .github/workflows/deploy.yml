@@ -24,4 +24,5 @@ jobs:
             **/uploads/**
             **/config.php
             **/php_errors.log
+            **/php_errors
             **/upload_errors
