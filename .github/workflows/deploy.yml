@@ -23,5 +23,5 @@ jobs:
           exclude: |
             **/uploads/**
             **/config.php
-            **/php_errors
+            **/php_errors.log
             **/upload_errors
