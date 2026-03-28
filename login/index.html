@@ -792,7 +792,14 @@ position: absolute;
                        || localStorage.getItem('uncleLoggedIn') === 'true';
         const cc        = localStorage.getItem('churchCode');
         const un        = localStorage.getItem('uncleUsername');
+        const role      = localStorage.getItem('uncleRole')  || 'uncle';
         const ATTEMPT_KEY = '_loginRestoreAttempted'; // sessionStorage — resets per tab
+
+        // ── Redirect immediately if logged in locally ──────
+        if (loggedIn) {
+            redirectToDashboard(loginType, role);
+            return;
+        }
 
         // ── No saved credentials at all → show form ────────
         if (!loggedIn && !cc && !un) { showForms(); return; }
