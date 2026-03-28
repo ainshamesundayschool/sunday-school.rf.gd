@@ -1801,13 +1801,14 @@ function renderPrivate(s){
   document.getElementById('scSearch').style.display='block';
   document.getElementById('settingsTop').style.display='flex';
   document.getElementById('avatarEdit').classList.add('show');
+    
   // edit form prefill
   document.getElementById('eN').value=s.name;
   document.getElementById('eA').value=s.address;
   document.getElementById('eP').value=s.phone;
   document.getElementById('eB').value=s.birthday;
   document.getElementById('statsBar').style.display='grid';
-  document.getElementById('sbC').textContent=s.coupons;
+document.getElementById('sbC').textContent = s.coupons;
   loadAtt();
   loadTasks();
   loadTrips(true);
@@ -1845,15 +1846,24 @@ function renderHero(s,isPrivate){
 
 // ── Coupon Hero ───────────────────────────────────────────────────
 function renderCouponHero(s){
-  document.getElementById('chTotal').textContent=s.coupons;
-  document.getElementById('sbC').textContent=s.coupons;
-  const rows=[
-    {icon:'fa-calendar-check',color:'#6ee7b7',label:'حضور',val:s.att_coupons},
-    {icon:'fa-star',color:'#c4b5fd',label:'التزام',val:s.com_coupons},
-    {icon:'fa-tasks',color:'#fde68a',label:'مهام',val:s.task_coupons},
+  // Get all coupon types
+  const attCoupons = s.att_coupons || 0;
+  const comCoupons = s.com_coupons || 0;
+  const taskCoupons = s.task_coupons || 0;
+  const totalCoupons = s.coupons || 0;
+  
+  document.getElementById('chTotal').textContent = totalCoupons;
+  document.getElementById('sbC').textContent = totalCoupons;
+  
+  const rows = [
+    {icon:'fa-calendar-check', color:'#6ee7b7', label:'حضور', val: attCoupons},
+    {icon:'fa-star', color:'#c4b5fd', label:'التزام', val: comCoupons},
+    {icon:'fa-tasks', color:'#fde68a', label:'مهام', val: taskCoupons}
   ];
-  document.getElementById('chBreakdown').innerHTML=rows.map(r=>`
-    <div class="ch-row"><i class="fas ${r.icon}" style="color:${r.color};"></i>${r.val} ${r.label}</div>`).join('');
+  
+  document.getElementById('chBreakdown').innerHTML = rows.map(r => `
+    <div class="ch-row"><i class="fas ${r.icon}" style="color:${r.color};"></i>${r.val} ${r.label}</div>
+  `).join('');
 }
 
 // ── Class uncles strip ────────────────────────────────────────────
