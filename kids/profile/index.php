@@ -3050,11 +3050,22 @@ async function _doSubmitExam(){
       const idx = allTasks.findIndex(x=>x.id===curTask.id);
       if(idx>=0) allTasks[idx].my_submission = mySubmission;
 
-      if(d.coupons_awarded>0){
-        student.task_coupons+=d.coupons_awarded;
-        renderCouponHero(student);
-        document.getElementById('sbC').textContent=student.task_coupons;
-      }
+      // Always refresh student data from server after submission
+      // so coupons (task + total) reflect the real DB values
+      try {
+        const sd = await api({action:'getStudentProfile', studentId: student.id});
+        if (sd.success && sd.student) {
+          const fresh = norm(sd.student);
+          // preserve fields not returned by getStudentProfile
+          student.coupons            = fresh.coupons;
+          student.task_coupons       = fresh.task_coupons;
+          student.att_coupons        = fresh.att_coupons;
+          student.com_coupons        = fresh.com_coupons;
+        }
+      } catch(_){}
+      // Re-render coupon hero with fresh values
+      renderCouponHero(student);
+      document.getElementById('couponHero').style.display = 'grid';
       if(d.show_result){
         const hasOpenQs=(curTask.questions||[]).some(q=>q.question_type==='open');
         document.getElementById('examResultCard').innerHTML=buildResultCard(d.score,curTask.total_degree,d.percentage,d.coupons_awarded,hasOpenQs,curTask.id,!!d.show_answers);
