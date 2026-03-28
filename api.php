@@ -6230,7 +6230,7 @@ function checkStudentPassword() {
 
 // ===== UPDATE COUPONS =====
 function updateCouponsKids() {
-    checkAuth(); // Check if user is logged in
+    checkAuth();
     
     try {
         $uncleId = $_SESSION['uncle_id'] ?? null;
@@ -6250,9 +6250,9 @@ function updateCouponsKids() {
         
         $conn = getDBConnection();
         
-        // Get current coupons to calculate attendance_coupons
+        // Get current coupons to calculate correctly
         $currentStmt = $conn->prepare("
-            SELECT coupons, attendance_coupons, commitment_coupons 
+            SELECT coupons, attendance_coupons, commitment_coupons, task_coupons 
             FROM students 
             WHERE id = ?
         ");
@@ -6263,9 +6263,10 @@ function updateCouponsKids() {
         if ($student = $result->fetch_assoc()) {
             $currentCommitment = intval($student['commitment_coupons']);
             $currentAttendance = intval($student['attendance_coupons']);
+            $currentTask = intval($student['task_coupons']);
             
-            // Calculate new commitment coupons (total coupons - attendance coupons)
-            $newCommitment = $coupons - $currentAttendance;
+            // Calculate new commitment coupons (total coupons - attendance - task)
+            $newCommitment = $coupons - $currentAttendance - $currentTask;
             if ($newCommitment < 0) $newCommitment = 0;
             
             // Update student
@@ -6279,12 +6280,12 @@ function updateCouponsKids() {
             if ($updateStmt->execute()) {
                 // Log the coupon change
                 $logStmt = $conn->prepare("
-                    INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type)
-                    VALUES (?, ?, ?, ?, ?, 'manual')
+                    INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
+                    VALUES (?, ?, ?, ?, ?, 'manual', ?)
                 ");
                 $oldCount = intval($student['coupons']);
                 $changeAmount = $coupons - $oldCount;
-                $logStmt->bind_param("iiiii", $studentId, $uncleId, $oldCount, $coupons, $changeAmount);
+                $logStmt->bind_param("iiiiis", $studentId, $uncleId, $oldCount, $coupons, $changeAmount, 'تعديل يدوي من الأعمام');
                 $logStmt->execute();
                 
                 sendJSON(['success' => true, 'message' => 'تم تحديث الكوبونات بنجاح']);
@@ -6296,7 +6297,7 @@ function updateCouponsKids() {
         }
         
     } catch (Exception $e) {
-        error_log("updateCoupons error: " . $e->getMessage());
+        error_log("updateCouponsKids error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في تحديث الكوبونات']);
     }
 }
