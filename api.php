@@ -10710,9 +10710,12 @@ function deleteTask() {
             }
         }
 
+        // reverse_coupons=1 -> withdraw coupons from kids, reverse_coupons=0 -> keep them
+        $reverseCoupons = isset($_POST['reverse_coupons']) ? (int)$_POST['reverse_coupons'] : 1;
+
         $conn->begin_transaction();
 
-        // ── Reverse coupons for all submissions before deleting ──────
+        // Handle coupons for all submissions before deleting
         $totalReversed = 0;
         $subsStmt = $conn->prepare("SELECT student_id, coupons_awarded FROM task_submissions WHERE task_id=? AND coupons_awarded > 0");
         $subsStmt->bind_param('i', $taskId);
@@ -10722,21 +10725,37 @@ function deleteTask() {
         foreach ($subsRows as $subRow) {
             $awarded = (int)$subRow['coupons_awarded'];
             if ($awarded <= 0) continue;
-            $stuQ = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
-            $stuQ->bind_param('i', $subRow['student_id']);
-            $stuQ->execute();
-            $stu = $stuQ->get_result()->fetch_assoc();
-            if ($stu) {
-                $newTask  = max(0, (int)$stu['task_coupons'] - $awarded);
-                $newTotal = $newTask + (int)$stu['attendance_coupons'] + (int)$stu['commitment_coupons'];
-                $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$subRow['student_id']}");
-                $totalReversed += $awarded;
-                // Log
-                $reason = "حذف مهمة #{$taskId}";
-                $negAwarded = -$awarded;
-                $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
-                $log->bind_param('iiiiss', $subRow['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
-                $log->execute();
+
+            if ($reverseCoupons) {
+                // Withdraw the coupons from the student
+                $stuQ = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+                $stuQ->bind_param('i', $subRow['student_id']);
+                $stuQ->execute();
+                $stu = $stuQ->get_result()->fetch_assoc();
+                if ($stu) {
+                    $newTask  = max(0, (int)$stu['task_coupons'] - $awarded);
+                    $newTotal = $newTask + (int)$stu['attendance_coupons'] + (int)$stu['commitment_coupons'];
+                    $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$subRow['student_id']}");
+                    $totalReversed += $awarded;
+                    $reason     = "حذف مهمة #{$taskId} (مع سحب الكوبونات)";
+                    $negAwarded = -$awarded;
+                    $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+                    $log->bind_param('iiiiss', $subRow['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
+                    $log->execute();
+                }
+            } else {
+                // Keep the coupons — just log that the task was removed but coupons were retained
+                $stuQ = $conn->prepare("SELECT task_coupons FROM students WHERE id=? LIMIT 1");
+                $stuQ->bind_param('i', $subRow['student_id']);
+                $stuQ->execute();
+                $stu = $stuQ->get_result()->fetch_assoc();
+                if ($stu) {
+                    $reason = "حذف مهمة #{$taskId} (الكوبونات محتفظ بها)";
+                    $zero   = 0;
+                    $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+                    $log->bind_param('iiiiss', $subRow['student_id'], $uncleId, $stu['task_coupons'], $stu['task_coupons'], $zero, $reason);
+                    $log->execute();
+                }
             }
         }
 
@@ -10756,7 +10775,8 @@ function deleteTask() {
             writeAuditLog('delete', 'task', $taskId, 'deleted');
         }
 
-        sendJSON(['success' => true, 'message' => 'تم حذف المهمة', 'coupons_reversed' => $totalReversed]);
+        $msg = $reverseCoupons ? 'تم حذف المهمة وسحب الكوبونات' : 'تم حذف المهمة والكوبونات محتفظ بها';
+        sendJSON(['success' => true, 'message' => $msg, 'coupons_reversed' => $totalReversed, 'reverse_coupons' => $reverseCoupons]);
     } catch (Exception $e) {
         if (isset($conn)) $conn->rollback();
         error_log("deleteTask error: " . $e->getMessage());
