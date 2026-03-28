@@ -854,15 +854,24 @@ a{font-family:'Cairo',sans-serif;}
 
 <!-- ══ CONFIRM DELETE ════════════════════════════════════════════ -->
 <div class="overlay" id="confOv">
-  <div class="modal narrow">
-    <div class="conf-body">
+  <div class="modal" style="max-width:440px;">
+    <div class="conf-body" style="padding-bottom:16px;">
       <div class="conf-ico"><i class="fas fa-trash-alt"></i></div>
       <div class="conf-t">حذف المهمة؟</div>
-      <div class="conf-s" id="confSub">لا يمكن التراجع.</div>
+      <div class="conf-s" id="confSub" style="margin-bottom:14px;">لا يمكن التراجع.</div>
+      <div id="confCouponNote" style="display:none;background:var(--cou-bg);border:1px solid #d8b4fe;border-radius:10px;padding:11px 14px;font-size:.8rem;color:var(--t2);text-align:right;line-height:1.7;">
+        <strong style="color:var(--cou);display:block;margin-bottom:4px;"><i class="fas fa-ticket-alt"></i> كوبونات الأطفال</strong>
+        <span id="confCouponDetail"></span>
+      </div>
     </div>
-    <div class="mfoot" style="justify-content:center;gap:10px;">
-      <button class="btn btn-g" onclick="closeConf()">إلغاء</button>
-      <button class="btn btn-dg" onclick="doDelete()"><i class="fas fa-trash-alt"></i> حذف</button>
+    <div class="mfoot" style="flex-direction:column;gap:8px;padding:14px 20px;">
+      <button class="btn btn-dg" style="width:100%;justify-content:center;background:var(--err-bg);" onclick="doDelete(1)">
+        <i class="fas fa-trash-alt"></i> حذف وسحب الكوبونات من الأطفال
+      </button>
+      <button class="btn" style="width:100%;justify-content:center;background:var(--warn-bg);color:var(--warn);border-color:#fcd34d;" onclick="doDelete(0)">
+        <i class="fas fa-ticket-alt"></i> حذف والاحتفاظ بالكوبونات
+      </button>
+      <button class="btn btn-g" style="width:100%;justify-content:center;" onclick="closeConf()">إلغاء</button>
     </div>
   </div>
 </div>
@@ -1750,21 +1759,47 @@ async function doDeleteSubConfirmed(){
 }
 
 // ─── Delete task ──────────────────────────────────────────────────
-function openConf(id){
-  delId=id;
-  const t=tasks.find(x=>x.id==id);
-  document.getElementById('confSub').textContent=t?`سيتم حذف "${t.title}" بشكل نهائي وعكس جميع الكوبونات.`:'لا يمكن التراجع.';
+function openConf(id) {
+  delId = id;
+  const t = tasks.find(x => x.id == id);
+  if (!t) { openOv('confOv'); return; }
+
+  document.getElementById('confSub').textContent = `سيتم حذف "​${t.title}​" بشكل نهائي.`;
+
+  // Count coupons awarded across all submissions for this task
+  const subs        = t.submissions || [];
+  const totalCoupons = subs.reduce((a, s) => a + (parseInt(s.coupons_awarded) || 0), 0);
+  const kidCount     = subs.filter(s => (parseInt(s.coupons_awarded) || 0) > 0).length;
+
+  const noteEl   = document.getElementById('confCouponNote');
+  const detailEl = document.getElementById('confCouponDetail');
+  if (totalCoupons > 0) {
+    detailEl.textContent = `حصل ${kidCount} طفل على إجمالي ${totalCoupons} كوبون من هذه المهمة. اختر إذا كنت تريد سحبها أو الاحتفاظ بها.`;
+    noteEl.style.display = '';
+  } else {
+    noteEl.style.display = 'none';
+  }
+
   openOv('confOv');
 }
-async function doDelete(){
-  try{
-    const d=await api('deleteTask',{task_id:delId});
-    if(d.success){
-      const msg = d.coupons_reversed>0?`تم حذف المهمة وعكس ${d.coupons_reversed} كوبون`:'تم حذف المهمة';
-      showToast(msg,'info');closeConf();await loadTasks();
+async function doDelete(reverseCoupons) {
+  try {
+    const d = await api('deleteTask', {task_id: delId, reverse_coupons: reverseCoupons});
+    if (d.success) {
+      let msg = 'تم حذف المهمة';
+      if (reverseCoupons && d.coupons_reversed > 0)
+        msg += ` وسحب ${d.coupons_reversed} كوبون من الأطفال`;
+      else if (!reverseCoupons)
+        msg += ' واحتُظ بالكوبونات للأطفال';
+      showToast(msg, reverseCoupons ? 'info' : 'ok');
+      closeConf();
+      await loadTasks();
+    } else {
+      showToast(d.message || 'فشل الحذف', 'err');
     }
-    else showToast(d.message||'فشل الحذف','err');
-  }catch(e){showToast('خطأ في الاتصال','err');}
+  } catch(e) {
+    showToast('خطأ في الاتصال', 'err');
+  }
 }
 
 // ─── Open question grading — FULL EXAM VIEW ───────────────────────
