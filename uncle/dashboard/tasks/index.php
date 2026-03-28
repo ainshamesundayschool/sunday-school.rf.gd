@@ -39,50 +39,6 @@ if (!$hasUncle && !$hasChurch) {
                 else window.location.href='/login/';
             }).catch(()=>window.location.href='/login/');
     })();
-    function viewAnswers(taskId, studentId) {
-  const t = allTasks.find(x=>x.id==taskId);
-  if(!t) return;
-  const sub = t.submissions.find(x=>x.student_id==studentId);
-  if(!sub) return;
-
-  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
-  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
-    <h3 style="margin-bottom:15px;color:var(--t1);">إجابات الطالب: ${esc(sub.student_name)}</h3>`;
-
-  if(!t.questions || t.questions.length === 0) {
-    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
-  } else {
-    t.questions.forEach((q, i) => {
-      const qType = q.question_type || 'mcq';
-      const given = ans[q.id];
-      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
-      
-      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
-      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
-      
-      if(qType === 'open') {
-        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>الإجابة:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم يُجب')}</pre></span></div>`;
-      } else {
-        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-        if(qType === 'tf') { opts[0] = 'صح'; opts.push('خطأ'); }
-        
-        opts.forEach((o, j) => {
-          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
-          let icon = "";
-          if(j === correctIdx) {
-            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
-            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
-          }
-          if(given !== undefined && parseInt(given) === j) {
-            if(j !== correctIdx) {
-              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
-              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
-            }
-            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
-          }
-          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
-        });
-      }
       html += `</div>`;
     });
   }
@@ -1758,6 +1714,101 @@ function closeGradePanel(){
 
 function updatePendingBadge(taskId) {
   loadTasks();
+}
+
+function openModal(html) {
+  const ov = document.createElement('div');
+  ov.className = 'overlay open';
+  ov.style.zIndex = '3000';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:600px;margin-top:40px;">
+      <div class="mhdr" style="background:var(--brand);padding:15px 20px;border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;align-items:center;justify-content:space-between;">
+        <div style="color:#fff;font-weight:800;font-size:1rem;">مراجعة الإجابات</div>
+        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="mbody" style="padding:0;">${html}</div>
+    </div>
+  `;
+  document.body.appendChild(ov);
+  ov.onclick = (e) => { if(e.target === ov) { ov.remove(); document.documentElement.classList.remove('ov-open'); } };
+  document.documentElement.classList.add('ov-open');
+}
+
+function viewAnswers(taskId, studentId) {
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
+  const sub = t.submissions.find(x=>x.student_id==studentId);
+  if(!sub) return;
+
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:20px;max-height:75vh;overflow-y:auto;background:var(--bg2);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:15px;background:#fff;border-radius:var(--r-md);box-shadow:var(--sh-sm);">
+      <div style="width:50px;height:50px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fas fa-user-check"></i></div>
+      <div style="flex:1;">
+        <div style="font-weight:800;color:var(--t1);font-size:1.1rem;line-height:1.2;">${esc(sub.student_name)}</div>
+        <div style="font-size:.78rem;color:var(--t3);margin-top:2px;">لقد حصل على ${sub.score} من ${t.total_degree} درجة</div>
+      </div>
+    </div>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="text-align:center;padding:40px;color:var(--t4);">لا توجد أسئلة لهذه المهمة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:15px;border:1.5px solid var(--bdr);border-radius:var(--r-md);background:#fff;box-shadow:var(--sh-sm);">`;
+      html += `<div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="width:26px;height:26px;border-radius:8px;background:var(--bg2);color:var(--t1);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;">${i+1}</div>
+        <div style="font-weight:700;color:var(--t1);line-height:1.4;flex:1;">${esc(q.question_text)}</div>
+      </div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="background:var(--bg2);padding:15px;border-radius:var(--r-sm);border:1.5px solid var(--bdr);">
+          <div style="font-size:.7rem;color:var(--t3);margin-bottom:6px;font-weight:700;">إجابة الطالب:</div>
+          <div style="color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.6;">${esc(given || '— لم يُجب على هذا السؤال —')}</div>
+        </div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts[1] = 'خطأ'; }
+        
+        html += `<div style="display:flex;flex-direction:column;gap:8px;">`;
+        opts.forEach((o, j) => {
+          const isCorr = j === correctIdx;
+          const isSel = given !== undefined && parseInt(given) === j;
+          
+          let borderColor = 'var(--bdr)';
+          let bgColor = '#fff';
+          let textColor = 'var(--t2)';
+          let icon = '';
+
+          if(isCorr) {
+            borderColor = 'var(--ok)';
+            bgColor = 'var(--ok-bg)';
+            textColor = 'var(--ok)';
+            icon = isSel ? '<i class="fas fa-check-circle" style="margin-right:auto;"></i>' : '<i class="fas fa-check" style="margin-right:auto;opacity:.4;"></i>';
+          } else if(isSel) {
+            borderColor = 'var(--err)';
+            bgColor = 'var(--err-bg)';
+            textColor = 'var(--err)';
+            icon = '<i class="fas fa-times-circle" style="margin-right:auto;"></i>';
+          }
+
+          html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);border:2px solid ${borderColor};background:${bgColor};color:${textColor};font-size:.88rem;${isSel?'font-weight:700;':''}">
+            <span style="width:20px;font-weight:800;opacity:.5;">${LETTERS[j]}</span>
+            <span>${esc(o)}</span>
+            ${icon}
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
 }
 
 // ─── Overlay helpers ─────────────────────────────────────────────
