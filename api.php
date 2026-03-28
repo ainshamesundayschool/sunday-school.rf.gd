@@ -4400,18 +4400,66 @@ function handleUncleLogin() {
 
 // ===== GET CURRENT UNCLE =====
 function getCurrentUncle() {
-    checkAuth();
-    
-    sendJSON([
-        'success' => true,
-        'uncle' => [
-            'id' => $_SESSION['uncle_id'] ?? null,
-            'name' => $_SESSION['uncle_name'] ?? '',
-            'username' => $_SESSION['uncle_username'] ?? '',
-            'image_url' => $_SESSION['uncle_image'] ?? '',
-            'role' => $_SESSION['uncle_role'] ?? 'uncle'
-        ]
-    ]);
+    // Accept both uncle sessions AND church sessions (for admin uncle data fetch)
+    checkUncleAuth();
+
+    $uncleId = intval($_SESSION['uncle_id'] ?? 0);
+    if (!$uncleId) {
+        sendJSON(['success' => false, 'message' => 'لا يوجد خادم مسجّل الدخول']);
+        return;
+    }
+
+    // Always fetch fresh data from DB so image_url / name reflect latest edits
+    try {
+        $conn  = getDBConnection();
+        $stmt  = $conn->prepare("SELECT id, name, username, image_url, role FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $stmt->bind_param("i", $uncleId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+
+        if ($row) {
+            // Sync session with fresh DB values
+            $_SESSION['uncle_name']     = $row['name'];
+            $_SESSION['uncle_username'] = $row['username'];
+            $_SESSION['uncle_image']    = $row['image_url'];
+            $_SESSION['uncle_role']     = $row['role'];
+
+            sendJSON([
+                'success' => true,
+                'uncle' => [
+                    'id'        => (int)$row['id'],
+                    'name'      => $row['name'],
+                    'username'  => $row['username'],
+                    'image_url' => $row['image_url'] ?? '',
+                    'role'      => $row['role'] ?? 'uncle',
+                ]
+            ]);
+        } else {
+            // Fallback to session values if DB fetch fails
+            sendJSON([
+                'success' => true,
+                'uncle' => [
+                    'id'        => $uncleId,
+                    'name'      => $_SESSION['uncle_name']     ?? '',
+                    'username'  => $_SESSION['uncle_username'] ?? '',
+                    'image_url' => $_SESSION['uncle_image']    ?? '',
+                    'role'      => $_SESSION['uncle_role']     ?? 'uncle',
+                ]
+            ]);
+        }
+    } catch (Exception $e) {
+        error_log("getCurrentUncle DB error: " . $e->getMessage());
+        sendJSON([
+            'success' => true,
+            'uncle' => [
+                'id'        => $uncleId,
+                'name'      => $_SESSION['uncle_name']     ?? '',
+                'username'  => $_SESSION['uncle_username'] ?? '',
+                'image_url' => $_SESSION['uncle_image']    ?? '',
+                'role'      => $_SESSION['uncle_role']     ?? 'uncle',
+            ]
+        ]);
+    }
 }
 
 // ===== UPDATE UNCLE PROFILE =====
@@ -10243,7 +10291,7 @@ function getTasks() {
             $inList = implode(',', array_map('intval', $taskIds));
 
             $qRes = $conn->query("
-                SELECT id, task_id, question_text, options, correct_index, degree, sort_order
+                SELECT id, task_id, question_type, question_text, options, correct_index, degree, sort_order, image_url
                 FROM task_questions WHERE task_id IN ($inList)
                 ORDER BY task_id, sort_order
             ");
@@ -10252,7 +10300,8 @@ function getTasks() {
             }
 
             $sRes = $conn->query("
-                SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at, ts.answers,
+                SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at,
+                       ts.answers, ts.open_scores, ts.is_graded,
                        s.name AS student_name
                 FROM task_submissions ts
                 LEFT JOIN students s ON s.id = ts.student_id
@@ -10727,14 +10776,15 @@ function getStudentTasks() {
         $colRes = $conn->query("SHOW COLUMNS FROM tasks");
         while ($cr = $colRes->fetch_assoc()) $allCols[] = $cr['Field'];
 
-        $hasStatus   = in_array('status',   $allCols);
-        $hasAssignTo = in_array('assign_to', $allCols);
-        $hasTimer    = in_array('timer_behavior', $allCols);
-        $hasShuffle  = in_array('shuffle',   $allCols);
-        $hasShow     = in_array('show_result', $allCols);
-        $hasReview   = in_array('allow_review', $allCols);
-        $hasIsActive = in_array('is_active', $allCols);
-        $hasNoDeadline = in_array('no_deadline', $allCols);
+        $hasStatus      = in_array('status',         $allCols);
+        $hasAssignTo    = in_array('assign_to',       $allCols);
+        $hasTimer       = in_array('timer_behavior',  $allCols);
+        $hasShuffle     = in_array('shuffle',         $allCols);
+        $hasShow        = in_array('show_result',     $allCols);
+        $hasShowAnswers = in_array('show_answers',    $allCols);
+        $hasReview      = in_array('allow_review',    $allCols);
+        $hasIsActive    = in_array('is_active',       $allCols);
+        $hasNoDeadline  = in_array('no_deadline',     $allCols);
 
         // Build SELECT dynamically based on existing columns
         $sel = "t.id, t.title, t.description, t.start_date, t.end_date,
@@ -10743,13 +10793,14 @@ function getStudentTasks() {
                     WHEN t.class_id = 0 THEN 'كل الفصول'
                     ELSE COALESCE(cc.arabic_name,'')
                 END AS class_name";
-        if ($hasStatus)   $sel .= ", t.status";
-        if ($hasAssignTo) $sel .= ", t.assign_to, t.specific_ids";
-        if ($hasTimer)    $sel .= ", t.timer_behavior";
-        if ($hasShuffle)  $sel .= ", t.shuffle";
-        if ($hasShow)     $sel .= ", t.show_result";
-        if ($hasReview)   $sel .= ", t.allow_review";
-        if ($hasNoDeadline) $sel .= ", t.no_deadline";
+        if ($hasStatus)      $sel .= ", t.status";
+        if ($hasAssignTo)    $sel .= ", t.assign_to, t.specific_ids";
+        if ($hasTimer)       $sel .= ", t.timer_behavior";
+        if ($hasShuffle)     $sel .= ", t.shuffle";
+        if ($hasShow)        $sel .= ", t.show_result";
+        if ($hasShowAnswers) $sel .= ", t.show_answers";
+        if ($hasReview)      $sel .= ", t.allow_review";
+        if ($hasNoDeadline)  $sel .= ", t.no_deadline";
 
         // Build WHERE — show all tasks (active, upcoming, expired) so kids can see their history
         // The JS tSt() function handles status badges; we just filter by class + church + active flag
@@ -10816,6 +10867,7 @@ function getStudentTasks() {
             $t['timer_behavior'] = $t['timer_behavior'] ?? 'submit';
             $t['shuffle']        = isset($t['shuffle'])       ? (int)$t['shuffle']      : 0;
             $t['show_result']    = isset($t['show_result'])   ? (int)$t['show_result']  : 1;
+            $t['show_answers']   = isset($t['show_answers'])  ? (int)$t['show_answers'] : 0;
             $t['allow_review']   = isset($t['allow_review'])  ? (int)$t['allow_review'] : 1;
             $t['no_deadline']    = isset($t['no_deadline'])   ? (int)$t['no_deadline']  : 0;
             $t['assign_to']      = $t['assign_to']  ?? 'all';
@@ -10845,12 +10897,35 @@ function getStudentTasks() {
             $subStmt->execute();
             $subRow = $subStmt->get_result()->fetch_assoc();
             if ($subRow) {
-                $t['my_submission'] = [
+                $mySubmission = [
                     'id'             => $subRow['id'],
-                    'score'          => isset($subRow['score'])          ? (int)$subRow['score']          : 0,
-                    'coupons_awarded'=> isset($subRow['coupons_awarded']) ? (int)$subRow['coupons_awarded'] : 0,
+                    'score'          => isset($subRow['score'])           ? (int)$subRow['score']           : 0,
+                    'coupons_awarded'=> isset($subRow['coupons_awarded'])  ? (int)$subRow['coupons_awarded']  : 0,
                     'submitted_at'   => $subRow['submitted_at'] ?? null,
                 ];
+
+                // If show_answers is ON, attach the student's answers AND the correct answers
+                // so both the kid view and uncle review can highlight right/wrong answers
+                if (!empty($t['show_answers'])) {
+                    // Fetch full answers blob from DB (not in $sSel yet)
+                    $ansStmt = $conn->prepare("SELECT answers, open_scores FROM task_submissions WHERE id=? LIMIT 1");
+                    $ansStmt->bind_param('i', $subRow['id']);
+                    $ansStmt->execute();
+                    $ansRow = $ansStmt->get_result()->fetch_assoc();
+                    $mySubmission['answers']     = $ansRow ? json_decode($ansRow['answers'] ?? '{}', true) : [];
+                    $mySubmission['open_scores'] = $ansRow ? json_decode($ansRow['open_scores'] ?? '{}', true) : [];
+
+                    // Also attach correct answers for each question so frontend can color-code
+                    $correctMap = [];
+                    foreach ($t['questions'] as $q) {
+                        if ($q['question_type'] !== 'open') {
+                            $correctMap[$q['id']] = (int)$q['correct_index'];
+                        }
+                    }
+                    $mySubmission['correct_answers'] = $correctMap;
+                }
+
+                $t['my_submission'] = $mySubmission;
             } else {
                 $t['my_submission'] = null;
             }
@@ -10973,8 +11048,19 @@ function submitTaskAnswers() {
             'percentage'      => round($pct, 1),
             'coupons_awarded' => $coupons,
             'show_result'     => (bool)(int)$task['show_result'],
+            'show_answers'    => (bool)(int)($task['show_answers'] ?? 0),
             'message'         => "أحسنت! درجتك {$score} من {$task['total_degree']} — حصلت على {$coupons} كوبون"
         ];
+
+        // Include answers + correct indices so kid can review which were right/wrong
+        if (!empty($task['show_answers'])) {
+            // Return full questions with correct_index so frontend can highlight
+            $qaStmt = $conn->prepare("SELECT id, question_type, question_text, options, correct_index, degree, sort_order FROM task_questions WHERE task_id=? ORDER BY sort_order");
+            $qaStmt->bind_param('i', $taskId);
+            $qaStmt->execute();
+            $result['questions_with_answers'] = $qaStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $result['submitted_answers'] = $answers; // the student's own choices
+        }
 
         if (!$result['show_result']) {
             unset($result['score'], $result['percentage'], $result['coupons_awarded']);

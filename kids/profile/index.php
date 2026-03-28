@@ -2904,7 +2904,7 @@ function examShowView(which){
 }
 
 
-function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId){
+function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers){
   let grad, iconCls, msg, color;
   if(pct >= 90){
     grad = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
@@ -2954,9 +2954,7 @@ function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId){
         ${couponHtml}
         ${pendingNote}
         <div style="margin-top:35px;display:flex;flex-direction:column;gap:12px;">
-          <button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:14px;border-radius:var(--r-lg);background:var(--s2);border:2.5px solid ${color};color:${color};font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;transition:var(--fast);display:flex;align-items:center;justify-content:center;gap:10px;">
-            <i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك
-          </button>
+          ${showAnswers && taskId ? `<button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:14px;border-radius:var(--r-lg);background:var(--s2);border:2.5px solid ${color};color:${color};font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;transition:var(--fast);display:flex;align-items:center;justify-content:center;gap:10px;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>` : ''}
           <button onclick="exitExamScreen()" style="width:100%;padding:14px;border-radius:var(--r-lg);background:${color};border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 20px ${color}44;transition:var(--fast);">
              العودة للملف الشخصي
           </button>
@@ -2973,7 +2971,7 @@ function showExamResult(t,sub){
   curTask=t;examDone=true;
   const pct=t.total_degree>0?Math.round(sub.score/t.total_degree*100):0;
   const hasOpenQs=(t.questions||[]).some(q=>q.question_type==='open');
-  document.getElementById('examResultCard').innerHTML=buildResultCard(sub.score,t.total_degree,pct,sub.coupons_awarded,hasOpenQs);
+  document.getElementById('examResultCard').innerHTML=buildResultCard(sub.score,t.total_degree,pct,sub.coupons_awarded,hasOpenQs,t.id,!!parseInt(t.show_answers||0));
   examShowView('result');
   examScreenOpen();
 }
@@ -3025,6 +3023,23 @@ async function _doSubmitExam(){
     localStorage.removeItem(`ta_${curTask.id}_${student.id}`);
     localStorage.removeItem(`examStart_${curTask.id}_${student.id}`);
     if(d.success){
+      // Build a complete my_submission object so viewMyAnswers works immediately
+      // without waiting for loadTasks() to re-fetch
+      const mySubmission = {
+        id: d.submission_id || null,
+        score: d.score || 0,
+        coupons_awarded: d.coupons_awarded || 0,
+        submitted_at: new Date().toISOString(),
+        answers: taskAnswers,                          // the answers we just sent
+        correct_answers: d.questions_with_answers      // full questions with correct_index from API
+          ? Object.fromEntries((d.questions_with_answers||[]).filter(q=>q.question_type!=='open').map(q=>[q.id,parseInt(q.correct_index)]))
+          : (curTask.my_submission?.correct_answers || {}),
+      };
+      // Patch the task in allTasks so viewMyAnswers can find it
+      curTask.my_submission = mySubmission;
+      const idx = allTasks.findIndex(x=>x.id===curTask.id);
+      if(idx>=0) allTasks[idx].my_submission = mySubmission;
+
       if(d.coupons_awarded>0){
         student.task_coupons+=d.coupons_awarded;
         renderCouponHero(student);
@@ -3032,7 +3047,7 @@ async function _doSubmitExam(){
       }
       if(d.show_result){
         const hasOpenQs=(curTask.questions||[]).some(q=>q.question_type==='open');
-        document.getElementById('examResultCard').innerHTML=buildResultCard(d.score,curTask.total_degree,d.percentage,d.coupons_awarded,hasOpenQs);
+        document.getElementById('examResultCard').innerHTML=buildResultCard(d.score,curTask.total_degree,d.percentage,d.coupons_awarded,hasOpenQs,curTask.id,!!d.show_answers);
         examShowView('result');
       } else{toast('تم التسليم ✓','ok');examScreenClose();}
       loadTasks();
@@ -3416,8 +3431,14 @@ function viewMyAnswers(taskId) {
   const t = allTasks.find(x=>x.id==taskId);
   if(!t || !t.my_submission) return;
   const sub = t.my_submission;
-  
+
+  // answers: the student's choices (keyed by question id)
   const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  // correct_answers: map of {qId: correctIndex} — provided by API when show_answers=1
+  const correctMap = sub.correct_answers || {};
+  // open_scores: map of {qId: score} for open questions graded by uncle
+  const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores||'{}') : (sub.open_scores || {});
+
   let html = `<div style="padding:20px;max-height:75vh;overflow-y:auto;background:var(--bg);">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:15px;background:#fff;border-radius:var(--r-md);box-shadow:var(--sh-sm);">
       <div style="width:50px;height:50px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fas fa-clipboard-check"></i></div>
@@ -3432,44 +3453,52 @@ function viewMyAnswers(taskId) {
   } else {
     t.questions.forEach((q, i) => {
       const qType = q.question_type || 'mcq';
-      const given = ans[q.id];
-      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
-      const isCorrect = given !== undefined && parseInt(given) === correctIdx;
-      
+      const qId   = String(q.id);
+      const given = ans[qId] !== undefined ? ans[qId] : ans[q.id];
+      // Use correct_answers map first (returned by API), fall back to q.correct_index
+      const correctIdx = (correctMap[q.id] !== undefined)
+        ? parseInt(correctMap[q.id])
+        : (q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null);
+      const isCorrect = given !== undefined && correctIdx !== null && parseInt(given) === correctIdx;
+
       html += `<div style="margin-bottom:15px;padding:15px;border:1.5px solid var(--bdr);border-radius:var(--r-md);background:#fff;box-shadow:var(--sh-sm);">`;
       html += `<div style="display:flex;gap:10px;margin-bottom:12px;">
         <div style="width:26px;height:26px;border-radius:8px;background:var(--s2);color:var(--t1);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;">${i+1}</div>
         <div style="font-weight:700;color:var(--t1);line-height:1.4;flex:1;">${esc(q.question_text)}</div>
       </div>`;
-      
+
       if(qType === 'open') {
+        const openScore = openScores[qId] !== undefined ? openScores[qId] : (openScores[q.id] !== undefined ? openScores[q.id] : null);
+        const openScoreHtml = openScore !== null
+          ? `<div style="margin-top:8px;font-size:.75rem;color:var(--ok);font-weight:700;"><i class="fas fa-check-circle"></i> درجتك: ${openScore} من ${q.degree || 1}</div>`
+          : `<div style="margin-top:8px;font-size:.75rem;color:var(--warn);font-weight:700;"><i class="fas fa-clock"></i> في انتظار التصحيح</div>`;
         html += `<div style="background:var(--s2);padding:15px;border-radius:var(--r-sm);border:1.5px solid var(--bdr);">
           <div style="font-size:.7rem;color:var(--t3);margin-bottom:6px;font-weight:700;">إجابتك المسجلة:</div>
-          <div style="color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.6;">${esc(given || '— لم تُجب على هذا السؤال —')}</div>
+          <div style="color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.6;">${esc(given !== undefined ? String(given) : '— لم تُجب على هذا السؤال —')}</div>
+          ${openScoreHtml}
         </div>`;
       } else {
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
         if(qType === 'tf') { opts[0] = 'صحيح'; opts[1] = 'خطأ'; }
-        
+
         html += `<div style="display:flex;flex-direction:column;gap:8px;">`;
         opts.forEach((o, j) => {
           const isCorr = j === correctIdx;
-          const isSel = given !== undefined && parseInt(given) === j;
-          
-          let borderColor = 'var(--bdr)';
-          let bgColor = 'var(--surf)';
-          let textColor = 'var(--t2)';
-          let icon = '';
+          const isSel  = given !== undefined && parseInt(given) === j;
 
-          if(isCorr) {
-            borderColor = 'var(--ok)';
-            bgColor = 'var(--ok-bg)';
-            textColor = 'var(--ok)';
-            icon = isSel ? '<i class="fas fa-check-circle" style="margin-right:auto;"></i>' : '<i class="fas fa-check" style="margin-right:auto;opacity:.4;"></i>';
+          let borderColor = 'var(--bdr)';
+          let bgColor     = 'var(--surf)';
+          let textColor   = 'var(--t2)';
+          let icon        = '';
+
+          if(isCorr && isSel) {
+            borderColor = 'var(--ok)'; bgColor = 'var(--ok-bg)'; textColor = 'var(--ok)';
+            icon = '<i class="fas fa-check-circle" style="margin-right:auto;"></i>';
+          } else if(isCorr) {
+            borderColor = 'var(--ok)'; bgColor = 'var(--ok-bg)'; textColor = 'var(--ok)';
+            icon = '<i class="fas fa-check" style="margin-right:auto;opacity:.5;"></i>';
           } else if(isSel) {
-            borderColor = 'var(--err)';
-            bgColor = 'var(--err-bg)';
-            textColor = 'var(--err)';
+            borderColor = 'var(--err)'; bgColor = 'var(--err-bg)'; textColor = 'var(--err)';
             icon = '<i class="fas fa-times-circle" style="margin-right:auto;"></i>';
           }
 
@@ -3480,12 +3509,17 @@ function viewMyAnswers(taskId) {
           </div>`;
         });
         html += `</div>`;
+
+        // Show "didn't answer" notice if student skipped
+        if(given === undefined) {
+          html += `<div style="margin-top:8px;font-size:.75rem;color:var(--t4);font-weight:700;"><i class="fas fa-minus-circle"></i> لم تُجب على هذا السؤال</div>`;
+        }
       }
       html += `</div>`;
     });
   }
   html += `</div>`;
-  
+
   openModal(html);
 }
 </script>

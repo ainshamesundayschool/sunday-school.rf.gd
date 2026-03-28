@@ -5928,56 +5928,62 @@ function uploadNewStudentPhoto() { showToast('سيتم الرفع تلقائيا
 
 // ── UNCLE PROFILE ─────────────────────────────────────────────
 function loadUncleProfile() {
-    if (!navigator.onLine) {
-        // Restore uncle info from localStorage when offline
+    // Always show cached uncle info immediately from localStorage (no flicker)
+    (function _showCachedUncle() {
         const name = localStorage.getItem('uncleName');
-        const cachedImg = localStorage.getItem('uncleImageUrl'); // raw URL stored
+        const cachedImg = localStorage.getItem('uncleImageUrl');
         const chip = document.getElementById('uncleChip');
         if (chip && name) {
             chip.style.display = 'flex';
             const av = document.getElementById('uncleAvatar');
             const ini = document.getElementById('uncleInitials');
+            const initials = _getInitials(name);
+            if (ini) ini.textContent = initials;
             if (cachedImg && av) {
-                av.src = window.photoUrl(cachedImg); // versioned → cache hit
+                av.src = window.photoUrl(cachedImg);
                 av.style.display = 'block';
                 if (ini) ini.style.display = 'none';
-                av.onerror = function(){ this.style.display='none'; if(ini){ini.textContent=_getInitials(name);ini.style.display='flex';} };
+                av.onerror = function(){ this.style.display='none'; if(ini){ini.textContent=initials;ini.style.display='flex';} };
             } else if (ini) {
-                ini.textContent = _getInitials(name);
+                ini.textContent = initials;
                 ini.style.display = 'flex';
                 if (av) av.style.display = 'none';
             }
+            // Also update hero name immediately from cache
+            const heroEl = document.getElementById('heroName');
+            if (heroEl && name && !heroEl.textContent.trim()) heroEl.textContent = name;
         }
-        return;
+    })();
+
+    if (!navigator.onLine) {
+        return; // cached display above is all we can do offline
     }
     makeApiCall({action:'getCurrentUncle'}, r => {
         if(r.uncle?.id){
             window.currentUncle=r.uncle;
             localStorage.setItem('uncleName', r.uncle.name || '');
-            document.getElementById('uncleChip').style.display='flex';
-            // ── Update hero greeting with fresh name ──────────────
+            const chip = document.getElementById('uncleChip');
+            if (chip) chip.style.display='flex';
+            // Update hero greeting with fresh name from DB
             const heroEl = document.getElementById('heroName');
             if (heroEl && r.uncle.name) heroEl.textContent = r.uncle.name;
-            // ─────────────────────────────────────────────────────
             const av=document.getElementById('uncleAvatar');
             const ini=document.getElementById('uncleInitials');
             const initials = _getInitials(r.uncle.name||'');
             if(ini) ini.textContent = initials;
             if(r.uncle.image_url){
-                av.src = window.photoUrl(r.uncle.image_url); // versioned → cache hit
-                av.style.display='block';
+                if(av){ av.src = window.photoUrl(r.uncle.image_url); av.style.display='block'; }
                 if(ini) ini.style.display='none';
-                av.onerror=function(){ this.style.display='none'; if(ini){ini.style.display='flex';} };
-                try { localStorage.setItem('uncleImageUrl', r.uncle.image_url); } catch(e){} // store raw URL
+                if(av) av.onerror=function(){ this.style.display='none'; if(ini){ini.style.display='flex';} };
+                try { localStorage.setItem('uncleImageUrl', r.uncle.image_url); } catch(e){}
             } else {
-                av.style.display='none';
+                if(av) av.style.display='none';
                 if(ini) ini.style.display='flex';
                 try { localStorage.removeItem('uncleImageUrl'); } catch(e){}
             }
-            // Send meta to SW so background checks + periodic sync work when app is closed
             _sendUnclMetaToSW();
         }
-    }, ()=>{});
+    }, ()=>{/* silently ignore errors — cached display already shown */});
 }
 function uploadUnclePhoto(blob) {
     showLoading('جاري رفع الصورة...');
