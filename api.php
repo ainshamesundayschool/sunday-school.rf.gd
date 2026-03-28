@@ -10650,21 +10650,27 @@ function updateTask() {
             $updSub->execute();
 
             // Apply coupon diff to student
-            if ($couponDiff !== 0) {
-                $stuQ2 = $conn->prepare("SELECT task_coupons FROM students WHERE id=? LIMIT 1");
-                $stuQ2->bind_param('i', $sub['student_id']);
-                $stuQ2->execute();
-                $stu2 = $stuQ2->get_result()->fetch_assoc();
-                if ($stu2) {
-                    $newTask2 = max(0, (int)$stu2['task_coupons'] + $couponDiff);
-                    $conn->query("UPDATE students SET task_coupons={$newTask2} WHERE id={$sub['student_id']}");
-                    // Log
-                    $reason2 = "تحديث مهمة #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
-                    $log2 = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
-                    $log2->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu2['task_coupons'], $newTask2, $couponDiff, $reason2);
-                    $log2->execute();
-                }
-            }
+if ($couponDiff !== 0) {
+    $stuQ2 = $conn->prepare("SELECT task_coupons, coupons FROM students WHERE id=? LIMIT 1");
+    $stuQ2->bind_param('i', $sub['student_id']);
+    $stuQ2->execute();
+    $stu2 = $stuQ2->get_result()->fetch_assoc();
+    if ($stu2) {
+        $oldTask = (int)$stu2['task_coupons'];
+        $oldTotal = (int)$stu2['coupons'];
+        $newTask = max(0, $oldTask + $couponDiff);
+        $newTotal = max(0, $oldTotal + $couponDiff);
+        
+        // Update both columns
+        $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$sub['student_id']}");
+        
+        // Log
+        $reason2 = "تحديث مهمة #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
+        $log2 = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+        $log2->bind_param('iiiiss', $sub['student_id'], $uncleId, $oldTotal, $newTotal, $couponDiff, $reason2);
+        $log2->execute();
+    }
+}
         }
 
         $conn->commit();
@@ -10682,76 +10688,76 @@ function updateTask() {
 }
 
 // ─── deleteTask ────────────────────────────────────────────────
-function deleteTask() {
+function deleteSubmission() {
     try {
-        $conn      = getDBConnection();
-        $churchId  = getChurchId();
-        $uncleId   = (int)($_SESSION['uncle_id'] ?? 0);
-        $uncleRole = strtolower($_SESSION['uncle_role'] ?? '');
-        $taskId    = (int)($_POST['task_id'] ?? 0);
+        $conn     = getDBConnection();
+        $churchId = getChurchId();
+        $subId    = (int)($_POST['submission_id'] ?? 0);
+        $uncleId  = (int)($_SESSION['uncle_id'] ?? 0);
 
-        if (!$taskId) { sendJSON(['success'=>false,'message'=>'task_id مطلوب']); return; }
+        if (!$subId) { sendJSON(['success'=>false,'message'=>'submission_id مطلوب']); return; }
 
-        if (!in_array($uncleRole, ['admin','developer','church'])) {
-            $chk = $conn->prepare("SELECT uncle_id FROM tasks WHERE id=? AND church_id=?");
-            $chk->bind_param('ii', $taskId, $churchId);
-            $chk->execute();
-            $r = $chk->get_result()->fetch_assoc();
-            if (!$r || (int)$r['uncle_id'] !== $uncleId) {
-                sendJSON(['success'=>false,'message'=>'غير مصرح']); return;
-            }
-        }
+        // Load submission so we can reverse coupons
+        $sel = $conn->prepare("
+            SELECT ts.student_id, ts.coupons_awarded, ts.task_id, t.title
+            FROM task_submissions ts
+            JOIN tasks t ON t.id = ts.task_id
+            WHERE ts.id = ? AND ts.church_id = ?
+        ");
+        $sel->bind_param('ii', $subId, $churchId);
+        $sel->execute();
+        $sub = $sel->get_result()->fetch_assoc();
+        if (!$sub) { sendJSON(['success'=>false,'message'=>'السجل غير موجود أو غير مصرح']); return; }
 
         $conn->begin_transaction();
 
-        // ── Reverse coupons for all submissions before deleting ──────
-        $totalReversed = 0;
-        $subsStmt = $conn->prepare("SELECT student_id, coupons_awarded FROM task_submissions WHERE task_id=? AND coupons_awarded > 0");
-        $subsStmt->bind_param('i', $taskId);
-        $subsStmt->execute();
-        $subsRows = $subsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        foreach ($subsRows as $subRow) {
-            $awarded = (int)$subRow['coupons_awarded'];
-            if ($awarded <= 0) continue;
-            $stuQ = $conn->prepare("SELECT task_coupons FROM students WHERE id=? LIMIT 1");
-            $stuQ->bind_param('i', $subRow['student_id']);
-            $stuQ->execute();
-            $stu = $stuQ->get_result()->fetch_assoc();
+        // Reverse task_coupons AND total coupons
+        $awarded = (int)$sub['coupons_awarded'];
+        if ($awarded > 0) {
+            $stuStmt = $conn->prepare("SELECT task_coupons, coupons FROM students WHERE id=? LIMIT 1");
+            $stuStmt->bind_param('i', $sub['student_id']);
+            $stuStmt->execute();
+            $stu = $stuStmt->get_result()->fetch_assoc();
             if ($stu) {
-                $newTask = max(0, (int)$stu['task_coupons'] - $awarded);
-                $conn->query("UPDATE students SET task_coupons={$newTask} WHERE id={$subRow['student_id']}");
-                $totalReversed += $awarded;
-                // Log
-                $reason = "حذف مهمة #{$taskId}";
+                $oldTask = (int)$stu['task_coupons'];
+                $oldTotal = (int)$stu['coupons'];
+                $newTask = max(0, $oldTask - $awarded);
+                $newTotal = max(0, $oldTotal - $awarded);
+                
+                // Update both columns
+                $updStmt = $conn->prepare("UPDATE students SET task_coupons=?, coupons=?, updated_at=NOW() WHERE id=?");
+                $updStmt->bind_param('iii', $newTask, $newTotal, $sub['student_id']);
+                $updStmt->execute();
+                
+                // Log the reversal
                 $negAwarded = -$awarded;
+                $reason = "حذف إجابة مهمة #{$sub['task_id']}: {$sub['title']}";
                 $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
-                $log->bind_param('iiiiss', $subRow['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
+                $log->bind_param('iiiiss', $sub['student_id'], $uncleId, $oldTotal, $newTotal, $negAwarded, $reason);
                 $log->execute();
             }
         }
 
-        // Also delete exam_starts
-        $conn->query("DELETE FROM exam_starts WHERE task_id = " . $taskId);
-        // Delete children
-        $conn->query("DELETE FROM task_questions   WHERE task_id = " . $taskId);
-        $conn->query("DELETE FROM task_submissions WHERE task_id = " . $taskId);
-
-        $del = $conn->prepare("DELETE FROM tasks WHERE id=? AND church_id=?");
-        $del->bind_param('ii', $taskId, $churchId);
-        $del->execute();
+        // Delete the submission (also delete exam_start record so student can retake)
+        $delSub = $conn->prepare("DELETE FROM task_submissions WHERE id=?");
+        $delSub->bind_param('i', $subId);
+        $delSub->execute();
+        
+        $delExam = $conn->prepare("DELETE FROM exam_starts WHERE task_id=? AND student_id=?");
+        $delExam->bind_param('ii', $sub['task_id'], $sub['student_id']);
+        $delExam->execute();
 
         $conn->commit();
 
         if (function_exists('writeAuditLog')) {
-            writeAuditLog('delete', 'task', $taskId, 'deleted');
+            writeAuditLog('delete', 'submission', $subId, "إجابة على: {$sub['title']}");
         }
 
-        sendJSON(['success' => true, 'message' => 'تم حذف المهمة', 'coupons_reversed' => $totalReversed]);
+        sendJSON(['success'=>true, 'message'=>'تم حذف الإجابة وعكس الكوبونات', 'coupons_reversed'=>$awarded]);
     } catch (Exception $e) {
         if (isset($conn)) $conn->rollback();
-        error_log("deleteTask error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+        error_log("deleteSubmission error: ".$e->getMessage());
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
     }
 }
 
@@ -11016,33 +11022,33 @@ function submitTaskAnswers() {
         $ins->execute();
 
         // Award coupons — update task_coupons
-        if ($coupons > 0) {
-            // Get current task_coupons
-            $cur = $conn->prepare("SELECT task_coupons, coupons FROM students WHERE id=? LIMIT 1");
-            $cur->bind_param('i', $studentId);
-            $cur->execute();
-            $stu = $cur->get_result()->fetch_assoc();
+// Award coupons — update task_coupons AND total coupons
+if ($coupons > 0) {
+    $cur = $conn->prepare("SELECT task_coupons, coupons FROM students WHERE id=? LIMIT 1");
+    $cur->bind_param('i', $studentId);
+    $cur->execute();
+    $stu = $cur->get_result()->fetch_assoc();
 
-            $oldTask = (int)$stu['task_coupons'];
-            $oldTotal = (int)$stu['coupons'];
-            $newTask = $oldTask + $coupons;
-            $newTotal = $oldTotal + $coupons;  // Update total coupons too
+    $oldTask = (int)$stu['task_coupons'];
+    $oldTotal = (int)$stu['coupons'];
+    $newTask = $oldTask + $coupons;
+    $newTotal = $oldTotal + $coupons;  // Update total coupons too
 
-            // Update both task_coupons AND total coupons
-            $upd = $conn->prepare("UPDATE students SET task_coupons=?, coupons=?, updated_at=NOW() WHERE id=?");
-            $upd->bind_param('iii', $newTask, $newTotal, $studentId);
-            $upd->execute();
+    // Update both task_coupons AND total coupons
+    $upd = $conn->prepare("UPDATE students SET task_coupons=?, coupons=?, updated_at=NOW() WHERE id=?");
+    $upd->bind_param('iii', $newTask, $newTotal, $studentId);
+    $upd->execute();
 
-            // Log in coupon_logs
-            $log = $conn->prepare("
-                INSERT INTO coupon_logs
-                    (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
-                VALUES (?, NULL, ?, ?, ?, 'task', ?)
-            ");
-            $reason = "مهمة #{$taskId}: {$task['title']}";
-            $log->bind_param('iiiiis', $studentId, $oldTotal, $newTotal, $coupons, $reason);
-            $log->execute();
-        }
+    // Log in coupon_logs (using total coupons for consistency)
+    $log = $conn->prepare("
+        INSERT INTO coupon_logs
+            (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
+        VALUES (?, NULL, ?, ?, ?, 'task', ?)
+    ");
+    $reason = "مهمة #{$taskId}: {$task['title']}";
+    $log->bind_param('iiiiis', $studentId, $oldTotal, $newTotal, $coupons, $reason);
+    $log->execute();
+}
 
         $conn->commit();
 
