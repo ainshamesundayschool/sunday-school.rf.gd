@@ -10949,14 +10949,18 @@ function submitTaskAnswers() {
         $answersJson = $_POST['answers']            ?? '{}';
         $timeTaken   = isset($_POST['time_taken_sec']) ? (int)$_POST['time_taken_sec'] : null;
 
-        if (!$studentId || !$taskId) { sendJSON(['success'=>false,'message'=>'بيانات ناقصة']); return; }
+        if (!$studentId || !$taskId) { 
+            sendJSON(['success'=>false,'message'=>'بيانات ناقصة']); 
+            return; 
+        }
 
         // Duplicate submission check
         $chk = $conn->prepare("SELECT id FROM task_submissions WHERE task_id=? AND student_id=?");
         $chk->bind_param('ii', $taskId, $studentId);
         $chk->execute();
         if ($chk->get_result()->num_rows > 0) {
-            sendJSON(['success'=>false,'message'=>'لقد أرسلت إجاباتك بالفعل']); return;
+            sendJSON(['success'=>false,'message'=>'لقد أرسلت إجاباتك بالفعل']); 
+            return;
         }
 
         // Load task
@@ -10964,10 +10968,13 @@ function submitTaskAnswers() {
         $tStmt->bind_param('ii', $taskId, $churchId);
         $tStmt->execute();
         $task = $tStmt->get_result()->fetch_assoc();
-        if (!$task) { sendJSON(['success'=>false,'message'=>'المهمة غير متاحة']); return; }
+        if (!$task) { 
+            sendJSON(['success'=>false,'message'=>'المهمة غير متاحة']); 
+            return; 
+        }
 
         // Load questions with correct answers
-        $qStmt = $conn->prepare("SELECT id, correct_index, degree FROM task_questions WHERE task_id=? ORDER BY sort_order");
+        $qStmt = $conn->prepare("SELECT id, correct_index, degree, question_type FROM task_questions WHERE task_id=? ORDER BY sort_order");
         $qStmt->bind_param('i', $taskId);
         $qStmt->execute();
         $questions = $qStmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -10997,7 +11004,7 @@ function submitTaskAnswers() {
 
         $conn->begin_transaction();
 
-        // Insert submission — submitted_at uses NOW() inline so only 7 bind vars
+        // Insert submission
         $ins = $conn->prepare("
             INSERT INTO task_submissions
                 (task_id, student_id, church_id, answers, score, coupons_awarded, submitted_at, time_taken_sec)
@@ -11007,17 +11014,22 @@ function submitTaskAnswers() {
         $ins->bind_param('iiisiii', $taskId, $studentId, $churchId, $answersJson, $score, $coupons, $nullableTime);
         $ins->execute();
 
-        // Award coupons — only task_coupons column, never touch total coupons
+        // Award coupons — update task_coupons
         if ($coupons > 0) {
-            $cur = $conn->prepare("SELECT task_coupons FROM students WHERE id=? LIMIT 1");
+            // Get current task_coupons
+            $cur = $conn->prepare("SELECT task_coupons, coupons FROM students WHERE id=? LIMIT 1");
             $cur->bind_param('i', $studentId);
             $cur->execute();
             $stu = $cur->get_result()->fetch_assoc();
 
-            $newTask = (int)$stu['task_coupons'] + $coupons;
+            $oldTask = (int)$stu['task_coupons'];
+            $oldTotal = (int)$stu['coupons'];
+            $newTask = $oldTask + $coupons;
+            $newTotal = $oldTotal + $coupons;  // Update total coupons too
 
-            $upd = $conn->prepare("UPDATE students SET task_coupons=? WHERE id=?");
-            $upd->bind_param('ii', $newTask, $studentId);
+            // Update both task_coupons AND total coupons
+            $upd = $conn->prepare("UPDATE students SET task_coupons=?, coupons=?, updated_at=NOW() WHERE id=?");
+            $upd->bind_param('iii', $newTask, $newTotal, $studentId);
             $upd->execute();
 
             // Log in coupon_logs
@@ -11027,7 +11039,7 @@ function submitTaskAnswers() {
                 VALUES (?, NULL, ?, ?, ?, 'task', ?)
             ");
             $reason = "مهمة #{$taskId}: {$task['title']}";
-            $log->bind_param('iiiis', $studentId, $stu['task_coupons'], $newTask, $coupons, $reason);
+            $log->bind_param('iiiiis', $studentId, $oldTotal, $newTotal, $coupons, $reason);
             $log->execute();
         }
 
@@ -11052,14 +11064,13 @@ function submitTaskAnswers() {
             'message'         => "أحسنت! درجتك {$score} من {$task['total_degree']} — حصلت على {$coupons} كوبون"
         ];
 
-        // Include answers + correct indices so kid can review which were right/wrong
+        // Include answers + correct indices for review
         if (!empty($task['show_answers'])) {
-            // Return full questions with correct_index so frontend can highlight
             $qaStmt = $conn->prepare("SELECT id, question_type, question_text, options, correct_index, degree, sort_order FROM task_questions WHERE task_id=? ORDER BY sort_order");
             $qaStmt->bind_param('i', $taskId);
             $qaStmt->execute();
             $result['questions_with_answers'] = $qaStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $result['submitted_answers'] = $answers; // the student's own choices
+            $result['submitted_answers'] = $answers;
         }
 
         if (!$result['show_result']) {
