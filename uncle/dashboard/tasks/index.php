@@ -1921,7 +1921,7 @@ function showToast(msg,type='info'){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),350);},3200);
 }
 function viewAnswers(taskId, studentId) {
-  const t = allTasks.find(x=>x.id==taskId);
+  const t = tasks.find(x=>x.id==taskId);
   if(!t) return;
   const sub = t.submissions.find(x=>x.student_id==studentId);
   if(!sub) return;
