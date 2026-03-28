@@ -535,7 +535,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
       <?php if ($activeClass): ?>
         <div class="hero-badge"><i class="fas fa-users"></i><?php echo htmlspecialchars($activeClass); ?></div>
       <?php endif; ?>
-      <div class="hero-title">المهام والاختبارات بشكل أوضح وأسهل</div>
+      <div class="hero-title">المهام والاختبارات</div>
       <div class="hero-sub">تابع حالة كل مهمة بسرعة، وابدأ مهمة جديدة من واجهة أبسط تركز على المواعيد والإعدادات المهمة بدون تعقيد.</div>
       <div class="hero-actions">
         <button class="btn-create" onclick="openCreate()"><i class="fas fa-plus"></i> مهمة جديدة</button>
