@@ -205,7 +205,7 @@ a{font-family:'Cairo',sans-serif;}
 .mclose{width:34px;height:34px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:.82rem;transition:var(--fast);margin-right:auto;flex-shrink:0;}
 .mclose:hover{background:var(--err-bg);color:var(--err);}
 .mbody{padding:18px 20px;}
-.mfoot{padding:12px 20px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:flex-end;gap:8px;background:var(--bg2);flex-wrap:wrap;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
 @media(max-width:680px){
   .mhdr{padding:13px 14px;}
   .mbody{padding:14px;}
