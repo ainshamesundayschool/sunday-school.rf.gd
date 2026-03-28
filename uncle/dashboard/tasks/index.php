@@ -330,11 +330,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
   .tcard-foot{flex-direction:column;align-items:stretch;}
   .tact{width:100%;}
   .tbtn{flex:1;}
+  .steps{gap:8px;}
+  .step:not(:last-child)::after{display:none;}
+  .scard2-body,.panel-body{padding:14px;}
+  .ans-shell{padding:12px;}
+  .ans-head{padding:14px;align-items:flex-start;}
+  .sub-tbl thead{display:none;}
+  .sub-tbl,.sub-tbl tbody,.sub-tbl tr,.sub-tbl td{display:block;width:100%;}
+  .sub-tbl tr{padding:12px;border-bottom:1px solid var(--bdr);}
+  .sub-tbl td{padding:6px 0 !important;border:none !important;text-align:right;}
 }
 @media(max-width:380px){
   .scard{padding:11px 12px;}
   .scard-val{font-size:1.2rem;}
   .hero-side,.hero-mini,.field-grid,.timer-grid,.preset-grid,.tmeta,.tinfo-grid{grid-template-columns:1fr;}
+  .topbar{padding:10px 12px;height:auto;flex-wrap:wrap;}
+  .tb-title{order:-1;width:100%;}
+  .btn-create,.hero-link,.tb-back{width:100%;justify-content:center;}
 }
 /* q-type-selector */
 .q-type-selector{display:flex;gap:6px;padding:10px 13px 8px;background:var(--bg);border-bottom:1px solid var(--bdr);}
@@ -411,6 +423,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .scard2-hdr{display:flex;align-items:center;gap:9px;padding:12px 18px;background:linear-gradient(90deg,var(--bg2),var(--bg));border-bottom:1px solid var(--bdr);font-size:.82rem;font-weight:800;color:var(--brand);letter-spacing:.03em;text-transform:uppercase;}
 .scard2-hdr i{font-size:.88rem;}
 .scard2-body{padding:16px 18px;}
+.scard2-body > .fg,.scard2-body > .frow,.scard2-body > #specRow{padding:14px;border-radius:18px;background:linear-gradient(180deg,#fff,var(--bg2));border:1px solid rgba(226,232,240,.95);margin-bottom:12px;}
+.scard2-body > .fg:last-child{margin-bottom:0;}
 .sopt-row{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:var(--r-md);border:1.5px solid var(--bdr);background:var(--bg2);cursor:pointer;transition:var(--fast);margin-bottom:10px;}
 .sopt-row:hover{border-color:var(--brand-l);background:var(--brand-bg);}
 .sopt-ico{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
@@ -476,6 +490,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .detail-person:last-child{border-bottom:none;padding-bottom:0;}
 .detail-person-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:var(--brand-bg);color:var(--brand);font-size:.67rem;font-weight:800;}
 .detail-empty{padding:18px 0;font-size:.78rem;color:var(--t3);}
+.ans-shell{padding:18px;max-height:min(78vh,760px);overflow-y:auto;background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);}
+.ans-head{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:20px;background:#fff;border:1px solid var(--bdr);box-shadow:var(--sh-sm);margin-bottom:16px;}
+.ans-avatar{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,var(--brand-bg),#fff);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;border:1px solid var(--brand-l);}
+.ans-name{font-size:1.02rem;font-weight:900;color:var(--t1);line-height:1.2;}
+.ans-sub{font-size:.76rem;color:var(--t3);margin-top:4px;}
+.ans-question{margin-bottom:14px;padding:16px;border:1px solid var(--bdr);border-radius:20px;background:#fff;box-shadow:var(--sh-sm);}
+.ans-qhead{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;}
+.ans-qnum{width:30px;height:30px;border-radius:10px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900;flex-shrink:0;border:1px solid var(--brand-l);}
+.ans-qtext{font-weight:800;color:var(--t1);line-height:1.6;flex:1;}
+.ans-open{padding:14px;border-radius:16px;background:var(--bg2);border:1px solid var(--bdr);}
+.ans-open-label{font-size:.7rem;color:var(--t3);margin-bottom:6px;font-weight:800;}
+.ans-open-text{color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.7;}
+.ans-choice{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:14px;border:1.5px solid var(--bdr);background:#fff;color:var(--t2);font-size:.86rem;}
+.ans-choice + .ans-choice{margin-top:8px;}
+.ans-choice.correct{border-color:#86efac;background:var(--ok-bg);color:#047857;}
+.ans-choice.wrong{border-color:#fca5a5;background:var(--err-bg);color:#dc2626;}
+.ans-choice-letter{width:24px;height:24px;border-radius:8px;background:rgba(148,163,184,.16);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.72rem;flex-shrink:0;}
+.ans-choice-icon{margin-right:auto;font-size:.95rem;}
 
 </style>
 </head>
@@ -1482,14 +1514,21 @@ async function openDetail(id){
     const notAnswered = classStudents.filter(s=>!answeredIds.includes(s.id));
 
     document.getElementById('dBody').innerHTML=`
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+      <div class="detail-shell">
+      <div class="detail-banner">
         <span class="tstatus ${si.cls}">${si.label}</span>
         ${t.time_limit?`<span class="tstatus s-upcoming"><i class="fas fa-stopwatch"></i> ${t.time_limit} دقيقة</span>`:''}
         <span class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</span>
         <span class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline||0)?'بدون آخر موعد':fmtDate(t.end_date)}</span>
         ${parseInt(t.shuffle)?'<span class="tmeta-i"><i class="fas fa-random"></i>ترتيب عشوائي</span>':''}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">
+      <div class="detail-overview">
+        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø£Ø³Ø¦Ù„Ø©</div><div class="detail-stat-value">${(t.questions||[]).length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª</div><div class="detail-stat-value">${subs.length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø¯Ø±Ø¬Ø© Ø§Ù„ÙƒÙ„ÙŠØ©</div><div class="detail-stat-value">${t.total_degree}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„ÙƒÙˆØ¨ÙˆÙ†Ø§Øª</div><div class="detail-stat-value">${tc}</div></div>
+      </div>
+      <div class="coupon-chips" style="margin-bottom:18px;">
         ${matrix.map(m=>`<span style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.72rem;font-weight:600;color:var(--cou);"><i class="fas fa-ticket-alt"></i>${m.from}%–${m.to}% = ${m.val} كوبون</span>`).join('')}
       </div>
 
@@ -1840,10 +1879,10 @@ function openModal(html) {
   ov.className = 'overlay open';
   ov.style.zIndex = '3000';
   ov.innerHTML = `
-    <div class="modal" style="max-width:600px;margin-top:40px;">
-      <div class="mhdr" style="background:var(--brand);padding:15px 20px;border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;align-items:center;justify-content:space-between;">
+    <div class="modal" style="max-width:760px;margin:24px auto;">
+      <div class="mhdr" style="background:linear-gradient(135deg,var(--brand),var(--brand-d));padding:16px 20px;border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;align-items:center;justify-content:space-between;border-bottom:none;">
         <div style="color:#fff;font-weight:800;font-size:1rem;">مراجعة الإجابات</div>
-        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;"><i class="fas fa-times"></i></button>
+        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);color:#fff;width:34px;height:34px;border-radius:10px;cursor:pointer;"><i class="fas fa-times"></i></button>
       </div>
       <div class="mbody" style="padding:0;">${html}</div>
     </div>
@@ -1860,11 +1899,11 @@ function viewAnswers(taskId, studentId) {
   if(!sub) return;
 
   const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
-  let html = `<div style="padding:20px;max-height:75vh;overflow-y:auto;background:var(--bg2);">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:15px;background:#fff;border-radius:var(--r-md);box-shadow:var(--sh-sm);">
-      <div style="width:50px;height:50px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fas fa-user-check"></i></div>
+  let html = `<div class="ans-shell">
+    <div class="ans-head">
+      <div class="ans-avatar"><i class="fas fa-user-check"></i></div>
       <div style="flex:1;">
-        <div style="font-weight:800;color:var(--t1);font-size:1.1rem;line-height:1.2;">${esc(sub.student_name)}</div>
+        <div class="ans-name">${esc(sub.student_name)}</div>
         <div style="font-size:.78rem;color:var(--t3);margin-top:2px;">لقد حصل على ${sub.score} من ${t.total_degree} درجة</div>
       </div>
     </div>`;
@@ -1877,14 +1916,14 @@ function viewAnswers(taskId, studentId) {
       const given = ans[q.id];
       const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
       
-      html += `<div style="margin-bottom:15px;padding:15px;border:1.5px solid var(--bdr);border-radius:var(--r-md);background:#fff;box-shadow:var(--sh-sm);">`;
-      html += `<div style="display:flex;gap:10px;margin-bottom:12px;">
-        <div style="width:26px;height:26px;border-radius:8px;background:var(--bg2);color:var(--t1);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;">${i+1}</div>
-        <div style="font-weight:700;color:var(--t1);line-height:1.4;flex:1;">${esc(q.question_text)}</div>
+      html += `<div class="ans-question">`;
+      html += `<div class="ans-qhead">
+        <div class="ans-qnum">${i+1}</div>
+        <div class="ans-qtext">${esc(q.question_text)}</div>
       </div>`;
       
       if(qType === 'open') {
-        html += `<div style="background:var(--bg2);padding:15px;border-radius:var(--r-sm);border:1.5px solid var(--bdr);">
+        html += `<div class="ans-open">
           <div style="font-size:.7rem;color:var(--t3);margin-bottom:6px;font-weight:700;">إجابة الطالب:</div>
           <div style="color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.6;">${esc(given || '— لم يُجب على هذا السؤال —')}</div>
         </div>`;
@@ -1914,8 +1953,8 @@ function viewAnswers(taskId, studentId) {
             icon = '<i class="fas fa-times-circle" style="margin-right:auto;"></i>';
           }
 
-          html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);border:2px solid ${borderColor};background:${bgColor};color:${textColor};font-size:.88rem;${isSel?'font-weight:700;':''}">
-            <span style="width:20px;font-weight:800;opacity:.5;">${LETTERS[j]}</span>
+          html += `<div class="ans-choice ${isCorr?'correct':isSel?'wrong':''}" style="border-color:${borderColor};background:${bgColor};color:${textColor};${isSel?'font-weight:700;':''}">
+            <span class="ans-choice-letter">${LETTERS[j]}</span>
             <span>${esc(o)}</span>
             ${icon}
           </div>`;
