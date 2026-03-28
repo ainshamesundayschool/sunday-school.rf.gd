@@ -1332,17 +1332,46 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
 .fridays-list{overflow-y:auto;margin-bottom:14px;padding-top:6px}
 .month-row{margin-bottom:20px;background:var(--surface-3);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)}
 .month-row h4{color:var(--brand);margin-bottom:12px;font-size:.95rem;border-bottom:1.5px solid var(--border-solid);padding-bottom:6px;display:flex;align-items:center;gap:8px}
-.fridays-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
-.friday-item{background:var(--surface);padding:12px;border-radius:var(--r-lg);cursor:pointer;transition:all var(--t) var(--spring);border:2px solid var(--border-solid);text-align:center;min-height:86px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.fridays-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px}
+.friday-item{background:var(--surface);padding:10px 8px;border-radius:var(--r-lg);cursor:pointer;transition:all var(--t) var(--spring);border:2px solid var(--border-solid);text-align:center;min-height:96px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
 .friday-item:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--brand)}
 .friday-item.selected{background:linear-gradient(135deg,var(--brand),var(--brand-dark));border-color:var(--brand);color:#fff}
+.friday-item.selected .friday-stats-row{color:rgba(255,255,255,.85)!important}
 .friday-item.current-week{box-shadow:0 0 0 3px rgba(16,185,129,.3)}
+.friday-item.custom-date{border-color:rgba(245,158,11,.5);border-style:dashed}
+.friday-item.custom-date:hover{border-color:var(--warning);border-style:solid}
+.friday-item.custom-date.selected{background:linear-gradient(135deg,var(--warning),var(--warning-dark));border-color:var(--warning);border-style:solid}
 .friday-item .current-badge{position:absolute;top:-7px;right:-7px;background:var(--success);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800}
-.friday-num{font-size:1.6rem;font-weight:900;line-height:1;color:var(--brand)}
+.friday-item .custom-badge{position:absolute;top:-7px;left:-7px;background:var(--warning);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800}
+.friday-item .delete-custom-btn{position:absolute;top:4px;left:4px;background:rgba(239,68,68,.15);border:none;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--danger);cursor:pointer;opacity:0;transition:opacity .15s;z-index:2}
+.friday-item:hover .delete-custom-btn{opacity:1}
+.friday-item .delete-custom-btn:hover{background:var(--danger);color:#fff}
+.friday-num{font-size:1.5rem;font-weight:900;line-height:1;color:var(--brand)}
 .friday-item.selected .friday-num,.friday-item.selected .friday-day,.friday-item.selected .friday-date{color:#fff!important}
-.friday-day{font-size:.72rem;color:var(--text-3);font-weight:600;margin-top:2px}
-.friday-date{font-size:.65rem;color:var(--text-3);direction:ltr;margin-top:1px}
-.friday-reset-row{display:flex;justify-content:center;margin-bottom:14px}
+.friday-item.custom-date .friday-num{color:var(--warning-dark)}
+.friday-item.custom-date.selected .friday-num{color:#fff!important}
+.friday-day{font-size:.7rem;color:var(--text-3);font-weight:600;margin-top:2px}
+.friday-date{font-size:.62rem;color:var(--text-3);direction:ltr;margin-top:1px}
+.friday-stats-row{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:5px;font-size:.58rem;font-weight:700;color:var(--text-3);line-height:1}
+.friday-stats-row .fs-p{color:var(--success-dark);display:flex;align-items:center;gap:2px}
+.friday-stats-row .fs-a{color:var(--danger);display:flex;align-items:center;gap:2px}
+.friday-stats-row .fs-div{opacity:.3;font-size:.5rem}
+[data-theme="dark"] .friday-stats-row .fs-p{color:#6ee7b7}
+[data-theme="dark"] .friday-stats-row .fs-a{color:#fca5a5}
+.friday-reset-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap}
+/* Custom date add section */
+.custom-date-section{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.3);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:14px}
+.custom-date-section h4{font-size:.82rem;font-weight:800;color:var(--warning-dark);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+[data-theme="dark"] .custom-date-section h4{color:#fbbf24}
+.custom-date-inputs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.custom-date-input{flex:1;min-width:130px;padding:8px 12px;border-radius:var(--r-md);border:1.5px solid var(--border-solid);background:var(--surface);color:var(--text);font-family:Cairo,sans-serif;font-size:.82rem;transition:border-color .2s}
+.custom-date-input:focus{outline:none;border-color:var(--warning)}
+.custom-dates-strip{display:none;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(245,158,11,.2)}
+.custom-dates-strip.has-items{display:flex}
+.custom-date-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.12);color:var(--warning-dark);border:1px solid rgba(245,158,11,.3);padding:3px 8px 3px 4px;border-radius:var(--r-full);font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s}
+.custom-date-chip:hover{background:var(--warning);color:#fff;border-color:var(--warning)}
+.custom-date-chip .cdel{background:rgba(0,0,0,.1);border:none;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:.55rem;cursor:pointer;color:inherit;transition:.15s}
+.custom-date-chip .cdel:hover{background:rgba(0,0,0,.25)}
 
 /* Account modal */
 .account-avatar-section{text-align:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border-solid)}
@@ -3229,6 +3258,25 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
     </div>
     <div class="friday-reset-row">
       <button class="btn btn-sm" id="resetToTodayBtn"><i class="fas fa-calendar-day"></i> العودة لآخر يوم</button>
+      <button class="btn btn-warning btn-sm" id="toggleCustomDateSectionBtn" onclick="toggleCustomDateSection()">
+        <i class="fas fa-plus-circle"></i> إضافة تاريخ مخصص
+      </button>
+    </div>
+    <!-- Custom date add section -->
+    <div class="custom-date-section" id="customDateSection" style="display:none">
+      <h4><i class="fas fa-calendar-plus"></i> إضافة تاريخ مخصص للحضور</h4>
+      <div class="custom-date-inputs">
+        <input type="text" class="custom-date-input" id="customDateInput"
+          placeholder="DD/MM/YYYY" maxlength="10" inputmode="numeric"
+          oninput="autoFormatCustomDate(this)"
+          onkeydown="if(event.key==='Enter')addCustomDate()">
+        <input type="text" class="custom-date-input" id="customDateLabel"
+          placeholder="وصف (اختياري)" style="max-width:160px">
+        <button class="btn btn-warning btn-sm" onclick="addCustomDate()">
+          <i class="fas fa-plus"></i> إضافة
+        </button>
+      </div>
+      <div class="custom-dates-strip" id="customDatesStrip"></div>
     </div>
     <div class="fridays-list" id="fridaysList"></div>
   </div>
@@ -3616,7 +3664,7 @@ function dbDayToJsDay(dbDay) {
 }
 
 function loadChurchSettings() {
-    // Helper to update UI labels that depend on attendance day
+    // Helper: update any UI text that depends on the attendance day name
     function _applyDayNameToUI() {
         const dayName = getAttendanceDayName();
         const resetBtn = document.getElementById('resetToTodayBtn');
@@ -4328,21 +4376,18 @@ function displayClasses() {
 // Each student still has their class recorded — this is purely a
 // display/attendance convenience mode; no data is changed.
 function showAllTogetherView() {
-    // Build a virtual combined group that spans ALL class names
-    const allClassNames = [...new Set(students.map(s => s['الفصل']).filter(Boolean))];
     combinedGroupLabel = '__ALL__';
     isCombinedView     = true;
-    combinedStudents   = [...students]; // all students, unsorted by class
+    combinedStudents   = [...students];
 
     const label = window.IS_YOUTH ? 'كل الشباب' : 'كل الأطفال';
 
-    // Switch to class view UI
     document.getElementById('classesView').style.display = 'none';
     document.getElementById('classView').classList.add('active');
     document.getElementById('className').textContent = label;
     currentClass = '__ALL__';
 
-    // Restore the last selected date if any
+    // Restore last selected date if any
     const sf = localStorage.getItem('selectedFriday');
     if (sf) { currentFriday = sf; document.getElementById('currentDateText').textContent = sf; }
     else updateCurrentDateDisplay();
@@ -5383,6 +5428,65 @@ function updateCurrentDateDisplay() {
     if (el) el.textContent = currentFriday;
 }
 
+// ── Custom dates storage ──────────────────────────────────────
+// Stored in localStorage as array of {date:'DD/MM/YYYY', label:'...'}
+function _getCustomDates() {
+    try { return JSON.parse(localStorage.getItem('customAttendanceDates') || '[]'); } catch(e) { return []; }
+}
+function _saveCustomDates(arr) {
+    try { localStorage.setItem('customAttendanceDates', JSON.stringify(arr)); } catch(e) {}
+}
+
+// ── Attendance stats cache ─────────────────────────────────────
+// Key: 'DD/MM/YYYY', value: {present:N, absent:N} — populated lazily from student data
+function _getAttendanceStatsForDate(dateStr) {
+    const srcList = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+    let present = 0, absent = 0;
+    srcList.forEach(s => {
+        const id = getStudentId(s);
+        // Use in-memory attendanceData if this is the current date
+        if (dateStr === currentFriday) {
+            const st = attendanceData[id] || 'pending';
+            if (st === 'present') present++;
+            else if (st === 'absent') absent++;
+        } else {
+            // Check server-side data stored in student object
+            const srv = getServerAttendanceStatus(s, dateStr);
+            if (srv === 'present') present++;
+            else if (srv === 'absent') absent++;
+        }
+    });
+    return { present, absent };
+}
+
+function _buildFridayItemHtml(fr, isCur, isSel, isCustom = false, customLabel = '') {
+    const stats = _getAttendanceStatsForDate(fr.date);
+    const hasStats = stats.present > 0 || stats.absent > 0;
+    const statsHtml = hasStats
+        ? `<div class="friday-stats-row">
+              <span class="fs-p"><i class="fas fa-check" style="font-size:.5rem"></i>${stats.present}</span>
+              <span class="fs-div">|</span>
+              <span class="fs-a"><i class="fas fa-times" style="font-size:.5rem"></i>${stats.absent}</span>
+           </div>`
+        : '';
+    const customBadge = isCustom ? '<div class="custom-badge"><i class="fas fa-star"></i></div>' : '';
+    const currentBadge = isCur ? '<div class="current-badge"><i class="fas fa-star"></i></div>' : '';
+    const deleteBtn = isCustom
+        ? `<button class="delete-custom-btn" onclick="event.stopPropagation();removeCustomDate('${fr.date}')" title="حذف هذا التاريخ"><i class="fas fa-times"></i></button>`
+        : '';
+    const dayLabel = fr.obj ? fr.obj.toLocaleDateString('ar-EG', { weekday: 'short' }) : '';
+    const displayNum = fr.obj ? fr.obj.getDate() : fr.date.split('/')[0];
+    const labelLine = customLabel ? `<div style="font-size:.58rem;color:var(--warning-dark);margin-top:1px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px">${customLabel}</div>` : '';
+    return `<div class="friday-item ${isSel ? 'selected' : ''} ${isCur ? 'current-week' : ''} ${isCustom ? 'custom-date' : ''}" onclick="loadFridayAttendance('${fr.date}')">
+        ${currentBadge}${customBadge}${deleteBtn}
+        <div class="friday-num">${displayNum}</div>
+        <div class="friday-day">${dayLabel}</div>
+        <div class="friday-date">${fr.date}</div>
+        ${labelLine}
+        ${statsHtml}
+    </div>`;
+}
+
 function renderPastFridays() {
     const jsDay = dbDayToJsDay(churchAttendanceDay);
     const today = new Date();
@@ -5408,21 +5512,117 @@ function renderPastFridays() {
 
     const todayTarget = getCurrentAttendanceDay();
     let html = '';
+
+    // ── Custom dates section (shown at top if any exist) ─────────
+    const customDates = _getCustomDates();
+    if (customDates.length) {
+        html += `<div class="month-row" style="border-color:rgba(245,158,11,.4)">
+            <h4 style="color:var(--warning-dark)"><i class="fas fa-star"></i> تواريخ مخصصة
+              <span style="font-size:.72rem;background:rgba(245,158,11,.15);color:var(--warning-dark);padding:1px 7px;border-radius:var(--r-full);margin-right:auto">${customDates.length}</span>
+            </h4>
+            <div class="fridays-grid">`;
+        customDates.forEach(cd => {
+            const parts = cd.date.split('/');
+            const dateObj = parts.length === 3 ? new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0])) : null;
+            const isSel = cd.date === currentFriday;
+            html += _buildFridayItemHtml({ date: cd.date, obj: dateObj }, false, isSel, true, cd.label || '');
+        });
+        html += '</div></div>';
+    }
+
+    // ── Regular attendance days ───────────────────────────────────
     for (const [month, mf] of Object.entries(grouped)) {
         html += `<div class="month-row"><h4><i class="fas fa-calendar"></i> ${month} <span style="font-size:.72rem;background:var(--brand-bg);color:var(--brand);padding:1px 7px;border-radius:var(--r-full);margin-right:auto">${mf.length}</span></h4><div class="fridays-grid">`;
         mf.forEach(fr => {
             const isCur = todayTarget.toDateString() === fr.obj.toDateString();
             const isSel = fr.date === currentFriday;
-            html += `<div class="friday-item ${isSel ? 'selected' : ''} ${isCur ? 'current-week' : ''}" onclick="loadFridayAttendance('${fr.date}')">
-                ${isCur ? '<div class="current-badge"><i class="fas fa-star"></i></div>' : ''}
-                <div class="friday-num">${fr.obj.getDate()}</div>
-                <div class="friday-day">${fr.obj.toLocaleDateString('ar-EG', { weekday: 'short' })}</div>
-                <div class="friday-date">${fr.date}</div>
-            </div>`;
+            html += _buildFridayItemHtml(fr, isCur, isSel, false, '');
         });
         html += '</div></div>';
     }
     document.getElementById('fridaysList').innerHTML = html;
+
+    // Also refresh the custom dates strip inside the add section
+    _refreshCustomDatesStrip();
+}
+
+// ── Custom date management ─────────────────────────────────────
+function toggleCustomDateSection() {
+    const sec = document.getElementById('customDateSection');
+    const btn = document.getElementById('toggleCustomDateSectionBtn');
+    if (!sec) return;
+    const isOpen = sec.style.display !== 'none';
+    sec.style.display = isOpen ? 'none' : 'block';
+    if (btn) {
+        btn.innerHTML = isOpen
+            ? '<i class="fas fa-plus-circle"></i> إضافة تاريخ مخصص'
+            : '<i class="fas fa-times-circle"></i> إغلاق';
+    }
+    if (!isOpen) {
+        _refreshCustomDatesStrip();
+        const inp = document.getElementById('customDateInput');
+        if (inp) inp.focus();
+    }
+}
+
+function autoFormatCustomDate(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 8), out = '';
+    if (v.length > 0) out = v.substring(0, 2);
+    if (v.length > 2) out += '/' + v.substring(2, 4);
+    if (v.length > 4) out += '/' + v.substring(4, 8);
+    input.value = out;
+    input.style.borderColor = out.length === 10 ? 'var(--success)' : '';
+}
+
+function addCustomDate() {
+    const dateStr = (document.getElementById('customDateInput')?.value || '').trim();
+    const label   = (document.getElementById('customDateLabel')?.value || '').trim();
+
+    if (!dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        showToast('أدخل تاريخاً صحيحاً بصيغة DD/MM/YYYY', 'error'); return;
+    }
+    const [d, m, y] = dateStr.split('/').map(Number);
+    if (!isValidDate(d, m, y)) { showToast('التاريخ غير صحيح', 'error'); return; }
+
+    const existing = _getCustomDates();
+    if (existing.some(c => c.date === dateStr)) {
+        showToast('هذا التاريخ موجود بالفعل', 'warning'); return;
+    }
+
+    existing.unshift({ date: dateStr, label }); // newest first
+    _saveCustomDates(existing);
+
+    // Clear inputs
+    const inp = document.getElementById('customDateInput');
+    const lbl = document.getElementById('customDateLabel');
+    if (inp) { inp.value = ''; inp.style.borderColor = ''; }
+    if (lbl) lbl.value = '';
+
+    renderPastFridays(); // re-render the full list
+    showToast('تم إضافة التاريخ المخصص ' + dateStr, 'success');
+}
+
+function removeCustomDate(dateStr) {
+    if (!confirm('حذف هذا التاريخ المخصص؟')) return;
+    const arr = _getCustomDates().filter(c => c.date !== dateStr);
+    _saveCustomDates(arr);
+    renderPastFridays();
+    showToast('تم حذف التاريخ', 'info');
+}
+
+function _refreshCustomDatesStrip() {
+    const strip = document.getElementById('customDatesStrip');
+    if (!strip) return;
+    const arr = _getCustomDates();
+    if (!arr.length) { strip.classList.remove('has-items'); strip.innerHTML = ''; return; }
+    strip.classList.add('has-items');
+    strip.innerHTML = arr.map(cd =>
+        `<span class="custom-date-chip" onclick="loadFridayAttendance('${cd.date}');toggleCustomDateSection()">
+            <i class="fas fa-calendar-alt" style="font-size:.65rem"></i>
+            ${cd.date}${cd.label ? ' — ' + cd.label : ''}
+            <button class="cdel" onclick="event.stopPropagation();removeCustomDate('${cd.date}')" title="حذف"><i class="fas fa-times"></i></button>
+        </span>`
+    ).join('');
 }
 
 function getCurrentAttendanceDay() {
@@ -5441,19 +5641,17 @@ function loadFridayAttendance(date) {
     document.getElementById('currentDateText').textContent = date;
 
     if (isCombinedView) {
-        // Refresh combinedStudents from latest students array so data is current
         if (currentClass === '__ALL__') {
             combinedStudents = [...students];
             loadAttendanceDataForCombinedAll();
         } else {
-            // Re-build combinedStudents for the group based on current students array
             const grp = combinedClassGroups.find(g => g.label === currentClass);
             if (grp && grp.classes) {
                 combinedStudents = students.filter(s => grp.classes.includes(s['الفصل']));
             }
             loadAttendanceDataForCombined(currentClass);
         }
-        if (isCombinedView && currentClass === '__ALL__') {
+        if (currentClass === '__ALL__') {
             renderAttendanceList('__ALL__');
         } else {
             renderCombinedAttendanceList();
@@ -7643,7 +7841,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global exposure
 Object.assign(window,{
-    showClassView,showClassesView,showCombinedClassView,markStudentAttendance,showStudentDetails,
+    showClassView,showClassesView,showCombinedClassView,showAllTogetherView,markStudentAttendance,showStudentDetails,
     showSheetModal,addCouponsToAll,resetCouponDataForClass,showAbsentModal,copyAbsentData,
     showImageModal,hideImageModal,showAddPersonModal,showBirthdayModal,showBirthdaysByMonth,
     showPastFridaysModal,loadFridayAttendance,performSearch,clearSearch,showRegistrationDetails,
@@ -7659,7 +7857,7 @@ Object.assign(window,{
     _imgZoomChange,_imgZoomReset,_imgDownload,
     startSwipeMode,exitSwipeMode,swipeDecide,
     _removeUnsavedEntry,_removeUnsavedCoupon,_jumpToDate,
-    _loadDataFromCache,_clearAllUnsaved,
+    _loadDataFromCache,_clearAllUnsaved,addCustomDate,removeCustomDate,toggleCustomDateSection,autoFormatCustomDate,
     _sendSyncCompletePush,_sendUnclMetaToSW,
     showAllTogetherView,
     renderTodayBirthdayBanner,getTodayBirthdays,_maybeSendBirthdayNotification,_sendBirthdayPush,_updateAttendanceRow
