@@ -3,7 +3,57 @@ session_start();
 $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
 if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='logout') {
     session_destroy();
-    echo '<script>["savedUsername","savedPassword","rememberMe","userPhone","loginType"].forEach(k=>localStorage.removeItem(k));window.location.href="/kids/login";</script>';
+    echo '<script>["savedUsername","savedPassword","rememberMe","userPhone","loginType"].forEach(k=>localStorage.removeItem(k));window.location.href="/kids/login";function viewMyAnswers(taskId) {
+  const t = allTasks.find(x=>x.id==taskId);
+  if(!t || !t.my_submission) return;
+  const sub = t.my_submission;
+  
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:15px;color:var(--t1);">${esc(t.title)}</h3>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
+      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>إجابتك:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم تُجب')}</pre></span></div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts[1] = 'خطأ'; }
+        
+        opts.forEach((o, j) => {
+          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
+          let icon = "";
+          if(j === correctIdx) {
+            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
+            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
+          }
+          if(given !== undefined && parseInt(given) === j) {
+            if(j !== correctIdx) {
+              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
+              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
+            }
+            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
+          }
+          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
+}
+</script>';
     exit;
 }
 ?>
@@ -21,7 +71,57 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='logout') {
 <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js">function viewMyAnswers(taskId) {
+  const t = allTasks.find(x=>x.id==taskId);
+  if(!t || !t.my_submission) return;
+  const sub = t.my_submission;
+  
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:15px;color:var(--t1);">${esc(t.title)}</h3>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
+      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>إجابتك:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم تُجب')}</pre></span></div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts[1] = 'خطأ'; }
+        
+        opts.forEach((o, j) => {
+          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
+          let icon = "";
+          if(j === correctIdx) {
+            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
+            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
+          }
+          if(given !== undefined && parseInt(given) === j) {
+            if(j !== correctIdx) {
+              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
+              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
+            }
+            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
+          }
+          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
+}
+</script>
 <link rel="icon" href="/favicon.ico">
 <style>
 /* ══ TOKENS ══════════════════════════════════════════════════ */
@@ -2489,7 +2589,8 @@ function renderTasks(tasks){
         <span style="margin-right:auto;display:flex;align-items:center;gap:4px;">
           <i class="fas fa-ticket-alt" style="color:var(--cou-l);font-size:.75rem;"></i>
           <strong style="color:var(--cou);font-size:.82rem;">${sub.coupons_awarded}</strong>
-          <span style="font-size:.7rem;color:var(--t3);">كوبون</span>
+          <span style="font-size:.7rem;color:var(--t3);margin-left:5px;">كوبون</span>
+          ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
         </span>
       </div>`;
     } else if(maxCoupon>0){
@@ -3355,6 +3456,56 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function fmtDate(iso){
   if(!iso)return'—';
   try{return new Date(iso).toLocaleDateString('ar-EG',{day:'numeric',month:'short',year:'numeric'});}catch(e){return iso;}
+}
+function viewMyAnswers(taskId) {
+  const t = allTasks.find(x=>x.id==taskId);
+  if(!t || !t.my_submission) return;
+  const sub = t.my_submission;
+  
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:15px;color:var(--t1);">${esc(t.title)}</h3>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
+      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>إجابتك:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم تُجب')}</pre></span></div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts[1] = 'خطأ'; }
+        
+        opts.forEach((o, j) => {
+          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
+          let icon = "";
+          if(j === correctIdx) {
+            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
+            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
+          }
+          if(given !== undefined && parseInt(given) === j) {
+            if(j !== correctIdx) {
+              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
+              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
+            }
+            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
+          }
+          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
 }
 </script>
 </body>

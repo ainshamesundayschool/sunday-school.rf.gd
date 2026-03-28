@@ -10202,7 +10202,7 @@ function getTasks() {
                 t.start_date, t.end_date, t.time_limit, t.timer_behavior,
                 t.total_degree, t.max_coupons, t.coupon_matrix,
                 t.status, t.assign_to, t.specific_ids,
-                t.shuffle, t.show_result, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ",
+                t.shuffle, t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ",
                 t.created_at,
                 CASE
                     WHEN t.class_id = 0 THEN 'كل الفصول'
@@ -10252,7 +10252,7 @@ function getTasks() {
             }
 
             $sRes = $conn->query("
-                SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at,
+                SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at, ts.answers,
                        s.name AS student_name
                 FROM task_submissions ts
                 LEFT JOIN students s ON s.id = ts.student_id
@@ -10356,6 +10356,7 @@ function createTask() {
         $status       = in_array($_POST['status'] ?? 'published', ['draft','published']) ? $_POST['status'] : 'published';
         $shuffle      = (int)($_POST['shuffle']      ?? 0);
         $showResult   = (int)($_POST['show_result']  ?? 1);
+        $showAnswers  = (int)($_POST['show_answers'] ?? 0);
         $allowReview  = (int)($_POST['allow_review'] ?? 1);
         $questionsJson = $_POST['questions'] ?? '[]';
 
@@ -10380,16 +10381,16 @@ function createTask() {
                  start_date, end_date, no_deadline, time_limit, timer_behavior,
                  total_degree, max_coupons, coupon_matrix,
                  status, assign_to, specific_ids,
-                 shuffle, show_result, allow_review, created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+                 shuffle, show_result, show_answers, allow_review, created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
         ");
         $stmt->bind_param(
-            'iiissssiisiissssiii',
+            'iiissssiisiissssiiii',
             $churchId, $uncleId, $classId, $title, $description,
             $startDate, $endDate, $noDeadline, $timeLimit, $timerBeh,
             $totalDegree, $maxCoupons, $couponMatrix,
             $status, $assignTo, $specificIds,
-            $shuffle, $showResult, $allowReview
+            $shuffle, $showResult, $showAnswers, $allowReview
         );
         $stmt->execute();
         $taskId = $conn->insert_id;

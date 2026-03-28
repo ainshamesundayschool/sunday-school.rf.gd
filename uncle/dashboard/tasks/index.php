@@ -39,7 +39,58 @@ if (!$hasUncle && !$hasChurch) {
                 else window.location.href='/login/';
             }).catch(()=>window.location.href='/login/');
     })();
-    </script></body></html><?php
+    function viewAnswers(taskId, studentId) {
+  const t = allTasks.find(x=>x.id==taskId);
+  if(!t) return;
+  const sub = t.submissions.find(x=>x.student_id==studentId);
+  if(!sub) return;
+
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:15px;color:var(--t1);">إجابات الطالب: ${esc(sub.student_name)}</h3>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
+      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>الإجابة:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم يُجب')}</pre></span></div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts.push('خطأ'); }
+        
+        opts.forEach((o, j) => {
+          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
+          let icon = "";
+          if(j === correctIdx) {
+            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
+            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
+          }
+          if(given !== undefined && parseInt(given) === j) {
+            if(j !== correctIdx) {
+              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
+              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
+            }
+            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
+          }
+          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
+}
+</script></body></html><?php
     exit;
 }
 
@@ -557,6 +608,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
         <div class="scard2">
           <div class="scard2-hdr"><i class="fas fa-sliders-h"></i> خيارات</div>
           <div class="scard2-body" style="padding-bottom:4px;">
+            <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
+              <div class="sopt-ico" style="background:#cffafe;color:#0891b2;"><i class="fas fa-eye"></i></div>
+              <div class="sopt-txt"><div class="sopt-lbl">إظهار الإجابات المفصلة</div><div class="sopt-desc">السماح للطالب بمعرفة إجاباته الصحيحة والخاطئة</div></div>
+              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns"><span class="tgl-s"></span></label>
+            </div>
             <div class="sopt-row" onclick="document.getElementById('fShowRes').click()">
               <div class="sopt-ico" style="background:#d1fae5;color:#059669;"><i class="fas fa-check-circle"></i></div>
               <div class="sopt-txt"><div class="sopt-lbl">إظهار النتيجة فور الانتهاء</div><div class="sopt-desc">يرى الطفل درجته مباشرةً بعد التسليم</div></div>
@@ -862,6 +918,7 @@ function resetForm() {
   document.getElementById('fNoDeadline').checked=false;
   document.getElementById('fEndDateMode').checked=false;
   document.getElementById('fShowRes').checked=true;
+  document.getElementById('fShowAns').checked=false;
   document.getElementById('fShuffle').checked=false;
   document.getElementById('fReview').checked=true;
   document.getElementById('qList').innerHTML='';
@@ -881,6 +938,7 @@ function fillForm(t) {
   document.getElementById('fNoDeadline').checked=!!parseInt(t.no_deadline||0);
   document.getElementById('fAssign').value=t.assign_to||'all';
   document.getElementById('fShowRes').checked=!!parseInt(t.show_result);
+  document.getElementById('fShowAns').checked=!!parseInt(t.show_answers||0);
   document.getElementById('fShuffle').checked=!!parseInt(t.shuffle);
   document.getElementById('fReview').checked=!!parseInt(t.allow_review);
   document.getElementById('fEndDateMode').checked=isEndDateOnly(t.end_date);
@@ -1294,6 +1352,7 @@ function collectForm(status){
     time_limit:document.getElementById('fTimerOn').checked?(parseInt(document.getElementById('fTimerMin').value)||null):null,
     timer_behavior:document.getElementById('fTimerBeh').value,
     show_result:document.getElementById('fShowRes').checked?1:0,
+    show_answers:document.getElementById('fShowAns').checked?1:0,
     shuffle:document.getElementById('fShuffle').checked?1:0,
     allow_review:document.getElementById('fReview').checked?1:0,
     total_degree:calcDeg(),
@@ -1426,7 +1485,12 @@ async function openDetail(id){
             <td>${t.total_degree?Math.round((parseInt(s.score)||0)/t.total_degree*100):0}%</td>
             <td><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-ticket-alt"></i></span></td>
             <td style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
-            <td><button onclick="showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.68rem;font-weight:700;"><i class="fas fa-trash"></i></button></td>
+            <td>
+    <div style="display:flex;gap:4px;">
+      <button onclick="event.stopPropagation();viewAnswers(${t.id}, ${s.student_id})" style="background:none;border:1px solid #cffafe;color:#0891b2;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.68rem;font-weight:700;"><i class="fas fa-eye"></i></button>
+      <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.68rem;font-weight:700;"><i class="fas fa-trash"></i></button>
+    </div>
+  </td>
           </tr>`).join('')}</tbody>
           </table></div>`:
         `<div style="text-align:center;padding:24px;color:var(--t3);font-size:.82rem;"><i class="fas fa-inbox" style="font-size:1.7rem;display:block;margin-bottom:6px;"></i>لا توجد إجابات بعد</div>`}
@@ -1804,6 +1868,57 @@ function showToast(msg,type='info'){
   tc.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),350);},3200);
+}
+function viewAnswers(taskId, studentId) {
+  const t = allTasks.find(x=>x.id==taskId);
+  if(!t) return;
+  const sub = t.submissions.find(x=>x.student_id==studentId);
+  if(!sub) return;
+
+  const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  let html = `<div style="padding:15px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin-bottom:15px;color:var(--t1);">إجابات الطالب: ${esc(sub.student_name)}</h3>`;
+
+  if(!t.questions || t.questions.length === 0) {
+    html += `<div style="color:var(--t3);">لا توجد أسئلة.</div>`;
+  } else {
+    t.questions.forEach((q, i) => {
+      const qType = q.question_type || 'mcq';
+      const given = ans[q.id];
+      const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+      
+      html += `<div style="margin-bottom:15px;padding:10px;border:1px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2);">`;
+      html += `<div style="font-weight:700;margin-bottom:8px;color:var(--t1);">${i+1}. ${esc(q.question_text)}</div>`;
+      
+      if(qType === 'open') {
+        html += `<div style="color:var(--t2);font-size:.85rem;"><strong>الإجابة:</strong> <span style="${!given?'color:var(--err)':''}"><pre style="white-space:pre-wrap;margin:5px 0;">${esc(given || 'لم يُجب')}</pre></span></div>`;
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        if(qType === 'tf') { opts[0] = 'صح'; opts.push('خطأ'); }
+        
+        opts.forEach((o, j) => {
+          let style = "padding:5px 10px;border-radius:5px;margin-bottom:5px;font-size:.85rem;border:1px solid var(--bdr);";
+          let icon = "";
+          if(j === correctIdx) {
+            style += "background:var(--ok-bg);border-color:#6ee7b7;color:#065f46;";
+            icon = `<i class="fas fa-check" style="float:left;margin-top:3px;"></i>`;
+          }
+          if(given !== undefined && parseInt(given) === j) {
+            if(j !== correctIdx) {
+              style += "background:var(--err-bg);border-color:#fca5a5;color:var(--err);";
+              icon = `<i class="fas fa-times" style="float:left;margin-top:3px;"></i>`;
+            }
+            style += "font-weight:700;box-shadow:inset 0 0 0 1px currentColor;";
+          }
+          html += `<div style="${style}">${icon} ${esc(o)}</div>`;
+        });
+      }
+      html += `</div>`;
+    });
+  }
+  html += `</div>`;
+  
+  openModal(html);
 }
 </script>
 
