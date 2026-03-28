@@ -2337,7 +2337,16 @@ function deleteStudent() {
             $deleteAttendanceStmt->bind_param("i", $studentId);
             $deleteAttendanceStmt->execute();
             
-            // 2. Delete coupon logs if table exists
+            // 2. Delete task_submissions and exam_starts (no FK cascade set on these tables)
+            $delTS = $conn->prepare("DELETE FROM task_submissions WHERE student_id=?");
+            $delTS->bind_param('i', $studentId);
+            $delTS->execute();
+
+            $delES = $conn->prepare("DELETE FROM exam_starts WHERE student_id=?");
+            $delES->bind_param('i', $studentId);
+            $delES->execute();
+
+            // 3. Delete coupon logs if table exists
             $tableCheck = $conn->query("SHOW TABLES LIKE 'coupon_logs'");
             if ($tableCheck && $tableCheck->num_rows > 0) {
                 $deleteLogsStmt = $conn->prepare("
@@ -2348,7 +2357,7 @@ function deleteStudent() {
                 $deleteLogsStmt->execute();
             }
             
-            // 3. Delete the student
+            // 4. Delete the student
             $deleteStmt = $conn->prepare("
                 DELETE FROM students 
                 WHERE id = ? AND church_id = ?
@@ -10485,15 +10494,22 @@ function deleteSubmission() {
         $conn->begin_transaction();
 
         // Reverse task_coupons ONLY — never touch total coupons
-        $awarded = (int)$sub['coupons_awarded'];
+        $awarded  = (int)$sub['coupons_awarded'];
+        $uncleId  = (int)($_SESSION['uncle_id'] ?? 0);
         if ($awarded > 0) {
             $stuStmt = $conn->prepare("SELECT task_coupons FROM students WHERE id=? LIMIT 1");
             $stuStmt->bind_param('i', $sub['student_id']);
             $stuStmt->execute();
             $stu = $stuStmt->get_result()->fetch_assoc();
             if ($stu) {
-                $newTask = max(0, (int)$stu['task_coupons'] - $awarded);
+                $newTask    = max(0, (int)$stu['task_coupons'] - $awarded);
                 $conn->query("UPDATE students SET task_coupons={$newTask} WHERE id={$sub['student_id']}");
+                // Log the reversal so the audit trail is complete
+                $negAwarded = -$awarded;
+                $reason     = "حذف إجابة مهمة #{$sub['task_id']}: {$sub['title']}";
+                $logStmt    = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+                $logStmt->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
+                $logStmt->execute();
             }
         }
 
