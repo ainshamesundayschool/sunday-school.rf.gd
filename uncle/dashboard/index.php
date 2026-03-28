@@ -3228,7 +3228,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
       <button class="close-btn" id="closePastFridaysModal">&times;</button>
     </div>
     <div class="friday-reset-row">
-      <button class="btn btn-sm" id="resetToTodayBtn"><i class="fas fa-calendar-day"></i> العودة لآخر جمعة</button>
+      <button class="btn btn-sm" id="resetToTodayBtn"><i class="fas fa-calendar-day"></i> العودة لآخر يوم</button>
     </div>
     <div class="fridays-list" id="fridaysList"></div>
   </div>
@@ -3616,6 +3616,13 @@ function dbDayToJsDay(dbDay) {
 }
 
 function loadChurchSettings() {
+    // Helper to update UI labels that depend on attendance day
+    function _applyDayNameToUI() {
+        const dayName = getAttendanceDayName();
+        const resetBtn = document.getElementById('resetToTodayBtn');
+        if (resetBtn) resetBtn.innerHTML = `<i class="fas fa-calendar-day"></i> العودة لآخر ${dayName}`;
+    }
+
     // Restore cached settings first so offline mode has combined groups / day info
     try {
         const cached = localStorage.getItem('churchSettings');
@@ -3631,6 +3638,7 @@ function loadChurchSettings() {
             else churchCustomFields = [];
             churchCustomField = churchCustomFields[0] || null;
             updateCurrentDateDisplay();
+            _applyDayNameToUI();
         }
     } catch(e) {}
 
@@ -3656,6 +3664,7 @@ function loadChurchSettings() {
             try { localStorage.setItem('churchSettings', JSON.stringify(r.settings)); } catch(e) {}
         }
         updateCurrentDateDisplay();
+        _applyDayNameToUI();
         if (!currentClass) displayClasses();
     }, () => {
         uncleClassNavPermission = 'all';
@@ -4332,12 +4341,23 @@ function showAllTogetherView() {
     document.getElementById('classView').classList.add('active');
     document.getElementById('className').textContent = label;
     currentClass = '__ALL__';
+
+    // Restore the last selected date if any
+    const sf = localStorage.getItem('selectedFriday');
+    if (sf) { currentFriday = sf; document.getElementById('currentDateText').textContent = sf; }
+    else updateCurrentDateDisplay();
+
+    // Show back button
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.style.display = 'inline-flex';
+
     updateHash('all');
 
     loadAttendanceDataForCombinedAll();
     renderAttendanceList('__ALL__');
     updateClassStats();
     updateSaveBtns();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Loads attendance for the virtual "all" combined view
@@ -5416,15 +5436,60 @@ function getCurrentAttendanceDay() {
 
 function getCurrentFriday() { return getCurrentAttendanceDay(); }
 function loadFridayAttendance(date) {
-    localStorage.setItem('selectedFriday', date); currentFriday = date;
+    localStorage.setItem('selectedFriday', date);
+    currentFriday = date;
     document.getElementById('currentDateText').textContent = date;
-    loadAttendanceDataForClass(currentClass, date); renderAttendanceList(currentClass);
-    hidePastFridaysModal(); showToast('تم تحميل بيانات ' + date, 'success');
+
+    if (isCombinedView) {
+        // Refresh combinedStudents from latest students array so data is current
+        if (currentClass === '__ALL__') {
+            combinedStudents = [...students];
+            loadAttendanceDataForCombinedAll();
+        } else {
+            // Re-build combinedStudents for the group based on current students array
+            const grp = combinedClassGroups.find(g => g.label === currentClass);
+            if (grp && grp.classes) {
+                combinedStudents = students.filter(s => grp.classes.includes(s['الفصل']));
+            }
+            loadAttendanceDataForCombined(currentClass);
+        }
+        if (isCombinedView && currentClass === '__ALL__') {
+            renderAttendanceList('__ALL__');
+        } else {
+            renderCombinedAttendanceList();
+        }
+    } else {
+        loadAttendanceDataForClass(currentClass, date);
+        renderAttendanceList(currentClass);
+    }
+
+    hidePastFridaysModal();
+    showToast('تم تحميل بيانات ' + date, 'success');
 }
 function resetToCurrentFriday() {
-    localStorage.removeItem('selectedFriday'); updateCurrentDateDisplay();
-    loadAttendanceDataForClass(currentClass); renderAttendanceList(currentClass);
-    hidePastFridaysModal(); showToast('تم العودة لآخر ' + getAttendanceDayName(), 'success');
+    localStorage.removeItem('selectedFriday');
+    updateCurrentDateDisplay();
+
+    if (isCombinedView) {
+        if (currentClass === '__ALL__') {
+            combinedStudents = [...students];
+            loadAttendanceDataForCombinedAll();
+            renderAttendanceList('__ALL__');
+        } else {
+            const grp = combinedClassGroups.find(g => g.label === currentClass);
+            if (grp && grp.classes) {
+                combinedStudents = students.filter(s => grp.classes.includes(s['الفصل']));
+            }
+            loadAttendanceDataForCombined(currentClass);
+            renderCombinedAttendanceList();
+        }
+    } else {
+        loadAttendanceDataForClass(currentClass);
+        renderAttendanceList(currentClass);
+    }
+
+    hidePastFridaysModal();
+    showToast('تم العودة لآخر ' + getAttendanceDayName(), 'success');
 }
 function getAttendanceDayName() {
     const names = {1:'اثنين',2:'ثلاثاء',3:'أربعاء',4:'خميس',5:'جمعة',6:'سبت',7:'أحد'};
