@@ -141,7 +141,9 @@ a{font-family:'Cairo',sans-serif;}
 
 /* ── Tasks grid ── */
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-.tcard{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);transition:var(--norm);cursor:pointer;}
+/* ── Card entrance animation ── */
+@keyframes cardIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.tcard{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);transition:var(--norm);cursor:pointer;animation:cardIn .3s var(--ease) both;}
 .tcard:hover{box-shadow:var(--sh-md);border-color:var(--brand-l);transform:translateY(-3px);}
 .tcard-acc{height:4px;background:var(--brand);}
 .tcard-acc.ok{background:var(--ok);}
@@ -149,7 +151,7 @@ a{font-family:'Cairo',sans-serif;}
 .tcard-acc.err{background:var(--t4);}
 .tcard-body{padding:16px 16px 12px;}
 .tcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
-.tcard-title{font-weight:800;font-size:.97rem;color:var(--t1);line-height:1.5;flex:1;}
+.tcard-title{font-weight:800;font-size:.97rem;color:var(--t1);line-height:1.5;flex:1;min-width:0;word-break:break-word;}
 .tstatus{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--r-full);font-size:.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
 .s-active{background:var(--ok-bg);color:var(--ok);}
 .s-upcoming{background:var(--info-bg);color:var(--info);}
@@ -168,12 +170,19 @@ a{font-family:'Cairo',sans-serif;}
 .prog-bar{height:5px;background:var(--bdr);border-radius:var(--r-full);overflow:hidden;margin-bottom:6px;}
 .prog-fill{height:100%;border-radius:var(--r-full);background:var(--brand);transition:width .6s var(--ease);}
 .prog-lbl{display:flex;justify-content:space-between;font-size:.68rem;color:var(--t2);}
-.tcard-foot{padding:11px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg2);}
-.tclass-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r-full);font-size:.7rem;font-weight:600;background:var(--bg);color:var(--t2);border:1px solid var(--bdr);}
+.tcard-foot{padding:11px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg2);}
+.tclass-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r-full);font-size:.7rem;font-weight:600;background:var(--bg);color:var(--t2);border:1px solid var(--bdr);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;}
+@media(max-width:400px){
+  .tbtn-lbl{display:none;}
+  .tbtn{padding:0 10px;}
+}
 .tact{display:flex;gap:6px;}
-.tbtn{height:30px;padding:0 10px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:.73rem;transition:var(--fast);gap:5px;font-weight:600;}
+.tbtn{height:36px;padding:0 12px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:.75rem;transition:var(--fast);gap:5px;font-weight:700;font-family:'Cairo',sans-serif;white-space:nowrap;}
 .tbtn:hover{background:var(--brand-bg);color:var(--brand);border-color:var(--brand-l);}
 .tbtn.d:hover{background:var(--err-bg);color:var(--err);border-color:#fca5a5;}
+.tbtn.view-btn{background:var(--brand-bg);color:var(--brand);border-color:var(--brand-l);}
+.tbtn.view-btn:hover{background:var(--brand);color:#fff;}
+.tbtn-lbl{font-size:.74rem;font-weight:700;}
 .empty{grid-column:1/-1;text-align:center;padding:56px 20px;}
 .empty-ico{width:68px;height:68px;border-radius:50%;background:var(--brand-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.7rem;color:var(--brand);}
 .empty-t{font-weight:700;font-size:.97rem;color:var(--t1);margin-bottom:5px;}
@@ -189,14 +198,21 @@ a{font-family:'Cairo',sans-serif;}
 .overlay.open .modal{transform:translateY(0) scale(1);}
 .modal.wide{max-width:840px;}
 .modal.narrow{max-width:380px;}
-.mhdr{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--bdr);background:var(--bg2);}
+.mhdr{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--bdr);background:var(--bg2);}
 .mhdr-ico{width:36px;height:36px;border-radius:var(--r-md);background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;flex-shrink:0;}
 .mhdr-title{font-family:'Cairo',sans-serif;font-weight:800;font-size:1rem;color:var(--t1);}
 .mhdr-sub{font-size:.72rem;color:var(--t3);margin-top:2px;}
-.mclose{width:30px;height:30px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:.82rem;transition:var(--fast);margin-right:auto;}
+.mclose{width:34px;height:34px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t3);font-size:.82rem;transition:var(--fast);margin-right:auto;flex-shrink:0;}
 .mclose:hover{background:var(--err-bg);color:var(--err);}
-.mbody{padding:20px;}
-.mfoot{padding:14px 20px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:flex-end;gap:8px;background:var(--bg2);}
+.mbody{padding:18px 20px;}
+.mfoot{padding:12px 20px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:flex-end;gap:8px;background:var(--bg2);flex-wrap:wrap;}
+@media(max-width:680px){
+  .mhdr{padding:13px 14px;}
+  .mbody{padding:14px;}
+  .mfoot{padding:10px 14px;gap:6px;}
+  .mfoot .btn{flex:1;justify-content:center;min-height:40px;}
+  .modal.narrow{max-width:calc(100% - 24px);}
+}
 
 /* ── Wizard steps ── */
 .steps{display:flex;align-items:center;margin-bottom:20px;}
@@ -208,6 +224,11 @@ a{font-family:'Cairo',sans-serif;}
 .step.done .step-c{border-color:var(--brand);background:var(--brand);color:#fff;}
 .step-l{font-size:.63rem;color:var(--t3);font-weight:600;text-align:center;}
 .step.active .step-l,.step.done .step-l{color:var(--brand);}
+@media(max-width:400px){
+  .step-l{display:none;}
+  .steps{gap:4px;margin-bottom:14px;}
+  .step-c{width:28px;height:28px;font-size:.75rem;}
+}
 
 /* ── Form ── */
 .fsec{margin-bottom:20px;}
@@ -336,9 +357,6 @@ a{font-family:'Cairo',sans-serif;}
   .mbody,.mhdr,.mfoot{padding-left:14px;padding-right:14px;}
   .hero-card{padding:16px;}
   .list-shell{padding:14px;}
-  .tcard-foot{flex-direction:column;align-items:stretch;}
-  .tact{width:100%;}
-  .tbtn{flex:1;justify-content:center;}
   .steps{gap:6px;}
   .step:not(:last-child)::after{display:none;}
   .scard2-body,.panel-body{padding:12px;}
@@ -351,7 +369,9 @@ a{font-family:'Cairo',sans-serif;}
   .sub-tbl thead{display:none;}
   .sub-tbl,.sub-tbl tbody,.sub-tbl tr,.sub-tbl td{display:block;width:100%;}
   .sub-tbl tr{padding:12px;border-bottom:1px solid var(--bdr);}
-  .sub-tbl td{padding:6px 0 !important;border:none !important;text-align:right;}
+  .sub-tbl td{padding:4px 0 !important;border:none !important;text-align:right;font-size:.82rem;}
+  .sub-tbl td[data-label]::before{content:attr(data-label) ': ';font-weight:700;color:var(--t3);font-size:.72rem;}
+  .sub-tbl td:last-child{padding-top:8px !important;}
   .hero-title{font-size:1.3rem;}
   .hero-sub{font-size:.82rem;}
   .hero-actions{flex-direction:column;gap:7px;}
@@ -361,6 +381,8 @@ a{font-family:'Cairo',sans-serif;}
   .detail-overview{grid-template-columns:1fr 1fr;}
   .grade-sheet-body{padding:12px 14px;}
   .grade-sub-card{padding:12px;}
+  .mfoot{flex-wrap:wrap;}
+  .mfoot .btn{flex:1;min-width:80px;justify-content:center;min-height:40px;}
 }
 @media(max-width:480px){
   .hero-side,.tmeta,.tinfo-grid{grid-template-columns:1fr 1fr;}
@@ -460,12 +482,18 @@ a{font-family:'Cairo',sans-serif;}
 .scard2-body{padding:14px 16px;}
 .scard2-body > .fg,.scard2-body > .frow,.scard2-body > #specRow{padding:12px;border-radius:var(--r-lg);background:var(--bg2);border:1px solid var(--bdr);margin-bottom:10px;}
 .scard2-body > .fg:last-child{margin-bottom:0;}
-.sopt-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg2);cursor:pointer;transition:var(--fast);margin-bottom:9px;}
+.sopt-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--r-md);border:1px solid var(--bdr);background:var(--bg2);cursor:pointer;transition:var(--fast);margin-bottom:9px;}
 .sopt-row:hover{border-color:var(--brand-l);background:var(--brand-bg);}
-.sopt-ico{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:.92rem;flex-shrink:0;}
-.sopt-txt{flex:1;}
+.sopt-ico{width:36px;height:36px;min-width:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:.92rem;flex-shrink:0;}
+.sopt-txt{flex:1;min-width:0;}
 .sopt-lbl{font-size:.84rem;font-weight:700;color:var(--t1);}
-.sopt-desc{font-size:.7rem;color:var(--t3);margin-top:2px;}
+.sopt-desc{font-size:.7rem;color:var(--t3);margin-top:2px;line-height:1.5;}
+@media(max-width:500px){
+  .sopt-desc{display:none;}
+  .sopt-lbl{font-size:.8rem;}
+  .scard2-body{padding:10px 12px;}
+  .sopt-row{padding:9px 10px;gap:8px;}
+}
 .hint-box{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border-radius:var(--r-md);background:var(--info-bg);border:1px solid #bfdbfe;margin-bottom:11px;}
 .hint-box i{color:var(--info);font-size:.92rem;margin-top:2px;}
 .hint-box strong{display:block;font-size:.78rem;color:var(--t1);margin-bottom:2px;}
@@ -477,6 +505,9 @@ a{font-family:'Cairo',sans-serif;}
 .date-switch{display:grid;grid-template-columns:1fr;gap:10px;}
 .time-block.is-disabled{opacity:.6;pointer-events:none;}
 .step1-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.85fr);gap:14px;align-items:start;}
+@media(max-width:760px){
+  .step1-grid{grid-template-columns:1fr;}
+}
 .step-stack{display:flex;flex-direction:column;gap:12px;}
 .panel-card{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-xl);box-shadow:var(--sh-sm);overflow:hidden;}
 .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 20px 0;}
@@ -987,17 +1018,27 @@ function renderGrid() {
     g.innerHTML = `<div class="empty"><div class="empty-ico"><i class="fas fa-clipboard-list"></i></div><div class="empty-t">لا توجد مهام</div><div class="empty-s">اضغط "مهمة جديدة" لإنشاء أول اختبار</div><button class="btn btn-p" onclick="openCreate()"><i class="fas fa-plus"></i> إنشاء مهمة</button></div>`;
     return;
   }
-  g.innerHTML = list.map(t => {
+  g.innerHTML = list.map((t, idx) => {
     const si   = statusOf(t);
     const qs   = (t.questions||[]).length;
     const subs = (t.submissions||[]).length;
     const asgn = t.assign_to==='specific' ? (t.specific_ids ? JSON.parse(t.specific_ids).length : 0) : (classStuCache[t.class_name]?.length ?? '?');
     const pct  = (asgn && asgn!=='?') ? Math.round(subs/asgn*100) : 0;
     const tc   = (t.submissions||[]).reduce((a,s)=>a+(parseInt(s.coupons_awarded)||0),0);
-    return `<div class="tcard" onclick="openDetail(${t.id})">
+    const pendingOpen = (t.submissions||[]).filter(s=>{
+      const hasPending = s.pending_open_grading ?? s.has_open_pending;
+      return hasPending;
+    }).length;
+    return `<div class="tcard" onclick="openDetail(${t.id})" style="animation-delay:${idx*40}ms">
       <div class="tcard-acc${si.acc?' '+si.acc:''}"></div>
       <div class="tcard-body">
-        <div class="tcard-top"><div class="tcard-title">${esc(t.title)}</div><div class="tstatus ${si.cls}">${si.label}</div></div>
+        <div class="tcard-top">
+          <div class="tcard-title">${esc(t.title)}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+            <div class="tstatus ${si.cls}">${si.label}</div>
+            ${pendingOpen?`<div class="pending-badge"><i class="fas fa-pen-nib"></i> ${pendingOpen} تصحيح</div>`:''}
+          </div>
+        </div>
         <div class="tmeta">
           <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</div>
           <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline||0)?'بدون آخر موعد':fmtDate(t.end_date)}</div>
@@ -1007,12 +1048,13 @@ function renderGrid() {
           <div class="tinfo-pill"><i class="fas fa-question-circle"></i><div><div class="tip-val">${qs} سؤال</div><div class="tip-lbl">${t.total_degree||0} درجة</div></div></div>
           <div class="tinfo-pill"><i class="fas fa-ticket-alt" style="color:var(--cou);"></i><div><div class="tip-val">${tc}</div><div class="tip-lbl">كوبون ممنوح</div></div></div>
         </div>
-        ${asgn!=='?'?`<div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-lbl"><span>${subs}/${asgn} أجاب</span><span>${pct}%</span></div>`:''}
+        ${asgn!=='?'?`<div class="tprogress"><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-lbl"><span>${subs}/${asgn} أجاب</span><span>${pct}%</span></div></div>`:''}
       </div>
       <div class="tcard-foot">
         <div class="tclass-badge"><i class="fas fa-users"></i>${esc(t.class_name||'—')}</div>
         <div class="tact" onclick="event.stopPropagation()">
-          <div class="tbtn" onclick="openEdit(${t.id})" title="تعديل"><i class="fas fa-pen"></i></div>
+          <div class="tbtn view-btn" onclick="openDetail(${t.id})" title="عرض التفاصيل"><i class="fas fa-eye"></i><span class="tbtn-lbl">عرض</span></div>
+          <div class="tbtn" onclick="openEdit(${t.id})" title="تعديل"><i class="fas fa-pen"></i><span class="tbtn-lbl">تعديل</span></div>
           <div class="tbtn d" onclick="openConf(${t.id})" title="حذف"><i class="fas fa-trash"></i></div>
         </div>
       </div>
@@ -1535,10 +1577,10 @@ async function openDetail(id){
     const hasOpenQs = (t.questions||[]).some(q=>q.question_type==='open');
     const pendingSubs = subs.filter(s=>!parseInt(s.is_graded||0) && hasOpenQs).length;
     document.getElementById('dFoot').innerHTML=`
-      <button class="btn btn-g" onclick="closeDetail()"><i class="fas fa-times"></i> إغلاق</button>
-      ${hasOpenQs?`<button class="btn" onclick="closeDetail();openGradePanel(${t.id})" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">
+      <button class="btn btn-g" onclick="closeDetail()" style="min-height:40px;"><i class="fas fa-times"></i> إغلاق</button>
+      ${hasOpenQs?`<button class="btn" onclick="closeDetail();openGradePanel(${t.id})" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;min-height:40px;">
         <i class="fas fa-pen-nib"></i> تصحيح${pendingSubs>0?` <span class="pending-badge">${pendingSubs}</span>`:''}</button>`:''}
-      <button class="btn btn-p" onclick="closeDetail();openEdit(${t.id})"><i class="fas fa-pen"></i> تعديل</button>`;
+      <button class="btn btn-p" onclick="closeDetail();openEdit(${t.id})" style="min-height:40px;"><i class="fas fa-pen"></i> تعديل</button>`;
 
     // ── Build who answered / who didn't list ──────────────────────
     // Always ensure class students are loaded
@@ -1546,6 +1588,28 @@ async function openDetail(id){
     const classStudents = await loadStudents(t.class_name || 'كل الفصول');
 
     const notAnswered = classStudents.filter(s=>!answeredIds.includes(s.id));
+
+    function buildCollapsibleList(items, renderFn, emptyMsg, maxShow=10) {
+      if(!items.length) return `<div style="font-size:.78rem;color:var(--t3);padding:6px 0;">${emptyMsg}</div>`;
+      const id = 'clist_' + Math.random().toString(36).slice(2);
+      const visible = items.slice(0, maxShow);
+      const hidden  = items.slice(maxShow);
+      let html = visible.map(renderFn).join('');
+      if(hidden.length) {
+        html += `<div id="${id}_more" style="display:none;">${hidden.map(renderFn).join('')}</div>
+        <button onclick="
+          var m=document.getElementById('${id}_more');
+          var b=document.getElementById('${id}_btn');
+          var open=m.style.display!=='none';
+          m.style.display=open?'none':'block';
+          b.innerHTML=open?'<i class=\\'fas fa-chevron-down\\'></i> عرض ${hidden.length} أكثر':'<i class=\\'fas fa-chevron-up\\'></i> عرض أقل';
+        " id="${id}_btn"
+          style="width:100%;margin-top:8px;padding:6px;background:transparent;border:1.5px dashed rgba(0,0,0,.12);border-radius:var(--r-md);cursor:pointer;font-family:'Cairo',sans-serif;font-size:.73rem;font-weight:700;color:inherit;opacity:.7;display:flex;align-items:center;justify-content:center;gap:5px;">
+          <i class="fas fa-chevron-down"></i> عرض ${hidden.length} أكثر
+        </button>`;
+      }
+      return html;
+    }
 
     document.getElementById('dBody').innerHTML=`
       <div class="detail-shell">
@@ -1557,39 +1621,45 @@ async function openDetail(id){
         ${parseInt(t.shuffle)?'<span class="tmeta-i"><i class="fas fa-random"></i>ترتيب عشوائي</span>':''}
       </div>
       <div class="detail-overview">
-        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø£Ø³Ø¦Ù„Ø©</div><div class="detail-stat-value">${(t.questions||[]).length}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª</div><div class="detail-stat-value">${subs.length}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„Ø¯Ø±Ø¬Ø© Ø§Ù„ÙƒÙ„ÙŠØ©</div><div class="detail-stat-value">${t.total_degree}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Ø§Ù„ÙƒÙˆØ¨ÙˆÙ†Ø§Øª</div><div class="detail-stat-value">${tc}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">الأسئلة</div><div class="detail-stat-value">${(t.questions||[]).length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">الإجابات</div><div class="detail-stat-value">${subs.length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">الدرجة الكلية</div><div class="detail-stat-value">${t.total_degree}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">الكوبونات</div><div class="detail-stat-value">${tc}</div></div>
       </div>
       <div class="coupon-chips" style="margin-bottom:18px;">
         ${matrix.map(m=>`<span style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.72rem;font-weight:600;color:var(--cou);"><i class="fas fa-ticket-alt"></i>${m.from}%–${m.to}% = ${m.val} كوبون</span>`).join('')}
       </div>
 
       <!-- Who answered / who didn't -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:20px;">
         <div style="background:var(--ok-bg);border:1px solid #6ee7b7;border-radius:var(--r-md);padding:11px 14px;">
-          <div style="font-size:.75rem;font-weight:700;color:var(--ok);margin-bottom:8px;display:flex;align-items:center;gap:5px;">
-            <i class="fas fa-check-circle"></i> أجابوا (${subs.length})
+          <div style="font-size:.78rem;font-weight:800;color:var(--ok);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <i class="fas fa-check-circle"></i> أجابوا
+            <span style="background:var(--ok);color:#fff;border-radius:var(--r-full);padding:1px 8px;font-size:.7rem;font-weight:700;">${subs.length}</span>
           </div>
-          ${subs.length?subs.map(s=>`
-            <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.06);">
-              <span style="font-size:.78rem;font-weight:700;color:var(--t1);flex:1;">${esc(s.student_name||'—')}</span>
-              <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;">${s.score||0}/${t.total_degree}</span>
+          ${buildCollapsibleList(subs,
+            s=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+              <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
+              <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
+              <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
+                style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
               <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
-                style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:.63rem;"><i class="fas fa-trash"></i></button>
-            </div>`).join('')
-          :'<div style="font-size:.75rem;color:var(--t3);">لا أحد بعد</div>'}
+                style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:4px 6px;cursor:pointer;font-size:.63rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>
+            </div>`,
+            'لا أحد بعد'
+          )}
         </div>
         <div style="background:var(--err-bg);border:1px solid #fca5a5;border-radius:var(--r-md);padding:11px 14px;">
-          <div style="font-size:.75rem;font-weight:700;color:var(--err);margin-bottom:8px;display:flex;align-items:center;gap:5px;">
-            <i class="fas fa-clock"></i> لم يجيبوا (${notAnswered.length})
+          <div style="font-size:.78rem;font-weight:800;color:var(--err);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <i class="fas fa-clock"></i> لم يجيبوا
+            <span style="background:var(--err);color:#fff;border-radius:var(--r-full);padding:1px 8px;font-size:.7rem;font-weight:700;">${notAnswered.length}</span>
           </div>
-          ${notAnswered.length?notAnswered.map(s=>`
-            <div style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,.06);">
-              <span style="font-size:.78rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
-            </div>`).join('')
-          :`<div style="font-size:.75rem;color:var(--t3);">${classStudents.length?'الجميع أجاب 🎉':'بيانات الفصل غير محملة'}</div>`}
+          ${buildCollapsibleList(notAnswered,
+            s=>`<div style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+              <span style="font-size:.8rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
+            </div>`,
+            classStudents.length ? 'الجميع أجاب 🎉' : 'بيانات الفصل غير محملة'
+          )}
         </div>
       </div>
 
@@ -1626,17 +1696,17 @@ async function openDetail(id){
       <div>
         <div class="fsec-title"><i class="fas fa-users"></i>${PEOPLE} الذين أجابوا (${subs.length}) — ${tc} كوبون ممنوح</div>
         ${subs.length?`<div style="overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--r-md);">
-          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:38px;"></th></tr></thead>
+          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
           <tbody>${subs.map(s=>`<tr>
-            <td>${esc(s.student_name||'—')}</td>
-            <td>${s.score||0}/${t.total_degree}</td>
-            <td>${t.total_degree?Math.round((parseInt(s.score)||0)/t.total_degree*100):0}%</td>
-            <td><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-ticket-alt"></i></span></td>
-            <td style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
+            <td data-label="${PEOPLE}">${esc(s.student_name||'—')}</td>
+            <td data-label="الدرجة">${s.score||0}/${t.total_degree}</td>
+            <td data-label="النسبة">${t.total_degree?Math.round((parseInt(s.score)||0)/t.total_degree*100):0}%</td>
+            <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-ticket-alt"></i></span></td>
+            <td data-label="التوقيت" style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
             <td>
     <div style="display:flex;gap:4px;">
-      <button onclick="event.stopPropagation();viewAnswers(${t.id}, ${s.student_id})" style="background:none;border:1px solid #cffafe;color:#0891b2;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.68rem;font-weight:700;"><i class="fas fa-eye"></i></button>
-      <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.68rem;font-weight:700;"><i class="fas fa-trash"></i></button>
+      <button onclick="event.stopPropagation();viewAnswers(${t.id}, ${s.student_id})" style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.72rem;font-weight:700;font-family:'Cairo',sans-serif;min-height:32px;"><i class="fas fa-eye"></i> إجابات</button>
+      <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:var(--err-bg);border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.72rem;min-height:32px;"><i class="fas fa-trash"></i></button>
     </div>
   </td>
           </tr>`).join('')}</tbody>
