@@ -10,10 +10,17 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         :root {
-            --primary: #4f46e5;
-            --primary-dark: #3730a3;
-            --primary-light: #e0e7ff;
-            --primary-glow: rgba(79,70,229,0.18);
+            --brand: #4f46e5;
+            --brand-dark: #3730a3;
+            --brand-light: #c7d2fe;
+            --brand-bg: #eef2ff;
+            --brand-glow: rgba(79,70,229,0.15);
+            /* legacy aliases */
+            --primary: var(--brand);
+            --primary-dark: var(--brand-dark);
+            --primary-light: var(--brand-bg);
+            --primary-glow: var(--brand-glow);
+
             --success: #10b981;
             --success-light: #d1fae5;
             --danger: #ef4444;
@@ -24,909 +31,726 @@
             --info-light: #dbeafe;
             --dev: #8b5cf6;
             --dev-light: #ede9fe;
-            --sidebar-w: 270px;
-            --sidebar-collapsed: 72px;
-            --bg: #f0f2f7;
+
+            --sidebar-w: 260px;
+            --sidebar-collapsed: 68px;
+            --topbar-h: 62px;
+
+            --bg: #f3f4f8;
             --card: #ffffff;
-            --border: #e4e7f0;
-            --text: #1a1d2e;
+            --border: #e5e7ef;
+            --text: #12142a;
+            --text-2: #374151;
+            --text-3: #6b7280;
             --muted: #6b7280;
+            --surface-2: #f8f9fc;
+
             --radius: 14px;
             --radius-sm: 8px;
-            --shadow: 0 2px 12px rgba(0,0,0,0.07);
-            --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
-            --transition: 0.28s cubic-bezier(0.4,0,0.2,1);
+            --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.12);
+            --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
         }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        /* ── YOUTH THEME override injected by PHP/JS ── */
+        [data-theme="youth"] {
+            --brand: #7c3aed;
+            --brand-dark: #5b21b6;
+            --brand-light: #c4b5fd;
+            --brand-bg: #ede9fe;
+            --brand-glow: rgba(124,58,237,0.15);
+            --primary: var(--brand);
+            --primary-dark: var(--brand-dark);
+            --primary-light: var(--brand-bg);
+            --primary-glow: var(--brand-glow);
+        }
 
-        /* SIDEBAR */
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ══ SIDEBAR ══════════════════════════════════════════════ */
         .sidebar {
             position: fixed; top: 0; right: 0; bottom: 0;
-            width: var(--sidebar-w); background: #1a1d2e;
+            width: var(--sidebar-w);
+            background: #0f1120;
             display: flex; flex-direction: column;
-            z-index: 300; transition: width var(--transition), transform var(--transition);
+            z-index: 300;
+            transition: width var(--transition), transform var(--transition);
             overflow: hidden;
+            border-left: 1px solid rgba(255,255,255,0.05);
         }
         .sidebar.collapsed { width: var(--sidebar-collapsed); }
+
         .sidebar-brand {
-            display: flex; align-items: center; gap: 14px;
-            padding: 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.07);
-            min-height: 76px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 13px;
+            padding: 18px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            min-height: 70px; flex-shrink: 0; position: relative;
         }
         .brand-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--primary), #818cf8);
-            border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 1.1rem; flex-shrink: 0;
-            box-shadow: 0 4px 14px rgba(79,70,229,0.4);
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 60%, #818cf8));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1rem; flex-shrink: 0;
+            box-shadow: 0 4px 14px var(--brand-glow);
         }
-        .brand-text { overflow: hidden; }
-        .brand-text h2 { font-size: 1rem; font-weight: 800; color: white; white-space: pre-wrap; transition: opacity var(--transition); }
-        .brand-text p { font-size: 0.72rem; color: rgba(255,255,255,0.45); white-space: nowrap; }
-        .sidebar.collapsed .brand-text { opacity: 0; width: 0; }
+        .brand-text { overflow: hidden; flex: 1; }
+        .brand-text h2 { font-size: 0.92rem; font-weight: 800; color: white; white-space: nowrap; }
+        .brand-text p { font-size: 0.68rem; color: rgba(255,255,255,0.38); white-space: nowrap; margin-top: 1px; }
+        .sidebar.collapsed .brand-text { opacity: 0; width: 0; pointer-events: none; }
+
         .sidebar-toggle {
-    position: absolute;
-    top: 32px;
-    left: 14px;
-    width: 30px;
-    height: 30px;
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    border-radius: 7px;
-    color: var(--primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    transition: all var(--transition);
-    z-index: 10;
-    background: var(--primary-light);
+            position: absolute; top: 50%; transform: translateY(-50%);
+            left: 12px; width: 26px; height: 26px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 7px; color: rgba(255,255,255,0.5);
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 0.7rem;
+            transition: all var(--transition); z-index: 10;
         }
-        .sidebar-toggle:hover { background: var(--primary); color: white; }
-        .sidebar.collapsed .sidebar-toggle { left: 48%; transform: translateX(-50%) rotate(180deg); }
-        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 0; }
-        .sidebar-nav::-webkit-scrollbar { width: 4px; }
-        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .sidebar-toggle:hover { background: var(--brand); color: white; border-color: var(--brand); }
+        .sidebar.collapsed .sidebar-toggle { left: 50%; transform: translate(-50%, -50%) rotate(180deg); }
+
+        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px 0; }
+        .sidebar-nav::-webkit-scrollbar { width: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
         .nav-section-label {
-            font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.25);
-            text-transform: uppercase; letter-spacing: 1.5px; padding: 16px 20px 8px;
-            white-space: nowrap; transition: opacity var(--transition);
+            font-size: 0.6rem; font-weight: 800; color: rgba(255,255,255,0.2);
+            text-transform: uppercase; letter-spacing: 1.8px;
+            padding: 14px 18px 6px; white-space: nowrap;
+            transition: opacity var(--transition);
         }
-        .sidebar.collapsed .nav-section-label { opacity: 0; }
+        .sidebar.collapsed .nav-section-label { opacity: 0; height: 0; padding: 0; }
+
         .nav-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 12px 18px; margin: 2px 10px; border-radius: 10px;
-            cursor: pointer; transition: all var(--transition);
-            color: rgba(255,255,255,0.55); font-size: 0.9rem; font-weight: 600;
-            position: relative; white-space: nowrap; border: none;
-            background: transparent; font-family: 'Cairo', sans-serif;
-            text-align: right; width: calc(100% - 20px);
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; margin: 1px 8px;
+            border-radius: 10px; cursor: pointer;
+            transition: all var(--transition);
+            color: rgba(255,255,255,0.48);
+            font-size: 0.86rem; font-weight: 600;
+            position: relative; white-space: nowrap;
+            border: none; background: transparent;
+            font-family: 'Cairo', sans-serif;
+            text-align: right; width: calc(100% - 16px);
         }
-        .nav-item i { width: 20px; text-align: center; font-size: 1rem; flex-shrink: 0; }
-        .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
-        .nav-item.active { background: linear-gradient(135deg, var(--primary), #6366f1); color: white; box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
-        .nav-item.dev-item { color: rgba(167,139,250,0.8); }
-        .nav-item.dev-item:hover { background: rgba(139,92,246,0.15); color: #c4b5fd; }
-        .nav-item.dev-item.active { background: linear-gradient(135deg, #7c3aed, #8b5cf6); box-shadow: 0 4px 14px rgba(139,92,246,0.35); color: white; }
+        .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; flex-shrink: 0; }
+        .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 70%, #818cf8));
+            color: white;
+            box-shadow: 0 4px 16px var(--brand-glow);
+        }
+        .nav-item.dev-item { color: rgba(167,139,250,0.7); }
+        .nav-item.dev-item:hover { background: rgba(139,92,246,0.12); color: #c4b5fd; }
+        .nav-item.dev-item.active { background: linear-gradient(135deg,#7c3aed,#8b5cf6); box-shadow:0 4px 14px rgba(124,58,237,.3); color:white; }
+
         .nav-badge {
             margin-right: auto; background: var(--danger); color: white;
-            font-size: 0.65rem; font-weight: 700; padding: 2px 7px;
-            border-radius: 20px; transition: all var(--transition); flex-shrink: 0;
+            font-size: 0.6rem; font-weight: 800; padding: 2px 6px;
+            border-radius: 20px; flex-shrink: 0;
         }
         .nav-badge[data-count="0"], .nav-badge:empty { display: none !important; }
         .sidebar.collapsed .nav-badge { display: none; }
         .sidebar.collapsed .nav-item span.label { display: none; }
-        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding: 11px; }
         .sidebar.collapsed .nav-item::after {
-            content: attr(data-tooltip); position: absolute; left: calc(100% + 12px);
-            top: 50%; transform: translateY(-50%); background: #1a1d2e; color: white;
-            font-size: 0.8rem; padding: 6px 12px; border-radius: 7px; white-space: nowrap;
-            opacity: 0; pointer-events: none; transition: opacity 0.2s;
-            border: 1px solid rgba(255,255,255,0.1); font-family: 'Cairo', sans-serif;
+            content: attr(data-tooltip);
+            position: absolute; left: calc(100% + 10px); top: 50%;
+            transform: translateY(-50%);
+            background: #1a1d2e; color: white;
+            font-size: 0.76rem; padding: 5px 10px;
+            border-radius: 7px; white-space: nowrap;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.15s;
+            border: 1px solid rgba(255,255,255,0.08);
+            font-family: 'Cairo', sans-serif;
         }
         .sidebar.collapsed .nav-item:hover::after { opacity: 1; }
-        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 16px 12px; flex-shrink: 0; }
-        .sidebar-footer-user {
-            display: flex; align-items: center; gap: 12px; padding: 10px;
-            border-radius: 10px; cursor: pointer; transition: background var(--transition);
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 14px 10px; flex-shrink: 0;
         }
-        .sidebar-footer-user:hover { background: rgba(255,255,255,0.07); }
+        .sidebar-footer-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 10px; border-radius: 10px;
+            cursor: pointer; transition: background var(--transition);
+        }
+        .sidebar-footer-user:hover { background: rgba(255,255,255,0.05); }
         .user-avatar {
-            width: 38px; height: 38px; background: linear-gradient(135deg, var(--primary), #818cf8);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 0.9rem; font-weight: 700; flex-shrink: 0;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 60%, #818cf8));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.85rem; font-weight: 800; flex-shrink: 0;
         }
         .user-info { overflow: hidden; flex: 1; }
-        .user-info strong { font-size: 0.85rem; color: white; display: block; white-space: nowrap; }
-        .user-info span { font-size: 0.72rem; color: rgba(255,255,255,0.4); white-space: nowrap; }
-        .footer-actions { display: flex; gap: 6px; margin-top: 10px; }
+        .user-info strong { font-size: 0.82rem; color: white; display: block; white-space: nowrap; }
+        .user-info span { font-size: 0.68rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
+        .footer-actions { display: flex; gap: 6px; margin-top: 8px; }
         .footer-btn {
-            flex: 1; padding: 8px; border: none; border-radius: 8px;
-            background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55);
-            cursor: pointer; font-size: 0.78rem; font-family: 'Cairo', sans-serif;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            transition: all var(--transition); white-space: nowrap;
+            flex: 1; padding: 7px 6px;
+            border: none; border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.45);
+            cursor: pointer; font-size: 0.72rem;
+            font-family: 'Cairo', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            gap: 5px; transition: all var(--transition); white-space: nowrap;
         }
-        .footer-btn:hover { background: rgba(255,255,255,0.13); color: white; }
+        .footer-btn:hover { background: rgba(255,255,255,0.12); color: white; }
         .footer-btn.danger:hover { background: var(--danger); color: white; }
         .sidebar.collapsed .footer-actions { flex-direction: column; }
         .sidebar.collapsed .footer-btn span { display: none; }
+        .sidebar.collapsed .footer-btn { padding: 8px; }
 
-        /* MAIN */
-        .main-wrapper { margin-right: var(--sidebar-w); transition: margin-right var(--transition); min-height: 100vh; display: flex; flex-direction: column; }
+        /* ══ MAIN ═════════════════════════════════════════════════ */
+        .main-wrapper {
+            margin-right: var(--sidebar-w);
+            transition: margin-right var(--transition);
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
         .main-wrapper.collapsed { margin-right: var(--sidebar-collapsed); }
-        .topbar {
-            background: var(--card); border-bottom: 1px solid var(--border);
-            padding: 0 24px; height: 64px; display: flex; align-items: center;
-            justify-content: space-between; position: sticky; top: 0; z-index: 100;
-            box-shadow: var(--shadow);
-        }
-        .topbar-left { display: flex; align-items: center; gap: 16px; }
-        .topbar-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }
-        .topbar-breadcrumb { font-size: 0.8rem; color: var(--muted); }
-        .topbar-breadcrumb span { color: var(--primary); }
-        .topbar-right { display: flex; align-items: center; gap: 10px; }
-        .topbar-btn {
-            width: 40px; height: 40px; border: 1px solid var(--border);
-            border-radius: 10px; background: white; color: var(--muted);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 0.95rem; transition: all var(--transition); position: relative;
-        }
-        .topbar-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-        .topbar-btn .dot {
-            position: absolute; top: 7px; left: 9px; width: 8px; height: 8px;
-            background: var(--danger); border-radius: 50%; border: 2px solid white;
-        }
-        .mobile-menu-btn {
-            display: none; width: 40px; height: 40px; border: 1px solid var(--border);
-            border-radius: 10px; background: white; cursor: pointer;
-            align-items: center; justify-content: center; font-size: 1rem; color: var(--text);
-        }
-        .main-content { flex: 1; padding: 24px; }
-        .tab-panel { display: none; animation: fadeSlide 0.3s ease; }
-        .tab-panel.active { display: block; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* STATS */
-        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .topbar {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: var(--topbar-h);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 0 var(--border), 0 4px 20px rgba(0,0,0,0.04);
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .topbar-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+        .topbar-breadcrumb { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+        .topbar-breadcrumb span { color: var(--brand); font-weight: 700; }
+        .topbar-right { display: flex; align-items: center; gap: 8px; }
+        .topbar-btn {
+            width: 38px; height: 38px;
+            border: 1px solid var(--border);
+            border-radius: 10px; background: white; color: var(--muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.88rem; transition: all var(--transition); position: relative;
+        }
+        .topbar-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-bg); }
+
+        .mobile-menu-btn {
+            display: none; width: 38px; height: 38px;
+            border: 1px solid var(--border); border-radius: 10px;
+            background: white; cursor: pointer;
+            align-items: center; justify-content: center;
+            font-size: 0.95rem; color: var(--text);
+        }
+
+        .main-content { flex: 1; padding: 22px; }
+
+        /* ══ TABS ═════════════════════════════════════════════════ */
+        .tab-panel { display: none; animation: fadeSlide 0.28s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ══ STATS CARDS ══════════════════════════════════════════ */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px; margin-bottom: 20px;
+        }
         .stat-card {
-            background: var(--card); border-radius: var(--radius); padding: 20px;
-            border: 1px solid var(--border); box-shadow: var(--shadow);
-            display: flex; align-items: center; gap: 16px;
+            background: var(--card); border-radius: var(--radius);
+            padding: 18px 20px; border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 14px;
             transition: all var(--transition); position: relative; overflow: hidden;
         }
+        .stat-card::after {
+            content: ''; position: absolute;
+            top: 0; right: 0; width: 4px; height: 100%;
+            background: var(--brand); opacity: 0;
+            transition: opacity var(--transition);
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
         .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-        .stat-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
-        .stat-icon.purple { background: var(--primary-light); color: var(--primary); }
+        .stat-card:hover::after { opacity: 1; }
+
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .stat-icon.purple { background: var(--brand-bg); color: var(--brand); }
         .stat-icon.green  { background: var(--success-light); color: var(--success); }
         .stat-icon.amber  { background: var(--warning-light); color: var(--warning); }
         .stat-icon.red    { background: var(--danger-light);  color: var(--danger);  }
         .stat-icon.dev    { background: var(--dev-light);     color: var(--dev);     }
         .stat-info { flex: 1; }
-        .stat-info p { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
-        .stat-info h3 { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+        .stat-info p { font-size: 0.74rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+        .stat-info h3 { font-size: 1.9rem; font-weight: 900; color: var(--text); line-height: 1; }
 
-        /* CARDS */
-        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
-        .card-header {
-            padding: 18px 22px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 12px; flex-wrap: wrap;
+        /* ══ CARDS ════════════════════════════════════════════════ */
+        .card {
+            background: var(--card); border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow);
+            margin-bottom: 18px; overflow: hidden;
         }
-        .card-title { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; color: var(--text); }
+        .card-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .card-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.95rem; font-weight: 800; color: var(--text);
+        }
         .card-title i {
-            width: 34px; height: 34px; background: var(--primary-light);
-            color: var(--primary); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+            width: 32px; height: 32px;
+            background: var(--brand-bg); color: var(--brand);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.84rem;
         }
         .card-title i.dev-icon { background: var(--dev-light); color: var(--dev); }
-        .card-body { padding: 22px; }
+        .card-body { padding: 20px; }
 
-        /* TOOLBAR */
-        .toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
-        .search-wrap { position: relative; flex: 1; min-width: 220px; }
-        .search-wrap i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; pointer-events: none; }
+        /* ══ TOOLBAR ══════════════════════════════════════════════ */
+        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .search-wrap { position: relative; flex: 1; min-width: 200px; }
+        .search-wrap i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.8rem; pointer-events: none; }
         .search-wrap input {
-            width: 100%; padding: 10px 38px 10px 14px;
+            width: 100%; padding: 9px 36px 9px 12px;
             border: 1.5px solid var(--border); border-radius: 10px;
-            font-family: 'Cairo', sans-serif; font-size: 0.88rem;
-            background: var(--bg); transition: all var(--transition);
+            font-family: 'Cairo', sans-serif; font-size: 0.84rem;
+            background: var(--surface-2); transition: all var(--transition);
+            color: var(--text);
         }
-        .search-wrap input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 3px var(--primary-glow); }
+        .search-wrap input:focus { outline: none; border-color: var(--brand); background: white; box-shadow: 0 0 0 3px var(--brand-glow); }
 
-        /* BUTTONS */
+        /* ══ BUTTONS ══════════════════════════════════════════════ */
         .btn {
-            padding: 10px 20px; border: none; border-radius: 10px;
-            cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 0.88rem;
+            padding: 9px 18px; border: none; border-radius: 10px;
+            cursor: pointer; font-family: 'Cairo', sans-serif;
+            font-weight: 700; font-size: 0.84rem;
             display: inline-flex; align-items: center; justify-content: center;
-            gap: 8px; transition: all var(--transition); white-space: nowrap;
+            gap: 7px; transition: all var(--transition); white-space: nowrap;
         }
-        .btn-primary  { background: var(--primary);  color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
-        .btn-primary:hover  { background: var(--primary-dark); transform: translateY(-1px); }
-        .btn-success  { background: var(--success);  color: white; }
+        .btn-primary  { background: var(--brand); color: white; box-shadow: 0 4px 12px var(--brand-glow); }
+        .btn-primary:hover  { background: var(--brand-dark); transform: translateY(-1px); }
+        .btn-success  { background: var(--success); color: white; }
         .btn-success:hover  { background: #059669; transform: translateY(-1px); }
-        .btn-danger   { background: var(--danger);   color: white; }
+        .btn-danger   { background: var(--danger); color: white; }
         .btn-danger:hover   { background: #dc2626; transform: translateY(-1px); }
-        .btn-warning  { background: var(--warning);  color: white; }
-        .btn-warning:hover  { background: #d97706; transform: translateY(-1px); }
-        .btn-dev      { background: var(--dev);      color: white; box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
+        .btn-outline  { background: white; color: var(--text); border: 1.5px solid var(--border); }
+        .btn-outline:hover  { border-color: var(--brand); color: var(--brand); background: var(--brand-bg); }
+        .btn-dev      { background: var(--dev); color: white; }
         .btn-dev:hover      { background: #7c3aed; transform: translateY(-1px); }
-        .btn-outline  { background: white; border: 1.5px solid var(--border); color: var(--text); }
-        .btn-outline:hover  { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-        .btn-sm   { padding: 7px 14px; font-size: 0.82rem; border-radius: 8px; }
-        .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; }
+        .btn-sm { padding: 7px 14px; font-size: 0.8rem; border-radius: 8px; }
+        .btn-xs { padding: 4px 10px; font-size: 0.74rem; border-radius: 6px; }
 
-        select.form-select {
-            padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px;
-            font-family: 'Cairo', sans-serif; font-size: 0.88rem; background: white;
-            cursor: pointer; transition: all var(--transition);
-        }
-        select.form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-
-        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        thead th {
-            padding: 12px 16px; text-align: right;
-            font-size: 0.78rem; font-weight: 700; color: var(--muted);
-            text-transform: uppercase; letter-spacing: 0.4px;
-            background: #f8f9fc; border-bottom: 1px solid var(--border); white-space: nowrap;
-        }
-        tbody td { padding: 14px 16px; border-bottom: 1px solid #f1f3f8; font-size: 0.88rem; vertical-align: middle; }
-        tbody tr { transition: background var(--transition); }
-        tbody tr:hover td { background: #fafbff; }
-        tbody tr:last-child td { border-bottom: none; }
-
-        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
-        .badge-success { background: var(--success-light); color: #065f46; }
-        .badge-danger  { background: var(--danger-light);  color: #991b1b; }
-        .badge-warning { background: var(--warning-light); color: #92400e; }
-        .badge-info    { background: var(--info-light);    color: #1e40af; }
-        .badge-primary { background: var(--primary-light); color: var(--primary-dark); }
-        .badge-dev     { background: var(--dev-light);     color: #5b21b6; }
-
-        .actions { display: flex; gap: 5px; align-items: center; }
-        .act-btn {
-            width: 32px; height: 32px; border: none; border-radius: 7px;
-            cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; transition: all var(--transition); color: white;
-        }
-        .act-btn:hover { transform: scale(1.1); }
-        .act-edit   { background: var(--warning); }
-        .act-delete { background: var(--danger); }
-        .act-view   { background: var(--info); }
-        .act-pay    { background: var(--success); }
-        .act-img    { background: #8b5cf6; }
-
-        .avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); }
-        .avatar-text {
-            width: 38px; height: 38px; border-radius: 50%;
-            background:  white;
-            color: var(--primary); display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 1rem; border: 2px solid var(--primary-light); flex-shrink: 0;
-            overflow: hidden;
-        }
-        .avatar-text img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
-        .form-input, .form-textarea {
-            padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px;
-            font-family: 'Cairo', sans-serif; font-size: 0.9rem; transition: all var(--transition); background: white;
-        }
-        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-        .form-textarea { resize: vertical; min-height: 80px; }
-        .form-input:disabled { background: var(--bg); opacity: 0.7; }
-
-        .progress { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success), #34d399); border-radius: 99px; }
-
-        .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
-        .class-chip { background: white; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px 12px; text-align: center; cursor: pointer; transition: all var(--transition); }
-        .class-chip:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-        .class-chip h3 { font-size: 0.9rem; color: var(--primary); font-weight: 700; margin-bottom: 8px; }
-        .class-chip .num { font-size: 2rem; font-weight: 900; color: var(--text); }
-        .class-chip .lbl { font-size: 0.72rem; color: var(--muted); }
-
-        .activity-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f1f3f8; }
-        .activity-item:last-child { border-bottom: none; }
-        .activity-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
-        .activity-info { flex: 1; }
-        .activity-info strong { font-size: 0.88rem; display: block; }
-        .activity-info span { font-size: 0.75rem; color: var(--muted); }
-
-        .trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
-        .trip-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: all var(--transition); box-shadow: var(--shadow); }
-        .trip-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
-        .trip-img { height: 160px; background: linear-gradient(135deg, #e0e7ff, #f0f4ff); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .trip-img img { width: 100%; height: 100%; object-fit: cover; }
-        .trip-img i { font-size: 1rem; color: var(--card); }
-        .trip-status-pill { position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: white; box-shadow: var(--shadow); }
-        .trip-actions-overlay { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity var(--transition); }
-        .trip-card:hover .trip-actions-overlay { opacity: 1; }
-        .trip-body { padding: 16px; }
-        .trip-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-        .trip-meta-row { display: flex; gap: 12px; color: var(--muted); font-size: 0.78rem; margin-bottom: 10px; flex-wrap: wrap; }
-        .trip-meta-row i { color: var(--primary); margin-left: 4px; }
-        .trip-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-        .trip-price-row .curr { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
-        .trip-price-row .orig { font-size: 0.82rem; color: var(--muted); text-decoration: line-through; }
-        .trip-stats-row { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); }
-        .trip-stat-item { text-align: center; }
-        .trip-stat-item .n { font-size: 1.1rem; font-weight: 800; }
-        .trip-stat-item .l { font-size: 0.7rem; color: var(--muted); }
-
-        .expense-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg); border-radius: 10px; border: 1.5px solid var(--border); margin-bottom: 10px; }
-        .expense-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-
-        .friday-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
-        .friday-card { background: white; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all var(--transition); }
-        .friday-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow); }
-        .friday-card.selected { border-color: var(--primary); background: var(--primary-light); }
-        .friday-card .date { font-size: 1rem; font-weight: 700; color: var(--text); }
-        .friday-card .stats { display: flex; gap: 10px; margin-top: 8px; }
-        .friday-card .stats span { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
-
-        /* DEVELOPER PANEL */
-        .church-card {
-            background: white; border: 1.5px solid var(--border); border-radius: var(--radius);
-            padding: 18px; transition: all var(--transition); display: flex; flex-direction: column; gap: 10px;
-        }
-        .church-card:hover { border-color: var(--dev); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-        .church-card-header { display: flex; align-items: center; gap: 12px; }
-        .church-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--dev-light); display: flex; align-items: center; justify-content: center; color: var(--dev); font-size: 1.1rem; flex-shrink: 0; }
-        .church-card-info h3 { font-size: 0.95rem; font-weight: 700; }
-        .church-card-info span { font-size: 0.75rem; color: var(--muted); }
-        .church-card-stats { display: flex; gap: 12px; }
-        .church-stat { background: var(--bg); padding: 8px 12px; border-radius: 8px; text-align: center; flex: 1; }
-        .church-stat .cv { font-size: 1.2rem; font-weight: 800; color: var(--text); }
-        .church-stat .cl { font-size: 0.68rem; color: var(--muted); }
-        .churches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-
-        /* ── REG KEY CARDS ── */
-        .reg-key-item {
-            display: flex; align-items: flex-start; gap: 14px;
-            padding: 14px 16px; background: var(--bg); border-radius: 10px;
-            border: 1.5px solid var(--border); margin-bottom: 10px;
+        /* ══ FORMS ════════════════════════════════════════════════ */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
+        .form-input, .form-select {
+            width: 100%; padding: 9px 12px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-family: 'Cairo', sans-serif; font-size: 0.86rem;
+            background: var(--surface-2); color: var(--text);
             transition: all var(--transition);
         }
-        .reg-key-item:hover { border-color: var(--dev); box-shadow: var(--shadow); }
-        .reg-key-item.used   { opacity: 0.65; }
-        .reg-key-item.revoked { opacity: 0.45; }
-        .reg-key-icon {
-            width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; font-size: 1rem;
-        }
-        .reg-key-icon.available { background: var(--success-light); color: var(--success); }
-        .reg-key-icon.used      { background: var(--warning-light);  color: var(--warning); }
-        .reg-key-icon.revoked   { background: var(--danger-light);   color: var(--danger);  }
-        .reg-key-body { flex: 1; min-width: 0; }
-        .reg-key-label { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-        .reg-key-url {
-            font-size: 0.72rem; color: var(--primary); word-break: break-all;
-            margin-bottom: 6px; font-family: monospace;
-            background: var(--primary-light); padding: 4px 8px; border-radius: 6px;
-            user-select: all; cursor: text;
-        }
-        .reg-key-url.inactive { color: var(--muted); background: var(--bg); }
-        .reg-key-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .reg-key-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--brand); background: white; box-shadow: 0 0 0 3px var(--brand-glow); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-        /* ── KID REG LINK ── */
-        .kid-reg-row {
-            display: flex; align-items: center; gap: 8px;
-            margin-top: 10px; padding: 9px 12px;
-            background: linear-gradient(135deg,#eef0ff,#e8eaff);
-            border: 1px solid rgba(91,108,245,.2); border-radius: 9px;
+        /* ══ TABLE ════════════════════════════════════════════════ */
+        .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            background: var(--surface-2); padding: 10px 14px;
+            font-size: 0.76rem; font-weight: 800; color: var(--muted);
+            text-align: right; white-space: nowrap;
+            border-bottom: 1px solid var(--border);
         }
-        .kid-reg-row .kr-label { font-size:0.72rem; font-weight:700; color:#4354e8; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .kid-reg-row .kr-btns  { display:flex; gap:5px; flex-shrink:0; }
-        .kr-btn { padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:4px; transition:all .18s; }
-        .kr-btn-copy  { background:#eef0ff; color:#4354e8; border:1px solid rgba(91,108,245,.25); }
-        .kr-btn-copy:hover  { background:#4354e8; color:white; }
-        .kr-btn-share { background:#d1fae5; color:#059669; border:1px solid rgba(16,185,129,.25); }
-        .kr-btn-share:hover { background:#059669; color:white; }
-        .kr-btn-open  { background:#f7f8fc; color:#4b5068; border:1px solid #e4e6f0; }
-        .kr-btn-open:hover  { background:#4b5068; color:white; }
+        tbody td {
+            padding: 11px 14px; border-bottom: 1px solid var(--border);
+            font-size: 0.84rem; vertical-align: middle; color: var(--text);
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: var(--surface-2); }
 
-        /* MODAL */
+        /* ══ BADGES ═══════════════════════════════════════════════ */
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+        .badge-primary { background: var(--brand-bg); color: var(--brand); }
+        .badge-success { background: var(--success-light); color: #065f46; }
+        .badge-danger  { background: var(--danger-light); color: #991b1b; }
+        .badge-warning { background: var(--warning-light); color: #92400e; }
+
+        /* ══ ACTION BUTTONS ═══════════════════════════════════════ */
+        .actions { display: flex; gap: 5px; flex-wrap: wrap; }
+        .act-btn {
+            width: 30px; height: 30px; border: none; border-radius: 7px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; transition: all var(--transition);
+        }
+        .act-edit   { background: var(--brand-bg); color: var(--brand); }
+        .act-edit:hover   { background: var(--brand); color: white; }
+        .act-delete { background: var(--danger-light); color: var(--danger); }
+        .act-delete:hover { background: var(--danger); color: white; }
+        .act-pay    { background: var(--success-light); color: var(--success); }
+        .act-pay:hover    { background: var(--success); color: white; }
+        .act-view   { background: var(--info-light); color: var(--info); }
+        .act-view:hover   { background: var(--info); color: white; }
+
+        /* ══ MODAL ════════════════════════════════════════════════ */
         .modal {
             display: none; position: fixed; inset: 0;
-            background: rgba(15,15,25,0.55); backdrop-filter: blur(5px);
-            z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.45); z-index: 500;
+            align-items: center; justify-content: center;
+            padding: 16px; backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
         }
-        .modal.open { display: flex; animation: fadeIn 0.25s ease; }
+        .modal.open { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal-box {
-            background: white; border-radius: 18px; width: 100%;
-            max-height: 90vh; overflow-y: auto;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.18);
-            animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            background: var(--card); border-radius: 16px;
+            width: 100%; max-width: 520px;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+            max-height: 92vh; overflow-y: auto;
         }
-        .modal-box.wide { max-width: 780px; }
-        .modal-box.xl   { max-width: 960px; }
-        @keyframes popIn { from { transform: scale(0.92) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-box.wide { max-width: 720px; }
         .modal-head {
-            padding: 20px 24px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            position: sticky; top: 0; background: white; z-index: 1;
+            padding: 18px 22px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
         }
-        .modal-head h2 { font-size: 1.05rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .modal-head h2.dev-title { color: var(--dev); }
+        .modal-head h2 { font-size: 1rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 9px; }
+        .modal-head h2 i { color: var(--brand); }
         .modal-close {
-            width: 36px; height: 36px; border: none; background: none;
-            border-radius: 50%; cursor: pointer; color: var(--muted);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; transition: all var(--transition);
+            width: 30px; height: 30px; border: 1px solid var(--border);
+            border-radius: 8px; background: white; color: var(--muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; transition: all var(--transition); flex-shrink: 0;
         }
-        .modal-close:hover { background: var(--danger-light); color: var(--danger); }
-        .modal-body { padding: 24px; }
+        .modal-close:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+        .modal-body { padding: 20px; }
 
-        .toast {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: white; padding: 14px 22px; border-radius: 40px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.14); display: none; align-items: center; gap: 12px;
-            z-index: 9999; font-size: 0.9rem; font-weight: 600;
-            border: 1px solid var(--border); min-width: 260px; white-space: nowrap;
+        /* ══ ATTENDANCE TABS ══════════════════════════════════════ */
+        .att-tabs {
+            display: flex; gap: 2px;
+            background: var(--surface-2); border-radius: 12px;
+            padding: 4px; margin-bottom: 20px;
+            border: 1px solid var(--border);
         }
-        .toast.show { display: flex; animation: toastIn 0.3s ease; }
-        .toast.success { border-right: 4px solid var(--success); }
-        .toast.error   { border-right: 4px solid var(--danger); }
-        .toast.warning { border-right: 4px solid var(--warning); }
+        .att-tab {
+            flex: 1; padding: 10px 14px; border: none;
+            border-radius: 9px; cursor: pointer;
+            font-family: 'Cairo', sans-serif; font-size: 0.82rem; font-weight: 700;
+            color: var(--muted); background: transparent;
+            transition: all var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .att-tab:hover { color: var(--brand); background: var(--brand-bg); }
+        .att-tab.active {
+            background: white; color: var(--brand);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .att-tab-panel { display: none; animation: fadeSlide 0.25s ease; }
+        .att-tab-panel.active { display: block; }
+
+        /* ══ YEAR/MONTH SELECTOR ══════════════════════════════════ */
+        .year-selector {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 6px 10px;
+        }
+        .year-selector span { font-weight: 800; font-size: 1rem; min-width: 52px; text-align: center; color: var(--text); }
+
+        .month-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .month-tab {
+            padding: 5px 12px; border: 1.5px solid var(--border);
+            border-radius: 8px; cursor: pointer; font-size: 0.78rem;
+            font-weight: 700; transition: all var(--transition);
+            background: white; color: var(--text-2);
+            font-family: 'Cairo', sans-serif;
+        }
+        .month-tab:hover { border-color: var(--brand); color: var(--brand); }
+        .month-tab.active { background: var(--brand); color: white; border-color: var(--brand); }
+
+        /* ══ FRIDAY CARDS ══════════════════════════════════════════ */
+        .friday-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
+            gap: 12px;
+        }
+        .friday-card {
+            background: white; border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 16px 14px;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .friday-card:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .friday-card.has-data { border-color: rgba(79,70,229,0.2); background: var(--brand-bg); }
+        .friday-card .date { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+        .friday-card .stats { display: flex; gap: 6px; flex-wrap: wrap; }
+        .friday-card .stats span { padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; }
+
+        /* ══ SUMMARY BOXES ════════════════════════════════════════ */
+        .summary-box {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
+            gap: 10px; margin-bottom: 18px;
+        }
+        .sbox {
+            background: var(--surface-2); border-radius: 10px;
+            padding: 14px; border: 1px solid var(--border); text-align: center;
+        }
+        .sbox .sv { font-size: 1.7rem; font-weight: 900; }
+        .sbox .sl { font-size: 0.7rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
+
+        /* ══ UNCLE REPORT ═════════════════════════════════════════ */
+        .uncle-report-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; border-radius: 10px;
+            border: 1.5px solid var(--border); margin-bottom: 8px;
+            background: white; transition: border-color 0.2s;
+        }
+        .uncle-report-row:hover { border-color: var(--brand); }
+        .uncle-rank-badge {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; font-weight: 900; flex-shrink: 0;
+        }
+        .uncle-rank-badge.gold   { background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }
+        .uncle-rank-badge.silver { background: #f3f4f6; color: #374151; border: 2px solid #9ca3af; }
+        .uncle-rank-badge.bronze { background: #fef3c7; color: #78350f; border: 2px solid #d97706; }
+        .uncle-rank-badge.other  { background: var(--border); color: var(--muted); }
+        .uncle-att-ava {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: var(--brand-bg); color: var(--brand);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 800; flex-shrink: 0; overflow: hidden;
+        }
+        .uncle-report-info { flex: 1; min-width: 0; }
+        .uncle-report-name { font-size: 0.88rem; font-weight: 800; }
+        .uncle-report-meta { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+        .uncle-progress-wrap { margin-top: 6px; }
+        .uncle-progress-bar { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+        .uncle-progress-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+        .uncle-report-stats { display: flex; gap: 6px; flex-shrink: 0; }
+        .uncle-stat-box { padding: 4px 10px; border-radius: 7px; font-size: 0.74rem; font-weight: 800; }
+        .uncle-stat-box.present { background: var(--success-light); color: #065f46; }
+        .uncle-stat-box.absent  { background: var(--danger-light); color: #991b1b; }
+
+        .day-rank-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); margin-bottom: 6px; background: white; }
+        .day-rank-bar-wrap { flex: 1; min-width: 0; }
+        .day-rank-label { display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 4px; }
+        .day-rank-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+        .day-rank-fill { height: 100%; border-radius: 99px; }
+
+        /* ══ UNCLE ATTENDANCE ITEM ════════════════════════════════ */
+        .uncle-att-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border: 1.5px solid var(--border);
+            border-radius: 10px; margin-bottom: 7px;
+            transition: border-color 0.15s; background: white;
+        }
+        .uncle-att-item:hover { border-color: var(--brand); }
+        .uncle-att-item .toggle-btns { display: flex; gap: 5px; margin-right: auto; }
+        .att-toggle-btn {
+            padding: 4px 12px; border: 1.5px solid var(--border);
+            border-radius: 7px; cursor: pointer;
+            font-family: 'Cairo', sans-serif; font-size: 0.76rem; font-weight: 700;
+            transition: all 0.15s; background: white;
+        }
+        .att-toggle-btn.present { border-color: var(--success); color: var(--success); background: var(--success-light); }
+        .att-toggle-btn.absent  { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+
+        /* ══ TOAST ════════════════════════════════════════════════ */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 20px);
+            background: #1e293b; color: white; padding: 10px 22px;
+            border-radius: 30px; font-size: 0.84rem; font-weight: 700;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            max-width: calc(100vw - 40px); text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.success { background: #059669; }
+        .toast.error   { background: #dc2626; }
+        .toast.warning { background: #d97706; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-        .empty-state i { font-size: 3.5rem; opacity: 0.25; margin-bottom: 16px; display: block; }
-        .empty-state h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+        /* ══ MISC ═════════════════════════════════════════════════ */
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+        .empty-state i { font-size: 3rem; opacity: 0.2; margin-bottom: 14px; display: block; }
+        .empty-state h3 { font-size: 0.95rem; color: var(--text-2); margin-bottom: 6px; }
 
         .name-link {
-            color: var(--primary); font-weight: 700; background: var(--primary-light);
+            color: var(--brand); font-weight: 700; background: var(--brand-bg);
             padding: 3px 10px; border-radius: 20px; cursor: pointer;
-            transition: all var(--transition); font-size: 0.88rem;
+            transition: all var(--transition); font-size: 0.84rem;
         }
-        .name-link:hover { background: var(--primary); color: white; }
+        .name-link:hover { background: var(--brand); color: white; }
 
-        .export-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .exp-btn { padding: 7px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; gap: 7px; transition: all var(--transition); color: white; }
-        .exp-btn:hover { transform: translateY(-2px); }
+        .export-row { display: flex; gap: 7px; flex-wrap: wrap; }
+        .exp-btn { padding: 6px 14px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 0.76rem; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all var(--transition); color: white; }
+        .exp-btn:hover { transform: translateY(-2px); opacity: 0.9; }
         .exp-csv  { background: var(--info); }
         .exp-pdf  { background: var(--danger); }
         .exp-copy { background: var(--warning); }
 
-        .class-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg); border-radius: 10px; border: 1.5px solid var(--border); margin-bottom: 10px; transition: border-color var(--transition); }
-        .class-item:hover { border-color: var(--primary); }
-        .class-order { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 290; backdrop-filter: blur(2px); }
 
-        .uncle-img-wrap { position: relative; width: 80px; height: 80px; cursor: pointer; border-radius: 50%; overflow: hidden; }
-        .uncle-img-wrap .uncle-init { width: 100%; height: 100%; object-fit: cover; background: linear-gradient(135deg, var(--primary-light), white); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; color: var(--primary); border-radius: 50%; }
-        .uncle-img-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--transition); border-radius: 50%; color: white; font-size: 1.2rem; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+
+        .divider-line { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; }
+        .info-box { background: var(--surface-2); padding: 11px; border-radius: 10px; border: 1px solid var(--border); }
+        .info-box small { color: var(--muted); font-size: 0.7rem; display: flex; align-items: center; gap: 4px; }
+        .info-box div { font-weight: 700; font-size: 0.9rem; margin-top: 4px; }
+
+        .att-present td { background: #f0fdf4 !important; }
+        .att-absent  td { background: #fef2f2 !important; }
+
+        .class-item { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: var(--surface-2); border-radius: 10px; border: 1.5px solid var(--border); margin-bottom: 9px; transition: border-color var(--transition); }
+        .class-item:hover { border-color: var(--brand); }
+        .class-order { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.76rem; flex-shrink: 0; }
+
+        .uncle-img-wrap { position: relative; width: 76px; height: 76px; cursor: pointer; border-radius: 50%; overflow: hidden; }
+        .uncle-img-wrap .uncle-init { width: 100%; height: 100%; background: linear-gradient(135deg, var(--brand-bg), white); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; font-weight: 800; color: var(--brand); border-radius: 50%; }
+        .uncle-img-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--transition); border-radius: 50%; color: white; font-size: 1.1rem; }
         .uncle-img-wrap:hover .uncle-img-overlay { opacity: 1; }
 
-        .year-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .month-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-        .month-tab { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all var(--transition); background: white; }
-        .month-tab:hover { border-color: var(--primary); color: var(--primary); }
-        .month-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        /* Container loading spinner */
+        .container-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 24px; justify-content: center; font-size: 0.86rem; }
+        .spin-icon { width: 18px; height: 18px; border: 2.5px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .summary-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin-bottom: 20px; }
-        .sbox { background: white; border-radius: 12px; padding: 16px; border: 1px solid var(--border); text-align: center; }
-        .sbox .sv { font-size: 1.8rem; font-weight: 900; }
-        .sbox .sl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+        /* Notif badge */
+        .notif-badge {
+            position: absolute; top: 4px; left: 4px;
+            min-width: 17px; height: 17px;
+            background: var(--danger); border-radius: 9px;
+            border: 2px solid white; font-size: 0.58rem;
+            font-weight: 900; color: white;
+            display: none; align-items: center; justify-content: center; padding: 0 3px;
+        }
 
-        @media (max-width: 1024px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        /* Notification items */
+        .notif-item { padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; position: relative; }
+        .notif-item:hover { background: var(--brand-bg); border-color: var(--brand-light); }
+        .notif-item.unread { background: var(--brand-bg); border-color: var(--brand-light); }
+        .notif-item.unread::before { content: ''; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 7px; height: 7px; border-radius: 50%; background: var(--brand); }
+        .notif-type-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8rem; }
+        .notif-title { font-size: 0.84rem; font-weight: 700; color: var(--text); }
+        .notif-body { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+        .notif-time { font-size: 0.66rem; color: var(--muted); }
+
+        /* Dev items */
+        .dev-only { display: none !important; }
+        .show-dev .dev-only { display: flex !important; }
+        div.dev-only { display: none !important; }
+        .show-dev div.dev-only { display: block !important; }
+        button.dev-only { display: none !important; }
+        .show-dev button.dev-only { display: flex !important; }
+
+        /* Dev msg items */
+        .dev-msg-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+        .dev-msg-item.unread { border-color: var(--brand-light); }
+        .dev-msg-header { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+        .dev-msg-body-text { padding: 0 16px 14px; font-size: 0.84rem; color: var(--text-2); line-height: 1.6; }
+
+        /* Trips grid */
+        .trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
+        .churches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
+
+        /* Registration row */
+        .reg-row { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; background: white; }
+        .reg-ava { width: 38px; height: 38px; border-radius: 50%; background: var(--brand-bg); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: var(--brand); flex-shrink: 0; overflow: hidden; }
+
+        /* Slide-in panel */
+        @keyframes slideFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* Notif panel */
+        .nps-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 20px; color: var(--muted); font-size: 0.84rem; text-align: center; }
+        .nps-empty-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--muted); }
+        .nps-item { padding: 12px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; margin-bottom: 7px; }
+        .nps-item:hover { background: var(--brand-bg); border-color: var(--brand-light); }
+        .nps-item.unread { background: var(--brand-bg); border-color: var(--brand-light); }
+        .nps-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .nps-unread-dot { width: 8px; height: 8px; background: var(--brand); border-radius: 50%; }
+        .nps-delete-btn { border: none; background: none; color: var(--muted); cursor: pointer; padding: 4px; border-radius: 5px; transition: color 0.15s; }
+        .nps-delete-btn:hover { color: var(--danger); }
+        .nps-item-title { font-size: 0.84rem; font-weight: 700; color: var(--text); }
+        .nps-item-body { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+        .nps-item-footer { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+        .nps-item-time { font-size: 0.66rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+        .nps-item-action { font-size: 0.66rem; color: var(--brand); font-weight: 700; }
+
+        /* ── Special date / attendance date picker styles ── */
+        .date-nav-bar {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .date-nav-bar .date-display {
+            flex: 1; min-width: 150px;
+            background: var(--brand-bg); color: var(--brand);
+            padding: 7px 14px; border-radius: 10px;
+            font-weight: 800; font-size: 0.86rem; text-align: center;
+            border: 1.5px solid var(--brand-light); cursor: pointer;
+            transition: all 0.15s;
+        }
+        .date-nav-bar .date-display:hover { background: var(--brand); color: white; }
+
+        /* ── RESPONSIVE ═══════════════════════════════════════════ */
+        @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 1024px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(100%); box-shadow: none; width: var(--sidebar-w) !important; }
-            .sidebar.mobile-open { transform: translateX(0); box-shadow: -8px 0 40px rgba(0,0,0,0.2); }
+            .sidebar.mobile-open { transform: translateX(0); box-shadow: -8px 0 40px rgba(0,0,0,0.25); }
             .sidebar-toggle { display: none; }
             .main-wrapper { margin-right: 0 !important; }
             .mobile-menu-btn { display: flex; }
-            .topbar { padding: 0 16px; }
-            .main-content { padding: 14px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .trips-grid { grid-template-columns: 1fr; }
-            .churches-grid { grid-template-columns: 1fr; }
-            /* Enhanced mobile fixes */
-            .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .topbar { padding: 0 14px; }
+            .main-content { padding: 12px; }
+            .stats-row { grid-template-columns: repeat(2,1fr); gap: 10px; }
+            .card-header { flex-direction: column; align-items: flex-start; }
             .card-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
-            .toolbar { gap: 8px; }
-            .export-row { flex-wrap: wrap; }
-            .uncle-report-row { flex-wrap: wrap; gap: 10px; }
+            .toolbar { gap: 7px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .uncle-report-row { flex-wrap: wrap; gap: 8px; }
             .uncle-report-stats { width: 100%; justify-content: flex-start; }
             .uncle-progress-wrap { min-width: 100%; }
-            .att-tabs { gap: 0; }
-            .att-tab { padding: 10px 12px; font-size: .8rem; }
+            .att-tab { font-size: 0.74rem; padding: 8px 8px; gap: 4px; }
+            .modal-box { margin: 8px; width: calc(100% - 16px) !important; max-width: none !important; }
             .friday-grid { grid-template-columns: 1fr 1fr; }
-            .summary-box { grid-template-columns: repeat(2, 1fr); }
+            .summary-box { grid-template-columns: repeat(2,1fr); }
             .year-selector { justify-content: center; }
-            .modal-box { margin: 10px; width: calc(100% - 20px) !important; max-width: none !important; }
-            .form-grid { grid-template-columns: 1fr !important; }
-            .topbar-title { font-size: .95rem; }
+            .topbar-title { font-size: 0.9rem; }
+            .trips-grid, .churches-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
-            .stats-row { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
             .friday-grid { grid-template-columns: 1fr; }
             .summary-box { grid-template-columns: 1fr 1fr; }
-            .uncle-report-row { padding: 12px; }
-            .uncle-report-stats { gap: 6px; }
-            .uncle-stat-box { padding: 4px 8px; font-size: .7rem; }
+            .uncle-report-row { padding: 10px; }
+            .uncle-stat-box { padding: 3px 7px; font-size: 0.68rem; }
             .stat-info h3 { font-size: 1.6rem; }
-            .btn { padding: 8px 14px; font-size: .82rem; }
-            .exp-btn { padding: 6px 10px; font-size: .72rem; }
-            .att-tab { padding: 8px 10px; font-size: .75rem; gap: 4px; }
+            .btn { padding: 8px 12px; font-size: 0.8rem; }
             .att-tab i { display: none; }
+            .att-tab { padding: 8px 6px; font-size: 0.72rem; }
         }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 290; backdrop-filter: blur(2px); }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
-        .divider-line { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
-        .info-box { background: var(--bg); padding: 12px; border-radius: 10px; }
-        .info-box small { color: var(--muted); font-size: 0.75rem; }
-        .info-box div { font-weight: 700; font-size: 0.95rem; margin-top: 4px; }
-        .att-present td { background: #f0fdf4 !important; }
-        .att-absent  td { background: #fff5f5 !important; }
-        .funded-badge  { background: #ecfdf5; color: #065f46; }
-        .paid-badge    { background: #eff6ff; color: #1e40af; }
-        .divided-badge { background: #fef9c3; color: #854d0e; }
-
-        @keyframes slideFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        /* Notification items */
-        .notif-item {
-            padding: 12px 14px;
-            border-radius: 10px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            cursor: pointer;
-            transition: all .15s;
-            position: relative;
-        }
-        .notif-item:hover { background: #f0f4ff; border-color: #c7d2fe; }
-        .notif-item.unread { background: #eef2ff; border-color: #c7d2fe; }
-        .notif-item.unread::before {
-            content: '';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4f46e5;
-        }
-        .notif-type-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .85rem;
-            flex-shrink: 0;
-        }
-        .notif-title { font-size: .85rem; font-weight: 700; color: #1e293b; }
-        .notif-body  { font-size: .76rem; color: #64748b; margin-top: 2px; line-height: 1.4; }
-        .notif-time  { font-size: .68rem; color: #94a3b8; margin-top: 4px; }
-        /* Dev message items */
-        .dev-msg-item {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: box-shadow .15s;
-        }
-        .dev-msg-item.unread { border-right: 4px solid #7c3aed; }
-        .dev-msg-header {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .dev-msg-body-text { padding: 12px 16px; font-size: .88rem; color: #334155; line-height: 1.6; }
-
-        /* dev section hidden by default */
-        .dev-only { display: none; }
-
-        /* ── SORT CHIPS ── */
-        .sort-bar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-        .sort-chip {
-            display:inline-flex; align-items:center; gap:5px;
-            padding:6px 14px; border:1.5px solid var(--border);
-            border-radius:20px; font-size:0.78rem; font-weight:600;
-            cursor:pointer; transition:all .18s; background:white; color:var(--muted);
-            user-select:none;
-        }
-        .sort-chip:hover { border-color:var(--primary); color:var(--primary); }
-        .sort-chip.active { background:var(--primary); color:white; border-color:var(--primary); }
-        .sort-chip i { font-size:0.68rem; }
-
-        /* ── TRIP DETAIL TABS ── */
-        .td-tabs {
-            display:flex; gap:0; border-bottom:2px solid var(--border);
-            margin:-24px -24px 20px -24px; padding:0 20px;
-            background:#fafbff; overflow-x:auto;
-        }
-        .td-tab {
-            padding:13px 18px; font-size:0.85rem; font-weight:700;
-            color:var(--muted); cursor:pointer; border-bottom:3px solid transparent;
-            margin-bottom:-2px; transition:all .18s; white-space:nowrap;
-            display:flex; align-items:center; gap:7px;
-        }
-        .td-tab:hover { color:var(--primary); }
-        .td-tab.active { color:var(--primary); border-bottom-color:var(--primary); background:white; }
-        /* dark header version */
-        #tdHeader .td-tabs { background:transparent; border-bottom:none; margin:0; padding:0; }
-        #tdHeader .td-tab { color:rgba(255,255,255,0.55); border-bottom-color:transparent; }
-        #tdHeader .td-tab:hover { color:rgba(255,255,255,0.9); }
-        #tdHeader .td-tab.active { color:white; border-bottom-color:white; background:rgba(255,255,255,0.08); border-radius:8px 8px 0 0; }
-        .td-panel { display:none; animation:fadeSlide .22s ease; }
-        .td-panel.active { display:block; }
-        .td-badge {
-            background:var(--primary); color:white; font-size:0.6rem;
-            font-weight:800; padding:2px 7px; border-radius:12px; min-width:18px; text-align:center;
-        }
-        .td-badge.warn { background:var(--danger); }
-
-        /* ── KID SELECTOR GRID ── */
-        .kid-picker-search {
-            position:relative; margin-bottom:10px;
-        }
-        .kid-picker-search i { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.82rem; pointer-events:none; }
-        .kid-picker-search input { width:100%; padding:9px 36px 9px 12px; border:1.5px solid var(--border); border-radius:10px; font-family:'Cairo',sans-serif; font-size:0.85rem; background:var(--bg); transition:all .18s; }
-        .kid-picker-search input:focus { outline:none; border-color:var(--primary); background:white; }
-        .kid-picker-filters { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
-        .kpf-chip {
-            padding:4px 12px; border:1.5px solid var(--border); border-radius:16px;
-            font-size:0.75rem; font-weight:600; cursor:pointer; background:white;
-            color:var(--muted); transition:all .15s;
-        }
-        .kpf-chip:hover { border-color:var(--primary); color:var(--primary); }
-        .kpf-chip.active { background:var(--primary); color:white; border-color:var(--primary); }
-        .kid-grid {
-            display:grid; grid-template-columns:repeat(auto-fill, minmax(96px,1fr));
-            gap:8px; max-height:280px; overflow-y:auto; padding:4px 2px;
-        }
-        .kid-grid::-webkit-scrollbar { width:4px; }
-        .kid-grid::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:4px; }
-        .kid-card {
-            border:2px solid var(--border); border-radius:12px;
-            padding:10px 6px 8px; text-align:center; cursor:pointer;
-            transition:all .18s cubic-bezier(.4,0,.2,1);
-            background:white; position:relative;
-        }
-        .kid-card:hover { border-color:var(--primary); transform:translateY(-2px); box-shadow:0 4px 14px rgba(79,70,229,.14); }
-        .kid-card.selected { border-color:var(--primary); background:var(--primary-light); }
-        .kid-card.selected::after {
-            content:'✓'; position:absolute; top:-7px; right:-7px;
-            width:20px; height:20px; background:var(--primary); color:white;
-            border-radius:50%; font-size:0.65rem; font-weight:800;
-            display:flex; align-items:center; justify-content:center;
-            border:2px solid white; line-height:1;
-        }
-        .kid-avatar {
-            width:46px; height:46px; border-radius:50%; margin:0 auto 7px;
-            object-fit:cover; border:2.5px solid var(--primary-light);
-            background:linear-gradient(135deg,var(--primary-light),#f0f2f7);
-            display:flex; align-items:center; justify-content:center;
-            font-size:1.1rem; font-weight:800; color:var(--primary);
-            overflow:hidden; position:relative;
-        }
-        .kid-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-        .kid-num {
-            position:absolute; bottom:-3px; right:-3px;
-            background:var(--primary); color:white; font-size:0.55rem;
-            font-weight:800; padding:1px 4px; border-radius:8px; border:1.5px solid white;
-        }
-        .kid-name { font-size:0.72rem; font-weight:700; color:var(--text); line-height:1.3; }
-        .kid-cls { font-size:0.62rem; color:var(--muted); margin-top:2px; background:var(--bg); padding:1px 5px; border-radius:8px; display:inline-block; }
-        .kid-selected-info { margin-top:10px; padding:10px 14px; background:var(--primary-light); border-radius:10px; font-size:0.82rem; color:var(--primary); font-weight:600; min-height:36px; transition:all .2s; }
-
-        /* ── INLINE CONTAINER LOADING ── */
-        @keyframes spin { to { transform:rotate(360deg); } }
-        @keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
-        .btn-loading { position:relative; color:transparent !important; pointer-events:none; }
-        .btn-loading::after {
-            content:''; position:absolute; width:16px; height:16px;
-            border:2.5px solid rgba(255,255,255,0.4); border-top-color:white;
-            border-radius:50%; animation:spin .7s linear infinite;
-            top:50%; left:50%; transform:translate(-50%,-50%);
-        }
-        .btn-loading.dark::after { border-color:rgba(79,70,229,.3); border-top-color:var(--primary); }
-        .container-loading {
-            display:flex; align-items:center; justify-content:center;
-            gap:10px; padding:32px 20px; color:var(--muted); font-size:0.85rem; font-weight:600;
-        }
-        .container-loading .spin-icon {
-            width:28px; height:28px; border:3px solid var(--primary-light);
-            border-top-color:var(--primary); border-radius:50%;
-            animation:spin .8s linear infinite; flex-shrink:0;
-        }
-        .skel {
-            background:linear-gradient(90deg,#f0f2f7 25%,#e8eaf0 50%,#f0f2f7 75%);
-            background-size:600px 100%; animation:shimmer 1.3s infinite; border-radius:8px;
-        }
-        .trip-card-skel { height:240px; border-radius:var(--radius); }
-
-        /* ── EXPENSE ROW ENHANCED ── */
-        .exp-row {
-            display:flex; align-items:center; gap:12px;
-            padding:12px 14px; background:white; border-radius:11px;
-            border:1.5px solid var(--border); margin-bottom:8px;
-            transition:all .15s; position:relative; overflow:hidden;
-        }
-        .exp-row::before { content:''; position:absolute; right:0; top:0; bottom:0; width:3px; border-radius:0 3px 3px 0; }
-        .exp-row.kids::before { background:var(--primary); }
-        .exp-row.funded::before { background:var(--success); }
-        .exp-row.partial::before { background:var(--warning); }
-        .exp-row:hover { border-color:var(--primary-light); transform:translateX(-1px); box-shadow:var(--shadow); }
-        .exp-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; flex-shrink:0; }
-
-        /* ── REGISTRANT MODERN ROWS ── */
-        .reg-row {
-            display:flex; align-items:center; gap:12px;
-            padding:11px 14px; background:white; border-radius:12px;
-            border:1.5px solid var(--border); margin-bottom:8px; transition:all .15s;
-        }
-        .reg-row:hover { border-color:var(--primary-light); box-shadow:var(--shadow); }
-        .reg-ava { width:40px; height:40px; border-radius:50%; flex-shrink:0; overflow:hidden; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--primary); font-size:0.88rem; border:2px solid var(--primary-light); }
-        .reg-ava img { width:100%; height:100%; object-fit:cover; }
-        .reg-info { flex:1; min-width:0; }
-        .reg-info strong { font-size:0.85rem; display:block; }
-        .reg-info span { font-size:0.72rem; color:var(--muted); }
-        .reg-bar { height:4px; background:var(--border); border-radius:99px; overflow:hidden; margin-top:5px; }
-        .reg-bar-fill { height:100%; border-radius:99px; transition:width .5s ease; }
-        .reg-amounts { text-align:left; flex-shrink:0; }
-        .reg-paid-lbl { font-size:0.78rem; font-weight:800; color:var(--success); }
-        .reg-rem-lbl { font-size:0.7rem; color:var(--danger); }
-        .reg-actions { display:flex; gap:5px; flex-shrink:0; }
-
-        /* ── PRICE BREAKDOWN BANNER ── */
-        .price-banner {
-            background:linear-gradient(135deg,var(--primary),#6366f1);
-            border-radius:12px; padding:14px 18px; color:white;
-            display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
-        }
-        .price-banner .pb-label { font-size:0.78rem; opacity:.8; margin-bottom:2px; }
-        .price-banner .pb-val { font-size:1.6rem; font-weight:900; }
-        .price-banner .pb-breakdown { font-size:0.72rem; opacity:.75; margin-top:2px; }
-        #devChurchSelect option {
-    color: black;
-}
-        /* Audit detail modal styles */
-#auditDetailModal .modal-box {
-    max-width: 800px;
-}
-
-#auditDetailModal .modal-body {
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.audit-change-item {
-    margin-bottom: 12px;
-    padding: 12px;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    transition: all var(--transition);
-}
-
-.audit-change-item:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow);
-}
-
-.audit-field-name {
-    font-weight: 600;
-    color: var(--primary);
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-}
-
-.audit-values {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 12px;
-    align-items: center;
-}
-
-.audit-old-value {
-    background: #fff5f5;
-    padding: 8px;
-    border-radius: 6px;
-    color: var(--danger);
-    text-decoration: line-through;
-    word-break: break-word;
-}
-
-.audit-new-value {
-    background: #f0fdf4;
-    padding: 8px;
-    border-radius: 6px;
-    color: var(--success);
-    word-break: break-word;
-}
-
-.audit-arrow {
-    color: var(--primary);
-    font-size: 1.2rem;
-}
-        /* ══ UNCLE ATTENDANCE STYLES ════════════════════════════ */
-        .att-tabs { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:20px; overflow-x:auto; }
-        .att-tab {
-            padding:12px 20px; font-size:.875rem; font-weight:700;
-            color:var(--muted); cursor:pointer; border-bottom:3px solid transparent;
-            margin-bottom:-2px; transition:all .18s; white-space:nowrap;
-            display:flex; align-items:center; gap:8px; background:none; border-top:none; border-left:none; border-right:none;
-            font-family:'Cairo',sans-serif;
-        }
-        .att-tab:hover { color:var(--primary); }
-        .att-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
-        .att-tab-panel { display:none; }
-        .att-tab-panel.active { display:block; }
-
-        /* Uncle report table */
-        .uncle-report-row { display:flex; align-items:center; gap:14px; padding:14px 16px; background:white; border-radius:12px; border:1.5px solid var(--border); margin-bottom:10px; transition:all .18s; }
-        .uncle-report-row:hover { border-color:var(--primary-light); box-shadow:var(--shadow); transform:translateX(-2px); }
-        .uncle-rank-badge { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:900; flex-shrink:0; }
-        .uncle-rank-badge.gold   { background:#fef3c7; color:#92400e; border:2px solid #f59e0b; }
-        .uncle-rank-badge.silver { background:#f1f5f9; color:#475569; border:2px solid #94a3b8; }
-        .uncle-rank-badge.bronze { background:#fef6ee; color:#9a3412; border:2px solid #f97316; }
-        .uncle-rank-badge.other  { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); }
-        .uncle-att-ava { width:42px; height:42px; border-radius:50%; overflow:hidden; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--primary); font-size:.9rem; flex-shrink:0; border:2px solid var(--primary-light); }
-        .uncle-att-ava img { width:100%; height:100%; object-fit:cover; }
-        .uncle-report-info { flex:1; min-width:0; }
-        .uncle-report-name { font-size:.88rem; font-weight:800; color:var(--text); }
-        .uncle-report-meta { font-size:.72rem; color:var(--muted); margin-top:2px; }
-        .uncle-progress-wrap { flex:1; max-width:160px; }
-        .uncle-progress-bar { height:6px; background:var(--border); border-radius:99px; overflow:hidden; margin-top:4px; }
-        .uncle-progress-fill { height:100%; border-radius:99px; transition:width .6s ease; }
-        .uncle-report-stats { display:flex; gap:10px; flex-shrink:0; text-align:center; }
-        .uncle-stat-box { padding:6px 12px; border-radius:8px; font-size:.75rem; font-weight:800; }
-        .uncle-stat-box.present { background:var(--success-light); color:#065f46; }
-        .uncle-stat-box.absent  { background:var(--danger-light);  color:#991b1b; }
-
-        /* Day ranking */
-        .day-rank-row { display:flex; align-items:center; gap:14px; padding:12px 16px; background:white; border-radius:10px; border:1.5px solid var(--border); margin-bottom:8px; }
-        .day-rank-bar-wrap { flex:1; }
-        .day-rank-label { font-size:.78rem; font-weight:700; margin-bottom:4px; color:var(--text); display:flex; justify-content:space-between; }
-        .day-rank-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; }
-        .day-rank-fill { height:100%; border-radius:99px; background:linear-gradient(90deg, var(--primary), #818cf8); }
-
-        /* Uncle attendance modal items */
-        .uncle-att-item {
-            display:flex; align-items:center; gap:12px;
-            padding:11px 14px; border:1.5px solid var(--border);
-            border-radius:10px; margin-bottom:8px; transition:border-color .15s; background:white;
-        }
-        .uncle-att-item .toggle-btns { display:flex; gap:6px; margin-right:auto; }
-        .att-toggle-btn {
-            padding:5px 14px; border:1.5px solid var(--border); border-radius:8px;
-            cursor:pointer; font-family:'Cairo',sans-serif; font-size:.78rem; font-weight:700;
-            transition:all .15s; background:white;
-        }
-        .att-toggle-btn.present { border-color:var(--success); color:var(--success); background:var(--success-light); }
-        .att-toggle-btn.absent  { border-color:var(--danger);  color:var(--danger);  background:var(--danger-light); }
-        .att-toggle-btn:not(.present):not(.absent):hover { border-color:var(--primary); color:var(--primary); }
-
-        /* ══ ENHANCED DESIGN ════════════════════════════════════ */
-        .friday-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
-        .friday-card {
-            background:white; border:1.5px solid var(--border); border-radius:14px;
-            padding:18px 16px; cursor:pointer; transition:all .22s;
-            display:flex; flex-direction:column; gap:10px;
-        }
-        .friday-card:hover { border-color:var(--primary); transform:translateY(-3px); box-shadow:var(--shadow-lg); }
-        .friday-card .date { font-size:.85rem; font-weight:700; color:var(--text); }
-        .friday-card .stats { display:flex; gap:6px; flex-wrap:wrap; }
-        .friday-card .stats span { padding:4px 10px; border-radius:20px; font-size:.75rem; font-weight:700; }
-        @media(max-width:768px) { .friday-grid { grid-template-columns:1fr 1fr; } }
-        @media(max-width:480px) { .friday-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -937,14 +761,13 @@
 <aside class="sidebar" id="sidebar">
     <button class="sidebar-toggle" onclick="toggleSidebar()" title="طي القائمة"><i class="fas fa-chevron-right"></i></button>
     <div class="sidebar-brand">
-        <div class="brand-icon"><i class="fas fa-church"></i></div>
+        <div class="brand-icon" id="sidebarBrandIcon"><i class="fas fa-church"></i></div>
         <div class="brand-text">
             <h2 id="sidebarChurchName">مدارس الأحد</h2>
             <p id="sidebarChurchCode">لوحة الإدارة</p>
         </div>
     </div>
     <nav class="sidebar-nav">
-         <!-- DEVELOPER SECTION -->
         <div class="nav-section-label dev-only" id="devNavLabel">مطور النظام</div>
         <button class="nav-item dev-item dev-only" onclick="switchTab('devChurches', this)" data-tooltip="الكنائس" id="devChurchesBtn">
             <i class="fas fa-building"></i><span class="label">إدارة الكنائس</span>
@@ -955,16 +778,16 @@
         </button>
         <div class="nav-section-label">الإدارة</div>
         <button class="nav-item" onclick="switchTab('uncles', this)" data-tooltip="الخُدام">
-            <i class="fas fa-user-tie"></i><span class="label">الخُدام</span>
+            <i class="fas fa-user-tie"></i><span class="label" id="navLabelUncles">الخُدام</span>
         </button>
         <button class="nav-item" onclick="switchTab('students', this)" data-tooltip="الأطفال">
-            <i class="fas fa-child"></i><span class="label">الأطفال</span>
+            <i class="fas fa-child"></i><span class="label" id="navLabelStudents">الأطفال</span>
         </button>
         <button class="nav-item" onclick="switchTab('attendance', this)" data-tooltip="الحضور">
             <i class="fas fa-calendar-check"></i><span class="label">الحضور</span>
         </button>
         <button class="nav-item" onclick="switchTab('trips', this)" data-tooltip="الرحلات">
-            <i class="fas fa-bus"></i><span class="label">الرحلات</span>
+            <i class="fas fa-bus"></i><span class="label" id="navLabelTrips">الرحلات</span>
             <span class="nav-badge" id="tripsCount" data-count="0">0</span>
         </button>
         <div class="nav-section-label">الإعدادات</div>
@@ -975,9 +798,9 @@
             <i class="fas fa-hourglass-half"></i><span class="label">الطلبات المعلقة</span>
             <span class="nav-badge" id="pendingCount" data-count="0">0</span>
         </button>
-       <button class="nav-item" onclick="switchTab('history', this)" data-tooltip="السجل">
-    <i class="fas fa-scroll"></i><span class="label">سجل العمليات</span>
-</button>
+        <button class="nav-item" onclick="switchTab('history', this)" data-tooltip="السجل">
+            <i class="fas fa-scroll"></i><span class="label">سجل العمليات</span>
+        </button>
         <button class="nav-item" onclick="switchTab('churchSettings', this)" data-tooltip="إعدادات الكنيسة">
             <i class="fas fa-sliders-h"></i><span class="label">إعدادات الكنيسة</span>
         </button>
@@ -997,7 +820,6 @@
         </div>
     </div>
 </aside>
-
 <!-- MAIN -->
 <div class="main-wrapper" id="mainWrapper">
     <header class="topbar">
@@ -1341,24 +1163,34 @@
 
                     <!-- UNCLE ATTENDANCE TAB -->
                     <div id="attTabUncles" class="att-tab-panel">
-                        <div class="year-selector" style="margin-bottom:12px;">
-                            <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(-1)"><i class="fas fa-chevron-right"></i></button>
-                            <span id="uncleAttYearDisplay" style="font-weight:700;font-size:1.1rem;min-width:60px;text-align:center;"></span>
-                            <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(1)"><i class="fas fa-chevron-left"></i></button>
+                        <!-- Date Navigation Bar -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+                            <div class="year-selector">
+                                <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(-1)" style="padding:5px 10px;"><i class="fas fa-chevron-right"></i></button>
+                                <span id="uncleAttYearDisplay">2026</span>
+                                <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(1)" style="padding:5px 10px;"><i class="fas fa-chevron-left"></i></button>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-outline btn-sm" onclick="showUncleAttDatePickerModal()"><i class="fas fa-calendar-alt"></i> اختر تاريخاً</button>
+                                <button class="btn btn-primary btn-sm" onclick="showAddUncleAttendanceModal()"><i class="fas fa-plus"></i> تسجيل حضور الخُدام</button>
+                            </div>
                         </div>
                         <div class="month-tabs" id="uncleAttMonthTabs"></div>
-                        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
-                            <button class="btn btn-primary btn-sm" onclick="showAddUncleAttendanceModal()"><i class="fas fa-plus"></i> تسجيل حضور الخُدام</button>
-                        </div>
+                        <!-- Special dates added by admin -->
+                        <div id="uncleSpecialDatesList" style="margin-bottom:12px;"></div>
                         <div id="uncleFridaysList"></div>
                         <div id="uncleAttendanceDetail" style="display:none;margin-top:20px;">
-                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
                                 <button class="btn btn-outline btn-sm" onclick="closeUncleAttendanceDetail()"><i class="fas fa-arrow-right"></i> رجوع</button>
-                                <h3 id="uncleAttDetailTitle" style="font-size:1rem;font-weight:700;"></h3>
+                                <h3 id="uncleAttDetailTitle" style="font-size:0.95rem;font-weight:800;flex:1;"></h3>
+                                <button class="btn btn-sm" style="background:var(--warning);color:white;" onclick="showUncleAttDatePickerModal(true)"><i class="fas fa-calendar-day"></i> تغيير التاريخ</button>
                             </div>
                             <div class="summary-box" id="uncleAttSummaryBoxes"></div>
                             <div class="table-wrap">
-                                <table><thead><tr><th>#</th><th>الاسم</th><th>الدور</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="uncleAttendanceTable"></tbody></table>
+                                <table>
+                                    <thead><tr><th>#</th><th>الاسم</th><th>الدور</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+                                    <tbody id="uncleAttendanceTable"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -7188,7 +7020,11 @@ function toggleFieldPwd(inputId, iconId) {
     const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
     // ══════════════════════════════════════════════════════════════
-    // UNCLE ATTENDANCE SYSTEM
+    // Wire into tab switch
+    const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
+
+    // ══════════════════════════════════════════════════════════════
+    // UNCLE ATTENDANCE SYSTEM — ENHANCED
     // ══════════════════════════════════════════════════════════════
     let currentUncleAttYear  = new Date().getFullYear();
     let currentUncleAttMonth = new Date().getMonth();
@@ -7196,6 +7032,8 @@ function toggleFieldPwd(inputId, iconId) {
     let uncleAttData         = {};
     let reportYear           = new Date().getFullYear();
     let currentUncleAttTab   = 'kids';
+    // Stores extra (non-Friday) dates added by admin for this church
+    let uncleSpecialDates    = [];
 
     function switchAttTab(tab, btn) {
         currentUncleAttTab = tab;
@@ -7213,161 +7051,403 @@ function toggleFieldPwd(inputId, iconId) {
         document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear;
         renderUncleMonthTabs(); renderUncleFridayCards();
     }
-    function changeUncleAttYear(delta) { currentUncleAttYear += delta; document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear; renderUncleMonthTabs(); renderUncleFridayCards(); }
+
+    function changeUncleAttYear(delta) {
+        currentUncleAttYear += delta;
+        document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear;
+        renderUncleMonthTabs(); renderUncleFridayCards();
+    }
+
     function renderUncleMonthTabs() {
         const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
         document.getElementById('uncleAttMonthTabs').innerHTML = months.map((m,i) =>
-            `<button class="month-tab ${i===currentUncleAttMonth?'active':''}" onclick="selectUncleMonth(${i},this)">${m}</button>`).join('');
+            `<button class="month-tab ${i===currentUncleAttMonth?'active':''}" onclick="selectUncleMonth(${i},this)">${m}</button>`
+        ).join('');
     }
+
     function selectUncleMonth(idx, btn) {
         currentUncleAttMonth = idx;
         document.querySelectorAll('#uncleAttMonthTabs .month-tab').forEach(t=>t.classList.remove('active'));
         if (btn) btn.classList.add('active');
         document.getElementById('uncleAttendanceDetail').style.display = 'none';
         document.getElementById('uncleFridaysList').style.display = 'block';
+        const sp = document.getElementById('uncleSpecialDatesList');
+        if (sp) sp.style.display = 'block';
         renderUncleFridayCards();
     }
-    function renderUncleFridayCards() {
-        const fridays = getFridaysInMonth(currentUncleAttYear, currentUncleAttMonth);
-        const c = document.getElementById('uncleFridaysList');
-        if (!fridays.length) { c.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام جمعة في هذا الشهر</h3></div>`; return; }
-        c.innerHTML = `<div class="friday-grid">${fridays.map(f => {
-            const y=f.getFullYear(),mo=String(f.getMonth()+1).padStart(2,'0'),d=String(f.getDate()).padStart(2,'0'),iso=`${y}-${mo}-${d}`;
-            const ds=f.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'});
-            return `<div class="friday-card" onclick="loadUncleAttendanceForDate('${iso}')">
-                <div class="date"><i class="fas fa-calendar-day" style="color:var(--primary);margin-left:6px;"></i>${ds}</div>
-                <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="uatt_${iso}_p">---</span><span style="background:var(--danger-light);color:#991b1b;" id="uatt_${iso}_a">---</span></div>
-            </div>`;
-        }).join('')}</div>`;
-        fridays.forEach(f => {
-            const y=f.getFullYear(),mo=String(f.getMonth()+1).padStart(2,'0'),d=String(f.getDate()).padStart(2,'0'),iso=`${y}-${mo}-${d}`;
-            const fd2=mkFd('getUncleAttendanceByDate'); fd2.append('date',iso);
-            fetch(API_URL,{method:'POST',body:fd2}).then(r=>r.json()).then(data=>{
-                if(!data.success)return;
-                const att=data.attendance||[];
-                const ep=document.getElementById(`uatt_${iso}_p`),ea=document.getElementById(`uatt_${iso}_a`);
-                if(ep)ep.textContent=`✅ ${att.filter(a=>a.status==='present').length}`;
-                if(ea)ea.textContent=`❌ ${att.filter(a=>a.status==='absent').length}`;
+
+    // ── Special Dates (non-Friday extra dates) ──────────────────
+    function addUncleSpecialDate(dateStr) {
+        if (!dateStr) return;
+        const key = `uncleSpecialDates_${getChurchId()}`;
+        let stored = [];
+        try { stored = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+        if (!stored.includes(dateStr)) { stored.push(dateStr); localStorage.setItem(key, JSON.stringify(stored)); }
+        uncleSpecialDates = stored;
+        renderUncleSpecialDates();
+        renderUncleFridayCards();
+    }
+
+    function removeUncleSpecialDate(dateStr) {
+        const key = `uncleSpecialDates_${getChurchId()}`;
+        let stored = [];
+        try { stored = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+        stored = stored.filter(d => d !== dateStr);
+        localStorage.setItem(key, JSON.stringify(stored));
+        uncleSpecialDates = stored;
+        renderUncleSpecialDates();
+        renderUncleFridayCards();
+    }
+
+    function loadUncleSpecialDates() {
+        const key = `uncleSpecialDates_${getChurchId()}`;
+        try { uncleSpecialDates = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { uncleSpecialDates = []; }
+    }
+
+    function renderUncleSpecialDates() {
+        const el = document.getElementById('uncleSpecialDatesList');
+        if (!el) return;
+        // Filter to current month/year
+        const filtered = uncleSpecialDates.filter(d => {
+            const dt = new Date(d + 'T00:00:00');
+            return dt.getFullYear() === currentUncleAttYear && dt.getMonth() === currentUncleAttMonth;
+        });
+        if (!filtered.length) { el.innerHTML = ''; return; }
+        el.innerHTML = `<div style="margin-bottom:12px;">
+            <div style="font-size:0.76rem;font-weight:800;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                <i class="fas fa-star" style="color:var(--warning);"></i> تواريخ مُضافة يدوياً
+            </div>
+            <div class="friday-grid">${filtered.map(d => {
+                const dt = new Date(d + 'T00:00:00');
+                const ds = dt.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+                return `<div class="friday-card" style="border-color:rgba(245,158,11,0.3);background:#fffbeb;" onclick="loadUncleAttendanceForDate('${d}')">
+                    <div class="date"><i class="fas fa-star" style="color:var(--warning);margin-left:6px;"></i>${ds}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="uatt_sp_${d}_p">---</span><span style="background:var(--danger-light);color:#991b1b;" id="uatt_sp_${d}_a">---</span></div>
+                        <button onclick="event.stopPropagation();removeUncleSpecialDate('${d}')" style="border:none;background:var(--danger-light);color:var(--danger);border-radius:6px;padding:3px 8px;font-size:0.7rem;cursor:pointer;" title="حذف"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>`;
+            }).join('')}</div>
+        </div>`;
+        // Load stats for special dates
+        filtered.forEach(d => {
+            const fd2 = mkFd('getUncleAttendanceByDate'); fd2.append('date', d);
+            fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json()).then(data => {
+                if (!data.success) return;
+                const att = data.attendance || [];
+                const ep = document.getElementById(`uatt_sp_${d}_p`);
+                const ea = document.getElementById(`uatt_sp_${d}_a`);
+                if (ep) ep.textContent = `✅ ${att.filter(a=>a.status==='present').length}`;
+                if (ea) ea.textContent = `❌ ${att.filter(a=>a.status==='absent').length}`;
             }).catch(()=>{});
         });
     }
+
+    // ── Date Picker Modal for Uncle Attendance ──────────────────
+    // inDetail: if true, just navigate to a different date in detail view
+    function showUncleAttDatePickerModal(inDetail = false) {
+        const today = new Date().toISOString().split('T')[0];
+        let modal = document.getElementById('uncleAttDatePickerModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'uncleAttDatePickerModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+            <div class="modal-box" style="max-width:420px;">
+                <div class="modal-head">
+                    <h2><i class="fas fa-calendar-alt"></i> اختر تاريخاً</h2>
+                    <button class="modal-close" onclick="closeModal('uncleAttDatePickerModal')"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">التاريخ</label>
+                        <input type="date" id="uncleAttDatePickerInput" class="form-input">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+                        <button class="btn btn-outline btn-sm" onclick="setUnclePickerDate('today')"><i class="fas fa-calendar-day"></i> اليوم</button>
+                        <button class="btn btn-outline btn-sm" onclick="setUnclePickerDate('lastFriday')"><i class="fas fa-step-backward"></i> جمعة سابقة</button>
+                        <button class="btn btn-outline btn-sm" onclick="setUnclePickerDate('prevFriday')"><i class="fas fa-backward"></i> جمعة قبلها</button>
+                    </div>
+                    <div style="padding:10px 14px;background:var(--brand-bg);border-radius:10px;border:1px solid var(--brand-light);margin-bottom:16px;font-size:0.78rem;color:var(--brand);">
+                        <i class="fas fa-info-circle" style="margin-left:5px;"></i>
+                        يمكنك اختيار أي تاريخ — أيام الجمعة أو تواريخ مميزة إضافية
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-primary" style="flex:2;" id="uncleAttDatePickerConfirm" onclick="confirmUncleAttDatePicker()"><i class="fas fa-check"></i> عرض الحضور</button>
+                        <button class="btn btn-success btn-sm" style="flex:1;" onclick="confirmUncleAttDatePicker(true)"><i class="fas fa-plus"></i> إضافة كتاريخ مميز</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="closeModal('uncleAttDatePickerModal')">إلغاء</button>
+                    </div>
+                </div>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+        document.getElementById('uncleAttDatePickerInput').value = currentUncleAttDate || today;
+        modal._inDetail = inDetail;
+        openModal('uncleAttDatePickerModal');
+    }
+
+    function setUnclePickerDate(type) {
+        const inp = document.getElementById('uncleAttDatePickerInput');
+        const today = new Date();
+        if (type === 'today') {
+            inp.value = today.toISOString().split('T')[0];
+        } else if (type === 'lastFriday') {
+            const d = new Date(today);
+            const diff = (today.getDay() + 2) % 7; // days since last Friday (Friday=5)
+            d.setDate(today.getDate() - (diff === 0 ? 7 : diff));
+            // fix: days since Friday
+            let daysBack = (today.getDay() - 5 + 7) % 7;
+            if (daysBack === 0) daysBack = 7;
+            d.setDate(today.getDate() - daysBack);
+            inp.value = d.toISOString().split('T')[0];
+        } else if (type === 'prevFriday') {
+            const cur = new Date(inp.value || today.toISOString().split('T')[0]);
+            let daysBack = (cur.getDay() - 5 + 7) % 7;
+            if (daysBack === 0) daysBack = 7;
+            cur.setDate(cur.getDate() - daysBack);
+            inp.value = cur.toISOString().split('T')[0];
+        }
+    }
+
+    function confirmUncleAttDatePicker(addAsSpecial = false) {
+        const dateVal = document.getElementById('uncleAttDatePickerInput').value;
+        if (!dateVal) { showToast('اختر تاريخاً','warning'); return; }
+        closeModal('uncleAttDatePickerModal');
+        if (addAsSpecial) {
+            addUncleSpecialDate(dateVal);
+            // Also navigate to that date
+            loadUncleAttendanceForDate(dateVal);
+            return;
+        }
+        // Navigate to selected date
+        const d = new Date(dateVal + 'T00:00:00');
+        currentUncleAttYear = d.getFullYear();
+        currentUncleAttMonth = d.getMonth();
+        document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear;
+        renderUncleMonthTabs();
+        loadUncleAttendanceForDate(dateVal);
+    }
+
+    function renderUncleFridayCards() {
+        loadUncleSpecialDates();
+        renderUncleSpecialDates();
+        const fridays = getFridaysInMonth(currentUncleAttYear, currentUncleAttMonth);
+        const c = document.getElementById('uncleFridaysList');
+        if (!fridays.length) {
+            c.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام جمعة في هذا الشهر</h3></div>`;
+            return;
+        }
+        c.innerHTML = `<div class="friday-grid">${fridays.map(f => {
+            const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
+            const iso = `${y}-${mo}-${d}`;
+            const ds = f.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+            return `<div class="friday-card" onclick="loadUncleAttendanceForDate('${iso}')">
+                <div class="date"><i class="fas fa-calendar-day" style="color:var(--brand);margin-left:6px;"></i>${ds}</div>
+                <div class="stats">
+                    <span style="background:var(--success-light);color:#065f46;" id="uatt_${iso}_p">---</span>
+                    <span style="background:var(--danger-light);color:#991b1b;" id="uatt_${iso}_a">---</span>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+        fridays.forEach(f => {
+            const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
+            const iso = `${y}-${mo}-${d}`;
+            const fd2 = mkFd('getUncleAttendanceByDate'); fd2.append('date', iso);
+            fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json()).then(data => {
+                if (!data.success) return;
+                const att = data.attendance || [];
+                const ep = document.getElementById(`uatt_${iso}_p`);
+                const ea = document.getElementById(`uatt_${iso}_a`);
+                if (ep) ep.textContent = `✅ ${att.filter(a=>a.status==='present').length}`;
+                if (ea) ea.textContent = `❌ ${att.filter(a=>a.status==='absent').length}`;
+                if (att.length > 0) {
+                    const card = ep?.closest('.friday-card');
+                    if (card) card.classList.add('has-data');
+                }
+            }).catch(()=>{});
+        });
+    }
+
     async function loadUncleAttendanceForDate(date) {
         currentUncleAttDate = date;
-        const fd=mkFd('getUncleAttendanceByDate'); fd.append('date',date);
-        const data=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(!data.success){showToast('خطأ في تحميل حضور الخُدام','error');return;}
-        const att=data.attendance||[];
-        const present=att.filter(a=>a.status==='present').length,absent=att.filter(a=>a.status==='absent').length,total=att.length;
-        const rate=total>0?Math.round(present/total*100):0;
-        const dateObj=new Date(date+'T00:00:00');
-        document.getElementById('uncleAttDetailTitle').textContent=dateObj.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-        document.getElementById('uncleAttSummaryBoxes').innerHTML=`
+        // Update month/year to match date
+        const dateObj2 = new Date(date + 'T00:00:00');
+        if (dateObj2.getFullYear() !== currentUncleAttYear || dateObj2.getMonth() !== currentUncleAttMonth) {
+            currentUncleAttYear = dateObj2.getFullYear();
+            currentUncleAttMonth = dateObj2.getMonth();
+            document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear;
+            renderUncleMonthTabs();
+        }
+        const fd = mkFd('getUncleAttendanceByDate'); fd.append('date', date);
+        const data = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (!data.success) { showToast('خطأ في تحميل حضور الخُدام','error'); return; }
+        const att = data.attendance || [];
+        const present = att.filter(a=>a.status==='present').length;
+        const absent = att.filter(a=>a.status==='absent').length;
+        const total = att.length;
+        const rate = total > 0 ? Math.round(present/total*100) : 0;
+        const dateObj = new Date(date + 'T00:00:00');
+        document.getElementById('uncleAttDetailTitle').textContent = dateObj.toLocaleDateString('ar-EG', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+        document.getElementById('uncleAttSummaryBoxes').innerHTML = `
             <div class="sbox"><div class="sv">${total}</div><div class="sl">إجمالي</div></div>
             <div class="sbox"><div class="sv" style="color:var(--success);">${present}</div><div class="sl">حاضر</div></div>
             <div class="sbox"><div class="sv" style="color:var(--danger);">${absent}</div><div class="sl">غائب</div></div>
             <div class="sbox"><div class="sv" style="color:${rate>=70?'var(--success)':'var(--danger)'};">${rate}%</div><div class="sl">نسبة الحضور</div></div>`;
-        renderUncleAttendanceTable(att,date);
-        document.getElementById('uncleAttendanceDetail').style.display='block';
-        document.getElementById('uncleFridaysList').style.display='none';
+        renderUncleAttendanceTable(att, date);
+        document.getElementById('uncleAttendanceDetail').style.display = 'block';
+        document.getElementById('uncleFridaysList').style.display = 'none';
+        const sp = document.getElementById('uncleSpecialDatesList');
+        if (sp) sp.style.display = 'none';
     }
+
     function closeUncleAttendanceDetail() {
-        currentUncleAttDate=null;
-        document.getElementById('uncleAttendanceDetail').style.display='none';
-        document.getElementById('uncleFridaysList').style.display='block';
+        currentUncleAttDate = null;
+        document.getElementById('uncleAttendanceDetail').style.display = 'none';
+        document.getElementById('uncleFridaysList').style.display = 'block';
+        const sp = document.getElementById('uncleSpecialDatesList');
+        if (sp) sp.style.display = 'block';
         renderUncleFridayCards();
     }
-    function renderUncleAttendanceTable(att,date) {
-        const tb=document.getElementById('uncleAttendanceTable');
-        if(!att.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3></div></td></tr>`;return;}
-        tb.innerHTML=att.map((a,i)=>{
-            const sc=a.status==='present'?'att-present':'att-absent';
-            const sb=a.status==='present'?'badge-success':'badge-danger';
-            const roleBadge=a.role==='admin'?'<span class="badge badge-primary">مسؤول</span>':'<span class="badge" style="background:#ede9fe;color:#7c3aed;">خادم</span>';
-            return `<tr class="${sc}"><td><strong>${i+1}</strong></td><td><strong>${escHtml(a.uncle_name)}</strong></td><td>${roleBadge}</td>
+
+    function renderUncleAttendanceTable(att, date) {
+        const tb = document.getElementById('uncleAttendanceTable');
+        if (!att.length) {
+            tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3><p style="font-size:0.8rem;margin-top:6px;">اضغط "تسجيل حضور الخُدام" لإضافة حضور هذا اليوم</p></div></td></tr>`;
+            return;
+        }
+        tb.innerHTML = att.map((a,i) => {
+            const sc = a.status === 'present' ? 'att-present' : 'att-absent';
+            const sb = a.status === 'present' ? 'badge-success' : 'badge-danger';
+            const roleBadge = a.role==='admin'
+                ? '<span class="badge badge-primary">مسؤول</span>'
+                : '<span class="badge" style="background:#ede9fe;color:#7c3aed;">خادم</span>';
+            return `<tr class="${sc}">
+                <td><strong>${i+1}</strong></td>
+                <td><strong>${escHtml(a.uncle_name)}</strong></td>
+                <td>${roleBadge}</td>
                 <td><span class="badge ${sb}">${a.status==='present'?'حاضر':'غائب'}</span></td>
                 <td><div class="actions">
-                    <button class="act-btn act-edit" onclick="toggleUncleAttStatus(${a.id},'${a.status}','${date}')"><i class="fas fa-exchange-alt"></i></button>
-                    <button class="act-btn act-delete" onclick="deleteUncleAttRecord(${a.id},'${date}')"><i class="fas fa-trash"></i></button>
-                </div></td></tr>`;
+                    <button class="act-btn act-edit" title="تغيير الحالة" onclick="toggleUncleAttStatus(${a.id},'${a.status}','${date}')"><i class="fas fa-exchange-alt"></i></button>
+                    <button class="act-btn act-delete" title="حذف" onclick="deleteUncleAttRecord(${a.id},'${date}')"><i class="fas fa-trash"></i></button>
+                </div></td>
+            </tr>`;
         }).join('');
     }
-    async function toggleUncleAttStatus(id,curr,date) {
-        const nxt=curr==='present'?'absent':'present';
-        const fd=mkFd('toggleUncleAttendance'); fd.append('id',id); fd.append('status',nxt);
-        const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(d.success){showToast('تم التحديث','success');loadUncleAttendanceForDate(date);renderUncleFridayCards();}
+
+    async function toggleUncleAttStatus(id, curr, date) {
+        const nxt = curr === 'present' ? 'absent' : 'present';
+        const fd = mkFd('toggleUncleAttendance'); fd.append('id', id); fd.append('status', nxt);
+        const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم التحديث','success'); loadUncleAttendanceForDate(date); renderUncleFridayCards(); }
         else showToast('فشل','error');
     }
-    async function deleteUncleAttRecord(id,date) {
-        if(!confirm('حذف سجل حضور الخادم؟'))return;
-        const fd=mkFd('deleteUncleAttendance'); fd.append('id',id);
-        const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(d.success){showToast('تم الحذف','success');loadUncleAttendanceForDate(date);renderUncleFridayCards();}
+
+    async function deleteUncleAttRecord(id, date) {
+        if (!confirm('حذف سجل حضور الخادم؟')) return;
+        const fd = mkFd('deleteUncleAttendance'); fd.append('id', id);
+        const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم الحذف','success'); loadUncleAttendanceForDate(date); renderUncleFridayCards(); }
         else showToast('فشل','error');
     }
+
     async function showAddUncleAttendanceModal() {
-        document.getElementById('uncleAttDate').value=new Date().toISOString().split('T')[0];
-        uncleAttData={};
-        const listEl=document.getElementById('uncleAttList');
-        listEl.innerHTML='<div class="container-loading"><div class="spin-icon"></div> جاري تحميل الخُدام...</div>';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('uncleAttDate').value = currentUncleAttDate || today;
+        uncleAttData = {};
+        const listEl = document.getElementById('uncleAttList');
+        listEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل الخُدام...</div>';
         openModal('addUncleAttendanceModal');
-        const fd=mkFd('getAllUncles');
-        const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(!d.success){listEl.innerHTML='<p style="color:var(--danger);text-align:center;padding:16px;">خطأ في تحميل الخُدام</p>';return;}
-        const uncles=(d.uncles||[]).filter(u=>u.is_active!='0');
-        uncles.forEach(u=>{uncleAttData[u.id]='present';});
-        listEl.innerHTML=uncles.length?uncles.map(u=>{
-            const initials=(u.name||'؟').split(' ').map(w=>w[0]).slice(0,2).join('');
-            const imgHtml=u.image_url?`<img src="${escHtml(u.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`:'' ;
+        const fd = mkFd('getAllUncles');
+        const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (!d.success) { listEl.innerHTML = '<p style="color:var(--danger);text-align:center;padding:16px;">خطأ في تحميل الخُدام</p>'; return; }
+        const uncles = (d.uncles || []).filter(u => u.is_active != '0');
+
+        // If a date is already set, pre-load existing attendance for that date
+        const attDate = document.getElementById('uncleAttDate').value;
+        let existingAtt = {};
+        if (attDate) {
+            try {
+                const fd2 = mkFd('getUncleAttendanceByDate'); fd2.append('date', attDate);
+                const existing = await fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json());
+                if (existing.success && existing.attendance) {
+                    existing.attendance.forEach(a => { existingAtt[a.uncle_id] = a.status; });
+                }
+            } catch(e) {}
+        }
+
+        uncles.forEach(u => { uncleAttData[u.id] = existingAtt[u.id] || 'present'; });
+        listEl.innerHTML = uncles.length ? uncles.map(u => {
+            const initials = (u.name||'؟').split(' ').map(w=>w[0]).slice(0,2).join('');
+            const imgHtml = u.image_url ? `<img src="${escHtml(u.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">` : '';
+            const initStatus = uncleAttData[u.id] || 'present';
             return `<div class="uncle-att-item" id="uattItem_${u.id}">
                 <div class="uncle-att-ava">${imgHtml}${u.image_url?'':initials}</div>
-                <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.88rem;">${escHtml(u.name)}</div><div style="font-size:.72rem;color:var(--muted);">${u.role==='admin'?'مسؤول':'خادم'}</div></div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.86rem;">${escHtml(u.name)}</div>
+                    <div style="font-size:0.7rem;color:var(--muted);">${u.role==='admin'?'مسؤول':'خادم'}</div>
+                </div>
                 <div class="toggle-btns">
-                    <button class="att-toggle-btn present" id="uattP_${u.id}" onclick="setUncleAttStatus(${u.id},'present',this)">✅ حاضر</button>
-                    <button class="att-toggle-btn" id="uattA_${u.id}" onclick="setUncleAttStatus(${u.id},'absent',this)">❌ غائب</button>
+                    <button class="att-toggle-btn ${initStatus==='present'?'present':''}" id="uattP_${u.id}" onclick="setUncleAttStatus(${u.id},'present',this)">✅ حاضر</button>
+                    <button class="att-toggle-btn ${initStatus==='absent'?'absent':''}" id="uattA_${u.id}" onclick="setUncleAttStatus(${u.id},'absent',this)">❌ غائب</button>
                 </div>
             </div>`;
-        }).join(''):'<p style="color:var(--muted);text-align:center;padding:16px;">لا يوجد خُدام</p>';
+        }).join('') : '<p style="color:var(--muted);text-align:center;padding:16px;">لا يوجد خُدام</p>';
     }
-    function setUncleAttStatus(uncleId,status) {
-        uncleAttData[uncleId]=status;
-        const pBtn=document.getElementById(`uattP_${uncleId}`),aBtn=document.getElementById(`uattA_${uncleId}`);
-        if(pBtn)pBtn.className='att-toggle-btn'+(status==='present'?' present':'');
-        if(aBtn)aBtn.className='att-toggle-btn'+(status==='absent'?' absent':'');
+
+    function setUncleAttStatus(uncleId, status) {
+        uncleAttData[uncleId] = status;
+        const pBtn = document.getElementById(`uattP_${uncleId}`);
+        const aBtn = document.getElementById(`uattA_${uncleId}`);
+        if (pBtn) pBtn.className = 'att-toggle-btn' + (status==='present'?' present':'');
+        if (aBtn) aBtn.className = 'att-toggle-btn' + (status==='absent'?' absent':'');
     }
-    function setAllUncleAtt(status){Object.keys(uncleAttData).forEach(id=>setUncleAttStatus(id,status));}
+
+    function setAllUncleAtt(status) {
+        Object.keys(uncleAttData).forEach(id => setUncleAttStatus(id, status));
+    }
+
     async function saveUncleAttendance() {
-        const date=document.getElementById('uncleAttDate').value;
-        if(!date){showToast('اختر تاريخاً','warning');return;}
-        if(!Object.keys(uncleAttData).length){showToast('لا يوجد خُدام','warning');return;}
-        const attArray=Object.entries(uncleAttData).map(([id,status])=>({uncle_id:parseInt(id),status}));
-        const fd=mkFd('submitUncleAttendance'); fd.append('date',date); fd.append('attendanceData',JSON.stringify(attArray));
-        const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(d.success){showToast('تم حفظ حضور الخُدام ✓','success');closeModal('addUncleAttendanceModal');renderUncleFridayCards();}
-        else showToast(d.message||'فشل الحفظ','error');
+        const date = document.getElementById('uncleAttDate').value;
+        if (!date) { showToast('اختر تاريخاً','warning'); return; }
+        if (!Object.keys(uncleAttData).length) { showToast('لا يوجد خُدام','warning'); return; }
+        const attArray = Object.entries(uncleAttData).map(([id, status]) => ({uncle_id: parseInt(id), status}));
+        const fd = mkFd('submitUncleAttendance');
+        fd.append('date', date);
+        fd.append('attendanceData', JSON.stringify(attArray));
+        const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) {
+            showToast('تم حفظ حضور الخُدام ✓','success');
+            closeModal('addUncleAttendanceModal');
+            renderUncleFridayCards();
+            if (currentUncleAttDate === date) loadUncleAttendanceForDate(date);
+        } else {
+            showToast(d.message || 'فشل الحفظ','error');
+        }
     }
-    function changeReportYear(delta){reportYear+=delta;document.getElementById('reportYearDisplay').textContent=reportYear;loadUncleReport();}
+
+    function changeReportYear(delta) { reportYear += delta; document.getElementById('reportYearDisplay').textContent = reportYear; loadUncleReport(); }
+
     async function loadUncleReport() {
-        document.getElementById('uncleRankingList').innerHTML='<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
-        document.getElementById('dayRankingList').innerHTML='<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
-        const fd=mkFd('getUncleAttendanceReport'); fd.append('year',reportYear);
-        const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-        if(!d.success){document.getElementById('uncleRankingList').innerHTML='<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>خطأ في التحميل</h3></div>';return;}
-        const report=d.uncle_report||[],dayRank=d.day_ranking||[],totalDays=d.dates?.length||0;
-        const avgPct=report.length>0?Math.round(report.reduce((s,r)=>s+r.percentage,0)/report.length):0;
-        const topUncle=report[0];
-        document.getElementById('reportSummaryBoxes').innerHTML=`
+        document.getElementById('uncleRankingList').innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
+        document.getElementById('dayRankingList').innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
+        const fd = mkFd('getUncleAttendanceReport'); fd.append('year', reportYear);
+        const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (!d.success) { document.getElementById('uncleRankingList').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>خطأ في التحميل</h3></div>'; return; }
+        const report = d.uncle_report || [], dayRank = d.day_ranking || [], totalDays = d.dates?.length || 0;
+        const avgPct = report.length > 0 ? Math.round(report.reduce((s,r)=>s+r.percentage,0)/report.length) : 0;
+        const topUncle = report[0];
+        document.getElementById('reportSummaryBoxes').innerHTML = `
             <div class="sbox"><div class="sv">${totalDays}</div><div class="sl">أيام مُسجَّلة</div></div>
             <div class="sbox"><div class="sv">${report.length}</div><div class="sl">إجمالي الخُدام</div></div>
             <div class="sbox"><div class="sv" style="color:${avgPct>=70?'var(--success)':'var(--danger)'};">${avgPct}%</div><div class="sl">متوسط الحضور</div></div>
-            <div class="sbox"><div class="sv" style="color:var(--primary);font-size:1rem;">${topUncle?escHtml(topUncle.uncle_name.split(' ')[0]):'—'}</div><div class="sl">🏆 الأكثر حضوراً</div></div>`;
-        document.getElementById('uncleRankingList').innerHTML=!report.length
-            ?'<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد بيانات لهذه السنة</h3></div>'
-            :report.map((r,i)=>{
-                const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'other';
-                const initials=(r.uncle_name||'').split(' ').map(w=>w[0]).slice(0,2).join('');
-                const barColor=r.percentage>=80?'var(--success)':r.percentage>=50?'var(--warning)':'var(--danger)';
-                const imgHtml=r.image_url?`<img src="${escHtml(r.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`:'' ;
+            <div class="sbox"><div class="sv" style="color:var(--brand);font-size:1rem;">${topUncle?escHtml(topUncle.uncle_name.split(' ')[0]):'—'}</div><div class="sl">🏆 الأكثر حضوراً</div></div>`;
+        document.getElementById('uncleRankingList').innerHTML = !report.length
+            ? '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد بيانات لهذه السنة</h3></div>'
+            : report.map((r,i) => {
+                const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+                const initials = (r.uncle_name||'').split(' ').map(w=>w[0]).slice(0,2).join('');
+                const barColor = r.percentage>=80?'var(--success)':r.percentage>=50?'var(--warning)':'var(--danger)';
+                const imgHtml = r.image_url ? `<img src="${escHtml(r.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">` : '';
                 return `<div class="uncle-report-row">
                     <div class="uncle-rank-badge ${rankClass}">${i+1}</div>
                     <div class="uncle-att-ava">${imgHtml}${r.image_url?'':initials}</div>
@@ -7379,64 +7459,89 @@ function toggleFieldPwd(inputId, iconId) {
                     <div class="uncle-report-stats">
                         <div class="uncle-stat-box present">✅ ${r.present_count}</div>
                         <div class="uncle-stat-box absent">❌ ${r.absent_count}</div>
-                        <div class="uncle-stat-box" style="background:var(--primary-light);color:var(--primary);">${r.percentage}%</div>
+                        <div class="uncle-stat-box" style="background:var(--brand-bg);color:var(--brand);">${r.percentage}%</div>
                     </div>
                 </div>`;
             }).join('');
-        const maxCount=dayRank[0]?.present_count||1;
-        document.getElementById('dayRankingList').innerHTML=!dayRank.length
-            ?'<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام مُسجَّلة</h3></div>'
-            :dayRank.map((day,i)=>{
-                const dateObj=new Date(day.date+'T00:00:00');
-                const ds=dateObj.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-                const pct=Math.round(day.present_count/maxCount*100);
-                const barColor=day.total_uncles>0&&day.present_count/day.total_uncles>=.8?'var(--success)':day.total_uncles>0&&day.present_count/day.total_uncles>=.5?'var(--primary)':'var(--warning)';
-                const attendPct=day.total_uncles>0?Math.round(day.present_count/day.total_uncles*100):'--';
+        const maxCount = dayRank[0]?.present_count || 1;
+        document.getElementById('dayRankingList').innerHTML = !dayRank.length
+            ? '<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام مُسجَّلة</h3></div>'
+            : dayRank.map((day,i) => {
+                const dateObj = new Date(day.date + 'T00:00:00');
+                const ds = dateObj.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+                const pct = Math.round(day.present_count/maxCount*100);
+                const barColor = day.total_uncles>0&&day.present_count/day.total_uncles>=.8?'var(--success)':day.total_uncles>0&&day.present_count/day.total_uncles>=.5?'var(--brand)':'var(--warning)';
+                const attendPct = day.total_uncles>0 ? Math.round(day.present_count/day.total_uncles*100) : '--';
                 return `<div class="day-rank-row">
-                    <div style="width:28px;height:28px;border-radius:50%;background:${i<3?'var(--primary)':'var(--border)'};color:${i<3?'white':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0;">${i+1}</div>
+                    <div style="width:26px;height:26px;border-radius:50%;background:${i<3?'var(--brand)':'var(--border)'};color:${i<3?'white':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:900;flex-shrink:0;">${i+1}</div>
                     <div class="day-rank-bar-wrap">
                         <div class="day-rank-label"><span>${ds}</span><span style="color:var(--success);">✅ ${day.present_count} حاضر</span></div>
                         <div class="day-rank-bar"><div class="day-rank-fill" style="width:${pct}%;background:${barColor};"></div></div>
                     </div>
-                    <div style="font-size:.75rem;font-weight:800;color:var(--muted);flex-shrink:0;min-width:40px;text-align:center;">${attendPct}%</div>
+                    <div style="font-size:0.72rem;font-weight:800;color:var(--muted);flex-shrink:0;min-width:38px;text-align:center;">${attendPct}%</div>
                 </div>`;
             }).join('');
     }
+
     function exportUncleReportCSV() {
-        const rows=document.querySelectorAll('#uncleRankingList .uncle-report-row');
-        if(!rows.length){showToast('لا توجد بيانات للتصدير','warning');return;}
-        let csv='\uFEFF'+'الترتيب,اسم الخادم,الدور,أيام الحضور,أيام الغياب,نسبة الحضور\n';
-        rows.forEach((row,i)=>{
-            const name=row.querySelector('.uncle-report-name')?.textContent?.trim()||'';
-            const meta=row.querySelector('.uncle-report-meta')?.textContent?.trim()||'';
-            const role=meta.includes('مسؤول')?'مسؤول':'خادم';
-            const boxes=row.querySelectorAll('.uncle-stat-box');
-            const present=boxes[0]?.textContent?.replace(/[^0-9]/g,'')||'0';
-            const absent=boxes[1]?.textContent?.replace(/[^0-9]/g,'')||'0';
-            const pct=boxes[2]?.textContent?.replace(/[^0-9]/g,'')||'0';
-            csv+=`${i+1},"${name}","${role}",${present},${absent},${pct}%\n`;
+        const rows = document.querySelectorAll('#uncleRankingList .uncle-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات للتصدير','warning'); return; }
+        let csv = '\uFEFF' + 'الترتيب,اسم الخادم,الدور,أيام الحضور,أيام الغياب,نسبة الحضور\n';
+        rows.forEach((row,i) => {
+            const name = row.querySelector('.uncle-report-name')?.textContent?.trim() || '';
+            const meta = row.querySelector('.uncle-report-meta')?.textContent?.trim() || '';
+            const role = meta.includes('مسؤول') ? 'مسؤول' : 'خادم';
+            const boxes = row.querySelectorAll('.uncle-stat-box');
+            const present = boxes[0]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            const absent  = boxes[1]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            const pct     = boxes[2]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            csv += `${i+1},"${name}","${role}",${present},${absent},${pct}%\n`;
         });
-        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a'); a.href=url; a.download=`تقرير_حضور_الخدام_${reportYear}.csv`;
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `تقرير_حضور_الخدام_${reportYear}.csv`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         showToast('تم تصدير التقرير ✓','success');
     }
+
     function copyUncleReport() {
-        const rows=document.querySelectorAll('#uncleRankingList .uncle-report-row');
-        if(!rows.length){showToast('لا توجد بيانات','warning');return;}
-        let text=`تقرير حضور الخُدام - ${reportYear}\n${'═'.repeat(40)}\n`;
-        rows.forEach((row,i)=>{
-            const name=row.querySelector('.uncle-report-name')?.textContent?.trim()||'';
-            const boxes=row.querySelectorAll('.uncle-stat-box');
-            text+=`${i+1}. ${name}  |  ${boxes[0]?.textContent?.trim()||''}  |  ${boxes[1]?.textContent?.trim()||''}  |  ${boxes[2]?.textContent?.trim()||''}\n`;
+        const rows = document.querySelectorAll('#uncleRankingList .uncle-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات','warning'); return; }
+        let text = `تقرير حضور الخُدام - ${reportYear}\n${'═'.repeat(40)}\n`;
+        rows.forEach((row,i) => {
+            const name = row.querySelector('.uncle-report-name')?.textContent?.trim() || '';
+            const boxes = row.querySelectorAll('.uncle-stat-box');
+            text += `${i+1}. ${name}  |  ${boxes[0]?.textContent?.trim()||''}  |  ${boxes[1]?.textContent?.trim()||''}  |  ${boxes[2]?.textContent?.trim()||''}\n`;
         });
         navigator.clipboard.writeText(text).then(()=>showToast('تم النسخ ✓','success')).catch(()=>showToast('فشل','error'));
     }
+
     // Auto-init year displays
     (function(){
-        const yd=document.getElementById('uncleAttYearDisplay'),rd=document.getElementById('reportYearDisplay');
-        if(yd)yd.textContent=currentUncleAttYear; if(rd)rd.textContent=reportYear;
+        const yd = document.getElementById('uncleAttYearDisplay'), rd = document.getElementById('reportYearDisplay');
+        if (yd) yd.textContent = currentUncleAttYear;
+        if (rd) rd.textContent = reportYear;
+    })();
+
+    // ── YOUTH THEME SYSTEM ─────────────────────────────────────
+    (function applyChurchTheme() {
+        const ct = localStorage.getItem('churchType') || '';
+        if (ct === 'youth') {
+            document.documentElement.setAttribute('data-theme','youth');
+            // Update sidebar brand icon
+            const icon = document.getElementById('sidebarBrandIcon');
+            if (icon) icon.innerHTML = '<i class="fas fa-users"></i>';
+            // Update text labels for youth
+            const labelMap = {
+                navLabelStudents: 'الشباب',
+                navLabelUncles: 'الخُدام',
+                navLabelTrips: 'الرحلات',
+            };
+            Object.entries(labelMap).forEach(([id, text]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            });
+        }
     })();
 
     </script>
@@ -7449,20 +7554,20 @@ function toggleFieldPwd(inputId, iconId) {
             <button class="modal-close" onclick="closeModal('addUncleAttendanceModal')"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                <div class="form-group">
+            <div class="form-grid" style="margin-bottom:14px;">
+                <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label"><i class="fas fa-calendar"></i> التاريخ *</label>
                     <input type="date" id="uncleAttDate" class="form-input">
                 </div>
-                <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end;">
-                    <div style="display:flex;gap:8px;">
+                <div class="form-group" style="margin-bottom:0;display:flex;flex-direction:column;justify-content:flex-end;">
+                    <div style="display:flex;gap:7px;">
                         <button class="btn btn-success btn-sm" onclick="setAllUncleAtt('present')" style="flex:1;"><i class="fas fa-check-double"></i> تحضير الكل</button>
                         <button class="btn btn-danger btn-sm" onclick="setAllUncleAtt('absent')" style="flex:1;"><i class="fas fa-times"></i> تغييب الكل</button>
                     </div>
                 </div>
             </div>
-            <div id="uncleAttList" style="max-height:360px;overflow-y:auto;padding-right:4px;"></div>
-            <div style="display:flex;gap:10px;margin-top:16px;">
+            <div id="uncleAttList" style="max-height:370px;overflow-y:auto;padding-left:2px;"></div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
                 <button class="btn btn-primary" style="flex:2;" onclick="saveUncleAttendance()"><i class="fas fa-save"></i> حفظ حضور الخُدام</button>
                 <button class="btn btn-outline" style="flex:1;" onclick="closeModal('addUncleAttendanceModal')">إلغاء</button>
             </div>
