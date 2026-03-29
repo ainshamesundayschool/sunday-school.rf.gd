@@ -7016,8 +7016,6 @@ function toggleFieldPwd(inputId, iconId) {
         return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Wire into tab switch
-    const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
     // ══════════════════════════════════════════════════════════════
     // Wire into tab switch
