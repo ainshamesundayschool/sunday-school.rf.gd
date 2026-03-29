@@ -576,6 +576,32 @@ case 'updateStudentFull':
 case 'saveTripExpense':   saveTripExpense();   break;
   case 'deleteTripExpense': deleteTripExpense(); break;
    case 'getAttendanceByDate': getAttendanceByDate(); break;
+
+// ── Uncle Attendance ─────────────────────────────────────────────
+case 'submitUncleAttendance':
+    checkAuth();
+    submitUncleAttendance();
+    break;
+
+case 'getUncleAttendanceByDate':
+    checkAuth();
+    getUncleAttendanceByDate();
+    break;
+
+case 'getUncleAttendanceReport':
+    checkAuth();
+    getUncleAttendanceReport();
+    break;
+
+case 'toggleUncleAttendance':
+    checkAuth();
+    toggleUncleAttendance();
+    break;
+
+case 'deleteUncleAttendance':
+    checkAuth();
+    deleteUncleAttendance();
+    break;
             case 'getSessionInfo': getSessionInfo(); break;
                 case 'getClassUncles':
         checkAuth();
@@ -12062,6 +12088,270 @@ function gradeOpenAnswer() {
         sendJSON(['success'=>true,'score'=>$totalScore,'coupons'=>$coupons,'coupon_diff'=>$couponDiff,'percentage'=>round($pct,1)]);
     } catch (Exception $e) {
         if (isset($conn)) $conn->rollback();
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UNCLE ATTENDANCE FUNCTIONS
+// ══════════════════════════════════════════════════════════════
+
+function ensureUncleAttendanceTable($conn) {
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS `uncle_attendance` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `uncle_id` int(11) NOT NULL,
+          `church_id` int(11) NOT NULL,
+          `attendance_date` date NOT NULL,
+          `status` enum('present','absent') NOT NULL DEFAULT 'present',
+          `recorded_by` int(11) DEFAULT NULL,
+          `created_at` timestamp NULL DEFAULT current_timestamp(),
+          `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uncle_date_church` (`uncle_id`,`attendance_date`,`church_id`),
+          KEY `church_date` (`church_id`,`attendance_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
+function submitUncleAttendance() {
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUncleAttendanceTable($conn);
+
+        $date = sanitize($_POST['date'] ?? date('Y-m-d'));
+        // Normalize date format
+        if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $date, $m)) {
+            $date = $m[3].'-'.$m[2].'-'.$m[1];
+        }
+
+        $attendanceData = json_decode($_POST['attendanceData'] ?? '[]', true);
+        if (!is_array($attendanceData) || empty($attendanceData)) {
+            sendJSON(['success'=>false,'message'=>'بيانات الحضور فارغة']);
+        }
+
+        $recordedBy = $_SESSION['church_id'] ?? null;
+        $inserted = 0; $updated = 0;
+
+        $conn->begin_transaction();
+        foreach ($attendanceData as $row) {
+            $uncleId = intval($row['uncle_id']);
+            $status  = in_array($row['status'], ['present','absent']) ? $row['status'] : 'present';
+
+            // Upsert
+            $check = $conn->prepare("SELECT id FROM uncle_attendance WHERE uncle_id=? AND attendance_date=? AND church_id=?");
+            $check->bind_param('isi', $uncleId, $date, $churchId);
+            $check->execute();
+            $existing = $check->get_result()->fetch_assoc();
+
+            if ($existing) {
+                $upd = $conn->prepare("UPDATE uncle_attendance SET status=?, recorded_by=?, updated_at=NOW() WHERE id=?");
+                $upd->bind_param('sii', $status, $recordedBy, $existing['id']);
+                $upd->execute();
+                $updated++;
+            } else {
+                $ins = $conn->prepare("INSERT INTO uncle_attendance (uncle_id, church_id, attendance_date, status, recorded_by) VALUES (?,?,?,?,?)");
+                $ins->bind_param('iissi', $uncleId, $churchId, $date, $status, $recordedBy);
+                $ins->execute();
+                $inserted++;
+            }
+        }
+        $conn->commit();
+        sendJSON(['success'=>true,'inserted'=>$inserted,'updated'=>$updated,'date'=>$date]);
+    } catch (Exception $e) {
+        if (isset($conn)) $conn->rollback();
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}
+
+function getUncleAttendanceByDate() {
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUncleAttendanceTable($conn);
+
+        $rawDate = $_POST['date'] ?? date('Y-m-d');
+        if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $rawDate, $m)) {
+            $date = $m[3].'-'.$m[2].'-'.$m[1];
+        } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate)) {
+            $date = $rawDate;
+        } else {
+            $date = date('Y-m-d');
+        }
+
+        $stmt = $conn->prepare("
+            SELECT ua.id, ua.uncle_id, ua.attendance_date, ua.status,
+                   u.name AS uncle_name, u.role, u.image_url,
+                   rec.name AS recorded_by_name
+            FROM uncle_attendance ua
+            JOIN uncles u ON ua.uncle_id = u.id
+            LEFT JOIN uncles rec ON ua.recorded_by = rec.id
+            WHERE ua.church_id = ? AND ua.attendance_date = ?
+            ORDER BY u.name
+        ");
+        $stmt->bind_param('is', $churchId, $date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $attendance = [];
+        while ($row = $result->fetch_assoc()) {
+            $attendance[] = [
+                'id'           => $row['id'],
+                'uncle_id'     => $row['uncle_id'],
+                'uncle_name'   => $row['uncle_name'],
+                'role'         => $row['role'],
+                'image_url'    => $row['image_url'],
+                'status'       => $row['status'],
+                'status_text'  => $row['status'] === 'present' ? 'حاضر' : 'غائب',
+                'recorded_by'  => $row['recorded_by_name'] ?? 'النظام',
+                'date'         => $date,
+            ];
+        }
+
+        sendJSON(['success'=>true,'attendance'=>$attendance,'date'=>$date,'count'=>count($attendance)]);
+    } catch (Exception $e) {
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}
+
+function getUncleAttendanceReport() {
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUncleAttendanceTable($conn);
+
+        $year  = intval($_POST['year'] ?? date('Y'));
+
+        // Get all uncles for this church
+        $uncleStmt = $conn->prepare("SELECT id, name, role, image_url FROM uncles WHERE church_id=? AND deleted=0 AND is_active=1 ORDER BY name");
+        $uncleStmt->bind_param('i', $churchId);
+        $uncleStmt->execute();
+        $uncles = $uncleStmt->get_result()->fetchAll(MYSQLI_ASSOC);
+
+        // Get all uncle attendance for this year
+        $attStmt = $conn->prepare("
+            SELECT ua.uncle_id, ua.attendance_date, ua.status
+            FROM uncle_attendance ua
+            WHERE ua.church_id=? AND YEAR(ua.attendance_date)=?
+            ORDER BY ua.attendance_date ASC
+        ");
+        $attStmt->bind_param('ii', $churchId, $year);
+        $attStmt->execute();
+        $allAtt = $attStmt->get_result()->fetchAll(MYSQLI_ASSOC);
+
+        // Get distinct attendance dates (Fridays with records)
+        $dateStmt = $conn->prepare("
+            SELECT DISTINCT attendance_date
+            FROM uncle_attendance
+            WHERE church_id=? AND YEAR(attendance_date)=?
+            ORDER BY attendance_date ASC
+        ");
+        $dateStmt->bind_param('ii', $churchId, $year);
+        $dateStmt->execute();
+        $dates = array_column($dateStmt->get_result()->fetchAll(MYSQLI_ASSOC), 'attendance_date');
+
+        // Build per-uncle stats
+        $attMap = [];
+        foreach ($allAtt as $a) {
+            $attMap[$a['uncle_id']][$a['attendance_date']] = $a['status'];
+        }
+
+        // Count present days per date (for day ranking)
+        $dayPresent = [];
+        foreach ($allAtt as $a) {
+            if ($a['status'] === 'present') {
+                $dayPresent[$a['attendance_date']] = ($dayPresent[$a['attendance_date']] ?? 0) + 1;
+            }
+        }
+
+        // Sort dates by present count descending
+        arsort($dayPresent);
+
+        $uncleReport = [];
+        foreach ($uncles as $u) {
+            $uid = $u['id'];
+            $presentDays = [];
+            $absentDays  = [];
+            foreach ($dates as $d) {
+                $s = $attMap[$uid][$d] ?? null;
+                if ($s === 'present') $presentDays[] = $d;
+                elseif ($s === 'absent') $absentDays[] = $d;
+            }
+            $total = count($dates);
+            $pct   = $total > 0 ? round(count($presentDays) / $total * 100) : 0;
+            $uncleReport[] = [
+                'uncle_id'     => $uid,
+                'uncle_name'   => $u['name'],
+                'role'         => $u['role'],
+                'image_url'    => $u['image_url'],
+                'present_count'=> count($presentDays),
+                'absent_count' => count($absentDays),
+                'total_days'   => $total,
+                'percentage'   => $pct,
+                'present_dates'=> $presentDays,
+                'absent_dates' => $absentDays,
+            ];
+        }
+
+        // Sort uncles by present_count descending
+        usort($uncleReport, fn($a,$b) => $b['present_count'] - $a['present_count']);
+
+        // Day rankings sorted by present count high→low
+        $dayRanking = [];
+        foreach ($dayPresent as $d => $cnt) {
+            $dayRanking[] = [
+                'date'          => $d,
+                'present_count' => $cnt,
+                'absent_count'  => count(array_filter($allAtt, fn($a) => $a['attendance_date']===$d && $a['status']==='absent')),
+                'total_uncles'  => count($uncles),
+            ];
+        }
+
+        sendJSON([
+            'success'      => true,
+            'uncle_report' => $uncleReport,
+            'day_ranking'  => $dayRanking,
+            'dates'        => $dates,
+            'year'         => $year,
+            'total_uncles' => count($uncles),
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}
+
+function toggleUncleAttendance() {
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUncleAttendanceTable($conn);
+
+        $id     = intval($_POST['id'] ?? 0);
+        $status = sanitize($_POST['status'] ?? 'present');
+        if (!in_array($status, ['present','absent'])) sendJSON(['success'=>false,'message'=>'حالة غير صحيحة']);
+
+        $stmt = $conn->prepare("UPDATE uncle_attendance SET status=?, updated_at=NOW() WHERE id=? AND church_id=?");
+        $stmt->bind_param('sii', $status, $id, $churchId);
+        $stmt->execute();
+        sendJSON(['success'=>true]);
+    } catch (Exception $e) {
+        sendJSON(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}
+
+function deleteUncleAttendance() {
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUncleAttendanceTable($conn);
+
+        $id = intval($_POST['id'] ?? 0);
+        $stmt = $conn->prepare("DELETE FROM uncle_attendance WHERE id=? AND church_id=?");
+        $stmt->bind_param('ii', $id, $churchId);
+        $stmt->execute();
+        sendJSON(['success'=>true]);
+    } catch (Exception $e) {
         sendJSON(['success'=>false,'message'=>$e->getMessage()]);
     }
 }
