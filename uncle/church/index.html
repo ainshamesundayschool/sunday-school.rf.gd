@@ -5595,6 +5595,12 @@ function buildDevChurchSwitcher() {
             <i class="fas fa-chevron-down" style="position:absolute;left:10px;top:50%;
                 transform:translateY(-50%);font-size:0.65rem;color:rgba(255,255,255,0.4);pointer-events:none;"></i>
         </div>
+                <div id="devCurrentChurchPill" style="display:none;align-items:center;gap:7px;
+            background:rgba(139,92,246,0.25);border:1px solid rgba(167,139,250,0.3);
+            padding:4px 12px;border-radius:20px;font-size:0.78rem;flex-shrink:0;">
+            <span id="devCurrentChurchLabel" style="color:#e0d9ff;"></span>
+            <span id="devChurchStudentCount" style="color:rgba(255,255,255,0.5);font-size:0.72rem;"></span>
+        </div>
         <button id="devRefreshBtn" onclick="devRefreshCurrent()"
             style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;
                 border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);
@@ -5640,7 +5646,7 @@ function devRefreshCurrent() {
 async function devSwitchChurch(churchId) {
     if (!isDeveloper) return;
     if (!devOrigChurchId) devOrigChurchId = sessionChurchId || parseInt(localStorage.getItem('churchId') || 0);
-
+    const pill  = document.getElementById('devCurrentChurchPill');
     const label = document.getElementById('devCurrentChurchLabel');
     const count = document.getElementById('devChurchStudentCount');
     const btn   = document.getElementById('devRefreshBtn');
