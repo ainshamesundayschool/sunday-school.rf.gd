@@ -214,6 +214,10 @@ case 'getUncleActivityLogs':
          case 'auto_login':  // أضف هذا
             handleAutoLogin();
             break;
+        case 'verifyChurchPassword':
+            verifyChurchPassword();
+            break;
+
 
         case 'logout':
             session_destroy();
@@ -3062,6 +3066,34 @@ function ensureClassesTable() {
         
     } catch (Exception $e) {
         error_log("ensureClassesTable error: " . $e->getMessage());
+    }
+}
+
+// ===== VERIFY CHURCH GATE PASSWORD =====
+function verifyChurchPassword() {
+    try {
+        $churchCode = sanitize($_POST['church_code'] ?? '');
+        $password   = $_POST['password'] ?? '';
+        if (empty($churchCode) || empty($password)) {
+            sendJSON(['success' => false, 'message' => 'البيانات ناقصة']);
+            return;
+        }
+        $conn         = getDBConnection();
+        $passwordHash = hash('sha256', $password);
+        $stmt = $conn->prepare(
+            "SELECT id FROM churches WHERE church_code = ? AND password_hash = ? LIMIT 1"
+        );
+        $stmt->bind_param("ss", $churchCode, $passwordHash);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if ($row) {
+            sendJSON(['success' => true]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'كلمة السر غير صحيحة']);
+        }
+    } catch (Exception $e) {
+        error_log("verifyChurchPassword error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في التحقق']);
     }
 }
 // ===== AUTO LOGIN FUNCTION =====
