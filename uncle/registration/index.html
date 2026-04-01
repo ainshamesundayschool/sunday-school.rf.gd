@@ -769,96 +769,137 @@ async function submitForm() {
 
 /* ════════════════ CHURCH PASSWORD GATE ════════════════
  *
- *  HOW TO SET THE PASSWORD:
- *  1. Choose your church password (e.g. "StMark2024!")
- *  2. Go to: https://emn178.github.io/online-tools/sha256.html
- *     OR run in browser console: 
- *       crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourPassword'))
- *         .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
- *  3. Paste the resulting hash below as CHURCH_PASSWORD_HASH
- *
- *  DEFAULT PASSWORD IS: Kaneesa2024
- *  Replace the hash below with yours to change it.
+ *  FIX: Password is now verified server-side via the API,
+ *  so it always matches whatever password is set in the DB.
+ *  Attempt count and lockout expiry are persisted in
+ *  localStorage so they survive page refresh.
  * ═══════════════════════════════════════════════════════ */
 
-// SHA-256 of "Kaneesa2024"  ← CHANGE THIS HASH to change the password
-const CHURCH_PASSWORD_HASH = 'd7f8da736cd3937efa4d050485aaf4540f3d256949e685a93b986fe1a92915ef';
+const MAX_ATTEMPTS   = 5;
+const LOCK_DURATION  = 5 * 60 * 1000; // 5 minutes in ms
+const LS_ATTEMPTS    = 'uncle_gate_attempts';
+const LS_LOCK_UNTIL  = 'uncle_gate_lock_until';
+const LS_GATE_OK     = 'uncle_gate_ok_' + (churchCode || 'default');
 
-// Gate state
-let gateAttempts   = 0;
-const MAX_ATTEMPTS = 5;
-let lockTimer      = null;
+let lockTimer = null;
 
-async function sha256(str) {
-  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+// ── Persist helpers ──────────────────────────────────────
+function getAttempts()  { return parseInt(localStorage.getItem(LS_ATTEMPTS) || '0'); }
+function setAttempts(n) { localStorage.setItem(LS_ATTEMPTS, n); }
+function getLockUntil() { return parseInt(localStorage.getItem(LS_LOCK_UNTIL) || '0'); }
+function setLockUntil(ts) { localStorage.setItem(LS_LOCK_UNTIL, ts); }
+function clearGateState() {
+  localStorage.removeItem(LS_ATTEMPTS);
+  localStorage.removeItem(LS_LOCK_UNTIL);
+}
+function isGatePassedThisSession() {
+  // Use localStorage so it survives refresh (scoped to this church)
+  try { return localStorage.getItem(LS_GATE_OK) === '1'; } catch(e) { return false; }
+}
+function markGatePassed() {
+  try { localStorage.setItem(LS_GATE_OK, '1'); } catch(e) {}
 }
 
+// ── Verify password via API (server-side) ────────────────
 async function verifyGate() {
   const input = document.getElementById('gatePassword');
-  const pwd   = input.value;
+  const pwd   = input.value.trim();
   if (!pwd) { input.classList.add('err'); input.focus(); return; }
+
+  // Block if still locked out
+  const lockUntil = getLockUntil();
+  if (lockUntil && Date.now() < lockUntil) {
+    resumeLockout(lockUntil);
+    return;
+  }
 
   const btn = document.getElementById('gateBtn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spin on" style="border-top-color:white;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:block"></div>';
+  btn.innerHTML = '<div style="width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div>';
 
-  const hash = await sha256(pwd);
+  try {
+    // ✅ FIX: verify against the real DB password via API
+    const fd = new FormData();
+    fd.append('action', 'verifyChurchPassword');
+    fd.append('church_code', churchCode);
+    fd.append('password', pwd);
+    const res  = await fetch(API, { method: 'POST', body: fd });
+    const text = await res.text();
+    const idx  = text.indexOf('{');
+    const data = idx >= 0 ? JSON.parse(text.slice(idx)) : {};
 
-  if (hash === CHURCH_PASSWORD_HASH) {
-    // ✅ Correct — clear gate and start the real init
-    try { sessionStorage.setItem('churchGateOk','1'); } catch(e){}
-    document.getElementById('gateScreen').classList.remove('on');
-    document.getElementById('stepRail').style.display  = '';
-    document.getElementById('progStrip').style.display = '';
-    init();
-  } else {
-    // ❌ Wrong password
-    gateAttempts++;
-    const remaining = MAX_ATTEMPTS - gateAttempts;
-    input.classList.add('err');
-    input.value = '';
-
-    if (remaining <= 0) {
-      startLockout();
-    } else {
-      const errEl = document.getElementById('gateErr');
-      document.getElementById('gateErrTxt').textContent = 'كلمة السر غير صحيحة';
-      errEl.classList.add('on');
-      document.getElementById('gateAttemptsWrap').style.display = 'block';
-      document.getElementById('gateAttemptsLeft').textContent   = remaining;
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-unlock-alt"></i> دخول';
-      input.focus();
+    if (data.success) {
+      // ✅ Correct password
+      clearGateState();
+      markGatePassed();
+      document.getElementById('gateScreen').classList.remove('on');
+      document.getElementById('stepRail').style.display  = '';
+      document.getElementById('progStrip').style.display = '';
+      init();
+      return;
     }
+  } catch(e) {
+    // Network error — fall through to show error
+  }
+
+  // ❌ Wrong password
+  const attempts  = getAttempts() + 1;
+  setAttempts(attempts);
+  const remaining = MAX_ATTEMPTS - attempts;
+  input.classList.add('err');
+  input.value = '';
+
+  if (remaining <= 0) {
+    const lockUntilTs = Date.now() + LOCK_DURATION;
+    setLockUntil(lockUntilTs);
+    startLockout(lockUntilTs);
+  } else {
+    const errEl = document.getElementById('gateErr');
+    document.getElementById('gateErrTxt').textContent = 'كلمة السر غير صحيحة';
+    errEl.classList.add('on');
+    document.getElementById('gateAttemptsWrap').style.display = 'block';
+    document.getElementById('gateAttemptsLeft').textContent   = remaining;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-unlock-alt"></i> دخول';
+    input.focus();
   }
 }
 
-function startLockout() {
-  const btn     = document.getElementById('gateBtn');
-  const locked  = document.getElementById('gateLocked');
-  const errEl   = document.getElementById('gateErr');
-  const input   = document.getElementById('gatePassword');
+// ── Lockout (reads remaining ms from lockUntil timestamp) ─
+function startLockout(lockUntilTs) {
+  resumeLockout(lockUntilTs);
+}
+
+function resumeLockout(lockUntilTs) {
+  const btn    = document.getElementById('gateBtn');
+  const locked = document.getElementById('gateLocked');
+  const errEl  = document.getElementById('gateErr');
+  const input  = document.getElementById('gatePassword');
+
   errEl.classList.remove('on');
   locked.classList.add('on');
-  btn.style.display   = 'none';
-  input.disabled      = true;
+  btn.style.display  = 'none';
+  input.disabled     = true;
   document.getElementById('gateAttemptsWrap').style.display = 'none';
 
-  let seconds = 5 * 60; // 5 minutes
-  const tick  = () => {
-    const m = String(Math.floor(seconds/60)).padStart(2,'0');
-    const s = String(seconds % 60).padStart(2,'0');
+  clearInterval(lockTimer);
+
+  const tick = () => {
+    const remaining = Math.max(0, lockUntilTs - Date.now());
+    const totalSecs  = Math.ceil(remaining / 1000);
+    const m = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+    const s = String(totalSecs % 60).padStart(2, '0');
     document.getElementById('gateCountdown').textContent = m + ':' + s;
-    if (--seconds < 0) {
+
+    if (remaining <= 0) {
       clearInterval(lockTimer);
+      clearGateState();
       locked.classList.remove('on');
       btn.style.display = '';
       btn.disabled      = false;
       btn.innerHTML     = '<i class="fas fa-unlock-alt"></i> دخول';
       input.disabled    = false;
       input.focus();
-      gateAttempts = 0;
     }
   };
   tick();
@@ -882,10 +923,23 @@ function bootGate() {
   document.getElementById('stepRail').style.display  = 'none';
   document.getElementById('progStrip').style.display = 'none';
 
-  // If already passed in this session, skip gate
-  try {
-    if (sessionStorage.getItem('churchGateOk') === '1') { init(); return; }
-  } catch(e) {}
+  // ✅ FIX: use localStorage so gate stays passed after refresh
+  if (isGatePassedThisSession()) { init(); return; }
+
+  // ✅ FIX: resume lockout if still active after refresh
+  const lockUntil = getLockUntil();
+  if (lockUntil && Date.now() < lockUntil) {
+    document.getElementById('gateScreen').classList.add('on');
+    resumeLockout(lockUntil);
+    return;
+  }
+
+  // ✅ FIX: show remaining attempt count if already failed some
+  const attempts = getAttempts();
+  if (attempts > 0 && attempts < MAX_ATTEMPTS) {
+    document.getElementById('gateAttemptsWrap').style.display = 'block';
+    document.getElementById('gateAttemptsLeft').textContent   = MAX_ATTEMPTS - attempts;
+  }
 
   document.getElementById('gateScreen').classList.add('on');
   document.getElementById('gatePassword').focus();
