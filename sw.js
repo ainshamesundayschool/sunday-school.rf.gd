@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v4                      ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v4';
+const CACHE_NAME        = 'sunday-school-v5';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -11,6 +11,7 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 
 const SHELL_URLS = [
     '/uncle/dashboard/','/favicon.ico','/logo.png',
+    '/manifest.json',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -41,6 +42,30 @@ self.addEventListener('activate', e => {
 // ── FETCH ─────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
+
+    // Manifest must always return valid JSON (never plain "Offline")
+    if (url.pathname === '/manifest.json') {
+        e.respondWith(
+            fetch(e.request).then(r => {
+                if (r && r.ok) caches.open(CACHE_NAME).then(c => c.put('/manifest.json', r.clone()));
+                return r;
+            }).catch(async () => {
+                const cached = await caches.match('/manifest.json');
+                if (cached) return cached;
+                return new Response(JSON.stringify({
+                    name: 'Sunday School',
+                    short_name: 'Sunday School',
+                    start_url: '/uncle/dashboard/',
+                    display: 'standalone',
+                    icons: []
+                }), {
+                    headers: { 'Content-Type': 'application/manifest+json; charset=utf-8' },
+                    status: 200
+                });
+            })
+        );
+        return;
+    }
 
     // API / POST calls
     if (e.request.method === 'POST' || url.pathname.includes('api.php')) {

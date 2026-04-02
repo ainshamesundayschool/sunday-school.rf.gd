@@ -3414,6 +3414,7 @@ function toggleTheme() {
     const phpChurchType = <?php echo json_encode($churchType); ?>;
     const phpChurchName = <?php echo json_encode($churchName); ?>;
     const phpUncleName  = <?php echo json_encode($uncleName); ?>;
+    const phpUncleRole  = <?php echo json_encode($uncleRole); ?>;
     const phpChurchCode = <?php echo json_encode($churchCode); ?>;
 
     // Detect account switch: if stored church_type differs from what PHP
@@ -3431,6 +3432,7 @@ function toggleTheme() {
         if (phpChurchType) localStorage.setItem('churchType',  phpChurchType);
         if (phpChurchName) localStorage.setItem('churchName',  phpChurchName);
         if (phpUncleName)  localStorage.setItem('uncleName',   phpUncleName);
+        if (phpUncleRole)  localStorage.setItem('uncleRole',   phpUncleRole);
         if (phpChurchCode) localStorage.setItem('churchCode',  phpChurchCode);
     } catch(e) {}
 })();
@@ -4008,17 +4010,24 @@ function showClassesViewInternal() {
 }
 
 function showAccountModal() {
-    if (!window.currentUncle) return;
-    document.getElementById('accountDisplayName').textContent = window.currentUncle.name || '';
-    document.getElementById('accountDisplayRole').textContent = window.currentUncle.role || '';
-    document.getElementById('aiName').textContent = window.currentUncle.name || '';
-    document.getElementById('aiUsername').textContent = window.currentUncle.username || '';
-    document.getElementById('aiRole').textContent = window.currentUncle.role || '';
-    document.getElementById('uncleProfileName').value = window.currentUncle.name || '';
-    document.getElementById('uncleProfileUsername').value = window.currentUncle.username || '';
+    // Allow opening even if currentUncle is not yet loaded from API.
+    const u = window.currentUncle || {
+        name: localStorage.getItem('uncleName') || '',
+        username: localStorage.getItem('uncleUsername') || '',
+        role: localStorage.getItem('uncleRole') || '',
+        image_url: localStorage.getItem('uncleImageUrl') || ''
+    };
+
+    document.getElementById('accountDisplayName').textContent = u.name || '';
+    document.getElementById('accountDisplayRole').textContent = u.role || '';
+    document.getElementById('aiName').textContent = u.name || '';
+    document.getElementById('aiUsername').textContent = u.username || '';
+    document.getElementById('aiRole').textContent = u.role || '';
+    document.getElementById('uncleProfileName').value = u.name || '';
+    document.getElementById('uncleProfileUsername').value = u.username || '';
     document.getElementById('uncleProfileNewPassword').value = '';
     const av = document.getElementById('accountBigAvatar');
-    av.src = window.photoUrl(window.currentUncle.image_url || 'https://sunday-school.rf.gd/profile_default..webp');
+    av.src = window.photoUrl(u.image_url || 'https://sunday-school.rf.gd/profile_default..webp');
     hideAccountEditForm();
     document.getElementById('accountModal').classList.add('active');
     stopAutoRefresh();
@@ -4827,9 +4836,9 @@ function updateSaveBtns() {
     }
 }
 
-function submitCoupons() {
+async function submitCoupons() {
     if (!currentClass || changedCouponStudents.size === 0) { showToast('لا توجد تغييرات', 'info'); return; }
-    if (!navigator.onLine) {
+    if (!(await _isActuallyOnline(true))) {
         showToast('أنت غير متصل — الكوبونات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
         return;
     }
@@ -5025,9 +5034,9 @@ function _jumpToDate(date) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────
-function submitAttendance() {
+async function submitAttendance() {
     if (!currentClass || changedStudents.size === 0) { showToast('لا توجد تغييرات للحفظ', 'info'); return; }
-    if (!navigator.onLine) {
+    if (!(await _isActuallyOnline(true))) {
         showToast('أنت غير متصل — التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
         return;
     }
@@ -6230,6 +6239,8 @@ function loadUncleProfile() {
         if(r.uncle?.id){
             window.currentUncle=r.uncle;
             localStorage.setItem('uncleName', r.uncle.name || '');
+            localStorage.setItem('uncleUsername', r.uncle.username || '');
+            localStorage.setItem('uncleRole', r.uncle.role || '');
             const chip = document.getElementById('uncleChip');
             if (chip) chip.style.display='flex';
             // Update hero greeting with fresh name from DB
@@ -7070,7 +7081,7 @@ const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_
 // ── Register service worker ───────────────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=4')
+        navigator.serviceWorker.register('/sw.js?v=5')
             .then(reg => {
                 _initPushSubscription(reg);
                 // ── Re-subscribe whenever SW becomes active after an update ──
@@ -7378,6 +7389,35 @@ function closePwaModal() {
 }
 
 // Offline/online detection
+let _connectivityState = { ok: true, ts: 0 };
+async function _isActuallyOnline(force = false) {
+    const now = Date.now();
+    if (!force && (now - _connectivityState.ts) < 15000) return _connectivityState.ok;
+
+    if (navigator.onLine) {
+        _connectivityState = { ok: true, ts: now };
+        return true;
+    }
+
+    try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3500);
+        const res = await fetch(`/manifest.json?_probe=${now}`, {
+            method: 'GET',
+            cache: 'no-store',
+            credentials: 'same-origin',
+            signal: ctrl.signal
+        });
+        clearTimeout(timer);
+        const ok = !!(res && res.ok);
+        _connectivityState = { ok, ts: Date.now() };
+        return ok;
+    } catch(_) {
+        _connectivityState = { ok: false, ts: Date.now() };
+        return false;
+    }
+}
+
 function _countAllPendingLocalChanges() {
     // Count only genuinely-unsaved changes.
     // A localStorage key is "stale" (already saved) if all its IDs are in savedStudents.
@@ -7421,11 +7461,12 @@ function _countAllPendingLocalChanges() {
 // toast when we actually CAME BACK from an offline state — not on first load.
 let _wasOffline = false;
 
-function _updateOnlineStatus() {
+async function _updateOnlineStatus() {
     const banner = document.getElementById('offlineBanner');
     if (!banner) return;
 
-    if (!navigator.onLine) {
+    const onlineNow = await _isActuallyOnline(true);
+    if (!onlineNow) {
         banner.classList.add('show');
         _wasOffline = true;
         if (typeof _updateNotifBtnVisibility === 'function') _updateNotifBtnVisibility();
@@ -7491,13 +7532,17 @@ async function _requestPeriodicSyncPermission(reg) {
 }
 window.addEventListener('online',  _updateOnlineStatus);
 window.addEventListener('offline', _updateOnlineStatus);
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // On first load: only show the offline banner if we're already offline.
     // Do NOT run the "came back online" reconnect logic — that's for transitions only.
-    if (!navigator.onLine) {
+    const onlineNow = await _isActuallyOnline(true);
+    if (!onlineNow) {
         const banner = document.getElementById('offlineBanner');
         if (banner) banner.classList.add('show');
         _wasOffline = true;
+    } else {
+        const banner = document.getElementById('offlineBanner');
+        if (banner) banner.classList.remove('show');
     }
     _updateNotifBtnVisibility();
     // React to permission changes live (Chrome 93+)
