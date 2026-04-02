@@ -26,13 +26,19 @@ ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 
 // Set session cookie to expire in 10 years (practically permanent)
+// Keep cookie host-only (no forced domain) to avoid browser rejections.
+$isHttps = (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+    (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) ||
+    ((isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+);
+
 session_set_cookie_params([
     'lifetime' => 60 * 60 * 24 * 365 * 10, // 10 years
     'path' => '/',
-    'domain' => $_SERVER['HTTP_HOST'],
-    'secure' => isset($_SERVER['HTTPS']),
+    'secure' => $isHttps,
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Lax'
 ]);
 
 // Start session with permanent settings

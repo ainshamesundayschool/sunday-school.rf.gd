@@ -2,13 +2,18 @@
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
+$isHttps = (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+    (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) ||
+    ((isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+);
+
 session_set_cookie_params([
     'lifetime' => 60 * 60 * 24 * 365 * 10,
     'path' => '/',
-    'domain' => $_SERVER['HTTP_HOST'] ?? '',
-    'secure' => isset($_SERVER['HTTPS']),
+    'secure' => $isHttps,
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Lax'
 ]);
 session_start();
 
