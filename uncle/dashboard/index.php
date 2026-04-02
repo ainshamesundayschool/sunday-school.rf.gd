@@ -269,7 +269,7 @@ window.t = function(str) {
 </script>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/logo.png">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/manifest.webmanifest">
 
 <!-- ── Preconnect to font origins so DNS+TLS is ready before CSS fires ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2754,7 +2754,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
       </button>
       <?php /* Admin/Settings button moved into profile modal */ ?>
       <div class="topbar-avatar-btn" id="uncleChip" style="display:<?php echo $hasUncleId?'flex':'none'?>" onclick="showAccountModal()">
-        <img src="" alt="" id="uncleAvatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <img src="" alt="" id="uncleAvatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">
         <span id="uncleInitials" style="display:none;font-size:.78rem;font-weight:800;color:var(--brand);letter-spacing:-.5px;line-height:1"></span>
       </div>
     </div>
@@ -3942,7 +3942,7 @@ function renderCombinedAttendanceList() {
         if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`,'gi'),'<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
         const safeImg2 = (s['صورة']||'').replace(/'/g,"\\'");
         const safeName2 = (s['الاسم']||'').replace(/'/g,"\\'");
-        const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
+        const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
         const fallback = `<div class="student-avatar" ${s['صورة']?'style="display:none"':''}><i class="fas fa-user"></i></div>`;
         const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
         const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
@@ -4652,7 +4652,7 @@ function renderAttendanceList(className) {
         const safeImg = (s['صورة']||'').replace(/'/g,"\\'");
         const safeName = (s['الاسم']||'').replace(/'/g,"\\'");
         const img = s['صورة']
-            ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
             : '';
         const fallback = `<div class="student-avatar" ${s['صورة']?'style="display:none"':''}><i class="fas fa-user"></i></div>`;
         const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
@@ -5133,7 +5133,7 @@ function showStudentDetails(name) {
     currentStudentForEdit = s;
     document.getElementById('studentModalTitle').textContent = 'معلومات: ' + name;
     const img = s['صورة']
-        ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';document.querySelector('.detail-avatar-fallback').style.display='flex'"><div class="detail-student-name">${s['الاسم']||''}</div><div class="detail-student-class">${s['الفصل']||''}</div></div>`
+        ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم']||''}</div><div class="detail-student-class">${s['الفصل']||''}</div></div>`
         : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم']||''}</div><div class="detail-student-class">${s['الفصل']||''}</div></div>`;
     const rows = [
         ['الاسم الكامل', s['الاسم']||'---', 'blue', 'fa-id-card'],
@@ -7081,7 +7081,7 @@ const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_
 // ── Register service worker ───────────────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=5')
+        navigator.serviceWorker.register('/sw.js?v=6')
             .then(reg => {
                 _initPushSubscription(reg);
                 // ── Re-subscribe whenever SW becomes active after an update ──
@@ -7402,7 +7402,7 @@ async function _isActuallyOnline(force = false) {
     try {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 3500);
-        const res = await fetch(`/manifest.json?_probe=${now}`, {
+        const res = await fetch(`/manifest.webmanifest?_probe=${now}`, {
             method: 'GET',
             cache: 'no-store',
             credentials: 'same-origin',

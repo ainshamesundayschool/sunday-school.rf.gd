@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v4                      ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v5';
+const CACHE_NAME        = 'sunday-school-v6';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -11,7 +11,7 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 
 const SHELL_URLS = [
     '/uncle/dashboard/','/favicon.ico','/logo.png',
-    '/manifest.json',
+    '/manifest.json','/manifest.webmanifest',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -44,13 +44,14 @@ self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
 
     // Manifest must always return valid JSON (never plain "Offline")
-    if (url.pathname === '/manifest.json') {
+    if (url.pathname === '/manifest.json' || url.pathname === '/manifest.webmanifest') {
+        const manifestPath = url.pathname === '/manifest.webmanifest' ? '/manifest.webmanifest' : '/manifest.json';
         e.respondWith(
             fetch(e.request).then(r => {
-                if (r && r.ok) caches.open(CACHE_NAME).then(c => c.put('/manifest.json', r.clone()));
+                if (r && r.ok) caches.open(CACHE_NAME).then(c => c.put(manifestPath, r.clone()));
                 return r;
             }).catch(async () => {
-                const cached = await caches.match('/manifest.json');
+                const cached = await caches.match(manifestPath);
                 if (cached) return cached;
                 return new Response(JSON.stringify({
                     name: 'Sunday School',
