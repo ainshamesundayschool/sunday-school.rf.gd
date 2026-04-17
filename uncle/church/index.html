@@ -1489,6 +1489,9 @@ button, a, [role="button"] { touch-action: manipulation; }
         <button class="nav-item" onclick="switchTab('attendance', this)" data-tooltip="الحضور">
             <i class="fas fa-calendar-check"></i><span class="label">الحضور</span>
         </button>
+        <button class="nav-item" onclick="switchTab('uncleAttendance', this)" data-tooltip="حضور الخُدام">
+            <i class="fas fa-user-tie"></i><span class="label">حضور الخُدام</span>
+        </button>
         <button class="nav-item" onclick="switchTab('trips', this)" data-tooltip="الرحلات">
             <i class="fas fa-bus"></i><span class="label">الرحلات</span>
             <span class="nav-badge" id="tripsCount" data-count="0">0</span>
@@ -1923,6 +1926,90 @@ button, a, [role="button"] { touch-action: manipulation; }
                                 <div class="card-title"><i class="fas fa-calendar-alt"></i> الأيام من الأعلى حضوراً إلى الأقل</div>
                             </div>
                             <div class="card-body" id="dayRankingList">
+                                <div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد بيانات بعد</h3></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ── UNCLE ATTENDANCE (standalone tab) ── -->
+        <div id="uncleAttendance" class="tab-panel">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-user-tie"></i> سجل حضور الخُدام - أيام الجُمعة</div>
+                </div>
+                <div class="card-body">
+                    <!-- Sub-tabs -->
+                    <div class="att-tabs">
+                        <button class="att-tab active" onclick="switchUncleAttTab('calendar', this)">
+                            <i class="fas fa-calendar-alt"></i> سجل الحضور
+                        </button>
+                        <button class="att-tab" onclick="switchUncleAttTab('report', this)">
+                            <i class="fas fa-chart-bar"></i> تقرير الخُدام
+                        </button>
+                    </div>
+
+                    <!-- CALENDAR TAB -->
+                    <div id="uncleAttTabCalendar" class="att-tab-panel active">
+                        <div class="year-selector" style="margin-bottom:12px;">
+                            <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(-1)"><i class="fas fa-chevron-right"></i></button>
+                            <span id="uncleAttYearDisplay2" style="font-weight:700;font-size:1.1rem;min-width:60px;text-align:center;"></span>
+                            <button class="btn btn-outline btn-sm" onclick="changeUncleAttYear(1)"><i class="fas fa-chevron-left"></i></button>
+                        </div>
+                        <div class="month-tabs" id="uncleAttMonthTabs2"></div>
+                        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+                            <button class="btn btn-primary btn-sm" onclick="showAddUncleAttendanceModal()"><i class="fas fa-plus"></i> تسجيل حضور الخُدام</button>
+                        </div>
+                        <div id="uncleFridaysList2"></div>
+                        <div id="uncleAttendanceDetail2" style="display:none;margin-top:20px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                                <button class="btn btn-outline btn-sm" onclick="closeUncleAttendanceDetail2()"><i class="fas fa-arrow-right"></i> رجوع</button>
+                                <h3 id="uncleAttDetailTitle2" style="font-size:1rem;font-weight:700;"></h3>
+                            </div>
+                            <div class="summary-box" id="uncleAttSummaryBoxes2"></div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>#</th><th>الاسم</th><th>الدور</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+                                    <tbody id="uncleAttendanceTable2"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REPORT TAB -->
+                    <div id="uncleAttTabReport" class="att-tab-panel">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                            <div class="year-selector" style="margin-bottom:0;">
+                                <button class="btn btn-outline btn-sm" onclick="changeReportYear2(-1)"><i class="fas fa-chevron-right"></i></button>
+                                <span id="reportYearDisplay2" style="font-weight:700;font-size:1.1rem;min-width:60px;text-align:center;"></span>
+                                <button class="btn btn-outline btn-sm" onclick="changeReportYear2(1)"><i class="fas fa-chevron-left"></i></button>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="loadUncleReport2()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                            <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="exp-btn" style="background:var(--success);" onclick="exportUncleReportCSV2()"><i class="fas fa-file-csv"></i> تصدير CSV</button>
+                                <button class="exp-btn" style="background:var(--info);" onclick="copyUncleReport2()"><i class="fas fa-copy"></i> نسخ</button>
+                            </div>
+                        </div>
+
+                        <div class="summary-box" id="reportSummaryBoxes2" style="margin-bottom:20px;"></div>
+
+                        <div class="card" style="margin-bottom:20px;">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-trophy"></i> ترتيب الخُدام حسب الحضور (الأعلى أولاً)</div>
+                            </div>
+                            <div class="card-body" id="uncleRankingList2">
+                                <div class="empty-state"><i class="fas fa-chart-bar"></i><h3>اختر سنة ثم اضغط تحديث</h3></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-calendar-alt"></i> الأيام من الأعلى حضوراً إلى الأقل</div>
+                            </div>
+                            <div class="card-body" id="dayRankingList2">
                                 <div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد بيانات بعد</h3></div>
                             </div>
                         </div>
@@ -2656,7 +2743,7 @@ let devOrigChurchId = 0;
 // ── Tab persistence via URL hash ─────────────────────────────
 function getHashTab() {
     const h = window.location.hash.replace('#', '').trim();
-    const valid = ['overview','uncles','students','attendance','trips','classes','pending','history','devChurches','devMessages','churchSettings'];
+    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending','history','devChurches','devMessages','churchSettings'];
     return valid.includes(h) ? h : null;
 }
 function setHashTab(name) {
@@ -2902,16 +2989,17 @@ function closeMobileSidebar() { document.getElementById('sidebar').classList.rem
 
 // ── Tabs ──────────────────────────────────────────────────────
 const tabTitles = {
-    overview:       ['نظرة عامة',        'الرئيسية'],
-    uncles:         ['الخُدام',           'إدارة الخُدام'],
-    students:       ['الأطفال',           'إدارة الأطفال'],
-    attendance:     ['الحضور',            'سجل الحضور'],
-    trips:          ['الرحلات',           'إدارة الرحلات'],
-    classes:        ['الفصول',            'إدارة الفصول'],
-    pending:        ['الطلبات المعلقة',   'مراجعة الطلبات'],
-    devChurches:    ['إدارة الكنائس 🔒',  'لوحة المطور'],
-    history:        ['سجل العمليات',      'سجل التدقيق'],
-    churchSettings: ['إعدادات الكنيسة',  'إعدادات الكنيسة والحساب'],
+    overview:           ['نظرة عامة',          'الرئيسية'],
+    uncles:             ['الخُدام',             'إدارة الخُدام'],
+    students:           ['الأطفال',             'إدارة الأطفال'],
+    attendance:         ['الحضور',              'سجل الحضور'],
+    uncleAttendance:    ['حضور الخُدام',        'سجل حضور الخُدام'],
+    trips:              ['الرحلات',             'إدارة الرحلات'],
+    classes:            ['الفصول',              'إدارة الفصول'],
+    pending:            ['الطلبات المعلقة',     'مراجعة الطلبات'],
+    devChurches:        ['إدارة الكنائس 🔒',    'لوحة المطور'],
+    history:            ['سجل العمليات',        'سجل التدقيق'],
+    churchSettings:     ['إعدادات الكنيسة',    'إعدادات الكنيسة والحساب'],
 };
 
 function switchTab(name, btn) {
@@ -2936,7 +3024,8 @@ function switchTab(name, btn) {
         uncles:      () => { loadUncles(); },
         students:    () => { loadStudents(); renderKidRegLinks(); },
         trips:       loadTrips,
-        attendance:  initAttendance,
+        attendance:     initAttendance,
+        uncleAttendance: initUncleAttendanceTab,
         classes:     loadClassSettings,
         pending:     loadPendingRegistrations,
         history:     loadAuditLogs,
@@ -7704,7 +7793,315 @@ function toggleFieldPwd(inputId, iconId) {
     const _origSwitchTab = typeof switchTab === 'function' ? switchTab : null;
 
     // ══════════════════════════════════════════════════════════════
-    // UNCLE ATTENDANCE SYSTEM
+    // STANDALONE UNCLE ATTENDANCE TAB (separate sidebar tab)
+    // All IDs end in "2" to avoid conflicts with the embedded ones.
+    // ══════════════════════════════════════════════════════════════
+    let ua2Year   = new Date().getFullYear();
+    let ua2Month  = new Date().getMonth();
+    let ua2Date   = null;
+    let ua2Report = new Date().getFullYear();
+
+    const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+    // Called by switchTab loader
+    function initUncleAttendanceTab() {
+        document.getElementById('uncleAttYearDisplay2').textContent = ua2Year;
+        renderUa2MonthTabs();
+        renderUa2FridayCards();
+    }
+
+    // Sub-tab switching (Calendar / Report)
+    function switchUncleAttTab(tab, btn) {
+        // Only affect tabs/panels inside the standalone tab
+        const container = document.getElementById('uncleAttendance');
+        container.querySelectorAll('.att-tab').forEach(t => t.classList.remove('active'));
+        container.querySelectorAll('.att-tab-panel').forEach(p => p.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const panelId = tab === 'calendar' ? 'uncleAttTabCalendar' : 'uncleAttTabReport';
+        document.getElementById(panelId).classList.add('active');
+        if (tab === 'report') {
+            document.getElementById('reportYearDisplay2').textContent = ua2Report;
+            loadUncleReport2();
+        }
+    }
+
+    // Year navigation
+    function changeUncleAttYear(delta) {
+        ua2Year += delta;
+        document.getElementById('uncleAttYearDisplay2').textContent = ua2Year;
+        // Also sync the nested att tab display if it exists
+        const el = document.getElementById('uncleAttYearDisplay');
+        if (el) el.textContent = ua2Year;
+        currentUncleAttYear = ua2Year;
+        renderUa2MonthTabs();
+        renderUa2FridayCards();
+        // Also refresh nested tab if visible
+        if (document.getElementById('uncleAttMonthTabs')) renderUncleMonthTabs();
+        if (document.getElementById('uncleFridaysList')) renderUncleFridayCards();
+    }
+
+    function changeReportYear2(delta) {
+        ua2Report += delta;
+        document.getElementById('reportYearDisplay2').textContent = ua2Report;
+        loadUncleReport2();
+    }
+
+    // Month tabs
+    function renderUa2MonthTabs() {
+        document.getElementById('uncleAttMonthTabs2').innerHTML = MONTHS_AR.map((m, i) =>
+            `<button class="month-tab${i===ua2Month?' active':''}" onclick="ua2SelectMonth(${i},this)">${m}</button>`
+        ).join('');
+    }
+
+    function ua2SelectMonth(idx, btn) {
+        ua2Month = idx;
+        currentUncleAttMonth = idx;
+        document.querySelectorAll('#uncleAttMonthTabs2 .month-tab').forEach(t => t.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        document.getElementById('uncleAttendanceDetail2').style.display = 'none';
+        document.getElementById('uncleFridaysList2').style.display = 'block';
+        renderUa2FridayCards();
+    }
+
+    // Friday grid
+    function renderUa2FridayCards() {
+        const fridays = getFridaysInMonth(ua2Year, ua2Month);
+        const c = document.getElementById('uncleFridaysList2');
+        if (!fridays.length) {
+            c.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام جمعة في هذا الشهر</h3></div>`;
+            return;
+        }
+        c.innerHTML = `<div class="friday-grid">${fridays.map(f => {
+            const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
+            const iso=`${y}-${mo}-${d}`;
+            const ds=f.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'});
+            return `<div class="friday-card" onclick="ua2LoadDate('${iso}')">
+                <div class="date"><i class="fas fa-calendar-day" style="color:var(--primary);margin-left:6px;"></i>${ds}</div>
+                <div class="stats">
+                    <span style="background:var(--success-light);color:#065f46;" id="ua2p_${iso}">---</span>
+                    <span style="background:var(--danger-light);color:#991b1b;" id="ua2a_${iso}">---</span>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+
+        fridays.forEach(f => {
+            const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
+            const iso=`${y}-${mo}-${d}`;
+            const fd2 = mkFd('getUncleAttendanceByDate');
+            fd2.append('date', iso);
+            fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json()).then(data => {
+                if (!data.success) return;
+                const att = data.attendance||[];
+                const ep = document.getElementById(`ua2p_${iso}`);
+                const ea = document.getElementById(`ua2a_${iso}`);
+                if (ep) ep.textContent = `✅ ${att.filter(a=>a.status==='present').length}`;
+                if (ea) ea.textContent = `❌ ${att.filter(a=>a.status==='absent').length}`;
+            }).catch(()=>{});
+        });
+    }
+
+    // Load detail for a date
+    async function ua2LoadDate(date) {
+        ua2Date = date;
+        const fd = mkFd('getUncleAttendanceByDate');
+        fd.append('date', date);
+        const data = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (!data.success) { showToast('خطأ في تحميل حضور الخُدام','error'); return; }
+        const att = data.attendance||[];
+        const present = att.filter(a=>a.status==='present').length;
+        const absent  = att.filter(a=>a.status==='absent').length;
+        const total   = att.length;
+        const rate    = total>0 ? Math.round(present/total*100) : 0;
+        const dateObj = new Date(date+'T00:00:00');
+        document.getElementById('uncleAttDetailTitle2').textContent =
+            dateObj.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+        document.getElementById('uncleAttSummaryBoxes2').innerHTML = `
+            <div class="sbox"><div class="sv">${total}</div><div class="sl">إجمالي</div></div>
+            <div class="sbox"><div class="sv" style="color:var(--success);">${present}</div><div class="sl">حاضر</div></div>
+            <div class="sbox"><div class="sv" style="color:var(--danger);">${absent}</div><div class="sl">غائب</div></div>
+            <div class="sbox"><div class="sv" style="color:${rate>=70?'var(--success)':'var(--danger)'};">${rate}%</div><div class="sl">نسبة الحضور</div></div>`;
+        ua2RenderTable(att, date);
+        document.getElementById('uncleAttendanceDetail2').style.display = 'block';
+        document.getElementById('uncleFridaysList2').style.display = 'none';
+    }
+    window.ua2LoadDate = ua2LoadDate;
+
+    function closeUncleAttendanceDetail2() {
+        ua2Date = null;
+        document.getElementById('uncleAttendanceDetail2').style.display = 'none';
+        document.getElementById('uncleFridaysList2').style.display = 'block';
+        renderUa2FridayCards();
+    }
+    window.closeUncleAttendanceDetail2 = closeUncleAttendanceDetail2;
+
+    function ua2RenderTable(att, date) {
+        const tb = document.getElementById('uncleAttendanceTable2');
+        if (!att.length) {
+            tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3></div></td></tr>`;
+            return;
+        }
+        tb.innerHTML = att.map((a, i) => {
+            const sc  = a.status==='present' ? 'att-present' : 'att-absent';
+            const sb  = a.status==='present' ? 'badge-success' : 'badge-danger';
+            const roleBadge = a.role==='admin'
+                ? '<span class="badge badge-primary">مسؤول</span>'
+                : '<span class="badge" style="background:#ede9fe;color:#7c3aed;">خادم</span>';
+            return `<tr class="${sc}">
+                <td><strong>${i+1}</strong></td>
+                <td><strong>${escHtml(a.uncle_name)}</strong></td>
+                <td>${roleBadge}</td>
+                <td><span class="badge ${sb}">${a.status==='present'?'حاضر':'غائب'}</span></td>
+                <td><div class="actions">
+                    <button class="act-btn act-edit" onclick="ua2Toggle(${a.id},'${a.status}','${date}')"><i class="fas fa-exchange-alt"></i></button>
+                    <button class="act-btn act-delete" onclick="ua2Delete(${a.id},'${date}')"><i class="fas fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function ua2Toggle(id, curr, date) {
+        const nxt = curr==='present' ? 'absent' : 'present';
+        const fd  = mkFd('toggleUncleAttendance');
+        fd.append('id', id); fd.append('status', nxt);
+        const d = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم التحديث','success'); ua2LoadDate(date); renderUa2FridayCards(); }
+        else showToast('فشل','error');
+    }
+    window.ua2Toggle = ua2Toggle;
+
+    async function ua2Delete(id, date) {
+        if (!confirm('حذف سجل حضور الخادم؟')) return;
+        const fd = mkFd('deleteUncleAttendance');
+        fd.append('id', id);
+        const d = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم الحذف','success'); ua2LoadDate(date); renderUa2FridayCards(); }
+        else showToast('فشل','error');
+    }
+    window.ua2Delete = ua2Delete;
+
+    // Report
+    async function loadUncleReport2() {
+        document.getElementById('uncleRankingList2').innerHTML =
+            '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
+        document.getElementById('dayRankingList2').innerHTML =
+            '<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
+        const fd = mkFd('getUncleAttendanceReport');
+        fd.append('year', ua2Report);
+        const d = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (!d.success) {
+            document.getElementById('uncleRankingList2').innerHTML =
+                '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>خطأ في التحميل</h3></div>';
+            return;
+        }
+        const report   = d.uncle_report||[];
+        const dayRank  = d.day_ranking||[];
+        const totalDays= d.dates?.length||0;
+        const avgPct   = report.length>0 ? Math.round(report.reduce((s,r)=>s+r.percentage,0)/report.length) : 0;
+        const topUncle = report[0];
+
+        document.getElementById('reportSummaryBoxes2').innerHTML = `
+            <div class="sbox"><div class="sv">${totalDays}</div><div class="sl">أيام مُسجَّلة</div></div>
+            <div class="sbox"><div class="sv">${report.length}</div><div class="sl">إجمالي الخُدام</div></div>
+            <div class="sbox"><div class="sv" style="color:${avgPct>=70?'var(--success)':'var(--danger)'};">${avgPct}%</div><div class="sl">متوسط الحضور</div></div>
+            <div class="sbox"><div class="sv" style="color:var(--primary);font-size:1rem;">${topUncle?escHtml(topUncle.uncle_name.split(' ')[0]):'—'}</div><div class="sl">🏆 الأكثر حضوراً</div></div>`;
+
+        document.getElementById('uncleRankingList2').innerHTML = !report.length
+            ? '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد بيانات لهذه السنة</h3></div>'
+            : report.map((r,i) => {
+                const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+                const initials  = (r.uncle_name||'').split(' ').map(w=>w[0]).slice(0,2).join('');
+                const barColor  = r.percentage>=80?'var(--success)':r.percentage>=50?'var(--warning)':'var(--danger)';
+                const imgHtml   = r.image_url
+                    ? `<img src="${escHtml(r.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`
+                    : '';
+                return `<div class="uncle-report-row">
+                    <div class="uncle-rank-badge ${rankClass}">${i+1}</div>
+                    <div class="uncle-att-ava">${imgHtml}${r.image_url?'':initials}</div>
+                    <div class="uncle-report-info">
+                        <div class="uncle-report-name">${escHtml(r.uncle_name)}</div>
+                        <div class="uncle-report-meta">${r.role==='admin'?'مسؤول':'خادم'} · ${r.present_count} من ${r.total_days} يوم</div>
+                        <div class="uncle-progress-wrap">
+                            <div class="uncle-progress-bar">
+                                <div class="uncle-progress-fill" style="width:${r.percentage}%;background:${barColor};"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="uncle-report-stats">
+                        <div class="uncle-stat-box present">✅ ${r.present_count}</div>
+                        <div class="uncle-stat-box absent">❌ ${r.absent_count}</div>
+                        <div class="uncle-stat-box" style="background:var(--primary-light);color:var(--primary);">${r.percentage}%</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+        const maxCount = dayRank[0]?.present_count||1;
+        document.getElementById('dayRankingList2').innerHTML = !dayRank.length
+            ? '<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام مُسجَّلة</h3></div>'
+            : dayRank.map((day,i) => {
+                const dateObj   = new Date(day.date+'T00:00:00');
+                const ds        = dateObj.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+                const pct       = Math.round(day.present_count/maxCount*100);
+                const attendPct = day.total_uncles>0 ? Math.round(day.present_count/day.total_uncles*100) : '--';
+                const barColor  = day.total_uncles>0&&day.present_count/day.total_uncles>=.8 ? 'var(--success)'
+                                : day.total_uncles>0&&day.present_count/day.total_uncles>=.5 ? 'var(--primary)'
+                                : 'var(--warning)';
+                return `<div class="day-rank-row">
+                    <div style="width:28px;height:28px;border-radius:50%;background:${i<3?'var(--primary)':'var(--border)'};color:${i<3?'white':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0;">${i+1}</div>
+                    <div class="day-rank-bar-wrap">
+                        <div class="day-rank-label"><span>${ds}</span><span style="color:var(--success);">✅ ${day.present_count} حاضر</span></div>
+                        <div class="day-rank-bar"><div class="day-rank-fill" style="width:${pct}%;background:${barColor};"></div></div>
+                    </div>
+                    <div style="font-size:.75rem;font-weight:800;color:var(--muted);flex-shrink:0;min-width:40px;text-align:center;">${attendPct}%</div>
+                </div>`;
+            }).join('');
+    }
+    window.loadUncleReport2 = loadUncleReport2;
+
+    function exportUncleReportCSV2() {
+        const rows = document.querySelectorAll('#uncleRankingList2 .uncle-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات للتصدير','warning'); return; }
+        let csv = '\uFEFF'+'الترتيب,اسم الخادم,الدور,أيام الحضور,أيام الغياب,نسبة الحضور\n';
+        rows.forEach((row,i) => {
+            const name    = row.querySelector('.uncle-report-name')?.textContent?.trim()||'';
+            const meta    = row.querySelector('.uncle-report-meta')?.textContent?.trim()||'';
+            const role    = meta.includes('مسؤول')?'مسؤول':'خادم';
+            const boxes   = row.querySelectorAll('.uncle-stat-box');
+            const present = boxes[0]?.textContent?.replace(/[^0-9]/g,'')||'0';
+            const absent  = boxes[1]?.textContent?.replace(/[^0-9]/g,'')||'0';
+            const pct     = boxes[2]?.textContent?.replace(/[^0-9]/g,'')||'0';
+            csv += `${i+1},"${name}","${role}",${present},${absent},${pct}%\n`;
+        });
+        const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href=url; a.download=`تقرير_حضور_الخدام_${ua2Report}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        showToast('تم تصدير التقرير ✓','success');
+    }
+    window.exportUncleReportCSV2 = exportUncleReportCSV2;
+
+    function copyUncleReport2() {
+        const rows = document.querySelectorAll('#uncleRankingList2 .uncle-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات','warning'); return; }
+        let text = `تقرير حضور الخُدام - ${ua2Report}\n${'═'.repeat(40)}\n`;
+        rows.forEach((row,i) => {
+            const name  = row.querySelector('.uncle-report-name')?.textContent?.trim()||'';
+            const boxes = row.querySelectorAll('.uncle-stat-box');
+            text += `${i+1}. ${name}  |  ${boxes[0]?.textContent?.trim()||''}  |  ${boxes[1]?.textContent?.trim()||''}  |  ${boxes[2]?.textContent?.trim()||''}\n`;
+        });
+        navigator.clipboard.writeText(text).then(()=>showToast('تم النسخ ✓','success')).catch(()=>showToast('فشل','error'));
+    }
+    window.copyUncleReport2 = copyUncleReport2;
+
+    // expose init for switchTab loader
+    window.initUncleAttendanceTab = initUncleAttendanceTab;
+    window.switchUncleAttTab      = switchUncleAttTab;
+    window.changeUncleAttYear     = changeUncleAttYear;
+    window.changeReportYear2      = changeReportYear2;
+    window.ua2SelectMonth         = ua2SelectMonth;
+
+    // ══════════════════════════════════════════════════════════════
+    // UNCLE ATTENDANCE SYSTEM (original - nested inside attendance tab)
     // ══════════════════════════════════════════════════════════════
     let currentUncleAttYear  = new Date().getFullYear();
     let currentUncleAttMonth = new Date().getMonth();
@@ -7726,10 +8123,11 @@ function toggleFieldPwd(inputId, iconId) {
     }
 
     function initUncleAttendanceCal() {
+        currentUncleAttYear = ua2Year;
+        currentUncleAttMonth = ua2Month;
         document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear;
         renderUncleMonthTabs(); renderUncleFridayCards();
     }
-    function changeUncleAttYear(delta) { currentUncleAttYear += delta; document.getElementById('uncleAttYearDisplay').textContent = currentUncleAttYear; renderUncleMonthTabs(); renderUncleFridayCards(); }
     function renderUncleMonthTabs() {
         const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
         document.getElementById('uncleAttMonthTabs').innerHTML = months.map((m,i) =>
