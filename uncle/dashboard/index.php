@@ -2516,6 +2516,144 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
   display:flex;align-items:center;justify-content:center;
   font-size:1.6rem;color:var(--text-3);margin-bottom:6px;
 }
+
+/* ══ UNCLE ATTENDANCE MODAL ═══════════════════════════════════════════ */
+.uatt-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000020;
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.uatt-modal-overlay.active { display:flex; }
+.uatt-modal-box {
+  background:var(--bg);border-radius:var(--r-xl);width:100%;max-width:780px;
+  max-height:90vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-xl);
+}
+.uatt-modal-head {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid var(--border-solid);
+  background:var(--surface-2);flex-shrink:0;
+}
+.uatt-modal-head h2 { font-size:1.05rem;font-weight:800;color:var(--text);margin:0;display:flex;align-items:center;gap:8px; }
+.uatt-close-btn { background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:1rem;transition:background .15s; }
+.uatt-close-btn:hover { background:var(--surface-3);color:var(--text); }
+.uatt-modal-body { flex:1;overflow-y:auto;padding:20px 22px; }
+/* tabs */
+.uatt-tabs { display:flex;gap:0;border-bottom:1.5px solid var(--border-solid);margin-bottom:18px;overflow-x:auto; }
+.uatt-tab {
+  padding:10px 16px;font-size:.82rem;font-weight:700;color:var(--text-3);
+  background:none;border:none;border-bottom:2.5px solid transparent;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;
+  margin-bottom:-1.5px;transition:color .15s;
+}
+.uatt-tab:hover { color:var(--brand); }
+.uatt-tab.active { color:var(--brand);border-bottom-color:var(--brand); }
+.uatt-tab-panel { display:none; }
+.uatt-tab-panel.active { display:block; }
+/* year / month selectors */
+.uatt-year-sel { display:flex;align-items:center;gap:10px;margin-bottom:14px; }
+.uatt-year-sel span { font-weight:800;font-size:1.1rem;min-width:60px;text-align:center;color:var(--text); }
+.uatt-month-tabs { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px; }
+.uatt-month-tab {
+  padding:5px 12px;border-radius:var(--r-full);font-size:.75rem;font-weight:700;
+  background:var(--surface);border:1.5px solid var(--border-solid);cursor:pointer;color:var(--text-2);transition:all .15s;
+}
+.uatt-month-tab:hover { border-color:var(--brand);color:var(--brand); }
+.uatt-month-tab.active { background:var(--brand);color:#fff;border-color:var(--brand); }
+/* friday cards grid */
+.uatt-friday-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:10px; }
+.uatt-friday-card {
+  background:var(--surface);border:1.5px solid var(--border-solid);border-radius:var(--r-lg);
+  padding:14px 12px;cursor:pointer;transition:all .18s;
+}
+.uatt-friday-card:hover { border-color:var(--brand);transform:translateY(-2px);box-shadow:var(--shadow-md); }
+.uatt-friday-card .ufc-date { font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+.uatt-friday-card .ufc-stats { display:flex;gap:6px;flex-wrap:wrap; }
+.uatt-friday-card .ufc-stats span { font-size:.68rem;padding:2px 8px;border-radius:var(--r-full);font-weight:700; }
+/* summary boxes */
+.uatt-summary { display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px; }
+.uatt-sbox { background:var(--surface);border-radius:var(--r-lg);padding:14px 12px;border:1px solid var(--border-solid);text-align:center;box-shadow:var(--shadow-xs); }
+.uatt-sbox .sv { font-size:1.5rem;font-weight:900;color:var(--text); }
+.uatt-sbox .sl { font-size:.68rem;color:var(--text-3);margin-top:3px;font-weight:600; }
+/* table rows */
+.uatt-present td { background:rgba(16,185,129,.06); }
+.uatt-absent td { background:rgba(239,68,68,.06); }
+/* uncle report */
+.uatt-report-row {
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border-solid);
+  margin-bottom:8px;transition:all .15s;
+}
+.uatt-report-row:hover { border-color:var(--brand);box-shadow:var(--shadow-xs);transform:translateX(-2px); }
+.uatt-rank-badge {
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:900;flex-shrink:0;
+}
+.uatt-rank-badge.gold   { background:#fef3c7;color:#92400e;border:1.5px solid #f59e0b; }
+.uatt-rank-badge.silver { background:#f1f5f9;color:#475569;border:1.5px solid #94a3b8; }
+.uatt-rank-badge.bronze { background:#fef6ee;color:#9a3412;border:1.5px solid #f97316; }
+.uatt-rank-badge.other  { background:var(--surface-3);color:var(--text-3);border:1px solid var(--border-solid); }
+.uatt-ava {
+  width:38px;height:38px;border-radius:50%;background:var(--brand-bg);
+  display:flex;align-items:center;justify-content:center;font-weight:800;
+  font-size:.82rem;color:var(--brand);flex-shrink:0;overflow:hidden;
+}
+.uatt-ava img { width:100%;height:100%;object-fit:cover; }
+.uatt-report-info { flex:1;min-width:0; }
+.uatt-report-name { font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:2px; }
+.uatt-report-meta { font-size:.7rem;color:var(--text-3); }
+.uatt-prog-wrap { flex:1;max-width:140px; }
+.uatt-prog-bar { height:5px;background:var(--surface-3);border-radius:var(--r-full);overflow:hidden;margin-top:4px; }
+.uatt-prog-fill { height:100%;border-radius:var(--r-full);transition:width .6s ease; }
+.uatt-report-stats { display:flex;gap:6px;flex-shrink:0; }
+.uatt-stat-box { padding:5px 10px;border-radius:var(--r-sm);font-size:.7rem;font-weight:800; }
+.uatt-stat-box.present { background:var(--success-bg);color:var(--success-dark); }
+.uatt-stat-box.absent  { background:var(--danger-bg);color:var(--danger); }
+/* day rank */
+.uatt-day-row { display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border-radius:var(--r-sm);border:1px solid var(--border-solid);margin-bottom:7px; }
+.uatt-day-bar-wrap { flex:1; }
+.uatt-day-bar { height:7px;background:var(--surface-3);border-radius:var(--r-full);overflow:hidden; }
+.uatt-day-fill { height:100%;border-radius:var(--r-full); }
+/* add attendance modal items */
+.uatt-uncle-item {
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border-solid);margin-bottom:7px;
+}
+.uatt-toggle-btns { display:flex;gap:5px;margin-right:auto; }
+.uatt-toggle-btn {
+  padding:5px 12px;border-radius:var(--r-full);font-size:.75rem;font-weight:700;
+  border:1.5px solid var(--border-solid);background:none;cursor:pointer;
+  color:var(--text-3);transition:all .15s;
+}
+.uatt-toggle-btn.present { border-color:var(--success);color:var(--success);background:var(--success-bg); }
+.uatt-toggle-btn.absent  { border-color:var(--danger); color:var(--danger); background:var(--danger-bg); }
+/* exp buttons */
+.uatt-exp-btn {
+  padding:6px 14px;border-radius:var(--r-full);font-size:.75rem;font-weight:700;
+  border:none;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  transition:all .15s;
+}
+.uatt-exp-btn:hover { filter:brightness(1.1);transform:translateY(-1px); }
+/* loading */
+.uatt-loading { display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--text-3); }
+.uatt-empty { text-align:center;padding:32px;color:var(--text-3); }
+.uatt-empty i { font-size:2rem;margin-bottom:8px;display:block; }
+/* card */
+.uatt-card { background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border-solid);margin-bottom:16px; }
+.uatt-card-head { padding:14px 18px;border-bottom:1px solid var(--border-solid);display:flex;align-items:center;gap:8px;font-weight:800;font-size:.9rem;color:var(--text); }
+.uatt-card-body { padding:16px 18px; }
+/* detail back */
+.uatt-detail-header { display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap; }
+.uatt-detail-title { font-size:1rem;font-weight:800;color:var(--text);flex:1; }
+/* add btn row */
+.uatt-add-row { display:flex;justify-content:flex-end;margin-bottom:14px; }
+/* responsive */
+@media(max-width:600px){
+  .uatt-friday-grid { grid-template-columns:1fr 1fr; }
+  .uatt-summary { grid-template-columns:repeat(2,1fr); }
+  .uatt-report-row { flex-wrap:wrap;gap:9px;padding:11px; }
+  .uatt-prog-wrap { min-width:100%;max-width:100%; }
+  .uatt-tab { padding:8px 10px;font-size:.75rem; }
+}
 </style>
 </head>
 <body>
@@ -2920,6 +3058,10 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
         </button>
         <button class="action-strip-btn action-strip-standalone action-strip-add" onclick="showAddPersonModal()" title="إضافة طفل جديد">
           <i class="fas fa-user-plus"></i>
+        </button>
+        <button class="action-strip-btn action-strip-standalone" onclick="openUattModal()" title="حضور الخُدام"
+          style="background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;border:none;">
+          <i class="fas fa-user-tie"></i>
         </button>
       </div>
 
@@ -3380,6 +3522,119 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
           <thead><tr><th>النوع</th><th>النص</th><th>الفصل</th><th>الأطفال</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
           <tbody id="announcementsTableBody"></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     UNCLE ATTENDANCE MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="uatt-modal-overlay" id="uattModal">
+  <div class="uatt-modal-box">
+    <div class="uatt-modal-head">
+      <h2><i class="fas fa-user-tie"></i> حضور الخُدام</h2>
+      <button class="uatt-close-btn" onclick="closeUattModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="uatt-modal-body">
+
+      <!-- TABS -->
+      <div class="uatt-tabs">
+        <button class="uatt-tab active" id="uattTabBtnUncles" onclick="switchUattTab('uncles',this)">
+          <i class="fas fa-user-tie"></i> حضور الخُدام
+        </button>
+        <button class="uatt-tab" id="uattTabBtnReport" onclick="switchUattTab('report',this)">
+          <i class="fas fa-chart-bar"></i> تقرير الخُدام
+        </button>
+      </div>
+
+      <!-- ── TAB: UNCLE ATTENDANCE CALENDAR ── -->
+      <div id="uattPanelUncles" class="uatt-tab-panel active">
+        <div class="uatt-year-sel">
+          <button class="btn btn-sm" onclick="changeUattYear(-1)"><i class="fas fa-chevron-right"></i></button>
+          <span id="uattYearDisplay"></span>
+          <button class="btn btn-sm" onclick="changeUattYear(1)"><i class="fas fa-chevron-left"></i></button>
+        </div>
+        <div class="uatt-month-tabs" id="uattMonthTabs"></div>
+        <div class="uatt-add-row">
+          <button class="btn btn-primary btn-sm" onclick="showUattAddModal()">
+            <i class="fas fa-plus"></i> تسجيل حضور الخُدام
+          </button>
+        </div>
+        <div id="uattFridayGrid"></div>
+        <!-- Detail view -->
+        <div id="uattDetail" style="display:none;margin-top:16px;">
+          <div class="uatt-detail-header">
+            <button class="btn btn-sm" onclick="closeUattDetail()"><i class="fas fa-arrow-right"></i> رجوع</button>
+            <div class="uatt-detail-title" id="uattDetailTitle"></div>
+          </div>
+          <div class="uatt-summary" id="uattDetailSummary"></div>
+          <div class="table-container" style="margin-top:4px;">
+            <table class="data-table">
+              <thead><tr><th>#</th><th>الاسم</th><th>الدور</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+              <tbody id="uattDetailTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: UNCLE REPORT ── -->
+      <div id="uattPanelReport" class="uatt-tab-panel">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+          <div class="uatt-year-sel" style="margin-bottom:0;">
+            <button class="btn btn-sm" onclick="changeUattReportYear(-1)"><i class="fas fa-chevron-right"></i></button>
+            <span id="uattReportYearDisplay"></span>
+            <button class="btn btn-sm" onclick="changeUattReportYear(1)"><i class="fas fa-chevron-left"></i></button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadUattReport()"><i class="fas fa-sync-alt"></i> تحديث</button>
+          <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="uatt-exp-btn" style="background:var(--success);" onclick="exportUattReportCSV()"><i class="fas fa-file-csv"></i> تصدير CSV</button>
+            <button class="uatt-exp-btn" style="background:var(--info);" onclick="copyUattReport()"><i class="fas fa-copy"></i> نسخ</button>
+          </div>
+        </div>
+        <div class="uatt-summary" id="uattReportSummary" style="margin-bottom:18px;"></div>
+        <div class="uatt-card" style="margin-bottom:16px;">
+          <div class="uatt-card-head"><i class="fas fa-trophy"></i> ترتيب الخُدام حسب الحضور (الأعلى أولاً)</div>
+          <div class="uatt-card-body" id="uattRankingList">
+            <div class="uatt-empty"><i class="fas fa-chart-bar"></i><span>اختر سنة ثم اضغط تحديث</span></div>
+          </div>
+        </div>
+        <div class="uatt-card">
+          <div class="uatt-card-head"><i class="fas fa-calendar-alt"></i> الأيام من الأعلى حضوراً إلى الأقل</div>
+          <div class="uatt-card-body" id="uattDayRankList">
+            <div class="uatt-empty"><i class="fas fa-calendar-times"></i><span>لا توجد بيانات بعد</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+  </div>
+</div>
+
+<!-- ── ADD UNCLE ATTENDANCE SUB-MODAL ── -->
+<div class="uatt-modal-overlay" id="uattAddModal" style="z-index:1000021;">
+  <div class="uatt-modal-box" style="max-width:580px;">
+    <div class="uatt-modal-head">
+      <h2><i class="fas fa-calendar-plus"></i> تسجيل حضور الخُدام</h2>
+      <button class="uatt-close-btn" onclick="closeUattAddModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="uatt-modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label"><i class="fas fa-calendar"></i> التاريخ *</label>
+          <input type="date" id="uattAddDate" class="form-input">
+        </div>
+        <div class="form-group" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="uattSetAll('present')" style="flex:1;"><i class="fas fa-check-double"></i> تحضير الكل</button>
+            <button class="btn btn-danger btn-sm" onclick="uattSetAll('absent')" style="flex:1;"><i class="fas fa-times"></i> تغييب الكل</button>
+          </div>
+        </div>
+      </div>
+      <div id="uattAddList" style="max-height:340px;overflow-y:auto;padding-left:2px;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-primary" style="flex:2;" onclick="saveUattAttendance()"><i class="fas fa-save"></i> حفظ حضور الخُدام</button>
+        <button class="btn btn-secondary" style="flex:1;" onclick="closeUattAddModal()">إلغاء</button>
       </div>
     </div>
   </div>
@@ -8129,6 +8384,439 @@ navigator.serviceWorker?.addEventListener('message', e => {
     }
 });
 
-</script>
+// ══════════════════════════════════════════════════════════════════
+//  UNCLE ATTENDANCE MODULE  (admin dashboard)
+//  Mirrors the uncle dashboard implementation exactly.
+//  API calls use checkUncleAuth() — accepts church_id OR uncle_id.
+// ══════════════════════════════════════════════════════════════════
+(function() {
+    'use strict';
+
+    // ── state ──────────────────────────────────────────────────────
+    let uattYear        = new Date().getFullYear();
+    let uattMonth       = new Date().getMonth();
+    let uattCurrentDate = null;
+    let uattUncleData   = {};   // { uncle_id: 'present'|'absent' }
+    let uattReportYear  = new Date().getFullYear();
+
+    const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+    // ── helpers ────────────────────────────────────────────────────
+    function uattFd(action) {
+        const fd = new FormData();
+        fd.append('action', action);
+        return fd;
+    }
+
+    function uattFridaysInMonth(year, month) {
+        const fridays = [];
+        const d = new Date(year, month, 1);
+        while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+        while (d.getMonth() === month) {
+            fridays.push(new Date(d));
+            d.setDate(d.getDate() + 7);
+        }
+        return fridays;
+    }
+
+    function uattEsc(s) {
+        return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── modal open / close ─────────────────────────────────────────
+    window.openUattModal = function() {
+        document.getElementById('uattModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // init displays
+        document.getElementById('uattYearDisplay').textContent     = uattYear;
+        document.getElementById('uattReportYearDisplay').textContent = uattReportYear;
+        renderUattMonthTabs();
+        renderUattFridayGrid();
+    };
+
+    window.closeUattModal = function() {
+        document.getElementById('uattModal').classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    // close on overlay click
+    document.getElementById('uattModal').addEventListener('click', function(e) {
+        if (e.target === this) window.closeUattModal();
+    });
+
+    // ── tab switching ──────────────────────────────────────────────
+    window.switchUattTab = function(tab, btn) {
+        document.querySelectorAll('.uatt-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.uatt-tab-panel').forEach(p => p.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const panelId = tab === 'uncles' ? 'uattPanelUncles' : 'uattPanelReport';
+        document.getElementById(panelId).classList.add('active');
+        if (tab === 'report') {
+            document.getElementById('uattReportYearDisplay').textContent = uattReportYear;
+            loadUattReport();
+        }
+    };
+
+    // ── year navigation ────────────────────────────────────────────
+    window.changeUattYear = function(delta) {
+        uattYear += delta;
+        document.getElementById('uattYearDisplay').textContent = uattYear;
+        renderUattMonthTabs();
+        renderUattFridayGrid();
+    };
+
+    window.changeUattReportYear = function(delta) {
+        uattReportYear += delta;
+        document.getElementById('uattReportYearDisplay').textContent = uattReportYear;
+        loadUattReport();
+    };
+
+    // ── month tabs ─────────────────────────────────────────────────
+    function renderUattMonthTabs() {
+        document.getElementById('uattMonthTabs').innerHTML = MONTHS.map((m, i) =>
+            `<button class="uatt-month-tab${i===uattMonth?' active':''}"
+                onclick="uattSelectMonth(${i},this)">${m}</button>`
+        ).join('');
+    }
+
+    window.uattSelectMonth = function(idx, btn) {
+        uattMonth = idx;
+        document.querySelectorAll('#uattMonthTabs .uatt-month-tab').forEach(t => t.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        closeUattDetail();
+        renderUattFridayGrid();
+    };
+
+    // ── friday grid ────────────────────────────────────────────────
+    function renderUattFridayGrid() {
+        const fridays = uattFridaysInMonth(uattYear, uattMonth);
+        const c = document.getElementById('uattFridayGrid');
+        if (!fridays.length) {
+            c.innerHTML = `<div class="uatt-empty"><i class="fas fa-calendar-times"></i><span>لا توجد أيام جمعة في هذا الشهر</span></div>`;
+            return;
+        }
+        c.innerHTML = `<div class="uatt-friday-grid">${fridays.map(f => {
+            const iso = f.toISOString().split('T')[0];
+            const ds  = f.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+            return `<div class="uatt-friday-card" onclick="loadUattDate('${iso}')">
+                <div class="ufc-date"><i class="fas fa-calendar-day" style="color:var(--brand);"></i>${ds}</div>
+                <div class="ufc-stats">
+                    <span style="background:var(--success-bg);color:var(--success-dark);" id="uatp_${iso}">---</span>
+                    <span style="background:var(--danger-bg);color:var(--danger);" id="uata_${iso}">---</span>
+                </div>
+            </div>`;
+        }).join('')}</div>`;
+
+        // async load counts for each card
+        fridays.forEach(f => {
+            const iso = f.toISOString().split('T')[0];
+            const fd  = uattFd('getUncleAttendanceByDate');
+            fd.append('date', iso);
+            fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    const att = data.attendance || [];
+                    const ep  = document.getElementById(`uatp_${iso}`);
+                    const ea  = document.getElementById(`uata_${iso}`);
+                    if (ep) ep.textContent = `✅ ${att.filter(a=>a.status==='present').length}`;
+                    if (ea) ea.textContent = `❌ ${att.filter(a=>a.status==='absent').length}`;
+                }).catch(() => {});
+        });
+    }
+
+    // ── detail view for a date ─────────────────────────────────────
+    window.loadUattDate = function(date) {
+        uattCurrentDate = date;
+        const fd = uattFd('getUncleAttendanceByDate');
+        fd.append('date', date);
+        fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) { showToast('خطأ في تحميل حضور الخُدام', 'error'); return; }
+                const att     = data.attendance || [];
+                const present = att.filter(a => a.status==='present').length;
+                const absent  = att.filter(a => a.status==='absent').length;
+                const total   = att.length;
+                const rate    = total > 0 ? Math.round(present/total*100) : 0;
+                const dateObj = new Date(date + 'T00:00:00');
+                document.getElementById('uattDetailTitle').textContent =
+                    dateObj.toLocaleDateString('ar-EG', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+                document.getElementById('uattDetailSummary').innerHTML = `
+                    <div class="uatt-sbox"><div class="sv">${total}</div><div class="sl">إجمالي</div></div>
+                    <div class="uatt-sbox"><div class="sv" style="color:var(--success);">${present}</div><div class="sl">حاضر</div></div>
+                    <div class="uatt-sbox"><div class="sv" style="color:var(--danger);">${absent}</div><div class="sl">غائب</div></div>
+                    <div class="uatt-sbox"><div class="sv" style="color:${rate>=70?'var(--success)':'var(--danger)'};">${rate}%</div><div class="sl">نسبة الحضور</div></div>`;
+                renderUattDetailTable(att, date);
+                document.getElementById('uattDetail').style.display    = 'block';
+                document.getElementById('uattFridayGrid').style.display = 'none';
+            }).catch(() => showToast('خطأ في الاتصال', 'error'));
+    };
+
+    function closeUattDetail() {
+        uattCurrentDate = null;
+        document.getElementById('uattDetail').style.display    = 'none';
+        document.getElementById('uattFridayGrid').style.display = 'block';
+    }
+    window.closeUattDetail = closeUattDetail;
+
+    function renderUattDetailTable(att, date) {
+        const tb = document.getElementById('uattDetailTable');
+        if (!att.length) {
+            tb.innerHTML = `<tr><td colspan="5"><div class="uatt-empty"><i class="fas fa-user-slash"></i><span>لا توجد سجلات حضور خُدام لهذا اليوم</span></div></td></tr>`;
+            return;
+        }
+        tb.innerHTML = att.map((a, i) => {
+            const sc   = a.status==='present' ? 'uatt-present' : 'uatt-absent';
+            const badge= a.status==='present'
+                ? `<span class="badge badge-success">حاضر</span>`
+                : `<span class="badge badge-danger">غائب</span>`;
+            const role = a.role==='admin'
+                ? `<span class="badge" style="background:var(--brand-bg);color:var(--brand);">مسؤول</span>`
+                : `<span class="badge" style="background:#ede9fe;color:#7c3aed;">خادم</span>`;
+            return `<tr class="${sc}">
+                <td><strong>${i+1}</strong></td>
+                <td><strong>${uattEsc(a.uncle_name)}</strong></td>
+                <td>${role}</td>
+                <td>${badge}</td>
+                <td>
+                    <div class="actions">
+                        <button class="act-btn act-edit" title="تبديل الحالة"
+                            onclick="uattToggle(${a.id},'${a.status}','${date}')">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <button class="act-btn act-delete" title="حذف"
+                            onclick="uattDelete(${a.id},'${date}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── toggle / delete ────────────────────────────────────────────
+    window.uattToggle = async function(id, curr, date) {
+        const nxt = curr==='present' ? 'absent' : 'present';
+        const fd  = uattFd('toggleUncleAttendance');
+        fd.append('id', id); fd.append('status', nxt);
+        const d = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم التحديث', 'success'); window.loadUattDate(date); renderUattFridayGrid(); }
+        else showToast('فشل التحديث', 'error');
+    };
+
+    window.uattDelete = async function(id, date) {
+        if (!confirm('حذف سجل حضور الخادم؟')) return;
+        const fd = uattFd('deleteUncleAttendance');
+        fd.append('id', id);
+        const d = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) { showToast('تم الحذف', 'success'); window.loadUattDate(date); renderUattFridayGrid(); }
+        else showToast('فشل الحذف', 'error');
+    };
+
+    // ── add attendance sub-modal ───────────────────────────────────
+    window.showUattAddModal = async function() {
+        document.getElementById('uattAddDate').value = new Date().toISOString().split('T')[0];
+        uattUncleData = {};
+        const listEl = document.getElementById('uattAddList');
+        listEl.innerHTML = '<div class="uatt-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الخُدام...</div>';
+        document.getElementById('uattAddModal').classList.add('active');
+
+        const fd = uattFd('getAllUncles');
+        const d  = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r=>r.json()).catch(()=>({success:false}));
+        if (!d.success) {
+            listEl.innerHTML = '<div class="uatt-empty" style="color:var(--danger);"><i class="fas fa-exclamation-circle"></i><span>خطأ في تحميل الخُدام</span></div>';
+            return;
+        }
+        const uncles = (d.uncles||[]).filter(u => u.is_active != '0');
+        uncles.forEach(u => { uattUncleData[u.id] = 'present'; });
+
+        listEl.innerHTML = uncles.length ? uncles.map(u => {
+            const initials = (u.name||'؟').split(' ').map(w=>w[0]).slice(0,2).join('');
+            const imgHtml  = u.image_url
+                ? `<img src="${uattEsc(u.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`
+                : '';
+            return `<div class="uatt-uncle-item" id="uattItem_${u.id}">
+                <div class="uatt-ava">${imgHtml}${u.image_url?'':initials}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:.88rem;">${uattEsc(u.name)}</div>
+                    <div style="font-size:.7rem;color:var(--text-3);">${u.role==='admin'?'مسؤول':'خادم'}</div>
+                </div>
+                <div class="uatt-toggle-btns">
+                    <button class="uatt-toggle-btn present" id="uattP_${u.id}"
+                        onclick="uattSetStatus(${u.id},'present')">✅ حاضر</button>
+                    <button class="uatt-toggle-btn" id="uattA_${u.id}"
+                        onclick="uattSetStatus(${u.id},'absent')">❌ غائب</button>
+                </div>
+            </div>`;
+        }).join('') : '<div class="uatt-empty"><i class="fas fa-users-slash"></i><span>لا يوجد خُدام</span></div>';
+    };
+
+    window.closeUattAddModal = function() {
+        document.getElementById('uattAddModal').classList.remove('active');
+    };
+
+    window.uattSetStatus = function(uncleId, status) {
+        uattUncleData[uncleId] = status;
+        const pBtn = document.getElementById(`uattP_${uncleId}`);
+        const aBtn = document.getElementById(`uattA_${uncleId}`);
+        if (pBtn) pBtn.className = 'uatt-toggle-btn' + (status==='present'?' present':'');
+        if (aBtn) aBtn.className = 'uatt-toggle-btn' + (status==='absent'?' absent':'');
+    };
+
+    window.uattSetAll = function(status) {
+        Object.keys(uattUncleData).forEach(id => window.uattSetStatus(id, status));
+    };
+
+    window.saveUattAttendance = async function() {
+        const date = document.getElementById('uattAddDate').value;
+        if (!date) { showToast('اختر تاريخاً', 'warning'); return; }
+        if (!Object.keys(uattUncleData).length) { showToast('لا يوجد خُدام', 'warning'); return; }
+        const attArray = Object.entries(uattUncleData).map(([id, status]) => ({uncle_id:parseInt(id), status}));
+        const fd = uattFd('submitUncleAttendance');
+        fd.append('date', date);
+        fd.append('attendanceData', JSON.stringify(attArray));
+        const d = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) {
+            showToast('تم حفظ حضور الخُدام ✓', 'success');
+            window.closeUattAddModal();
+            renderUattFridayGrid();
+        } else showToast(d.message || 'فشل الحفظ', 'error');
+    };
+
+    // ── report ─────────────────────────────────────────────────────
+    window.loadUattReport = async function() {
+        document.getElementById('uattRankingList').innerHTML =
+            '<div class="uatt-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل التقرير...</div>';
+        document.getElementById('uattDayRankList').innerHTML =
+            '<div class="uatt-loading"><i class="fas fa-spinner fa-spin"></i> جاري...</div>';
+
+        const fd = uattFd('getUncleAttendanceReport');
+        fd.append('year', uattReportYear);
+        const d = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'})
+            .then(r=>r.json()).catch(()=>({success:false}));
+
+        if (!d.success) {
+            document.getElementById('uattRankingList').innerHTML =
+                '<div class="uatt-empty"><i class="fas fa-exclamation-circle"></i><span>خطأ في التحميل</span></div>';
+            return;
+        }
+
+        const report    = d.uncle_report || [];
+        const dayRank   = d.day_ranking  || [];
+        const totalDays = (d.dates||[]).length;
+        const avgPct    = report.length > 0
+            ? Math.round(report.reduce((s,r)=>s+r.percentage,0)/report.length) : 0;
+        const topUncle  = report[0];
+
+        // summary boxes
+        document.getElementById('uattReportSummary').innerHTML = `
+            <div class="uatt-sbox"><div class="sv">${totalDays}</div><div class="sl">أيام مُسجَّلة</div></div>
+            <div class="uatt-sbox"><div class="sv">${report.length}</div><div class="sl">إجمالي الخُدام</div></div>
+            <div class="uatt-sbox"><div class="sv" style="color:${avgPct>=70?'var(--success)':'var(--danger)'};">${avgPct}%</div><div class="sl">متوسط الحضور</div></div>
+            <div class="uatt-sbox"><div class="sv" style="color:var(--brand);font-size:1rem;">${topUncle?uattEsc(topUncle.uncle_name.split(' ')[0]):'—'}</div><div class="sl">🏆 الأكثر حضوراً</div></div>`;
+
+        // uncle ranking
+        document.getElementById('uattRankingList').innerHTML = !report.length
+            ? '<div class="uatt-empty"><i class="fas fa-user-slash"></i><span>لا توجد بيانات لهذه السنة</span></div>'
+            : report.map((r, i) => {
+                const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+                const initials  = (r.uncle_name||'').split(' ').map(w=>w[0]).slice(0,2).join('');
+                const barColor  = r.percentage>=80?'var(--success)':r.percentage>=50?'var(--warning)':'var(--danger)';
+                const imgHtml   = r.image_url
+                    ? `<img src="${uattEsc(r.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`
+                    : '';
+                return `<div class="uatt-report-row">
+                    <div class="uatt-rank-badge ${rankClass}">${i+1}</div>
+                    <div class="uatt-ava">${imgHtml}${r.image_url?'':initials}</div>
+                    <div class="uatt-report-info">
+                        <div class="uatt-report-name">${uattEsc(r.uncle_name)}</div>
+                        <div class="uatt-report-meta">${r.role==='admin'?'مسؤول':'خادم'} · ${r.present_count} من ${r.total_days} يوم</div>
+                        <div class="uatt-prog-wrap">
+                            <div class="uatt-prog-bar">
+                                <div class="uatt-prog-fill" style="width:${r.percentage}%;background:${barColor};"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="uatt-report-stats">
+                        <div class="uatt-stat-box present">✅ ${r.present_count}</div>
+                        <div class="uatt-stat-box absent">❌ ${r.absent_count}</div>
+                        <div class="uatt-stat-box" style="background:var(--brand-bg);color:var(--brand);">${r.percentage}%</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+        // day ranking
+        const maxCount = dayRank[0]?.present_count || 1;
+        document.getElementById('uattDayRankList').innerHTML = !dayRank.length
+            ? '<div class="uatt-empty"><i class="fas fa-calendar-times"></i><span>لا توجد أيام مُسجَّلة</span></div>'
+            : dayRank.map((day, i) => {
+                const dateObj    = new Date(day.date+'T00:00:00');
+                const ds         = dateObj.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+                const pct        = Math.round(day.present_count/maxCount*100);
+                const attendPct  = day.total_uncles>0 ? Math.round(day.present_count/day.total_uncles*100) : '--';
+                const barColor   = day.total_uncles>0 && day.present_count/day.total_uncles>=.8 ? 'var(--success)'
+                                 : day.total_uncles>0 && day.present_count/day.total_uncles>=.5 ? 'var(--brand)'
+                                 : 'var(--warning)';
+                return `<div class="uatt-day-row">
+                    <div style="width:26px;height:26px;border-radius:50%;background:${i<3?'var(--brand)':'var(--surface-3)'};
+                         color:${i<3?'#fff':'var(--text-3)'};display:flex;align-items:center;justify-content:center;
+                         font-size:.68rem;font-weight:900;flex-shrink:0;">${i+1}</div>
+                    <div class="uatt-day-bar-wrap">
+                        <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;margin-bottom:4px;">
+                            <span>${ds}</span>
+                            <span style="color:var(--success);">✅ ${day.present_count} حاضر</span>
+                        </div>
+                        <div class="uatt-day-bar"><div class="uatt-day-fill" style="width:${pct}%;background:${barColor};"></div></div>
+                    </div>
+                    <div style="font-size:.72rem;font-weight:800;color:var(--text-3);flex-shrink:0;min-width:38px;text-align:center;">${attendPct}%</div>
+                </div>`;
+            }).join('');
+    };
+
+    // ── export / copy ──────────────────────────────────────────────
+    window.exportUattReportCSV = function() {
+        const rows = document.querySelectorAll('#uattRankingList .uatt-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات للتصدير', 'warning'); return; }
+        let csv = '\uFEFF' + 'الترتيب,اسم الخادم,الدور,أيام الحضور,أيام الغياب,نسبة الحضور\n';
+        rows.forEach((row, i) => {
+            const name    = row.querySelector('.uatt-report-name')?.textContent?.trim() || '';
+            const meta    = row.querySelector('.uatt-report-meta')?.textContent?.trim() || '';
+            const role    = meta.includes('مسؤول') ? 'مسؤول' : 'خادم';
+            const boxes   = row.querySelectorAll('.uatt-stat-box');
+            const present = boxes[0]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            const absent  = boxes[1]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            const pct     = boxes[2]?.textContent?.replace(/[^0-9]/g,'') || '0';
+            csv += `${i+1},"${name}","${role}",${present},${absent},${pct}%\n`;
+        });
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = `تقرير_حضور_الخدام_${uattReportYear}.csv`;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        showToast('تم تصدير التقرير ✓', 'success');
+    };
+
+    window.copyUattReport = function() {
+        const rows = document.querySelectorAll('#uattRankingList .uatt-report-row');
+        if (!rows.length) { showToast('لا توجد بيانات', 'warning'); return; }
+        let text = `تقرير حضور الخُدام - ${uattReportYear}\n${'═'.repeat(40)}\n`;
+        rows.forEach((row, i) => {
+            const name  = row.querySelector('.uatt-report-name')?.textContent?.trim() || '';
+            const boxes = row.querySelectorAll('.uatt-stat-box');
+            text += `${i+1}. ${name}  |  ${boxes[0]?.textContent?.trim()||''}  |  ${boxes[1]?.textContent?.trim()||''}  |  ${boxes[2]?.textContent?.trim()||''}\n`;
+        });
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('تم النسخ ✓', 'success'))
+            .catch(() => showToast('فشل النسخ', 'error'));
+    };
+
+})(); // end uncle attendance module
 </body>
 </html>
