@@ -589,27 +589,27 @@ case 'saveTripExpense':   saveTripExpense();   break;
 
 // ── Uncle Attendance ─────────────────────────────────────────────
 case 'submitUncleAttendance':
-    checkAuth();
+    checkUncleAuth();
     submitUncleAttendance();
     break;
 
 case 'getUncleAttendanceByDate':
-    checkAuth();
+    checkUncleAuth();
     getUncleAttendanceByDate();
     break;
 
 case 'getUncleAttendanceReport':
-    checkAuth();
+    checkUncleAuth();
     getUncleAttendanceReport();
     break;
 
 case 'toggleUncleAttendance':
-    checkAuth();
+    checkUncleAuth();
     toggleUncleAttendance();
     break;
 
 case 'deleteUncleAttendance':
-    checkAuth();
+    checkUncleAuth();
     deleteUncleAttendance();
     break;
             case 'getSessionInfo': getSessionInfo(); break;
