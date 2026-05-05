@@ -780,6 +780,7 @@ font-size: 0.95rem; font-weight: 800; color: var(--text);
 .custom-export-table .att-p{background:#d1fae5!important;color:#065f46;font-weight:800;text-align:center}
 .custom-export-table .att-a{background:#fee2e2!important;color:#991b1b;font-weight:800;text-align:center}
 .custom-export-photo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid #cbd5e1;display:block}
+.custom-export-photo-fallback{width:38px;height:38px;border-radius:50%;background:#e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:14px}
 @media(max-width:780px){.export-builder{grid-template-columns:1fr}.export-controls{max-height:38vh}.export-preview-wrap{min-height:42vh}}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -6345,8 +6346,20 @@ function getCustomFieldValue(s, idx) {
     const info = s._customInfo || {};
     return info['field_' + idx] || (idx === 0 ? (info.value || '') : '') || '';
 }
+function getAbsolutePhotoUrl(rawUrl) {
+    if (!rawUrl) return '';
+    const versioned = window.photoUrl ? window.photoUrl(rawUrl) : rawUrl;
+    try { return new URL(versioned, window.location.origin).href; }
+    catch(e) { return versioned; }
+}
 function getCustomExportCellValue(s, field, forCsv = false) {
-    if (field.type === 'photo') return forCsv ? (s['صورة'] || '') : (s['صورة'] ? `<img class="custom-export-photo" src="${window.photoUrl(s['صورة'])}" alt="">` : '');
+    if (field.type === 'photo') {
+        const url = getAbsolutePhotoUrl(s['صورة'] || '');
+        if (forCsv) return url ? `=IMAGE("${url.replace(/"/g,'""')}")` : '';
+        return url
+            ? `<img class="custom-export-photo" src="${url}" crossorigin="anonymous" referrerpolicy="no-referrer" alt="" onerror="this.outerHTML='<div class=&quot;custom-export-photo-fallback&quot;><i class=&quot;fas fa-user&quot;></i></div>'">`
+            : '<div class="custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
+    }
     if (field.type === 'age') return _calcAge(s['عيد الميلاد'] || '') || '';
     if (field.type === 'attendance_count') return getAttendanceCountForStudent(s);
     if (field.type === 'custom') return getCustomFieldValue(s, field.customIndex);
@@ -6426,14 +6439,27 @@ function exportCustomAsCSV() {
         return row;
     });
     exportToCSV(rows, headers, cfg.title.replace(/[\/\s]+/g,'-'));
-    showToast('تم تصدير CSV','success');
+    showToast('تم تصدير CSV — الصور تظهر كمعادلة IMAGE في برامج الجداول', 'success');
+}
+function waitForCustomExportImages(root) {
+    const imgs = [...root.querySelectorAll('img.custom-export-photo')];
+    if (!imgs.length) return Promise.resolve();
+    return Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 2500);
+        });
+    }));
 }
 async function exportCustomPreviewAsImage() {
     const preview = document.getElementById('customExportPreview');
     if (!preview) return;
     showToast('جاري تجهيز الصورة...', 'info');
     try {
-        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:true });
+        await waitForCustomExportImages(preview);
+        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:false });
         const a = document.createElement('a');
         a.download = (getCustomExportConfig().title || 'custom-export').replace(/[\/\s]+/g,'-') + '.png';
         a.href = canvas.toDataURL('image/png');
@@ -6448,7 +6474,8 @@ async function exportCustomPreviewAsPdf() {
     try {
         const {jsPDF} = window.jspdf;
         if (!jsPDF) { showToast('مكتبة PDF غير محملة','error'); return; }
-        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:true });
+        await waitForCustomExportImages(preview);
+        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:false });
         const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
         const pdf = new jsPDF({ orientation, unit:'mm', format:'a4' });
         const pageW = pdf.internal.pageSize.getWidth();
