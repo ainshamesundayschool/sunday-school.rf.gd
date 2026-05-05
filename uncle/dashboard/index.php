@@ -2885,6 +2885,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
             <div class="dropdown-group-label">الفصل</div>
             <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
             <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الجُمَع السابقة</button>
+            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
             <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
           </div>
         </div>
@@ -2928,6 +2929,19 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
         <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن طفل بالاسم...">
         <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
         <button class="clear-search-btn" id="clearSearchBtn"><i class="fas fa-times"></i> إلغاء</button>
+      </div>
+      <div class="search-wrap" style="margin-top:-8px">
+        <select class="search-input" id="classSortSelect" title="ترتيب القائمة">
+          <option value="name_az">الترتيب: الاسم أ-ي</option>
+          <option value="name_za">الاسم ي-أ</option>
+          <option value="age_asc">الأصغر سناً</option>
+          <option value="age_desc">الأكبر سناً</option>
+          <option value="class_az">الفصل</option>
+          <option value="coupons_desc">الأكثر كوبونات</option>
+          <option value="attendance_desc">الأكثر حضوراً</option>
+          <option value="top_desc">الأوائل</option>
+        </select>
+        <button class="search-btn" onclick="renderAttendanceList(currentClass)" title="تطبيق الترتيب"><i class="fas fa-sort"></i></button>
       </div>
       <div class="search-results-info" id="searchResultsInfo"></div>
         
@@ -3158,6 +3172,10 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
     <div class="modal-header" style="flex-wrap:wrap;gap:6px;">
       <h3 id="sheetModalTitle" style="flex:1;min-width:120px;">جدول الحضور</h3>
       <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="form-input" id="sheetFromDate" placeholder="من DD/MM/YYYY" style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric" oninput="autoFormatCustomDate(this)">
+        <input type="text" class="form-input" id="sheetToDate" placeholder="إلى DD/MM/YYYY" style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric" oninput="autoFormatCustomDate(this)">
+        <button class="btn btn-secondary btn-sm" id="applySheetDateRangeBtn"><i class="fas fa-filter"></i></button>
+        <button class="btn btn-ghost btn-sm" id="clearSheetDateRangeBtn"><i class="fas fa-times"></i></button>
         <div class="zoom-controls" id="sheetZoomControls">
           <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i class="fas fa-minus"></i></button>
           <span class="zoom-level" id="sheetZoomLevel">100%</span>
@@ -3221,6 +3239,31 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
       <table class="data-table">
         <thead><tr><th style="width:44px"></th><th>الاسم</th><th>الفصل</th><th>العنوان</th><th>التليفون</th><th>الميلاد</th><th>كوبونات</th></tr></thead>
         <tbody id="allStudentsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Attended Modal -->
+<div class="modal-overlay" id="attendedModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-check" style="color:var(--success)"></i> الأطفال الحاضرين</h3>
+      <div style="display:flex;gap:5px;align-items:center">
+        <button class="btn btn-success btn-sm" id="copyAttendedModalBtn"><i class="fas fa-copy"></i> نسخ</button>
+        <button class="btn btn-sm" style="background:#25d366;color:#fff" onclick="shareAttendedToWhatsApp()"><i class="fab fa-whatsapp"></i></button>
+        <button class="btn btn-info btn-sm" id="saveAttendedAsCsvBtn"><i class="fas fa-file-csv"></i></button>
+        <button class="close-btn" id="closeAttendedModal">&times;</button>
+      </div>
+    </div>
+    <div class="search-wrap" style="margin-bottom:8px">
+      <input type="text" class="search-input" id="attendedSearchInput" placeholder="بحث في الحاضرين..." oninput="renderAttendedTable()">
+      <button class="search-btn"><i class="fas fa-search"></i></button>
+    </div>
+    <div class="table-container all-students-table-container">
+      <table class="data-table" id="attendedTable">
+        <thead><tr><th style="width:40px"></th><th>الاسم</th><th>الفصل</th><th>التليفون</th><th>العنوان</th><th>ملاحظة</th><th style="width:36px"></th></tr></thead>
+        <tbody id="attendedTableBody"></tbody>
       </table>
     </div>
   </div>
@@ -3452,6 +3495,9 @@ let allStudentsSearchQuery = '', filteredAllStudents = [], allStudentsSearchTime
 let cropper = null, currentCroppedBlob = null, currentPhotoEditorType = '';
 let autoRefreshEnabled = true, refreshTimer = null, lastDataHash = '';
 let activeDropdown = null;
+let classSortMode = 'name_az';
+let sheetDateFrom = '';
+let sheetDateTo = '';
 // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
 let uncleClassNavPermission = 'all';
 
@@ -3772,6 +3818,9 @@ function showClassView(className) {
     updateHash('class', className);
 }
 function showClassViewInternal(className) {
+    isCombinedView = false;
+    combinedGroupLabel = '';
+    combinedStudents = [];
     currentClass = className;
     localStorage.setItem('currentClass', className);
     document.getElementById('classesView').style.display = 'none';
@@ -3911,10 +3960,7 @@ function loadAttendanceDataForCombined(groupLabel) {
 // Render attendance list for combined view
 function renderCombinedAttendanceList() {
     const list = document.getElementById('attendanceList'); if (!list) return;
-    let cs = combinedStudents;
-    if (searchQuery) {
-        cs = cs.filter(s => (s['الاسم']||'').toLowerCase().includes(searchQuery.toLowerCase()));
-    }
+    let cs = filterAndSortActiveStudents();
     if (!cs.length) {
         list.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:var(--text-3)">لا يوجد أطفال</div>';
         return;
@@ -4622,9 +4668,8 @@ function initSwipeToClose(overlay) {
 function renderAttendanceList(className) {
     if (isCombinedView) { renderCombinedAttendanceList(); return; }
     const list = document.getElementById('attendanceList'); if (!list) return;
-    let cs = students.filter(s => s['الفصل'] === currentClass);
-    if (searchQuery && filteredStudents.length > 0) cs = filteredStudents;
-    else if (searchQuery && !filteredStudents.length) {
+    let cs = filterAndSortActiveStudents();
+    if (searchQuery && !cs.length) {
         list.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1"><i class="fas fa-search" style="font-size:2rem;color:var(--text-3);margin-bottom:1rem;display:block"></i><p style="color:var(--text-3)">لا نتائج لـ "${searchQuery}"</p><button class="btn btn-sm btn-ghost" onclick="clearSearch()" style="margin-top:10px"><i class="fas fa-times"></i> عرض الكل</button></div>`;
         updateSearchResultsInfo(0); return;
     }
@@ -5109,19 +5154,39 @@ function saveAllData() {
 
 // ── ABSENT DATA ───────────────────────────────────────────────
 let absentDataStore = {};
+function getAttendanceStatusStudents(status) {
+    return sortStudentsForCurrentView(getActiveViewStudents().filter(s => attendanceData[getStudentId(s)] === status));
+}
+function buildAttendanceShareText(status, label, icon) {
+    if (!currentClass) return '';
+    const rows = getAttendanceStatusStudents(status);
+    let txt = `\u202B━━━━━━━━━━━━━━━━━━\n${icon} *قائمة ${label}*\n🏫 ${getActiveViewLabel()}\n👤 ${rows.length} ${label}\n📅 ${currentFriday}\n━━━━━━━━━━━━━━━━━━\n\n`;
+    rows.forEach((s,i) => {
+        txt += `*${i+1}.* ${s['الاسم']}\n`;
+        if (isCombinedView || currentClass === '__ALL__') txt += `   🏫 ${s['الفصل'] || ''}\n`;
+        if (s['رقم التليفون']) txt += `   📱 ${s['رقم التليفون'].replace(/\D/g,'')}\n`;
+        if (i < rows.length-1) txt += '   ─────────────\n';
+    });
+    return txt + '\n━━━━━━━━━━━━━━━━━━\n\u200F';
+}
 function updateAbsentData() {
     if (!currentClass) return;
-    absentDataStore[currentClass] = students.filter(s => s['الفصل'] === currentClass && attendanceData[getStudentId(s)] === 'absent')
+    absentDataStore[currentClass] = getAttendanceStatusStudents('absent')
         .map(s => ({ id: getStudentId(s), name: s['الاسم'], phone: s['رقم التليفون']||'', address: s['العنوان']||'' }));
 }
 function copyAbsentData() {
     if (!currentClass) { showToast('اختر فصلاً أولاً','info'); return; }
-    const absent = students.filter(s => s['الفصل'] === currentClass && attendanceData[getStudentId(s)] === 'absent');
+    const absent = getAttendanceStatusStudents('absent');
     if (!absent.length) { showToast('لا يوجد غائبون','info'); return; }
-    let txt = `\u202B━━━━━━━━━━━━━━━━━━\n📋 *قائمة الغائبين*\n🏫 ${currentClass}\n👤 ${absent.length} غائب\n📅 ${currentFriday}\n━━━━━━━━━━━━━━━━━━\n\n`;
-    absent.forEach((s,i) => { txt += `*${i+1}.* ${s['الاسم']}\n`; if(s['رقم التليفون']) txt += `   📱 ${s['رقم التليفون'].replace(/\D/g,'')}\n`; if(i<absent.length-1) txt += '   ─────────────\n'; });
-    txt += '\n━━━━━━━━━━━━━━━━━━\n\u200F';
+    const txt = buildAttendanceShareText('absent', 'الغائبين', '📋');
     copyToClipboard(txt); showToast(`تم نسخ ${absent.length} غائب`, 'success');
+}
+function copyAttendedData() {
+    if (!currentClass) { showToast('اختر فصلاً أولاً','info'); return; }
+    const attended = getAttendanceStatusStudents('present');
+    if (!attended.length) { showToast('لا يوجد حاضرون','info'); return; }
+    copyToClipboard(buildAttendanceShareText('present', 'الحاضرين', '✅'));
+    showToast(`تم نسخ ${attended.length} حاضر`, 'success');
 }
 
 // ── STUDENT DETAILS ───────────────────────────────────────────
@@ -5319,6 +5384,8 @@ function showAllStudentsModal() { document.getElementById('allStudentsModal').cl
 function hideAllStudentsModal() { document.getElementById('allStudentsModal').classList.remove('active'); startAutoRefresh(); }
 function showSheetModal() { _sheetZoom=1.0; document.getElementById('sheetModal').classList.add('active'); renderSheetTable(); _applySheetZoom(); stopAutoRefresh(); }
 function hideSheetModal() { document.getElementById('sheetModal').classList.remove('active'); startAutoRefresh(); }
+function showAttendedModal() { document.getElementById('attendedModal').classList.add('active'); renderAttendedTable(); stopAutoRefresh(); }
+function hideAttendedModal() { document.getElementById('attendedModal').classList.remove('active'); startAutoRefresh(); }
 function showAbsentModal() { document.getElementById('absentModal').classList.add('active'); updateAbsentData(); renderAbsentTable(); stopAutoRefresh(); }
 function hideAbsentModal() { document.getElementById('absentModal').classList.remove('active'); startAutoRefresh(); }
 function showPastFridaysModal() { document.getElementById('pastFridaysModal').classList.add('active'); renderPastFridays(); stopAutoRefresh(); }
@@ -5725,6 +5792,47 @@ function sheetZoom(dir) {
 }
 function sheetZoomReset() { _sheetZoom = 1.0; _applySheetZoom(); }
 
+function _dateInSheetRange(dateStr) {
+    const d = parseDate(dateStr);
+    if (sheetDateFrom && d < parseDate(sheetDateFrom)) return false;
+    if (sheetDateTo && d > parseDate(sheetDateTo)) return false;
+    return true;
+}
+function getSheetDateColumns(fs) {
+    const dates = new Set();
+    fs.forEach(s => {
+        Object.keys(s).forEach(k => {
+            if (k.includes('/') && k.length === 10) {
+                const v = s[k];
+                if (['ح','غ','حاضر','غائب','present','absent'].includes(v) && _dateInSheetRange(k)) dates.add(k);
+            }
+        });
+        if (s._allAttendance) Object.keys(s._allAttendance).forEach(d => {
+            if (d.includes('/') && _dateInSheetRange(d)) dates.add(d);
+        });
+    });
+    return [...dates].sort((a,b) => parseDate(b) - parseDate(a));
+}
+function applySheetDateRange() {
+    const from = (document.getElementById('sheetFromDate')?.value || '').trim();
+    const to = (document.getElementById('sheetToDate')?.value || '').trim();
+    const valid = v => !v || /^\d{2}\/\d{2}\/\d{4}$/.test(v);
+    if (!valid(from) || !valid(to)) { showToast('استخدم صيغة DD/MM/YYYY للتاريخ', 'error'); return; }
+    if (from && to && parseDate(from) > parseDate(to)) { showToast('تاريخ البداية بعد تاريخ النهاية', 'error'); return; }
+    sheetDateFrom = from;
+    sheetDateTo = to;
+    renderSheetTable();
+    showToast('تم تطبيق نطاق التاريخ', 'success');
+}
+function clearSheetDateRange() {
+    sheetDateFrom = '';
+    sheetDateTo = '';
+    const f = document.getElementById('sheetFromDate'), t = document.getElementById('sheetToDate');
+    if (f) f.value = '';
+    if (t) t.value = '';
+    renderSheetTable();
+}
+
 // Pinch-to-zoom on the sheet wrapper
 (function initPinch() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -5807,15 +5915,9 @@ function sheetZoomReset() { _sheetZoom = 1.0; _applySheetZoom(); }
 function renderSheetTable() {
     const body=document.getElementById('sheetTableBody'), head=document.getElementById('sheetTableHead');
     document.getElementById('sheetModalTitle').textContent = currentClass ? `جدول: ${currentClass}` : 'جدول جميع الفصول';
-    let fs = isCombinedView ? combinedStudents
-           : (currentClass ? allStudentsData.filter(s=>s['الفصل']===currentClass) : allStudentsData);
+    let fs = sortStudentsForCurrentView(getActiveViewStudents());
     if (!fs.length) { body.innerHTML='<tr><td colspan="12" style="text-align:center;padding:2rem">لا بيانات</td></tr>'; return; }
-    const dates = new Set();
-    fs.forEach(s => {
-        Object.keys(s).forEach(k=>{if(k.includes('/')&&k.length===10){const v=s[k];if(['ح','غ','حاضر','غائب'].includes(v))dates.add(k);}});
-        if(s._allAttendance) Object.keys(s._allAttendance).forEach(d=>{if(d.includes('/'))dates.add(d);});
-    });
-    const sorted = [...dates].sort((a,b)=>parseDate(b)-parseDate(a));
+    const sorted = getSheetDateColumns(fs);
     head.querySelector('tr').innerHTML =
         '<th style="width:36px;padding:6px 4px"></th>' +
         '<th style="cursor:pointer" onclick="">الاسم</th>' +
@@ -5847,9 +5949,10 @@ function renderSheetTable() {
         </tr>`;
     }).join('');
 }
-function renderAbsentTable() {
-    const cs = students.filter(s => s['الفصل'] === currentClass && attendanceData[getStudentId(s)] === 'absent');
-    document.getElementById('absentTableBody').innerHTML = cs.length
+function renderAttendanceStatusTable(status, bodyId, emptyHtml, searchInputId) {
+    const q = (document.getElementById(searchInputId)?.value || '').trim().toLowerCase();
+    const cs = getAttendanceStatusStudents(status).filter(s => !q || ['الاسم','الفصل','رقم التليفون','العنوان'].some(k => (s[k] || '').toLowerCase().includes(q)));
+    document.getElementById(bodyId).innerHTML = cs.length
         ? cs.map((s, i) => {
             const photo = s['صورة']
                 ? `<img src="${s['صورة']}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;border:1.5px solid var(--border-solid)" onerror="this.outerHTML='<div style=\\'width:32px;height:32px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem\\'><i class=\\'fas fa-user\\'></i></div>'">`
@@ -5858,23 +5961,33 @@ function renderAbsentTable() {
             const phoneLink = phone
                 ? `<a href="tel:${phone.replace(/\D/g,'')}" style="color:var(--brand);text-decoration:none;font-size:.8rem">${phone}</a>`
                 : '<span style="color:var(--text-3);font-size:.8rem">—</span>';
-            return `<tr id="absentRow_${i}">
+            return `<tr id="${bodyId}_row_${i}">
                 <td style="padding:6px 8px;width:40px;text-align:center">${photo}</td>
                 <td style="font-weight:700;font-size:.85rem;cursor:pointer;color:var(--text)" onclick="showStudentDetails('${escJs(s['الاسم']||'')}')">${s['الاسم']||'---'}</td>
+                ${bodyId === 'attendedTableBody' ? `<td><span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.74rem;font-weight:700">${s['الفصل']||'---'}</span></td>` : ''}
                 <td style="font-size:.8rem">${phoneLink}</td>
                 <td style="color:var(--text-2);font-size:.78rem">${s['العنوان']||'—'}</td>
                 <td><input type="text" class="form-input" style="padding:4px 8px;font-size:.76rem;min-width:90px;height:30px" placeholder="ملاحظة..."></td>
                 <td style="text-align:center;padding:4px">
-                    <button class="btn btn-danger btn-xs" style="width:28px;height:28px;padding:0;border-radius:50%;min-width:0" onclick="document.getElementById('absentRow_${i}').remove()" title="إزالة">
+                    <button class="btn btn-danger btn-xs" style="width:28px;height:28px;padding:0;border-radius:50%;min-width:0" onclick="document.getElementById('${bodyId}_row_${i}').remove()" title="إزالة">
                         <i class="fas fa-times" style="font-size:.65rem"></i>
                     </button>
                 </td>
             </tr>`;
         }).join('')
-        : `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--text-3)">
+        : emptyHtml;
+}
+function renderAbsentTable() {
+    renderAttendanceStatusTable('absent', 'absentTableBody', `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--text-3)">
             <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
             لا غائبين هذا الأسبوع 🎉
-           </td></tr>`;
+           </td></tr>`, 'absentSearchInput');
+}
+function renderAttendedTable() {
+    renderAttendanceStatusTable('present', 'attendedTableBody', `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--text-3)">
+            <i class="fas fa-user-check" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
+            لا يوجد حاضرون لهذا التاريخ
+           </td></tr>`, 'attendedSearchInput');
 }
 function clearAbsentData() { if(confirm('مسح جميع بيانات الغائبين؟')) { document.getElementById('absentTableBody').innerHTML=''; showToast('تم المسح','success'); } }
 function renderAllStudentsTable() {
@@ -5913,6 +6026,69 @@ function _calcAge(bdStr) {
     return age > 0 && age < 25 ? age : '';
 }
 
+function getActiveViewStudents() {
+    if (isCombinedView) return combinedStudents || [];
+    if (currentClass) return students.filter(s => s['الفصل'] === currentClass);
+    return allStudentsData.length ? allStudentsData : students;
+}
+function getActiveViewLabel() {
+    if (currentClass === '__ALL__') return window.IS_YOUTH ? 'كل الشباب' : 'كل الأطفال';
+    return currentClass || (window.IS_YOUTH ? 'كل الشباب' : 'كل الأطفال');
+}
+function getAttendanceCountForStudent(s) {
+    const presentDates = new Set();
+    Object.keys(s || {}).forEach(k => {
+        if (k.includes('/') && getServerAttendanceStatus(s, k) === 'present') presentDates.add(k);
+    });
+    if (s && s._allAttendance) {
+        Object.keys(s._allAttendance).forEach(k => {
+            if (getServerAttendanceStatus(s, k) === 'present') presentDates.add(k);
+        });
+    }
+    return presentDates.size;
+}
+function getStudentAgeValue(s) {
+    const age = parseInt(_calcAge(s['عيد الميلاد'] || ''), 10);
+    return Number.isFinite(age) ? age : 999;
+}
+function getStudentCouponTotal(s) {
+    const id = getStudentId(s);
+    return (parseInt(s['كوبونات'] || 0) || 0) + (parseInt(couponData[id] || 0) || 0);
+}
+function sortStudentsForCurrentView(list) {
+    const mode = classSortMode || document.getElementById('classSortSelect')?.value || 'name_az';
+    const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
+    const arr = [...(list || [])];
+    arr.sort((a, b) => {
+        const nameA = a['الاسم'] || '', nameB = b['الاسم'] || '';
+        if (mode === 'name_za') return collator.compare(nameB, nameA);
+        if (mode === 'age_asc') return getStudentAgeValue(a) - getStudentAgeValue(b) || collator.compare(nameA, nameB);
+        if (mode === 'age_desc') {
+            const ageA = getStudentAgeValue(a) === 999 ? -1 : getStudentAgeValue(a);
+            const ageB = getStudentAgeValue(b) === 999 ? -1 : getStudentAgeValue(b);
+            return ageB - ageA || collator.compare(nameA, nameB);
+        }
+        if (mode === 'class_az') return collator.compare(a['الفصل'] || '', b['الفصل'] || '') || collator.compare(nameA, nameB);
+        if (mode === 'coupons_desc') return getStudentCouponTotal(b) - getStudentCouponTotal(a) || collator.compare(nameA, nameB);
+        if (mode === 'attendance_desc') return getAttendanceCountForStudent(b) - getAttendanceCountForStudent(a) || collator.compare(nameA, nameB);
+        if (mode === 'top_desc') {
+            const scoreA = getStudentCouponTotal(a) + (getAttendanceCountForStudent(a) * 10);
+            const scoreB = getStudentCouponTotal(b) + (getAttendanceCountForStudent(b) * 10);
+            return scoreB - scoreA || collator.compare(nameA, nameB);
+        }
+        return collator.compare(nameA, nameB);
+    });
+    return arr;
+}
+function filterAndSortActiveStudents() {
+    let list = getActiveViewStudents();
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(s => (s['الاسم'] || '').toLowerCase().includes(q));
+    }
+    return sortStudentsForCurrentView(list);
+}
+
 // ── SEARCH ────────────────────────────────────────────────────
 function setupLiveSearch() {
     const si = document.getElementById('searchInput'); if (!si) return;
@@ -5921,7 +6097,8 @@ function setupLiveSearch() {
 }
 function executeSearch() {
     if (!searchQuery || !currentClass) { clearSearch(); return; }
-    filteredStudents = students.filter(s=>s['الفصل']===currentClass&&(s['الاسم']||'').toLowerCase().includes(searchQuery.toLowerCase()));
+    const q = searchQuery.toLowerCase();
+    filteredStudents = getActiveViewStudents().filter(s => (s['الاسم'] || '').toLowerCase().includes(q));
     renderAttendanceList(currentClass); document.getElementById('clearSearchBtn').style.display='flex';
 }
 function clearSearch() {
@@ -5934,7 +6111,7 @@ function clearSearch() {
 }
 function updateSearchResultsInfo(count) {
     const el=document.getElementById('searchResultsInfo'); if(!el) return;
-    const total=students.filter(s=>s['الفصل']===currentClass).length;
+    const total=getActiveViewStudents().length;
     if(searchQuery){el.innerHTML=count>0?`<i class="fas fa-search"></i> ${count} من ${total} طفل لـ "${searchQuery}"`:`<i class="fas fa-exclamation-circle"></i> لا نتائج لـ "${searchQuery}"`;el.classList.add('show');}else el.classList.remove('show');
 }
 function performSearch() { searchQuery=(document.getElementById('searchInput')?.value||'').trim(); executeSearch(); }
@@ -5956,9 +6133,26 @@ function exportToCSV(data, headers, filename) {
     let csv='\uFEFF'+headers.join(',')+'\n'; data.forEach(row=>{csv+=headers.map(h=>`"${(row[h]||'').toString().replace(/"/g,'""')}"`).join(',')+'\n';});
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download=filename+'.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
-function saveSheetAsCSV() { const _csvData = isCombinedView ? combinedStudents : (currentClass ? allStudentsData.filter(s=>s['الفصل']===currentClass) : allStudentsData); exportToCSV(_csvData,['الاسم','الفصل','العنوان','رقم التليفون','عيد الميلاد','كوبونات'],`جدول_${currentClass||'الكل'}`); showToast('تم تصدير CSV','success'); }
+function saveSheetAsCSV() {
+    const fs = sortStudentsForCurrentView(getActiveViewStudents());
+    const dateCols = getSheetDateColumns(fs);
+    const headers = ['الاسم','الفصل','العنوان','رقم التليفون','عيد الميلاد','كوبونات', ...dateCols];
+    const rows = fs.map(s => {
+        const row = {...s};
+        dateCols.forEach(d => {
+            let v = s[d] || (s._allAttendance && s._allAttendance[d]) || '';
+            if (v === 'present' || v === 'حاضر') v = 'ح';
+            if (v === 'absent' || v === 'غائب') v = 'غ';
+            row[d] = v;
+        });
+        return row;
+    });
+    exportToCSV(rows, headers, `حضور_${getActiveViewLabel()}_${sheetDateFrom||'كل'}_${sheetDateTo||'كل'}`.replace(/[\/\s]+/g,'-'));
+    showToast('تم تصدير CSV','success');
+}
 function exportAllAsCSV() { exportToCSV(allStudentsSearchQuery?filteredAllStudents:allStudentsData,['الاسم','الفصل','العنوان','رقم التليفون','عيد الميلاد','كوبونات'],'جميع_الأطفال'); showToast('تم التصدير','success'); }
-function saveAbsentAsCSV() { exportToCSV(students.filter(s=>s['الفصل']===currentClass&&attendanceData[getStudentId(s)]==='absent'),['الاسم','الفصل','رقم التليفون','العنوان'],`غائبين_${currentClass}_${currentFriday.replace(/\//g,'-')}`); showToast('تم التصدير','success'); }
+function saveAbsentAsCSV() { exportToCSV(getAttendanceStatusStudents('absent'),['الاسم','الفصل','رقم التليفون','العنوان'],`غائبين_${getActiveViewLabel()}_${currentFriday.replace(/\//g,'-')}`); showToast('تم التصدير','success'); }
+function saveAttendedAsCSV() { exportToCSV(getAttendanceStatusStudents('present'),['الاسم','الفصل','رقم التليفون','العنوان'],`حاضرين_${getActiveViewLabel()}_${currentFriday.replace(/\//g,'-')}`); showToast('تم التصدير','success'); }
 async function saveSheetAsImage() {
     showToast('جاري تجهيز الصورة...', 'info');
     try {
@@ -6071,14 +6265,11 @@ async function saveSheetAsPdf() {
         const {jsPDF} = window.jspdf;
         if (!jsPDF) { showToast('مكتبة PDF غير محملة','error'); return; }
 
-        const fs = isCombinedView ? combinedStudents
-                   : (currentClass ? allStudentsData.filter(s=>s['الفصل']===currentClass) : allStudentsData);
+        const fs = sortStudentsForCurrentView(getActiveViewStudents());
         if (!fs.length) { showToast('لا بيانات للتصدير','info'); return; }
 
-        // Collect attendance date columns from sheet table header
-        const headCells = [...document.querySelectorAll('#sheetTableHead th')];
         const fixedCols  = ['الاسم','الفصل','العنوان','رقم التليفون','عيد الميلاد','كوبونات'];
-        const dateCols   = headCells.slice(fixedCols.length).map(th => th.textContent.trim());
+        const dateCols   = getSheetDateColumns(fs);
 
         // Decide orientation based on total columns
         const totalCols = fixedCols.length + dateCols.length;
@@ -6552,6 +6743,7 @@ function setupEventListeners() {
     on('cancelAddPersonModal','click',hideAddPersonModal);
     on('closeSheetModal','click',hideSheetModal);
     on('closePastFridaysModal','click',hidePastFridaysModal);
+    on('closeAttendedModal','click',hideAttendedModal);
     on('closeAbsentModal','click',hideAbsentModal);
     on('closeDeleteStudentModal','click',hideDeleteStudentModal);
     on('cancelDeleteStudentBtn','click',hideDeleteStudentModal);
@@ -6577,9 +6769,15 @@ function setupEventListeners() {
     on('saveSheetAsImageBtn','click',saveSheetAsImage);
     on('saveSheetAsPdfBtn','click',saveSheetAsPdf);
     on('saveSheetAsCsvBtn','click',saveSheetAsCSV);
+    on('applySheetDateRangeBtn','click',applySheetDateRange);
+    on('clearSheetDateRangeBtn','click',clearSheetDateRange);
     on('exportAllAsCsvBtn','click',exportAllAsCSV);
+    on('saveAttendedAsCsvBtn','click',saveAttendedAsCSV);
+    on('copyAttendedModalBtn','click',copyAttendedData);
     on('saveAbsentAsCsvBtn','click',saveAbsentAsCSV);
     on('copyAbsentModalBtn','click',copyAbsentData);
+    on('absentSearchInput','input',renderAbsentTable);
+    on('classSortSelect','change',e=>{ classSortMode=e.target.value; renderAttendanceList(currentClass); });
     on('clearAbsentDataBtn','click',clearAbsentData);
     on('photoUploadArea','click',()=>document.getElementById('photoInput').click());
     on('photoInput','change',handleImageSelect);
@@ -7054,15 +7252,17 @@ function _launchConfetti() {
 // ══════════════════════════════════════════════════════════════
 function shareAbsentToWhatsApp() {
     if (!currentClass) { showToast('اختر فصلاً أولاً','info'); return; }
-    const absent = students.filter(s => s['الفصل'] === currentClass && attendanceData[getStudentId(s)] === 'absent');
+    const absent = getAttendanceStatusStudents('absent');
     if (!absent.length) { showToast('لا يوجد غائبون','info'); return; }
-    let txt = `\u202B━━━━━━━━━━━━━━━━━━\n📋 *قائمة الغائبين*\n🏫 ${currentClass}\n👤 ${absent.length} غائب\n📅 ${currentFriday}\n━━━━━━━━━━━━━━━━━━\n\n`;
-    absent.forEach((s,i) => {
-        txt += `*${i+1}.* ${s['الاسم']}\n`;
-        if (s['رقم التليفون']) txt += `   📱 ${s['رقم التليفون'].replace(/\D/g,'')}\n`;
-        if (i < absent.length-1) txt += '   ─────────────\n';
-    });
-    txt += '\n━━━━━━━━━━━━━━━━━━\n\u200F';
+    const txt = buildAttendanceShareText('absent', 'الغائبين', '📋');
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
+    window.open(url, '_blank');
+}
+function shareAttendedToWhatsApp() {
+    if (!currentClass) { showToast('اختر فصلاً أولاً','info'); return; }
+    const attended = getAttendanceStatusStudents('present');
+    if (!attended.length) { showToast('لا يوجد حاضرون','info'); return; }
+    const txt = buildAttendanceShareText('present', 'الحاضرين', '✅');
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
     window.open(url, '_blank');
 }
@@ -7892,7 +8092,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Global exposure
 Object.assign(window,{
     showClassView,showClassesView,showCombinedClassView,showAllTogetherView,markStudentAttendance,showStudentDetails,
-    showSheetModal,addCouponsToAll,resetCouponDataForClass,showAbsentModal,copyAbsentData,
+    showSheetModal,addCouponsToAll,resetCouponDataForClass,showAttendedModal,showAbsentModal,copyAttendedData,copyAbsentData,
     showImageModal,hideImageModal,showAddPersonModal,showBirthdayModal,showBirthdaysByMonth,
     showPastFridaysModal,loadFridayAttendance,performSearch,clearSearch,showRegistrationDetails,
     approveRegistration,rejectRegistration,toggleRegistrationSelection,searchPendingRegistrations,
@@ -7901,7 +8101,7 @@ Object.assign(window,{
     showAccountModal,hideAccountModal,showUncleHistory,showResetModal,retryConnection:()=>{},
     resetToCurrentFriday,showUnsavedModal,toggleTheme,escJs,
     // New
-    shareAbsentToWhatsApp,triggerPwaInstall,doPwaInstall,closePwaModal,
+    shareAbsentToWhatsApp,shareAttendedToWhatsApp,saveAttendedAsCSV,triggerPwaInstall,doPwaInstall,closePwaModal,
     requestNotifPermission,_updateNotifBtnVisibility,
     _holdStart,_holdMove,_holdEnd,_holdCancel,_rowHoldStart,_rowHoldMove,_rowHoldEnd,_rowContextMenu,_ctxAction,_closeCtxMenu,
     _imgZoomChange,_imgZoomReset,_imgDownload,
