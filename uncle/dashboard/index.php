@@ -2820,6 +2820,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
         <div class="hero-actions">
           <button class="btn btn-info btn-sm" id="showBirthdayModalBtn"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
           <button class="btn btn-success btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i> الأطفال</button>
+          <button class="btn btn-success btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
           <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i> الإعلانات</button>
           <a href="/uncle/dashboard/tasks/" class="btn btn-sm" id="tasksGlobalBtn" style="background:linear-gradient(135deg,#5b6cf5,#4154e8);color:#fff;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:5px;position:relative;"><i class="fas fa-tasks"></i> المهام<span id="globalTasksBadge" style="display:none;background:#fff;color:#4f46e5;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;display:none;"></span></a>
         </div>
@@ -3122,6 +3123,13 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
             <input type="file" id="photoInput" accept="image/*" style="display:none">
           </div>
           <div class="upload-controls" id="uploadControls" style="margin-top:10px">
+            <div class="enhancement-toggle" style="margin-bottom:8px">
+              <label class="checkbox-label">
+                <input type="checkbox" id="enhanceImage" checked>
+                <span class="checkmark"></span>
+                تحسين الصورة بالذكاء الاصطناعي
+              </label>
+            </div>
             <button type="button" class="btn btn-success btn-sm" id="savePhotoBtn"><i class="fas fa-upload"></i> رفع</button>
             <button type="button" class="btn btn-danger btn-sm" id="cancelUploadBtn"><i class="fas fa-times"></i> إلغاء</button>
           </div>
@@ -3176,6 +3184,13 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
             <input type="file" id="newStudentPhotoInput" accept="image/*" style="display:none">
           </div>
           <div class="upload-controls" id="newStudentUploadControls" style="margin-top:10px">
+            <div class="enhancement-toggle" style="margin-bottom:8px">
+              <label class="checkbox-label">
+                <input type="checkbox" id="enhanceNewStudentImage" checked>
+                <span class="checkmark"></span>
+                تحسين الصورة بالذكاء الاصطناعي
+              </label>
+            </div>
             <button type="button" class="btn btn-success btn-sm" id="saveNewStudentPhotoBtn"><i class="fas fa-upload"></i> رفع</button>
             <button type="button" class="btn btn-danger btn-sm" id="cancelNewStudentUploadBtn"><i class="fas fa-times"></i> إلغاء</button>
           </div>
@@ -3312,6 +3327,65 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
     <div id="birthdayGrid" class="birthday-grid"></div>
     <!-- Confetti container -->
     <div id="bdConfetti" style="position:fixed;inset:0;pointer-events:none;z-index:2000000;overflow:hidden"></div>
+  </div>
+</div>
+
+<!-- Bulk Add / Update Kids Modal -->
+<div id="bulkAddModal" class="modal-overlay" style="z-index:1000005">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-import"></i> استيراد / تحديث الأطفال</h3>
+      <button class="close-btn" onclick="document.getElementById('bulkAddModal').classList.remove('active')">&times;</button>
+    </div>
+    <div style="margin-bottom:14px">
+
+      <!-- Mode explanation -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="padding:12px;border-radius:10px;border:1.5px solid var(--success-dark);background:var(--success-bg);">
+          <div style="font-weight:700;font-size:0.85rem;color:#065f46;margin-bottom:4px;"><i class="fas fa-plus-circle"></i> إضافة أطفال جدد</div>
+          <div style="font-size:0.77rem;color:#047857;">استخدم النموذج الفارغ. الأطفال المكررة تُتجاهل تلقائياً.</div>
+          <button class="btn btn-sm" onclick="downloadTemplate()" style="margin-top:8px;width:100%;background:var(--success);color:white;border:none;">
+            <i class="fas fa-download"></i> نموذج فارغ
+          </button>
+        </div>
+        <div style="padding:12px;border-radius:10px;border:1.5px solid var(--brand);background:var(--brand-bg);">
+          <div style="font-weight:700;font-size:0.85rem;color:var(--brand);margin-bottom:4px;"><i class="fas fa-sync-alt"></i> تحديث بيانات موجودة</div>
+          <div style="font-size:0.77rem;color:var(--brand);">حمّل بيانات الأطفال الحالية، عدّل ما تريد، ثم أعد رفعه.</div>
+          <button class="btn btn-sm" onclick="downloadKidsData()" style="margin-top:8px;width:100%;background:var(--brand);color:white;border:none;">
+            <i class="fas fa-download"></i> تحميل بيانات الأطفال
+          </button>
+        </div>
+      </div>
+
+      <!-- Available classes -->
+      <div id="bulkAvailableClasses" style="margin-bottom:12px;padding:10px;background:var(--surface-3);border-radius:8px;font-size:0.82rem;color:var(--brand);display:none;">
+        <strong><i class="fas fa-chalkboard-teacher"></i> الفصول المتاحة:</strong>
+        <div id="bulkClassesList" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
+      <!-- File input -->
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label"><i class="fas fa-file-csv"></i> اختر ملف CSV للرفع</label>
+        <input type="file" id="csvFile" accept=".csv" class="form-input" onchange="handleFileSelect(event)">
+      </div>
+
+      <!-- Mode badge (shown after file is loaded) -->
+      <div id="bulkModeBadge" style="display:none;margin-bottom:10px;"></div>
+
+      <!-- Preview -->
+      <div id="bulkPreview"></div>
+
+      <!-- Errors / warnings -->
+      <div id="bulkErrors" style="display:none;margin-top:10px;padding:10px;background:var(--danger-bg);border-radius:8px;font-size:0.8rem;color:var(--danger);max-height:140px;overflow-y:auto;"></div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-success" onclick="bulkSubmit()" style="flex:2;" id="bulkAddBtn" disabled>
+          <i class="fas fa-upload"></i> <span id="bulkSubmitLabel">رفع وإضافة</span>
+        </button>
+        <button class="btn" style="flex:1;" onclick="document.getElementById('bulkAddModal').classList.remove('active')">إلغاء</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -5450,6 +5524,7 @@ function addNewPerson(e) {
         if (Object.keys(infoObj).length) fd.append('custom_info', JSON.stringify(infoObj));
     }
     if (currentCroppedBlob && currentPhotoEditorType==='new') fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`,{type:'image/jpeg'}));
+    fd.append('enhanceImage', document.getElementById('enhanceNewStudentImage').checked ? 'true' : 'false');
     fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).then(d => {
         if (d.success) { showToast('تم الإضافة بنجاح','success'); hideAddPersonModal(); document.getElementById('addPersonForm').reset(); cancelNewStudentPhotoUpload(); currentCroppedBlob=null; setTimeout(loadData,1000); }
         else showToast('فشل: '+(d.message||'خطأ'),'error');
@@ -5500,6 +5575,223 @@ function showBirthdayModal() { document.getElementById('birthdayModal').classLis
 function hideBirthdayModal() { document.getElementById('birthdayModal').classList.remove('active'); startAutoRefresh(); }
 function showAllStudentsModal() { document.getElementById('allStudentsModal').classList.add('active'); clearAllStudentsSearch(); renderAllStudentsTable(); setupAllStudentsSearch(); stopAutoRefresh(); }
 function hideAllStudentsModal() { document.getElementById('allStudentsModal').classList.remove('active'); startAutoRefresh(); }
+
+// ── Bulk Add Kids ─────────────────────────────────────────────
+let _bulkAvailableClasses = [];
+let _bulkIsUpdateMode = false;
+let currentFileData = [];
+const API_URL = '/api.php';
+
+function mkFd(action) { const fd = new FormData(); fd.append('action',action); return fd; }
+
+async function showBulkAddModal() {
+    document.getElementById('bulkAddModal').classList.add('active');
+    document.getElementById('bulkPreview').innerHTML = '';
+    document.getElementById('bulkErrors').style.display = 'none';
+    document.getElementById('bulkModeBadge').style.display = 'none';
+    document.getElementById('bulkAddBtn').disabled = true;
+    document.getElementById('csvFile').value = '';
+    document.getElementById('bulkSubmitLabel').textContent = 'رفع وإضافة';
+    currentFileData = [];
+    _bulkIsUpdateMode = false;
+    try {
+        const fd = mkFd('getChurchClasses');
+        const d = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success && d.classes && d.classes.length) {
+            _bulkAvailableClasses = d.classes.map(c => c.arabic_name);
+            document.getElementById('bulkClassesList').innerHTML = _bulkAvailableClasses.map(n =>
+                '<span style="background:white;padding:2px 10px;border-radius:20px;border:1px solid var(--brand)">' + n + '</span>'
+            ).join('');
+            document.getElementById('bulkAvailableClasses').style.display = 'block';
+        }
+    } catch(e) {}
+    stopAutoRefresh();
+}
+
+function downloadTemplate() {
+    window.location.href = API_URL + '?action=generateKidsTemplate';
+}
+
+function downloadKidsData() {
+    window.location.href = API_URL + '?action=exportKidsData';
+}
+
+function handleFileSelect(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => parseCSV(ev.target.result);
+    r.readAsText(f, 'UTF-8');
+}
+
+function parseCSV(csv) {
+    csv = csv.replace(/^\uFEFF/, '');
+    const lines = csv.split(/\r?\n/);
+    const data  = [], warnings = [];
+
+    const headerCells = parseCSVLine(lines[0] || '');
+    const header = headerCells.map(h => h.replace(/"/g,'').trim().toLowerCase());
+
+    const colStudentId = header.indexOf('student_id');
+    _bulkIsUpdateMode = colStudentId >= 0;
+
+    const colClass    = header.indexOf('class')    >= 0 ? header.indexOf('class')    : (_bulkIsUpdateMode ? 1 : 0);
+    const colName     = header.indexOf('name')     >= 0 ? header.indexOf('name')     : (_bulkIsUpdateMode ? 2 : 1);
+    const colAddress  = header.indexOf('address')  >= 0 ? header.indexOf('address')  : (_bulkIsUpdateMode ? 3 : 2);
+    const colPhone    = header.indexOf('phone')    >= 0 ? header.indexOf('phone')    : (_bulkIsUpdateMode ? 4 : 3);
+    const colBirthday = header.indexOf('birthday') >= 0 ? header.indexOf('birthday') : (_bulkIsUpdateMode ? 5 : 4);
+
+    const fixedCols = new Set(['student_id','class','name','address','phone','birthday']);
+    const customCols = header.map((h,i) => ({h,i})).filter(({h}) => !fixedCols.has(h) && h !== '');
+
+    for (let i = 1; i < lines.length; i++) {
+        const raw = lines[i].trim(); if (!raw) continue;
+        const v   = parseCSVLine(raw);
+        const cell = idx => (v[idx]||'').replace(/"/g,'').trim();
+
+        const studentId = _bulkIsUpdateMode ? (parseInt(cell(colStudentId))||0) : 0;
+        const cls       = cell(colClass);
+        const name      = cell(colName);
+        if (!name) continue;
+
+        if (!_bulkIsUpdateMode && _bulkAvailableClasses.length > 0 && cls && !_bulkAvailableClasses.includes(cls)) {
+            warnings.push('السطر ' + (i+1) + ': الفصل "' + cls + '" غير موجود في قائمة الفصول');
+        }
+
+        const row = {
+            student_id: studentId,
+            class: cls,
+            name,
+            address:  cell(colAddress),
+            phone:    cell(colPhone),
+            birthday: cell(colBirthday),
+        };
+        customCols.forEach(({h,i:ci}) => { row['cf_' + h] = cell(ci); });
+
+        data.push(row);
+    }
+
+    currentFileData = data;
+    if (!data.length) {
+        document.getElementById('bulkPreview').innerHTML = '<p style="color:var(--danger)">لا توجد بيانات صالحة في الملف</p>';
+        return;
+    }
+
+    const badge = document.getElementById('bulkModeBadge');
+    badge.style.display = 'block';
+    if (_bulkIsUpdateMode) {
+        badge.innerHTML = '<div style="padding:8px 14px;background:var(--info-light);color:var(--info);border-radius:8px;font-weight:700;font-size:0.85rem;">' +
+            '<i class="fas fa-sync-alt"></i> وضع التحديث — سيتم تحديث ' + data.filter(r=>r.student_id>0).length + ' طفل بناءً على student_id</div>';
+        document.getElementById('bulkSubmitLabel').textContent = 'رفع وتحديث';
+    } else {
+        badge.innerHTML = '<div style="padding:8px 14px;background:var(--success-bg);color:var(--success-dark);border-radius:8px;font-weight:700;font-size:0.85rem;">' +
+            '<i class="fas fa-plus-circle"></i> وضع الإضافة — سيتم إضافة ' + data.length + ' طفل (الأطفال المكررون يُتجاهلون)</div>';
+        document.getElementById('bulkSubmitLabel').textContent = 'رفع وإضافة';
+    }
+
+    const byClass = {};
+    data.forEach(r => {
+        const k = r.class || '(بدون فصل)';
+        if (!byClass[k]) byClass[k] = [];
+        byClass[k].push(r);
+    });
+    let p = '<div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border-solid);margin-bottom:10px"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><thead><tr style="background:var(--surface-3)"><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">الفصل</th><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">العدد</th><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">أمثلة</th>';
+    if (customCols.length) p += '<th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">الحقول الإضافية</th>';
+    p += '</tr></thead><tbody>';
+    Object.entries(byClass).forEach(([cls, kids]) => {
+        const examples = kids.slice(0,3).map(k=>k.name).join('، ');
+        const isUnknown  = !_bulkIsUpdateMode && _bulkAvailableClasses.length > 0 && !_bulkAvailableClasses.includes(cls) && cls !== '(بدون فصل)';
+        const rowStyle   = isUnknown ? ' style="color:var(--danger);background:var(--danger-bg)"' : '';
+        p += '<tr' + rowStyle + '>';
+        p += '<td style="padding:10px;border-bottom:1px solid var(--border-solid)">' + (cls || '---') + (isUnknown ? ' ⚠️' : '') + '</td>';
+        p += '<td style="padding:10px;border-bottom:1px solid var(--border-solid)">' + kids.length + '</td>';
+        p += '<td style="padding:10px;border-bottom:1px solid var(--border-solid);color:var(--text-3)">' + examples + (kids.length > 3 ? '...' : '') + '</td>';
+        if (customCols.length) p += '<td style="padding:10px;border-bottom:1px solid var(--border-solid);font-size:.75rem;color:var(--text-3)">' + customCols.map(c=>c.h).join(', ') + '</td>';
+        p += '</tr>';
+    });
+    p += '</tbody></table></div>';
+    document.getElementById('bulkPreview').innerHTML = p;
+    document.getElementById('bulkAddBtn').disabled = false;
+
+    if (warnings.length) {
+        document.getElementById('bulkErrors').style.display = 'block';
+        document.getElementById('bulkErrors').innerHTML = '<strong>⚠️ تحذيرات:</strong><br>' + warnings.slice(0,10).join('<br>');
+    } else {
+        document.getElementById('bulkErrors').style.display = 'none';
+    }
+}
+
+function parseCSVLine(line) {
+    const result = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+        else if (ch === ',' && !inQ) { result.push(cur); cur=''; }
+        else cur += ch;
+    }
+    result.push(cur);
+    return result;
+}
+
+function bulkSubmit() {
+    if (!currentFileData.length) { showToast('لا توجد بيانات','warning'); return; }
+
+    const rows      = currentFileData;
+    const customKeys = rows.length ? Object.keys(rows[0]).filter(k => k.startsWith('cf_')) : [];
+    let headerCols  = _bulkIsUpdateMode ? 'student_id,class,name,address,phone,birthday' : 'class,name,address,phone,birthday';
+    if (customKeys.length) headerCols += ',' + customKeys.map(k=>k.replace('cf_','')).join(',');
+
+    const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+    let csv = '\uFEFF' + headerCols + '\n';
+    rows.forEach(r => {
+        let cols = _bulkIsUpdateMode
+            ? [r.student_id, esc(r.class), esc(r.name), esc(r.address||''), esc(r.phone||''), esc(r.birthday||'')]
+            : [esc(r.class), esc(r.name), esc(r.address||''), esc(r.phone||''), esc(r.birthday||'')];
+        customKeys.forEach(k => cols.push(esc(r[k]||'')));
+        csv += cols.join(',') + '\n';
+    });
+
+    const file = new File([new Blob([csv],{type:'text/csv;charset=utf-8'})],'kids.csv',{type:'text/csv'});
+    const fd   = new FormData(); fd.append('action','bulkAddKids'); fd.append('csvFile',file);
+    const btn  = document.getElementById('bulkAddBtn');
+    const label= document.getElementById('bulkSubmitLabel');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...'; btn.disabled = true;
+
+    fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+        if (d.success) {
+            showToast(d.message, 'success');
+            if (d.errors && d.errors.length) {
+                document.getElementById('bulkErrors').style.display = 'block';
+                document.getElementById('bulkErrors').innerHTML = '<strong>ملاحظات:</strong><br>' + d.errors.join('<br>');
+                btn.innerHTML = '<i class="fas fa-check"></i> تم مع ملاحظات'; btn.disabled = false;
+            } else {
+                document.getElementById('bulkAddModal').classList.remove('active');
+            }
+            setTimeout(() => { loadData(); renderAllStudentsTable(); }, 500);
+        } else {
+            showToast(d.message || 'فشل في الاستيراد', 'error');
+            if (d.errors && d.errors.length) {
+                document.getElementById('bulkErrors').style.display = 'block';
+                document.getElementById('bulkErrors').innerHTML = '<strong>أخطاء:</strong><br>' + d.errors.join('<br>');
+            }
+            if (d.availableClasses) {
+                _bulkAvailableClasses = d.availableClasses;
+                document.getElementById('bulkClassesList').innerHTML = d.availableClasses.map(n=>
+                    '<span style="background:white;padding:2px 10px;border-radius:20px;border:1px solid var(--brand)">' + n + '</span>'
+                ).join('');
+                document.getElementById('bulkAvailableClasses').style.display = 'block';
+            }
+            btn.innerHTML = '<i class="fas fa-upload"></i> '; btn.disabled = false;
+            label.textContent = _bulkIsUpdateMode ? 'رفع وتحديث' : 'رفع وإضافة';
+        }
+    }).catch(()=>{
+        showToast('خطأ في الاتصال','error');
+        btn.innerHTML = '<i class="fas fa-upload"></i> '; btn.disabled = false;
+        label.textContent = _bulkIsUpdateMode ? 'رفع وتحديث' : 'رفع وإضافة';
+    });
+}
+
+function bulkAddKids() { bulkSubmit(); }
+
 function showSheetModal() { _sheetZoom=1.0; document.getElementById('sheetModal').classList.add('active'); renderSheetTable(); _applySheetZoom(); stopAutoRefresh(); }
 function hideSheetModal() { document.getElementById('sheetModal').classList.remove('active'); startAutoRefresh(); }
 function showAttendedModal() { document.getElementById('attendedModal').classList.add('active'); renderAttendedTable(); stopAutoRefresh(); }
@@ -6736,6 +7028,7 @@ function uploadStudentPhoto() {
     if(!currentCroppedBlob||!currentStudentForEdit){showToast('اختر صورة أولاً','error');return;}
     showLoading('جاري الرفع...');
     const fd=new FormData(); fd.append('photo',new File([currentCroppedBlob],`profile_${Date.now()}.jpg`,{type:'image/jpeg'})); fd.append('studentName',currentStudentForEdit['الاسم']); fd.append('studentClass',currentStudentForEdit['الفصل']);
+    fd.append('enhanceImage', document.getElementById('enhanceImage').checked ? 'true' : 'false');
     fetch('https://sunday-school.rf.gd/upload.php',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
         if(d.success){makeApiCall({action:'updateStudentImage',studentName:currentStudentForEdit['الاسم'],imageUrl:d.imageUrl},()=>{showToast('تم الرفع','success');cancelPhotoUpload();setTimeout(loadData,500);},()=>showToast('رُفعت ولكن فشل التحديث','warning'));}
         else showToast('فشل الرفع: '+(d.message||''),'error');

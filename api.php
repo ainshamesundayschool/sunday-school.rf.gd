@@ -93,6 +93,91 @@ function handleError($message) {
     sendJSON(['success' => false, 'message' => $message]);
 }
 
+// ── Image Enhancement Function ──────────────────────────────
+function enhanceImage($imagePath, $targetWidth = 400, $targetHeight = 500) {
+    // Load image
+    $imageInfo = @getimagesize($imagePath);
+    if (!$imageInfo) {
+        return null;
+    }
+    
+    $mime = $imageInfo['mime'];
+    $source = null;
+    
+    // Create image resource based on type
+    if ($mime === 'image/jpeg') {
+        $source = @imagecreatefromjpeg($imagePath);
+    } elseif ($mime === 'image/png') {
+        $source = @imagecreatefrompng($imagePath);
+    } elseif ($mime === 'image/gif') {
+        $source = @imagecreatefromgif($imagePath);
+    } elseif ($mime === 'image/webp') {
+        $source = @imagecreatefromwebp($imagePath);
+    }
+    
+    if (!$source) {
+        return null;
+    }
+    
+    $width = imagesx($source);
+    $height = imagesy($source);
+    
+    // Calculate new dimensions maintaining aspect ratio
+    $ratio = $width / $height;
+    $targetRatio = $targetWidth / $targetHeight;
+    
+    if ($ratio > $targetRatio) {
+        $newWidth = $targetHeight * $ratio;
+        $newHeight = $targetHeight;
+    } else {
+        $newWidth = $targetWidth;
+        $newHeight = $targetWidth / $ratio;
+    }
+    
+    // Create intermediate image (scaled)
+    $scaled = imagecreatetruecolor($newWidth, $newHeight);
+    imagealphablending($scaled, false);
+    imagesavealpha($scaled, true);
+    imagecopyresampled($scaled, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+    
+    // Create final image with cropping (center crop)
+    $final = imagecreatetruecolor($targetWidth, $targetHeight);
+    imagealphablending($final, false);
+    imagesavealpha($final, true);
+    
+    $offsetX = ($newWidth - $targetWidth) / 2;
+    $offsetY = ($newHeight - $targetHeight) / 2;
+    
+    imagecopy($final, $scaled, 0, 0, $offsetX, $offsetY, $targetWidth, $targetHeight);
+    
+    // Apply enhancement: increase contrast and brightness
+    imagefilter($final, IMG_FILTER_CONTRAST, 5);
+    imagefilter($final, IMG_FILTER_BRIGHTNESS, 15);
+    imagefilter($final, IMG_FILTER_SMOOTH, 1);
+    
+    imagedestroy($source);
+    imagedestroy($scaled);
+    
+    return $final;
+}
+
+// ── Save enhanced image ──────────────────────────────────────
+function saveEnhancedImage($image, $outputPath, $quality = 85) {
+    $ext = strtolower(pathinfo($outputPath, PATHINFO_EXTENSION));
+    
+    if ($ext === 'jpg' || $ext === 'jpeg') {
+        return imagejpeg($image, $outputPath, $quality);
+    } elseif ($ext === 'png') {
+        return imagepng($image, $outputPath, 8);
+    } elseif ($ext === 'gif') {
+        return imagegif($image, $outputPath);
+    } elseif ($ext === 'webp') {
+        return imagewebp($image, $outputPath, $quality);
+    }
+    
+    return imagejpeg($image, $outputPath, $quality);
+}
+
 // Check if user is logged in
 function checkAuth() {
     if (!isset($_SESSION['church_id'])) {
@@ -1670,6 +1755,15 @@ function addStudent() {
 
             if (in_array($fileType, $allowedTypes)) {
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
+                    // Apply AI enhancement if requested
+                    $enhanceImage = isset($_POST['enhanceImage']) && $_POST['enhanceImage'] === 'true';
+                    if ($enhanceImage) {
+                        $enhancedPath = enhanceImage($uploadPath);
+                        if ($enhancedPath) {
+                            $uploadPath = $enhancedPath;
+                            $photoFilename = basename($enhancedPath);
+                        }
+                    }
                     $photoUrl = "https://sunday-school.rf.gd/uploads/students/" . $photoFilename;
                 }
             }
