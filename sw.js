@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v4                      ║
+// ║  Sunday School PWA — Service Worker v7                      ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v6';
+const CACHE_NAME        = 'sunday-school-v7';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -10,7 +10,7 @@ const PERIODIC_SYNC_TAG = 'check-registrations';
 const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 
 const SHELL_URLS = [
-    '/uncle/dashboard/','/favicon.ico','/logo.png',
+    '/favicon.ico','/logo.png',
     '/manifest.json','/manifest.webmanifest',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -42,13 +42,25 @@ self.addEventListener('activate', e => {
 // ── FETCH ─────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
+    const isSameOrigin = url.origin === self.location.origin;
+    const isSessionSensitive =
+        isSameOrigin && (
+            url.pathname === '/' ||
+            url.pathname.includes('/login') ||
+            url.pathname.includes('/uncle/dashboard') ||
+            url.pathname.includes('/uncle/church') ||
+            url.pathname.includes('/kids/profile')
+        );
 
     // Manifest must always return valid JSON (never plain "Offline")
     if (url.pathname === '/manifest.json' || url.pathname === '/manifest.webmanifest') {
         const manifestPath = url.pathname === '/manifest.webmanifest' ? '/manifest.webmanifest' : '/manifest.json';
         e.respondWith(
             fetch(e.request).then(r => {
-                if (r && r.ok) caches.open(CACHE_NAME).then(c => c.put(manifestPath, r.clone()));
+                if (r && r.ok) {
+                    const copy = r.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(manifestPath, copy)).catch(() => {});
+                }
                 return r;
             }).catch(async () => {
                 const cached = await caches.match(manifestPath);
@@ -90,22 +102,25 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Navigation — cache-first with background refresh
+    // Session-sensitive PHP pages must not be served cache-first, otherwise
+    // switching churches can show the previous church's rendered dashboard.
     if (e.request.mode === 'navigate') {
         e.respondWith(
-            caches.match(e.request).then(cached => {
-                if (cached) {
-                    fetch(e.request).then(r => {
-                        if (r && r.ok) caches.open(CACHE_NAME).then(c => c.put(e.request, r));
-                    }).catch(() => {});
-                    return cached;
-                }
-                return fetch(e.request).then(r => {
-                    if (r && r.ok) { const cl = r.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, cl)); }
-                    return r;
-                }).catch(() => caches.match('/uncle/dashboard/'));
+            fetch(e.request, { cache: isSessionSensitive ? 'no-store' : 'default' }).catch(async () => {
+                const cached = await caches.match(e.request);
+                if (cached && !isSessionSensitive) return cached;
+                return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                });
             })
         );
+        return;
+    }
+
+    // Never cache session-sensitive GETs either.
+    if (isSessionSensitive) {
+        e.respondWith(fetch(e.request, { cache: 'no-store' }).catch(() => new Response('Offline', { status: 503 })));
         return;
     }
 

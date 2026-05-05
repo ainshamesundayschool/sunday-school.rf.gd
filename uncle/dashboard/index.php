@@ -3537,14 +3537,26 @@ function toggleTheme() {
     const phpUncleRole  = <?php echo json_encode($uncleRole); ?>;
     const phpChurchCode = <?php echo json_encode($churchCode); ?>;
 
-    // Detect account switch: if stored church_type differs from what PHP
-    // says (i.e. someone switched from kids → youth or vice versa), clear
-    // cached settings so the new account's settings are fetched fresh.
+    // Detect account switch: if stored church identity differs from what PHP
+    // says, clear account-scoped cached data so another church is not shown.
     const storedType = localStorage.getItem('churchType');
-    if (storedType && storedType !== phpChurchType) {
+    const storedCode = localStorage.getItem('churchCode');
+    if ((storedType && storedType !== phpChurchType) || (storedCode && phpChurchCode && storedCode !== phpChurchCode)) {
         try {
-            localStorage.removeItem('churchSettings');
-            localStorage.removeItem('lastStudentsData');
+            [
+                'churchSettings','lastStudentsData','currentClass','selectedFriday',
+                'combinedClassGroups','customAttendanceDates'
+            ].forEach(k => localStorage.removeItem(k));
+            Object.keys(localStorage).forEach(k => {
+                if (
+                    k.startsWith('attendanceData_') ||
+                    k.startsWith('changedStudents_') ||
+                    k.startsWith('savedStudents_') ||
+                    k.startsWith('couponData_') ||
+                    k.startsWith('changedCouponStudents_') ||
+                    k.startsWith('savedCoupons_')
+                ) localStorage.removeItem(k);
+            });
         } catch(e) {}
     }
 
@@ -7586,7 +7598,7 @@ const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_
 // ── Register service worker ───────────────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=6')
+        navigator.serviceWorker.register('/sw.js?v=7')
             .then(reg => {
                 _initPushSubscription(reg);
                 // ── Re-subscribe whenever SW becomes active after an update ──
