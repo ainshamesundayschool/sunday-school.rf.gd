@@ -735,6 +735,34 @@ font-size: 0.95rem; font-weight: 800; color: var(--text);
 .dropdown-item.coupon:hover{background:var(--coupon-bg);color:var(--coupon)}
 .dropdown-item i{width:16px;text-align:center;font-size:.85rem}
 
+/* Custom export builder */
+.export-builder{display:grid;grid-template-columns:minmax(250px,330px) 1fr;gap:12px;height:100%;min-height:0}
+.export-controls{overflow:auto;padding-left:4px;display:flex;flex-direction:column;gap:10px}
+.export-panel{background:var(--surface-2);border:1px solid var(--border-solid);border-radius:var(--r-lg);padding:10px}
+.export-panel-title{font-size:.78rem;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.export-field-list{display:flex;flex-direction:column;gap:6px}
+.export-field-row{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 8px;font-size:.78rem}
+.export-field-row input{accent-color:var(--brand);width:15px;height:15px}
+.export-field-row label{flex:1;cursor:pointer;font-weight:700;color:var(--text)}
+.export-field-actions{display:flex;gap:3px}
+.export-mini-btn{width:24px;height:24px;border-radius:7px;border:1px solid var(--border-solid);background:var(--surface);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem}
+.export-mini-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-bg)}
+.export-date-options{display:grid;gap:7px}
+.export-preview-wrap{background:#fff;color:#1e293b;border:1px solid var(--border-solid);border-radius:var(--r-lg);overflow:auto;min-height:0;box-shadow:var(--shadow-sm)}
+[data-theme="dark"] .export-preview-wrap{background:#fff;color:#1e293b}
+.custom-export-doc{direction:rtl;font-family:Cairo,Tahoma,Arial,sans-serif;background:#fff;color:#1e293b;padding:16px;min-width:max-content}
+.custom-export-title{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #1e293b;padding-bottom:8px;margin-bottom:12px}
+.custom-export-title h2{font-size:18px;margin:0;font-weight:900;color:#1e293b}
+.custom-export-title small{display:block;color:#64748b;font-size:11px;margin-top:2px}
+.custom-export-table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+.custom-export-table th{background:#1e293b;color:#fff;padding:8px 10px;border:1px solid #334155;text-align:right;font-weight:800}
+.custom-export-table td{padding:7px 10px;border:1px solid #e2e8f0;text-align:right;color:#1e293b}
+.custom-export-table tr:nth-child(even) td{background:#f8fafc}
+.custom-export-table .att-p{background:#d1fae5!important;color:#065f46;font-weight:800;text-align:center}
+.custom-export-table .att-a{background:#fee2e2!important;color:#991b1b;font-weight:800;text-align:center}
+.custom-export-photo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid #cbd5e1;display:block}
+@media(max-width:780px){.export-builder{grid-template-columns:1fr}.export-controls{max-height:38vh}.export-preview-wrap{min-height:42vh}}
+
 /* ═══════════════════════════════════════════════════════════════
    STICKY ATTENDANCE TOOLBAR
 ═══════════════════════════════════════════════════════════════ */
@@ -2884,6 +2912,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
           <div class="dropdown-menu" id="actionsDropdownMenu">
             <div class="dropdown-group-label">الفصل</div>
             <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
+            <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
             <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الجُمَع السابقة</button>
             <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
             <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
@@ -3201,6 +3230,54 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
   </div>
 </div>
 
+<!-- Custom Export Modal -->
+<div class="modal-overlay" id="customExportModal" style="z-index:1000012">
+  <div class="modal modal-lg" style="z-index:1000013">
+    <div class="modal-header" style="gap:8px;flex-wrap:wrap">
+      <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" id="customExportCsvBtn"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn btn-danger btn-sm" id="customExportPdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button class="btn btn-info btn-sm" id="customExportImageBtn"><i class="fas fa-image"></i> صورة</button>
+        <button class="close-btn" id="closeCustomExportModal">&times;</button>
+      </div>
+    </div>
+    <div class="export-builder">
+      <div class="export-controls">
+        <div class="export-panel">
+          <div class="export-panel-title"><i class="fas fa-heading"></i> اسم التقرير</div>
+          <input type="text" class="form-input" id="customExportTitle" placeholder="مثلاً: حضور فصل أولى">
+        </div>
+        <div class="export-panel">
+          <div class="export-panel-title"><i class="fas fa-table-columns"></i> البيانات والترتيب</div>
+          <div class="export-field-list" id="customExportFields"></div>
+        </div>
+        <div class="export-panel">
+          <div class="export-panel-title"><i class="fas fa-calendar-days"></i> الحضور</div>
+          <div class="export-date-options">
+            <select class="form-input" id="customExportDateMode">
+              <option value="none">بدون حضور</option>
+              <option value="current">تاريخ الحضور الحالي</option>
+              <option value="range">نطاق تواريخ</option>
+              <option value="custom">تواريخ مخصصة</option>
+              <option value="all">كل تواريخ الحضور</option>
+            </select>
+            <div id="customExportRangeInputs" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
+              <input type="text" class="form-input" id="customExportFromDate" placeholder="من DD/MM/YYYY" maxlength="10" inputmode="numeric" oninput="autoFormatCustomDate(this)">
+              <input type="text" class="form-input" id="customExportToDate" placeholder="إلى DD/MM/YYYY" maxlength="10" inputmode="numeric" oninput="autoFormatCustomDate(this)">
+            </div>
+            <textarea class="form-input" id="customExportDates" placeholder="تواريخ مخصصة: 01/01/2026, 08/01/2026" rows="2" style="display:none;min-height:54px"></textarea>
+          </div>
+        </div>
+        <button class="btn" id="customExportPreviewBtn" style="width:100%;justify-content:center"><i class="fas fa-eye"></i> تحديث المعاينة</button>
+      </div>
+      <div class="export-preview-wrap">
+        <div id="customExportPreview" class="custom-export-doc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Birthday Modal -->
 <div class="modal-overlay" id="birthdayModal">
   <div class="modal modal-lg">
@@ -3498,6 +3575,7 @@ let activeDropdown = null;
 let classSortMode = 'name_az';
 let sheetDateFrom = '';
 let sheetDateTo = '';
+let customExportFields = [];
 // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
 let uncleClassNavPermission = 'all';
 
@@ -6133,6 +6211,223 @@ function exportToCSV(data, headers, filename) {
     let csv='\uFEFF'+headers.join(',')+'\n'; data.forEach(row=>{csv+=headers.map(h=>`"${(row[h]||'').toString().replace(/"/g,'""')}"`).join(',')+'\n';});
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download=filename+'.csv'; a.click(); URL.revokeObjectURL(a.href);
 }
+function getCustomExportDefaultFields() {
+    const fields = [
+        { key:'photo', label:'الصورة', type:'photo', selected:false },
+        { key:'name', label:'الاسم', source:'الاسم', selected:true },
+        { key:'class', label:'الفصل', source:'الفصل', selected:true },
+        { key:'phone', label:'رقم التليفون', source:'رقم التليفون', selected:true },
+        { key:'address', label:'العنوان', source:'العنوان', selected:false },
+        { key:'birthday', label:'عيد الميلاد', source:'عيد الميلاد', selected:false },
+        { key:'age', label:'السن', type:'age', selected:false },
+        { key:'coupons', label:'الكوبونات', source:'كوبونات', selected:false },
+        { key:'attended_count', label:'إجمالي الحضور', type:'attendance_count', selected:false },
+    ];
+    if (churchCustomFields && churchCustomFields.length) {
+        churchCustomFields.forEach((cf, idx) => fields.push({
+            key:'custom_' + idx,
+            label:cf.name || ('حقل مخصص ' + (idx + 1)),
+            type:'custom',
+            customIndex:idx,
+            selected:false
+        }));
+    }
+    return fields;
+}
+function initCustomExportFields(force = false) {
+    if (force || !customExportFields.length) customExportFields = getCustomExportDefaultFields();
+    renderCustomExportFields();
+}
+function renderCustomExportFields() {
+    const box = document.getElementById('customExportFields');
+    if (!box) return;
+    box.innerHTML = customExportFields.map((f, i) => `
+        <div class="export-field-row">
+            <input type="checkbox" id="cef_${f.key}" ${f.selected ? 'checked' : ''} onchange="toggleCustomExportField('${f.key}',this.checked)">
+            <label for="cef_${f.key}">${f.label}</label>
+            <div class="export-field-actions">
+                <button class="export-mini-btn" onclick="moveCustomExportField(${i},-1)" title="أعلى"><i class="fas fa-arrow-up"></i></button>
+                <button class="export-mini-btn" onclick="moveCustomExportField(${i},1)" title="أسفل"><i class="fas fa-arrow-down"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
+function toggleCustomExportField(key, checked) {
+    const f = customExportFields.find(x => x.key === key);
+    if (f) f.selected = checked;
+    renderCustomExportPreview();
+}
+function moveCustomExportField(index, dir) {
+    const next = index + dir;
+    if (next < 0 || next >= customExportFields.length) return;
+    const tmp = customExportFields[index];
+    customExportFields[index] = customExportFields[next];
+    customExportFields[next] = tmp;
+    renderCustomExportFields();
+    renderCustomExportPreview();
+}
+function getAllAttendanceDateColumnsForStudents(fs) {
+    const dates = new Set();
+    fs.forEach(s => {
+        Object.keys(s || {}).forEach(k => {
+            if (k.includes('/') && k.length === 10) {
+                const v = s[k];
+                if (['ح','غ','حاضر','غائب','present','absent'].includes(v)) dates.add(k);
+            }
+        });
+        if (s._allAttendance) Object.keys(s._allAttendance).forEach(d => {
+            if (d.includes('/')) dates.add(d);
+        });
+    });
+    return [...dates].sort((a,b) => parseDate(b) - parseDate(a));
+}
+function parseCustomExportDates() {
+    const fs = getActiveViewStudents();
+    const mode = document.getElementById('customExportDateMode')?.value || 'none';
+    const allDates = getAllAttendanceDateColumnsForStudents(fs);
+    if (mode === 'none') return [];
+    if (mode === 'current') return currentFriday ? [currentFriday] : [];
+    if (mode === 'all') return allDates;
+    if (mode === 'range') {
+        const from = (document.getElementById('customExportFromDate')?.value || '').trim();
+        const to = (document.getElementById('customExportToDate')?.value || '').trim();
+        const valid = v => !v || /^\d{2}\/\d{2}\/\d{4}$/.test(v);
+        if (!valid(from) || !valid(to)) return [];
+        if (from && to && parseDate(from) > parseDate(to)) return [];
+        return allDates.filter(d => (!from || parseDate(d) >= parseDate(from)) && (!to || parseDate(d) <= parseDate(to)));
+    }
+    if (mode === 'custom') {
+        const raw = (document.getElementById('customExportDates')?.value || '').trim();
+        return raw.split(/[\s,،]+/).map(x => x.trim()).filter(x => /^\d{2}\/\d{2}\/\d{4}$/.test(x));
+    }
+    return [];
+}
+function getCustomFieldValue(s, idx) {
+    const info = s._customInfo || {};
+    return info['field_' + idx] || (idx === 0 ? (info.value || '') : '') || '';
+}
+function getCustomExportCellValue(s, field, forCsv = false) {
+    if (field.type === 'photo') return forCsv ? (s['صورة'] || '') : (s['صورة'] ? `<img class="custom-export-photo" src="${window.photoUrl(s['صورة'])}" alt="">` : '');
+    if (field.type === 'age') return _calcAge(s['عيد الميلاد'] || '') || '';
+    if (field.type === 'attendance_count') return getAttendanceCountForStudent(s);
+    if (field.type === 'custom') return getCustomFieldValue(s, field.customIndex);
+    return s[field.source] || '';
+}
+function getAttendanceDisplayValue(s, date) {
+    let v = s[date] || (s._allAttendance && s._allAttendance[date]) || '';
+    if (v === 'present' || v === 'حاضر') v = 'ح';
+    if (v === 'absent' || v === 'غائب') v = 'غ';
+    return v;
+}
+function getCustomExportConfig() {
+    const fields = customExportFields.filter(f => f.selected);
+    const dates = parseCustomExportDates();
+    const title = (document.getElementById('customExportTitle')?.value || '').trim() || ('تقرير ' + getActiveViewLabel());
+    return { fields, dates, title };
+}
+function renderCustomExportPreview() {
+    const preview = document.getElementById('customExportPreview');
+    if (!preview) return;
+    const cfg = getCustomExportConfig();
+    const fs = sortStudentsForCurrentView(getActiveViewStudents());
+    if (!cfg.fields.length && !cfg.dates.length) {
+        preview.innerHTML = '<div style="text-align:center;padding:3rem;color:#64748b">اختر عموداً واحداً على الأقل</div>';
+        return;
+    }
+    const headers = [...cfg.fields.map(f => f.label), ...cfg.dates];
+    const dateLabel = cfg.dates.length ? cfg.dates.join('، ') : 'بدون أعمدة حضور';
+    preview.innerHTML = `
+        <div class="custom-export-title">
+            <div>
+                <h2>${escHtml(cfg.title)}</h2>
+                <small>${escHtml(getActiveViewLabel())} - ${fs.length} ${window.IS_YOUTH ? 'عضو' : 'طفل'}</small>
+                <small>${escHtml(dateLabel)}</small>
+            </div>
+            <small>${new Date().toLocaleDateString('ar-EG')}</small>
+        </div>
+        <table class="custom-export-table">
+            <thead><tr>${headers.map(h => `<th>${escHtml(h)}</th>`).join('')}</tr></thead>
+            <tbody>
+                ${fs.map(s => `<tr>
+                    ${cfg.fields.map(f => `<td>${f.type === 'photo' ? getCustomExportCellValue(s, f, false) : escHtml(String(getCustomExportCellValue(s, f, false) || ''))}</td>`).join('')}
+                    ${cfg.dates.map(d => {
+                        const v = getAttendanceDisplayValue(s, d);
+                        const cls = v === 'ح' ? 'att-p' : (v === 'غ' ? 'att-a' : '');
+                        return `<td class="${cls}">${escHtml(v || '')}</td>`;
+                    }).join('')}
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+function showCustomExportModal() {
+    initCustomExportFields();
+    const title = document.getElementById('customExportTitle');
+    if (title && !title.value) title.value = 'تقرير ' + getActiveViewLabel();
+    document.getElementById('customExportModal').classList.add('active');
+    renderCustomExportPreview();
+    stopAutoRefresh();
+}
+function hideCustomExportModal() { document.getElementById('customExportModal').classList.remove('active'); startAutoRefresh(); }
+function updateCustomExportDateControls() {
+    const mode = document.getElementById('customExportDateMode')?.value || 'none';
+    const range = document.getElementById('customExportRangeInputs');
+    const custom = document.getElementById('customExportDates');
+    if (range) range.style.display = mode === 'range' ? 'grid' : 'none';
+    if (custom) custom.style.display = mode === 'custom' ? 'block' : 'none';
+    renderCustomExportPreview();
+}
+function exportCustomAsCSV() {
+    const cfg = getCustomExportConfig();
+    if (!cfg.fields.length && !cfg.dates.length) { showToast('اختر بيانات للتصدير','info'); return; }
+    const headers = [...cfg.fields.map(f => f.label), ...cfg.dates];
+    const rows = sortStudentsForCurrentView(getActiveViewStudents()).map(s => {
+        const row = {};
+        cfg.fields.forEach(f => { row[f.label] = getCustomExportCellValue(s, f, true); });
+        cfg.dates.forEach(d => { row[d] = getAttendanceDisplayValue(s, d); });
+        return row;
+    });
+    exportToCSV(rows, headers, cfg.title.replace(/[\/\s]+/g,'-'));
+    showToast('تم تصدير CSV','success');
+}
+async function exportCustomPreviewAsImage() {
+    const preview = document.getElementById('customExportPreview');
+    if (!preview) return;
+    showToast('جاري تجهيز الصورة...', 'info');
+    try {
+        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:true });
+        const a = document.createElement('a');
+        a.download = (getCustomExportConfig().title || 'custom-export').replace(/[\/\s]+/g,'-') + '.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+        showToast('تم حفظ الصورة','success');
+    } catch(e) { showToast('فشل حفظ الصورة: ' + e.message, 'error'); }
+}
+async function exportCustomPreviewAsPdf() {
+    const preview = document.getElementById('customExportPreview');
+    if (!preview) return;
+    showToast('جاري إنشاء PDF...', 'info');
+    try {
+        const {jsPDF} = window.jspdf;
+        if (!jsPDF) { showToast('مكتبة PDF غير محملة','error'); return; }
+        const canvas = await html2canvas(preview, { scale:2, backgroundColor:'#ffffff', logging:false, useCORS:true, allowTaint:true });
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({ orientation, unit:'mm', format:'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const imgW = pageW - 12;
+        const imgH = canvas.height * imgW / canvas.width;
+        const img = canvas.toDataURL('image/png');
+        let y = 6, remaining = imgH;
+        pdf.addImage(img, 'PNG', 6, y, imgW, imgH);
+        while (remaining > pageH - 12) {
+            remaining -= pageH - 12;
+            pdf.addPage();
+            pdf.addImage(img, 'PNG', 6, 6 - (imgH - remaining), imgW, imgH);
+        }
+        pdf.save((getCustomExportConfig().title || 'custom-export').replace(/[\/\s]+/g,'-') + '.pdf');
+        showToast('تم حفظ PDF','success');
+    } catch(e) { showToast('فشل PDF: ' + e.message, 'error'); }
+}
 function saveSheetAsCSV() {
     const fs = sortStudentsForCurrentView(getActiveViewStudents());
     const dateCols = getSheetDateColumns(fs);
@@ -6742,6 +7037,7 @@ function setupEventListeners() {
     on('closeAddPersonModal','click',hideAddPersonModal);
     on('cancelAddPersonModal','click',hideAddPersonModal);
     on('closeSheetModal','click',hideSheetModal);
+    on('closeCustomExportModal','click',hideCustomExportModal);
     on('closePastFridaysModal','click',hidePastFridaysModal);
     on('closeAttendedModal','click',hideAttendedModal);
     on('closeAbsentModal','click',hideAbsentModal);
@@ -6769,6 +7065,15 @@ function setupEventListeners() {
     on('saveSheetAsImageBtn','click',saveSheetAsImage);
     on('saveSheetAsPdfBtn','click',saveSheetAsPdf);
     on('saveSheetAsCsvBtn','click',saveSheetAsCSV);
+    on('customExportCsvBtn','click',exportCustomAsCSV);
+    on('customExportPdfBtn','click',exportCustomPreviewAsPdf);
+    on('customExportImageBtn','click',exportCustomPreviewAsImage);
+    on('customExportPreviewBtn','click',renderCustomExportPreview);
+    on('customExportDateMode','change',updateCustomExportDateControls);
+    on('customExportTitle','input',renderCustomExportPreview);
+    on('customExportFromDate','input',renderCustomExportPreview);
+    on('customExportToDate','input',renderCustomExportPreview);
+    on('customExportDates','input',renderCustomExportPreview);
     on('applySheetDateRangeBtn','click',applySheetDateRange);
     on('clearSheetDateRangeBtn','click',clearSheetDateRange);
     on('exportAllAsCsvBtn','click',exportAllAsCSV);
@@ -8092,7 +8397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Global exposure
 Object.assign(window,{
     showClassView,showClassesView,showCombinedClassView,showAllTogetherView,markStudentAttendance,showStudentDetails,
-    showSheetModal,addCouponsToAll,resetCouponDataForClass,showAttendedModal,showAbsentModal,copyAttendedData,copyAbsentData,
+    showSheetModal,showCustomExportModal,addCouponsToAll,resetCouponDataForClass,showAttendedModal,showAbsentModal,copyAttendedData,copyAbsentData,
     showImageModal,hideImageModal,showAddPersonModal,showBirthdayModal,showBirthdaysByMonth,
     showPastFridaysModal,loadFridayAttendance,performSearch,clearSearch,showRegistrationDetails,
     approveRegistration,rejectRegistration,toggleRegistrationSelection,searchPendingRegistrations,
@@ -8102,6 +8407,8 @@ Object.assign(window,{
     resetToCurrentFriday,showUnsavedModal,toggleTheme,escJs,
     // New
     shareAbsentToWhatsApp,shareAttendedToWhatsApp,saveAttendedAsCSV,triggerPwaInstall,doPwaInstall,closePwaModal,
+    toggleCustomExportField,moveCustomExportField,renderCustomExportPreview,
+    exportCustomAsCSV,exportCustomPreviewAsImage,exportCustomPreviewAsPdf,
     requestNotifPermission,_updateNotifBtnVisibility,
     _holdStart,_holdMove,_holdEnd,_holdCancel,_rowHoldStart,_rowHoldMove,_rowHoldEnd,_rowContextMenu,_ctxAction,_closeCtxMenu,
     _imgZoomChange,_imgZoomReset,_imgDownload,
