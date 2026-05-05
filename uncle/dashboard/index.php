@@ -5580,7 +5580,6 @@ function hideAllStudentsModal() { document.getElementById('allStudentsModal').cl
 let _bulkAvailableClasses = [];
 let _bulkIsUpdateMode = false;
 let currentFileData = [];
-const API_URL = '/api.php';
 
 function mkFd(action) { const fd = new FormData(); fd.append('action',action); return fd; }
 
