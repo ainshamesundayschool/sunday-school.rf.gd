@@ -269,6 +269,25 @@ window.t = function(str) {
 </script>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/logo.png">
+<script>
+(function repairOldServiceWorker(){
+    if (!('serviceWorker' in navigator)) return;
+    var key = '_ss_sw_repaired_v7';
+    var controllerUrl = navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL || '';
+    if (controllerUrl.indexOf('sw.js?v=6') === -1 || sessionStorage.getItem(key) === '1') return;
+    sessionStorage.setItem(key, '1');
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+        return Promise.all(regs.map(function(reg){ return reg.unregister(); }));
+    }).then(function(){
+        if (!('caches' in window)) return;
+        return caches.keys().then(function(keys){
+            return Promise.all(keys.filter(function(k){ return k.indexOf('sunday-school-') === 0; }).map(function(k){ return caches.delete(k); }));
+        });
+    }).then(function(){
+        window.location.reload();
+    }).catch(function(){});
+})();
+</script>
 <link rel="manifest" href="/manifest.webmanifest">
 
 <!-- ── Preconnect to font origins so DNS+TLS is ready before CSS fires ── -->
