@@ -2932,7 +2932,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
             <div class="dropdown-group-label">الفصل</div>
             <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
             <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
-            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الجُمَع السابقة</button>
+            <button class="dropdown-item" id="pastAttendanceDaysBtn" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل أيام الحضور السابقة</button>
             <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
             <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
           </div>
@@ -3397,7 +3397,7 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
 <div class="modal-overlay" id="pastFridaysModal">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <h3><i class="fas fa-calendar-alt"></i> السجل التاريخي</h3>
+      <h3 id="pastAttendanceModalTitle"><i class="fas fa-calendar-alt"></i> السجل التاريخي</h3>
       <button class="close-btn" id="closePastFridaysModal">&times;</button>
     </div>
     <div class="friday-reset-row">
@@ -3831,6 +3831,12 @@ function loadChurchSettings() {
         const dayName = getAttendanceDayName();
         const resetBtn = document.getElementById('resetToTodayBtn');
         if (resetBtn) resetBtn.innerHTML = `<i class="fas fa-calendar-day"></i> العودة لآخر ${dayName}`;
+        const pastBtn = document.getElementById('pastAttendanceDaysBtn');
+        if (pastBtn) pastBtn.innerHTML = `<i class="fas fa-calendar-alt"></i> سجل أيام ${dayName} السابقة`;
+        const pastTitle = document.getElementById('pastAttendanceModalTitle');
+        if (pastTitle) pastTitle.innerHTML = `<i class="fas fa-calendar-alt"></i> السجل التاريخي لأيام ${dayName}`;
+        const dateChip = document.getElementById('dateChip');
+        if (dateChip) dateChip.title = `اختيار ${dayName} سابق أو تاريخ مخصص`;
     }
 
     // Restore cached settings first so offline mode has combined groups / day info
@@ -3883,6 +3889,8 @@ function loadChurchSettings() {
         churchCustomFields      = [];
         churchCustomField       = null;
         churchViewMode          = 'classes';
+        updateCurrentDateDisplay();
+        _applyDayNameToUI();
     });
 }
 
