@@ -4582,6 +4582,14 @@ function getCurrentUncle() {
             $_SESSION['uncle_image']    = $row['image_url'];
             $_SESSION['uncle_role']     = $row['role'];
 
+            // Also include assigned classes for this uncle (if any)
+            $assignedClasses = [];
+            try {
+                $assignedClasses = getUncleClasses((int)$row['id']);
+            } catch (Exception $e) {
+                error_log("getCurrentUncle - failed to load assigned classes: " . $e->getMessage());
+            }
+
             sendJSON([
                 'success' => true,
                 'uncle' => [
@@ -4590,10 +4598,15 @@ function getCurrentUncle() {
                     'username'  => $row['username'],
                     'image_url' => $row['image_url'] ?? '',
                     'role'      => $row['role'] ?? 'uncle',
+                    'classes'   => $assignedClasses
                 ]
             ]);
         } else {
             // Fallback to session values if DB fetch fails
+            $fallbackClasses = [];
+            if ($uncleId) {
+                try { $fallbackClasses = getUncleClasses($uncleId); } catch (Exception $e) {}
+            }
             sendJSON([
                 'success' => true,
                 'uncle' => [
@@ -4602,6 +4615,7 @@ function getCurrentUncle() {
                     'username'  => $_SESSION['uncle_username'] ?? '',
                     'image_url' => $_SESSION['uncle_image']    ?? '',
                     'role'      => $_SESSION['uncle_role']     ?? 'uncle',
+                    'classes'   => $fallbackClasses
                 ]
             ]);
         }

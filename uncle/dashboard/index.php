@@ -7123,6 +7123,15 @@ function loadUncleProfile() {
                 try { localStorage.removeItem('uncleImageUrl'); } catch(e){}
             }
             _sendUnclMetaToSW();
+            // Cache assigned classes for offline/early filtering
+            try {
+                if (Array.isArray(r.uncle.classes) && r.uncle.classes.length) {
+                    const mapped = r.uncle.classes.map(c => c.class_name || c.arabic_name || c);
+                    localStorage.setItem('uncleAssignedClasses', JSON.stringify(mapped));
+                } else {
+                    localStorage.removeItem('uncleAssignedClasses');
+                }
+            } catch(e) {}
         }
     }, ()=>{/* silently ignore errors — cached display already shown */});
 }
