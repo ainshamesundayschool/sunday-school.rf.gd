@@ -3684,6 +3684,7 @@ let sheetDateTo = '';
 let customExportFields = [];
 // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
 let uncleClassNavPermission = 'all';
+let _uncleAssignedClassesLoaded = false;
 
 // ── NEVER LOGOUT — silent session restore ─────────────────────
 function silentSessionRestore() {
@@ -4568,16 +4569,39 @@ function displayClasses() {
         const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
         if (uncleClassNavPermission === 'own' && list && list.length && !['admin','developer'].includes(String(role).toLowerCase())) {
             const assigned = (window.currentUncle && Array.isArray(window.currentUncle.classes))
-                ? window.currentUncle.classes.map(c => c.class_name)
+                ? window.currentUncle.classes.map(c => c.class_name || c.arabic_name || c)
                 : [];
+
+            // If we have assigned classes from currentUncle or cached storage, use them
             if (assigned.length) {
                 list = list.filter(cls => assigned.includes(cls.arabic_name || cls.code));
+                _uncleAssignedClassesLoaded = true;
             } else {
-                // If currentUncle not yet loaded, try to use cached local info (best-effort)
                 try {
                     const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
-                    if (Array.isArray(cached) && cached.length) list = list.filter(cls => cached.includes(cls.arabic_name || cls.code));
+                    if (Array.isArray(cached) && cached.length) {
+                        list = list.filter(cls => cached.includes(cls.arabic_name || cls.code));
+                        _uncleAssignedClassesLoaded = true;
+                    }
                 } catch(e) {}
+            }
+
+            // If still no assigned classes and we're online, fetch currentUncle to get assignments then re-run
+            if (!_uncleAssignedClassesLoaded && navigator.onLine) {
+                // Avoid recursive loops — mark as loading
+                _uncleAssignedClassesLoaded = true;
+                makeApiCall({ action: 'getCurrentUncle' }, r => {
+                    if (r.uncle && Array.isArray(r.uncle.classes) && r.uncle.classes.length) {
+                        window.currentUncle = r.uncle;
+                        try { localStorage.setItem('uncleAssignedClasses', JSON.stringify(r.uncle.classes.map(c => c.class_name || c.arabic_name || c))); } catch(e){}
+                    }
+                    // Re-run display after we've fetched assignments
+                    displayClasses();
+                }, () => {
+                    // Failed to fetch — proceed without filtering to avoid blocking UI
+                });
+                // Return now; displayClasses will be called again after fetch
+                return;
             }
         }
     } catch(e) {}
