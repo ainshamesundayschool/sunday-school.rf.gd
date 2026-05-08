@@ -1264,14 +1264,12 @@ if ($isAll) {
             sendJSON(['success' => false, 'message' => 'خطأ في تنفيذ الاستعلام']);
             return;
         }
-        $stmt->execute();
+        
         $result = $stmt->get_result();
         
         if (!$result) {
             error_log("Result error: " . $conn->error);
             sendJSON(['success' => false, 'message' => 'خطأ في الحصول على النتائج']);
-            return;
-        }
             return;
         }
         
@@ -11809,8 +11807,8 @@ function pushNotification($conn, $churchId, $type, $title, $body='', $entityType
         $stmt->execute();
     } catch (Exception $e) {
         error_log("pushNotification error: " . $e->getMessage());
-            $stmt = $conn->prepare("\n            INSERT INTO notifications (church_id, type, title, body, class_id, entity_type, entity_id)\n            VALUES (?,?,?,?,?,?,?)\n        ");
-            $stmt->bind_param('isssiis', $churchId, $type, $title, $fullBody, $classId, $entityType, $entityId);
+    }
+}
 
 // ════════════════════════════════════════════════════════════════
 // DEVELOPER MESSAGES
@@ -11885,27 +11883,14 @@ function getDeveloperMessages() {
         $role = strtolower($_SESSION['uncle_role'] ?? '');
         $isDev = in_array($role, ['developer','dev']);
 
-        $classFilter = intval($_POST['class_id'] ?? 0);
-
-        if ($classFilter > 0) {
-            $stmt = $conn->prepare("\n                SELECT id, type, title, body, class_id, entity_type, entity_id, is_read, created_at\n                FROM notifications\n                WHERE church_id = ? AND class_id = ?\n                ORDER BY created_at DESC\n                LIMIT ? OFFSET ?\n            ");
-            $stmt->bind_param('iiii', $churchId, $classFilter, $limit, $offset);
+        if ($isDev) {
+            // Developer sees ALL messages they sent (outbox)
+            $rows = $conn->query("SELECT * FROM developer_messages WHERE is_deleted=0 ORDER BY created_at DESC LIMIT 200")->fetch_all(MYSQLI_ASSOC);
+            $unread = 0;
         } else {
-            $stmt = $conn->prepare("\n                SELECT id, type, title, body, class_id, entity_type, entity_id, is_read, created_at\n                FROM notifications\n                WHERE church_id = ?\n                ORDER BY created_at DESC\n                LIMIT ? OFFSET ?\n            ");
-            $stmt->bind_param('iii', $churchId, $limit, $offset);
-        }
-        $stmt->execute();
-        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        if ($classFilter > 0) {
-            $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE church_id=? AND class_id=? AND is_read=0");
-            $countStmt->bind_param('ii', $churchId, $classFilter);
-        } else {
-            $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE church_id=? AND is_read=0");
-            $countStmt->bind_param('i', $churchId);
-        }
-        $countStmt->execute();
-        $unread = (int)$countStmt->get_result()->fetch_assoc()['c'];
+            // Church sees messages addressed to them (to_church_id=their id OR broadcast 0)
+            $churchId = getChurchId();
+            if (!$churchId) { sendJSON(['success'=>false,'message'=>'غير مصرح']); return; }
             $stmt = $conn->prepare("SELECT * FROM developer_messages WHERE is_deleted=0 AND (to_church_id=? OR to_church_id=0) ORDER BY created_at DESC LIMIT 100");
             $stmt->bind_param('i', $churchId);
             $stmt->execute();
@@ -11927,8 +11912,7 @@ function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra=[]) {
         $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
         if (!$tbl) return;
 
-        // Send to all subscriptions for this church (both uncle devices and public devices)
-        $stmt = $conn->prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE church_id=? LIMIT 200");
+        $stmt = $conn->prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE church_id=? AND uncle_id IS NOT NULL LIMIT 50");
         $stmt->bind_param('i', $churchId);
         $stmt->execute();
         $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -12014,7 +11998,6 @@ function sendPushNotificationAction() {
         $body     = sanitize($_POST['body']  ?? '');
         $url      = $_POST['url']      ?? '/';
         $notifType= sanitize($_POST['notifType'] ?? 'system');
-        $classId  = intval($_POST['class_id'] ?? 0);
         $uncleId  = isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : null;
         $churchId = getChurchId();
 
@@ -12035,16 +12018,14 @@ function sendPushNotificationAction() {
         $stmt->execute();
         $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        $payloadData = [
+        $payload = json_encode([
             'title'    => $title,
             'body'     => $body,
             'url'      => $url,
             'notifType'=> $notifType,
             'icon'     => '/logo.png',
             'badge'    => '/badge.png',
-        ];
-        if ($classId > 0) $payloadData['class_id'] = $classId;
-        $payload = json_encode($payloadData);
+        ]);
 
         $sent = 0;
         foreach ($subs as $sub) {
@@ -12052,8 +12033,6 @@ function sendPushNotificationAction() {
                 $sent++;
             }
         }
-        // Also send via helper to church (records + extra routing) including class_id
-        _sendWebPushToChurch($conn, $churchId, $title, $body, array_merge(['notifType'=>$notifType], $classId>0 ? ['class_id'=>$classId] : []));
         sendJSON(['success'=>true,'sent'=>$sent]);
     } catch (Exception $e) { sendJSON(['success'=>false,'message'=>$e->getMessage()]); }
 }
