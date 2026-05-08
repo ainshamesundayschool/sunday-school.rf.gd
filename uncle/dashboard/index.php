@@ -4563,6 +4563,24 @@ function displayClasses() {
         const names = [...new Set(students.map(s => s['الفصل'] || 'بدون فصل'))];
         list = names.map((n, i) => ({ id: i + 1, code: n, arabic_name: n }));
     }
+    // If church settings lock classes to assigned uncles, only show those classes
+    try {
+        const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+        if (uncleClassNavPermission === 'own' && list && list.length && !['admin','developer'].includes(String(role).toLowerCase())) {
+            const assigned = (window.currentUncle && Array.isArray(window.currentUncle.classes))
+                ? window.currentUncle.classes.map(c => c.class_name)
+                : [];
+            if (assigned.length) {
+                list = list.filter(cls => assigned.includes(cls.arabic_name || cls.code));
+            } else {
+                // If currentUncle not yet loaded, try to use cached local info (best-effort)
+                try {
+                    const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
+                    if (Array.isArray(cached) && cached.length) list = list.filter(cls => cached.includes(cls.arabic_name || cls.code));
+                } catch(e) {}
+            }
+        }
+    } catch(e) {}
     if (!list.length) {
         grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد فصول</div>';
         return;
@@ -8079,6 +8097,11 @@ async function requestNotifPermission() {
     if (!('Notification' in window)) {
         showToast('المتصفح لا يدعم الإشعارات', 'error'); return;
     }
+    // Web Push requires PushManager + Service Worker support (not available on iOS Safari)
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        showToast('الإشعارات غير مدعومة على هذا الجهاز/المتصفح', 'warning', { dur: 6000 });
+        return;
+    }
     if (Notification.permission === 'denied') {
         showToast('الإشعارات محظورة — افتح إعدادات المتصفح لتفعيلها', 'warning', { dur: 7000 }); return;
     }
@@ -8128,15 +8151,18 @@ function _updateNotifBtnVisibility() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                       || window.navigator.standalone === true;
 
+    // Only show notification buttons if PushManager + ServiceWorker are supported
+    const pushSupported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+
     // Show bell in topbar only if not yet asked AND not standalone (PWA)
     const notifBtn = document.getElementById('notifPermBtn');
-    if (notifBtn) notifBtn.style.display = (isDefault && !isStandalone) ? 'flex' : 'none';
+    if (notifBtn) notifBtn.style.display = (pushSupported && isDefault && !isStandalone) ? 'flex' : 'none';
 
     const pwaNotifBtn = document.getElementById('pwaNotifBtn');
-    if (pwaNotifBtn) pwaNotifBtn.style.display = isDefault ? 'flex' : 'none';
+    if (pwaNotifBtn) pwaNotifBtn.style.display = (pushSupported && isDefault) ? 'flex' : 'none';
 
     const offlineNotifBtn = document.getElementById('offlineNotifBtn');
-    if (offlineNotifBtn) offlineNotifBtn.style.display = (isDefault && isStandalone) ? 'flex' : 'none';
+    if (offlineNotifBtn) offlineNotifBtn.style.display = (pushSupported && isDefault && isStandalone) ? 'flex' : 'none';
 }
 
 async function _savePushSubscriptionToServer(sub) {
@@ -8408,6 +8434,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (banner) banner.classList.remove('show');
     }
     _updateNotifBtnVisibility();
+    // Hide bulk-add button unless the user is an admin/developer
+    try {
+        const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+        const bulkBtn = document.getElementById('bulkAddKidsBtn');
+        if (bulkBtn && !['admin','developer'].includes(String(role).toLowerCase())) {
+            bulkBtn.style.display = 'none';
+        }
+    } catch(e) {}
     // React to permission changes live (Chrome 93+)
     if ('permissions' in navigator) {
         navigator.permissions.query({ name: 'notifications' }).then(status => {
