@@ -21,20 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Quick debug endpoint: visit /api.php?__debug=1 to get PHP version and basic env.
-if (isset($_GET['__debug']) && $_GET['__debug'] == '1') {
-    // Minimal output — avoid running the rest of the API which may assume a session.
-    echo json_encode([
-        'success' => true,
-        'php_version' => phpversion(),
-        'sapi' => PHP_SAPI,
-        'memory_limit' => ini_get('memory_limit'),
-        'display_errors' => ini_get('display_errors'),
-        'error_log' => ini_get('error_log')
-    ]);
-    exit;
-}
-
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
@@ -2809,7 +2795,7 @@ function getStudentByPhone() {
             if (strlen($last9Digits) >= 9) {
                 error_log("Trying with last 9 digits: $last9Digits");
                 
-                $stmt2 = $conn->prepare(""
+                $stmt2 = $conn->prepare("
                     SELECT 
                         s.id, s.name, s.address, s.phone, s.birthday,
                         s.coupons, s.attendance_coupons, s.commitment_coupons,
@@ -2821,8 +2807,8 @@ function getStudentByPhone() {
                     LEFT JOIN classes cl ON s.class_id = cl.id
                     WHERE s.phone LIKE CONCAT('%', ?)
                        OR REPLACE(s.phone, '''', '') LIKE CONCAT('%', ?)
-                """);
-
+                ");
+                
                 $stmt2->bind_param("ss", $last9Digits, $last9Digits);
                 $stmt2->execute();
                 $result2 = $stmt2->get_result();
@@ -3844,7 +3830,13 @@ function getAllChurches() {
     try {
         $conn = getDBConnection();
         
-        $stmt = $conn->prepare("SELECT id, church_name, church_code, admin_email FROM churches ORDER BY church_name");
+        $stmt = $conn->prepare("
+            SELECT id, church_name, church_code, admin_email
+            FROM churches 
+            WHERE admin_email IS NOT NULL 
+            AND admin_email != ''
+            ORDER BY church_name
+        ");
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -5973,7 +5965,13 @@ function kidLogin() {
         // custom_info is {"username":"..."} stored as JSON text
         $usernameClean = trim($usernameInput);
         if (!empty($usernameClean)) {
-            $stmt = $conn->prepare("SELECT id, church_name, church_code, admin_email FROM churches ORDER BY church_name");
+            $stmt2 = $conn->prepare("
+                SELECT s.id, s.name, s.address, s.phone, s.birthday, s.email,
+                       s.coupons, s.attendance_coupons, s.commitment_coupons,
+                       s.task_coupons, s.image_url, s.church_id, s.class_id,
+                       s.custom_info, s.password_hash,
+                       c.church_name,
+                       COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
                 FROM students s
                 LEFT JOIN churches c  ON s.church_id = c.id
                 LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
