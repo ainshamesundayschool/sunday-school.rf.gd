@@ -2795,13 +2795,7 @@ function getStudentByPhone() {
             if (strlen($last9Digits) >= 9) {
                 error_log("Trying with last 9 digits: $last9Digits");
                 
-                $stmt2 = $conn->prepare("
-                    SELECT 
-                        s.id, s.name, s.address, s.phone, s.birthday,
-                        s.coupons, s.attendance_coupons, s.commitment_coupons,
-                        s.image_url, s.church_id, s.class_id,
-                        c.church_name,
-                        cl.arabic_name as class
+                $stmt = $conn->prepare("SELECT id, church_name, church_code, admin_email FROM churches ORDER BY church_name");
                     FROM students s
                     LEFT JOIN churches c ON s.church_id = c.id
                     LEFT JOIN classes cl ON s.class_id = cl.id
