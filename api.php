@@ -3830,13 +3830,7 @@ function getAllChurches() {
     try {
         $conn = getDBConnection();
         
-        $stmt = $conn->prepare("
-            SELECT id, church_name, church_code, admin_email
-            FROM churches 
-            WHERE admin_email IS NOT NULL 
-            AND admin_email != ''
-            ORDER BY church_name
-        ");
+        $stmt = $conn->prepare("SELECT id, church_name, church_code, admin_email FROM churches ORDER BY church_name");
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -5965,13 +5959,7 @@ function kidLogin() {
         // custom_info is {"username":"..."} stored as JSON text
         $usernameClean = trim($usernameInput);
         if (!empty($usernameClean)) {
-            $stmt2 = $conn->prepare("
-                SELECT s.id, s.name, s.address, s.phone, s.birthday, s.email,
-                       s.coupons, s.attendance_coupons, s.commitment_coupons,
-                       s.task_coupons, s.image_url, s.church_id, s.class_id,
-                       s.custom_info, s.password_hash,
-                       c.church_name,
-                       COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
+            $stmt = $conn->prepare("SELECT id, church_name, church_code, admin_email FROM churches ORDER BY church_name");
                 FROM students s
                 LEFT JOIN churches c  ON s.church_id = c.id
                 LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
