@@ -4189,8 +4189,14 @@ function submitRegistrationRequest() {
             return;
         }
 
-        // ── Hash password ──────────────────────────────────────────
+        // ── Hash password (optional) ────────────────────────────────
+        // If password is empty we store NULL so DB unique indexes on username
+        // or other fields don't conflict with empty strings.
         $passwordHash = !empty($password) ? hash('sha256', $password) : null;
+
+        // Normalize username: treat empty or whitespace-only as NULL
+        $username = trim((string)$username);
+        if ($username === '') $username = null;
 
         // ── Save profile picture ───────────────────────────────────
         $imageUrl = null;
