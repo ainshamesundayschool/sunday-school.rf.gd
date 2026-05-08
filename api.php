@@ -21,6 +21,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Quick debug endpoint: visit /api.php?__debug=1 to get PHP version and basic env.
+if (isset($_GET['__debug']) && $_GET['__debug'] == '1') {
+    // Minimal output — avoid running the rest of the API which may assume a session.
+    echo json_encode([
+        'success' => true,
+        'php_version' => phpversion(),
+        'sapi' => PHP_SAPI,
+        'memory_limit' => ini_get('memory_limit'),
+        'display_errors' => ini_get('display_errors'),
+        'error_log' => ini_get('error_log')
+    ]);
+    exit;
+}
+
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
