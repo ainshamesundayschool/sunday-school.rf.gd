@@ -7826,6 +7826,8 @@ function addTrip() {
         $discountType = sanitize($_POST['discount_type'] ?? 'percentage');
         $maxParticipants = intval($_POST['max_participants'] ?? 0);
         $status = sanitize($_POST['status'] ?? 'planned');
+        $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
+        $showRegisteredKids = $showRegisteredKids ? 1 : 0;
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -7870,16 +7872,16 @@ function addTrip() {
                 church_id, title, description, type, 
                 start_date, end_date, price, discount, 
                 discount_type, max_participants, status, 
-                image_url, created_by
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                image_url, created_by, show_registered_kids
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->bind_param(
-            "isssssddsisss",
+            "isssssddsissii",
             $churchId, $title, $description, $type,
             $dbStartDate, $dbEndDate, $price, $discount,
             $discountType, $maxParticipants, $status,
-            $imageUrl, $uncleId
+            $imageUrl, $uncleId, $showRegisteredKids
         );
         
         if ($stmt->execute()) {
@@ -7898,6 +7900,7 @@ function addTrip() {
                 'discount'        => $discount,
                 'max_participants'=> $maxParticipants,
                 'status'          => $status,
+                'show_registered_kids' => $showRegisteredKids,
             ]);
             
             sendJSON([
@@ -7936,6 +7939,8 @@ function updateTrip() {
         $discountType = sanitize($_POST['discount_type'] ?? 'percentage');
         $maxParticipants = intval($_POST['max_participants'] ?? 0);
         $status = sanitize($_POST['status'] ?? 'planned');
+        $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
+        $showRegisteredKids = $showRegisteredKids ? 1 : 0;
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -7955,16 +7960,16 @@ function updateTrip() {
             SET title = ?, description = ?, type = ?, 
                 start_date = ?, end_date = ?, price = ?, 
                 discount = ?, discount_type = ?, max_participants = ?, 
-                status = ?, updated_at = NOW()
+                status = ?, show_registered_kids = ?, updated_at = NOW()
             WHERE id = ? AND church_id = ?
         ");
         
         $stmt->bind_param(
-            "sssssddsisii",
+            "sssssddsisiii",
             $title, $description, $type,
             $dbStartDate, $dbEndDate, $price,
             $discount, $discountType, $maxParticipants,
-            $status, $tripId, $churchId
+            $status, $showRegisteredKids, $tripId, $churchId
         );
         
         if ($stmt->execute()) {
@@ -11868,7 +11873,8 @@ function getStudentTrips() {
                 t.id, t.title, t.description, t.type,
                 t.start_date, t.end_date, t.status,
                 t.price, t.discount, t.discount_type,
-                t.max_participants, t.image_url
+                t.max_participants, t.image_url,
+                COALESCE(t.show_registered_kids, 1) AS show_registered_kids
             FROM trips t
             WHERE t.church_id = ?
               AND t.status IN ('planned','active','completed')
@@ -11893,21 +11899,29 @@ function getStudentTrips() {
             $row['start_date_formatted'] = $row['start_date'] ? date('d/m/Y', strtotime($row['start_date'])) : '';
             $row['end_date_formatted']   = $row['end_date']   ? date('d/m/Y', strtotime($row['end_date']))   : '';
 
-            // Registered kids (name + photo only, no payments)
-            $rStmt = $conn->prepare("
-                SELECT s.id, s.name, s.image_url,
-                       COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-                FROM trip_registrations tr
-                JOIN students s ON s.id = tr.student_id
-                LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-                LEFT JOIN classes cl ON cl.id = s.class_id
-                WHERE tr.trip_id = ? AND tr.cancelled = 0
-                ORDER BY s.name
-            ");
-            $rStmt->bind_param('i', $row['id']);
-            $rStmt->execute();
-            $row['registered_kids'] = $rStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            $row['registered_count'] = count($row['registered_kids']);
+            $cStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
+            $cStmt->bind_param('i', $row['id']);
+            $cStmt->execute();
+            $row['registered_count'] = (int)($cStmt->get_result()->fetch_assoc()['cnt'] ?? 0);
+
+            // Registered kids (name + photo only, no payments) can be hidden per trip.
+            $row['show_registered_kids'] = (int)($row['show_registered_kids'] ?? 1);
+            $row['registered_kids'] = [];
+            if ($row['show_registered_kids'] === 1) {
+                $rStmt = $conn->prepare("
+                    SELECT s.id, s.name, s.image_url,
+                           COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
+                    FROM trip_registrations tr
+                    JOIN students s ON s.id = tr.student_id
+                    LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+                    LEFT JOIN classes cl ON cl.id = s.class_id
+                    WHERE tr.trip_id = ? AND tr.cancelled = 0
+                    ORDER BY s.name
+                ");
+                $rStmt->bind_param('i', $row['id']);
+                $rStmt->execute();
+                $row['registered_kids'] = $rStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            }
 
             // Current student's own registration + payment
             $row['my_registration'] = null;

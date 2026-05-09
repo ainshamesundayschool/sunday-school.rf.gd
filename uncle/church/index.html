@@ -1958,6 +1958,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group"><label class="form-label">الحد الأقصى للمشاركين</label><input type="number" id="tripMaxParticipants" class="form-input" min="0" placeholder="غير محدد"></div>
                             <div class="form-group"><label class="form-label">الحالة</label><select id="tripStatus" class="form-select" style="width:100%;"><option value="planned">مخطط لها</option><option value="active">نشطة</option><option value="completed">منتهية</option></select></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2" placeholder="تفاصيل الرحلة..."></textarea></div>
+                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                             <div class="form-group"><label class="form-label">صورة الرحلة</label><input type="file" id="tripImage" class="form-input" accept="image/*"></div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="fas fa-plus"></i> إضافة رحلة</button>
@@ -2412,6 +2413,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="form-group"><label class="form-label">الحد الأقصى</label><input type="number" id="editTripMaxParticipants" class="form-input" min="0"></div>
                     <div class="form-group"><label class="form-label">الحالة</label><select id="editTripStatus" class="form-select" style="width:100%;"><option value="planned">مخطط لها</option><option value="active">نشطة</option><option value="completed">منتهية</option><option value="cancelled">ملغية</option></select></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">الوصف</label><textarea id="editTripDescription" class="form-textarea" rows="2"></textarea></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="editTripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;">
                     <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ التعديلات</button>
@@ -4227,7 +4229,7 @@ function renderTripsList(trips) {
         const expPerKid=Math.round(exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0));
         const totalPerKid=finalPrice+expPerKid;
         const pct=t.max_participants>0?Math.min(100,Math.round((t.registered_count||0)/t.max_participants*100)):null;
-        return `<div class="trip-card" onclick="window.location.href='trips/index.html#trips?trip_id=${t.id}'">
+        return `<div class="trip-card" onclick="window.location.href='trips/#trips?trip_id=${t.id}'">
             <div class="trip-img" style="${t.image_url?'':'background:linear-gradient(135deg,'+col+'22,'+col+'11);'}">
                 ${t.image_url?`<img src="${t.image_url}" loading="lazy">`:`<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
                 <span class="trip-status-pill ${sc}">${st}</span>
@@ -4284,6 +4286,7 @@ async function addTrip(e) {
     fd.append('max_participants',document.getElementById('tripMaxParticipants').value||0);
     fd.append('description',document.getElementById('tripDescription').value);
     fd.append('status',document.getElementById('tripStatus').value);
+    fd.append('show_registered_kids',document.getElementById('tripShowRegisteredKids').value);
     const img=document.getElementById('tripImage').files[0];
     if (img) fd.append('trip_image',img);
     const btn=e.target.querySelector('button[type="submit"]');
@@ -4307,6 +4310,7 @@ function openEditTrip(id) {
     document.getElementById('editTripMaxParticipants').value=t.max_participants||'';
     document.getElementById('editTripStatus').value=t.status;
     document.getElementById('editTripDescription').value=t.description||'';
+    document.getElementById('editTripShowRegisteredKids').value=String(t.show_registered_kids ?? 1);
     toggleEditTripDates(); recalcEditTripPrice();
     openModal('editTripModal');
 }
@@ -4325,6 +4329,7 @@ async function updateTrip(e) {
     fd.append('max_participants',document.getElementById('editTripMaxParticipants').value||0);
     fd.append('status',document.getElementById('editTripStatus').value);
     fd.append('description',document.getElementById('editTripDescription').value);
+    fd.append('show_registered_kids',document.getElementById('editTripShowRegisteredKids').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم تحديث الرحلة','success'); closeModal('editTripModal'); loadTrips(); }
     else showToast(d.message||'فشل','error');

@@ -3113,7 +3113,8 @@ function renderTrips(trips){
       ?`<span class="trip-price-pill remaining"><i class="fas fa-exclamation-circle"></i>متبقي ${parseFloat(myReg.remaining).toFixed(0)} ج.م</span>`
       :'';
     // Kids avatars strip
-    const kids=(t.registered_kids||[]).slice(0,6);
+    const canSeeKids=String(t.show_registered_kids ?? 1)==='1';
+    const kids=canSeeKids?(t.registered_kids||[]).slice(0,6):[];
     const extra=(t.registered_count||0)-kids.length;
     const kidsHtml=kids.length?`<div class="kids-strip">
       ${kids.map(k=>`<div class="ka">${k.image_url?`<img src="${esc(k.image_url)}" alt="${esc(k.name)}">`:k.name.charAt(0)}</div>`).join('')}
@@ -3148,7 +3149,7 @@ function renderTrips(trips){
           ${typeof t.my_points !== 'undefined' ? `<span class="trip-meta-chip"><i class="fas fa-star"></i> ${esc(t.my_points)} نقاط</span>` : ''}
           ${t.max_participants?`<span class="trip-meta-chip"><i class="fas fa-user-check"></i>أقصى ${t.max_participants}</span>`:''}
         </div>
-        ${kidsHtml}
+        ${canSeeKids?kidsHtml:''}
         ${contactBtn}
       </div>
     </div>`;
@@ -3170,8 +3171,9 @@ function openTrip(id){
   // Not-registered contact block
   const notRegistered = !myReg;
   const contactHtml = notRegistered ? buildTripContactHtml(t) : '';
-  const kids=t.registered_kids||[];
-  const kidsHtml=kids.length?`
+  const canSeeKids=String(t.show_registered_kids ?? 1)==='1';
+  const kids=canSeeKids?(t.registered_kids||[]):[];
+  const kidsHtml=!canSeeKids?'':(kids.length?`
     <div style="margin-bottom:5px;font-size:.78rem;font-weight:700;color:var(--t2);">${kids.length} طفل مسجّل</div>
     <div class="kids-grid">
       ${kids.map(k=>`<div class="kid-tile">
@@ -3179,7 +3181,7 @@ function openTrip(id){
         <div class="kid-tile-name">${esc(k.name)}</div>
         <div class="kid-tile-cls">${esc(k.class||'')}</div>
       </div>`).join('')}
-    </div>`:`<div class="empty-st"><i class="fas fa-user-slash"></i><p>لا يوجد أطفال مسجّلون بعد</p></div>`;
+    </div>`:`<div class="empty-st"><i class="fas fa-user-slash"></i><p>لا يوجد أطفال مسجّلون بعد</p></div>`);
   document.getElementById('tripOvBody').innerHTML=`
     ${t.image_url?`<img class="trip-detail-thumb" src="${esc(t.image_url)}" alt="">`:
     `<div class="trip-detail-ph"><i class="fas fa-bus"></i></div>`}
