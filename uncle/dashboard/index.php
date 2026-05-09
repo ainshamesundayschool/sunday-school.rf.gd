@@ -5431,9 +5431,35 @@ function showStudentDetails(name) {
     if (!s) { showToast('لم يتم العثور على الطفل','error'); return; }
     currentStudentForEdit = s;
     document.getElementById('studentModalTitle').textContent = 'معلومات: ' + name;
+    // Basic avatar + header (kept from local cache)
     const img = s['صورة']
         ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم']||''}</div><div class="detail-student-class">${s['الفصل']||''}</div></div>`
         : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم']||''}</div><div class="detail-student-class">${s['الفصل']||''}</div></div>`;
+
+    // Show a loading stub while we fetch full profile (to get trip_points)
+    document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+    document.getElementById('studentModal').classList.add('active');
+    stopAutoRefresh();
+
+    // Fetch full student profile (includes trip_points)
+    (async function(){
+        try {
+            const fd = new FormData(); fd.append('action','getStudentProfile'); fd.append('studentId', s['id']||s['معرف']||s['id_student']||0);
+            const resp = await fetch(API_URL, { method:'POST', body: fd, credentials:'include' }).then(r=>r.json()).catch(()=>({success:false}));
+            if (!resp.success || !resp.student) {
+                // fallback to cached details
+                buildStudentDetailsFromCache(s);
+                return;
+            }
+            const full = resp.student;
+            buildStudentDetailsFromProfile(full);
+        } catch (e) {
+            buildStudentDetailsFromCache(s);
+        }
+    })();
+}
+
+function buildStudentDetailsFromCache(s) {
     const rows = [
         ['الاسم الكامل', s['الاسم']||'---', 'blue', 'fa-id-card'],
         ['الفصل', s['الفصل']||'---', 'purple', 'fa-chalkboard-teacher'],
@@ -5447,26 +5473,65 @@ function showStudentDetails(name) {
             <div class="detail-label">${l}</div>
             <div class="detail-val">${v}</div>
         </div>`).join('');
+    document.getElementById('studentDetails').innerHTML = (s['صورة']?`<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم']||''}</div></div>`:'') + rows;
+}
 
-    // Custom fields rows (supports multiple)
-    let customRows = '';
-    if (churchCustomFields && churchCustomFields.length) {
-        const info = s._customInfo || {};
-        customRows = churchCustomFields.map((cf, idx) => {
-            const key = 'field_' + idx; // always stable sequential
-            const val = info[key] || info['field_'+idx] || (idx===0 ? (info.value||'') : '') || '---';
-            const icon = cf.icon || 'fa-tag';
-            return `<div class="detail-row">
-                <div class="detail-icon teal"><i class="fas ${icon}"></i></div>
-                <div class="detail-label">${cf.name}</div>
-                <div class="detail-val">${val}</div>
-            </div>`;
-        }).join('');
-    }
+function buildStudentDetailsFromProfile(full) {
+    const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name||''}</div><div class="detail-student-class">${full.class||''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name||''}</div><div class="detail-student-class">${full.class||''}</div></div>`;
+    const rows = [
+        ['الاسم الكامل', full.name||'---', 'blue', 'fa-id-card'],
+        ['الفصل', full.class||'---', 'purple', 'fa-chalkboard-teacher'],
+        ['العنوان', full.address||'---', 'orange', 'fa-map-marker-alt'],
+        ['رقم التليفون', full.phone||'---', 'green', 'fa-phone'],
+        ['تاريخ الميلاد', full.birthday||'---', 'pink', 'fa-birthday-cake'],
+        ['الكوبونات', (full.coupons||0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star'],
+    ].map(([l,v,color,icon]) => `
+        <div class="detail-row">
+            <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
+            <div class="detail-label">${l}</div>
+            <div class="detail-val">${v}</div>
+        </div>`).join('');
 
-    document.getElementById('studentDetails').innerHTML = img + rows + customRows;
-    document.getElementById('studentModal').classList.add('active');
-    stopAutoRefresh();
+    // Trip points summary
+    let tp = {};
+    try { tp = typeof full.trip_points === 'string' ? JSON.parse(full.trip_points||'{}') : (full.trip_points || {}); } catch(e) { tp = {}; }
+    const tpKeys = Object.keys(tp||{});
+    let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات</div><div class="detail-val">';
+    if (!tpKeys.length) tpHtml += 'لا توجد نقاط مسجّلة';
+    else tpHtml += tpKeys.map(k=>`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id||full.id})">تعديل</button></div></div>`).join('');
+    tpHtml += '</div></div>';
+
+    document.getElementById('studentDetails').innerHTML = img + rows + tpHtml;
+}
+
+// Open a small prompt to update points for a given trip and student
+function openPointsEditor(tripId, studentId) {
+    const amount = prompt('أدخل قيمة (إيجابية للإضافة، سلبية للطرح) أو ضع =n لتعيين مباشرة. مثال: 5  -2  =10', '1');
+    if (amount === null) return;
+    let act = 'increment'; let val = 0;
+    if (String(amount).startsWith('=')) { act = 'set'; val = parseInt(String(amount).substring(1)) || 0; }
+    else { val = parseInt(amount) || 0; act = val < 0 ? 'decrement' : 'increment'; val = Math.abs(val); }
+    if (!confirm(`تأكيد: ${act} ${val} نقطة للرحلة ${tripId}؟`)) return;
+    updateStudentTripPoints(tripId, studentId, act, val);
+}
+
+async function updateStudentTripPoints(tripId, studentId, action, amount) {
+    try {
+        const fd = new FormData();
+        fd.append('action','processGameQRCode');
+        fd.append('trip', tripId);
+        fd.append('id', studentId);
+        fd.append('action', action);
+        fd.append('amount', amount);
+        const d = await fetch(API_URL, { method:'POST', body: fd, credentials:'include' }).then(r=>r.json()).catch(()=>({success:false}));
+        if (d.success) {
+            showToast('تم تحديث النقاط ✓','success');
+            // Refresh modal details
+            if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+        } else {
+            showToast(d.message||'فشل التحديث','error');
+        }
+    } catch (e) { showToast('خطأ في الاتصال','error'); }
 }
 function hideStudentModal() { document.getElementById('studentModal').classList.remove('active'); currentStudentForEdit = null; startAutoRefresh(); }
 function showEditForm() {

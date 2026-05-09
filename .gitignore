@@ -5,3 +5,8 @@ php_errors
 upload_errors
 if0_40860329_sunday_school
 if0_40860329_sunday_school.sql
+uncle/dashboard/oldgoogleappscript.js
+uncle/dashboard/currentgoogleaiscript.js
+db_migrations/20260509_add_trip_points_and_config.sql
+game/.DS_Store
+scripts/google_apps_notify.gs

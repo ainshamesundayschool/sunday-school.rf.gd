@@ -1770,6 +1770,7 @@ function norm(s){
     church_name:s.church_name||'',
     church_id:s.church_id||0,
     custom_info:s.custom_info?(typeof s.custom_info==='string'?JSON.parse(s.custom_info):s.custom_info):null,
+    trip_points: (function(){ try{ if(!s.trip_points) return {}; return (typeof s.trip_points==='string'?JSON.parse(s.trip_points):s.trip_points)||{} }catch(e){return{}} })(),
   };
 }
 
@@ -3144,6 +3145,7 @@ function renderTrips(trips){
         <div class="trip-meta-row">
           ${t.start_date_formatted?`<span class="trip-meta-chip"><i class="fas fa-calendar"></i>${t.start_date_formatted}</span>`:''}
           <span class="trip-meta-chip"><i class="fas fa-users"></i>${t.registered_count||0} مسجّل</span>
+          ${typeof t.my_points !== 'undefined' ? `<span class="trip-meta-chip"><i class="fas fa-star"></i> ${esc(t.my_points)} نقاط</span>` : ''}
           ${t.max_participants?`<span class="trip-meta-chip"><i class="fas fa-user-check"></i>أقصى ${t.max_participants}</span>`:''}
         </div>
         ${kidsHtml}

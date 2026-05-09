@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="https://i.ibb.co/RmDmJh2/Solider-Of-Jesus-Logo-Icon.png" type="image/png">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --positive: #21cc60;
+            --negative: #fa5050;
+            --active: #3a0ca3;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .app-header {
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            width: 100%;
+            max-width: 540px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-logo {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Main Content */
+        .main-content {
+            width: 100%;
+            max-width: 540px;
+            margin: 70px auto 20px;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .history-table th, 
+        .history-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        .history-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .history-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .positive-change {
+            color: var(--positive);
+            font-weight: 500;
+        }
+
+        .negative-change {
+            color: var(--negative);
+            font-weight: 500;
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        .filter-controls button {
+            padding: 10px 15px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter-controls button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+        }
+
+        .error-message {
+            color: var(--danger);
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .history-table th, 
+            .history-table td {
+                padding: 8px 10px;
+                font-size: 0.6rem;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <a href="https://ainshames-sundayschool.rf.gd/camp/" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <img src="https://i.ibb.co/5gr0NPQL/Solider-Of-Jesus-Logo.png" alt="Logo" class="header-logo">
+            <div style="width: 40px;"></div> <!-- Spacer for balance -->
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Points History</h1>
+                <p>View all points transactions</p>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="filter-type">
+                    <option value="all">All Transactions</option>
+                    <option value="increment">Points Added</option>
+                    <option value="decrement">Points Removed</option>
+                </select>
+                <input type="text" id="search-name" placeholder="Search by name...">
+                <button id="apply-filters">Apply Filters</button>
+            </div>
+
+            <!-- History Table -->
+            <div id="history-container">
+                <table class="history-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Participant</th>
+                            <th>Change</th>
+                            <th>Admin</th>
+                            <th>New Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="loading" class="loading">
+                <p>Loading history data...</p>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const storedUser = localStorage.getItem('currentUser');
+            if (!storedUser) {
+                // Redirect to login if not authenticated
+                window.location.href = 'https://ainshames-sundayschool.rf.gd/camp/';
+                return;
+            }
+
+            // Load history data
+            loadHistoryData();
+
+            // Set up filter button
+            document.getElementById('apply-filters').addEventListener('click', loadHistoryData);
+            
+            // Also allow filtering on Enter key in search field
+            document.getElementById('search-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadHistoryData();
+                }
+            });
+        });
+
+        function loadHistoryData() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error-message');
+            const historyBody = document.getElementById('history-body');
+            
+            // Show loading state
+            loadingElement.style.display = 'block';
+            errorElement.style.display = 'none';
+            historyBody.innerHTML = '';
+            
+            // Get filter values
+            const filterType = document.getElementById('filter-type').value;
+            const searchName = document.getElementById('search-name').value.trim().toLowerCase();
+            
+            // Fetch history data from Google Sheet
+            const scriptUrl = 'https://script.google.com/macros/s/AKfycbwOkGeV4XJncU-qBj_Ld8zYJorZjFN0RVy_mSl85qcmfewV-L9xQxdV0SO0YAT3j6JL1w/exec';
+            
+            fetch(`${scriptUrl}?action=getHistory`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingElement.style.display = 'none';
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Filter and display data
+                    const filteredData = data.filter(entry => {
+                        // Apply type filter
+                        if (filterType === 'increment' && entry.change <= 0) return false;
+                        if (filterType === 'decrement' && entry.change >= 0) return false;
+                        
+                        // Apply name filter
+                        if (searchName && !entry.name.toLowerCase().includes(searchName)) return false;
+                        
+                        return true;
+                    });
+                    
+                    if (filteredData.length === 0) {
+                        historyBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No matching records found</td></tr>';
+                        return;
+                    }
+                    
+                    // Sort by date (newest first)
+                    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    // Populate table
+                    filteredData.forEach(entry => {
+                        const row = document.createElement('tr');
+                        
+                        // Format date
+                        const date = new Date(entry.timestamp);
+                        const formattedDate = date.toLocaleString();
+                        
+                        // Determine change class
+                        const changeClass = entry.change > 0 ? 'positive-change' : 'negative-change';
+                        const changeSymbol = entry.change > 0 ? '+' : '';
+                        
+                        row.innerHTML = `
+                            <td>${formattedDate}</td>
+                            <td>${entry.name}</td>
+                            <td class="${changeClass}">${changeSymbol}${entry.change}</td>
+                            <td>${entry.adminName || 'System'}</td>
+                            <td>${entry.newPoints}</td>
+                        `;
+                        
+                        historyBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    loadingElement.style.display = 'none';
+                    errorElement.textContent = `Error loading history: ${error.message}`;
+                    errorElement.style.display = 'block';
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>

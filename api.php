@@ -20,6 +20,146 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
+// ── Game / QR processing for trips ─────────────────────────
+function processGameQRCode() {
+    try {
+        // Allow uncle or church admin
+        checkUncleAuth();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
+        $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
+        $action = strtolower(trim($_REQUEST['action'] ?? 'increment'));
+        $amount = intval($_REQUEST['amount'] ?? 1);
+
+        if ($tripId <= 0 || $studentId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip and id are required']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        // Verify student belongs to this church
+        $stmt = $conn->prepare("SELECT id, name, trip_points FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+        $stmt->bind_param('ii', $studentId, $churchId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Student not found in this church']);
+            return;
+        }
+        $student = $res->fetch_assoc();
+
+        $pointsJson = $student['trip_points'] ?? '';
+        $points = json_decode($pointsJson, true);
+        if (!is_array($points)) $points = [];
+
+        $current = intval($points[$tripId] ?? 0);
+
+        if ($action === 'increment') {
+            $new = $current + $amount;
+            $verb = "+{$amount}";
+        } elseif ($action === 'decrement') {
+            $new = $current - $amount;
+            $verb = "-{$amount}";
+        } elseif ($action === 'set') {
+            $new = $amount;
+            $verb = "={$amount}";
+        } else {
+            sendJSON(['success' => false, 'message' => 'Invalid action']);
+            return;
+        }
+
+        $points[$tripId] = $new;
+        $newJson = json_encode($points, JSON_UNESCAPED_UNICODE);
+
+        $up = $conn->prepare("UPDATE students SET trip_points = ? WHERE id = ? AND church_id = ?");
+        $up->bind_param('sii', $newJson, $studentId, $churchId);
+        if (!$up->execute()) {
+            sendJSON(['success' => false, 'message' => 'Failed to update points: ' . $up->error]);
+            return;
+        }
+
+        // Log activity
+        $details = "trip_id:$tripId;student_id:$studentId;change:$verb;new:$new";
+        logActivity($churchId, $uncleId, 'game_points', $details);
+
+        // Notify admin via existing Google Apps Script path (keeps previous behaviour)
+        // If you prefer server-side email, replace sendAsyncRequest with mail logic.
+        try {
+            $churchEmail = getChurchAdminEmail($churchId);
+            $uncleEmail = null;
+            if ($uncleId) {
+                $u = $conn->prepare("SELECT email FROM uncles WHERE id = ? LIMIT 1");
+                $u->bind_param('i', $uncleId);
+                $u->execute();
+                $ur = $u->get_result()->fetch_assoc();
+                $uncleEmail = $ur['email'] ?? null;
+            }
+
+            if ($churchEmail || $uncleEmail) {
+                $scriptUrl = 'https://script.google.com/macros/s/AKfycbxsDA0veJTA3C_2Bw47coffOagRigWwaZnyxWuGb_gSVUCWM958V1bUcaZDwfIHVZ7b1g/exec';
+                $payload = [
+                    'action' => 'notifyGameActivity',
+                    'church_email' => $churchEmail,
+                    'uncle_email' => $uncleEmail,
+                    'church_id' => $churchId,
+                    'trip_id' => $tripId,
+                    'student_id' => $studentId,
+                    'student_name' => $student['name'] ?? '',
+                    'change' => $verb,
+                    'new_points' => $new,
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+                sendAsyncRequest($scriptUrl, $payload);
+            }
+        } catch (Exception $e) {
+            error_log('notifyGameActivity error: ' . $e->getMessage());
+        }
+
+        sendJSON(['success' => true, 'student_id' => $studentId, 'trip_id' => $tripId, 'points' => $new]);
+
+    } catch (Exception $e) {
+        error_log('processGameQRCode error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+function updateTripPointsConfig() {
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $configJson = $_POST['config_json'] ?? '';
+
+        if ($tripId <= 0 || empty($configJson)) {
+            sendJSON(['success' => false, 'message' => 'trip_id and config_json are required']);
+            return;
+        }
+
+        // Validate JSON
+        $decoded = json_decode($configJson, true);
+        if (!is_array($decoded)) {
+            sendJSON(['success' => false, 'message' => 'config_json must be valid JSON']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("UPDATE trips SET points_config = ? WHERE id = ? AND church_id = ?");
+        $stmt->bind_param('sii', $configJson, $tripId, $churchId);
+        if ($stmt->execute()) {
+            logActivity($churchId, $_SESSION['uncle_id'] ?? null, 'update_trip_points_config', "trip:$tripId");
+            sendJSON(['success' => true, 'message' => 'Trip points config saved']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'Failed to save config: ' . $stmt->error]);
+        }
+
+    } catch (Exception $e) {
+        error_log('updateTripPointsConfig error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
 
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
@@ -5719,7 +5859,7 @@ function handleKidLogin() {
                 s.id, s.name, s.address, s.phone, s.birthday, s.email,
                 s.coupons, s.attendance_coupons, s.commitment_coupons,
                 s.task_coupons, s.image_url, s.church_id, s.class_id,
-                s.custom_info,
+                s.custom_info, s.trip_points,
                 c.church_name,
                 COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
             FROM students s
@@ -9305,6 +9445,17 @@ try {
         case 'getTripDetails':
             getTripDetails();
             break;
+
+        case 'processGameQRCode':
+            // Processes a camera-scanned game URL: updates student's per-trip points JSON
+            processGameQRCode();
+            break;
+
+        case 'updateTripPointsConfig':
+            // Save a custom template / points config for a trip (JSON)
+            checkAuth();
+            updateTripPointsConfig();
+            break;
             
         case 'registerStudentForTrip':
             registerStudentForTrip();
@@ -11547,6 +11698,19 @@ function getStudentTrips() {
                     $myReg['total_paid'] = (float)$myReg['total_paid'];
                     $myReg['remaining']  = max(0, round($row['final_price'] - $myReg['total_paid'], 2));
                     $row['my_registration'] = $myReg;
+                }
+                // Also attach this student's points for this trip (if stored)
+                try {
+                    $pStmt = $conn->prepare("SELECT trip_points FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+                    $pStmt->bind_param('ii', $studentId, $churchId);
+                    $pStmt->execute();
+                    $pRes = $pStmt->get_result()->fetch_assoc();
+                    $tp = $pRes['trip_points'] ?? '';
+                    $pointsMap = json_decode($tp, true);
+                    if (!is_array($pointsMap)) $pointsMap = [];
+                    $row['my_points'] = intval($pointsMap[$row['id']] ?? 0);
+                } catch (Exception $e) {
+                    $row['my_points'] = 0;
                 }
             }
         }
