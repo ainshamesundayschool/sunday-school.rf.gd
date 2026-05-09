@@ -1214,6 +1214,13 @@
                 <input type="text" id="manual-id" placeholder="e.g. 2025001" style="padding: 6px 11px;border: none;border-radius: 10px;background: #f3f3f3;">
                     <button class="btn-primary" id="manual-submit" style="width: 50%;border-radius: 10px;">Submit</button>
                 </div>
+                <!-- Trip Tools: select trip, configure template, export QR CSV -->
+                <div id="trip-tools" style="margin-top:18px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                    <select id="trip-select" style="padding:8px;border-radius:8px;min-width:200px;display:none;"></select>
+                    <button id="load-trips-btn" class="btn-secondary">Select Trip</button>
+                    <button id="configure-template-btn" class="btn-secondary" style="display:none;">Configure Template</button>
+                    <button id="export-csv-btn" class="btn-primary" style="display:none;">Export QR CSV</button>
+                </div>
                
             </div>
             
@@ -1451,6 +1458,121 @@ function loadProfiles() {
             `;
         });
 }
+
+// ---------------- Trip Tools (select trip, template, export CSV) ----------------
+async function loadTripsForChurch() {
+    const churchId = currentUser && (currentUser.church_id || localStorage.getItem('churchId')) ? (currentUser.church_id || localStorage.getItem('churchId')) : null;
+    if (!churchId) {
+        showToast('لا يوجد كنيسة محددة','error');
+        return;
+    }
+    const fd = new FormData(); fd.append('action','getStudentTrips'); fd.append('church_id', churchId);
+    try {
+        const r = await fetch('/api.php', { method:'POST', body: fd, credentials:'include' }).then(r=>r.json());
+        if (!r.success) { showToast(r.message||'خطأ في تحميل الرحلات','error'); return; }
+        const sel = document.getElementById('trip-select');
+        sel.innerHTML = '';
+        r.trips.forEach(t=>{
+            const opt = document.createElement('option'); opt.value = t.id; opt.textContent = `${t.title} (${t.start_date_formatted||''})`;
+            sel.appendChild(opt);
+        });
+        if (r.trips.length) {
+            sel.style.display = 'inline-block';
+            document.getElementById('configure-template-btn').style.display = 'inline-block';
+            document.getElementById('export-csv-btn').style.display = 'inline-block';
+        }
+    } catch(e) { showToast('تعذر الاتصال','error'); }
+}
+
+async function loadTripTemplate(tripId) {
+    const fd = new FormData(); fd.append('action','getTripTemplate'); fd.append('trip_id', tripId);
+    const r = await fetch('/api.php',{method:'POST',body:fd,credentials:'include'}).then(r=>r.json());
+    if (!r.success) return null;
+    return r.template;
+}
+
+function openTemplateEditor(tripId) {
+    loadTripTemplate(tripId).then(template=>{
+        const available = ['Points','QrCode','Name','Church','Class','Gender','Age','Room','Building','Team','Team No'];
+        const cols = (template && template.columns) ? template.columns : ['QrCode','Name','Points'];
+        // build modal-like chooser
+        const container = document.createElement('div');
+        container.className = 'template-editor';
+        container.style.position='fixed'; container.style.left='0'; container.style.top='0'; container.style.right='0'; container.style.bottom='0'; container.style.background='rgba(0,0,0,0.4)'; container.style.display='flex'; container.style.alignItems='center'; container.style.justifyContent='center';
+        const box = document.createElement('div');
+        box.style.background='white'; box.style.borderRadius='8px'; box.style.padding='18px'; box.style.minWidth='320px';
+        box.innerHTML = `<h3 style="margin-top:0">Configure Export Template</h3>`;
+        available.forEach(a=>{
+            const id = 'tmpl_' + a.replace(/\s+/g,'_');
+            const checked = cols.includes(a) ? 'checked' : '';
+            const row = document.createElement('div'); row.style.margin='6px 0';
+            row.innerHTML = `<label><input type="checkbox" value="${a}" ${checked}> ${a}</label>`;
+            box.appendChild(row);
+        });
+        const saveBtn = document.createElement('button'); saveBtn.textContent='Save Template'; saveBtn.className='btn-primary'; saveBtn.style.marginTop='12px';
+        const cancelBtn = document.createElement('button'); cancelBtn.textContent='Cancel'; cancelBtn.className='btn-secondary'; cancelBtn.style.marginLeft='8px';
+        box.appendChild(saveBtn); box.appendChild(cancelBtn);
+        container.appendChild(box); document.body.appendChild(container);
+        cancelBtn.addEventListener('click', ()=>container.remove());
+        saveBtn.addEventListener('click', async ()=>{
+            const chosen = Array.from(box.querySelectorAll('input:checked')).map(i=>i.value);
+            const config = { columns: chosen };
+            const fd = new FormData(); fd.append('action','updateTripPointsConfig'); fd.append('trip_id', tripId); fd.append('config_json', JSON.stringify(config));
+            const res = await fetch('/api.php',{method:'POST',body:fd,credentials:'include'}).then(r=>r.json());
+            if (res.success) { showToast('Template saved','success'); container.remove(); }
+            else showToast(res.message||'Save failed','error');
+        });
+    });
+}
+
+async function exportTripCsv() {
+    const sel = document.getElementById('trip-select');
+    const tripId = parseInt(sel.value || 0,10);
+    if (!tripId) { showToast('اختر رحلة أولاً','error'); return; }
+    // load template
+    const template = await loadTripTemplate(tripId) || { columns: ['QrCode','Name','Points'] };
+    const cols = template.columns || ['QrCode','Name','Points'];
+    // fetch students
+    const fd = new FormData(); fd.append('action','getTripStudents'); fd.append('trip_id', tripId);
+    const r = await fetch('/api.php',{method:'POST',body:fd,credentials:'include'}).then(r=>r.json());
+    if (!r.success) { showToast(r.message||'خطأ في تحميل الطلاب','error'); return; }
+    const students = r.students || [];
+    const base = location.protocol + '//' + location.host + '/game';
+    const rows = [cols.join(',')];
+    students.forEach(s => {
+        const values = cols.map(c=>{
+            switch(c) {
+                case 'QrCode': return `${base}?trip=${encodeURIComponent(tripId)}&id=${encodeURIComponent(s.id)}`;
+                case 'Points': return s.points || 0;
+                case 'Name': return `"${(s.name||'').replace(/"/g,'""')}"`;
+                case 'Church': return `"${(s.church_name||'').replace(/"/g,'""')}"`;
+                case 'Class': return `"${(s.class||'').replace(/"/g,'""')}"`;
+                case 'Gender': return s.gender||'';
+                case 'Age': {
+                    if (s.birthday) {
+                        const y = parseInt(s.birthday.split('/').pop()||s.birthday.split('-')[0]||0,10);
+                        if (y>1900) return (new Date().getFullYear() - y).toString();
+                    }
+                    return '';
+                }
+                default: return '';
+            }
+        });
+        rows.push(values.join(','));
+    });
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `trip-${tripId}-qrcodes.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    showToast('CSV exported','success');
+}
+
+// Hook trip tools buttons
+document.addEventListener('click', function(e){
+    if (e.target && e.target.id === 'load-trips-btn') { loadTripsForChurch(); }
+    if (e.target && e.target.id === 'configure-template-btn') { const t = document.getElementById('trip-select'); openTemplateEditor(parseInt(t.value||0,10)); }
+    if (e.target && e.target.id === 'export-csv-btn') { exportTripCsv(); }
+});
 async function hashPassword(password) {
     const msgBuffer = new TextEncoder().encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);

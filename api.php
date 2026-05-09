@@ -377,6 +377,97 @@ function joinTrip() {
     }
 }
 
+// ── Get Trip Students (for QR export) ──────────────────────────
+function getTripStudents() {
+    try {
+        $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
+        $conn = getDBConnection();
+        
+        // Get trip info
+        $tStmt = $conn->prepare("SELECT id, title, church_id, points_config FROM trips WHERE id = ? LIMIT 1");
+        $tStmt->bind_param('i', $tripId);
+        $tStmt->execute();
+        $tRes = $tStmt->get_result();
+        if ($tRes->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            return;
+        }
+        $trip = $tRes->fetch_assoc();
+        
+        // Get all students in this trip (from trip_registrations)
+        $sStmt = $conn->prepare("
+            SELECT DISTINCT s.id, s.name, s.church_id, s.gender, s.birthday,
+                   COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class,
+                   c.name AS church_name
+            FROM trip_registrations tr
+            JOIN students s ON s.id = tr.student_id
+            LEFT JOIN church_classes cc ON cc.id = s.class_id
+            LEFT JOIN classes cl ON cl.id = s.class_id
+            LEFT JOIN churches c ON c.id = s.church_id
+            WHERE tr.trip_id = ? AND tr.cancelled = 0
+            ORDER BY s.name
+        ");
+        $sStmt->bind_param('i', $tripId);
+        $sStmt->execute();
+        $students = $sStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        // Attach points for each student
+        foreach ($students as &$s) {
+            $pStmt = $conn->prepare("SELECT trip_points FROM students WHERE id = ? LIMIT 1");
+            $pStmt->bind_param('i', $s['id']);
+            $pStmt->execute();
+            $pRes = $pStmt->get_result()->fetch_assoc();
+            $tp = $pRes['trip_points'] ?? '';
+            $pointsMap = json_decode($tp, true);
+            if (!is_array($pointsMap)) $pointsMap = [];
+            $s['points'] = intval($pointsMap[$tripId] ?? 0);
+        }
+        
+        sendJSON(['success' => true, 'trip' => $trip, 'students' => $students]);
+    } catch (Exception $e) {
+        error_log('getTripStudents error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+// ── Get Trip Template (custom columns config) ──────────────────────────
+function getTripTemplate() {
+    try {
+        $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT points_config FROM trips WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $tripId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            return;
+        }
+        $row = $res->fetch_assoc();
+        $config = [];
+        if (!empty($row['points_config'])) {
+            $decoded = json_decode($row['points_config'], true);
+            if (is_array($decoded)) $config = $decoded;
+        }
+        // Default columns if none saved
+        $defaultColumns = ['Points', 'QrCode', 'Name', 'Church', 'Class', 'Gender', 'Age'];
+        $template = $config ?: ['columns' => $defaultColumns];
+        
+        sendJSON(['success' => true, 'template' => $template, 'available_columns' => ['Points', 'QrCode', 'Name', 'Church', 'Class', 'Gender', 'Age', 'Room', 'Building', 'Team', 'Team No']]);
+    } catch (Exception $e) {
+        error_log('getTripTemplate error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
 // ── Save enhanced image ──────────────────────────────────────
 function saveEnhancedImage($image, $outputPath, $quality = 85) {
     $ext = strtolower(pathinfo($outputPath, PATHINFO_EXTENSION));
@@ -478,6 +569,14 @@ case 'clearAllAuditLogs':
 case 'joinTrip':
     checkAuth();
     joinTrip();
+    break;
+
+case 'getTripStudents':
+    getTripStudents();
+    break;
+
+case 'getTripTemplate':
+    getTripTemplate();
     break;
 
 case 'getUncleActivityLogs':
