@@ -88,6 +88,31 @@
         @media (max-width: 640px) { .search-grid { grid-template-columns: 1fr; } }
         .panel-grid.has-detail .panel:first-child { display: none; }
         .panel-grid.has-detail .detail-panel { grid-column: 1 / -1; }
+
+        /* Kid-picker & registrant styles copied from dashboard to match exact UI */
+        .kid-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap: 7px; max-height: 260px; overflow-y: auto; padding: 2px; }
+        .kid-card { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 9px 5px 7px; text-align: center; cursor: pointer; transition: all .12s ease; background: white; position: relative; }
+        .kid-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,.06); }
+        .kid-card.selected { border-color: var(--primary); background: var(--primary-light); }
+        .kid-avatar { width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 6px; object-fit: cover; border: 2px solid var(--primary-light); background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: var(--primary); overflow: hidden; position: relative; }
+        .kid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .kid-name { font-size: 0.68rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+        .kid-cls { font-size: 0.58rem; color: var(--muted); margin-top: 2px; background: var(--bg); padding: 1px 5px; border-radius: 999px; display: inline-block; }
+
+        .reg-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 7px; }
+        .reg-ava { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); font-size: 0.84rem; border: 2px solid var(--primary-light); }
+        .reg-ava img { width: 100%; height: 100%; object-fit: cover; }
+        .reg-info { flex: 1; min-width: 0; }
+        .reg-info strong { font-size: 0.84rem; display: block; color: var(--text); }
+        .reg-info span { font-size: 0.7rem; color: var(--muted); }
+        .reg-bar { height: 3px; background: #f3f4f6; border-radius: 999px; overflow: hidden; margin-top: 5px; }
+        .reg-bar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+        .reg-amounts { text-align: left; flex-shrink: 0; }
+        .reg-paid-lbl { font-size: 0.75rem; font-weight: 800; color: var(--success); }
+        .reg-rem-lbl  { font-size: 0.67rem; color: var(--danger); }
+        .reg-actions  { display: flex; gap: 4px; flex-shrink: 0; }
+
+        .price-banner { background: linear-gradient(135deg, var(--primary), #6366f1); border-radius: var(--radius); padding: 14px 16px; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 16px rgba(79,70,229,0.18); }
     </style>
 </head>
 <body>
@@ -135,29 +160,39 @@
             </div>
 
             <div class="panel detail-panel hidden" id="detailPanel">
-                <div class="detail-header">
-                    <div class="topline">
-                        <div>
-                            <h2 id="detailTitle" style="margin:0;font-size:1.2rem;"></h2>
-                            <div id="detailSubtitle" style="color:var(--muted);font-size:0.95rem;margin-top:6px;"></div>
+                <div id="tdHeader" style="position:relative;background:linear-gradient(135deg,#1a1d2e,#2d3258);color:white;padding:18px 20px 0;flex-shrink:0;border-radius:18px;overflow:hidden;">
+                    <div id="tdCoverBg" style="position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.14;pointer-events:none;"></div>
+                    <div style="position:relative;z-index:1;">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+                            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+                                <div id="tdCoverThumb" style="width:64px;height:64px;border-radius:14px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:1.6rem;"></div>
+                                <div style="min-width:0;">
+                                    <div id="tdStatusBadge" style="margin-bottom:6px;"></div>
+                                    <h2 id="detailTitle" style="font-size:1.25rem;font-weight:900;color:white;margin:0;">تفاصيل الرحلة</h2>
+                                    <div id="detailSubtitle" style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-top:4px;"></div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;">
+                                <div id="tdPricePill" style="background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border-radius:12px;padding:8px 14px;text-align:center;">
+                                    <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);">الإجمالي / طفل</div>
+                                    <div id="tdTotalPricePill" style="font-size:1.1rem;font-weight:900;color:white;">0 ج</div>
+                                    <div id="tdPriceBreakPill" style="font-size:0.68rem;color:rgba(255,255,255,0.55);"></div>
+                                </div>
+                                <button class="modal-close" onclick="closeDetails()" style="background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.12);width:40px;height:40px;border-radius:50%;font-size:1rem;"><i class="fas fa-arrow-left"></i></button>
+                            </div>
                         </div>
-                        <div class="page-actions" style="justify-content:flex-end;">
-                            <button class="btn btn-outline btn-sm" onclick="window.location.href='../index.html#trips'"><i class="fas fa-arrow-left"></i> العودة</button>
-                            <button class="btn btn-outline btn-sm" onclick="openTripForm(true)"><i class="fas fa-edit"></i> تعديل الرحلة</button>
-                            <button class="btn btn-outline btn-sm" onclick="exportTripData(currentTripId)"><i class="fas fa-file-csv"></i> تصدير الوتائق والدفعات</button>
-                            <button class="btn btn-outline btn-sm" onclick="copyTripLink()"><i class="fas fa-link"></i> نسخ الرابط</button>
-                        </div>
+                        <div id="tdQuickStats" style="display:flex;gap:8px;margin:0 -20px;padding:0 20px 14px;"></div>
                     </div>
-                    <div class="detail-tabs">
-                        <span class="tab-pill active" data-tab="info" onclick="switchDetailTab('info')">الملخص</span>
-                        <span class="tab-pill" data-tab="regs" onclick="switchDetailTab('regs')">المسجلون</span>
-                        <span class="tab-pill" data-tab="exp" onclick="switchDetailTab('exp')">المصروفات</span>
+                    <div class="td-tabs" style="margin:8px -20px 0;padding:0 20px;border-bottom:none;background:transparent;">
+                        <div class="td-tab active" id="tdtab-info" onclick="switchDetailTab('info')" style="color:rgba(255,255,255,0.75);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i> الملخص</div>
+                        <div class="td-tab" id="tdtab-regs" onclick="switchDetailTab('regs')" style="color:rgba(255,255,255,0.75);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون <span class="td-badge" id="tdRegsCount"></span></div>
+                        <div class="td-tab" id="tdtab-exp" onclick="switchDetailTab('exp')" style="color:rgba(255,255,255,0.75);border-bottom-color:transparent;"><i class="fas fa-receipt"></i> المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
                     </div>
                 </div>
                 <div class="detail-body">
-                    <div id="detailInfo" class="detail-tab-panel"></div>
-                    <div id="detailRegs" class="detail-tab-panel hidden"></div>
-                    <div id="detailExp" class="detail-tab-panel hidden"></div>
+                    <div class="td-panel active" id="tdpanel-info"><div id="detailInfo"></div></div>
+                    <div class="td-panel" id="tdpanel-regs"><div id="detailRegs"></div></div>
+                    <div class="td-panel" id="tdpanel-exp"><div id="detailExp"></div></div>
                 </div>
             </div>
         </div>
@@ -451,8 +486,34 @@
             const price = calcFinalPrice(trip);
             const expPerKid = Math.round(expenses.reduce((sum, item) => sum + Number(item.perKid || item.per_kid || 0), 0));
             const totalPerKid = price + expPerKid;
+            // Header
             document.getElementById('detailTitle').textContent = trip.title || 'تفاصيل الرحلة';
             document.getElementById('detailSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''} • ${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}`;
+            const coverUrl = trip.cover || trip.image || trip.image_url || '';
+            const tdCoverBg = document.getElementById('tdCoverBg');
+            if (tdCoverBg) tdCoverBg.style.backgroundImage = coverUrl ? `url(${coverUrl})` : 'none';
+            const tdThumb = document.getElementById('tdCoverThumb');
+            if (tdThumb) {
+                tdThumb.innerHTML = '';
+                if (trip.thumb || trip.cover_thumb || trip.image_thumb || coverUrl) {
+                    const img = document.createElement('img'); img.src = trip.thumb || trip.cover_thumb || trip.image_thumb || coverUrl; img.alt = trip.title || ''; img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover'; tdThumb.appendChild(img);
+                } else {
+                    tdThumb.textContent = trip.title ? (trip.title.charAt(0) || '') : '';
+                }
+            }
+            // Status badge
+            const status = trip.status || 'planned';
+            const statusText = status === 'planned' ? 'مخطط لها' : status === 'active' ? 'نشطة' : status === 'completed' ? 'منتهية' : 'ملغية';
+            const statusEl = document.getElementById('tdStatusBadge');
+            if (statusEl) statusEl.innerHTML = `<span class="badge ${status==='active'?'badge-active':status==='completed'?'badge-paid':'badge-pending'}">${statusText}</span>`;
+            // Price pill
+            const totalPill = document.getElementById('tdTotalPricePill'); if (totalPill) totalPill.textContent = `${totalPerKid} ج`;
+            const priceBreak = document.getElementById('tdPriceBreakPill'); if (priceBreak) priceBreak.textContent = price ? `${price} ج` : '';
+            // Quick stats
+            const qs = document.getElementById('tdQuickStats');
+            if (qs) qs.innerHTML = `<div style="flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,0.03);"><div style="font-size:0.8rem;color:rgba(255,255,255,0.8);">مسجل</div><div style="font-weight:900;margin-top:6px;">${trip.registered_count||0}</div></div><div style="flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,0.03);"><div style="font-size:0.8rem;color:rgba(255,255,255,0.8);">مدفوع</div><div style="font-weight:900;margin-top:6px;">${trip.paid_count||0}</div></div><div style="flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,0.03);"><div style="font-size:0.8rem;color:rgba(255,255,255,0.8);">الحد الأقصى</div><div style="font-weight:900;margin-top:6px;">${trip.max_participants||'∞'}</div></div>`;
+
+            // Info panel
             document.getElementById('detailInfo').innerHTML = `
                 <div class="grid-3" style="margin-bottom:18px;">
                     <div class="stat-box"><small>السعر النهائي</small><strong>${price} ج</strong></div>
@@ -466,34 +527,37 @@
                     <button class="btn btn-outline btn-sm" onclick="switchDetailTab('exp')"><i class="fas fa-receipt"></i> عرض المصروفات</button>
                 </div>
             `;
-            document.getElementById('detailRegs').innerHTML = (() => {
-                const regs = trip.registrations || [];
-                if (!regs.length) return `<div style="text-align:center;padding:36px;color:var(--muted);">لا يوجد أطفال مسجلون بعد.</div>`;
-                return `
-                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;align-items:center;justify-content:space-between;">
+
+            // Registrants — show avatar rows (with photos when available)
+            const regs = trip.registrations || [];
+            if (!regs.length) {
+                document.getElementById('detailRegs').innerHTML = `<div style="text-align:center;padding:36px;color:var(--muted);">لا يوجد أطفال مسجلون بعد.</div>`;
+            } else {
+                document.getElementById('detailRegs').innerHTML = `
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;align-items:center;justify-content:space-between;">
                         <div style="font-weight:700;">${regs.length} طفل مسجل</div>
                         <div style="color:var(--muted);">الإجمالي المطلوب: <strong>${totalPerKid * regs.length} ج</strong></div>
                     </div>
-                    <table class="table"><thead><tr><th>الطفل</th><th>الفصل</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>
+                    <div>
                         ${regs.map(r => {
                             const paid = Math.round(parseFloat(r.total_paid || 0));
                             const remaining = Math.max(0, totalPerKid - paid);
                             const status = remaining <= 0 ? 'مدفوع بالكامل' : paid > 0 ? 'مدفوع جزئياً' : 'غير مدفوع';
-                            return `<tr>
-                                <td>${escHtml(r.student_name)}</td>
-                                <td>${escHtml(r.student_class || '')}</td>
-                                <td>${paid} ج</td>
-                                <td>${remaining} ج</td>
-                                <td>${status}</td>
-                                <td style="white-space:nowrap;display:flex;gap:6px;justify-content:flex-end;">
-                                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); openPaymentModal(${r.id}, '${escHtml(r.student_name)}', ${totalPerKid}, ${paid})"><i class="fas fa-money-bill"></i></button>
-                                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); cancelRegistration(${r.id}, ${trip.id})"><i class="fas fa-times"></i></button>
-                                </td>
-                            </tr>`;
+                            const photo = r.student_photo || r.photo || r.avatar || '';
+                            return `
+                                <div class="reg-row">
+                                    <div class="reg-ava">${photo ? `<img src="${photo}" alt="${escHtml(r.student_name||'')}"/>` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--primary);">${(r.student_name||'').charAt(0)||''}</div>`}</div>
+                                    <div class="reg-info"><strong>${escHtml(r.student_name)}</strong><span>${escHtml(r.student_class||'')}</span><div class="reg-bar"><div class="reg-bar-fill" style="width:${Math.min(100, Math.round((paid/totalPerKid)*100))}%;background:${remaining<=0?'var(--success)':'var(--primary)'}"></div></div></div>
+                                    <div class="reg-amounts"><div class="reg-paid-lbl">${paid} ج</div><div class="reg-rem-lbl">${remaining} ج</div></div>
+                                    <div class="reg-actions"><button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); openPaymentModal(${r.id}, '${escHtml(r.student_name)}', ${totalPerKid}, ${paid})"><i class="fas fa-money-bill"></i></button><button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); cancelRegistration(${r.id}, ${trip.id})"><i class="fas fa-times"></i></button></div>
+                                </div>
+                            `;
                         }).join('')}
-                    </tbody></table>
+                    </div>
                 `;
-            })();
+            }
+
+            // Expenses panel
             document.getElementById('detailExp').innerHTML = expenses.length ? `
                 <div style="display:grid;gap:12px;">
                     ${expenses.map(exp => `<div class="card">
@@ -503,12 +567,22 @@
                     </div>`).join('')}
                 </div>
             ` : `<div style="padding:26px;text-align:center;color:var(--muted);">لا توجد مصروفات لهذه الرحلة.</div>`;
+            // update small counters
+            const regsCountEl = document.getElementById('tdRegsCount'); if (regsCountEl) regsCountEl.textContent = regs.length ? regs.length : '';
+            const expCountEl = document.getElementById('tdExpCount'); if (expCountEl) expCountEl.textContent = expenses.length ? expenses.length : '';
         }
 
         function switchDetailTab(tab) {
             currentTripTab = tab;
+            // pill tabs
             document.querySelectorAll('.tab-pill').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
-            document.querySelectorAll('.detail-tab-panel').forEach(el => el.classList.toggle('hidden', el.id !== `detail${tab.charAt(0).toUpperCase() + tab.slice(1)}`));
+            // dashboard-like tabs
+            document.querySelectorAll('.td-tab').forEach(el => el.classList.toggle('active', el.id === `tdtab-${tab}`));
+            // panels
+            document.querySelectorAll('.detail-tab-panel, .td-panel').forEach(el => {
+                if (el.id === `detail${tab.charAt(0).toUpperCase() + tab.slice(1)}` || el.id === `tdpanel-${tab}`) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
             updateHash();
         }
 
