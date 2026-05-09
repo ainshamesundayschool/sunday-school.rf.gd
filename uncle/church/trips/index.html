@@ -698,6 +698,70 @@ tbody tr:last-child td { border-bottom: none; }
 .trip-stat-item .l { font-size: 0.66rem; color: var(--muted); }
 
 /* ═══════════════════════════════════════════════════════════════════
+   TRIP DETAIL TABS
+═══════════════════════════════════════════════════════════════════ */
+.td-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.td-tabs::-webkit-scrollbar { display: none; }
+.td-tab {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 11px 16px;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: rgba(255,255,255,0.64) !important;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.td-tab:hover {
+  color: white !important;
+  background: rgba(255,255,255,0.08);
+}
+.td-tab.active {
+  color: white !important;
+  background: rgba(255,255,255,0.14);
+  border-bottom-color: white !important;
+}
+.td-tab i { font-size: 0.86rem; flex-shrink: 0; }
+.td-panel { display: none; animation: fadeSlide .2s var(--ease-out); }
+.td-panel.active { display: block; }
+.td-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.td-badge:empty { display: none; }
+.td-badge.warn { background: var(--danger); }
+
+@media (max-width: 520px) {
+  .td-tabs { gap: 6px; padding-inline: 16px !important; }
+  .td-tab { min-height: 38px; padding: 9px 12px; font-size: 0.76rem; gap: 5px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════════════════════════════ */
 .modal {
