@@ -40,9 +40,9 @@ function processGameQRCode() {
 
         $conn = getDBConnection();
 
-        // Verify student belongs to this church
-        $stmt = $conn->prepare("SELECT id, name, trip_points FROM students WHERE id = ? AND church_id = ? LIMIT 1");
-        $stmt->bind_param('ii', $studentId, $churchId);
+        // Load student (don't restrict by church yet — collaboration may allow cross-church updates)
+        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points FROM students WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $studentId);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res->num_rows === 0) {
@@ -51,7 +51,38 @@ function processGameQRCode() {
         }
         $student = $res->fetch_assoc();
 
+        // Load trip to check collaborating churches
+        $tstmt = $conn->prepare("SELECT id, church_id, points_config, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $tstmt->bind_param('i', $tripId);
+        $tstmt->execute();
+        $tres = $tstmt->get_result();
+        if ($tres->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            return;
+        }
+        $trip = $tres->fetch_assoc();
+
         $pointsJson = $student['trip_points'] ?? '';
+        // Determine participating churches for this trip (owner + collaborators)
+        $participants = [$trip['church_id']];
+        $collabRaw = $trip['collaborating_churches'] ?? '';
+        $collab = [];
+        if (!empty($collabRaw)) {
+            $decodedCollab = json_decode($collabRaw, true);
+            if (is_array($decodedCollab)) $collab = array_map('intval', $decodedCollab);
+        }
+        $participants = array_unique(array_merge($participants, $collab));
+
+        // Authorization: allow update when both the scanner's church and the student's church are participants,
+        // or when the scanner is the student's church (legacy behaviour)
+        $studentChurchId = intval($student['church_id'] ?? 0);
+        $allowed = false;
+        if ($studentChurchId === $churchId) $allowed = true;
+        if (in_array($studentChurchId, $participants) && in_array($churchId, $participants)) $allowed = true;
+        if (!$allowed) {
+            sendJSON(['success' => false, 'message' => 'Not authorized to update this student for this trip']);
+            return;
+        }
         $points = json_decode($pointsJson, true);
         if (!is_array($points)) $points = [];
 
@@ -74,8 +105,9 @@ function processGameQRCode() {
         $points[$tripId] = $new;
         $newJson = json_encode($points, JSON_UNESCAPED_UNICODE);
 
-        $up = $conn->prepare("UPDATE students SET trip_points = ? WHERE id = ? AND church_id = ?");
-        $up->bind_param('sii', $newJson, $studentId, $churchId);
+        // Update student trip_points by id (no church constraint because student may belong to another church)
+        $up = $conn->prepare("UPDATE students SET trip_points = ? WHERE id = ?");
+        $up->bind_param('si', $newJson, $studentId);
         if (!$up->execute()) {
             sendJSON(['success' => false, 'message' => 'Failed to update points: ' . $up->error]);
             return;
@@ -301,6 +333,50 @@ function enhanceImage($imagePath, $targetWidth = 400, $targetHeight = 500) {
     return $final;
 }
 
+// ── Join Trip (collaboration) ──────────────────────────────
+function joinTrip() {
+    try {
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $tripId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            return;
+        }
+        $row = $res->fetch_assoc();
+        $raw = $row['collaborating_churches'] ?? '';
+        $arr = [];
+        if (!empty($raw)) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) $arr = array_map('intval', $decoded);
+        }
+        if (in_array($churchId, $arr)) {
+            sendJSON(['success' => true, 'message' => 'Already a collaborator', 'trip_id' => $tripId]);
+            return;
+        }
+        $arr[] = intval($churchId);
+        $newJson = json_encode(array_values(array_unique($arr)), JSON_UNESCAPED_UNICODE);
+        $u = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
+        $u->bind_param('si', $newJson, $tripId);
+        if ($u->execute()) {
+            logActivity($churchId, $_SESSION['uncle_id'] ?? null, 'join_trip', "trip:$tripId");
+            sendJSON(['success' => true, 'message' => 'Joined trip', 'trip_id' => $tripId, 'collaborators' => $arr]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'Failed to join trip: ' . $u->error]);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
 // ── Save enhanced image ──────────────────────────────────────
 function saveEnhancedImage($image, $outputPath, $quality = 85) {
     $ext = strtolower(pathinfo($outputPath, PATHINFO_EXTENSION));
@@ -397,6 +473,11 @@ case 'deleteAuditLog':
 case 'clearAllAuditLogs':
     checkAuth();
     clearAllAuditLogs();
+    break;
+
+case 'joinTrip':
+    checkAuth();
+    joinTrip();
     break;
 
 case 'getUncleActivityLogs':

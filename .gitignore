@@ -10,3 +10,5 @@ uncle/dashboard/currentgoogleaiscript.js
 db_migrations/20260509_add_trip_points_and_config.sql
 game/.DS_Store
 scripts/google_apps_notify.gs
+TRIP_COLLABORATION_GUIDE.md
+db_migrations/20260509_add_trip_collaboration.sql

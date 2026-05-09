@@ -1324,20 +1324,33 @@ let appListenersSetup = false; // Flag to prevent duplicate listener setup
 let selectedProfile = null; // Store the profile that was clicked
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('currentUser');
+    // Check for uncle login (set by login/index.html)
+    const uncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
+    const uncleName = localStorage.getItem('uncleName') || '';
+    const uncleImage = localStorage.getItem('uncleImage') || '';
+    const uncleId = localStorage.getItem('uncleId') || '';
+    const churchId = localStorage.getItem('churchId') || '';
+
+    // Build currentUser from stored values or check legacy currentUser
+    let storedUser = localStorage.getItem('currentUser');
+    if (!storedUser && uncleLoggedIn && uncleName) {
+        // Reconstruct from uncle login
+        currentUser = { name: uncleName, profilePhoto: uncleImage, id: uncleId, church_id: churchId };
+    } else if (storedUser) {
+        currentUser = JSON.parse(storedUser);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const participantId = urlParams.get('id');
     
     // If someone tries to access with ?id parameter but isn't logged in
-    if (participantId && !storedUser) {
+    if (participantId && !currentUser) {
         window.location.href = "https://ainshames-sundayschool.rf.gd/camp/";
         return; // Stop execution
     }
     
     // Rest of your existing code...
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
+    if (currentUser) {
         showAppContent();
     } else {
         showLoginPrompt();
