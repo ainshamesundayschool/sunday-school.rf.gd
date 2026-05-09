@@ -2686,8 +2686,13 @@ function getHashTab() {
 }
 function setHashTab(name, extraParams = {}) {
     let params = new URLSearchParams();
+    const current = getHashData();
+    if (current.tab === name) {
+        params = new URLSearchParams(current.params);
+    }
     for (const [k, v] of Object.entries(extraParams)) {
-        if(v) params.set(k, v);
+        if (v || v === 0) params.set(k, v);
+        else params.delete(k);
     }
     const pStr = params.toString();
     history.replaceState(null, '', '#' + name + (pStr ? '?' + pStr : ''));
@@ -2918,6 +2923,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const _urlP = new URLSearchParams(window.location.search);
     if (_urlP.get('class') && _urlP.get('id')) {
         handleStudentRouteParams();
+    }
+});
+
+window.addEventListener('hashchange', async () => {
+    const hashData = getHashData();
+    if (!hashData.tab) return;
+    const btn = document.querySelector(`.nav-item[onclick*="'${hashData.tab}'"]`);
+    if (btn) switchTab(hashData.tab, btn);
+    if (hashData.tab === 'trips' && hashData.params.get('trip_id')) {
+        const tripId = parseInt(hashData.params.get('trip_id'));
+        if (tripId) await showTripDetails(tripId);
+    } else if (hashData.tab !== 'trips') {
+        closeModal('tripDetailsModal');
     }
 });
 
@@ -4215,6 +4233,7 @@ function renderTripsList(trips) {
                 <span class="trip-status-pill ${sc}">${st}</span>
                 <div class="trip-actions-overlay" onclick="event.stopPropagation()">
                     <button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
                     <button class="act-btn" style="background:#8b5cf6;" onclick="showTripDetails(${t.id});setTimeout(()=>switchTripTab('exp'),200)" title="مصروفات"><i class="fas fa-receipt"></i></button>
                     <button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>
                 </div>
@@ -4325,6 +4344,9 @@ function switchTripTab(tab) {
         document.getElementById('tdtab-'+t)?.classList.toggle('active',t===tab);
         document.getElementById('tdpanel-'+t)?.classList.toggle('active',t===tab);
     });
+    if (getHashTab() === 'trips') {
+        updateHashParam('trip_tab', tab);
+    }
 }
 
 async function showTripDetails(id) {
@@ -4342,6 +4364,7 @@ async function showTripDetails(id) {
     document.getElementById('tdStatusBadge').innerHTML='';
     switchTripTab('info');
     window.currentTripId = id;
+    switchTabByName('trips');
     openModal('tripDetailsModal');
 
     // Load trip details AND expenses in PARALLEL so prices are always correct
@@ -4352,8 +4375,13 @@ async function showTripDetails(id) {
         fetch(API_URL,{method:'POST',body:fdExp}).then(r=>r.json()).catch(()=>({success:false}))
     ]);
     tripExpensesCache[id] = expResp.success ? (expResp.expenses||[]) : (tripExpensesCache[id]||[]);
-    if (tripResp.success) renderTripDetailsFull(tripResp.trip);
-    else document.getElementById('tripInfoContent').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+    if (tripResp.success) {
+        renderTripDetailsFull(tripResp.trip);
+        const tripTab = getHashData().params.get('trip_tab');
+        if (tripTab) switchTripTab(tripTab);
+    } else {
+        document.getElementById('tripInfoContent').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+    }
 }
 
 function renderTripDetailsFull(trip) {
@@ -4410,7 +4438,8 @@ function renderTripDetailsFull(trip) {
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
-            <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> CSV</button>
+            <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
+            <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
         </div>`;
 
     // ── REGS PANEL ──
@@ -4555,8 +4584,12 @@ async function registerStudentForTrip(e) {
     fd.append('notes',document.getElementById('registerNotes').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     btn.classList.remove('btn-loading'); btn.disabled=false;
-    if (d.success) { showToast('تم التسجيل بنجاح ✅','success'); closeModal('registerStudentModal'); showTripDetails(tripId); }
-    else showToast(d.message||'فشل','error');
+    if (d.success) {
+        showToast('تم التسجيل بنجاح ✅','success');
+        closeModal('registerStudentModal');
+        loadTrips();
+        showTripDetails(tripId);
+    } else showToast(d.message||'فشل','error');
 }
 
 function showAddPaymentModal(regId,name,price,paid) {
@@ -4580,18 +4613,35 @@ async function addTripPayment(e) {
     fd.append('payment_method',document.getElementById('paymentMethod').value);
     fd.append('notes',document.getElementById('paymentNotes').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-    if (d.success) { showToast('تمت إضافة الدفعة','success'); closeModal('addPaymentModal'); }
-    else showToast(d.message||'فشل','error');
+    if (d.success) {
+        showToast('تمت إضافة الدفعة','success');
+        closeModal('addPaymentModal');
+        await showTripDetails(window.currentTripId || document.getElementById('expTripId').value);
+        loadTrips();
+    } else showToast(d.message||'فشل','error');
 }
 
 async function cancelRegistration(regId,tripId) {
     if (!confirm('إلغاء تسجيل هذا الطفل؟')) return;
     const fd=new FormData(); fd.append('action','cancelTripRegistration'); fd.append('registration_id',regId);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-    if (d.success) { showToast('تم الإلغاء','success'); loadTrips(); closeModal('tripDetailsModal'); }
-    else showToast(d.message||'فشل','error');
+    if (d.success) {
+        showToast('تم الإلغاء','success');
+        loadTrips();
+        await showTripDetails(tripId);
+    } else showToast(d.message||'فشل','error');
 }
+
 function exportTripData(id,fmt) { window.location.href=API_URL+`?action=exportTripData&trip_id=${id}&format=${fmt}`; }
+
+function copyTripLink(id) {
+    const currentTab = getHashData().params.get('trip_tab');
+    const hash = `#trips?trip_id=${id}` + (currentTab ? `&trip_tab=${encodeURIComponent(currentTab)}` : '');
+    const url = window.location.origin + window.location.pathname + hash;
+    navigator.clipboard.writeText(url)
+        .then(() => showToast('تم نسخ رابط الرحلة','success'))
+        .catch(() => showToast('فشل في نسخ الرابط','error'));
+}
 
 // ── Trip Expenses — now inside tripDetailsModal tab ───────────
 async function openTripExpenses(tripId) {

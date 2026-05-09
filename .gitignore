@@ -14,4 +14,3 @@ TRIP_COLLABORATION_GUIDE.md
 db_migrations/20260509_add_trip_collaboration.sql
 db_test.php
 db_migrations/add_donation_to_trip_registrations.sql
-.gitignore
