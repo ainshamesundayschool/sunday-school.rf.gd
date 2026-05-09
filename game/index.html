@@ -1340,7 +1340,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentUser = JSON.parse(storedUser);
         showAppContent();
     } else {
-        loadProfiles();
+        showLoginPrompt();
     }
     
     // Set up profile picture click event
@@ -1635,6 +1635,21 @@ function showAppContent() {
     setupAppListeners();
 }
 
+function showLoginPrompt() {
+    const container = document.getElementById('profile-selection-container');
+    if (!container) return;
+    container.style.display = 'block';
+    container.innerHTML = `
+        <div style="padding:18px;text-align:center;">
+            <h2 class="profile-selection-title">Please sign in</h2>
+            <p style="margin:10px 0;color:var(--text-3);">You are not logged in. Please <a href="/login/">login</a> to continue.</p>
+            <button class="btn-primary" onclick="window.location.href='/login/';">Login</button>
+        </div>`;
+    // ensure app content remains hidden
+    document.getElementById('app-content').style.display = 'none';
+    document.getElementById('app-header').style.display = 'none';
+}
+
 // Helper function to validate URLs
 function isValidUrl(string) {
     try {
@@ -1654,14 +1669,8 @@ function handleLogout() {
     appListenersSetup = false;
     
     // Show profile selection
-    document.getElementById('profile-selection-container').style.display = 'block';
-    document.getElementById('loading-profiles').style.display = 'block';
-    document.getElementById('profile-list').style.display = 'none';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('app-header').style.display = 'none';
-    
-    // Reload profiles
-    loadProfiles();
+    // Redirect to login page instead of showing profile selector
+    window.location.href = '/login/';
 }
 
 function showLoading() {
