@@ -1932,7 +1932,7 @@ function openUncleDrawer(uid){
   const hasPhone=u.phone&&u.phone.trim();
   // Format phone for WhatsApp (strip leading 0, add country code)
   const waPhone=hasPhone?'20'+u.phone.trim().replace(/^0/,''):'';
-  const waMsg=encodeURIComponent('مرحباً أنا '+((student&&student.name)||'')+'، طالب في فصلك بمدارس الأحد');
+  const waMsg=encodeURIComponent('مرحباً أنا '+((student&&student.name)||'')+'، طفل في فصلك بمدارس الأحد');
   const actionBtns=hasPhone?`
     <a href="tel:${esc(u.phone.trim())}" class="uncle-action-btn call" style="text-decoration:none;">
       <div class="uncle-action-ico" style="background:#d1fae5;color:#059669;"><i class="fas fa-phone-alt"></i></div>

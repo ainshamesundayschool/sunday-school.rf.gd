@@ -621,7 +621,7 @@ a{font-family:'Cairo',sans-serif;}
       <div class="hero-mini">
         <div class="hero-mini-label">نشطة الآن</div>
         <div class="hero-mini-value" id="stActive">—</div>
-        <div class="hero-mini-note">المتاح للطلاب حاليًا</div>
+        <div class="hero-mini-note">المتاح للأطفال حاليًا</div>
       </div>
       <div class="hero-mini">
         <div class="hero-mini-label">قادمة</div>
@@ -698,7 +698,7 @@ a{font-family:'Cairo',sans-serif;}
             </div>
             <div class="fg">
               <label class="flbl">وصف / تعليمات <span style="color:var(--t3);font-weight:400;">(اختياري)</span></label>
-              <textarea id="fDesc" class="fta" placeholder="تعليمات للطالب…"></textarea>
+              <textarea id="fDesc" class="fta" placeholder="تعليمات للطفل…"></textarea>
             </div>
           </div>
         </div>
@@ -759,7 +759,7 @@ a{font-family:'Cairo',sans-serif;}
               <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-stopwatch"></i></div>
               <div class="sopt-txt">
                 <div class="sopt-lbl">وقت محدد للإجابة</div>
-                <div class="sopt-desc">عداد تنازلي يبدأ عند فتح الطالب للمهمة</div>
+                <div class="sopt-desc">عداد تنازلي يبدأ عند فتح الطفل للمهمة</div>
               </div>
               <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fTimerOn" onchange="document.getElementById('timerRow').style.display=this.checked?'':'none'"><span class="tgl-s"></span></label>
             </div>
@@ -779,13 +779,13 @@ a{font-family:'Cairo',sans-serif;}
             <div class="hint-box" style="margin-bottom:14px;">
               <i class="fas fa-hand-pointer"></i>
               <div>
-                <strong>ما يراه الطالب</strong>
+                <strong>ما يراه الطفل</strong>
                 <span>اختر الخيارات التي تجعل المهمة أوضح: نتيجة فورية، مراجعة الإجابات، أو إظهار الحلول بعد الإنهاء.</span>
               </div>
             </div>
             <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
               <div class="sopt-ico" style="background:#cffafe;color:#0891b2;"><i class="fas fa-eye"></i></div>
-              <div class="sopt-txt"><div class="sopt-lbl">إظهار الإجابات المفصلة</div><div class="sopt-desc">السماح للطالب بمعرفة إجاباته الصحيحة والخاطئة</div></div>
+              <div class="sopt-txt"><div class="sopt-lbl">إظهار الإجابات المفصلة</div><div class="sopt-desc">السماح للطفل بمعرفة إجاباته الصحيحة والخاطئة</div></div>
               <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns"><span class="tgl-s"></span></label>
             </div>
             <div class="sopt-row" onclick="document.getElementById('fShowRes').click()">
@@ -795,12 +795,12 @@ a{font-family:'Cairo',sans-serif;}
             </div>
             <div class="sopt-row" onclick="document.getElementById('fShuffle').click()">
               <div class="sopt-ico" style="background:#e0e7ff;color:#4f46e5;"><i class="fas fa-random"></i></div>
-              <div class="sopt-txt"><div class="sopt-lbl">خلط ترتيب الأسئلة</div><div class="sopt-desc">ترتيب عشوائي مختلف لكل طالب</div></div>
+              <div class="sopt-txt"><div class="sopt-lbl">خلط ترتيب الأسئلة</div><div class="sopt-desc">ترتيب عشوائي مختلف لكل طفل</div></div>
               <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShuffle"><span class="tgl-s"></span></label>
             </div>
             <div class="sopt-row" style="margin-bottom:0;" onclick="document.getElementById('fReview').click()">
               <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-eye"></i></div>
-              <div class="sopt-txt"><div class="sopt-lbl">مراجعة الإجابات قبل الإرسال</div><div class="sopt-desc">يستطيع الطالب تغيير إجاباته قبل التسليم النهائي</div></div>
+              <div class="sopt-txt"><div class="sopt-lbl">مراجعة الإجابات قبل الإرسال</div><div class="sopt-desc">يستطيع الطفل تغيير إجاباته قبل التسليم النهائي</div></div>
               <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fReview" checked><span class="tgl-s"></span></label>
             </div>
           </div>
@@ -1243,7 +1243,7 @@ function addQ(data){
         '<button class="tf-btn tf-true" id="tftrue_'+id+'" onclick="setTF(\''+id+'\',true)"><i class="fas fa-check-circle"></i> صحيح</button>'+
         '<button class="tf-btn tf-false" id="tffalse_'+id+'" onclick="setTF(\''+id+'\',false)"><i class="fas fa-times-circle"></i> خطأ</button>'+
       '</div>'+
-      '<div class="open-q-note" id="opennote_'+id+'" style="display:none"><i class="fas fa-pen-nib"></i>الطالب يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم</div>'+
+      '<div class="open-q-note" id="opennote_'+id+'" style="display:none"><i class="fas fa-pen-nib"></i>الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم</div>'+
     '</div>'+
     '<div class="q-img-section">'+
       '<button class="q-img-toggle" onclick="toggleImgSection(\''+id+'\')">'+
@@ -1737,7 +1737,7 @@ function showDeleteSubConfirm(subId, studentName, coupons, taskId){
   _pendingDelSub = {subId, taskId};
   const msg=document.getElementById('delSubMsg');
   if(msg){
-    msg.innerHTML = `حذف إجابة <strong>${esc(studentName||'هذا الطالب')}</strong>؟`
+    msg.innerHTML = `حذف إجابة <strong>${esc(studentName||'هذا الطفل')}</strong>؟`
       + (coupons>0?`<br><span style="color:var(--err);font-size:.8rem;">سيتم خصم ${coupons} كوبون من كوبونات المهام فقط.</span>`:'');
   }
   openOv('delSubConfOv');
@@ -1832,7 +1832,7 @@ async function openGradePanel(taskId) {
 
 function renderGradePanel() {
   const el = document.getElementById('gradePanelBody');
-  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} طالب ينتظر التصحيح`;
+  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} طفل ينتظر التصحيح`;
   if(!gradeSubs.length){
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--ok);display:block;margin-bottom:10px;"></i>تم تصحيح جميع الإجابات!</div>';
     return;
@@ -2088,7 +2088,7 @@ function viewAnswers(taskId, studentId) {
       if(qType === 'open') {
         const hasAns = given && String(given).trim().length > 0;
         html += `<div class="ans-open">
-          <div class="ans-open-label">إجابة الطالب:</div>
+          <div class="ans-open-label">إجابة الطفل:</div>
           <div class="ans-open-text" style="${!hasAns?'color:var(--t4);font-style:italic;':''}">${hasAns ? esc(given) : '— لم يُجب على هذا السؤال —'}</div>
         </div>`;
       } else {

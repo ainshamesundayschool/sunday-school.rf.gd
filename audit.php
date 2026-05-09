@@ -274,7 +274,7 @@ function auditStudentAdd(int $studentId, string $studentName, array $data): void
     // Strip any sensitive fields
     unset($data['password_hash']);
     writeAuditLog('student_add', 'student', $studentId, $studentName, null, $data,
-        "إضافة طالب جديد: $studentName");
+        "إضافة طفل جديد: $studentName");
 }
 
 /**
@@ -283,7 +283,7 @@ function auditStudentAdd(int $studentId, string $studentName, array $data): void
 function auditStudentEdit(int $studentId, array $oldRow, array $newRow): void {
     unset($oldRow['password_hash'], $newRow['password_hash']);
     writeAuditLog('student_edit', 'student', $studentId, $oldRow['name'] ?? $newRow['name'] ?? '',
-        $oldRow, $newRow, "تعديل بيانات الطالب");
+        $oldRow, $newRow, "تعديل بيانات الطفل");
 }
 
 /**
@@ -292,7 +292,7 @@ function auditStudentEdit(int $studentId, array $oldRow, array $newRow): void {
 function auditStudentDelete(int $studentId, array $oldRow): void {
     unset($oldRow['password_hash']);
     writeAuditLog('student_delete', 'student', $studentId, $oldRow['name'] ?? '',
-        $oldRow, null, "حذف الطالب: " . ($oldRow['name'] ?? ''));
+        $oldRow, null, "حذف الطفل: " . ($oldRow['name'] ?? ''));
 }
 
 // ── ATTENDANCE ───────────────────────────────────────────────
@@ -367,7 +367,7 @@ function auditTripRegistration(int $tripId, string $tripTitle, int $studentId, s
     $label = $action === 'cancel' ? 'إلغاء تسجيل' : 'تسجيل';
     writeAuditLog("trip_$action", 'trip_registration', $tripId, $tripTitle,
         null, ['student_id' => $studentId, 'student_name' => $studentName],
-        "$label الطالب $studentName في رحلة $tripTitle");
+        "$label الطفل $studentName في رحلة $tripTitle");
 }
 
 // ── ANNOUNCEMENTS ────────────────────────────────────────────

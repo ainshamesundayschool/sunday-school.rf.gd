@@ -1,0 +1,1 @@
+ALTER TABLE trip_payments ADD COLUMN donation DECIMAL(10,2) DEFAULT 0.00 AFTER amount;

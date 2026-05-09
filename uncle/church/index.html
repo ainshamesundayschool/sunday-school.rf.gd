@@ -2427,13 +2427,13 @@ button, a, [role="button"] { touch-action: manipulation; }
 <!-- Register Student for Trip — with kid profile cards -->
 <div id="registerStudentModal" class="modal">
     <div class="modal-box" style="max-width:620px;">
-        <div class="modal-head"><h2><i class="fas fa-user-plus"></i> تسجيل طالب في الرحلة</h2><button class="modal-close" onclick="closeModal('registerStudentModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-head"><h2><i class="fas fa-user-plus"></i> تسجيل طفل في الرحلة</h2><button class="modal-close" onclick="closeModal('registerStudentModal')"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
             <form id="registerStudentForm" onsubmit="registerStudentForTrip(event)">
                 <input type="hidden" id="registerTripId">
                 <input type="hidden" id="registerStudentId">
                 <div style="margin-bottom:14px;">
-                    <label class="form-label" style="margin-bottom:8px;display:block;">اختر طالباً</label>
+                    <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
                     <!-- search + filter -->
                     <div class="kid-picker-search">
                         <i class="fas fa-search"></i>
@@ -2446,7 +2446,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="spin-icon"></div> جاري تحميل الأطفال...
                         </div>
                     </div>
-                    <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طالب بعد</div>
+                    <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
                     <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
@@ -2470,6 +2470,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                 <input type="hidden" id="paymentRegistrationId">
                 <div id="paymentStudentInfo" style="margin-bottom:16px;padding:14px;background:var(--bg);border-radius:10px;"></div>
                 <div class="form-group" style="margin-bottom:14px;"><label class="form-label">المبلغ *</label><input type="number" id="paymentAmount" class="form-input" step="1" min="1" required></div>
+                <div class="form-group" style="margin-bottom:14px;"><label class="form-label">تبرع إضافي</label><input type="number" id="paymentDonation" class="form-input" step="1" min="0" value="0"></div>
                 <div class="form-group" style="margin-bottom:14px;"><label class="form-label">طريقة الدفع</label><select id="paymentMethod" class="form-select" style="width:100%;"><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></div>
                 <div class="form-group" style="margin-bottom:20px;"><label class="form-label">ملاحظات</label><textarea id="paymentNotes" class="form-textarea" rows="2"></textarea></div>
                 <div style="display:flex;gap:10px;">
@@ -2488,7 +2489,7 @@ button, a, [role="button"] { touch-action: manipulation; }
         <div class="modal-body">
             <form id="editCouponsForm" onsubmit="updateCoupons(event)">
                 <input type="hidden" id="couponStudentId">
-                <div class="form-group" style="margin-bottom:14px;"><label class="form-label">اسم الطالب</label><input type="text" id="couponStudentName" class="form-input" readonly></div>
+                <div class="form-group" style="margin-bottom:14px;"><label class="form-label">اسم الطفل</label><input type="text" id="couponStudentName" class="form-input" readonly></div>
                 <div class="form-group" style="margin-bottom:14px;"><label class="form-label">العدد الحالي</label><input type="text" id="currentCoupons" class="form-input" readonly></div>
                 <div class="form-group" style="margin-bottom:14px;"><label class="form-label">العدد الجديد</label><input type="number" id="newCoupons" min="0" required class="form-input"></div>
                 <div class="form-group" style="margin-bottom:20px;"><label class="form-label">سبب التعديل</label><textarea id="couponReason" required class="form-textarea" rows="2"></textarea></div>
@@ -2504,7 +2505,7 @@ button, a, [role="button"] { touch-action: manipulation; }
 <!-- Student Details -->
 <div id="studentDetailsModal" class="modal">
     <div class="modal-box">
-        <div class="modal-head"><h2><i class="fas fa-child"></i> تفاصيل الطالب</h2><button class="modal-close" onclick="closeModal('studentDetailsModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-head"><h2><i class="fas fa-child"></i> تفاصيل الطفل</h2><button class="modal-close" onclick="closeModal('studentDetailsModal')"><i class="fas fa-times"></i></button></div>
         <div class="modal-body" id="studentDetails"></div>
     </div>
 </div>
@@ -2663,13 +2664,48 @@ let devViewChurchId = 0;
 let devOrigChurchId = 0;
 
 // ── Tab persistence via URL hash ─────────────────────────────
-function getHashTab() {
-    const h = window.location.hash.replace('#', '').trim();
+function getHashData() {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    let tab = '';
+    for(const key of hashParams.keys()) {
+        if (!key.includes('=')) { tab = key; break; }
+    }
+    if(!tab && window.location.hash.includes('?')) {
+        tab = window.location.hash.split('?')[0].replace('#', '');
+    } else if(!tab) {
+        tab = window.location.hash.replace('#', '').trim();
+    }
     const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending','history','devChurches','devMessages','churchSettings'];
-    return valid.includes(h) ? h : null;
+    return {
+        tab: valid.includes(tab) ? tab : null,
+        params: hashParams
+    };
 }
-function setHashTab(name) {
-    history.replaceState(null, '', '#' + name);
+function getHashTab() {
+    return getHashData().tab;
+}
+function setHashTab(name, extraParams = {}) {
+    let params = new URLSearchParams();
+    for (const [k, v] of Object.entries(extraParams)) {
+        if(v) params.set(k, v);
+    }
+    const pStr = params.toString();
+    history.replaceState(null, '', '#' + name + (pStr ? '?' + pStr : ''));
+}
+function updateHashParam(key, value) {
+    const data = getHashData();
+    if(data.tab) {
+        if(value) data.params.set(key, value);
+        else data.params.delete(key);
+        
+        // rebuild hash
+        let parts = [];
+        for (const [k, v] of data.params.entries()) {
+            if (k !== data.tab) parts.push(`${k}=${v}`);
+        }
+        const pStr = parts.join('&');
+        history.replaceState(null, '', '#' + data.tab + (pStr ? '?' + pStr : ''));
+    }
 }
 
 // ── Auth & Init ──────────────────────────────────────────────
@@ -2859,6 +2895,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadTrips(),
     ]);
 
+    // Handle deep links from Hash
+    const hashData = getHashData();
+    if (hashData.tab === 'trips' && hashData.params.get('trip_id')) {
+        const tripId = parseInt(hashData.params.get('trip_id'));
+        if (tripId) {
+            setTimeout(() => showTripDetails(tripId), 500);
+        }
+    }
+
     // 11. UI init
     toggleTripDates();
     recalcTripPrice();
@@ -2964,8 +3009,24 @@ function switchTabByName(name) {
 }
 
 // ── Modals ────────────────────────────────────────────────────
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    if (id === 'tripDetailsModal' && window.currentTripId) {
+        updateHashParam('trip_id', window.currentTripId);
+    }
+    if (id === 'studentDetailsModal' && window.currentStudentId) {
+        updateHashParam('student_id', window.currentStudentId);
+    }
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'tripDetailsModal') {
+        updateHashParam('trip_id', null);
+    }
+    if (id === 'studentDetailsModal') {
+        updateHashParam('student_id', null);
+    }
+}
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); }));
 
 // ── Toast ─────────────────────────────────────────────────────
@@ -3132,7 +3193,7 @@ function renderRecentActivity(activities) {
                     <i class="fas fa-${statusIcon}"></i>
                 </div>
                 <div class="activity-info">
-                    <strong>${a.student || a.student_name || 'طالب'}</strong>
+                    <strong>${a.student || a.student_name || 'طفل'}</strong>
                     <span>
                         <i class="fas fa-calendar"></i> ${a.date || ''} 
                         ${a.class ? `• <i class="fas fa-chalkboard"></i> ${a.class}` : ''}
@@ -3412,7 +3473,7 @@ function searchStudents() {
 }
 
 async function deleteStudentConfirm(id,name) {
-    if (!confirm(`هل أنت متأكد من حذف الطالب "${name}"؟\nسيتم حذف جميع سجلات الحضور المرتبطة به.`)) return;
+    if (!confirm(`هل أنت متأكد من حذف الطفل "${name}"؟\nسيتم حذف جميع سجلات الحضور المرتبطة به.`)) return;
     const fd=_appendDevOverride(new FormData()); fd.append('action','deleteStudent'); fd.append('studentId',id);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast(d.message,'success'); loadStudents(); loadStatistics(); }
@@ -4280,6 +4341,7 @@ async function showTripDetails(id) {
     document.getElementById('tdCoverThumb').innerHTML='<i class="fas fa-bus" style="color:rgba(255,255,255,0.4)"></i>';
     document.getElementById('tdStatusBadge').innerHTML='';
     switchTripTab('info');
+    window.currentTripId = id;
     openModal('tripDetailsModal');
 
     // Load trip details AND expenses in PARALLEL so prices are always correct
@@ -4344,7 +4406,7 @@ function renderTripDetailsFull(trip) {
         </div>
         ${trip.description?`<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>`:''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طالب</button>
+            <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
@@ -4392,7 +4454,7 @@ function renderTripDetailsFull(trip) {
                 </div>
             </div>`;
         }).join('')}</div>`
-        : `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طالب</button></div>`;
+        : `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button></div>`;
 
     // ── EXPENSES PANEL ──
     document.getElementById('expTripId').value=trip.id;
@@ -4412,7 +4474,7 @@ async function showRegisterStudentModal(tripId) {
     document.getElementById('registerNotes').value='';
     document.getElementById('registerStudentSearch').value='';
     document.getElementById('registerStudentId').value='';
-    document.getElementById('kidSelectedInfo').textContent='لم يتم اختيار طالب بعد';
+    document.getElementById('kidSelectedInfo').textContent='لم يتم اختيار طفل بعد';
     document.getElementById('kidPickerGrid').innerHTML=`<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
     openModal('registerStudentModal');
     const fd=new FormData(); fd.append('action','getData');
@@ -4484,7 +4546,7 @@ async function registerStudentForTrip(e) {
     e.preventDefault();
     const tripId=document.getElementById('registerTripId').value;
     const studentId=document.getElementById('registerStudentId').value;
-    if (!studentId) { showToast('اختر طالباً من القائمة','warning'); return; }
+    if (!studentId) { showToast('اختر طفلاً من القائمة','warning'); return; }
     const btn=document.getElementById('regSubmitBtn');
     btn.classList.add('btn-loading'); btn.disabled=true;
     const fd=new FormData(); fd.append('action','registerStudentForTrip');
@@ -4500,9 +4562,10 @@ async function registerStudentForTrip(e) {
 function showAddPaymentModal(regId,name,price,paid) {
     document.getElementById('paymentRegistrationId').value=regId;
     document.getElementById('paymentAmount').value='';
+    document.getElementById('paymentDonation').value='0';
     document.getElementById('paymentMethod').value='cash';
     document.getElementById('paymentNotes').value='';
-    document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطالب:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
+    document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
     openModal('addPaymentModal');
 }
 
@@ -4513,6 +4576,7 @@ async function addTripPayment(e) {
     const fd=new FormData(); fd.append('action','addTripPayment');
     fd.append('registration_id',document.getElementById('paymentRegistrationId').value);
     fd.append('amount',Math.round(parseFloat(amount)));
+    fd.append('donation',document.getElementById('paymentDonation').value || 0);
     fd.append('payment_method',document.getElementById('paymentMethod').value);
     fd.append('notes',document.getElementById('paymentNotes').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
@@ -4521,7 +4585,7 @@ async function addTripPayment(e) {
 }
 
 async function cancelRegistration(regId,tripId) {
-    if (!confirm('إلغاء تسجيل هذا الطالب؟')) return;
+    if (!confirm('إلغاء تسجيل هذا الطفل؟')) return;
     const fd=new FormData(); fd.append('action','cancelTripRegistration'); fd.append('registration_id',regId);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم الإلغاء','success'); loadTrips(); closeModal('tripDetailsModal'); }
@@ -5018,7 +5082,7 @@ function loadManualAttStudents() {
     const students=cls?allStudents.filter(s=>s['الفصل']===cls):[];
     manualAttStudents={};
     students.forEach(s=>{manualAttStudents[s['_studentId']]='present';});
-    if (!students.length) { document.getElementById('manualAttStudentList').innerHTML=`<p style="color:var(--muted);text-align:center;padding:16px;">اختر فصلاً لعرض الطلاب</p>`; return; }
+    if (!students.length) { document.getElementById('manualAttStudentList').innerHTML=`<p style="color:var(--muted);text-align:center;padding:16px;">اختر فصلاً لعرض الأطفال</p>`; return; }
     document.getElementById('manualAttStudentList').innerHTML=`
         <div style="display:flex;gap:8px;margin-bottom:12px;">
             <button class="btn btn-success btn-sm" onclick="setAllAtt('present')"><i class="fas fa-check-double"></i> تحضير الكل</button>
@@ -5343,7 +5407,7 @@ function showEditStudentModal(s) {
     const wrap=document.createElement('div');
     wrap.innerHTML=`<div class="modal open" id="editStudentModal">
         <div class="modal-box wide">
-            <div class="modal-head"><h2><i class="fas fa-user-edit"></i> تعديل معلومات الطالب</h2><button class="modal-close" onclick="document.getElementById('editStudentModal').remove()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-head"><h2><i class="fas fa-user-edit"></i> تعديل معلومات الطفل</h2><button class="modal-close" onclick="document.getElementById('editStudentModal').remove()"><i class="fas fa-times"></i></button></div>
             <div class="modal-body">
                 <form id="editStudentForm" onsubmit="updateStudentFull(event)">
                     <input type="hidden" id="editStudentId" value="${s.id}">
@@ -5355,7 +5419,7 @@ function showEditStudentModal(s) {
                         <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editStudentBirthday" class="form-input" value="${escHtml(s.birthday||'')}" placeholder="DD/MM/YYYY"></div>
                         <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="editStudentAddress" class="form-input" value="${escHtml(s.address||'')}"></div>
                         <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ملاحظات طبية</label><textarea id="editStudentMedicalNotes" class="form-textarea">${escHtml(s.medical_notes||s.medical_note||'')}</textarea></div>
-                        <div class="form-group" style="grid-column:1/-1;"><label class="form-label">صورة الطالب</label><input type="file" id="editStudentImage" accept="image/*" class="form-input"></div>
+                        <div class="form-group" style="grid-column:1/-1;"><label class="form-label">صورة الطفل</label><input type="file" id="editStudentImage" accept="image/*" class="form-input"></div>
                     </div>
                     <div style="display:flex;gap:10px;">
                         <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
@@ -6070,7 +6134,7 @@ function getArabicFieldName(field) {
         'commitment_coupons': 'كوبونات الالتزام',
         'text': 'النص',
         'link': 'الرابط',
-        'student_names': 'أسماء الطلاب',
+        'student_names': 'أسماء الأطفال',
         'amount': 'المبلغ',
         'payment_method': 'طريقة الدفع',
         'notes': 'ملاحظات',

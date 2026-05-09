@@ -1957,7 +1957,7 @@ function submitAttendance() {
         $conn->commit();
         sendJSON([
             'success'    => true,
-            'message'    => "تم حفظ الحضور بنجاح ($successCount طالب)",
+            'message'    => "تم حفظ الحضور بنجاح ($successCount طفل)",
             'savedCount' => $successCount,
             'date'       => $date
         ]);
@@ -2169,7 +2169,7 @@ function updateStudentImageAfterCreation() {
         $studentId = intval($_POST['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -2456,7 +2456,7 @@ function updateStudentInfo() {
             $checkPhoneStmt->execute();
             
             if ($checkPhoneStmt->get_result()->num_rows > 0) {
-                sendJSON(['success' => false, 'message' => 'رقم الهاتف مستخدم بالفعل من قبل طالب آخر']);
+                sendJSON(['success' => false, 'message' => 'رقم الهاتف مستخدم بالفعل من قبل طفل آخر']);
                 return;
             }
         }
@@ -2567,14 +2567,14 @@ function updateCoupons() {
         if ($successCount > 0) {
             sendJSON([
                 'success' => true,
-                'message' => "تم تحديث كوبونات $successCount طالب بنجاح" . ($failCount > 0 ? " (فشل $failCount)" : ''),
+                'message' => "تم تحديث كوبونات $successCount طفل بنجاح" . ($failCount > 0 ? " (فشل $failCount)" : ''),
                 'updated' => $successCount,
                 'failed' => $failCount
             ]);
         } else {
             sendJSON([
                 'success' => false,
-                'message' => 'لم يتم تحديث أي كوبونات - تحقق من أسماء الطلاب',
+                'message' => 'لم يتم تحديث أي كوبونات - تحقق من أسماء الأطفال',
                 'updated' => 0,
                 'failed' => $failCount
             ]);
@@ -2599,7 +2599,7 @@ function getChurchClassesWithStats() {
         $hasCustom = $checkCustom->get_result()->fetch_assoc()['cnt'] > 0;
         
         if ($hasCustom) {
-            // فصول مخصصة مع عدد الطلاب
+            // فصول مخصصة مع عدد الأطفال
             $stmt = $conn->prepare("
                 SELECT 
                     cc.id,
@@ -2615,7 +2615,7 @@ function getChurchClassesWithStats() {
             ");
             $stmt->bind_param("ii", $churchId, $churchId);
         } else {
-            // فصول افتراضية مع عدد الطلاب
+            // فصول افتراضية مع عدد الأطفال
             $stmt = $conn->prepare("
                 SELECT 
                     c.id,
@@ -2747,7 +2747,7 @@ function deleteStudent() {
         $studentId = intval($_POST['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -2904,7 +2904,7 @@ function getAllAnnouncements() {
                 text as 'النص', 
                 link as 'الرابط', 
                 class as 'الفصل', 
-                student_names as 'أسماء الطلاب', 
+                student_names as 'أسماء الأطفال', 
                 is_active as 'منشط',
                 DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as 'تاريخ الإضافة'
             FROM announcements 
@@ -3107,7 +3107,7 @@ function getStudentByPhone() {
             sendJSON([
                 'success' => true,
                 'data' => $students,
-                'message' => 'تم العثور على ' . count($students) . ' طالب'
+                'message' => 'تم العثور على ' . count($students) . ' طفل'
             ]);
         } else {
             // Try one more time with just the last 9 digits
@@ -3144,7 +3144,7 @@ function getStudentByPhone() {
                     sendJSON([
                         'success' => true,
                         'data' => $students2,
-                        'message' => 'تم العثور على ' . count($students2) . ' طالب'
+                        'message' => 'تم العثور على ' . count($students2) . ' طفل'
                     ]);
                     return;
                 }
@@ -3152,7 +3152,7 @@ function getStudentByPhone() {
             
             sendJSON([
                 'success' => false,
-                'message' => 'لم يتم العثور على طالب بهذا الرقم',
+                'message' => 'لم يتم العثور على طفل بهذا الرقم',
                 'data' => []
             ]);
         }
@@ -3168,7 +3168,7 @@ function getStudentAttendance() {
         $studentId = intval($_POST['studentId'] ?? $_GET['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
         }
         
         $conn = getDBConnection();
@@ -3344,13 +3344,13 @@ function approveRegistration() {
         
         if (!$insertStmt->execute()) {
             $conn->rollback();
-            error_log("❌ فشل في إضافة الطالب: " . $insertStmt->error);
-            sendJSON(['success' => false, 'message' => 'فشل في إضافة الطالب: ' . $insertStmt->error]);
+            error_log("❌ فشل في إضافة الطفل: " . $insertStmt->error);
+            sendJSON(['success' => false, 'message' => 'فشل في إضافة الطفل: ' . $insertStmt->error]);
             return;
         }
         
         $newStudentId = $conn->insert_id;
-        error_log("✅ تم إضافة الطالب ID: $newStudentId في فصل: $finalClassName");
+        error_log("✅ تم إضافة الطفل ID: $newStudentId في فصل: $finalClassName");
         
         // ── Update registration status ────────────────────────────
         $updateStmt = $conn->prepare("
@@ -3374,7 +3374,7 @@ function approveRegistration() {
         
         sendJSON([
             'success'    => true,
-            'message'    => 'تمت الموافقة وإضافة الطالب في فصل ' . $finalClassName,
+            'message'    => 'تمت الموافقة وإضافة الطفل في فصل ' . $finalClassName,
             'student_id' => $newStudentId,
             'class_name' => $finalClassName,
         ]);
@@ -3690,7 +3690,7 @@ if (!$classId) {
                 );
                 
                 if (!$addStmt->execute()) {
-                    throw new Exception("فشل في إضافة الطالب: " . $addStmt->error);
+                    throw new Exception("فشل في إضافة الطفل: " . $addStmt->error);
                 }
             }
             
@@ -4607,7 +4607,7 @@ function submitRegistrationRequest() {
             );
             if (!$ins->execute()) {
                 $conn->rollback();
-                sendJSON(['success'=>false,'message'=>'فشل في إضافة الطالب: '.$ins->error]);
+                sendJSON(['success'=>false,'message'=>'فشل في إضافة الطفل: '.$ins->error]);
                 return;
             }
             $newStudentId = $conn->insert_id;
@@ -4645,7 +4645,7 @@ function submitRegistrationRequest() {
                 'registration_id' => $registrationId,
                 'student_id'      => $newStudentId,
                 'class_id'        => $classId,
-                'message'         => 'تم القبول تلقائياً وإضافة الطالب'
+                'message'         => 'تم القبول تلقائياً وإضافة الطفل'
             ]);
 
         } else {
@@ -6167,7 +6167,7 @@ function checkKidPasswordByPhone() {
             error_log("🔐 No student found for phone: $cleanPhone");
             sendJSON([
                 'success' => false,
-                'message' => 'لم يتم العثور على طالب بهذا الرقم'
+                'message' => 'لم يتم العثور على طفل بهذا الرقم'
             ]);
         }
         
@@ -6497,7 +6497,7 @@ function getStudentProfile() {
         $studentId = intval($_POST['studentId'] ?? $_GET['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -6534,7 +6534,7 @@ function getStudentProfile() {
         } else {
             sendJSON([
                 'success' => false,
-                'message' => 'لم يتم العثور على الطالب'
+                'message' => 'لم يتم العثور على الطفل'
             ]);
         }
         
@@ -6669,7 +6669,7 @@ function updateStudentAttendance() {
                 ");
                 $updateStmt->bind_param("iissi", $studentId, $churchId, $date, $status, $uncleId);
             } else {
-                sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطالب']);
+                sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل']);
                 return;
             }
         }
@@ -6691,7 +6691,7 @@ function checkStudentPassword() {
         $studentId = intval($_POST['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -6790,7 +6790,7 @@ function updateCouponsKids() {
                 sendJSON(['success' => false, 'message' => 'فشل في تحديث الكوبونات']);
             }
         } else {
-            sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطالب']);
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل']);
         }
         
     } catch (Exception $e) {
@@ -7110,7 +7110,7 @@ function getStudentAttendanceDetails() {
         $studentId = intval($_POST['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -7298,7 +7298,7 @@ function getCouponLogs() {
         $studentId = intval($_POST['studentId'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -7610,7 +7610,7 @@ function deleteChurchClass() {
         if ($count > 0) {
             sendJSON([
                 'success' => false,
-                'message' => "لا يمكن حذف الفصل لأنه يحتوي على $count طالب. انقل الطلاب أولاً.",
+                'message' => "لا يمكن حذف الفصل لأنه يحتوي على $count طفل. انقل الأطفال أولاً.",
             ]);
             return;
         }
@@ -7650,7 +7650,7 @@ function resetChurchClasses() {
         if ($count > 0) {
             sendJSON([
                 'success' => false,
-                'message' => "يوجد $count طالب مرتبط بفصول مخصصة. يرجى نقلهم للفصول الافتراضية أولاً.",
+                'message' => "يوجد $count طفل مرتبط بفصول مخصصة. يرجى نقلهم للفصول الافتراضية أولاً.",
             ]);
             return;
         }
@@ -8013,7 +8013,7 @@ function deleteTrip() {
         if ($count > 0) {
             sendJSON([
                 'success' => false, 
-                'message' => "لا يمكن حذف الرحلة لأن هناك $count طالب مسجل. يمكن إلغاء الرحلة بدلاً من الحذف."
+                'message' => "لا يمكن حذف الرحلة لأن هناك $count طفل مسجل. يمكن إلغاء الرحلة بدلاً من الحذف."
             ]);
             return;
         }
@@ -8155,22 +8155,22 @@ function registerStudentForTrip() {
         $notes = sanitize($_POST['notes'] ?? '');
         
         if ($tripId === 0 || $studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'الرحلة والطالب مطلوبان']);
+            sendJSON(['success' => false, 'message' => 'الرحلة والطفل مطلوبان']);
             return;
         }
         
         $conn = getDBConnection();
         
-        // التحقق من وجود الطالب في نفس الكنيسة
+        // التحقق من وجود الطفل في نفس الكنيسة
         $checkStudent = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
         $checkStudent->bind_param("ii", $studentId, $churchId);
         $checkStudent->execute();
         if ($checkStudent->get_result()->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'الطالب غير موجود في هذه الكنيسة']);
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود في هذه الكنيسة']);
             return;
         }
         
-        // التحقق من عدم تسجيل الطالب مسبقاً
+        // التحقق من عدم تسجيل الطفل مسبقاً
         $checkReg = $conn->prepare("
             SELECT id, cancelled FROM trip_registrations 
             WHERE trip_id = ? AND student_id = ?
@@ -8182,7 +8182,7 @@ function registerStudentForTrip() {
         if ($regResult->num_rows > 0) {
             $existing = $regResult->fetch_assoc();
             if ($existing['cancelled'] == 0) {
-                sendJSON(['success' => false, 'message' => 'الطالب مسجل بالفعل في هذه الرحلة']);
+                sendJSON(['success' => false, 'message' => 'الطفل مسجل بالفعل في هذه الرحلة']);
                 return;
             }
         }
@@ -8213,7 +8213,7 @@ function registerStudentForTrip() {
             }
             
             // تسجيل النشاط
-            logActivity($churchId, $uncleId, 'register_trip', "تسجيل طالب في رحلة ID: $tripId");
+            logActivity($churchId, $uncleId, 'register_trip', "تسجيل طفل في رحلة ID: $tripId");
             
             // ► AUDIT
             $tripInfo = getTripSnapshot($tripId);
@@ -8221,16 +8221,16 @@ function registerStudentForTrip() {
             
             sendJSON([
                 'success' => true,
-                'message' => 'تم تسجيل الطالب في الرحلة بنجاح',
+                'message' => 'تم تسجيل الطفل في الرحلة بنجاح',
                 'registration_id' => $registrationId
             ]);
         } else {
-            sendJSON(['success' => false, 'message' => 'فشل في تسجيل الطالب: ' . $stmt->error]);
+            sendJSON(['success' => false, 'message' => 'فشل في تسجيل الطفل: ' . $stmt->error]);
         }
         
     } catch (Exception $e) {
         error_log("registerStudentForTrip error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الطالب: ' . $e->getMessage()]);
+        sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الطفل: ' . $e->getMessage()]);
     }
 }
 function addTripPayment() {
@@ -8243,6 +8243,8 @@ function addTripPayment() {
         $amount = floatval($_POST['amount'] ?? 0);
         $paymentMethod = sanitize($_POST['payment_method'] ?? 'cash');
         $notes = sanitize($_POST['notes'] ?? '');
+        
+        $donation = floatval($_POST['donation'] ?? 0);
         
         if ($registrationId === 0 || $amount <= 0) {
             sendJSON(['success' => false, 'message' => 'بيانات الدفع غير صحيحة']);
@@ -8295,10 +8297,10 @@ function addTripPayment() {
         
         // إضافة الدفعة
         $paymentStmt = $conn->prepare("
-            INSERT INTO trip_payments (registration_id, amount, payment_method, received_by, notes)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO trip_payments (registration_id, amount, donation, payment_method, received_by, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $paymentStmt->bind_param("idsss", $registrationId, $amount, $paymentMethod, $uncleId, $notes);
+        $paymentStmt->bind_param("iddsss", $registrationId, $amount, $donation, $paymentMethod, $uncleId, $notes);
         
 if ($paymentStmt->execute()) {
     $newPaymentId = $conn->insert_id;
@@ -8458,10 +8460,36 @@ function exportTripData() {
             $registrations[] = $row;
         }
         
+        // بيانات المدفوعات
+        $payStmt = $conn->prepare("
+            SELECT
+                s.name as student_name,
+                tp.amount,
+                tp.donation,
+                tp.payment_date,
+                tp.payment_method,
+                tp.notes,
+                u.name as received_by_name
+            FROM trip_payments tp
+            JOIN trip_registrations tr ON tp.registration_id = tr.id
+            JOIN students s ON tr.student_id = s.id
+            LEFT JOIN uncles u ON tp.received_by = u.id
+            WHERE tr.trip_id = ? AND tr.cancelled = 0
+            ORDER BY tp.payment_date
+        ");
+        $payStmt->bind_param("i", $tripId);
+        $payStmt->execute();
+        $payResult = $payStmt->get_result();
+        
+        $payments = [];
+        while ($row = $payResult->fetch_assoc()) {
+            $payments[] = $row;
+        }
+        
         if ($format === 'csv') {
-            exportTripToCSV($trip, $finalPrice, $registrations);
+            exportTripToCSV($trip, $finalPrice, $registrations, $payments);
         } else {
-            exportTripToPDF($trip, $finalPrice, $registrations);
+            exportTripToPDF($trip, $finalPrice, $registrations, $payments);
         }
         
     } catch (Exception $e) {
@@ -8471,7 +8499,7 @@ function exportTripData() {
 }
 
 
-function exportTripToCSV($trip, $finalPrice, $registrations) {
+function exportTripToCSV($trip, $finalPrice, $registrations, $payments = []) {
     $filename = 'رحلة_' . str_replace(' ', '_', $trip['title']) . '_' . date('Y-m-d') . '.csv';
     
     header('Content-Type: text/csv; charset=utf-8');
@@ -8500,7 +8528,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations) {
     fputcsv($output, ['']);
     
     // رأس الجدول
-    fputcsv($output, ['#', 'اسم الطالب', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية', 
+    fputcsv($output, ['#', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية', 
                       'تاريخ التسجيل', 'المدفوع', 'المتبقي', 'الحالة', 'ملاحظات']);
     
     foreach ($registrations as $index => $reg) {
@@ -8529,6 +8557,26 @@ function exportTripToCSV($trip, $finalPrice, $registrations) {
     fputcsv($output, ['إجمالي المدفوعات', $totalPaid . ' جنيه']);
     fputcsv($output, ['المتبقي', $totalRemaining . ' جنيه']);
     fputcsv($output, ['الإجمالي المتوقع', ($totalPaid + $totalRemaining) . ' جنيه']);
+    
+    // المدفوعات التفصيلية
+    if (!empty($payments)) {
+        fputcsv($output, ['']);
+        fputcsv($output, ['سجل المدفوعات والتبرعات']);
+        fputcsv($output, ['#', 'اسم الطفل', 'المبلغ المدفوع', 'التبرع', 'طريقة الدفع', 'المستلم', 'تاريخ الدفع', 'ملاحظات']);
+        foreach ($payments as $index => $pay) {
+            $methodAr = ['cash'=>'نقداً', 'card'=>'بطاقة', 'bank_transfer'=>'تحويل بنكي', 'other'=>'أخرى'][$pay['payment_method']] ?? $pay['payment_method'];
+            fputcsv($output, [
+                $index + 1,
+                $pay['student_name'],
+                floatval($pay['amount']) . ' جنيه',
+                floatval($pay['donation']) . ' جنيه',
+                $methodAr,
+                $pay['received_by_name'] ?? '',
+                date('d/m/Y H:i', strtotime($pay['payment_date'])),
+                $pay['notes'] ?? ''
+            ]);
+        }
+    }
     
     fclose($output);
     exit;
@@ -8708,7 +8756,7 @@ function saveClassSettings() {
         // تحديث جدول church_classes حسب الإعدادات
         $conn->begin_transaction();
         
-        // مسح الفصول الحالية — نستخدم is_active=0 بدلاً من DELETE لحماية بيانات الطلاب
+        // مسح الفصول الحالية — نستخدم is_active=0 بدلاً من DELETE لحماية بيانات الأطفال
         $deactStmt = $conn->prepare("UPDATE church_classes SET is_active = 0 WHERE church_id = ?");
         $deactStmt->bind_param("i", $churchId);
         $deactStmt->execute();
@@ -8755,7 +8803,7 @@ function updateStudentFull() {
         $studentId = intval($_POST['student_id'] ?? 0);
         
         if ($studentId === 0) {
-            sendJSON(['success' => false, 'message' => 'معرف الطالب مطلوب']);
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
             return;
         }
         
@@ -8865,7 +8913,7 @@ function updateStudentFull() {
         if ($stmt->execute()) {
             sendJSON([
                 'success' => true,
-                'message' => 'تم تحديث معلومات الطالب بنجاح',
+                'message' => 'تم تحديث معلومات الطفل بنجاح',
                 'image_url' => $imageUrl
             ]);
         } else {
@@ -11190,7 +11238,7 @@ function updateTask() {
             writeAuditLog('update', 'task', $taskId, $title);
         }
 
-        sendJSON(['success' => true, 'message' => 'تم تحديث المهمة وإعادة حساب نتائج الطلاب']);
+        sendJSON(['success' => true, 'message' => 'تم تحديث المهمة وإعادة حساب نتائج الأطفال']);
     } catch (Exception $e) {
         if (isset($conn)) $conn->rollback();
         error_log("updateTask error: " . $e->getMessage());
@@ -11307,7 +11355,7 @@ function getStudentTasks() {
         $sStmt->bind_param('ii', $studentId, $churchId);
         $sStmt->execute();
         $stu = $sStmt->get_result()->fetch_assoc();
-        if (!$stu) { sendJSON(['success'=>false,'message'=>'الطالب غير موجود']); return; }
+        if (!$stu) { sendJSON(['success'=>false,'message'=>'الطفل غير موجود']); return; }
         $classId = (int)$stu['class_id'];
 
         // Detect which optional task columns exist using SHOW COLUMNS (no information_schema needed)
@@ -11575,7 +11623,7 @@ function submitTaskAnswers() {
 
         // Push notification to church dashboard
         $stuRow = $conn->query("SELECT name FROM students WHERE id=$studentId LIMIT 1")->fetch_assoc();
-        $stuName = $stuRow['name'] ?? 'طالب';
+        $stuName = $stuRow['name'] ?? 'طفل';
         pushNotification($conn, $churchId, 'task_submission',
             'تسليم مهمة جديدة',
             "{$stuName} سلّم مهمة «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
@@ -12578,7 +12626,7 @@ function gradeOpenAnswer() {
         // Push notification
         pushNotification($conn, $churchId, 'task_submission',
             'تم تصحيح إجابة مفتوحة',
-            "تم تصحيح إجابة الطالب بدرجة {$totalScore} من {$sub['total_degree']}",
+            "تم تصحيح إجابة الطفل بدرجة {$totalScore} من {$sub['total_degree']}",
             'task', $sub['task_id']);
 
         sendJSON(['success'=>true,'score'=>$totalScore,'coupons'=>$coupons,'coupon_diff'=>$couponDiff,'percentage'=>round($pct,1)]);

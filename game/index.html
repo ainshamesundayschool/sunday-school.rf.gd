@@ -1535,7 +1535,7 @@ async function exportTripCsv() {
     // fetch students
     const fd = new FormData(); fd.append('action','getTripStudents'); fd.append('trip_id', tripId);
     const r = await fetch('/api.php',{method:'POST',body:fd,credentials:'include'}).then(r=>r.json());
-    if (!r.success) { showToast(r.message||'خطأ في تحميل الطلاب','error'); return; }
+    if (!r.success) { showToast(r.message||'خطأ في تحميل الأطفال','error'); return; }
     const students = r.students || [];
     const base = location.protocol + '//' + location.host + '/game';
     const rows = [cols.join(',')];

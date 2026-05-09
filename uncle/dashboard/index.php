@@ -227,11 +227,11 @@ window.VOCAB_MAP = window.IS_YOUTH ? [
     ['طفلاً',               'شاباً'],
     ['طفل',                 'شاب'],
     // ── Student labels ─────────────────────────────────────────
-    ['الطلاب',              'الأعضاء'],
-    ['طلاب',                'أعضاء'],
-    ['الطالب',              'العضو'],
-    ['طالباً',              'عضواً'],
-    ['طالب',                'عضو'],
+    ['الأطفال',              'الأعضاء'],
+    ['أطفال',                'أعضاء'],
+    ['الطفل',              'العضو'],
+    ['طفلاً',              'عضواً'],
+    ['طفل',                'عضو'],
     // ── Coupon labels — keep كوبون as-is, just swap labels ─────
     ['كوبونات الحضور',      'كوبونات الحضور'],   // keep unchanged
     ['كوبونات الالتزام',    'كوبونات الالتزام'], // keep unchanged
@@ -5132,7 +5132,7 @@ async function submitCoupons() {
     const fd = new FormData(); fd.append('action','updateCoupons'); fd.append('className',currentClass); fd.append('couponData',JSON.stringify(records));
     fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).then(d => {
         if (d.success) {
-            showToast(`تم حفظ كوبونات ${records.length} طالب`, 'success', {dur:7000, refresh:true});
+            showToast(`تم حفظ كوبونات ${records.length} طفل`, 'success', {dur:7000, refresh:true});
             changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
             changedCouponStudents.clear(); couponData = {};
             saveCouponDataForClass(currentClass); renderAttendanceList(currentClass); updateSaveBtns();
@@ -5345,7 +5345,7 @@ async function submitAttendance() {
                 totalSaved += r.savedCount || 0;
                 done++;
                 if (done === classNames.length) {
-                    showToast(`تم حفظ ${totalSaved} طالب`, 'success', {dur:7000, refresh:true});
+                    showToast(`تم حفظ ${totalSaved} طفل`, 'success', {dur:7000, refresh:true});
                     changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
                     changedStudents.clear();
                     renderAttendanceList(currentClass); updateSaveBtns();
@@ -5369,7 +5369,7 @@ async function submitAttendance() {
     if (!records.length) { btn.disabled = false; updateSaveBtns(); return; }
 
     makeApiCall({ action: 'submitAttendance', className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
-        showToast(`تم حفظ ${records.length} طالب`, 'success', {dur:7000, refresh:true});
+        showToast(`تم حفظ ${records.length} طفل`, 'success', {dur:7000, refresh:true});
         changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
         changedStudents.clear();
         localStorage.removeItem(`changedStudents_${currentClass}_${date}`);
@@ -7469,7 +7469,7 @@ function renderAnnouncementsTable(anns) {
     let active=0;
     body.innerHTML=anns.map(a=>{
         const isActive=a['منشط']===true||a['منشط']==='TRUE'||a['منشط']==='true'||a['منشط']===1||a['منشط']==='1'; if(isActive)active++;
-        return `<tr><td><span class="badge ${a['النوع']==='button'?'btn-coupon':'btn-info'}" style="font-size:.72rem">${a['النوع']==='button'?'<i class="fas fa-link"></i> زر':'<i class="fas fa-comment"></i> رسالة'}</span></td><td style="max-width:180px;word-break:break-word;color:var(--text)">${a['النص']||''} ${a['الرابط']?`<br><a href="${a['الرابط']}" target="_blank" style="color:var(--brand);font-size:.74rem">${a['الرابط']}</a>`:''}</td><td style="color:var(--text)">${a['الفصل']==='الجميع'?'الكل':(a['الفصل']||'الكل')}</td><td style="font-size:.74rem;color:var(--text-3)">${a['أسماء الطلاب']||'الجميع'}</td><td><span class="badge ${isActive?'btn-success':'btn-danger'}" style="cursor:pointer;font-size:.72rem" onclick="toggleAnnouncementStatus(${a.rowIndex},${!isActive})">${isActive?'<i class="fas fa-check"></i> منشط':'<i class="fas fa-times"></i> معطل'}</span></td><td style="font-size:.72rem;color:var(--text-3)">${a['تاريخ الإضافة']||''}</td><td><button class="btn btn-danger btn-xs" onclick="deleteAnnouncement(${a.rowIndex},'${(a['النص']||'').replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button></td></tr>`;
+        return `<tr><td><span class="badge ${a['النوع']==='button'?'btn-coupon':'btn-info'}" style="font-size:.72rem">${a['النوع']==='button'?'<i class="fas fa-link"></i> زر':'<i class="fas fa-comment"></i> رسالة'}</span></td><td style="max-width:180px;word-break:break-word;color:var(--text)">${a['النص']||''} ${a['الرابط']?`<br><a href="${a['الرابط']}" target="_blank" style="color:var(--brand);font-size:.74rem">${a['الرابط']}</a>`:''}</td><td style="color:var(--text)">${a['الفصل']==='الجميع'?'الكل':(a['الفصل']||'الكل')}</td><td style="font-size:.74rem;color:var(--text-3)">${a['أسماء الأطفال']||'الجميع'}</td><td><span class="badge ${isActive?'btn-success':'btn-danger'}" style="cursor:pointer;font-size:.72rem" onclick="toggleAnnouncementStatus(${a.rowIndex},${!isActive})">${isActive?'<i class="fas fa-check"></i> منشط':'<i class="fas fa-times"></i> معطل'}</span></td><td style="font-size:.72rem;color:var(--text-3)">${a['تاريخ الإضافة']||''}</td><td><button class="btn btn-danger btn-xs" onclick="deleteAnnouncement(${a.rowIndex},'${(a['النص']||'').replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button></td></tr>`;
     }).join('');
     if(cnt)cnt.textContent=active;
 }
