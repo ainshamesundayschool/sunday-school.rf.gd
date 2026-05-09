@@ -1008,6 +1008,14 @@ tbody tr:last-child td { border-bottom: none; }
       }
     }
 
+    function calcFinalPrice(t) {
+      const price = Number(t?.price ?? t?.final_price ?? 0);
+      const discount = Number(t?.discount || 0);
+      if (!discount) return Math.round(price);
+      if (t?.discount_type === 'percentage') return Math.round(price - (price * discount / 100));
+      return Math.round(Math.max(0, price - discount));
+    }
+
     function renderStandaloneTripSummary(trip) {
       const statusMap={planned:['badge-info','مخطط لها','#3b82f6'],active:['badge-success','نشطة','#10b981'],completed:['badge-warning','منتهية','#f59e0b'],cancelled:['badge-danger','ملغية','#ef4444']};
       const [sc,st,col]=statusMap[trip.status]||['badge-info',trip.status,'#3b82f6'];
