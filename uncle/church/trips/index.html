@@ -810,9 +810,53 @@ tbody tr:last-child td { border-bottom: none; }
 </head>
 <body>
 
-<!-- For brevity the full dashboard HTML and JS is copied verbatim here from uncle/church/index.html -->
+  <!-- Minimal trips page content (keeps the page self-contained) -->
+  <div class="main-wrapper">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn">☰</button>
+        <div>
+          <div class="topbar-title">رحلات الكنيسة</div>
+          <div class="topbar-breadcrumb"><span>الرحلات</span></div>
+        </div>
+      </div>
+      <div class="topbar-right"></div>
+    </div>
 
-<!-- To keep this response concise, the file content is the canonical dashboard HTML. -->
+    <main class="main-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-route"></i> الرحلات</div>
+        </div>
+        <div class="card-body">
+          <div class="trips-grid">
+            <a class="trip-card" id="trip-1" href="#trip-1">
+              <div class="trip-img"><i class="fa fa-image"></i></div>
+              <div class="trip-body"><h3>رحلة 1</h3><div class="trip-meta-row">تفاصيل الرحلة 1</div></div>
+            </a>
+            <a class="trip-card" id="trip-2" href="#trip-2">
+              <div class="trip-img"><i class="fa fa-image"></i></div>
+              <div class="trip-body"><h3>رحلة 2</h3><div class="trip-meta-row">تفاصيل الرحلة 2</div></div>
+            </a>
+            <a class="trip-card" id="trip-3" href="#trip-3">
+              <div class="trip-img"><i class="fa fa-image"></i></div>
+              <div class="trip-body"><h3>رحلة 3 (الهدف)</h3><div class="trip-meta-row">تفاصيل الرحلة 3</div></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var id = location.hash && location.hash.substring(1);
+      if(id){
+        var el = document.getElementById(id);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    });
+  </script>
 
 </body>
 </html>
