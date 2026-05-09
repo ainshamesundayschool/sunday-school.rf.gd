@@ -819,25 +819,12 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 
     <main class="main-content">
-      <div class="card">
+      <div class="card" id="standaloneTripCard">
         <div class="card-header">
-          <div class="card-title"><i class="fa fa-route"></i> الرحلات</div>
+          <div class="card-title"><i class="fa fa-route"></i> الرحلة المختارة</div>
         </div>
-        <div class="card-body">
-          <div class="trips-grid">
-            <a class="trip-card" id="trip-1" href="#trip-1">
-              <div class="trip-img"><i class="fa fa-image"></i></div>
-              <div class="trip-body"><h3>رحلة 1</h3><div class="trip-meta-row">تفاصيل الرحلة 1</div></div>
-            </a>
-            <a class="trip-card" id="trip-2" href="#trip-2">
-              <div class="trip-img"><i class="fa fa-image"></i></div>
-              <div class="trip-body"><h3>رحلة 2</h3><div class="trip-meta-row">تفاصيل الرحلة 2</div></div>
-            </a>
-            <a class="trip-card" id="trip-3" href="#trip-3">
-              <div class="trip-img"><i class="fa fa-image"></i></div>
-              <div class="trip-body"><h3>رحلة 3 (الهدف)</h3><div class="trip-meta-row">تفاصيل الرحلة 3</div></div>
-            </a>
-          </div>
+        <div class="card-body" id="standaloneTripSummary">
+          <div class="container-loading"><div class="spin-icon"></div> جاري تحميل الرحلة المختارة...</div>
         </div>
       </div>
     </main>
@@ -912,11 +899,61 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 
   <script>
-    // Minimal modal and trip-detail integration for the standalone trips page
+    // Standalone trip-detail integration. This page intentionally renders one selected trip only.
     const API_URL = '/api.php';
     let tripExpensesCache = {};
     let allTripsCache = [];
+    let tripStudentsCache = [];
+    let allStudents = [];
+    let manualAttStudents = {};
     window.currentTripId = null;
+
+    function mkFd(action) {
+      const fd = new FormData();
+      fd.append('action', action);
+      const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+      if (cid > 0) fd.append('church_id', cid);
+      return fd;
+    }
+
+    function getSelectedTripId() {
+      const hash = location.hash || '';
+      const query = hash.includes('?') ? hash.split('?')[1] : hash.replace(/^#/, '');
+      const params = new URLSearchParams(query);
+      const fromParam = parseInt(params.get('trip_id') || params.get('id') || 0);
+      if (fromParam) return fromParam;
+      const match = hash.match(/#trip-(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    }
+
+    function updateHashParam(key, value) {
+      const params = new URLSearchParams((location.hash.includes('?') ? location.hash.split('?')[1] : ''));
+      if (value || value === 0) params.set(key, value);
+      else params.delete(key);
+      const pStr = params.toString();
+      history.replaceState(null, '', '#trips' + (pStr ? '?' + pStr : ''));
+    }
+
+    let toastTimer;
+    function showToast(msg, type='info') {
+      let t = document.getElementById('toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.className = 'toast';
+        document.body.appendChild(t);
+      }
+      const icons = {success:'check-circle',error:'exclamation-circle',warning:'exclamation-triangle',info:'info-circle'};
+      t.innerHTML = `<i class="fas fa-${icons[type] || icons.info}"></i><span>${msg}</span>`;
+      t.className = `toast show ${type}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    async function loadTrips() {
+      if (!window.currentTripId) return;
+      await showTripDetails(window.currentTripId, { keepTab: true });
+    }
 
     function openModal(id){
       document.getElementById(id).classList.add('open');
@@ -934,7 +971,9 @@ tbody tr:last-child td { border-bottom: none; }
       });
     }
 
-    async function showTripDetails(id){
+    async function showTripDetails(id, opts = {}){
+      id = parseInt(id);
+      if (!id) return;
       document.getElementById('tripInfoContent').innerHTML=`<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
       document.getElementById('tripRegsContent').innerHTML='';
       document.getElementById('tdRegsCount').textContent='';
@@ -947,19 +986,54 @@ tbody tr:last-child td { border-bottom: none; }
       document.getElementById('tdCoverBg').style.backgroundImage='';
       document.getElementById('tdCoverThumb').innerHTML='<i class="fas fa-bus" style="color:rgba(255,255,255,0.4)"></i>';
       document.getElementById('tdStatusBadge').innerHTML='';
-      switchTripTab('info');
+      if (!opts.keepTab) switchTripTab('info');
       window.currentTripId = id;
       openModal('tripDetailsModal');
 
-      const fdTrip = new FormData(); fdTrip.append('action','getTripDetails'); fdTrip.append('trip_id',id);
-      const fdExp = new FormData(); fdExp.append('action','getTripExpenses'); fdExp.append('trip_id',id);
+      const fdTrip = mkFd('getTripDetails'); fdTrip.append('trip_id',id);
+      const fdExp = mkFd('getTripExpenses'); fdExp.append('trip_id',id);
       const [tripResp, expResp] = await Promise.all([
         fetch(API_URL,{method:'POST',body:fdTrip}).then(r=>r.json()).catch(()=>({success:false})),
         fetch(API_URL,{method:'POST',body:fdExp}).then(r=>r.json()).catch(()=>({success:false}))
       ]);
       tripExpensesCache[id] = expResp.success ? (expResp.expenses||[]) : (tripExpensesCache[id]||[]);
-      if(tripResp.success){ renderTripDetailsFull(tripResp.trip); }
-      else { document.getElementById('tripInfoContent').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`; }
+      if(tripResp.success){
+        allTripsCache = [tripResp.trip];
+        renderStandaloneTripSummary(tripResp.trip);
+        renderTripDetailsFull(tripResp.trip);
+      }
+      else {
+        document.getElementById('standaloneTripSummary').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${tripResp.message || 'فشل في تحميل الرحلة'}</h3></div>`;
+        document.getElementById('tripInfoContent').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+      }
+    }
+
+    function renderStandaloneTripSummary(trip) {
+      const statusMap={planned:['badge-info','مخطط لها','#3b82f6'],active:['badge-success','نشطة','#10b981'],completed:['badge-warning','منتهية','#f59e0b'],cancelled:['badge-danger','ملغية','#ef4444']};
+      const [sc,st,col]=statusMap[trip.status]||['badge-info',trip.status,'#3b82f6'];
+      const finalPrice=Math.round(calcFinalPrice(trip));
+      const regs=trip.registrations||[];
+      document.getElementById('standaloneTripSummary').innerHTML=`
+        <div class="trips-grid">
+          <div class="trip-card" onclick="showTripDetails(${trip.id})">
+            <div class="trip-img" style="${trip.image_url?'':'background:linear-gradient(135deg,'+col+'22,'+col+'11);'}">
+              ${trip.image_url?`<img src="${trip.image_url}" loading="lazy">`:`<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
+              <span class="trip-status-pill ${sc}">${st}</span>
+            </div>
+            <div class="trip-body">
+              <h3>${escHtml(trip.title)}</h3>
+              <div class="trip-meta-row">
+                <span><i class="fas fa-calendar"></i>${trip.start_date_formatted||trip.start_date||'—'}</span>
+                <span><i class="fas fa-clock"></i>${trip.type==='one_day'?'يوم واحد':'عدة أيام'}</span>
+              </div>
+              <div class="trip-price-row"><span class="curr">${finalPrice} جنيه</span></div>
+              <div class="trip-stats-row">
+                <div class="trip-stat-item"><div class="n" style="color:var(--primary);">${regs.length}</div><div class="l">مسجل</div></div>
+                <div class="trip-stat-item"><div class="n">${trip.max_participants||'∞'}</div><div class="l">الحد</div></div>
+              </div>
+            </div>
+          </div>
+        </div>`;
     }
 
     function escHtml(s=''){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
@@ -988,7 +1062,13 @@ tbody tr:last-child td { border-bottom: none; }
 
       document.getElementById('tdQuickStats').innerHTML=`
         <div style="display:flex;gap:0;padding:12px 0 0;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px;width:100%;">
-            ${""}
+          ${[
+            {n:regs.length,l:'مسجل',c:'rgba(255,255,255,0.9)'},
+            {n:totalCollected+' ج',l:'محصّل',c:'#6ee7b7'},
+            {n:totalRemaining+' ج',l:'متبقي',c:'#fca5a5'},
+            {n:exps.length,l:'مصروف',c:'#c4b5fd'},
+            {n:trip.max_participants||'∞',l:'الحد الأقصى',c:'rgba(255,255,255,0.6)'}
+          ].map(s=>`<div style="flex:1;text-align:center;padding:8px 4px;"><div style="font-size:1rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
         </div>`;
 
       document.getElementById('tripInfoContent').innerHTML=`
@@ -1005,78 +1085,159 @@ tbody tr:last-child td { border-bottom: none; }
             <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal?.(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
-            <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');"><i class="fas fa-edit"></i> تعديل</button>
+            <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل في لوحة الكنيسة</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
         </div>`;
 
-      // render registrants and expenses via simpler placeholders
-      document.getElementById('tripRegsContent').innerHTML= regs.length?'<div style="padding:12px;">'+regs.map(r=>`<div class="reg-row"><div class="reg-info"><strong>${r.student_name}</strong></div></div>`).join('')+'</div>' : `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3></div>`;
+      const pm={paid:['var(--success)','مدفوع بالكامل'],partial:['var(--warning)','جزئي'],pending:['var(--danger)','غير مدفوع']};
+      document.getElementById('tripRegsContent').innerHTML= regs.length
+        ? `<div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);">
+              <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
+              <div style="display:flex;gap:16px;font-size:0.82rem;">
+                <span>المسجلون: <strong>${regs.length}</strong></span>
+                <span style="color:var(--success);">محصّل: <strong>${totalCollected} ج</strong></span>
+                <span style="color:var(--danger);">متبقي: <strong>${totalRemaining} ج</strong></span>
+              </div>
+            </div>
+            <div style="display:grid;gap:8px;">
+              ${regs.map((r)=>{
+                const paid=parseFloat(r.total_paid)||0;
+                const remaining=Math.max(0,totalPerKid-paid);
+                const status=Math.abs(remaining)<0.01?'paid':(paid>0.01?'partial':'pending');
+                const [col,lbl]=pm[status]||['var(--muted)','—'];
+                const pct=totalPerKid>0?Math.min(100,Math.round(paid/totalPerKid*100)):0;
+                const initials=(r.student_name||'؟').charAt(0);
+                const img=r.student_image||r.image_url||r['صورة']||r.photo||'';
+                return `<div class="reg-row">
+                  <div class="reg-ava" style="border:2px solid ${col}33;">${img?`<img src="${img}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;">${initials}`:initials}</div>
+                  <div class="reg-info" style="flex:1;min-width:0;">
+                    <strong style="font-size:0.9rem;">${escHtml(r.student_name)}</strong>
+                    <span style="color:var(--muted);font-size:0.72rem;">${escHtml(r.student_class||'—')}</span>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                      <div style="flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px;transition:width .6s ease;"></div></div>
+                      <span style="font-size:0.65rem;color:${col};font-weight:700;">${pct}%</span>
+                    </div>
+                  </div>
+                  <div style="text-align:left;flex-shrink:0;min-width:80px;">
+                    <div style="font-size:0.75rem;color:var(--muted);">المطلوب: <strong style="color:var(--primary);">${totalPerKid} ج</strong></div>
+                    <div style="font-size:0.88rem;font-weight:800;color:var(--success);">${Math.round(paid)} ج</div>
+                    <div style="font-size:0.72rem;color:var(--danger);">متبقي: ${Math.round(remaining)} ج</div>
+                    <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
+                  </div>
+                  <div style="display:flex;gap:5px;flex-shrink:0;">
+                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="showAddPaymentModal(${r.id},&quot;${escHtml(r.student_name)}&quot;,${totalPerKid},${paid})"><i class="fas fa-money-bill"></i></button>
+                    <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>`
+        : `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button></div>`;
+      document.getElementById('expTripId').value=trip.id;
+      document.getElementById('addExpenseForm').reset();
+      document.getElementById('expCalcResult').textContent='أدخل المبلغ لحساب النصيب';
       renderExpenses(trip.id, regs.length);
     }
 
     function renderExpenses(tripId,kidCount){
       const exps = tripExpensesCache[tripId]||[];
+      const trip=allTripsCache.find(t=>t.id==tripId);
+      const kc=Math.max(1,parseInt(trip?.registrations?.length||trip?.registered_count||kidCount||1)||1);
+      const totalAmount=exps.reduce((s,e)=>s+Number(e.amount),0);
+      const totalPerKid=exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0);
+      const funded=exps.filter(e=>e.funding==='funded').reduce((s,e)=>s+Number(e.amount),0);
+      const basePrice=trip?calcFinalPrice(trip):0;
+      const banner=document.getElementById('expPriceBanner');
+      document.getElementById('expSummary').innerHTML=`
+        <div class="sbox"><div class="sv">${exps.length}</div><div class="sl">مصروف</div></div>
+        <div class="sbox"><div class="sv" style="color:var(--danger);">${Math.round(totalAmount)} ج</div><div class="sl">إجمالي المصروفات</div></div>
+        <div class="sbox"><div class="sv" style="color:var(--success);">${Math.round(funded)} ج</div><div class="sl">ممول</div></div>
+        <div class="sbox"><div class="sv" style="color:var(--warning);">${Math.round(totalPerKid)} ج</div><div class="sl">نصيب الطفل</div></div>`;
+      if(banner && totalPerKid>0 && basePrice>0){
+        banner.style.display='flex';
+        document.getElementById('expTotalPerKidVal').textContent=(basePrice+Math.round(totalPerKid))+' ج';
+        document.getElementById('expPriceBreakdown').textContent=`سعر الرحلة ${basePrice} ج + مصروفات ${Math.round(totalPerKid)} ج`;
+      } else if(banner){ banner.style.display='none'; }
       if(!exps.length){ document.getElementById('expensesList').innerHTML=`<div class="empty-state" style="padding:30px;"><i class="fas fa-receipt"></i><h3>لا توجد مصروفات بعد</h3></div>`; return; }
+      const typeIcons={bus:'fas fa-bus',food:'fas fa-utensils',entry:'fas fa-ticket-alt',other:'fas fa-receipt'};
+      const typeColors={bus:'var(--primary)',food:'var(--success)',entry:'var(--warning)',other:'var(--muted)'};
+      const fundingLabels={
+        kids:`<span class="badge" style="background:#dbeafe;color:#1e40af;font-size:0.65rem;">يدفعه الأطفال</span>`,
+        funded:`<span class="badge" style="background:#d1fae5;color:#065f46;font-size:0.65rem;">ممول</span>`,
+        partial:`<span class="badge" style="background:#fef3c7;color:#92400e;font-size:0.65rem;">جزئي</span>`
+      };
       document.getElementById('expensesList').innerHTML = exps.map(ex=>`
         <div class="exp-row ${ex.funding||'kids'}">
-          <div class="exp-icon"><i class="fas fa-receipt"></i></div>
-          <div style="flex:1;min-width:0;"><div style="font-weight:700;">${ex.name||ex.type}</div>${ex.notes?`<div style="font-size:0.75rem;color:var(--muted);">${ex.notes}</div>`:''}</div>
-          <div style="text-align:left;flex-shrink:0;"><div style="font-weight:900;font-size:1rem;">${Math.round(ex.amount)} ج</div></div>
+          <div class="exp-icon" style="background:${typeColors[ex.type]||'var(--muted)'}22;color:${typeColors[ex.type]||'var(--muted)'};"><i class="${typeIcons[ex.type]||'fas fa-receipt'}"></i></div>
+          <div style="flex:1;min-width:0;"><div style="font-weight:700;">${escHtml(ex.name||ex.type)} ${fundingLabels[ex.funding]||''}</div>${ex.notes?`<div style="font-size:0.75rem;color:var(--muted);">${escHtml(ex.notes)}</div>`:''}</div>
+          <div style="text-align:left;flex-shrink:0;"><div style="font-weight:900;font-size:1rem;">${Math.round(ex.amount)} ج</div>${(ex.perKid||ex.per_kid)>0?`<div style="font-size:0.72rem;color:var(--primary);font-weight:700;">+ ${Math.round(ex.perKid||ex.per_kid||0)} ج / طفل</div>`:'<div style="font-size:0.7rem;color:var(--success);">ممول</div>'}</div>
+          <button class="act-btn act-delete" onclick="removeExpense('${tripId}',${ex.id})" title="حذف"><i class="fas fa-trash"></i></button>
         </div>`).join('');
     }
 
     function calcExpPerKid(){
       const tripId=document.getElementById('expTripId').value;
+      const trip=allTripsCache.find(t=>t.id==tripId);
+      const kidCount=Math.max(1,parseInt(trip?.registrations?.length||trip?.registered_count||1)||1);
       const amount=parseFloat(document.getElementById('expAmount').value)||0;
       const f=document.getElementById('expFunding').value;
       const division=document.getElementById('expDivision').value;
       const kidsAmt=parseFloat(document.getElementById('expKidsAmount')?.value)||0;
       const res=document.getElementById('expCalcResult');
       if(f==='funded'){ res.textContent='هذا المصروف ممول بالكامل - لا يدفع الأطفال شيئاً'; res.style.background='var(--success-light)'; res.style.color='#065f46'; }
-      else if(f==='partial'){ const pk=Math.round(division==='per_kid'?kidsAmt:kidsAmt/1); res.textContent=`نصيب كل طفل: ${pk} جنيه (تقديري)`; res.style.background='var(--warning-light)'; res.style.color='#92400e'; }
-      else { const pk=Math.round(division==='per_kid'?amount:amount/1); res.textContent=`نصيب كل طفل: ${pk} جنيه (تقديري)`; res.style.background='var(--info-light)'; res.style.color='#1e40af'; }
+      else if(f==='partial'){ const pk=Math.round(division==='per_kid'?kidsAmt:kidsAmt/kidCount); res.textContent=`نصيب كل طفل: ${pk} جنيه (${kidCount} طفل)`; res.style.background='var(--warning-light)'; res.style.color='#92400e'; }
+      else { const pk=Math.round(division==='per_kid'?amount:amount/kidCount); res.textContent=`نصيب كل طفل: ${pk} جنيه (${kidCount} طفل)`; res.style.background='var(--info-light)'; res.style.color='#1e40af'; }
+    }
+
+    function toggleExpFunding() {
+      const funding=document.getElementById('expFunding').value;
+      document.getElementById('expDivisionGroup').style.display=funding==='funded'?'none':'block';
+      document.getElementById('expKidsAmountGroup').style.display=funding==='partial'?'block':'none';
+      calcExpPerKid();
     }
 
     async function addTripExpense(e){
       e.preventDefault();
       const tripId = document.getElementById('expTripId').value || window.currentTripId;
-      const name=document.getElementById('expName').value; const amount=Math.round(parseFloat(document.getElementById('expAmount').value)||0);
-      const fd=new FormData(); fd.append('action','saveTripExpense'); fd.append('trip_id',tripId); fd.append('name',name); fd.append('amount',amount); fd.append('funding',document.getElementById('expFunding').value);
+      const trip=allTripsCache.find(t=>t.id==tripId);
+      const kidCount=Math.max(1,parseInt(trip?.registrations?.length||trip?.registered_count||1)||1);
+      const name=document.getElementById('expName').value;
+      const type=document.getElementById('expType').value;
+      const amount=Math.round(parseFloat(document.getElementById('expAmount').value)||0);
+      const funding=document.getElementById('expFunding').value;
+      const division=document.getElementById('expDivision').value;
+      const kidsAmt=Math.round(parseFloat(document.getElementById('expKidsAmount')?.value)||0);
+      const notes=document.getElementById('expNotes').value;
+      let perKid=0;
+      if (funding==='kids') perKid=division==='per_kid'?amount:Math.round(amount/kidCount);
+      else if (funding==='partial') perKid=division==='per_kid'?kidsAmt:Math.round(kidsAmt/kidCount);
+      const fd=mkFd('saveTripExpense'); fd.append('trip_id',tripId); fd.append('name',name); fd.append('type',type); fd.append('amount',amount); fd.append('funding',funding); fd.append('per_kid',perKid); fd.append('notes',notes);
       const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-      if(d.success){ if(!tripExpensesCache[tripId]) tripExpensesCache[tripId]=[]; tripExpensesCache[tripId].push({id:d.expense_id||Date.now(),name,amount,funding:document.getElementById('expFunding').value}); renderExpenses(tripId,1); showToast?.('تمت إضافة المصروف','success'); }
-      else showToast?.(d.message||'فشل','error');
+      if(d.success){ if(!tripExpensesCache[tripId]) tripExpensesCache[tripId]=[]; tripExpensesCache[tripId].push({id:d.expense_id||Date.now(),name,type,amount,funding,perKid,per_kid:perKid,notes}); document.getElementById('addExpenseForm').reset(); renderExpenses(tripId,kidCount); showToast('تمت إضافة المصروف','success'); await showTripDetails(tripId, { keepTab: true }); switchTripTab('exp'); }
+      else showToast(d.message||'فشل','error');
+    }
+
+    async function removeExpense(tripId,eid) {
+      const fd=mkFd('deleteTripExpense'); fd.append('expense_id',eid); fd.append('trip_id',tripId);
+      fetch(API_URL,{method:'POST',body:fd}).catch(()=>{});
+      if (tripExpensesCache[tripId]) tripExpensesCache[tripId]=tripExpensesCache[tripId].filter(e=>e.id!=eid);
+      renderExpenses(tripId,1);
+      await showTripDetails(tripId, { keepTab: true });
+      switchTripTab('exp');
     }
 
     function exportTripData(id,fmt){ window.location.href=API_URL+`?action=exportTripData&trip_id=${id}&format=${fmt}`; }
     function copyTripLink(id){ const url = window.location.origin + window.location.pathname + `#trips?trip_id=${id}`; navigator.clipboard?.writeText(url).then(()=>showToast?.('تم نسخ رابط الرحلة','success')).catch(()=>showToast?.('فشل في نسخ الرابط','error')); }
 
-    // Open modal when clicking a trip card or when hash points to a trip id
-    document.addEventListener('click', function(e){
-      const card = e.target.closest('.trip-card');
-      if(card){
-        const id = card.id || (card.dataset && card.dataset.tripId);
-        if(id && id.startsWith('trip-')){
-          // If numeric id (trip id), call showTripDetails; otherwise scroll
-          const numeric = id.split('-')[1];
-          if(Number(numeric)) showTripDetails(Number(numeric));
-          else { document.getElementById(id).scrollIntoView({behavior:'smooth',block:'center'}); }
-        }
-      }
+    document.addEventListener('DOMContentLoaded', function(){
+      const tripId = getSelectedTripId();
+      if (tripId) setTimeout(()=>showTripDetails(tripId),100);
+      else document.getElementById('standaloneTripSummary').innerHTML=`<div class="empty-state"><i class="fas fa-route"></i><h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3></div>`;
     });
 
-    document.addEventListener('DOMContentLoaded', function(){
-      // if hash contains trip id like #trip-3 or #trips?trip_id=3
-      const h = location.hash || '';
-      if(h.startsWith('#trip-')){
-        const id = h.replace('#trip-','');
-        const numeric = Number(id);
-        if(numeric) setTimeout(()=>showTripDetails(numeric),200);
-        else { const el=document.getElementById(h.substring(1)); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); }
-      } else if(h.includes('trip_id=')){
-        const m = h.match(/trip_id=(\d+)/);
-        if(m){ setTimeout(()=>showTripDetails(Number(m[1])),200); }
-      }
+    window.addEventListener('hashchange', () => {
+      const tripId = getSelectedTripId();
+      if (tripId && tripId !== window.currentTripId) showTripDetails(tripId);
     });
     </script>
 

@@ -4227,7 +4227,7 @@ function renderTripsList(trips) {
         const expPerKid=Math.round(exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0));
         const totalPerKid=finalPrice+expPerKid;
         const pct=t.max_participants>0?Math.min(100,Math.round((t.registered_count||0)/t.max_participants*100)):null;
-        return `<div class="trip-card" onclick="window.location.href='trips/index.html#trip-${t.id}'">
+        return `<div class="trip-card" onclick="window.location.href='trips/index.html#trips?trip_id=${t.id}'">
             <div class="trip-img" style="${t.image_url?'':'background:linear-gradient(135deg,'+col+'22,'+col+'11);'}">
                 ${t.image_url?`<img src="${t.image_url}" loading="lazy">`:`<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
                 <span class="trip-status-pill ${sc}">${st}</span>
