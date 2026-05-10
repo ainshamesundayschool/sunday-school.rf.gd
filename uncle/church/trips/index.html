@@ -880,16 +880,17 @@ tbody tr:last-child td { border-bottom: none; }
 .kpf-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
 .kid-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 7px;
-  max-height: 260px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  max-height: none;
+  min-height: 360px;
   overflow-y: auto;
   padding: 2px;
 }
 .kid-card {
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  padding: 9px 5px 7px;
+  padding: 16px 10px 14px;
   text-align: center;
   cursor: pointer;
   transition: all var(--t-fast) var(--ease);
@@ -904,6 +905,15 @@ tbody tr:last-child td { border-bottom: none; }
 .kid-card.selected {
   border-color: var(--primary);
   background: var(--primary-light);
+}
+.kid-card.registered {
+  cursor: not-allowed;
+  opacity: 0.58;
+  filter: grayscale(0.75);
+  background: var(--bg);
+  border-color: var(--border-2);
+  transform: none !important;
+  box-shadow: none !important;
 }
 .kid-card.selected::after {
   content: '✓';
@@ -924,8 +934,8 @@ tbody tr:last-child td { border-bottom: none; }
   line-height: 1;
 }
 .kid-avatar {
-  width: 42px;
-  height: 42px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   margin: 0 auto 6px;
   object-fit: cover;
@@ -934,7 +944,7 @@ tbody tr:last-child td { border-bottom: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--primary);
   overflow: hidden;
@@ -942,7 +952,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .kid-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .kid-name {
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text);
   line-height: 1.3;
@@ -951,13 +961,26 @@ tbody tr:last-child td { border-bottom: none; }
   white-space: nowrap;
 }
 .kid-cls {
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   color: var(--muted);
   margin-top: 2px;
   background: var(--bg);
   padding: 1px 5px;
   border-radius: var(--radius-pill);
   display: inline-block;
+}
+.kid-paid {
+  margin-top: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--success-light);
+  color: var(--success);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.35;
 }
 .kid-selected-info {
   margin-top: 8px;
@@ -1042,9 +1065,10 @@ tbody tr:last-child td { border-bottom: none; }
   .form-grid { grid-template-columns: 1fr !important; }
   .sbox { padding: 11px 10px; }
   .sbox .sv { font-size: 1.35rem; }
-  .kid-avatar { width: 36px; height: 36px; font-size: 0.85rem; }
-  .kid-name { font-size: 0.63rem; }
-  .kid-card { padding: 7px 3px 5px; }
+  .kid-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); min-height: 320px; gap: 10px; }
+  .kid-avatar { width: 48px; height: 48px; font-size: 1rem; }
+  .kid-name { font-size: 0.74rem; }
+  .kid-card { padding: 12px 7px 10px; }
   select.form-select { font-size: 0.8rem; padding: 7px 10px; }
   .reg-row { padding: 9px 10px; gap: 8px; }
   .reg-ava { width: 32px; height: 32px; font-size: 0.75rem; }
@@ -1055,7 +1079,7 @@ tbody tr:last-child td { border-bottom: none; }
   .card { border-radius: var(--radius); }
   .card-body { padding: 11px; }
   .summary-box { grid-template-columns: 1fr 1fr; }
-  .kid-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
+  .kid-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 300px; }
   .btn-sm { padding: 5px 9px; font-size: 0.74rem; }
   .modal-head { padding: 13px 14px; }
 }
@@ -1289,6 +1313,7 @@ tbody tr:last-child td { border-bottom: none; }
     let tripExpensesCache = {};
     let allTripsCache = [];
     let tripStudentsCache = [];
+    let tripRegistrationsCache = {};
     let allStudents = [];
     let manualAttStudents = {};
     let currentTripTab = 'info';
@@ -1448,6 +1473,7 @@ tbody tr:last-child td { border-bottom: none; }
       const statusMap={planned:['badge-info','مخطط لها','#3b82f6'],active:['badge-success','نشطة','#10b981'],completed:['badge-warning','منتهية','#f59e0b'],cancelled:['badge-danger','ملغية','#ef4444']};
       const [sc,st]=statusMap[trip.status]||['badge-info',trip.status];
       const regs=trip.registrations||[];
+      tripRegistrationsCache[trip.id] = regs;
       const basePrice=Math.round(calcFinalPrice?.(trip)||Math.round(trip.price||0));
       const exps=tripExpensesCache[trip.id]||[];
       const expPerKid=Math.round(exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0));
@@ -1896,6 +1922,8 @@ tbody tr:last-child td { border-bottom: none; }
   function renderKidPickerGrid(students) {
     const grid=document.getElementById('kidPickerGrid');
     if(!students.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);"><i class="fas fa-search" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>لا يوجد أطفال</div>`;return;}
+    const tripId=document.getElementById('registerTripId')?.value;
+    const regs=tripRegistrationsCache[tripId]||[];
     grid.innerHTML=students.map((s)=>{
       const sid=s['_studentId']||s['id']||s['student_id']||'';
       const name=s['الاسم']||s['name']||'؟';
@@ -1903,7 +1931,10 @@ tbody tr:last-child td { border-bottom: none; }
       const initials=name.charAt(0);
       const isSelected=String(sid)==String(_selectedKidId);
       const img=s['صورة']||s['image_url']||s['photo']||s['avatar']||s['student_image']||'';
-      return `<div class="kid-card ${isSelected?'selected':''}" onclick="selectKidCard('${sid}','${escHtml(name)}','${escHtml(cls)}',this)">
+      const reg=regs.find(r=>String(r.student_id)===String(sid));
+      const isRegistered=!!reg;
+      const paid=Math.round(parseFloat(reg?.total_paid)||0);
+      return `<div class="kid-card ${isSelected&&!isRegistered?'selected':''} ${isRegistered?'registered':''}" ${isRegistered?'aria-disabled="true"':`onclick="selectKidCard('${sid}','${escHtml(name)}','${escHtml(cls)}',this)"`}>
         <div class="kid-avatar">
           ${img
             ? `<img src="${img}" onerror="this.style.display='none';this.parentElement.dataset.fallback='1'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">${initials}`
@@ -1911,6 +1942,7 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
         <div class="kid-name">${name}</div>
         ${cls?`<div class="kid-cls">${cls}</div>`:''}
+        ${isRegistered?`<div class="kid-paid">مسجل • دفع ${paid} ج</div>`:''}
       </div>`;
     }).join('');
     grid.querySelectorAll('.kid-avatar img').forEach(img=>{
@@ -1919,6 +1951,7 @@ tbody tr:last-child td { border-bottom: none; }
     });
   }
   function selectKidCard(id, name, cls, el) {
+    if (el?.classList.contains('registered')) return;
     _selectedKidId = String(id);
     document.getElementById('registerStudentId').value = id;
     document.getElementById('kidSelectedInfo').innerHTML=`<i class="fas fa-check-circle" style="color:var(--primary);margin-left:6px;"></i> تم اختيار: <strong>${name}</strong>${cls?' — '+cls:''}`;
