@@ -2024,7 +2024,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2" placeholder="تفاصيل الرحلة..."></textarea></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
-                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="tripCustomFields" class="form-input" placeholder="الغرفة، الفريق..."></div>
+                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="tripCustomFields" class="form-input" placeholder="اكتب اسم الحقل وضع فاصلة (,) بين كل حقل. مثال: الغرفة, الفريق, رقم الحافلة"></div>
                             <div class="form-group"><label class="form-label">صورة الرحلة</label><input type="file" id="tripImage" class="form-input" accept="image/*"></div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="fas fa-plus"></i> إضافة رحلة</button>
@@ -2481,7 +2481,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">الوصف</label><textarea id="editTripDescription" class="form-textarea" rows="2"></textarea></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="editTripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="editTripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
-                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="editTripCustomFields" class="form-input" placeholder="الغرفة، الفريق..."></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="editTripCustomFields" class="form-input" placeholder="اكتب اسم الحقل وضع فاصلة (,) بين كل حقل. مثال: الغرفة, الفريق, رقم الحافلة"></div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;">
                     <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ التعديلات</button>
@@ -2716,7 +2716,85 @@ button, a, [role="button"] { touch-action: manipulation; }
 
 <!-- ══════════════════ SCRIPT ══════════════════ -->
 <script>
+function downloadCustomDataCSV(tripId) {
+    const regs = tripRegistrationsCache[tripId] || [];
+    const trip = allTripsCache.find(t => t.id == tripId);
+    if(!trip || !trip.custom_fields) return;
+    const fields = trip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
+    
+    let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
+    regs.forEach(r => {
+        let row = [r.id, `"${r.student_name}"`];
+        let cd = {};
+        if(r.custom_data) {
+            try { cd = JSON.parse(r.custom_data); } catch(e){}
+        }
+        fields.forEach(f => {
+            row.push(`"${cd[f] || ''}"`);
+        });
+        csv += row.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `trip_${tripId}_custom_data.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
+function uploadCustomDataCSV(e, tripId) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const trip = allTripsCache.find(t => t.id == tripId);
+    if(!trip || !trip.custom_fields) return;
+    const fields = trip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
+    
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+        const text = ev.target.result;
+        const lines = text.split('\n');
+        if(lines.length < 2) { showToast('الملف فارغ', 'error'); return; }
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        
+        const payload = [];
+        for(let i=1; i<lines.length; i++) {
+            if(!lines[i].trim()) continue;
+            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            const regId = cols[0];
+            const cd = {};
+            fields.forEach(f => {
+                const idx = headers.indexOf(f);
+                if(idx !== -1 && cols[idx]) {
+                    cd[f] = cols[idx];
+                }
+            });
+            payload.push({ registration_id: regId, custom_data: cd });
+        }
+        
+        const fd = new FormData();
+        fd.append('action', 'bulkUpdateCustomData');
+        fd.append('trip_id', tripId);
+        fd.append('data', JSON.stringify(payload));
+        
+        showToast('جاري تحديث البيانات...', 'info');
+        try {
+            const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
+            if(res.success) {
+                showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
+                showTripDetails(tripId);
+            } else {
+                showToast(res.message, 'error');
+            }
+        } catch(err) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+        document.getElementById('uploadCustomDataCsv').value = '';
+    };
+    reader.readAsText(file);
+}
 
 const API_URL = '/api.php';
 let allStudents = [], allUncles = [], classes = [], pendingRegistrations = [];
@@ -3405,7 +3483,7 @@ async function addUncle(e) {
     let churchId = getChurchId();
     if (!churchId) {
         const fd0=new FormData(); fd0.append('action','getSessionInfo');
-        const d0=await fetch(API_URL,{method:'POST',body:fd0}).then(r=>r.json()).catch(()=>({}));
+        const d0=await fetch(API_URL,{method:'POST',body:fd0}).then(r=>r.json()).catch(()=>({success:false}));
         if (d0.success && d0.church_id) { sessionChurchId = d0.church_id; churchId = d0.church_id; localStorage.setItem('churchId', churchId); }
     }
     if (!churchId) { showToast('لم يتم العثور على معرف الكنيسة – الرجاء تسجيل الدخول مجدداً','error'); return; }
@@ -3524,7 +3602,7 @@ function renderStudentsTable(students) {
     tb.innerHTML = students.map(s=>{
         const rate=calcRate(s);
         const avatarHtml=s['صورة']?`<div class="avatar-text"><img src="${s['صورة']}" alt="${s['الاسم']}"></div>`:`<div class="avatar-text">${s['الاسم'].charAt(0)}</div>`;
-        const churchCell = showChurch ? `<td><span class="badge badge-dev" style="font-size:0.72rem;">${escHtml(s['_churchName']||'')}</span></td>` : '';
+        const churchCell = showChurch ? `<td><span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(s['_churchName']||'')}</span></td>` : '';
         return `<tr data-student-id="${s['_studentId']}"><td>${avatarHtml}</td>
             <td><span class="name-link" onclick="showStudentDetails(${s['_studentId']})">${s['الاسم']}</span></td>
             ${churchCell}
@@ -4551,6 +4629,7 @@ function renderTripDetailsFull(trip) {
             <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
+            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/index.html?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> طباعة كروت الـ QR والمسابقة</a>` : ''}
         </div>`;
 
     // ── REGS PANEL ──

@@ -10023,6 +10023,10 @@ try {
             exportTripData();
             break;
 
+        case 'bulkUpdateCustomData':
+            bulkUpdateCustomData();
+            break;
+
         // دوال تحسين الحضور
         case 'getFridaysInMonth':
             getFridaysInMonth();
