@@ -357,6 +357,45 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── TAB LOADER ─────────────────────────────────────────────────── */
+.tab-loader {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    width: 100%;
+    animation: fadeIn 0.3s var(--ease);
+}
+.tab-loader.active { display: flex; }
+.loader-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--primary-light);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+.loader-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+}
+.loader-dots { display: inline-flex; gap: 4px; margin-right: 4px; }
+.loader-dot {
+    width: 4px; height: 4px; background: var(--primary);
+    border-radius: 50%; animation: dotPulse 1.4s infinite;
+}
+.loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.5); opacity: 1; }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    STAT CARDS
 ═══════════════════════════════════════════════════════════════════ */
@@ -1560,6 +1599,19 @@ button, a, [role="button"] { touch-action: manipulation; }
     </header>
 
     <main class="main-content">
+
+        <!-- TAB LOADER -->
+        <div id="tabLoader" class="tab-loader">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">
+                جاري التحميل
+                <span class="loader-dots">
+                    <span class="loader-dot"></span>
+                    <span class="loader-dot"></span>
+                    <span class="loader-dot"></span>
+                </span>
+            </div>
+        </div>
 
         <!-- ── OVERVIEW ── -->
         <div id="overview" class="tab-panel">
@@ -2984,39 +3036,65 @@ const tabTitles = {
     churchSettings:     ['إعدادات الكنيسة',    'إعدادات الكنيسة والحساب'],
 };
 
-function switchTab(name, btn) {
+async function switchTab(name, btn) {
+    // UI: Update sidebar buttons
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(name).classList.add('active');
-    
+    // UI: Update topbar
     const [title, sub] = tabTitles[name] || [name, name];
     document.getElementById('topbarTitle').textContent = title;
     document.getElementById('topbarSub').textContent = sub;
 
-    // Save to URL hash
+    // UI: Mobile adjustments
+    if (window.innerWidth <= 768) closeMobileSidebar();
+
+    // UI: Manage panels and loader
+    const loader = document.getElementById('tabLoader');
+    const panels = document.querySelectorAll('.tab-panel');
+    
+    // Hide all panels immediately to prevent "stale" view
+    panels.forEach(p => p.classList.remove('active'));
+    
+    // Show loader
+    if (loader) loader.classList.add('active');
+
+    // Save state to URL
     setHashTab(name);
 
-    if (window.innerWidth <= 768) closeMobileSidebar();
-    
-    // Load data based on tab
+    // Define loaders with promise handling
     const loaders = {
-        overview:    () => { loadStatistics(); renderKidRegLinks(); },
-        uncles:      () => { loadUncles(); },
-        students:    () => { loadStudents(); renderKidRegLinks(); },
-        trips:       loadTrips,
-        attendance:     initAttendance,
-        uncleAttendance: initUncleAttendanceTab,
-        classes:     loadClassSettings,
-        pending:     loadPendingRegistrations,
-        history:     loadAuditLogs,
-        devChurches:    () => { loadAllChurches(); loadRegKeys(); },
-        devMessages:    () => { loadDevMessages(); },
-        churchSettings: () => { loadChurchSettingsTab(); loadAdminProfile(); }
+        overview:       async () => { await loadStatistics(); renderKidRegLinks(); },
+        uncles:         () => loadUncles(),
+        students:       async () => { await loadStudents(); renderKidRegLinks(); },
+        trips:          () => loadTrips(),
+        attendance:     () => initAttendance(),
+        uncleAttendance: () => initUncleAttendanceTab(),
+        classes:        () => loadClassSettings(),
+        pending:        () => loadPendingRegistrations(),
+        history:        () => loadAuditLogs(),
+        devChurches:    async () => { await loadAllChurches(); await loadRegKeys(); },
+        devMessages:    () => loadDevMessages(),
+        churchSettings: async () => { await loadChurchSettingsTab(); await loadAdminProfile(); }
     };
     
-    if (loaders[name]) loaders[name]();
+    // Execute loader
+    try {
+        if (loaders[name]) {
+            await loaders[name]();
+        }
+    } catch (err) {
+        console.error('Error switching tab:', err);
+    } finally {
+        // Hide loader and show the target panel
+        if (loader) loader.classList.remove('active');
+        const targetPanel = document.getElementById(name);
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+            // Trigger a re-layout check for charts/tables if needed
+            window.dispatchEvent(new Event('resize'));
+        }
+    }
 }
 function switchTabByName(name) {
     const btn = document.querySelector(`.nav-item[onclick*="'${name}'"]`);
@@ -4913,19 +4991,19 @@ function initAttendance() {
     currentAttYear = today.getFullYear();
     currentAttMonth = today.getMonth();
     
-    document.getElementById('currentYearDisplay').textContent = currentAttYear;
+    document.getElementById('attendanceYearDisplay').textContent = currentAttYear;
     renderMonthTabs(); 
-    renderFridayCards();
+    return renderFridayCards();
 }
 function changeYear(dir) { 
     currentAttYear += dir; 
-    document.getElementById('currentYearDisplay').textContent = currentAttYear; 
+    document.getElementById('attendanceYearDisplay').textContent = currentAttYear; 
     
     // Make sure month is valid (0-11)
     if (currentAttMonth < 0) currentAttMonth = 0;
     if (currentAttMonth > 11) currentAttMonth = 11;
     
-    renderFridayCards(); 
+    return renderFridayCards(); 
 }const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 function renderMonthTabs() {
     document.getElementById('monthTabs').innerHTML=MONTHS.map((m,i)=>`<div class="month-tab ${i===currentAttMonth?'active':''}" onclick="selectMonth(${i})">${m}</div>`).join('');
@@ -4933,7 +5011,7 @@ function renderMonthTabs() {
 function selectMonth(idx) { 
     currentAttMonth = idx; 
     renderMonthTabs(); 
-    renderFridayCards(); 
+    return renderFridayCards(); 
 }function getFridaysInMonth(year, month) {
     const fridays = [];
     const date = new Date(year, month, 1);
@@ -4953,57 +5031,46 @@ function selectMonth(idx) {
 }
 function renderFridayCards() {
     const fridays = getFridaysInMonth(currentAttYear, currentAttMonth);
-    const cls = document.getElementById('attClassFilter')?.value || '';
     const c = document.getElementById('fridaysList');
     
     document.getElementById('attendanceDetail').style.display = 'none';
     
     if (!fridays.length) { 
         c.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام جمعة في هذا الشهر</h3></div>`; 
-        return; 
+        return Promise.resolve(); 
     }
     
     c.innerHTML = `<div class="friday-grid">${fridays.map(f => {
-        const ds = f.toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
-        // Format date as YYYY-MM-DD for API call
-        const year = f.getFullYear();
-        const month = String(f.getMonth() + 1).padStart(2, '0');
-        const day = String(f.getDate()).padStart(2, '0');
-        const iso = `${year}-${month}-${day}`;
+        const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
+        const iso = `${y}-${mo}-${d}`;
+        const ds = f.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
         
         return `<div class="friday-card" onclick="loadAttendanceForDate('${iso}')">
             <div class="date"><i class="fas fa-calendar-day" style="color:var(--primary);margin-left:6px;"></i>${ds}</div>
-            <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="att_${iso}_p">---</span><span style="background:var(--danger-light);color:#991b1b;" id="att_${iso}_a">---</span></div>
+            <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="p_${iso}">---</span><span style="background:var(--danger-light);color:#991b1b;" id="a_${iso}">---</span></div>
         </div>`;
     }).join('')}</div>`;
     
-    // Load stats for each Friday
-    fridays.forEach(f => {
-        const year = f.getFullYear();
-        const month = String(f.getMonth() + 1).padStart(2, '0');
-        const day = String(f.getDate()).padStart(2, '0');
-        const iso = `${year}-${month}-${day}`;
-        
+    const promises = fridays.map(f => {
+        const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
+        const iso = `${y}-${mo}-${d}`;
         const fd2 = mkFd('getAttendanceByDate'); 
         fd2.append('date', iso);
         
-        fetch(API_URL, {method:'POST', body:fd2})
+        return fetch(API_URL, {method:'POST', body:fd2})
             .then(r => r.json())
             .then(d => {
                 if (!d.success) return;
                 const att = d.attendance || [];
-                const filt = cls ? att.filter(a => a.class === cls) : att;
-                const present = filt.filter(a => a.status === 'present').length;
-                const absent = filt.filter(a => a.status === 'absent').length;
+                const ep = document.getElementById(`p_${iso}`); 
+                const ea = document.getElementById(`a_${iso}`);
                 
-                const ep = document.getElementById(`att_${iso}_p`); 
-                const ea = document.getElementById(`att_${iso}_a`);
-                
-                if (ep) ep.textContent = `✅ ${present}`; 
-                if (ea) ea.textContent = `❌ ${absent}`;
+                if (ep) ep.textContent = `✅ ${att.filter(a => a.status === 'present').length}`; 
+                if (ea) ea.textContent = `❌ ${att.filter(a => a.status === 'absent').length}`;
             })
             .catch(err => console.error('Error loading attendance for date:', iso, err));
     });
+    return Promise.all(promises);
 }
 function filterAttendanceDisplay() { 
     renderFridayCards(); 
@@ -5188,7 +5255,7 @@ async function saveManualAttendance() {
     fd.append('attendanceData',JSON.stringify(attData));
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم حفظ الحضور','success'); closeModal('addAttendanceModal'); renderFridayCards(); }
-    else showToast(d.message||'فشل','error');
+    else showToast(d.message||'فشل', 'error');
 }
 
 // ── Pending ─────────────────────────────────────────────────────
@@ -7873,7 +7940,7 @@ function toggleFieldPwd(inputId, iconId) {
     function initUncleAttendanceTab() {
         document.getElementById('uncleAttYearDisplay2').textContent = ua2Year;
         renderUa2MonthTabs();
-        renderUa2FridayCards();
+        return renderUa2FridayCards();
     }
 
     // Sub-tab switching (Calendar / Report)
@@ -7929,7 +7996,7 @@ function toggleFieldPwd(inputId, iconId) {
         const c = document.getElementById('uncleFridaysList2');
         if (!fridays.length) {
             c.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام جمعة في هذا الشهر</h3></div>`;
-            return;
+            return Promise.resolve();
         }
         c.innerHTML = `<div class="friday-grid">${fridays.map(f => {
             const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
@@ -7944,12 +8011,12 @@ function toggleFieldPwd(inputId, iconId) {
             </div>`;
         }).join('')}</div>`;
 
-        fridays.forEach(f => {
+        const promises = fridays.map(f => {
             const y=f.getFullYear(), mo=String(f.getMonth()+1).padStart(2,'0'), d=String(f.getDate()).padStart(2,'0');
             const iso=`${y}-${mo}-${d}`;
             const fd2 = mkFd('getUncleAttendanceByDate');
             fd2.append('date', iso);
-            fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json()).then(data => {
+            return fetch(API_URL, {method:'POST', body:fd2}).then(r=>r.json()).then(data => {
                 if (!data.success) return;
                 const att = data.attendance||[];
                 const ep = document.getElementById(`ua2p_${iso}`);
@@ -7958,6 +8025,7 @@ function toggleFieldPwd(inputId, iconId) {
                 if (ea) ea.textContent = `❌ ${att.filter(a=>a.status==='absent').length}`;
             }).catch(()=>{});
         });
+        return Promise.all(promises);
     }
 
     // Load detail for a date
