@@ -8093,7 +8093,8 @@ function getTripDetails() {
                 s.phone as student_phone,
                 s.image_url as student_image,
                 u.name as registered_by_name,
-                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id) as total_paid
+                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id) as total_paid,
+                tr.payment_history
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
             LEFT JOIN uncles u ON tr.registered_by = u.id
@@ -8110,14 +8111,15 @@ function getTripDetails() {
         
         while ($row = $regResult->fetch_assoc()) {
             $row['total_paid'] = floatval($row['total_paid'] ?? 0);
-$row['remaining'] = max(0, round($finalPrice - $row['total_paid'], 2));
-if (abs($row['remaining']) < 0.01) {
-    $row['payment_status'] = 'paid';
-} elseif ($row['total_paid'] > 0.01) {
-    $row['payment_status'] = 'partial';
-} else {
-    $row['payment_status'] = 'pending';
-}
+            $row['payment_history'] = json_decode($row['payment_history'] ?? '[]', true) ?: [];
+            $row['remaining'] = max(0, round($finalPrice - $row['total_paid'], 2));
+            if (abs($row['remaining']) < 0.01) {
+                $row['payment_status'] = 'paid';
+            } elseif ($row['total_paid'] > 0.01) {
+                $row['payment_status'] = 'partial';
+            } else {
+                $row['payment_status'] = 'pending';
+            }
             
             $totalPaid += $row['total_paid'];
             if ($row['remaining'] > 0) {
@@ -8215,6 +8217,20 @@ function registerStudentForTrip() {
                 ");
                 $paymentStmt->bind_param("idi", $registrationId, $deposit, $uncleId);
                 $paymentStmt->execute();
+
+                $historyEntry = [
+                    'type' => 'deposit',
+                    'timestamp' => date('c'),
+                    'amount' => round($deposit, 2),
+                    'donation' => 0,
+                    'payment_method' => 'deposit',
+                    'received_by' => $uncleId,
+                    'notes' => 'دفعة مقدمة للتسجيل'
+                ];
+                $historyJson = json_encode([$historyEntry], JSON_UNESCAPED_UNICODE);
+                $historyStmt = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
+                $historyStmt->bind_param("si", $historyJson, $registrationId);
+                $historyStmt->execute();
             }
             
             // تسجيل النشاط
@@ -8307,11 +8323,30 @@ function addTripPayment() {
         ");
         $paymentStmt->bind_param("iddsss", $registrationId, $amount, $donation, $paymentMethod, $uncleId, $notes);
         
-if ($paymentStmt->execute()) {
-    $newPaymentId = $conn->insert_id;
-    
-    // Recalculate and sync payment_status
-    $recalcStmt = $conn->prepare("
+        if ($paymentStmt->execute()) {
+            $newPaymentId = $conn->insert_id;
+
+            $historyStmt = $conn->prepare("SELECT payment_history FROM trip_registrations WHERE id = ?");
+            $historyStmt->bind_param("i", $registrationId);
+            $historyStmt->execute();
+            $historyData = $historyStmt->get_result()->fetch_assoc();
+            $historyArray = json_decode($historyData['payment_history'] ?? '[]', true) ?: [];
+            $historyArray[] = [
+                'type' => 'payment',
+                'timestamp' => date('c'),
+                'amount' => round($amount, 2),
+                'donation' => round($donation, 2),
+                'payment_method' => $paymentMethod,
+                'received_by' => $uncleId,
+                'notes' => $notes,
+            ];
+            $updatedHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
+            $updateHistoryStmt = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
+            $updateHistoryStmt->bind_param("si", $updatedHistoryJson, $registrationId);
+            $updateHistoryStmt->execute();
+
+            // Recalculate and sync payment_status
+            $recalcStmt = $conn->prepare("
         SELECT COALESCE(SUM(amount), 0) as total_paid
         FROM trip_payments WHERE registration_id = ?
     ");

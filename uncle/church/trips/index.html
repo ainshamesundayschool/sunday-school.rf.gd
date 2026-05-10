@@ -1603,6 +1603,7 @@ tbody tr:last-child td { border-bottom: none; }
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                   </div>
                   <div style="display:flex;gap:5px;flex-shrink:0;">
+                    <button class="act-btn" title="سجل الدفعات" onclick="showPaymentHistoryModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-history"></i></button>
                     <button class="act-btn act-pay" title="إضافة دفعة" onclick="showAddPaymentModal(${r.id},&quot;${escHtml(r.student_name)}&quot;,${totalPerKid},${paid})"><i class="fas fa-money-bill"></i></button>
                     <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
                   </div>
@@ -1780,6 +1781,17 @@ tbody tr:last-child td { border-bottom: none; }
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('addPaymentModal')">إلغاء</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment History -->
+  <div id="paymentHistoryModal" class="modal">
+    <div class="modal-box wide">
+      <div class="modal-head"><h2><i class="fas fa-history"></i> سجل الدفعات</h2><button class="modal-close" onclick="closeModal('paymentHistoryModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div id="paymentHistoryTitle" style="margin-bottom:14px;font-weight:700;"></div>
+        <div id="paymentHistoryList"></div>
       </div>
     </div>
   </div>
@@ -2043,6 +2055,39 @@ tbody tr:last-child td { border-bottom: none; }
     document.getElementById('paymentNotes').value='';
     document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
     openModal('addPaymentModal');
+  }
+
+  function showPaymentHistoryModal(regId, studentName) {
+    const regs = tripRegistrationsCache[window.currentTripId] || [];
+    const reg = regs.find(r => String(r.id) === String(regId));
+    const history = Array.isArray(reg?.payment_history) ? reg.payment_history : [];
+    document.getElementById('paymentHistoryTitle').innerHTML = `الطفل: <strong>${escHtml(studentName)}</strong> — سجّل ${history.length} مدخلاً`;
+    const listEl = document.getElementById('paymentHistoryList');
+    if (!history.length) {
+      listEl.innerHTML = `<div class="empty-state" style="padding:30px;"><i class="fas fa-history"></i><h3>لا يوجد سجل دفعات بعد</h3></div>`;
+      openModal('paymentHistoryModal');
+      return;
+    }
+    listEl.innerHTML = history.map(entry => {
+      const date = entry.timestamp ? new Date(entry.timestamp) : null;
+      const dateStr = date ? date.toLocaleString('ar-EG', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      const typeLabel = entry.type === 'deposit' ? 'دفعة مقدمة' : 'دفعة';
+      return `
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--bg);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-weight:700;">
+            <span>${typeLabel}</span>
+            <span style="color:var(--muted);font-size:0.82rem;">${dateStr}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.88rem;line-height:1.5;">
+            <div>المبلغ: <strong>${parseFloat(entry.amount||0)} ج</strong></div>
+            <div>التبرع: <strong>${parseFloat(entry.donation||0)} ج</strong></div>
+            <div>طريقة الدفع: <strong>${escHtml(entry.payment_method||'—')}</strong></div>
+            <div>المستلم: <strong>${escHtml(entry.received_by || '—')}</strong></div>
+          </div>
+          ${entry.notes ? `<div style="margin-top:10px;font-size:0.85rem;color:var(--muted);">ملاحظات: ${escHtml(entry.notes)}</div>` : ''}
+        </div>`;
+    }).join('');
+    openModal('paymentHistoryModal');
   }
   async function addTripPayment(e) {
     e.preventDefault();
