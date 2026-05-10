@@ -98,8 +98,10 @@ function processGameQRCode() {
             $new = $amount;
             $verb = "={$amount}";
         } elseif ($game_action === 'naughty') {
-            $new = -9999;
-            $verb = "naughty";
+            $isNaughty = !($points["n_{$tripId}"] ?? false);
+            $points["n_{$tripId}"] = $isNaughty;
+            $new = $current;
+            $verb = $isNaughty ? "naughty_on" : "naughty_off";
         } else {
             sendJSON(['success' => false, 'message' => 'Invalid action']);
             return;
@@ -153,7 +155,8 @@ function processGameQRCode() {
             error_log('notifyGameActivity error: ' . $e->getMessage());
         }
 
-        sendJSON(['success' => true, 'student_id' => $studentId, 'trip_id' => $tripId, 'points' => $new]);
+        $isNaughty = $points["n_{$tripId}"] ?? ($new <= -9999);
+        sendJSON(['success' => true, 'student_id' => $studentId, 'trip_id' => $tripId, 'points' => $new, 'is_naughty' => $isNaughty]);
 
     } catch (Exception $e) {
         error_log('processGameQRCode error: ' . $e->getMessage());
@@ -428,6 +431,7 @@ function getTripStudents() {
             $pointsMap = json_decode($tp, true);
             if (!is_array($pointsMap)) $pointsMap = [];
             $s['points'] = intval($pointsMap[$tripId] ?? 0);
+            $s['is_naughty'] = $pointsMap["n_{$tripId}"] ?? ($s['points'] <= -9999);
         }
         
         sendJSON(['success' => true, 'trip' => $trip, 'students' => $students]);

@@ -1504,6 +1504,14 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* Prevent touch delay */
 button, a, [role="button"] { touch-action: manipulation; }
+        .custom-fields-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 12px; background: var(--bg); border-radius: var(--radius); min-height: 52px; border: 2px dashed var(--border-2); transition: all 0.2s; }
+        .custom-fields-container:empty::after { content: 'لا توجد حقول إضافية مضافة بعد'; font-size: 0.85rem; color: var(--muted); width: 100%; text-align: center; }
+        .field-tag { background: var(--card); color: var(--text); padding: 6px 14px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); animation: tagFadeIn 0.25s var(--ease-spring); }
+        @keyframes tagFadeIn { from { opacity: 0; transform: scale(0.85) translateY(5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .field-tag i { cursor: pointer; color: var(--danger); font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; }
+        .field-tag i:hover { background: var(--danger-light); transform: rotate(90deg); }
+        .add-field-row { display: flex; gap: 8px; margin-top: 10px; }
+        .add-field-row input { flex: 1; }
     </style>
 </head>
 <body>
@@ -2024,7 +2032,14 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2" placeholder="تفاصيل الرحلة..."></textarea></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
-                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="tripCustomFields" class="form-input" placeholder="اكتب اسم الحقل وضع فاصلة (,) بين كل حقل. مثال: الغرفة, الفريق, رقم الحافلة"></div>
+                             <div class="form-group" style="grid-column:1/-1;">
+                                <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
+                                <div class="add-field-row">
+                                    <input type="text" id="newFieldName" class="form-input" placeholder="اسم الحقل (مثلاً: الغرفة)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName');}">
+                                    <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName')"><i class="fas fa-plus"></i> إضافة</button>
+                                </div>
+                                <div id="tripFieldsContainer" class="custom-fields-container"></div>
+                             </div>
                             <div class="form-group"><label class="form-label">صورة الرحلة</label><input type="file" id="tripImage" class="form-input" accept="image/*"></div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="fas fa-plus"></i> إضافة رحلة</button>
@@ -2481,7 +2496,14 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">الوصف</label><textarea id="editTripDescription" class="form-textarea" rows="2"></textarea></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="editTripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="editTripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
-                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="editTripCustomFields" class="form-input" placeholder="اكتب اسم الحقل وضع فاصلة (,) بين كل حقل. مثال: الغرفة, الفريق, رقم الحافلة"></div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
+                        <div class="add-field-row">
+                            <input type="text" id="editNewFieldName" class="form-input" placeholder="اسم الحقل (مثلاً: الفريق)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('editTripFieldsContainer','editNewFieldName');}">
+                            <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('editTripFieldsContainer', 'editNewFieldName')"><i class="fas fa-plus"></i> إضافة</button>
+                        </div>
+                        <div id="editTripFieldsContainer" class="custom-fields-container"></div>
+                    </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;">
                     <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ التعديلات</button>
@@ -4419,6 +4441,23 @@ function renderTripsList(trips) {
     }).join('')}</div>`;
 }
 
+function addCustomFieldTag(containerId, inputId, value = null) {
+    const input = inputId ? document.getElementById(inputId) : null;
+    const container = document.getElementById(containerId);
+    const val = value || (input ? input.value.trim() : '');
+    if (!val) return;
+    const existing = Array.from(container.querySelectorAll('.field-tag span')).map(s => s.textContent);
+    if (existing.includes(val)) { if(!value) showToast('هذا الحقل موجود بالفعل', 'warning'); return; }
+    const tag = document.createElement('div');
+    tag.className = 'field-tag';
+    tag.innerHTML = `<span>${val}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
+    container.appendChild(tag);
+    if (input) input.value = '';
+}
+function getCustomFieldsFromContainer(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} .field-tag span`)).map(s => s.textContent).join(',');
+}
+
 function calcFinalPrice(t) {
     if (!t.discount||t.discount==0) return Math.round(t.price);
     if (t.discount_type==='percentage') return Math.round(t.price-(t.price*t.discount/100));
@@ -4444,13 +4483,13 @@ async function addTrip(e) {
     fd.append('status',document.getElementById('tripStatus').value);
     fd.append('show_registered_kids',document.getElementById('tripShowRegisteredKids').value);
     fd.append('has_points_game',document.getElementById('tripHasPointsGame').value);
-    fd.append('custom_fields',document.getElementById('tripCustomFields').value);
+    fd.append('custom_fields', getCustomFieldsFromContainer('tripFieldsContainer'));
     const img=document.getElementById('tripImage').files[0];
     if (img) fd.append('trip_image',img);
     const btn=e.target.querySelector('button[type="submit"]');
     btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-    if (d.success) { showToast('تم إضافة الرحلة','success'); e.target.reset(); toggleTripDates(); recalcTripPrice(); loadTrips(); }
+    if (d.success) { showToast('تم إضافة الرحلة','success'); e.target.reset(); document.getElementById('tripFieldsContainer').innerHTML = ''; toggleTripDates(); recalcTripPrice(); loadTrips(); }
     else showToast(d.message||'فشل في الإضافة','error');
     btn.innerHTML='<i class="fas fa-plus"></i> إضافة رحلة'; btn.disabled=false;
 }
@@ -4470,7 +4509,11 @@ function openEditTrip(id) {
     document.getElementById('editTripDescription').value=t.description||'';
     document.getElementById('editTripShowRegisteredKids').value=String(t.show_registered_kids ?? 1);
     document.getElementById('editTripHasPointsGame').value=String(t.has_points_game ?? 0);
-    document.getElementById('editTripCustomFields').value=t.custom_fields||'';
+    const editContainer = document.getElementById('editTripFieldsContainer');
+    editContainer.innerHTML = '';
+    if (t.custom_fields) {
+        t.custom_fields.split(',').forEach(f => addCustomFieldTag('editTripFieldsContainer', null, f.trim()));
+    }
     toggleEditTripDates(); recalcEditTripPrice();
     openModal('editTripModal');
 }
@@ -4512,7 +4555,7 @@ async function updateTrip(e) {
     fd.append('description',document.getElementById('editTripDescription').value);
     fd.append('show_registered_kids',document.getElementById('editTripShowRegisteredKids').value);
     fd.append('has_points_game',document.getElementById('editTripHasPointsGame').value);
-    fd.append('custom_fields',document.getElementById('editTripCustomFields').value);
+    fd.append('custom_fields', getCustomFieldsFromContainer('editTripFieldsContainer'));
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم تحديث الرحلة','success'); closeModal('editTripModal'); loadTrips(); }
     else showToast(d.message||'فشل','error');

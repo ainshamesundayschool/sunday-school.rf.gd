@@ -98,6 +98,10 @@
         .toast.error { background: var(--danger); }
         
         #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+        .btn-naughty-sm.active { background: var(--danger); color: white; box-shadow: 0 0 10px var(--danger-mid); }
+        .naughty-tag { background: var(--danger); color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 6px; font-weight: 800; margin-left: 8px; display: none; animation: tagPulse 2s infinite; }
+        @keyframes tagPulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .naughty-tag.show { display: inline-block; }
     </style>
 </head>
 <body>
@@ -114,12 +118,12 @@
     
     <div id="contentView" style="display:none; width: 100%;">
         <div class="profile-card">
-            <button class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i class="fas fa-exclamation-triangle"></i></button>
+            <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i class="fas fa-exclamation-triangle"></i></button>
             
             <div class="avatar-container">
                 <div id="studentAvatar" class="avatar">؟</div>
                 <div class="info-col">
-                    <div id="studentName" class="name">اسم الطفل</div>
+                    <div class="name"><span id="studentName">اسم الطفل</span> <span id="naughtyTag" class="naughty-tag">شغب</span></div>
                     <div id="studentClass" class="class-name">الفصل</div>
                 </div>
             </div>
@@ -241,7 +245,7 @@ async function fetchPoints() {
     
     display.classList.remove('settling');
     if(res.success) {
-        updatePointsDisplay(res.points);
+        updatePointsDisplay(res.points, res.is_naughty);
     }
 }
 
@@ -272,14 +276,20 @@ function renderStudent() {
     document.getElementById('contentView').style.display = 'block';
 }
 
-function updatePointsDisplay(points) {
+function updatePointsDisplay(points, isNaughty = false) {
     const display = document.getElementById('pointsDisplay');
-    if(points <= -9999) {
-        display.innerHTML = '<i class="fas fa-skull-crossbones"></i> شغب';
-        display.className = "points-display naughty";
+    const tag = document.getElementById('naughtyTag');
+    const btn = document.getElementById('btnNaughty');
+    
+    display.textContent = points;
+    display.className = "points-display" + (isNaughty ? " naughty" : "");
+    
+    if (isNaughty) {
+        tag.classList.add('show');
+        btn.classList.add('active');
     } else {
-        display.textContent = points;
-        display.className = "points-display";
+        tag.classList.remove('show');
+        btn.classList.remove('active');
     }
     
     display.style.transform = 'scale(1.2)';
@@ -287,7 +297,9 @@ function updatePointsDisplay(points) {
 }
 
 function markNaughty() {
-    if(confirm('هل أنت متأكد من تعيين هذا الطفل في وضع الشغب (Naughty)؟')) {
+    const isCurrentlyNaughty = document.getElementById('naughtyTag').classList.contains('show');
+    const msg = isCurrentlyNaughty ? 'هل تريد إلغاء وضع الشغب لهذا الطفل؟' : 'هل أنت متأكد من تعيين هذا الطفل في وضع الشغب (Naughty)؟';
+    if(confirm(msg)) {
         updatePoints('naughty', 0);
     }
 }
@@ -318,14 +330,14 @@ async function updatePoints(action, amount) {
     isUpdating = false;
     
     if(res.success) {
-        updatePointsDisplay(res.points);
+        updatePointsDisplay(res.points, res.is_naughty);
         if(action === 'increment') {
             showToast(`تم إضافة ${amount} نقطة بنجاح`, 'success');
             fireworks();
         } else if(action === 'decrement') {
             showToast(`تم خصم ${amount} نقطة`, 'warning');
         } else if(action === 'naughty') {
-            showToast(`تم تعيين وضع الشغب`, 'error');
+            showToast(res.is_naughty ? 'تم تفعيل وضع الشغب' : 'تم إلغاء وضع الشغب', res.is_naughty ? 'error' : 'success');
         }
     } else {
         showToast(res.message || 'فشل في تحديث النقاط', 'error');
