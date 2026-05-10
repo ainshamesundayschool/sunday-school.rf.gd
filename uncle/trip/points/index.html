@@ -39,7 +39,7 @@
         .name { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .class-name { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
         
-        .points-display { background: var(--primary-light); color: var(--primary-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-block; border: 2px solid var(--primary); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 80px; text-align: center; }
+        .points-display { background: var(--primary-light); color: var(--primary-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--primary); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 100px; min-height: 60px; text-align: center; }
         .points-display.naughty { background: var(--danger-light); color: var(--danger-dark); border-color: var(--danger); font-size: 1.5rem; }
         
         .points-display.settling { opacity: 0.7; pointer-events: none; color: transparent !important; }
@@ -89,7 +89,7 @@
         .btn-sub { background: var(--warning); color: white; border-bottom: 4px solid var(--warning-dark); }
         .btn-sub:hover { background: var(--warning-dark); }
         
-        .loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); }
+        .loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); text-align: center; min-height: 300px; }
         .loading i { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
         
         .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
