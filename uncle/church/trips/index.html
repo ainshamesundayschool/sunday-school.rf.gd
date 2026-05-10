@@ -1164,6 +1164,18 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .modal-box.wide,
 .modal-box.xl { max-width: 100% !important; }
+#addPaymentModal .modal-box,
+#paymentHistoryModal .modal-box {
+  width: min(100%, 650px) !important;
+  max-width: 650px !important;
+  height: auto !important;
+  max-height: 90vh !important;
+  border-radius: 18px !important;
+}
+#addPaymentModal .modal-body,
+#paymentHistoryModal .modal-body {
+  overflow-y: auto;
+}
 @keyframes popIn {
   from { transform: scale(0.94) translateY(16px); opacity: 0; }
   to   { transform: scale(1) translateY(0); opacity: 1; }
@@ -1752,6 +1764,11 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="register-sticky-footer">
             <div class="register-fields">
               <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
+              <div class="form-group" style="display:flex;gap:8px;align-items:center;">
+                <label class="form-label" style="flex:1;margin-bottom:0;">تبرع إضافي</label>
+                <button type="button" class="btn btn-outline btn-sm" style="height:38px;white-space:nowrap;" onclick="toggleRegisterDonationField()">أضف تبرع</button>
+              </div>
+              <div class="form-group" id="registerDonationWrapper" style="display:none;margin-bottom:14px;"><label class="form-label">قيمة التبرع (ج)</label><input type="number" id="registerDonation" class="form-input" step="1" min="0" value="0"></div>
               <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
             </div>
             <div class="register-actions">
@@ -1773,7 +1790,11 @@ tbody tr:last-child td { border-bottom: none; }
           <input type="hidden" id="paymentRegistrationId">
           <div id="paymentStudentInfo" style="margin-bottom:16px;padding:14px;background:var(--bg);border-radius:10px;"></div>
           <div class="form-group" style="margin-bottom:14px;"><label class="form-label">المبلغ *</label><input type="number" id="paymentAmount" class="form-input" step="1" min="1" required></div>
-          <div class="form-group" style="margin-bottom:14px;"><label class="form-label">تبرع إضافي</label><input type="number" id="paymentDonation" class="form-input" step="1" min="0" value="0"></div>
+          <div class="form-group" style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+            <label class="form-label" style="flex:1;margin-bottom:0;">تبرع إضافي</label>
+            <button type="button" class="btn btn-outline btn-sm" style="height:38px;white-space:nowrap;" onclick="togglePaymentDonationField()">أضف تبرع</button>
+          </div>
+          <div class="form-group" id="paymentDonationWrapper" style="display:none;margin-bottom:14px;"><label class="form-label">قيمة التبرع (ج)</label><input type="number" id="paymentDonation" class="form-input" step="1" min="0" value="0"></div>
           <div class="form-group" style="margin-bottom:14px;"><label class="form-label">طريقة الدفع</label><select id="paymentMethod" class="form-select" style="width:100%;"><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></div>
           <div class="form-group" style="margin-bottom:20px;"><label class="form-label">ملاحظات</label><textarea id="paymentNotes" class="form-textarea" rows="2"></textarea></div>
           <div style="display:flex;gap:10px;">
@@ -1948,6 +1969,8 @@ tbody tr:last-child td { border-bottom: none; }
     _kidPickerClassFilter = '';
     document.getElementById('registerTripId').value=tripId;
     document.getElementById('registerDeposit').value='0';
+    document.getElementById('registerDonation').value='0';
+    document.getElementById('registerDonationWrapper').style.display='none';
     document.getElementById('registerNotes').value='';
     document.getElementById('registerStudentSearch').value='';
     document.getElementById('registerStudentId').value='';
@@ -2036,6 +2059,7 @@ tbody tr:last-child td { border-bottom: none; }
     const fd=new FormData(); fd.append('action','registerStudentForTrip');
     fd.append('trip_id',tripId); fd.append('student_id',studentId);
     fd.append('deposit',document.getElementById('registerDeposit').value||0);
+    fd.append('donation',document.getElementById('registerDonation').value||0);
     fd.append('notes',document.getElementById('registerNotes').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     btn.classList.remove('btn-loading'); btn.disabled=false;
@@ -2053,8 +2077,19 @@ tbody tr:last-child td { border-bottom: none; }
     document.getElementById('paymentDonation').value='0';
     document.getElementById('paymentMethod').value='cash';
     document.getElementById('paymentNotes').value='';
+    document.getElementById('paymentDonationWrapper').style.display='none';
     document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
     openModal('addPaymentModal');
+  }
+
+  function toggleRegisterDonationField() {
+    const wrapper = document.getElementById('registerDonationWrapper');
+    wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function togglePaymentDonationField() {
+    const wrapper = document.getElementById('paymentDonationWrapper');
+    wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
   }
 
   function showPaymentHistoryModal(regId, studentName) {
@@ -2102,6 +2137,7 @@ tbody tr:last-child td { border-bottom: none; }
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) {
       showToast('تمت إضافة الدفعة','success');
+      closeModal('addPaymentModal');
       await showTripDetails(window.currentTripId || document.getElementById('expTripId').value);
       loadTrips();
     } else showToast(d.message||'فشل','error');

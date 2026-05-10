@@ -8093,7 +8093,7 @@ function getTripDetails() {
                 s.phone as student_phone,
                 s.image_url as student_image,
                 u.name as registered_by_name,
-                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id) as total_paid,
+                COALESCE((SELECT SUM(amount) + SUM(donation) FROM trip_payments WHERE registration_id = tr.id), 0) as total_paid,
                 tr.payment_history
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
@@ -8159,6 +8159,7 @@ function registerStudentForTrip() {
         $tripId = intval($_POST['trip_id'] ?? 0);
         $studentId = intval($_POST['student_id'] ?? 0);
         $deposit = floatval($_POST['deposit'] ?? 0);
+        $donation = floatval($_POST['donation'] ?? 0);
         $notes = sanitize($_POST['notes'] ?? '');
         
         if ($tripId === 0 || $studentId === 0) {
@@ -8208,6 +8209,7 @@ function registerStudentForTrip() {
         
         if ($stmt->execute()) {
             $registrationId = $conn->insert_id;
+            $historyArray = [];
             
             // إذا كان هناك دفعة مقدمة، أضفها كدفعة
             if ($deposit > 0) {
@@ -8218,7 +8220,7 @@ function registerStudentForTrip() {
                 $paymentStmt->bind_param("idi", $registrationId, $deposit, $uncleId);
                 $paymentStmt->execute();
 
-                $historyEntry = [
+                $historyArray[] = [
                     'type' => 'deposit',
                     'timestamp' => date('c'),
                     'amount' => round($deposit, 2),
@@ -8227,7 +8229,29 @@ function registerStudentForTrip() {
                     'received_by' => $uncleId,
                     'notes' => 'دفعة مقدمة للتسجيل'
                 ];
-                $historyJson = json_encode([$historyEntry], JSON_UNESCAPED_UNICODE);
+            }
+
+            if ($donation > 0) {
+                $donationStmt = $conn->prepare("
+                    INSERT INTO trip_payments (registration_id, amount, donation, payment_method, received_by, notes)
+                    VALUES (?, 0, ?, 'donation', ?, ?)
+                ");
+                $donationStmt->bind_param("idis", $registrationId, $donation, $uncleId, $notes);
+                $donationStmt->execute();
+
+                $historyArray[] = [
+                    'type' => 'donation',
+                    'timestamp' => date('c'),
+                    'amount' => 0,
+                    'donation' => round($donation, 2),
+                    'payment_method' => 'donation',
+                    'received_by' => $uncleId,
+                    'notes' => 'تبرع عند التسجيل'
+                ];
+            }
+
+            if (!empty($historyArray)) {
+                $historyJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
                 $historyStmt = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
                 $historyStmt->bind_param("si", $historyJson, $registrationId);
                 $historyStmt->execute();
