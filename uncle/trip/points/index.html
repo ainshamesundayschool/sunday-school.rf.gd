@@ -39,8 +39,34 @@
         .name { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .class-name { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
         
-        .points-display { background: var(--primary-light); color: var(--primary-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-block; border: 2px solid var(--primary); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .points-display { background: var(--primary-light); color: var(--primary-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-block; border: 2px solid var(--primary); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 80px; text-align: center; }
         .points-display.naughty { background: var(--danger-light); color: var(--danger-dark); border-color: var(--danger); font-size: 1.5rem; }
+        
+        .points-display.settling { opacity: 0.7; pointer-events: none; color: transparent !important; }
+        .points-display.settling::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            z-index: 1;
+        }
+        .points-display.settling::after {
+            content: "\f110";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            animation: fa-spin 1s infinite linear;
+            z-index: 2;
+            color: var(--primary-dark) !important;
+        }
+        .points-display.naughty.settling::after { color: var(--danger-dark) !important; }
+        .points-display:not(.settling)::after { display: none; }
+        
+        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5); }
         
         .custom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 15px; }
         .tag { background: var(--bg); color: var(--muted); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); }
@@ -98,7 +124,7 @@
                 </div>
             </div>
             
-            <div id="pointsDisplay" class="points-display">0</div>
+            <div id="pointsDisplay" class="points-display settling">--</div>
             <div style="font-size:0.8rem; color:var(--muted); font-weight:700; margin-top:2px;">النقاط الحالية</div>
             
             <div id="customTags" class="custom-tags"></div>
@@ -203,6 +229,9 @@ async function loadStudentData() {
 }
 
 async function fetchPoints() {
+    const display = document.getElementById('pointsDisplay');
+    display.classList.add('settling');
+    
     const res = await apiCall('processGameQRCode', {
         trip_id: tripId,
         student_id: studentId,
@@ -210,6 +239,7 @@ async function fetchPoints() {
         amount: 0
     });
     
+    display.classList.remove('settling');
     if(res.success) {
         updatePointsDisplay(res.points);
     }
@@ -272,7 +302,9 @@ async function updatePoints(action, amount) {
     isUpdating = true;
     
     const display = document.getElementById('pointsDisplay');
-    display.style.opacity = '0.5';
+    const btns = document.querySelectorAll('.btn-action');
+    display.classList.add('settling');
+    btns.forEach(b => b.disabled = true);
     
     const res = await apiCall('processGameQRCode', {
         trip_id: tripId,
@@ -281,7 +313,8 @@ async function updatePoints(action, amount) {
         amount: amount
     });
     
-    display.style.opacity = '1';
+    display.classList.remove('settling');
+    btns.forEach(b => b.disabled = false);
     isUpdating = false;
     
     if(res.success) {
