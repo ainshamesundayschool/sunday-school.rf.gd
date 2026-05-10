@@ -580,11 +580,15 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 0.75rem; transition: all var(--t-fast) var(--ease); color: white;
 }
 .act-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
-.act-edit   { background: var(--warning); }
-.act-delete { background: var(--danger); }
-.act-view   { background: var(--info); }
-.act-pay    { background: var(--success); }
-.act-img    { background: var(--dev); }
+.act-edit    { background: var(--warning); }
+.act-delete  { background: var(--danger); }
+.act-view    { background: var(--info); }
+.act-pay     { background: var(--success); }
+.act-img     { background: var(--dev); }
+.act-history { background: var(--indigo-500); }
+.act-history:hover { background: var(--indigo-600); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35); }
+.act-donate { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-mid) !important; }
+.act-donate:hover { background: var(--danger); color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); }
 
 /* ── AVATAR ─────────────────────────────────────────────────────── */
 .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); }
@@ -1615,8 +1619,9 @@ tbody tr:last-child td { border-bottom: none; }
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                   </div>
                   <div style="display:flex;gap:5px;flex-shrink:0;">
-                    <button class="act-btn" title="سجل الدفعات" onclick="showPaymentHistoryModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-history"></i></button>
+                    <button class="act-btn act-history" title="سجل الدفعات" onclick="showPaymentHistoryModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-history"></i></button>
                     <button class="act-btn act-pay" title="إضافة دفعة" onclick="showAddPaymentModal(${r.id},&quot;${escHtml(r.student_name)}&quot;,${totalPerKid},${paid})"><i class="fas fa-money-bill"></i></button>
+                    <button class="act-btn act-donate" title="إضافة تبرع" onclick="showAddDonationModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-heart"></i></button>
                     <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
                   </div>
                 </div>`;
@@ -1764,11 +1769,7 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="register-sticky-footer">
             <div class="register-fields">
               <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
-              <div class="form-group" style="display:flex;gap:8px;align-items:center;">
-                <label class="form-label" style="flex:1;margin-bottom:0;">تبرع إضافي</label>
-                <button type="button" class="btn btn-outline btn-sm" style="height:38px;white-space:nowrap;" onclick="toggleRegisterDonationField()">أضف تبرع</button>
-              </div>
-              <div class="form-group" id="registerDonationWrapper" style="display:none;margin-bottom:14px;"><label class="form-label">قيمة التبرع (ج)</label><input type="number" id="registerDonation" class="form-input" step="1" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label">قيمة التبرع (ج)</label><input type="number" id="registerDonation" class="form-input" step="1" min="0" value="0"></div>
               <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
             </div>
             <div class="register-actions">
@@ -1790,16 +1791,31 @@ tbody tr:last-child td { border-bottom: none; }
           <input type="hidden" id="paymentRegistrationId">
           <div id="paymentStudentInfo" style="margin-bottom:16px;padding:14px;background:var(--bg);border-radius:10px;"></div>
           <div class="form-group" style="margin-bottom:14px;"><label class="form-label">المبلغ *</label><input type="number" id="paymentAmount" class="form-input" step="1" min="1" required></div>
-          <div class="form-group" style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
-            <label class="form-label" style="flex:1;margin-bottom:0;">تبرع إضافي</label>
-            <button type="button" class="btn btn-outline btn-sm" style="height:38px;white-space:nowrap;" onclick="togglePaymentDonationField()">أضف تبرع</button>
-          </div>
-          <div class="form-group" id="paymentDonationWrapper" style="display:none;margin-bottom:14px;"><label class="form-label">قيمة التبرع (ج)</label><input type="number" id="paymentDonation" class="form-input" step="1" min="0" value="0"></div>
           <div class="form-group" style="margin-bottom:14px;"><label class="form-label">طريقة الدفع</label><select id="paymentMethod" class="form-select" style="width:100%;"><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></div>
           <div class="form-group" style="margin-bottom:20px;"><label class="form-label">ملاحظات</label><textarea id="paymentNotes" class="form-textarea" rows="2"></textarea></div>
           <div style="display:flex;gap:10px;">
             <button type="submit" class="btn btn-success" style="flex:2;"><i class="fas fa-check"></i> إضافة الدفعة</button>
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('addPaymentModal')">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Donation -->
+  <div id="addDonationModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head"><h2 style="color:var(--danger);"><i class="fas fa-heart"></i> إضافة تبرع</h2><button class="modal-close" onclick="closeModal('addDonationModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <form id="addDonationForm" onsubmit="addTripDonation(event)">
+          <input type="hidden" id="donationRegistrationId">
+          <div id="donationStudentInfo" style="margin-bottom:16px;padding:14px;background:var(--bg);border-radius:10px;"></div>
+          <div class="form-group" style="margin-bottom:14px;"><label class="form-label">مبلغ التبرع *</label><input type="number" id="donationAmount" class="form-input" step="1" min="1" required></div>
+          <div class="form-group" style="margin-bottom:14px;"><label class="form-label">طريقة الدفع</label><select id="donationMethod" class="form-select" style="width:100%;"><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></div>
+          <div class="form-group" style="margin-bottom:20px;"><label class="form-label">ملاحظات</label><textarea id="donationNotes" class="form-textarea" rows="2"></textarea></div>
+          <div style="display:flex;gap:10px;">
+            <button type="submit" class="btn btn-danger" style="flex:2;"><i class="fas fa-heart"></i> حفظ التبرع</button>
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('addDonationModal')">إلغاء</button>
           </div>
         </form>
       </div>
@@ -2074,23 +2090,20 @@ tbody tr:last-child td { border-bottom: none; }
   function showAddPaymentModal(regId,name,price,paid) {
     document.getElementById('paymentRegistrationId').value=regId;
     document.getElementById('paymentAmount').value='';
-    document.getElementById('paymentDonation').value='0';
-    document.getElementById('paymentMethod').value='cash';
-    document.getElementById('paymentNotes').value='';
-    document.getElementById('paymentDonationWrapper').style.display='none';
     document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
     openModal('addPaymentModal');
   }
-
-  function toggleRegisterDonationField() {
-    const wrapper = document.getElementById('registerDonationWrapper');
-    wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
+  
+  function showAddDonationModal(regId, name) {
+    document.getElementById('donationRegistrationId').value = regId;
+    document.getElementById('donationAmount').value = '';
+    document.getElementById('donationMethod').value = 'cash';
+    document.getElementById('donationNotes').value = '';
+    document.getElementById('donationStudentInfo').innerHTML = `<div style="font-size:0.88rem;"><strong>الطفل:</strong> ${name}</div>`;
+    openModal('addDonationModal');
   }
 
-  function togglePaymentDonationField() {
-    const wrapper = document.getElementById('paymentDonationWrapper');
-    wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
-  }
+
 
   function showPaymentHistoryModal(regId, studentName) {
     const regs = tripRegistrationsCache[window.currentTripId] || [];
@@ -2131,13 +2144,32 @@ tbody tr:last-child td { border-bottom: none; }
     const fd=new FormData(); fd.append('action','addTripPayment');
     fd.append('registration_id',document.getElementById('paymentRegistrationId').value);
     fd.append('amount',Math.round(parseFloat(amount)));
-    fd.append('donation',document.getElementById('paymentDonation').value || 0);
+    fd.append('donation', 0);
     fd.append('payment_method',document.getElementById('paymentMethod').value);
     fd.append('notes',document.getElementById('paymentNotes').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) {
       showToast('تمت إضافة الدفعة','success');
       closeModal('addPaymentModal');
+      await showTripDetails(window.currentTripId || document.getElementById('expTripId').value);
+      loadTrips();
+    } else showToast(d.message||'فشل','error');
+  }
+  
+  async function addTripDonation(e) {
+    e.preventDefault();
+    const donation = document.getElementById('donationAmount').value;
+    if (!donation || donation <= 0) { showToast('أدخل مبلغ تبرع صحيح','warning'); return; }
+    const fd = new FormData(); fd.append('action','addTripPayment');
+    fd.append('registration_id', document.getElementById('donationRegistrationId').value);
+    fd.append('amount', 0);
+    fd.append('donation', Math.round(parseFloat(donation)));
+    fd.append('payment_method', document.getElementById('donationMethod').value);
+    fd.append('notes', document.getElementById('donationNotes').value);
+    const d = await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+    if (d.success) {
+      showToast('تمت إضافة التبرع بنجاح ❤️','success');
+      closeModal('addDonationModal');
       await showTripDetails(window.currentTripId || document.getElementById('expTripId').value);
       loadTrips();
     } else showToast(d.message||'فشل','error');

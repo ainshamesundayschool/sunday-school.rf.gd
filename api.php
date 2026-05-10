@@ -8310,8 +8310,8 @@ function addTripPayment() {
         
         $donation = floatval($_POST['donation'] ?? 0);
         
-        if ($registrationId === 0 || $amount <= 0) {
-            sendJSON(['success' => false, 'message' => 'بيانات الدفع غير صحيحة']);
+        if ($registrationId === 0 || ($amount <= 0 && $donation <= 0)) {
+            sendJSON(['success' => false, 'message' => 'بيانات الدفع أو التبرع غير صحيحة']);
             return;
         }
         
