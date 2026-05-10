@@ -1268,6 +1268,66 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
     text-align: right; color: var(--text);
     transition: background var(--t) var(--ease);
 }
+
+/* ── HORIZONTAL TRIPS ── */
+.trips-horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 4px 2px 14px;
+    margin-bottom: 10px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.trips-horizontal-scroll::-webkit-scrollbar { display: none; }
+
+.trip-slim-card {
+    flex: 0 0 auto;
+    width: 240px;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all var(--t) var(--ease);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+}
+.trip-slim-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--brand);
+}
+.trip-slim-img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-sm);
+    object-fit: cover;
+    background: var(--brand-bg);
+}
+.trip-slim-info {
+    flex: 1;
+    min-width: 0;
+}
+.trip-slim-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.trip-slim-date {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 .data-table tr:last-child td  { border-bottom: none; }
 .data-table tr:nth-child(even) td { background: var(--surface-2); }
 .data-table tr:hover td { background: var(--brand-bg); }
@@ -2854,6 +2914,11 @@ input[id*="Birthday"],input[id*="birthday"]{direction:ltr;text-align:center;font
         </div>
         <div class="bday-banner-list" id="todayBirthdayList"></div>
       </div>
+
+      <div class="section-head" id="tripsSectionHead" style="display:none;">
+        <span class="section-title">الرحلات المتاحة</span>
+      </div>
+      <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
       <div class="section-head">
         <span class="section-title">الفصول</span>
@@ -4460,6 +4525,7 @@ function loadData() {
             window._prunePhotoCache(activeUrls);
         }
         updateDashboardStats();
+        loadDashboardTrips();
         if (!currentClass) displayClasses(); // skip if class view already open
         else renderTodayBirthdayBanner(); // always refresh birthday banner
         _maybeSendBirthdayNotification(); // send push if today has birthdays
@@ -4497,6 +4563,7 @@ function _loadDataFromCache() {
             allStudentsData = d.allStudents || d.students || students;
             if (d.classes && d.classes.length) classes = d.classes;
             updateDashboardStats();
+            loadDashboardTrips();
             if (!currentClass) displayClasses();
             else renderTodayBirthdayBanner();
             updateCurrentDateDisplay();
@@ -4747,6 +4814,52 @@ function updateDashboardStats() {
     if (se('totalClasses')) se('totalClasses').textContent = classNames.length;
     if (se('birthdaysThisMonth')) se('birthdaysThisMonth').textContent = births;
     if (se('averageCoupons')) se('averageCoupons').textContent = avgC;
+}
+
+async function loadDashboardTrips() {
+    const container = document.getElementById('tripsContainer');
+    const head = document.getElementById('tripsSectionHead');
+    if (!container || !head) return;
+
+    try {
+        const fd = new FormData();
+        fd.append('action', 'getTrips');
+        const d = await fetch(API_URL, {method:'POST', body:fd, credentials:'include'}).then(r=>r.json());
+        
+        if (!d.success || !d.trips || !d.trips.length) {
+            container.style.display = 'none';
+            head.style.display = 'none';
+            return;
+        }
+
+        const activeTrips = d.trips.filter(t => t.status === 'active' || t.status === 'planned');
+        if (!activeTrips.length) {
+            container.style.display = 'none';
+            head.style.display = 'none';
+            return;
+        }
+
+        head.style.display = 'flex';
+        container.style.display = 'flex';
+        
+        container.innerHTML = activeTrips.map(t => {
+            const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', {day:'numeric', month:'short'}) : 'قريباً';
+            const img = t.image_url || '';
+            const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\'trip-slim-img\' style=\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\'><i class=\'fas fa-map-marked-alt\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
+            return `
+                <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
+                    ${imgHtml}
+                    <div class="trip-slim-info">
+                        <div class="trip-slim-name">${t.name}</div>
+                        <div class="trip-slim-date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    } catch(e) {
+        container.style.display = 'none';
+        head.style.display = 'none';
+    }
 }
 
 // ── CLASS STATS ───────────────────────────────────────────────
