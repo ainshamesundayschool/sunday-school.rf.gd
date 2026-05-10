@@ -30,7 +30,7 @@ function processGameQRCode() {
 
         $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
         $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
-        $action = strtolower(trim($_REQUEST['action'] ?? 'increment'));
+        $game_action = strtolower(trim($_REQUEST['game_action'] ?? 'increment'));
         $amount = intval($_REQUEST['amount'] ?? 1);
 
         if ($tripId <= 0 || $studentId <= 0) {
@@ -88,16 +88,16 @@ function processGameQRCode() {
 
         $current = intval($points[$tripId] ?? 0);
 
-        if ($action === 'increment') {
+        if ($game_action === 'increment') {
             $new = $current + $amount;
             $verb = "+{$amount}";
-        } elseif ($action === 'decrement') {
+        } elseif ($game_action === 'decrement') {
             $new = $current - $amount;
             $verb = "-{$amount}";
-        } elseif ($action === 'set') {
+        } elseif ($game_action === 'set') {
             $new = $amount;
             $verb = "={$amount}";
-        } elseif ($action === 'naughty') {
+        } elseif ($game_action === 'naughty') {
             $new = -9999;
             $verb = "naughty";
         } else {

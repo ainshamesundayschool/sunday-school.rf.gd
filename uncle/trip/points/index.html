@@ -206,7 +206,7 @@ async function fetchPoints() {
     const res = await apiCall('processGameQRCode', {
         trip_id: tripId,
         student_id: studentId,
-        action: 'increment',
+        game_action: 'increment',
         amount: 0
     });
     
@@ -277,7 +277,7 @@ async function updatePoints(action, amount) {
     const res = await apiCall('processGameQRCode', {
         trip_id: tripId,
         student_id: studentId,
-        action: action,
+        game_action: action,
         amount: amount
     });
     
