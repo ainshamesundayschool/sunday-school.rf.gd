@@ -1169,6 +1169,7 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-box.wide,
 .modal-box.xl { max-width: 100% !important; }
 #addPaymentModal .modal-box,
+#addDonationModal .modal-box,
 #paymentHistoryModal .modal-box {
   width: min(100%, 650px) !important;
   max-width: 650px !important;
@@ -1800,6 +1801,9 @@ tbody tr:last-child td { border-bottom: none; }
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('addPaymentModal')">إلغاء</button>
           </div>
         </form>
+        <hr class="divider-line">
+        <h3 style="font-size:0.88rem;margin-bottom:12px;color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="fas fa-history" style="color:var(--muted);"></i> الدفعات السابقة لهذا الطفل</h3>
+        <div id="previousPaymentsList"></div>
       </div>
     </div>
   </div>
@@ -2096,6 +2100,39 @@ tbody tr:last-child td { border-bottom: none; }
     document.getElementById('paymentRegistrationId').value=regId;
     document.getElementById('paymentAmount').value='';
     document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
+    
+    // Populate previous payments
+    const regs = tripRegistrationsCache[window.currentTripId] || [];
+    const reg = regs.find(r => String(r.id) === String(regId));
+    const history = Array.isArray(reg?.payment_history) ? reg.payment_history : [];
+    const payments = history.filter(h => parseFloat(h.amount) > 0);
+    
+    const listEl = document.getElementById('previousPaymentsList');
+    if (!payments.length) {
+      listEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted);font-size:0.82rem;background:var(--bg);border-radius:10px;border:1px dashed var(--border);">لا توجد دفعات مسجلة مسبقاً</div>`;
+    } else {
+      listEl.innerHTML = payments.map(p => {
+        const date = p.timestamp ? new Date(p.timestamp).toLocaleDateString('ar-EG', {month:'short', day:'numeric'}) : '—';
+        const isDeleted = p.is_deleted === 1;
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:${isDeleted ? 'var(--danger-light)' : 'var(--bg)'};border-radius:10px;margin-bottom:8px;border:1px solid ${isDeleted ? 'var(--danger-mid)' : 'var(--border)'};transition:all 0.2s; position:relative;">
+            ${isDeleted ? `<span style="position:absolute; top:-6px; left:10px; background:var(--danger); color:white; font-size:0.55rem; padding:1px 6px; border-radius:4px; font-weight:800;">ملغية</span>` : ''}
+            <div style="flex:1;min-width:0; ${isDeleted ? 'text-decoration:line-through;opacity:0.6;' : ''}">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:800;color:var(--success);font-size:0.9rem;">${parseFloat(p.amount)} ج</span>
+                <span style="font-size:0.7rem;color:var(--muted);background:white;padding:1px 6px;border-radius:4px;border:1px solid var(--border);">${date}</span>
+                <span style="font-size:0.65rem;color:var(--muted);">${p.type === 'deposit' ? 'مقدم' : 'دفعة'}</span>
+              </div>
+              ${p.notes ? `<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.notes)}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:6px;margin-right:10px;">
+              ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" onclick="deleteDonation(${regId}, ${p.id}, '${escHtml(name)}')"><i class="fas fa-trash"></i></button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
     openModal('addPaymentModal');
   }
   
@@ -2118,9 +2155,11 @@ tbody tr:last-child td { border-bottom: none; }
     } else {
       listEl.innerHTML = donations.map(d => {
         const date = d.timestamp ? new Date(d.timestamp).toLocaleDateString('ar-EG', {month:'short', day:'numeric'}) : '—';
+        const isDeleted = d.is_deleted === 1;
         return `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px;border:1px solid var(--border);transition:all 0.2s;">
-            <div style="flex:1;min-width:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:${isDeleted ? 'var(--danger-light)' : 'var(--bg)'};border-radius:10px;margin-bottom:8px;border:1px solid ${isDeleted ? 'var(--danger-mid)' : 'var(--border)'};transition:all 0.2s; position:relative;">
+            ${isDeleted ? `<span style="position:absolute; top:-6px; left:10px; background:var(--danger); color:white; font-size:0.55rem; padding:1px 6px; border-radius:4px; font-weight:800;">ملغية</span>` : ''}
+            <div style="flex:1;min-width:0; ${isDeleted ? 'text-decoration:line-through;opacity:0.6;' : ''}">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-weight:800;color:var(--danger);font-size:0.9rem;">${parseFloat(d.donation)} ج</span>
                 <span style="font-size:0.7rem;color:var(--muted);background:white;padding:1px 6px;border-radius:4px;border:1px solid var(--border);">${date}</span>
@@ -2128,7 +2167,7 @@ tbody tr:last-child td { border-bottom: none; }
               ${d.notes ? `<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(d.notes)}</div>` : ''}
             </div>
             <div style="display:flex;gap:6px;margin-right:10px;">
-              <button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" ${d.id ? `onclick="deleteDonation(${regId}, ${d.id}, '${escHtml(name)}')"` : 'disabled style="opacity:0.3;cursor:not-allowed;"'}><i class="fas fa-trash"></i></button>
+              ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" ${d.id ? `onclick="deleteDonation(${regId}, ${d.id}, '${escHtml(name)}')"` : 'disabled style="opacity:0.3;cursor:not-allowed;"'}><i class="fas fa-trash"></i></button>` : ''}
             </div>
           </div>
         `;
@@ -2139,17 +2178,28 @@ tbody tr:last-child td { border-bottom: none; }
   }
 
   async function deleteDonation(regId, paymentId, studentName) {
-    if (!confirm(`هل أنت متأكد من حذف هذا التبرع للطفل ${studentName}؟`)) return;
+    if (!confirm(`هل أنت متأكد من حذف هذا السجل للطفل ${studentName}؟`)) return;
     const fd = new FormData();
     fd.append('action', 'deleteTripPayment');
     fd.append('payment_id', paymentId);
     fd.append('registration_id', regId);
     const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) {
-      showToast('تم حذف التبرع بنجاح', 'success');
+      showToast('تم الحذف بنجاح', 'success');
       await showTripDetails(window.currentTripId);
-      // Refresh the list in the modal
-      showAddDonationModal(regId, studentName);
+      
+      // Refresh the lists in modals if they are open
+      const regs = tripRegistrationsCache[window.currentTripId] || [];
+      const reg = regs.find(r => String(r.id) === String(regId));
+      
+      if (document.getElementById('addDonationModal').style.display === 'block') {
+        showAddDonationModal(regId, studentName);
+      } else if (document.getElementById('addPaymentModal').style.display === 'block') {
+        const price = Math.round(calcFinalPrice?.({price:reg.price, discount:reg.discount, discount_type:reg.discount_type}) || reg.price);
+        showAddPaymentModal(regId, studentName, price, reg.total_paid);
+      } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
+        showPaymentHistoryModal(regId, studentName);
+      }
     } else showToast(d.message || 'فشل الحذف', 'error');
   }
 
@@ -2170,19 +2220,22 @@ tbody tr:last-child td { border-bottom: none; }
       const date = entry.timestamp ? new Date(entry.timestamp) : null;
       const dateStr = date ? date.toLocaleString('ar-EG', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
       const typeLabel = entry.type === 'deposit' ? 'دفعة مقدمة' : 'دفعة';
+      const isDeleted = entry.is_deleted === 1;
       return `
-        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--bg);">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-weight:700;">
+        <div style="border:1px solid ${isDeleted ? 'var(--danger-mid)' : 'var(--border)'};border-radius:12px;padding:14px;margin-bottom:10px;background:${isDeleted ? 'var(--danger-light)' : 'var(--bg)'}; position:relative; overflow:hidden;">
+          ${isDeleted ? `<div style="position:absolute;top:0;right:0;background:var(--danger);color:white;font-size:0.6rem;padding:2px 8px;font-weight:700;border-bottom-left-radius:8px;">ملغية</div>` : ''}
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-weight:700; ${isDeleted ? 'text-decoration:line-through;opacity:0.7;' : ''}">
             <span>${typeLabel}</span>
             <span style="color:var(--muted);font-size:0.82rem;">${dateStr}</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.88rem;line-height:1.5;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.88rem;line-height:1.5; ${isDeleted ? 'text-decoration:line-through;opacity:0.7;' : ''}">
             <div>المبلغ: <strong>${parseFloat(entry.amount||0)} ج</strong></div>
             <div>التبرع: <strong>${parseFloat(entry.donation||0)} ج</strong></div>
             <div>طريقة الدفع: <strong>${escHtml(entry.payment_method||'—')}</strong></div>
             <div>المستلم: <strong>${escHtml(entry.received_by || '—')}</strong></div>
           </div>
-          ${entry.notes ? `<div style="margin-top:10px;font-size:0.85rem;color:var(--muted);">ملاحظات: ${escHtml(entry.notes)}</div>` : ''}
+          ${entry.notes ? `<div style="margin-top:10px;font-size:0.85rem;color:var(--muted); ${isDeleted ? 'text-decoration:line-through;opacity:0.5;' : ''}">ملاحظات: ${escHtml(entry.notes)}</div>` : ''}
+          ${!isDeleted ? `<div style="margin-top:10px;text-align:left;"><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger-mid);font-size:0.7rem;padding:4px 10px;" onclick="deleteDonation(${regId}, ${entry.id}, '${escHtml(studentName)}')"><i class="fas fa-trash"></i> حذف</button></div>` : ''}
         </div>`;
     }).join('');
     openModal('paymentHistoryModal');

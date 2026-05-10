@@ -8096,8 +8096,8 @@ function getTripDetails() {
                 s.phone as student_phone,
                 s.image_url as student_image,
                 u.name as registered_by_name,
-                COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id), 0) as total_paid,
-                COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id), 0) as total_donation,
+                COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
+                COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
                 tr.payment_history
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
@@ -8114,26 +8114,49 @@ function getTripDetails() {
         $totalDonations = 0;
         $pendingAmount = 0;
         
-        // Fetch all uncles for name mapping
-        $unclesStmt = $conn->prepare("SELECT id, name FROM uncles WHERE church_id = ?");
-        $unclesStmt->bind_param("i", $churchId);
-        $unclesStmt->execute();
-        $unclesResult = $unclesStmt->get_result();
-        $unclesMap = [];
-        while ($u = $unclesResult->fetch_assoc()) {
-            $unclesMap[$u['id']] = $u['name'];
+        // Fetch all payments for this trip to build history with real IDs
+        $paymentsStmt = $conn->prepare("
+            SELECT tp.*, u.name as received_by_name
+            FROM trip_payments tp
+            LEFT JOIN uncles u ON tp.received_by = u.id
+            JOIN trip_registrations tr ON tp.registration_id = tr.id
+            WHERE tr.trip_id = ?
+            ORDER BY tp.id ASC
+        ");
+        $paymentsStmt->bind_param("i", $tripId);
+        $paymentsStmt->execute();
+        $paymentsResult = $paymentsStmt->get_result();
+        $allPayments = [];
+        while ($p = $paymentsResult->fetch_assoc()) {
+            $allPayments[$p['registration_id']][] = $p;
         }
 
         while ($row = $regResult->fetch_assoc()) {
             $row['total_paid'] = floatval($row['total_paid'] ?? 0);
             $row['total_donation'] = floatval($row['total_donation'] ?? 0);
-            $history = json_decode($row['payment_history'] ?? '[]', true) ?: [];
             
-            // Map received_by ID to name
-            foreach ($history as &$entry) {
-                if (isset($entry['received_by']) && isset($unclesMap[$entry['received_by']])) {
-                    $entry['received_by'] = $unclesMap[$entry['received_by']];
+            // Build history from real trip_payments table
+            $regPayments = $allPayments[$row['id']] ?? [];
+            $history = [];
+            foreach ($regPayments as $p) {
+                $type = 'payment';
+                if ($p['amount'] > 0 && (strpos($p['notes'], 'دفعة مقدمة') !== false)) {
+                    $type = 'deposit';
+                } elseif ($p['amount'] == 0 && $p['donation'] > 0) {
+                    $type = 'donation';
                 }
+                
+                $history[] = [
+                    'id' => $p['id'],
+                    'type' => $type,
+                    'timestamp' => $p['payment_date'] ?? $p['created_at'] ?? null,
+                    'amount' => floatval($p['amount']),
+                    'donation' => floatval($p['donation']),
+                    'payment_method' => $p['payment_method'],
+                    'received_by' => $p['received_by_name'] ?: '—',
+                    'notes' => $p['notes'],
+                    'is_deleted' => intval($p['is_deleted'] ?? 0)
+                ];
             }
             $row['payment_history'] = $history;
             
@@ -8256,7 +8279,8 @@ function registerStudentForTrip() {
                     'donation' => 0,
                     'payment_method' => 'deposit',
                     'received_by' => $uncleId,
-                    'notes' => 'دفعة مقدمة للتسجيل'
+                    'notes' => 'دفعة مقدمة للتسجيل',
+                    'is_deleted' => 0
                 ];
             }
 
@@ -8514,9 +8538,9 @@ function deleteTripPayment() {
         }
         $paymentInfo = $res->fetch_assoc();
 
-        // Delete from trip_payments
-        $delStmt = $conn->prepare("DELETE FROM trip_payments WHERE id = ?");
-        $delStmt->bind_param("i", $paymentId);
+        // Soft delete from trip_payments
+        $delStmt = $conn->prepare("UPDATE trip_payments SET is_deleted = 1, deleted_at = NOW(), deleted_by = ? WHERE id = ?");
+        $delStmt->bind_param("ii", $uncleId, $paymentId);
         if (!$delStmt->execute()) {
             sendJSON(['success' => false, 'message' => 'فشل في حذف الدفعة']);
             return;
@@ -8550,7 +8574,7 @@ function deleteTripPayment() {
             }
         }
 
-        $recalcStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid FROM trip_payments WHERE registration_id = ?");
+        $recalcStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
         $recalcStmt->bind_param("i", $registrationId);
         $recalcStmt->execute();
         $totalPaidNow = floatval($recalcStmt->get_result()->fetch_assoc()['total_paid']);
@@ -8635,7 +8659,7 @@ function exportTripData() {
                 tr.registration_date,
                 tr.deposit,
                 tr.notes,
-                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id) as total_paid,
+                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0) as total_paid,
                 u.name as registered_by_name
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
@@ -8669,7 +8693,7 @@ function exportTripData() {
             JOIN trip_registrations tr ON tp.registration_id = tr.id
             JOIN students s ON tr.student_id = s.id
             LEFT JOIN uncles u ON tp.received_by = u.id
-            WHERE tr.trip_id = ? AND tr.cancelled = 0
+            WHERE tr.trip_id = ? AND tr.cancelled = 0 AND tp.is_deleted = 0
             ORDER BY tp.payment_date
         ");
         $payStmt->bind_param("i", $tripId);
