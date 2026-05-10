@@ -981,6 +981,13 @@ tbody tr:last-child td { border-bottom: none; }
 .kid-cls { font-size: 0.68rem; color: var(--muted); margin-top: 2px; background: var(--bg); padding: 1px 5px; border-radius: var(--radius-pill); display: inline-block; }
 .kid-paid { margin-top: 5px; display: inline-flex; align-items: center; justify-content: center; padding: 2px 7px; border-radius: var(--radius-pill); background: var(--success-light); color: var(--success); font-size: 0.68rem; font-weight: 800; line-height: 1.35; }
 .kid-selected-info { margin-top: 8px; padding: 8px 12px; background: var(--primary-light); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--primary); font-weight: 700; min-height: 34px; transition: all .2s; }
+#registerStudentModal .modal-body { display: flex; min-height: 0; }
+#registerStudentForm { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.kid-picker-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 0 !important; }
+#registerStudentModal .kid-grid { flex: 1; min-height: 0; max-height: none; align-content: start; }
+.register-sticky-footer { flex-shrink: 0; position: sticky; bottom: 0; z-index: 3; background: white; border-top: 1px solid var(--border); padding: 14px 0 0; margin-top: 14px; box-shadow: 0 -10px 24px rgba(15,14,26,0.06); }
+.register-sticky-footer .register-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.register-sticky-footer .register-actions { display: flex; gap: 10px; }
 
 /* ═══════════════════════════════════════════════════════════════════
    REGISTRANT ROWS
@@ -1389,6 +1396,7 @@ tbody tr:last-child td { border-bottom: none; }
     .classes-grid { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); }
     .churches-grid { grid-template-columns: 1fr; }
     .kid-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 300px; }
+    .register-sticky-footer .register-fields { grid-template-columns: 1fr; }
 
     .btn { padding: 7px 12px; font-size: 0.8rem; gap: 5px; }
     .btn-sm { padding: 5px 9px; font-size: 0.74rem; }
@@ -2438,7 +2446,7 @@ button, a, [role="button"] { touch-action: manipulation; }
             <form id="registerStudentForm" onsubmit="registerStudentForTrip(event)">
                 <input type="hidden" id="registerTripId">
                 <input type="hidden" id="registerStudentId">
-                <div style="margin-bottom:14px;">
+                    <div class="kid-picker-panel" style="margin-bottom:14px;">
                     <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
                     <!-- search + filter -->
                     <div class="kid-picker-search">
@@ -2454,15 +2462,17 @@ button, a, [role="button"] { touch-action: manipulation; }
                     </div>
                     <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                    <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
-                    <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
-                </div>
-                <div style="display:flex;gap:10px;">
-                    <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i class="fas fa-save"></i> تسجيل</button>
-                    <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
-                </div>
-            </form>
+                    <div class="register-sticky-footer">
+                        <div class="register-fields">
+                            <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
+                            <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
+                        </div>
+                        <div class="register-actions">
+                            <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i class="fas fa-save"></i> تسجيل</button>
+                            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
+                        </div>
+                    </div>
+                </form>
         </div>
     </div>
 </div>
@@ -4588,6 +4598,14 @@ function selectKidCard(id, name, cls, el) {
     el.classList.add('selected');
     el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+function resetRegisterKidPicker() {
+    _selectedKidId = null;
+    document.getElementById('registerStudentId').value = '';
+    document.getElementById('registerDeposit').value = '0';
+    document.getElementById('registerNotes').value = '';
+    document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
+    filterRegisterStudents();
+}
 
 async function registerStudentForTrip(e) {
     e.preventDefault();
@@ -4604,10 +4622,10 @@ async function registerStudentForTrip(e) {
     btn.classList.remove('btn-loading'); btn.disabled=false;
     if (d.success) {
         showToast('تم التسجيل بنجاح ✅','success');
-        closeModal('registerStudentModal');
         updateHashParam('trip_tab', 'regs');
         await showTripDetails(tripId);
         switchTripTab('regs');
+        resetRegisterKidPicker();
     } else showToast(d.message||'فشل','error');
 }
 

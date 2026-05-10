@@ -993,6 +993,50 @@ tbody tr:last-child td { border-bottom: none; }
   min-height: 34px;
   transition: all .2s;
 }
+#registerStudentModal .modal-body {
+  display: flex;
+  min-height: 0;
+}
+#registerStudentForm {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kid-picker-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0 !important;
+}
+#registerStudentModal .kid-grid {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  align-content: start;
+}
+.register-sticky-footer {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  background: white;
+  border-top: 1px solid var(--border);
+  padding: 14px 0 0;
+  margin-top: 14px;
+  box-shadow: 0 -10px 24px rgba(15,14,26,0.06);
+}
+.register-sticky-footer .register-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.register-sticky-footer .register-actions {
+  display: flex;
+  gap: 10px;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    TRIP DETAIL TABS
@@ -1080,6 +1124,7 @@ tbody tr:last-child td { border-bottom: none; }
   .card-body { padding: 11px; }
   .summary-box { grid-template-columns: 1fr 1fr; }
   .kid-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 300px; }
+  .register-sticky-footer .register-fields { grid-template-columns: 1fr; }
   .btn-sm { padding: 5px 9px; font-size: 0.74rem; }
   .modal-head { padding: 13px 14px; }
 }
@@ -1687,7 +1732,7 @@ tbody tr:last-child td { border-bottom: none; }
         <form id="registerStudentForm" onsubmit="registerStudentForTrip(event)">
           <input type="hidden" id="registerTripId">
           <input type="hidden" id="registerStudentId">
-          <div style="margin-bottom:14px;">
+          <div class="kid-picker-panel" style="margin-bottom:14px;">
             <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
             <!-- search + filter -->
             <div class="kid-picker-search">
@@ -1703,13 +1748,15 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-            <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
-            <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i class="fas fa-save"></i> تسجيل</button>
-            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
+          <div class="register-sticky-footer">
+            <div class="register-fields">
+              <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
+            </div>
+            <div class="register-actions">
+              <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i class="fas fa-save"></i> تسجيل</button>
+              <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
+            </div>
           </div>
         </form>
       </div>
@@ -1959,6 +2006,14 @@ tbody tr:last-child td { border-bottom: none; }
     el.classList.add('selected');
     el.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
+  function resetRegisterKidPicker() {
+    _selectedKidId = null;
+    document.getElementById('registerStudentId').value = '';
+    document.getElementById('registerDeposit').value = '0';
+    document.getElementById('registerNotes').value = '';
+    document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
+    filterRegisterStudents();
+  }
   async function registerStudentForTrip(e) {
     e.preventDefault();
     const tripId=document.getElementById('registerTripId').value;
@@ -1977,6 +2032,7 @@ tbody tr:last-child td { border-bottom: none; }
       updateHashParam('trip_tab', 'regs');
       await showTripDetails(tripId, { tab: 'regs' });
       switchTripTab('regs');
+      resetRegisterKidPicker();
     } else showToast(d.message||'فشل','error');
   }
   function showAddPaymentModal(regId,name,price,paid) {
