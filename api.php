@@ -1332,6 +1332,57 @@ case 'deleteUncleAttendance':
         gradeOpenAnswer();
         break;
 
+    case 'processGameQRCode':
+        processGameQRCode();
+        break;
+
+    case 'getTrips':
+        getTrips();
+        break;
+
+    case 'getTripDetails':
+        getTripDetails();
+        break;
+
+    case 'addTrip':
+        checkAuth();
+        addTrip();
+        break;
+
+    case 'updateTrip':
+        checkAuth();
+        updateTrip();
+        break;
+
+    case 'deleteTrip':
+        checkAuth();
+        deleteTrip();
+        break;
+
+    case 'registerStudentForTrip':
+        registerStudentForTrip();
+        break;
+
+    case 'addTripPayment':
+        addTripPayment();
+        break;
+
+    case 'cancelTripRegistration':
+        cancelTripRegistration();
+        break;
+
+    case 'exportTripData':
+        exportTripData();
+        break;
+
+    case 'bulkUpdateCustomData':
+        bulkUpdateCustomData();
+        break;
+
+    case 'getSessionInfo':
+        getSessionInfo();
+        break;
+
         default:
             sendJSON(['success' => false, 'message' => 'Invalid action: ' . $action]);
     }
