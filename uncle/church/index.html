@@ -1488,7 +1488,7 @@ button, a, [role="button"] { touch-action: manipulation; }
             <i class="fas fa-building"></i><span class="label">إدارة الكنائس</span>
         </button>
         <div class="nav-section-label">الرئيسية</div>
-        <button class="nav-item active" onclick="switchTab('overview', this)" data-tooltip="نظرة عامة">
+        <button class="nav-item" onclick="switchTab('overview', this)" data-tooltip="نظرة عامة" id="nav-overview">
             <i class="fas fa-home"></i><span class="label">نظرة عامة</span>
         </button>
         <div class="nav-section-label">الإدارة</div>
@@ -1562,7 +1562,7 @@ button, a, [role="button"] { touch-action: manipulation; }
     <main class="main-content">
 
         <!-- ── OVERVIEW ── -->
-        <div id="overview" class="tab-panel active">
+        <div id="overview" class="tab-panel">
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-child"></i></div><div class="stat-info"><p>الأطفال</p><h3 id="totalStudents">0</h3></div></div>
                 <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chalkboard"></i></div><div class="stat-info"><p>الفصول</p><h3 id="totalClasses">0</h3></div></div>
@@ -2813,88 +2813,61 @@ async function restoreSessionAndReload() {
     }
 }
 
+// ── Auth & Init ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Get authoritative session from server
     const sess = await initSession();
-
-    // 2. If session is missing but we have stored credentials → restore silently
-    if (!sess.ok) {
-        const loggedIn = localStorage.getItem('loggedIn');
-        if (!loggedIn) {
-            // No credentials at all → go to login, passing current URL as redirect target
-            const dest = encodeURIComponent(window.location.href);
-            window.location.href = '/login/?redirect=' + dest;
-            return;
-        }
-        // Has credentials but no session → try to restore (will reload or redirect)
+    
+    // 2. Silent restoration
+    if (!sess.ok && localStorage.getItem('loggedIn')) {
         if (navigator.onLine) {
             const restored = await restoreSessionAndReload();
-            if (restored) return; // page will reload or redirect
+            if (restored) return;
         }
-        // Offline with stored credentials → continue with localStorage data
+    } else if (!sess.ok) {
+        const dest = encodeURIComponent(window.location.href);
+        window.location.href = '/login/?redirect=' + dest;
+        return;
     }
 
-    // 3. Role
-    const userRole = (sess.role || localStorage.getItem('uncleRole') || localStorage.getItem('role') || '').toLowerCase().trim();
+    // 3. Role & ID
+    const userRole = (sess.role || localStorage.getItem('uncleRole') || '').toLowerCase().trim();
     const loginType = sess.login_type || localStorage.getItem('loginType') || '';
-
-    // 4. Church ID
-    if (sess.church_id) {
-        sessionChurchId = sess.church_id;
-        devOrigChurchId = sess.church_id;
-    } else {
-        sessionChurchId = parseInt(localStorage.getItem('churchId') || 0);
-        devOrigChurchId = sessionChurchId;
-    }
-
-    // 5. Role gate — only redirect plain uncles
     if (loginType === 'uncle' && userRole === 'uncle') {
         window.location.href = '/uncle/dashboard/';
         return;
     }
 
-    // 6. Persist role
-    if (userRole) {
-        localStorage.setItem('uncleRole', userRole);
-        localStorage.setItem('role', userRole);
-    }
+    sessionChurchId = sess.church_id || parseInt(localStorage.getItem('churchId') || 0);
+    devOrigChurchId = sessionChurchId;
+    sessionChurchCode = sess.church_code || localStorage.getItem('churchCode') || '';
 
-    // 7. Sidebar identity — use server data first
+    // 4. Sidebar identity
     const displayName = sess.name || localStorage.getItem('uncleName') || 'المسؤول';
-    const churchName  = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
-    const churchCode  = sess.church_code || localStorage.getItem('churchCode') || '';
-    sessionChurchCode = churchCode;
-
     document.getElementById('sidebarUserName').textContent = displayName;
     document.getElementById('sidebarUserRole').textContent = userRole || 'admin';
     document.getElementById('sidebarAvatar').textContent   = displayName.charAt(0);
-    document.getElementById('sidebarChurchName').textContent = churchName;
-    document.getElementById('sidebarChurchCode').textContent = churchCode ? `رمز: ${churchCode}` : 'لوحة الإدارة';
-        sessionChurchCode = churchCode;
-        setTimeout(renderKidRegLinks, 100);
+    document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+    document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
+    
+    setTimeout(renderKidRegLinks, 100);
 
-    // 8. Developer visibility
+    // 5. Developer visibility
     isDeveloper = ['developer', 'dev'].includes(userRole);
-    // Load notifications
-    setTimeout(loadNotifications, 1200);
-    setTimeout(loadDevMessages, 1500);
-    setTimeout(initDevMsgUI, 600);
-    console.log('[init] role:', userRole, '| isDev:', isDeveloper, '| churchId:', sessionChurchId, '| loginType:', loginType);
-
     if (isDeveloper) {
         document.querySelectorAll('.dev-only').forEach(el => { el.style.display = 'block'; });
         const dbg = document.querySelector('.topbar-btn[onclick="showDebugInfo()"]');
         if (dbg) dbg.style.display = 'flex';
+        buildDevChurchSwitcher();
     }
 
-    // 9. Restore tab from URL hash
-    const savedTab = getHashTab();
-    if (savedTab) {
-        const btn = document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
-        switchTab(savedTab, btn);
-    }
+    // 6. Restore tab from URL hash (IMMEDIATE)
+    const hashData = getHashData();
+    const savedTab = hashData.tab || 'overview';
+    const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
+    switchTab(savedTab, btn);
 
-    // 10. Load all data in parallel
+    // 7. Load all data in parallel
     await Promise.all([
         loadStatistics(),
         loadStudents(),
@@ -2903,24 +2876,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadTrips(),
     ]);
 
-    // Handle deep links from Hash
-    const hashData = getHashData();
-    if (hashData.tab === 'trips' && hashData.params.get('trip_id')) {
+    // Handle deep links (modals)
+    if (savedTab === 'trips' && hashData.params.get('trip_id')) {
         const tripId = parseInt(hashData.params.get('trip_id'));
-        if (tripId) {
-            setTimeout(() => showTripDetails(tripId), 500);
-        }
+        if (tripId) setTimeout(() => showTripDetails(tripId), 200);
     }
 
-    // 11. UI init
+    // UI init
     toggleTripDates();
     recalcTripPrice();
     initAttendance();
-
-    // 12. Dev church switcher
-    if (isDeveloper) {
-        buildDevChurchSwitcher();
-    }
+    
+    // Notifications
+    setTimeout(loadNotifications, 1200);
+    setTimeout(loadDevMessages, 1500);
+    setTimeout(initDevMsgUI, 600);
+});
 
     // 13. Handle ?class=X&id=Y routing (e.g. from auto-approval notification link)
     const _urlP = new URLSearchParams(window.location.search);
@@ -4322,6 +4293,27 @@ function openEditTrip(id) {
     openModal('editTripModal');
 }
 
+function showAddPaymentModal(regId, name, price, paid) {
+    // This is a legacy fallback. We now redirect to the standalone trip page for all payments.
+    let tripId = null;
+    for (const [tid, regs] of Object.entries(tripRegistrationsCache)) {
+        if (regs.find(r => String(r.id) === String(regId))) {
+            tripId = tid;
+            break;
+        }
+    }
+    
+    if (tripId) {
+        window.location.href = `/uncle/church/trips/#trips?trip_id=${tripId}&trip_tab=regs&action=add_payment&reg_id=${regId}`;
+    } else {
+        document.getElementById('paymentRegistrationId').value = regId;
+        document.getElementById('paymentAmount').value = '';
+        document.getElementById('paymentMethod').value = 'cash';
+        document.getElementById('paymentNotes').value = '';
+        openModal('addPaymentModal');
+    }
+}
+
 async function updateTrip(e) {
     e.preventDefault();
     const fd=new FormData(); fd.append('action','updateTrip');
@@ -4621,15 +4613,6 @@ async function registerStudentForTrip(e) {
     } else showToast(d.message||'فشل','error');
 }
 
-function showAddPaymentModal(regId,name,price,paid) {
-    document.getElementById('paymentRegistrationId').value=regId;
-    document.getElementById('paymentAmount').value='';
-    document.getElementById('paymentDonation').value='0';
-    document.getElementById('paymentMethod').value='cash';
-    document.getElementById('paymentNotes').value='';
-    document.getElementById('paymentStudentInfo').innerHTML=`<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price-paid)} جنيه</span></div></div>`;
-    openModal('addPaymentModal');
-}
 
 async function addTripPayment(e) {
     e.preventDefault();
