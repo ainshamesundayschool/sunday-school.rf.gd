@@ -46,7 +46,7 @@
         .points-display.settling::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             background: rgba(255,255,255,0.1);
             border-radius: 50px;
             z-index: 1;
@@ -56,8 +56,10 @@
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
             animation: fa-spin 1s infinite linear;
             z-index: 2;
