@@ -8109,9 +8109,28 @@ function getTripDetails() {
         $totalPaid = 0;
         $pendingAmount = 0;
         
+        // Fetch all uncles for name mapping
+        $unclesStmt = $conn->prepare("SELECT id, name FROM uncles WHERE church_id = ?");
+        $unclesStmt->bind_param("i", $churchId);
+        $unclesStmt->execute();
+        $unclesResult = $unclesStmt->get_result();
+        $unclesMap = [];
+        while ($u = $unclesResult->fetch_assoc()) {
+            $unclesMap[$u['id']] = $u['name'];
+        }
+
         while ($row = $regResult->fetch_assoc()) {
             $row['total_paid'] = floatval($row['total_paid'] ?? 0);
-            $row['payment_history'] = json_decode($row['payment_history'] ?? '[]', true) ?: [];
+            $history = json_decode($row['payment_history'] ?? '[]', true) ?: [];
+            
+            // Map received_by ID to name
+            foreach ($history as &$entry) {
+                if (isset($entry['received_by']) && isset($unclesMap[$entry['received_by']])) {
+                    $entry['received_by'] = $unclesMap[$entry['received_by']];
+                }
+            }
+            $row['payment_history'] = $history;
+            
             $row['remaining'] = max(0, round($finalPrice - $row['total_paid'], 2));
             if (abs($row['remaining']) < 0.01) {
                 $row['payment_status'] = 'paid';
