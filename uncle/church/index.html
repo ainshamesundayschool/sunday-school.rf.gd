@@ -2682,52 +2682,35 @@ let devOrigChurchId = 0;
 
 // ── Tab persistence via URL hash ─────────────────────────────
 function getHashData() {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    let tab = '';
-    for(const key of hashParams.keys()) {
-        if (!key.includes('=')) { tab = key; break; }
-    }
-    if(!tab && window.location.hash.includes('?')) {
-        tab = window.location.hash.split('?')[0].replace('#', '');
-    } else if(!tab) {
-        tab = window.location.hash.replace('#', '').trim();
-    }
-    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending','history','devChurches','devMessages','churchSettings'];
+    const hash = window.location.hash.substring(1);
+    const parts = hash.split('?');
+    const tab = parts[0];
+    const params = new URLSearchParams(parts[1] || '');
+    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending', 'history', 'churchSettings'];
     return {
-        tab: valid.includes(tab) ? tab : null,
-        params: hashParams
+        tab: valid.includes(tab) ? tab : 'overview',
+        params: params
     };
 }
-function getHashTab() {
-    return getHashData().tab;
-}
 function setHashTab(name, extraParams = {}) {
-    let params = new URLSearchParams();
     const current = getHashData();
-    if (current.tab === name) {
-        params = new URLSearchParams(current.params);
-    }
+    const params = new URLSearchParams(current.params);
     for (const [k, v] of Object.entries(extraParams)) {
         if (v || v === 0) params.set(k, v);
         else params.delete(k);
     }
     const pStr = params.toString();
-    history.replaceState(null, '', '#' + name + (pStr ? '?' + pStr : ''));
+    const newHash = '#' + name + (pStr ? '?' + pStr : '');
+    if (window.location.hash !== newHash) {
+        history.replaceState(null, '', newHash);
+    }
 }
 function updateHashParam(key, value) {
     const data = getHashData();
-    if(data.tab) {
-        if(value) data.params.set(key, value);
-        else data.params.delete(key);
-        
-        // rebuild hash
-        let parts = [];
-        for (const [k, v] of data.params.entries()) {
-            if (k !== data.tab) parts.push(`${k}=${v}`);
-        }
-        const pStr = parts.join('&');
-        history.replaceState(null, '', '#' + data.tab + (pStr ? '?' + pStr : ''));
-    }
+    if(value || value === 0) data.params.set(key, value);
+    else data.params.delete(key);
+    const pStr = data.params.toString();
+    history.replaceState(null, '', '#' + data.tab + (pStr ? '?' + pStr : ''));
 }
 
 // ── Auth & Init ──────────────────────────────────────────────
@@ -2945,9 +2928,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 window.addEventListener('hashchange', async () => {
     const hashData = getHashData();
-    if (!hashData.tab) return;
     const btn = document.querySelector(`.nav-item[onclick*="'${hashData.tab}'"]`);
-    if (btn) switchTab(hashData.tab, btn);
+    if (btn) {
+        // Only switch if it's different to avoid redundant reloads
+        const currentActive = document.querySelector('.nav-item.active');
+        if (!currentActive || !currentActive.getAttribute('onclick').includes(`'${hashData.tab}'`)) {
+            switchTab(hashData.tab, btn);
+        }
+    }
+    
     if (hashData.tab === 'trips' && hashData.params.get('trip_id')) {
         const tripId = parseInt(hashData.params.get('trip_id'));
         if (tripId) await showTripDetails(tripId);
@@ -4499,7 +4488,7 @@ function renderTripDetailsFull(trip) {
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                 </div>
                 <div style="display:flex;gap:5px;flex-shrink:0;">
-                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="showAddPaymentModal(${r.id},&quot;${escHtml(r.student_name)}&quot;,${totalPerKid},${parseFloat(r.total_paid)||0})"><i class="fas fa-money-bill"></i></button>
+                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="window.location.href='/uncle/church/trips/?trip_id=${trip.id}&trip_tab=regs&action=add_payment&reg_id=${r.id}'"><i class="fas fa-money-bill"></i></button>
                     <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
                 </div>
             </div>`;
@@ -4904,7 +4893,7 @@ async function _refreshRegsAfterExpenseChange(tripId) {
             +'<span style="background:'+col+'18;color:'+col+';font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:2px;">'+lbl+'</span>'
             +'</div>'
             +'<div style="display:flex;gap:5px;">'
-            +'<button class="act-btn act-pay" onclick="showAddPaymentModal('+r.id+',&quot;'+safeName+'&quot;,'+totalPerKid+','+paid+')" title="دفعة">'
+            +'<button class="act-btn act-pay" onclick="window.location.href=\'/uncle/church/trips/?trip_id='+tripId+'&trip_tab=regs&action=add_payment&reg_id='+r.id+'\'" title="دفعة">'
             +'<i class="fas fa-money-bill"></i></button>'
             +'<button class="act-btn act-delete" onclick="cancelRegistration('+r.id+','+trip.id+')" title="إلغاء">'
             +'<i class="fas fa-times"></i></button>'

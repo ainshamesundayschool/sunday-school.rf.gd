@@ -2514,25 +2514,14 @@
       <div class="topbar-left">
         <button class="mobile-menu-btn">☰</button>
         <div>
-          <div class="topbar-title">رحلات الكنيسة</div>
-          <div class="topbar-breadcrumb"><span>الرحلات</span></div>
+          <div class="topbar-title">إدارة الرحلة</div>
+          <div class="topbar-breadcrumb"><span>تفاصيل الرحلة</span></div>
         </div>
       </div>
       <div class="topbar-right"></div>
     </div>
 
-    <main class="main-content">
-      <div class="card" id="standaloneTripCard">
-        <div class="card-header">
-          <div class="card-title"><i class="fa fa-route"></i> الرحلة المختارة</div>
-        </div>
-        <div class="card-body" id="standaloneTripSummary">
-          <div class="container-loading">
-            <div class="spin-icon"></div> جاري تحميل الرحلة المختارة...
-          </div>
-        </div>
-      </div>
-    </main>
+    <main class="main-content" style="display:none;"></main>
   </div>
 
   <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
@@ -2563,8 +2552,8 @@
                 <div id="tdTotalPricePill" style="font-size:1.3rem;font-weight:900;color:white;">0 ج</div>
                 <div id="tdPriceBreakPill" style="font-size:0.65rem;color:rgba(255,255,255,0.5);"></div>
               </div>
-              <button class="modal-close" onclick="closeModal('tripDetailsModal')"
-                style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);width:40px;height:40px;border-radius:50%;font-size:1rem;"><i
+              <button class="modal-close" onclick="window.location.href='/uncle/church/#trips'"
+                style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);width:40px;height:40px;border-radius:50%;font-size:1rem;display:flex;align-items:center;justify-content:center;"><i
                   class="fas fa-times"></i></button>
             </div>
           </div>
@@ -2671,18 +2660,21 @@
 
     function getSelectedTripId() {
       const hash = location.hash || '';
-      const query = hash.includes('?') ? hash.split('?')[1] : hash.replace(/^#/, '');
-      const params = new URLSearchParams(query);
+      const parts = hash.substring(1).split('?');
+      const params = new URLSearchParams(parts[1] || '');
       const fromParam = parseInt(params.get('trip_id') || params.get('id') || 0);
       if (fromParam) return fromParam;
-      const match = hash.match(/#trip-(\d+)/);
-      return match ? parseInt(match[1]) : 0;
+      
+      // Legacy fallback
+      const tabAndParams = parts[0];
+      if (tabAndParams.startsWith('trip-')) return parseInt(tabAndParams.replace('trip-', ''));
+      return 0;
     }
 
     function getSelectedTripTab() {
       const hash = location.hash || '';
-      const query = hash.includes('?') ? hash.split('?')[1] : '';
-      const params = new URLSearchParams(query);
+      const parts = hash.substring(1).split('?');
+      const params = new URLSearchParams(parts[1] || '');
       const tab = params.get('trip_tab') || 'info';
       return ['info', 'regs', 'exp'].includes(tab) ? tab : 'info';
     }
@@ -2718,11 +2710,11 @@
 
     function openModal(id) {
       document.getElementById(id).classList.add('open');
-      if (id === 'tripDetailsModal' && window.currentTripId) updateHashParam && updateHashParam('trip_id', window.currentTripId);
     }
     function closeModal(id) {
       document.getElementById(id).classList.remove('open');
-      if (id === 'tripDetailsModal') updateHashParam && updateHashParam('trip_id', null);
+      // If it's the main trip details modal and we're on the standalone page, maybe we should redirect back?
+      // But for now, just closing is fine as the close button handles redirect.
     }
 
     function switchTripTab(tab, updateUrl = true) {
@@ -2763,7 +2755,6 @@
       tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
       if (tripResp.success) {
         allTripsCache = [tripResp.trip];
-        renderStandaloneTripSummary(tripResp.trip);
         renderTripDetailsFull(tripResp.trip);
         switchTripTab(targetTab, false);
       }
@@ -3007,10 +2998,33 @@
     function exportTripData(id, fmt) { window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`; }
     function copyTripLink(id) { const url = window.location.origin + window.location.pathname + `#trips?trip_id=${id}`; navigator.clipboard?.writeText(url).then(() => showToast?.('تم نسخ رابط الرحلة', 'success')).catch(() => showToast?.('فشل في نسخ الرابط', 'error')); }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', async function () {
       const tripId = getSelectedTripId();
-      if (tripId) showTripDetails(tripId);
-      else {
+      if (tripId) {
+        await showTripDetails(tripId);
+        
+        // Check for auto-open actions
+        const params = new URLSearchParams(location.hash.substring(1).split('?')[1] || '');
+        const action = params.get('action');
+        const regId = params.get('reg_id');
+        const studentName = params.get('student_name');
+        
+        if (action === 'add_payment' && regId) {
+            // Need to fetch or calculate price/paid... or just open modal and let it load?
+            // The showAddPaymentModal expects price and paid. 
+            // We can try to find the registration in the cache.
+            setTimeout(() => {
+                const regs = tripRegistrationsCache[tripId] || [];
+                const r = regs.find(x => String(x.id) === String(regId));
+                if (r) {
+                    const basePrice = Math.round(calcFinalPrice?.(allTripsCache[0]) || 0);
+                    const exps = tripExpensesCache[tripId] || [];
+                    const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || 0), 0));
+                    showAddPaymentModal(r.id, r.student_name, basePrice + expPerKid, parseFloat(r.total_paid)||0);
+                }
+            }, 800);
+        }
+      } else {
         document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-route"></i><h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3></div>`;
         openModal('tripDetailsModal');
       }
