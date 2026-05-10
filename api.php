@@ -97,6 +97,9 @@ function processGameQRCode() {
         } elseif ($action === 'set') {
             $new = $amount;
             $verb = "={$amount}";
+        } elseif ($action === 'naughty') {
+            $new = -9999;
+            $verb = "naughty";
         } else {
             sendJSON(['success' => false, 'message' => 'Invalid action']);
             return;
@@ -7834,6 +7837,9 @@ function addTrip() {
         $status = sanitize($_POST['status'] ?? 'planned');
         $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
+        $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
+        $hasPointsGame = $hasPointsGame ? 1 : 0;
+        $customFields = sanitize($_POST['custom_fields'] ?? '');
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -7878,16 +7884,18 @@ function addTrip() {
                 church_id, title, description, type, 
                 start_date, end_date, price, discount, 
                 discount_type, max_participants, status, 
-                image_url, created_by, show_registered_kids
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                image_url, created_by, show_registered_kids,
+                has_points_game, custom_fields
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->bind_param(
-            "isssssddsissii",
+            "isssssddsissiiis",
             $churchId, $title, $description, $type,
             $dbStartDate, $dbEndDate, $price, $discount,
             $discountType, $maxParticipants, $status,
-            $imageUrl, $uncleId, $showRegisteredKids
+            $imageUrl, $uncleId, $showRegisteredKids,
+            $hasPointsGame, $customFields
         );
         
         if ($stmt->execute()) {
@@ -7947,6 +7955,9 @@ function updateTrip() {
         $status = sanitize($_POST['status'] ?? 'planned');
         $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
+        $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
+        $hasPointsGame = $hasPointsGame ? 1 : 0;
+        $customFields = sanitize($_POST['custom_fields'] ?? '');
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -7966,16 +7977,16 @@ function updateTrip() {
             SET title = ?, description = ?, type = ?, 
                 start_date = ?, end_date = ?, price = ?, 
                 discount = ?, discount_type = ?, max_participants = ?, 
-                status = ?, show_registered_kids = ?, updated_at = NOW()
+                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, updated_at = NOW()
             WHERE id = ? AND church_id = ?
         ");
         
         $stmt->bind_param(
-            "sssssddsisiii",
+            "sssssddsisiiisi",
             $title, $description, $type,
             $dbStartDate, $dbEndDate, $price,
             $discount, $discountType, $maxParticipants,
-            $status, $showRegisteredKids, $tripId, $churchId
+            $status, $showRegisteredKids, $hasPointsGame, $customFields, $tripId, $churchId
         );
         
         if ($stmt->execute()) {
@@ -8214,6 +8225,7 @@ function registerStudentForTrip() {
         $deposit = floatval($_POST['deposit'] ?? 0);
         $donation = floatval($_POST['donation'] ?? 0);
         $notes = sanitize($_POST['notes'] ?? '');
+        $customData = isset($_POST['custom_data']) ? $_POST['custom_data'] : null;
         
         if ($tripId === 0 || $studentId === 0) {
             sendJSON(['success' => false, 'message' => 'الرحلة والطفل مطلوبان']);
@@ -8255,10 +8267,10 @@ function registerStudentForTrip() {
         
         // تسجيل جديد
         $stmt = $conn->prepare("
-            INSERT INTO trip_registrations (trip_id, student_id, registered_by, deposit, notes)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO trip_registrations (trip_id, student_id, registered_by, deposit, notes, custom_data)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("iiids", $tripId, $studentId, $uncleId, $deposit, $notes);
+        $stmt->bind_param("iiidss", $tripId, $studentId, $uncleId, $deposit, $notes, $customData);
         
         if ($stmt->execute()) {
             $registrationId = $conn->insert_id;

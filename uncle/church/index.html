@@ -2023,6 +2023,8 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group"><label class="form-label">الحالة</label><select id="tripStatus" class="form-select" style="width:100%;"><option value="planned">مخطط لها</option><option value="active">نشطة</option><option value="completed">منتهية</option></select></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2" placeholder="تفاصيل الرحلة..."></textarea></div>
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
+                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
+                            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="tripCustomFields" class="form-input" placeholder="الغرفة، الفريق..."></div>
                             <div class="form-group"><label class="form-label">صورة الرحلة</label><input type="file" id="tripImage" class="form-input" accept="image/*"></div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="fas fa-plus"></i> إضافة رحلة</button>
@@ -2478,6 +2480,8 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="form-group"><label class="form-label">الحالة</label><select id="editTripStatus" class="form-select" style="width:100%;"><option value="planned">مخطط لها</option><option value="active">نشطة</option><option value="completed">منتهية</option><option value="cancelled">ملغية</option></select></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">الوصف</label><textarea id="editTripDescription" class="form-textarea" rows="2"></textarea></div>
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور المسجلين في بروفايل الطفل</label><select id="editTripShowRegisteredKids" class="form-select" style="width:100%;"><option value="1">يظهر للأطفال من سجل في الرحلة</option><option value="0">لا يظهر إلا بيانات الطفل نفسه</option></select></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="editTripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق - افصل بينها بفاصلة)</label><input type="text" id="editTripCustomFields" class="form-input" placeholder="الغرفة، الفريق..."></div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;">
                     <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ التعديلات</button>
@@ -2519,6 +2523,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
                             <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري"></div>
                         </div>
+                        <div id="registerCustomFieldsContainer" class="register-fields" style="margin-top: 10px;"></div>
                         <div class="register-actions">
                             <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i class="fas fa-save"></i> تسجيل</button>
                             <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
@@ -4360,6 +4365,8 @@ async function addTrip(e) {
     fd.append('description',document.getElementById('tripDescription').value);
     fd.append('status',document.getElementById('tripStatus').value);
     fd.append('show_registered_kids',document.getElementById('tripShowRegisteredKids').value);
+    fd.append('has_points_game',document.getElementById('tripHasPointsGame').value);
+    fd.append('custom_fields',document.getElementById('tripCustomFields').value);
     const img=document.getElementById('tripImage').files[0];
     if (img) fd.append('trip_image',img);
     const btn=e.target.querySelector('button[type="submit"]');
@@ -4384,6 +4391,8 @@ function openEditTrip(id) {
     document.getElementById('editTripStatus').value=t.status;
     document.getElementById('editTripDescription').value=t.description||'';
     document.getElementById('editTripShowRegisteredKids').value=String(t.show_registered_kids ?? 1);
+    document.getElementById('editTripHasPointsGame').value=String(t.has_points_game ?? 0);
+    document.getElementById('editTripCustomFields').value=t.custom_fields||'';
     toggleEditTripDates(); recalcEditTripPrice();
     openModal('editTripModal');
 }
@@ -4424,6 +4433,8 @@ async function updateTrip(e) {
     fd.append('status',document.getElementById('editTripStatus').value);
     fd.append('description',document.getElementById('editTripDescription').value);
     fd.append('show_registered_kids',document.getElementById('editTripShowRegisteredKids').value);
+    fd.append('has_points_game',document.getElementById('editTripHasPointsGame').value);
+    fd.append('custom_fields',document.getElementById('editTripCustomFields').value);
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم تحديث الرحلة','success'); closeModal('editTripModal'); loadTrips(); }
     else showToast(d.message||'فشل','error');
@@ -4561,11 +4572,19 @@ function renderTripDetailsFull(trip) {
             const pct=totalPerKid>0?Math.min(100,Math.round((parseFloat(r.total_paid)||0)/totalPerKid*100)):0;
             const initials=(r.student_name||'؟').charAt(0);
             const img=r.student_image||r.image_url||r['صورة']||r.photo||'';
+            let customDataHtml = '';
+            if(r.custom_data) {
+                try {
+                    const cData = JSON.parse(r.custom_data);
+                    customDataHtml = `<div style="font-size:0.75rem;color:var(--primary);margin-top:2px;background:var(--primary-light);padding:2px 6px;border-radius:6px;display:inline-block;">${Object.entries(cData).map(([k,v])=>`<strong>${k}:</strong> ${v}`).join(' &bull; ')}</div>`;
+                } catch(e){}
+            }
             return `<div class="reg-row">
                 <div class="reg-ava" style="border:2px solid ${col}33;">${img?`<img src="${img}" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">${initials}</span>`:`<span class="reg-ava-fallback">${initials}</span>`}</div>
                 <div class="reg-info" style="flex:1;min-width:0;">
                     <strong style="font-size:0.9rem;">${r.student_name}</strong>
                     <span style="color:var(--muted);font-size:0.72rem;">${r.student_class||'—'}</span>
+                    ${customDataHtml}
                     <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
                         <div style="flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px;transition:width .6s ease;"></div></div>
                         <span style="font-size:0.65rem;color:${col};font-weight:700;">${pct}%</span>
@@ -4596,6 +4615,7 @@ let _selectedKidId = null;
 let _kidPickerClassFilter = '';
 
 async function showRegisterStudentModal(tripId) {
+    const trip = allTripsCache.find(t => String(t.id) === String(tripId));
     _selectedKidId = null;
     _kidPickerClassFilter = '';
     document.getElementById('registerTripId').value=tripId;
@@ -4603,6 +4623,18 @@ async function showRegisterStudentModal(tripId) {
     document.getElementById('registerNotes').value='';
     document.getElementById('registerStudentSearch').value='';
     document.getElementById('registerStudentId').value='';
+    
+    const customFieldsContainer = document.getElementById('registerCustomFieldsContainer');
+    customFieldsContainer.innerHTML = '';
+    if (trip && trip.custom_fields) {
+        const fields = trip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
+        let html = '';
+        fields.forEach((field) => {
+            html += `<div class="form-group"><label class="form-label">${field}</label><input type="text" class="form-input register-custom-field" data-name="${field}" placeholder="${field}"></div>`;
+        });
+        customFieldsContainer.innerHTML = html;
+    }
+    
     document.getElementById('kidSelectedInfo').textContent='لم يتم اختيار طفل بعد';
     document.getElementById('kidPickerGrid').innerHTML=`<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
     openModal('registerStudentModal');
@@ -4697,6 +4729,18 @@ async function registerStudentForTrip(e) {
     fd.append('trip_id',tripId); fd.append('student_id',studentId);
     fd.append('deposit',document.getElementById('registerDeposit').value||0);
     fd.append('notes',document.getElementById('registerNotes').value);
+    
+    const customFieldsEls = document.querySelectorAll('.register-custom-field');
+    let customDataObj = {};
+    customFieldsEls.forEach(el => {
+        if(el.value.trim() !== '') {
+            customDataObj[el.dataset.name] = el.value.trim();
+        }
+    });
+    if (Object.keys(customDataObj).length > 0) {
+        fd.append('custom_data', JSON.stringify(customDataObj));
+    }
+    
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     btn.classList.remove('btn-loading'); btn.disabled=false;
     if (d.success) {

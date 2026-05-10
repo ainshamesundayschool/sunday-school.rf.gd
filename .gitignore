@@ -16,3 +16,4 @@ db_test.php
 db_migrations/add_donation_to_trip_registrations.sql
 db_migrations/add_trip_registered_kids_visibility.sql
 db_migrations/add_soft_delete_to_trip_payments.sql
+if0_40860329_sunday_school (7).sql

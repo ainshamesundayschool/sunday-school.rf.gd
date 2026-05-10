@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>إدارة نقاط الرحلة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #e0e7ff;
+            --success: #10b981; --success-dark: #059669; --success-light: #d1fae5;
+            --danger: #ef4444; --danger-dark: #dc2626; --danger-light: #fee2e2;
+            --warning: #f59e0b; --warning-dark: #d97706; --warning-light: #fef3c7;
+            --dark: #111827; --text: #1f2937; --muted: #6b7280;
+            --bg: #f3f4f6; --surface: #ffffff;
+            --border: #e5e7eb;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .header { background: var(--surface); padding: 15px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center; }
+        .header h1 { font-size: 1.3rem; font-weight: 800; color: var(--dark); display:flex; align-items:center; justify-content:center; gap:8px; }
+        
+        .container { flex: 1; padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; }
+        
+        .profile-card { background: var(--surface); border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 25px; position: relative; overflow: hidden; }
+        .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 100px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); z-index: 0; }
+        
+        .avatar { width: 120px; height: 120px; border-radius: 50%; border: 5px solid var(--surface); box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto 15px; position: relative; z-index: 1; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 800; object-fit: cover; }
+        
+        .name { font-size: 1.6rem; font-weight: 800; color: var(--dark); margin-bottom: 5px; position: relative; z-index: 1; }
+        .class-name { font-size: 1rem; color: var(--muted); margin-bottom: 15px; position: relative; z-index: 1; }
+        
+        .points-display { display: inline-block; background: var(--primary-light); color: var(--primary-dark); font-size: 2.5rem; font-weight: 900; padding: 10px 30px; border-radius: 50px; margin-bottom: 10px; position: relative; z-index: 1; border: 2px solid var(--primary); }
+        .points-display.naughty { background: var(--danger-light); color: var(--danger-dark); border-color: var(--danger); font-size: 2rem; }
+        
+        .custom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px; position: relative; z-index: 1; }
+        .tag { background: var(--bg); color: var(--muted); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border); }
+        
+        .actions-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: var(--dark); text-align: center; }
+        
+        .points-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .btn-point { padding: 15px 0; border-radius: 12px; font-size: 1.3rem; font-weight: 900; border: none; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-point:active { transform: scale(0.95); }
+        
+        .btn-plus { background: var(--success); color: white; border-bottom: 4px solid var(--success-dark); }
+        .btn-plus:hover { background: var(--success-dark); }
+        
+        .btn-minus { background: var(--warning); color: white; border-bottom: 4px solid var(--warning-dark); }
+        .btn-minus:hover { background: var(--warning-dark); }
+        
+        .btn-naughty { background: var(--danger); color: white; padding: 15px; border-radius: 12px; font-size: 1.2rem; font-weight: 800; border: none; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border-bottom: 4px solid var(--danger-dark); transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-naughty:active { transform: scale(0.98); }
+        
+        .loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); }
+        .loading i { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
+        
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; display: flex; align-items: center; gap: 10px; }
+        .toast.show { bottom: 30px; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        
+        /* Fireworks animation overlay */
+        #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-star" style="color:var(--warning);"></i> نقاط الرحلة</h1>
+</div>
+
+<div class="container" id="mainContainer">
+    <div class="loading" id="loadingView">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <h2>جاري تحميل بيانات الطفل...</h2>
+    </div>
+    
+    <div id="contentView" style="display:none; width: 100%;">
+        <div class="profile-card">
+            <div id="studentAvatar" class="avatar">؟</div>
+            <div id="studentName" class="name">اسم الطفل</div>
+            <div id="studentClass" class="class-name">الفصل</div>
+            
+            <div id="pointsDisplay" class="points-display">0</div>
+            <div style="font-size:0.9rem; color:var(--muted); font-weight:600; margin-top:-5px; position:relative; z-index:1;">إجمالي النقاط</div>
+            
+            <div id="customTags" class="custom-tags"></div>
+        </div>
+        
+        <div class="actions-title">إضافة نقاط</div>
+        <div class="points-grid">
+            <button class="btn-point btn-plus" onclick="updatePoints('increment', 10)">+10</button>
+            <button class="btn-point btn-plus" onclick="updatePoints('increment', 30)">+30</button>
+            <button class="btn-point btn-plus" onclick="updatePoints('increment', 50)">+50</button>
+            <button class="btn-point btn-plus" onclick="updatePoints('increment', 100)">+100</button>
+        </div>
+        
+        <div class="actions-title">خصم نقاط</div>
+        <div class="points-grid">
+            <button class="btn-point btn-minus" onclick="updatePoints('decrement', 10)">-10</button>
+            <button class="btn-point btn-minus" onclick="updatePoints('decrement', 30)">-30</button>
+            <button class="btn-point btn-minus" onclick="updatePoints('decrement', 50)">-50</button>
+            <button class="btn-point btn-minus" onclick="updatePoints('decrement', 100)">-100</button>
+        </div>
+        
+        <button class="btn-naughty" onclick="updatePoints('naughty', 0)" style="margin-top: 10px;">
+            <i class="fas fa-exclamation-triangle"></i> وضع شغب (Naughty)
+        </button>
+    </div>
+</div>
+
+<div id="toast" class="toast"><i class="fas fa-info-circle"></i> <span id="toastMsg">رسالة</span></div>
+<canvas id="fireworks"></canvas>
+
+<script>
+const API_URL = '/api.php';
+const urlParams = new URLSearchParams(window.location.search);
+const tripId = urlParams.get('trip_id');
+const studentId = urlParams.get('student_id');
+
+let studentData = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    if(!tripId || !studentId) {
+        showToast('رابط غير صالح', 'error');
+        document.getElementById('loadingView').innerHTML = '<i class="fas fa-exclamation-circle" style="color:var(--danger)"></i><h2>رابط غير صالح</h2>';
+        return;
+    }
+    loadStudentData();
+});
+
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = 'toast show ' + type;
+    if(type==='success') t.innerHTML = `<i class="fas fa-check-circle"></i> <span>${msg}</span>`;
+    else if(type==='error') t.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${msg}</span>`;
+    else t.innerHTML = `<i class="fas fa-info-circle"></i> <span>${msg}</span>`;
+    
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function apiCall(action, data={}) {
+    const fd = new FormData();
+    fd.append('action', action);
+    for(let k in data) fd.append(k, data[k]);
+    try {
+        const res = await fetch(API_URL, {method:'POST', body:fd});
+        return await res.json();
+    } catch(e) { return {success:false, message: e.message}; }
+}
+
+async function loadStudentData() {
+    // We will use getTripDetails and find the student inside regs
+    const data = await apiCall('getTripDetails', {trip_id: tripId});
+    if(data.success && data.regs) {
+        const reg = data.regs.find(r => String(r.student_id) === String(studentId));
+        if(reg) {
+            studentData = reg;
+            renderStudent();
+            // Fetch points separately
+            fetchPoints();
+            return;
+        }
+    }
+    showToast('لم يتم العثور على بيانات الطفل', 'error');
+    document.getElementById('loadingView').innerHTML = '<i class="fas fa-user-slash" style="color:var(--danger)"></i><h2>لم يتم العثور على بيانات الطفل</h2>';
+}
+
+async function fetchPoints() {
+    // Use an existing API or directly fetch from students table
+    // For now, let's use processGameQRCode with action='increment' and amount=0 just to get current points
+    // Actually, processGameQRCode updates points. Let's add action='get' to processGameQRCode?
+    // Wait, let's modify api.php to allow action='get' or just pass amount=0 to increment.
+    const res = await apiCall('processGameQRCode', {
+        trip_id: tripId,
+        student_id: studentId,
+        action: 'increment',
+        amount: 0
+    });
+    
+    if(res.success) {
+        updatePointsDisplay(res.points);
+    }
+}
+
+function renderStudent() {
+    const name = studentData.student_name || '؟';
+    const init = name.charAt(0);
+    const img = studentData.student_image || '';
+    
+    document.getElementById('studentName').textContent = name;
+    document.getElementById('studentClass').textContent = studentData.student_class || 'بدون فصل';
+    
+    if(img) {
+        document.getElementById('studentAvatar').innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerHTML='${init}'">`;
+    } else {
+        document.getElementById('studentAvatar').textContent = init;
+    }
+    
+    let tagsHtml = '';
+    if(studentData.custom_data) {
+        try {
+            const cd = JSON.parse(studentData.custom_data);
+            tagsHtml = Object.entries(cd).map(([k,v]) => `<span class="tag"><i class="fas fa-tag"></i> ${k}: ${v}</span>`).join('');
+        } catch(e){}
+    }
+    document.getElementById('customTags').innerHTML = tagsHtml;
+    
+    document.getElementById('loadingView').style.display = 'none';
+    document.getElementById('contentView').style.display = 'block';
+}
+
+function updatePointsDisplay(points) {
+    const display = document.getElementById('pointsDisplay');
+    if(points <= -9999) {
+        display.textContent = "شغب ⚠️";
+        display.className = "points-display naughty";
+    } else {
+        display.textContent = points;
+        display.className = "points-display";
+    }
+    
+    // Simple animation
+    display.style.transform = 'scale(1.2)';
+    setTimeout(() => display.style.transform = 'scale(1)', 200);
+}
+
+let isUpdating = false;
+async function updatePoints(action, amount) {
+    if(isUpdating) return;
+    isUpdating = true;
+    
+    const display = document.getElementById('pointsDisplay');
+    display.style.opacity = '0.5';
+    
+    const res = await apiCall('processGameQRCode', {
+        trip_id: tripId,
+        student_id: studentId,
+        action: action,
+        amount: amount
+    });
+    
+    display.style.opacity = '1';
+    isUpdating = false;
+    
+    if(res.success) {
+        updatePointsDisplay(res.points);
+        if(action === 'increment') {
+            showToast(`تم إضافة ${amount} نقطة بنجاح`, 'success');
+            fireworks();
+        } else if(action === 'decrement') {
+            showToast(`تم خصم ${amount} نقطة`, 'warning');
+        } else if(action === 'naughty') {
+            showToast(`تم تعيين وضع الشغب`, 'error');
+        }
+    } else {
+        showToast(res.message || 'فشل في تحديث النقاط', 'error');
+    }
+}
+
+// Simple fireworks animation
+function fireworks() {
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles = [];
+    const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
+    
+    for(let i=0; i<50; i++) {
+        particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 15,
+            vy: (Math.random() - 0.5) * 15,
+            size: Math.random() * 5 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 1
+        });
+    }
+    
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        
+        particles.forEach(p => {
+            if(p.life > 0) {
+                active = true;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color + Math.floor(p.life * 255).toString(16).padStart(2, '0');
+                ctx.fill();
+                
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2; // gravity
+                p.life -= 0.02;
+            }
+        });
+        
+        if(active) requestAnimationFrame(draw);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    draw();
+}
+</script>
+</body>
+</html>
