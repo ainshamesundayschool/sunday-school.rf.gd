@@ -7895,6 +7895,11 @@ function addTrip() {
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
         $hasPointsGame = $hasPointsGame ? 1 : 0;
         $customFields = sanitize($_POST['custom_fields'] ?? '');
+        $customFields = trim($customFields);
+        if (in_array(strtolower($customFields), ['0','null','undefined'], true)) {
+            $customFields = '';
+        }
+        $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function($field) { return $field !== ''; }));
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -8013,6 +8018,11 @@ function updateTrip() {
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
         $hasPointsGame = $hasPointsGame ? 1 : 0;
         $customFields = sanitize($_POST['custom_fields'] ?? '');
+        $customFields = trim($customFields);
+        if (in_array(strtolower($customFields), ['0','null','undefined'], true)) {
+            $customFields = '';
+        }
+        $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function($field) { return $field !== ''; }));
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -8271,6 +8281,73 @@ function getTripDetails() {
     } catch (Exception $e) {
         error_log("getTripDetails error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في جلب تفاصيل الرحلة: ' . $e->getMessage()]);
+    }
+}
+
+function bulkUpdateCustomData() {
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $rawData = $_POST['data'] ?? '';
+
+        if ($tripId === 0 || empty($rawData)) {
+            sendJSON(['success' => false, 'message' => 'معرف الرحلة والبيانات مطلوبان']);
+            return;
+        }
+
+        $updates = json_decode($rawData, true);
+        if (!is_array($updates)) {
+            sendJSON(['success' => false, 'message' => 'تنسيق البيانات غير صالح']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $checkStmt = $conn->prepare("SELECT id FROM trips WHERE id = ? AND church_id = ?");
+        $checkStmt->bind_param('ii', $tripId, $churchId);
+        $checkStmt->execute();
+        $tripResult = $checkStmt->get_result();
+        if ($tripResult->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح بها']);
+            return;
+        }
+
+        $updateStmt = $conn->prepare("UPDATE trip_registrations SET custom_data = ? WHERE id = ? AND trip_id = ? AND cancelled = 0");
+        if (!$updateStmt) {
+            sendJSON(['success' => false, 'message' => 'فشل إعداد الاستعلام']);
+            return;
+        }
+
+        $updatedCount = 0;
+        foreach ($updates as $row) {
+            $registrationId = intval($row['registration_id'] ?? 0);
+            $customData = $row['custom_data'] ?? [];
+            if ($registrationId <= 0 || !is_array($customData)) {
+                continue;
+            }
+
+            $normalized = [];
+            foreach ($customData as $key => $value) {
+                $fieldKey = sanitize($key);
+                if ($fieldKey === '') {
+                    continue;
+                }
+                $normalized[$fieldKey] = sanitize((string)$value);
+            }
+
+            $json = !empty($normalized) ? json_encode($normalized, JSON_UNESCAPED_UNICODE) : null;
+            $updateStmt->bind_param('sis', $json, $registrationId, $tripId);
+            if ($updateStmt->execute()) {
+                if ($updateStmt->affected_rows > 0) {
+                    $updatedCount++;
+                }
+            }
+        }
+
+        sendJSON(['success' => true, 'updated' => $updatedCount]);
+    } catch (Exception $e) {
+        error_log("bulkUpdateCustomData error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في تحديث البيانات: ' . $e->getMessage()]);
     }
 }
 
