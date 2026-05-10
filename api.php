@@ -155,7 +155,7 @@ function processGameQRCode() {
             error_log('notifyGameActivity error: ' . $e->getMessage());
         }
 
-        $isNaughty = $points["n_{$tripId}"] ?? ($new <= -9999);
+        $isNaughty = $points["n_{$tripId}"] ?? false;
         sendJSON(['success' => true, 'student_id' => $studentId, 'trip_id' => $tripId, 'points' => $new, 'is_naughty' => $isNaughty]);
 
     } catch (Exception $e) {
@@ -431,7 +431,7 @@ function getTripStudents() {
             $pointsMap = json_decode($tp, true);
             if (!is_array($pointsMap)) $pointsMap = [];
             $s['points'] = intval($pointsMap[$tripId] ?? 0);
-            $s['is_naughty'] = $pointsMap["n_{$tripId}"] ?? ($s['points'] <= -9999);
+            $s['is_naughty'] = $pointsMap["n_{$tripId}"] ?? false;
         }
         
         sendJSON(['success' => true, 'trip' => $trip, 'students' => $students]);
@@ -8164,6 +8164,7 @@ function getTripDetails() {
                 s.class as student_class,
                 s.phone as student_phone,
                 s.image_url as student_image,
+                s.trip_points as student_trip_points,
                 u.name as registered_by_name,
                 COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
                 COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
@@ -8203,6 +8204,10 @@ function getTripDetails() {
         while ($row = $regResult->fetch_assoc()) {
             $row['total_paid'] = floatval($row['total_paid'] ?? 0);
             $row['total_donation'] = floatval($row['total_donation'] ?? 0);
+            
+            $tp = json_decode($row['student_trip_points'] ?? '{}', true);
+            $row['is_naughty'] = $tp["n_{$tripId}"] ?? false;
+            $row['trip_points_val'] = intval($tp[$tripId] ?? 0);
             
             // Build history from real trip_payments table
             $regPayments = $allPayments[$row['id']] ?? [];

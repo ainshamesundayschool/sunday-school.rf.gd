@@ -62,7 +62,9 @@
         .filter-chip { padding:6px 14px; background:var(--surface); border:1px solid var(--border-solid); border-radius:20px; font-size:0.85rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.2s; color:var(--text-2); }
         .filter-chip.active { background:var(--brand); color:#fff; border-color:var(--brand); }
         
-        .reg-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:8px; display:flex; align-items:center; gap:10px; padding:10px 12px; transition:all 0.2s; }
+        .reg-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:8px; display:flex; align-items:center; gap:10px; padding:10px 12px; transition:all 0.2s; position: relative; }
+        .reg-card.naughty { border-color: var(--danger); background: var(--danger-bg); }
+        .naughty-badge-sm { background: var(--danger); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-right: 6px; }
         .reg-card:hover { box-shadow:var(--shadow-sm); border-color:var(--brand); }
         .reg-avatar { width:40px; height:40px; border-radius:50%; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); font-weight:800; flex-shrink:0; object-fit:cover; }
         .reg-info { flex:1; min-width:0; }
@@ -290,11 +292,18 @@ function renderKids() {
         }
         
         return `
-        <div class="reg-card">
+        <div class="reg-card ${r.is_naughty ? 'naughty' : ''}">
             ${img ? `<img class="reg-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'reg-avatar\\'>${init}</div>'">` : `<div class="reg-avatar">${init}</div>`}
             <div class="reg-info">
-                <div class="reg-name">${name}</div>
-                <div class="reg-meta"><span style="color:var(--text-2);"><i class="fas fa-layer-group"></i> ${r.student_class || 'بدون فصل'}</span> ${customHtml}</div>
+                <div class="reg-name">
+                    ${name}
+                    ${r.is_naughty ? '<span class="naughty-badge-sm">شغب</span>' : ''}
+                </div>
+                <div class="reg-meta">
+                    <span style="color:var(--text-2);"><i class="fas fa-layer-group"></i> ${r.student_class || 'بدون فصل'}</span>
+                    <span style="color:var(--success); font-weight:700;"><i class="fas fa-star"></i> ${r.trip_points_val || 0}</span>
+                    ${customHtml}
+                </div>
             </div>
             <a href="/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}" class="btn-game"><i class="fas fa-star"></i> نقاط</a>
         </div>
