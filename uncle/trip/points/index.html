@@ -155,8 +155,8 @@ async function apiCall(action, data={}) {
 async function loadStudentData() {
     // We will use getTripDetails and find the student inside regs
     const data = await apiCall('getTripDetails', {trip_id: tripId});
-    if(data.success && data.regs) {
-        const reg = data.regs.find(r => String(r.student_id) === String(studentId));
+    if(data.success && data.trip && data.trip.registrations) {
+        const reg = data.trip.registrations.find(r => String(r.student_id) === String(studentId));
         if(reg) {
             studentData = reg;
             renderStudent();
