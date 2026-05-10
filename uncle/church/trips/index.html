@@ -108,6 +108,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Standalone trips route is a full-screen detail view only. */
+.main-wrapper { display: none; }
+
 /* ── SCROLLBAR ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -1293,6 +1296,14 @@ tbody tr:last-child td { border-bottom: none; }
       return match ? parseInt(match[1]) : 0;
     }
 
+    function getSelectedTripTab() {
+      const hash = location.hash || '';
+      const query = hash.includes('?') ? hash.split('?')[1] : '';
+      const params = new URLSearchParams(query);
+      const tab = params.get('trip_tab') || 'info';
+      return ['info','regs','exp'].includes(tab) ? tab : 'info';
+    }
+
     function updateHashParam(key, value) {
       const params = new URLSearchParams((location.hash.includes('?') ? location.hash.split('?')[1] : ''));
       if (value || value === 0) params.set(key, value);
@@ -1331,16 +1342,18 @@ tbody tr:last-child td { border-bottom: none; }
       if(id==='tripDetailsModal') updateHashParam && updateHashParam('trip_id', null);
     }
 
-    function switchTripTab(tab){
+    function switchTripTab(tab, updateUrl = true){
       ['info','regs','exp'].forEach(t=>{
         document.getElementById('tdtab-'+t)?.classList.toggle('active',t===tab);
         document.getElementById('tdpanel-'+t)?.classList.toggle('active',t===tab);
       });
+      if (updateUrl && window.currentTripId) updateHashParam('trip_tab', tab);
     }
 
     async function showTripDetails(id, opts = {}){
       id = parseInt(id);
       if (!id) return;
+      const targetTab = getSelectedTripTab();
       document.getElementById('tripInfoContent').innerHTML=`<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
       document.getElementById('tripRegsContent').innerHTML='';
       document.getElementById('tdRegsCount').textContent='';
@@ -1353,7 +1366,7 @@ tbody tr:last-child td { border-bottom: none; }
       document.getElementById('tdCoverBg').style.backgroundImage='';
       document.getElementById('tdCoverThumb').innerHTML='<i class="fas fa-bus" style="color:rgba(255,255,255,0.4)"></i>';
       document.getElementById('tdStatusBadge').innerHTML='';
-      if (!opts.keepTab) switchTripTab('info');
+      switchTripTab(targetTab, false);
       window.currentTripId = id;
       openModal('tripDetailsModal');
 
@@ -1368,6 +1381,7 @@ tbody tr:last-child td { border-bottom: none; }
         allTripsCache = [tripResp.trip];
         renderStandaloneTripSummary(tripResp.trip);
         renderTripDetailsFull(tripResp.trip);
+        switchTripTab(targetTab, false);
       }
       else {
         document.getElementById('standaloneTripSummary').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${tripResp.message || 'فشل في تحميل الرحلة'}</h3></div>`;
@@ -1606,13 +1620,17 @@ tbody tr:last-child td { border-bottom: none; }
 
     document.addEventListener('DOMContentLoaded', function(){
       const tripId = getSelectedTripId();
-      if (tripId) setTimeout(()=>showTripDetails(tripId),100);
-      else document.getElementById('standaloneTripSummary').innerHTML=`<div class="empty-state"><i class="fas fa-route"></i><h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3></div>`;
+      if (tripId) showTripDetails(tripId);
+      else {
+        document.getElementById('tripInfoContent').innerHTML=`<div class="empty-state"><i class="fas fa-route"></i><h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3></div>`;
+        openModal('tripDetailsModal');
+      }
     });
 
     window.addEventListener('hashchange', () => {
       const tripId = getSelectedTripId();
       if (tripId && tripId !== window.currentTripId) showTripDetails(tripId);
+      else if (tripId) switchTripTab(getSelectedTripTab(), false);
     });
     </script>
 
