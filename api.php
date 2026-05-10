@@ -963,6 +963,9 @@ case 'exportTripData':
 case 'deleteTripPayment':
     deleteTripPayment();
     break;
+case 'restoreTripPayment':
+    restoreTripPayment();
+    break;
 
 // دوال تحسين الحضور
 case 'getFridaysInMonth':
@@ -8603,6 +8606,94 @@ function deleteTripPayment() {
     } catch (Exception $e) {
         error_log("deleteTripPayment error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في حذف الدفعة: ' . $e->getMessage()]);
+    }
+}
+
+function restoreTripPayment() {
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $paymentId = intval($_POST['payment_id'] ?? 0);
+        $registrationId = intval($_POST['registration_id'] ?? 0);
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        if (!$paymentId || !$registrationId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        
+        // Verify payment belongs to this church
+        $checkStmt = $conn->prepare("
+            SELECT tp.*, tr.trip_id, t.church_id, t.price, t.discount, t.discount_type
+            FROM trip_payments tp
+            JOIN trip_registrations tr ON tp.registration_id = tr.id
+            JOIN trips t ON tr.trip_id = t.id
+            WHERE tp.id = ? AND tr.id = ? AND t.church_id = ?
+        ");
+        $checkStmt->bind_param("iii", $paymentId, $registrationId, $churchId);
+        $checkStmt->execute();
+        $res = $checkStmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح باستعادتها']);
+            return;
+        }
+        $paymentInfo = $res->fetch_assoc();
+
+        // Restore in trip_payments
+        $restoreStmt = $conn->prepare("UPDATE trip_payments SET is_deleted = 0, deleted_at = NULL, deleted_by = NULL WHERE id = ?");
+        $restoreStmt->bind_param("i", $paymentId);
+        if (!$restoreStmt->execute()) {
+            sendJSON(['success' => false, 'message' => 'فشل في استعادة الدفعة']);
+            return;
+        }
+
+        // Audit log
+        if (function_exists('logAudit')) {
+            logAudit('trip_payment_restored', 'trip_payments', $paymentId, "Restored payment of {$paymentInfo['amount']} for registration {$registrationId}");
+        }
+
+        // Recalculate trip_registrations.payment_status
+        $finalPrice = $paymentInfo['price'];
+        if ($paymentInfo['discount'] > 0) {
+            if ($paymentInfo['discount_type'] === 'percentage') {
+                $finalPrice = $paymentInfo['price'] - ($paymentInfo['price'] * $paymentInfo['discount'] / 100);
+            } else {
+                $finalPrice = max(0, $paymentInfo['price'] - $paymentInfo['discount']);
+            }
+        }
+
+        $recalcStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
+        $recalcStmt->bind_param("i", $registrationId);
+        $recalcStmt->execute();
+        $totalPaidNow = floatval($recalcStmt->get_result()->fetch_assoc()['total_paid']);
+        
+        $remainingNow = $finalPrice - $totalPaidNow;
+        
+        if (abs($remainingNow) < 0.01) {
+            $newPaymentStatus = 'paid';
+        } elseif ($totalPaidNow > 0.01) {
+            $newPaymentStatus = 'partial';
+        } else {
+            $newPaymentStatus = 'pending';
+        }
+        
+        $syncStmt = $conn->prepare("UPDATE trip_registrations SET payment_status = ? WHERE id = ?");
+        $syncStmt->bind_param("si", $newPaymentStatus, $registrationId);
+        $syncStmt->execute();
+
+        sendJSON([
+            'success' => true, 
+            'message' => 'تم استعادة الدفعة بنجاح',
+            'new_status' => $newPaymentStatus,
+            'total_paid' => $totalPaidNow,
+            'remaining' => max(0, $remainingNow)
+        ]);
+
+    } catch (Exception $e) {
+        error_log("restoreTripPayment error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في استعادة الدفعة: ' . $e->getMessage()]);
     }
 }
 

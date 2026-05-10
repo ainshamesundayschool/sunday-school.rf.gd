@@ -2126,7 +2126,7 @@ tbody tr:last-child td { border-bottom: none; }
               ${p.notes ? `<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.notes)}</div>` : ''}
             </div>
             <div style="display:flex;gap:6px;margin-right:10px;">
-              ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" onclick="deleteDonation(${regId}, ${p.id}, '${escHtml(name)}')"><i class="fas fa-trash"></i></button>` : ''}
+      ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" onclick="deleteDonation(${regId}, ${p.id}, '${escHtml(name)}')"><i class="fas fa-trash"></i></button>` : `<button class="act-btn" style="width:28px;height:28px;font-size:0.65rem;background:var(--success-light);color:var(--success);" title="استعادة" onclick="restorePayment(${regId}, ${p.id}, '${escHtml(name)}')"><i class="fas fa-undo"></i></button>`}
             </div>
           </div>
         `;
@@ -2167,7 +2167,7 @@ tbody tr:last-child td { border-bottom: none; }
               ${d.notes ? `<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(d.notes)}</div>` : ''}
             </div>
             <div style="display:flex;gap:6px;margin-right:10px;">
-              ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" ${d.id ? `onclick="deleteDonation(${regId}, ${d.id}, '${escHtml(name)}')"` : 'disabled style="opacity:0.3;cursor:not-allowed;"'}><i class="fas fa-trash"></i></button>` : ''}
+              ${!isDeleted ? `<button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" ${d.id ? `onclick="deleteDonation(${regId}, ${d.id}, '${escHtml(name)}')"` : 'disabled style="opacity:0.3;cursor:not-allowed;"'}><i class="fas fa-trash"></i></button>` : `<button class="act-btn" style="width:28px;height:28px;font-size:0.65rem;background:var(--success-light);color:var(--success);" title="استعادة" onclick="restorePayment(${regId}, ${d.id}, '${escHtml(name)}')"><i class="fas fa-undo"></i></button>`}
             </div>
           </div>
         `;
@@ -2203,6 +2203,32 @@ tbody tr:last-child td { border-bottom: none; }
     } else showToast(d.message || 'فشل الحذف', 'error');
   }
 
+  async function restorePayment(regId, paymentId, studentName) {
+    if (!confirm(`هل أنت متأكد من استعادة هذا السجل للطفل ${studentName}؟`)) return;
+    const fd = new FormData();
+    fd.append('action', 'restoreTripPayment');
+    fd.append('payment_id', paymentId);
+    fd.append('registration_id', regId);
+    const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+    if (d.success) {
+      showToast('تمت الاستعادة بنجاح', 'success');
+      await showTripDetails(window.currentTripId);
+      
+      // Refresh the lists in modals if they are open
+      const regs = tripRegistrationsCache[window.currentTripId] || [];
+      const reg = regs.find(r => String(r.id) === String(regId));
+      
+      if (document.getElementById('addDonationModal').style.display === 'block') {
+        showAddDonationModal(regId, studentName);
+      } else if (document.getElementById('addPaymentModal').style.display === 'block') {
+        const price = Math.round(calcFinalPrice?.({price:reg.price, discount:reg.discount, discount_type:reg.discount_type}) || reg.price);
+        showAddPaymentModal(regId, studentName, price, reg.total_paid);
+      } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
+        showPaymentHistoryModal(regId, studentName);
+      }
+    } else showToast(d.message || 'فشل الاستعادة', 'error');
+  }
+
 
 
   function showPaymentHistoryModal(regId, studentName) {
@@ -2235,7 +2261,9 @@ tbody tr:last-child td { border-bottom: none; }
             <div>المستلم: <strong>${escHtml(entry.received_by || '—')}</strong></div>
           </div>
           ${entry.notes ? `<div style="margin-top:10px;font-size:0.85rem;color:var(--muted); ${isDeleted ? 'text-decoration:line-through;opacity:0.5;' : ''}">ملاحظات: ${escHtml(entry.notes)}</div>` : ''}
-          ${!isDeleted ? `<div style="margin-top:10px;text-align:left;"><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger-mid);font-size:0.7rem;padding:4px 10px;" onclick="deleteDonation(${regId}, ${entry.id}, '${escHtml(studentName)}')"><i class="fas fa-trash"></i> حذف</button></div>` : ''}
+          <div style="margin-top:10px;text-align:left;">
+            ${!isDeleted ? `<button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger-mid);font-size:0.7rem;padding:4px 10px;" onclick="deleteDonation(${regId}, ${entry.id}, '${escHtml(studentName)}')"><i class="fas fa-trash"></i> حذف</button>` : `<button class="btn btn-outline btn-sm" style="color:var(--success);border-color:var(--success-mid);font-size:0.7rem;padding:4px 10px;" onclick="restorePayment(${regId}, ${entry.id}, '${escHtml(studentName)}')"><i class="fas fa-undo"></i> استعادة</button>`}
+          </div>
         </div>`;
     }).join('');
     openModal('paymentHistoryModal');
