@@ -4850,7 +4850,7 @@ async function loadDashboardTrips() {
                 <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
                     ${imgHtml}
                     <div class="trip-slim-info">
-                        <div class="trip-slim-name">${t.name}</div>
+                        <div class="trip-slim-name">${t.title}</div>
                         <div class="trip-slim-date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
                     </div>
                 </a>
