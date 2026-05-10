@@ -995,6 +995,7 @@ tbody tr:last-child td { border-bottom: none; }
     font-weight: 800; color: var(--primary); font-size: 0.84rem; border: 2px solid var(--primary-light);
 }
 .reg-ava img { width: 100%; height: 100%; object-fit: cover; }
+.reg-ava-fallback { display: inline-flex; align-items: center; justify-content: center; }
 .reg-info { flex: 1; min-width: 0; }
 .reg-info strong { font-size: 0.84rem; display: block; color: var(--text); }
 .reg-info span { font-size: 0.7rem; color: var(--muted); }
@@ -4467,7 +4468,7 @@ function renderTripDetailsFull(trip) {
             const initials=(r.student_name||'؟').charAt(0);
             const img=r.student_image||r.image_url||r['صورة']||r.photo||'';
             return `<div class="reg-row">
-                <div class="reg-ava" style="border:2px solid ${col}33;">${img?`<img src="${img}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;">${initials}`:`${initials}`}</div>
+                <div class="reg-ava" style="border:2px solid ${col}33;">${img?`<img src="${img}" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">${initials}</span>`:`<span class="reg-ava-fallback">${initials}</span>`}</div>
                 <div class="reg-info" style="flex:1;min-width:0;">
                     <strong style="font-size:0.9rem;">${r.student_name}</strong>
                     <span style="color:var(--muted);font-size:0.72rem;">${r.student_class||'—'}</span>
@@ -4592,8 +4593,9 @@ async function registerStudentForTrip(e) {
     if (d.success) {
         showToast('تم التسجيل بنجاح ✅','success');
         closeModal('registerStudentModal');
-        loadTrips();
-        showTripDetails(tripId);
+        updateHashParam('trip_tab', 'regs');
+        await showTripDetails(tripId);
+        switchTripTab('regs');
     } else showToast(d.message||'فشل','error');
 }
 
@@ -4851,8 +4853,8 @@ async function _refreshRegsAfterExpenseChange(tripId) {
 
         // build avatar — use &quot; inside html attribute to avoid quote conflicts
         const avaContent=img
-            ? '<img src="'+img+'" onerror="this.style.display=&quot;none&quot;" style="width:100%;height:100%;object-fit:cover;">'+init
-            : init;
+            ? '<img src="'+img+'" onload="this.nextElementSibling.style.display=&quot;none&quot;" onerror="this.style.display=&quot;none&quot;;this.nextElementSibling.style.display=&quot;inline-flex&quot;" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">'+init+'</span>'
+            : '<span class="reg-ava-fallback">'+init+'</span>';
 
         html+='<div class="reg-row">'
             +'<div class="reg-ava" style="border:2px solid '+col+'44;">'+avaContent+'</div>'
