@@ -960,6 +960,9 @@ case 'cancelTripRegistration':
 case 'exportTripData':
     exportTripData();
     break;
+case 'deleteTripPayment':
+    deleteTripPayment();
+    break;
 
 // دوال تحسين الحضور
 case 'getFridaysInMonth':
@@ -8093,7 +8096,8 @@ function getTripDetails() {
                 s.phone as student_phone,
                 s.image_url as student_image,
                 u.name as registered_by_name,
-                COALESCE((SELECT SUM(amount) + SUM(donation) FROM trip_payments WHERE registration_id = tr.id), 0) as total_paid,
+                COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id), 0) as total_paid,
+                COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id), 0) as total_donation,
                 tr.payment_history
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
@@ -8107,6 +8111,7 @@ function getTripDetails() {
         
         $registrations = [];
         $totalPaid = 0;
+        $totalDonations = 0;
         $pendingAmount = 0;
         
         // Fetch all uncles for name mapping
@@ -8121,6 +8126,7 @@ function getTripDetails() {
 
         while ($row = $regResult->fetch_assoc()) {
             $row['total_paid'] = floatval($row['total_paid'] ?? 0);
+            $row['total_donation'] = floatval($row['total_donation'] ?? 0);
             $history = json_decode($row['payment_history'] ?? '[]', true) ?: [];
             
             // Map received_by ID to name
@@ -8141,6 +8147,7 @@ function getTripDetails() {
             }
             
             $totalPaid += $row['total_paid'];
+            $totalDonations += $row['total_donation'];
             if ($row['remaining'] > 0) {
                 $pendingAmount += $row['remaining'];
             }
@@ -8155,6 +8162,7 @@ function getTripDetails() {
             'partial_count' => count(array_filter($registrations, fn($r) => $r['payment_status'] === 'partial')),
             'pending_count' => count(array_filter($registrations, fn($r) => $r['payment_status'] === 'pending')),
             'total_collected' => $totalPaid,
+            'total_donations' => $totalDonations,
             'pending_amount' => $pendingAmount
         ];
         
@@ -8238,8 +8246,10 @@ function registerStudentForTrip() {
                 ");
                 $paymentStmt->bind_param("idi", $registrationId, $deposit, $uncleId);
                 $paymentStmt->execute();
+                $depositPaymentId = $conn->insert_id;
 
                 $historyArray[] = [
+                    'id' => $depositPaymentId,
                     'type' => 'deposit',
                     'timestamp' => date('c'),
                     'amount' => round($deposit, 2),
@@ -8257,8 +8267,10 @@ function registerStudentForTrip() {
                 ");
                 $donationStmt->bind_param("idis", $registrationId, $donation, $uncleId, $notes);
                 $donationStmt->execute();
+                $donationPaymentId = $conn->insert_id;
 
                 $historyArray[] = [
+                    'id' => $donationPaymentId,
                     'type' => 'donation',
                     'timestamp' => date('c'),
                     'amount' => 0,
@@ -8375,6 +8387,7 @@ function addTripPayment() {
             $historyData = $historyStmt->get_result()->fetch_assoc();
             $historyArray = json_decode($historyData['payment_history'] ?? '[]', true) ?: [];
             $historyArray[] = [
+                'id' => $newPaymentId,
                 'type' => 'payment',
                 'timestamp' => date('c'),
                 'amount' => round($amount, 2),
@@ -8467,6 +8480,105 @@ function cancelTripRegistration() {
     } catch (Exception $e) {
         error_log("cancelTripRegistration error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في إلغاء التسجيل: ' . $e->getMessage()]);
+    }
+}
+
+function deleteTripPayment() {
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $paymentId = intval($_POST['payment_id'] ?? 0);
+        $registrationId = intval($_POST['registration_id'] ?? 0);
+
+        if ($paymentId === 0 || $registrationId === 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        // Verify the payment belongs to the church
+        $checkStmt = $conn->prepare("
+            SELECT tp.*, tr.trip_id, t.church_id, t.price, t.discount, t.discount_type
+            FROM trip_payments tp
+            JOIN trip_registrations tr ON tp.registration_id = tr.id
+            JOIN trips t ON tr.trip_id = t.id
+            WHERE tp.id = ? AND tr.id = ? AND t.church_id = ?
+        ");
+        $checkStmt->bind_param("iii", $paymentId, $registrationId, $churchId);
+        $checkStmt->execute();
+        $res = $checkStmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح بحذفها']);
+            return;
+        }
+        $paymentInfo = $res->fetch_assoc();
+
+        // Delete from trip_payments
+        $delStmt = $conn->prepare("DELETE FROM trip_payments WHERE id = ?");
+        $delStmt->bind_param("i", $paymentId);
+        if (!$delStmt->execute()) {
+            sendJSON(['success' => false, 'message' => 'فشل في حذف الدفعة']);
+            return;
+        }
+
+        // Update payment_history JSON in trip_registrations
+        $historyStmt = $conn->prepare("SELECT payment_history FROM trip_registrations WHERE id = ?");
+        $historyStmt->bind_param("i", $registrationId);
+        $historyStmt->execute();
+        $historyData = $historyStmt->get_result()->fetch_assoc();
+        $historyArray = json_decode($historyData['payment_history'] ?? '[]', true) ?: [];
+        
+        $newHistory = [];
+        foreach ($historyArray as $entry) {
+            if (isset($entry['id']) && $entry['id'] == $paymentId) continue;
+            $newHistory[] = $entry;
+        }
+        
+        $updatedHistoryJson = json_encode($newHistory, JSON_UNESCAPED_UNICODE);
+        $updateHistoryStmt = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
+        $updateHistoryStmt->bind_param("si", $updatedHistoryJson, $registrationId);
+        $updateHistoryStmt->execute();
+
+        // Recalculate payment_status
+        $finalPrice = $paymentInfo['price'];
+        if ($paymentInfo['discount'] > 0) {
+            if ($paymentInfo['discount_type'] === 'percentage') {
+                $finalPrice = $paymentInfo['price'] - ($paymentInfo['price'] * $paymentInfo['discount'] / 100);
+            } else {
+                $finalPrice = max(0, $paymentInfo['price'] - $paymentInfo['discount']);
+            }
+        }
+
+        $recalcStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid FROM trip_payments WHERE registration_id = ?");
+        $recalcStmt->bind_param("i", $registrationId);
+        $recalcStmt->execute();
+        $totalPaidNow = floatval($recalcStmt->get_result()->fetch_assoc()['total_paid']);
+        $remainingNow = $finalPrice - $totalPaidNow;
+
+        if (abs($remainingNow) < 0.01) {
+            $newPaymentStatus = 'paid';
+        } elseif ($totalPaidNow > 0.01) {
+            $newPaymentStatus = 'partial';
+        } else {
+            $newPaymentStatus = 'pending';
+        }
+
+        $syncStmt = $conn->prepare("UPDATE trip_registrations SET payment_status = ? WHERE id = ?");
+        $syncStmt->bind_param("si", $newPaymentStatus, $registrationId);
+        $syncStmt->execute();
+
+        sendJSON([
+            'success' => true,
+            'message' => 'تم حذف الدفعة بنجاح',
+            'new_status' => $newPaymentStatus,
+            'total_paid' => $totalPaidNow,
+            'remaining' => max(0, $remainingNow)
+        ]);
+
+    } catch (Exception $e) {
+        error_log("deleteTripPayment error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف الدفعة: ' . $e->getMessage()]);
     }
 }
 

@@ -1540,6 +1540,7 @@ tbody tr:last-child td { border-bottom: none; }
       const expPerKid=Math.round(exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0));
       const totalPerKid=basePrice+expPerKid;
       const totalCollected=Math.round(regs.reduce((s,r)=>s+(parseFloat(r.total_paid)||0),0));
+      const totalDonations=Math.round(regs.reduce((s,r)=>s+(parseFloat(r.total_donation)||0),0));
       const totalExpected=totalPerKid*regs.length;
       const totalRemaining=Math.max(0,totalExpected-totalCollected);
 
@@ -1558,10 +1559,11 @@ tbody tr:last-child td { border-bottom: none; }
           ${[
             {n:regs.length,l:'مسجل',c:'rgba(255,255,255,0.9)'},
             {n:totalCollected+' ج',l:'محصّل',c:'#6ee7b7'},
+            {n:totalDonations+' ج',l:'تبرعات',c:'#f9a8d4'},
             {n:totalRemaining+' ج',l:'متبقي',c:'#fca5a5'},
             {n:exps.length,l:'مصروف',c:'#c4b5fd'},
-            {n:trip.max_participants||'∞',l:'الحد الأقصى',c:'rgba(255,255,255,0.6)'}
-          ].map(s=>`<div style="flex:1;text-align:center;padding:8px 4px;"><div style="font-size:1rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
+            {n:trip.max_participants||'∞',l:'أقصى عدد',c:'rgba(255,255,255,0.4)'}
+          ].map(s=>`<div style="flex:1;text-align:center;padding:8px 2px;"><div style="font-size:0.95rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.6rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
         </div>`;
 
       document.getElementById('tripInfoContent').innerHTML=`
@@ -1818,6 +1820,9 @@ tbody tr:last-child td { border-bottom: none; }
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('addDonationModal')">إلغاء</button>
           </div>
         </form>
+        <hr class="divider-line">
+        <h3 style="font-size:0.88rem;margin-bottom:12px;color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="fas fa-history" style="color:var(--muted);"></i> التبرعات السابقة لهذا الطفل</h3>
+        <div id="previousDonationsList"></div>
       </div>
     </div>
   </div>
@@ -2100,7 +2105,52 @@ tbody tr:last-child td { border-bottom: none; }
     document.getElementById('donationMethod').value = 'cash';
     document.getElementById('donationNotes').value = '';
     document.getElementById('donationStudentInfo').innerHTML = `<div style="font-size:0.88rem;"><strong>الطفل:</strong> ${name}</div>`;
+    
+    // Populate previous donations
+    const regs = tripRegistrationsCache[window.currentTripId] || [];
+    const reg = regs.find(r => String(r.id) === String(regId));
+    const history = Array.isArray(reg?.payment_history) ? reg.payment_history : [];
+    const donations = history.filter(h => parseFloat(h.donation) > 0);
+    
+    const listEl = document.getElementById('previousDonationsList');
+    if (!donations.length) {
+      listEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted);font-size:0.82rem;background:var(--bg);border-radius:10px;border:1px dashed var(--border);">لا توجد تبرعات مسجلة مسبقاً</div>`;
+    } else {
+      listEl.innerHTML = donations.map(d => {
+        const date = d.timestamp ? new Date(d.timestamp).toLocaleDateString('ar-EG', {month:'short', day:'numeric'}) : '—';
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px;border:1px solid var(--border);transition:all 0.2s;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:800;color:var(--danger);font-size:0.9rem;">${parseFloat(d.donation)} ج</span>
+                <span style="font-size:0.7rem;color:var(--muted);background:white;padding:1px 6px;border-radius:4px;border:1px solid var(--border);">${date}</span>
+              </div>
+              ${d.notes ? `<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(d.notes)}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:6px;margin-right:10px;">
+              <button class="act-btn act-delete" style="width:28px;height:28px;font-size:0.65rem;" title="حذف" ${d.id ? `onclick="deleteDonation(${regId}, ${d.id}, '${escHtml(name)}')"` : 'disabled style="opacity:0.3;cursor:not-allowed;"'}><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
     openModal('addDonationModal');
+  }
+
+  async function deleteDonation(regId, paymentId, studentName) {
+    if (!confirm(`هل أنت متأكد من حذف هذا التبرع للطفل ${studentName}؟`)) return;
+    const fd = new FormData();
+    fd.append('action', 'deleteTripPayment');
+    fd.append('payment_id', paymentId);
+    fd.append('registration_id', regId);
+    const d = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json()).catch(()=>({success:false}));
+    if (d.success) {
+      showToast('تم حذف التبرع بنجاح', 'success');
+      await showTripDetails(window.currentTripId);
+      // Refresh the list in the modal
+      showAddDonationModal(regId, studentName);
+    } else showToast(d.message || 'فشل الحذف', 'error');
   }
 
 
