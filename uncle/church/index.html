@@ -2814,7 +2814,23 @@ async function restoreSessionAndReload() {
 }
 
 // ── Auth & Init ──────────────────────────────────────────────
+// PRE-INIT: Restore tab immediately to avoid UI flash
+(function() {
+    const hash = window.location.hash.substring(1);
+    const tab = hash.split('?')[0];
+    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending', 'history', 'churchSettings'];
+    if (valid.includes(tab)) {
+        window._initialTab = tab;
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Immediate tab switch if we have one
+    if (window._initialTab) {
+        const btn = document.getElementById('nav-' + window._initialTab) || document.querySelector(`.nav-item[onclick*="'${window._initialTab}'"]`);
+        switchTab(window._initialTab, btn);
+    }
+
     // 1. Get authoritative session from server
     const sess = await initSession();
     
@@ -2861,11 +2877,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         buildDevChurchSwitcher();
     }
 
-    // 6. Restore tab from URL hash (IMMEDIATE)
+    // 6. Restore tab from URL hash (if not already done by _initialTab)
     const hashData = getHashData();
     const savedTab = hashData.tab || 'overview';
-    const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
-    switchTab(savedTab, btn);
+    if (!window._initialTab) {
+        const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
+        switchTab(savedTab, btn);
+    }
 
     // 7. Load all data in parallel
     await Promise.all([
@@ -2891,9 +2909,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(loadNotifications, 1200);
     setTimeout(loadDevMessages, 1500);
     setTimeout(initDevMsgUI, 600);
-});
 
-    // 13. Handle ?class=X&id=Y routing (e.g. from auto-approval notification link)
+    // 13. Handle ?class=X&id=Y routing
     const _urlP = new URLSearchParams(window.location.search);
     if (_urlP.get('class') && _urlP.get('id')) {
         handleStudentRouteParams();
