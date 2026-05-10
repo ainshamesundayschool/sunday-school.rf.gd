@@ -2692,6 +2692,9 @@ function getHashData() {
         params: params
     };
 }
+function getHashTab() {
+    return getHashData().tab;
+}
 function setHashTab(name, extraParams = {}) {
     const current = getHashData();
     const params = new URLSearchParams(current.params);
@@ -4233,7 +4236,7 @@ function renderTripsList(trips) {
         const expPerKid=Math.round(exps.reduce((s,e)=>s+Number(e.perKid||e.per_kid||0),0));
         const totalPerKid=finalPrice+expPerKid;
         const pct=t.max_participants>0?Math.min(100,Math.round((t.registered_count||0)/t.max_participants*100)):null;
-        return `<div class="trip-card" onclick="window.location.href='trips/#trips?trip_id=${t.id}'">
+        return `<div class="trip-card" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
             <div class="trip-img" style="${t.image_url?'':'background:linear-gradient(135deg,'+col+'22,'+col+'11);'}">
                 ${t.image_url?`<img src="${t.image_url}" loading="lazy">`:`<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
                 <span class="trip-status-pill ${sc}">${st}</span>
@@ -4488,7 +4491,7 @@ function renderTripDetailsFull(trip) {
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                 </div>
                 <div style="display:flex;gap:5px;flex-shrink:0;">
-                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="window.location.href='/uncle/church/trips/?trip_id=${trip.id}&trip_tab=regs&action=add_payment&reg_id=${r.id}'"><i class="fas fa-money-bill"></i></button>
+                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${trip.id}&trip_tab=regs&action=add_payment&reg_id=${r.id}'"><i class="fas fa-money-bill"></i></button>
                     <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
                 </div>
             </div>`;
@@ -4893,7 +4896,7 @@ async function _refreshRegsAfterExpenseChange(tripId) {
             +'<span style="background:'+col+'18;color:'+col+';font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:2px;">'+lbl+'</span>'
             +'</div>'
             +'<div style="display:flex;gap:5px;">'
-            +'<button class="act-btn act-pay" onclick="window.location.href=\'/uncle/church/trips/?trip_id='+tripId+'&trip_tab=regs&action=add_payment&reg_id='+r.id+'\'" title="دفعة">'
+            +'<button class="act-btn act-pay" onclick="window.location.href=\'/uncle/church/trips/#trips?trip_id='+tripId+'&trip_tab=regs&action=add_payment&reg_id='+r.id+'\'" title="دفعة">'
             +'<i class="fas fa-money-bill"></i></button>'
             +'<button class="act-btn act-delete" onclick="cancelRegistration('+r.id+','+trip.id+')" title="إلغاء">'
             +'<i class="fas fa-times"></i></button>'
