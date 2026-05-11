@@ -393,7 +393,11 @@ function printQRCards() {
         if(r.custom_data) {
             try {
                 const cd = JSON.parse(r.custom_data);
-                customHtml = Object.entries(cd).map(([k,v]) => `${k}: ${v}`).join(' | ');
+                const icons = currentTrip?.custom_field_icons || {};
+                customHtml = Object.entries(cd).map(([k,v]) => {
+                    const ic = icons[k] ? `<i class="${icons[k]}" style="margin-left:4px;"></i>` : '';
+                    return `<span>${ic}${k}: ${v}</span>`;
+                }).join(' | ');
             } catch(e){}
         }
         
@@ -405,7 +409,7 @@ function printQRCards() {
             <h3>${currentTrip.title}</h3>
             <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
             <h2>${name}</h2>
-            <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
+            <div class="custom-info" style="margin-bottom:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
         </div>
         `;
