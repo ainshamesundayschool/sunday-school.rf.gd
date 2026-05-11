@@ -244,7 +244,7 @@ function renderFieldCards() {
             const card = document.createElement('div');
             card.className = 'field-card';
             card.style.cursor = 'pointer';
-            card.onclick = () => openFilterKids(field, value, kids);
+            card.onclick = () => openFilterKids(field, value);
             
             let iconClass = 'fas fa-tag';
             let iconBg = getFieldIcon(field);
@@ -270,7 +270,7 @@ function renderAllKidsCard() {
     const card = document.createElement('div');
     card.className = 'field-card';
     card.style.cursor = 'pointer';
-    card.onclick = () => openFilterKids('جميع الأطفال', '', regsList);
+    card.onclick = () => openFilterKids('جميع الأطفال', '');
     
     card.innerHTML = `
         <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
@@ -285,30 +285,10 @@ function renderAllKidsCard() {
     grid.appendChild(card);
 }
 
-function openFilterKids(field, value, kids) {
-    document.getElementById('viewTripDetails').classList.remove('active');
-    document.getElementById('viewFilterKids').classList.add('active');
-    document.getElementById('filterKidsTitle').textContent = value ? `${field}: ${value}` : field;
-    
-    const grid = document.getElementById('filterKidsGrid');
-    grid.innerHTML = kids.map(k => {
-        const name = k.student_name || '؟';
-        const img = k.student_image || '';
-        const init = name.charAt(0);
-        const points = k.trip_points_val || 0;
-        return `
-            <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')" style="padding:15px;">
-                ${img ? `<img class="kid-avatar-sm" src="${img}" style="width:40px;height:40px;" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\' style=\\'width:40px;height:40px;\\'>${init}</div>'">` : `<div class="kid-avatar-sm" style="width:40px;height:40px;">${init}</div>`}
-                <div class="kid-name-sm" style="font-size:1.05rem;">${name}</div>
-                <div class="kid-points-sm" style="font-size:1.05rem;">⭐ ${points}</div>
-            </div>
-        `;
-    }).join('');
-}
-
-function showTripDetailsView() {
-    document.getElementById('viewFilterKids').classList.remove('active');
-    document.getElementById('viewTripDetails').classList.add('active');
+function openFilterKids(field, value) {
+    const f = encodeURIComponent(field);
+    const v = encodeURIComponent(value || '');
+    window.location.href = `/uncle/trip/filter/?trip_id=${currentTrip.id}&field=${f}&value=${v}`;
 }
 
 function getFieldIcon(field) {
