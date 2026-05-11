@@ -7900,8 +7900,7 @@ function addTrip() {
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
         $hasPointsGame = $hasPointsGame ? 1 : 0;
-        $customFields = sanitize($_POST['custom_fields'] ?? '');
-        $customFields = trim($customFields);
+        $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
         if (in_array(strtolower($customFields), ['0','null','undefined'], true)) {
             $customFields = '';
         }
@@ -7912,12 +7911,7 @@ function addTrip() {
         if (!empty($customFieldIconsRaw)) {
             $decoded = json_decode($customFieldIconsRaw, true);
             if (is_array($decoded)) {
-                // sanitize keys and values
-                $cleanIcons = [];
-                foreach ($decoded as $k => $v) {
-                    $cleanIcons[sanitize($k)] = sanitize($v);
-                }
-                $customFieldIcons = json_encode($cleanIcons, JSON_UNESCAPED_UNICODE);
+                $customFieldIcons = json_encode($decoded, JSON_UNESCAPED_UNICODE);
             }
         }
         
@@ -8037,8 +8031,7 @@ function updateTrip() {
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
         $hasPointsGame = $hasPointsGame ? 1 : 0;
-        $customFields = sanitize($_POST['custom_fields'] ?? '');
-        $customFields = trim($customFields);
+        $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
         if (in_array(strtolower($customFields), ['0','null','undefined'], true)) {
             $customFields = '';
         }
@@ -8049,11 +8042,7 @@ function updateTrip() {
         if (!empty($customFieldIconsRaw)) {
             $decoded = json_decode($customFieldIconsRaw, true);
             if (is_array($decoded)) {
-                $cleanIcons = [];
-                foreach ($decoded as $k => $v) {
-                    $cleanIcons[sanitize($k)] = sanitize($v);
-                }
-                $customFieldIcons = json_encode($cleanIcons, JSON_UNESCAPED_UNICODE);
+                $customFieldIcons = json_encode($decoded, JSON_UNESCAPED_UNICODE);
             }
         }
         
