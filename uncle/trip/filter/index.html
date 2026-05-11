@@ -151,8 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tripId) { window.location.href = '/uncle/church/'; return; }
 
     const label = value
-        ? `${decodeURIComponent(field)}: ${decodeURIComponent(value)}`
-        : decodeURIComponent(field || 'جميع الأطفال');
+        ? `${field}: ${value}`
+        : (field || 'جميع الأطفال');
 
     document.getElementById('filterLabel').textContent = label;
     document.title = label;
@@ -185,8 +185,8 @@ async function loadTrip() {
 
         const regs  = res.trip.registrations || [];
 
-        const decodedField = field ? decodeURIComponent(field) : null;
-        const decodedValue = value ? decodeURIComponent(value) : null;
+        const decodedField = field || null;
+        const decodedValue = value || null;
 
         // Filter kids
         if (decodedField && decodedValue) {
