@@ -1591,11 +1591,13 @@ tbody tr:last-child td { border-bottom: none; }
 button, a, [role="button"] { touch-action: manipulation; }
         .custom-fields-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 12px; background: var(--bg); border-radius: var(--radius); min-height: 52px; border: 2px dashed var(--border-2); transition: all 0.2s; }
         .custom-fields-container:empty::after { content: 'لا توجد حقول إضافية مضافة بعد'; font-size: 0.85rem; color: var(--muted); width: 100%; text-align: center; }
-        .field-tag { background: var(--card); color: var(--text); padding: 6px 14px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); animation: tagFadeIn 0.25s var(--ease-spring); }
+        .field-tag { background: var(--card); color: var(--text); padding: 6px 14px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); animation: tagFadeIn 0.25s var(--ease-spring); }
         @keyframes tagFadeIn { from { opacity: 0; transform: scale(0.85) translateY(5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        .field-tag i { cursor: pointer; color: var(--danger); font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; }
-        .field-tag i:hover { background: var(--danger-light); transform: rotate(90deg); }
+        .field-tag > i:first-child { cursor: default; color: var(--primary, #5b6cf5); font-size: 0.9rem; }
+        .field-tag > i:last-child { cursor: pointer; color: var(--danger); font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; }
+        .field-tag > i:last-child:hover { background: var(--danger-light); transform: rotate(90deg); }
         .add-field-row { display: flex; gap: 8px; margin-top: 10px; }
+        .icon-picker-popup { position: absolute; top: 46px; right: 0; z-index: 9999; background: var(--card, #fff); border: 1.5px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 10px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; min-width: 230px; }
         .add-field-row input { flex: 1; }
     </style>
 </head>
@@ -2133,9 +2135,15 @@ button, a, [role="button"] { touch-action: manipulation; }
                             <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
                              <div class="form-group" style="grid-column:1/-1;">
                                 <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
-                                <div class="add-field-row">
-                                    <input type="text" id="newFieldName" class="form-input" placeholder="اسم الحقل (مثلاً: الغرفة)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName');}">
-                                    <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName')"><i class="fas fa-plus"></i> إضافة</button>
+                                <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    <div style="position:relative;flex-shrink:0;">
+                                        <button type="button" id="newFieldIconBtn" onclick="toggleIconPicker('newFieldIconPicker','newFieldIcon')" style="width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border-solid);background:var(--bg);cursor:pointer;font-size:1.1rem;" title="اختر أيقونة">
+                                            <i class="fas fa-tag" id="newFieldIcon"></i>
+                                        </button>
+                                        <div id="newFieldIconPicker" class="icon-picker-popup" style="display:none;"></div>
+                                    </div>
+                                    <input type="text" id="newFieldName" class="form-input" style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الغرفة)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName','newFieldIcon');}">
+                                    <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName', 'newFieldIcon')"><i class="fas fa-plus"></i> إضافة</button>
                                 </div>
                                 <div id="tripFieldsContainer" class="custom-fields-container"></div>
                              </div>
@@ -2597,9 +2605,15 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label><select id="editTripHasPointsGame" class="form-select" style="width:100%;"><option value="0">لا</option><option value="1">نعم</option></select></div>
                     <div class="form-group" style="grid-column:1/-1;">
                         <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
-                        <div class="add-field-row">
-                            <input type="text" id="editNewFieldName" class="form-input" placeholder="اسم الحقل (مثلاً: الفريق)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('editTripFieldsContainer','editNewFieldName');}">
-                            <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('editTripFieldsContainer', 'editNewFieldName')"><i class="fas fa-plus"></i> إضافة</button>
+                        <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <div style="position:relative;flex-shrink:0;">
+                                <button type="button" id="editNewFieldIconBtn" onclick="toggleIconPicker('editNewFieldIconPicker','editNewFieldIcon')" style="width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border-solid);background:var(--bg);cursor:pointer;font-size:1.1rem;" title="اختر أيقونة">
+                                    <i class="fas fa-tag" id="editNewFieldIcon"></i>
+                                </button>
+                                <div id="editNewFieldIconPicker" class="icon-picker-popup" style="display:none;"></div>
+                            </div>
+                            <input type="text" id="editNewFieldName" class="form-input" style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الفريق)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('editTripFieldsContainer','editNewFieldName','editNewFieldIcon');}">
+                            <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('editTripFieldsContainer', 'editNewFieldName', 'editNewFieldIcon')"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
                         <div id="editTripFieldsContainer" class="custom-fields-container"></div>
                     </div>
@@ -4783,22 +4797,93 @@ function renderTripsList(trips) {
     }).join('')}</div>`;
 }
 
-function addCustomFieldTag(containerId, inputId, value = null) {
+// ── Icon picker ─────────────────────────────────────────────────────────────
+const FIELD_ICONS = [
+    'fas fa-tag','fas fa-users','fas fa-bed','fas fa-bus','fas fa-door-open',
+    'fas fa-layer-group','fas fa-flag','fas fa-star','fas fa-heart','fas fa-church',
+    'fas fa-home','fas fa-map-marker-alt','fas fa-clock','fas fa-calendar-alt',
+    'fas fa-list','fas fa-sitemap','fas fa-child','fas fa-user-friends',
+    'fas fa-shield-alt','fas fa-fire','fas fa-bolt','fas fa-leaf',
+    'fas fa-music','fas fa-palette','fas fa-globe','fas fa-crown',
+    'fas fa-gem','fas fa-trophy','fas fa-medal','fas fa-puzzle-piece'
+];
+
+function buildIconPicker(pickerId, iconElemId) {
+    const picker = document.getElementById(pickerId);
+    if (!picker || picker.dataset.built) return;
+    picker.dataset.built = '1';
+    picker.innerHTML = FIELD_ICONS.map(ic =>
+        `<button type="button" title="${ic}" onclick="selectFieldIcon('${pickerId}','${iconElemId}','${ic}')" style="width:36px;height:36px;border:none;background:none;cursor:pointer;font-size:1.15rem;border-radius:8px;transition:background .15s;"><i class='${ic}'></i></button>`
+    ).join('');
+}
+
+function toggleIconPicker(pickerId, iconElemId) {
+    buildIconPicker(pickerId, iconElemId);
+    const p = document.getElementById(pickerId);
+    p.style.display = p.style.display === 'none' ? 'grid' : 'none';
+    // Close other pickers
+    document.querySelectorAll('.icon-picker-popup').forEach(el => { if (el.id !== pickerId) el.style.display = 'none'; });
+}
+
+function selectFieldIcon(pickerId, iconElemId, iconClass) {
+    const el = document.getElementById(iconElemId);
+    el.className = iconClass;
+    el.dataset.icon = iconClass;
+    document.getElementById(pickerId).style.display = 'none';
+}
+
+// Close icon pickers on outside click
+document.addEventListener('click', e => {
+    if (!e.target.closest('.icon-picker-popup') && !e.target.closest('[id$="IconBtn"]')) {
+        document.querySelectorAll('.icon-picker-popup').forEach(el => el.style.display = 'none');
+    }
+});
+
+function addCustomFieldTag(containerId, inputId, iconElemId = null) {
     const input = inputId ? document.getElementById(inputId) : null;
     const container = document.getElementById(containerId);
-    const raw = value || (input ? input.value : '');
+    const raw = input ? input.value : '';
     const val = String(raw).trim().replace(/,/g, '');
     if (!val) return;
-    const existing = Array.from(container.querySelectorAll('.field-tag span')).map(s => s.textContent);
-    if (existing.includes(val)) { if(!value) showToast('هذا الحقل موجود بالفعل', 'warning'); return; }
+    const existing = Array.from(container.querySelectorAll('.field-tag')).map(t => t.dataset.field);
+    if (existing.includes(val)) { showToast('هذا الحقل موجود بالفعل', 'warning'); return; }
+    // Get icon
+    const iconEl = iconElemId ? document.getElementById(iconElemId) : null;
+    const icon = iconEl ? (iconEl.dataset.icon || iconEl.className) : 'fas fa-tag';
     const tag = document.createElement('div');
     tag.className = 'field-tag';
-    tag.innerHTML = `<span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
+    tag.dataset.field = val;
+    tag.dataset.icon = icon;
+    tag.innerHTML = `<i class="${escHtml(icon)}" style="margin-left:6px;"></i><span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
     container.appendChild(tag);
     if (input) input.value = '';
+    // Reset icon picker to default
+    if (iconEl) { iconEl.className = 'fas fa-tag'; delete iconEl.dataset.icon; }
+}
+function addCustomFieldTagWithValue(containerId, fieldName, iconClass) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const val = String(fieldName).trim();
+    if (!val) return;
+    const icon = iconClass || 'fas fa-tag';
+    const tag = document.createElement('div');
+    tag.className = 'field-tag';
+    tag.dataset.field = val;
+    tag.dataset.icon = icon;
+    tag.innerHTML = `<i class="${escHtml(icon)}" style="margin-left:6px;"></i><span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
+    container.appendChild(tag);
 }
 function getCustomFieldsFromContainer(containerId) {
-    return Array.from(document.querySelectorAll(`#${containerId} .field-tag span`)).map(s => s.textContent).join(',');
+    return Array.from(document.querySelectorAll(`#${containerId} .field-tag`)).map(t => t.dataset.field || t.querySelector('span')?.textContent || '').filter(Boolean).join(',');
+}
+function getCustomFieldIconsFromContainer(containerId) {
+    const obj = {};
+    document.querySelectorAll(`#${containerId} .field-tag`).forEach(t => {
+        const field = t.dataset.field || t.querySelector('span')?.textContent || '';
+        const icon  = t.dataset.icon || 'fas fa-tag';
+        if (field) obj[field] = icon;
+    });
+    return JSON.stringify(obj);
 }
 function parseCustomFieldsString(value) {
     const raw = String(value ?? '').trim();
@@ -4833,6 +4918,7 @@ async function addTrip(e) {
     fd.append('show_registered_kids',document.getElementById('tripShowRegisteredKids').value);
     fd.append('has_points_game',document.getElementById('tripHasPointsGame').value);
     fd.append('custom_fields', getCustomFieldsFromContainer('tripFieldsContainer'));
+    fd.append('custom_field_icons', getCustomFieldIconsFromContainer('tripFieldsContainer'));
     const img=document.getElementById('tripImage').files[0];
     if (img) fd.append('trip_image',img);
     const btn=e.target.querySelector('button[type="submit"]');
@@ -4860,7 +4946,10 @@ function openEditTrip(id) {
     document.getElementById('editTripHasPointsGame').value=String(t.has_points_game ?? 0);
     const editContainer = document.getElementById('editTripFieldsContainer');
     editContainer.innerHTML = '';
-    parseCustomFieldsString(t.custom_fields).forEach(f => addCustomFieldTag('editTripFieldsContainer', null, f));
+    parseCustomFieldsString(t.custom_fields).forEach(f => {
+        const iconClass = (t.custom_field_icons && t.custom_field_icons[f]) ? t.custom_field_icons[f] : 'fas fa-tag';
+        addCustomFieldTagWithValue('editTripFieldsContainer', f, iconClass);
+    });
     toggleEditTripDates(); recalcEditTripPrice();
     openModal('editTripModal');
 }
@@ -4903,6 +4992,7 @@ async function updateTrip(e) {
     fd.append('show_registered_kids',document.getElementById('editTripShowRegisteredKids').value);
     fd.append('has_points_game',document.getElementById('editTripHasPointsGame').value);
     fd.append('custom_fields', getCustomFieldsFromContainer('editTripFieldsContainer'));
+    fd.append('custom_field_icons', getCustomFieldIconsFromContainer('editTripFieldsContainer'));
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
     if (d.success) { showToast('تم تحديث الرحلة','success'); closeModal('editTripModal'); loadTrips(); }
     else showToast(d.message||'فشل','error');

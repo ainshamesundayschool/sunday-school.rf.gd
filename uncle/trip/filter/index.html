@@ -94,11 +94,10 @@
     </a>
     <a href="/uncle/church/" class="topbar-brand">
         <div class="topbar-logo"><img src="/logo.png" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'"></div>
-        <div class="topbar-title" id="pageTitle">الأطفال</div>
     </a>
     <div class="topbar-actions">
         <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR">
-            <i class="fas fa-camera"></i>
+            <i class="fas fa-qrcode"></i>
         </button>
     </div>
 </div>
@@ -108,14 +107,6 @@
         <div class="page-title" id="filterLabel">جاري التحميل...</div>
         <div class="page-subtitle" id="kidsCountLabel"></div>
     </div>
-
-    <button class="scan-btn" onclick="startScanner()">
-        <i class="fas fa-camera"></i> مسح كود QR
-    </button>
-
-    <button class="print-btn" id="printBtn" onclick="printFilterQRCards()" style="display:none;">
-        <i class="fas fa-print"></i> طباعة كروت QR
-    </button>
 
     <div id="loadingState" class="loading">
         <i class="fas fa-circle-notch fa-spin"></i>
@@ -161,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         : decodeURIComponent(field || 'جميع الأطفال');
 
     document.getElementById('filterLabel').textContent = label;
-    document.getElementById('pageTitle').textContent   = decodeURIComponent(value || field || 'الأطفال');
     document.title = label;
 
     loadTrip();
@@ -228,12 +218,16 @@ function renderKids() {
         const img    = k.student_image || '';
         const init   = name.charAt(0);
         const points = k.trip_points_val || 0;
+        const icons  = currentTrip?.custom_field_icons || {};
 
         let metaParts = [];
         if (k.custom_data) {
             try {
                 const cd = JSON.parse(k.custom_data);
-                metaParts = Object.entries(cd).map(([fk, fv]) => `${fk}: ${fv}`);
+                metaParts = Object.entries(cd).map(([fk, fv]) => {
+                    const ic = icons[fk] ? `<i class="${icons[fk]}" style="margin-left:4px;"></i>` : '';
+                    return `${ic}${fk}: ${fv}`;
+                });
             } catch(e) {}
         }
 
@@ -307,8 +301,12 @@ function printFilterQRCards() {
         let customHtml  = '';
         if (r.custom_data) {
             try {
-                const cd = JSON.parse(r.custom_data);
-                customHtml = Object.entries(cd).map(([k, v]) => `${k}: ${v}`).join(' | ');
+                const cd    = JSON.parse(r.custom_data);
+                const icons = currentTrip?.custom_field_icons || {};
+                customHtml = Object.entries(cd).map(([k, v]) => {
+                    const ic = icons[k] ? `<i class="${icons[k]}"></i> ` : '';
+                    return `${ic}${k}: ${v}`;
+                }).join(' &nbsp;|&nbsp; ');
             } catch(e) {}
         }
 

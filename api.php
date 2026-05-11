@@ -7858,6 +7858,12 @@ function getTrips() {
             $row['final_price'] = round($finalPrice, 2);
             $row['start_date_formatted'] = $row['start_date'] ? date('d/m/Y', strtotime($row['start_date'])) : '';
             $row['end_date_formatted'] = $row['end_date'] ? date('d/m/Y', strtotime($row['end_date'])) : '';
+            if (!empty($row['custom_field_icons'])) {
+                $dec = json_decode($row['custom_field_icons'], true);
+                $row['custom_field_icons'] = is_array($dec) ? $dec : [];
+            } else {
+                $row['custom_field_icons'] = [];
+            }
             
             $trips[] = $row;
         }
@@ -7900,6 +7906,20 @@ function addTrip() {
             $customFields = '';
         }
         $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function($field) { return $field !== ''; }));
+        // custom_field_icons: JSON string like {"الفريق": "fas fa-users"}
+        $customFieldIconsRaw = $_POST['custom_field_icons'] ?? '';
+        $customFieldIcons = null;
+        if (!empty($customFieldIconsRaw)) {
+            $decoded = json_decode($customFieldIconsRaw, true);
+            if (is_array($decoded)) {
+                // sanitize keys and values
+                $cleanIcons = [];
+                foreach ($decoded as $k => $v) {
+                    $cleanIcons[sanitize($k)] = sanitize($v);
+                }
+                $customFieldIcons = json_encode($cleanIcons, JSON_UNESCAPED_UNICODE);
+            }
+        }
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -7945,17 +7965,17 @@ function addTrip() {
                 start_date, end_date, price, discount, 
                 discount_type, max_participants, status, 
                 image_url, created_by, show_registered_kids,
-                has_points_game, custom_fields
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                has_points_game, custom_fields, custom_field_icons
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $stmt->bind_param(
-            "isssssddsissiiis",
+            "isssssddsissiiiss",
             $churchId, $title, $description, $type,
             $dbStartDate, $dbEndDate, $price, $discount,
             $discountType, $maxParticipants, $status,
             $imageUrl, $uncleId, $showRegisteredKids,
-            $hasPointsGame, $customFields
+            $hasPointsGame, $customFields, $customFieldIcons
         );
         
         if ($stmt->execute()) {
@@ -8023,6 +8043,19 @@ function updateTrip() {
             $customFields = '';
         }
         $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function($field) { return $field !== ''; }));
+        // custom_field_icons
+        $customFieldIconsRaw = $_POST['custom_field_icons'] ?? '';
+        $customFieldIcons = null;
+        if (!empty($customFieldIconsRaw)) {
+            $decoded = json_decode($customFieldIconsRaw, true);
+            if (is_array($decoded)) {
+                $cleanIcons = [];
+                foreach ($decoded as $k => $v) {
+                    $cleanIcons[sanitize($k)] = sanitize($v);
+                }
+                $customFieldIcons = json_encode($cleanIcons, JSON_UNESCAPED_UNICODE);
+            }
+        }
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -8042,16 +8075,16 @@ function updateTrip() {
             SET title = ?, description = ?, type = ?, 
                 start_date = ?, end_date = ?, price = ?, 
                 discount = ?, discount_type = ?, max_participants = ?, 
-                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, updated_at = NOW()
+                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?, updated_at = NOW()
             WHERE id = ? AND church_id = ?
         ");
         
         $stmt->bind_param(
-            "sssssddsisiiisi",
+            "sssssddsisiiissi",
             $title, $description, $type,
             $dbStartDate, $dbEndDate, $price,
             $discount, $discountType, $maxParticipants,
-            $status, $showRegisteredKids, $hasPointsGame, $customFields, $tripId, $churchId
+            $status, $showRegisteredKids, $hasPointsGame, $customFields, $customFieldIcons, $tripId, $churchId
         );
         
         if ($stmt->execute()) {
@@ -8165,6 +8198,13 @@ function getTripDetails() {
         $trip['final_price'] = round($finalPrice, 2);
         $trip['start_date_formatted'] = date('d/m/Y', strtotime($trip['start_date']));
         $trip['end_date_formatted'] = $trip['end_date'] ? date('d/m/Y', strtotime($trip['end_date'])) : '';
+        // decode custom_field_icons JSON into array for JS
+        if (!empty($trip['custom_field_icons'])) {
+            $decoded = json_decode($trip['custom_field_icons'], true);
+            $trip['custom_field_icons'] = is_array($decoded) ? $decoded : [];
+        } else {
+            $trip['custom_field_icons'] = [];
+        }
         
         // قائمة المسجلين
         $regStmt = $conn->prepare("
