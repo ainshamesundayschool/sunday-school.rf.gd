@@ -137,6 +137,22 @@
         <!-- Custom Fields as Cards -->
         <div class="fields-grid" id="fieldsGrid"></div>
     </div>
+    
+    <!-- VIEW: FILTER KIDS -->
+    <div id="viewFilterKids" class="view-section">
+        <div class="hero-strip" style="flex-wrap: nowrap; overflow-x: auto;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="topbar-btn" onclick="showTripDetailsView()" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
+                <div class="hero-greeting" id="filterKidsTitle" style="white-space: nowrap;">الأطفال</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button class="btn-camera-big" style="padding:10px 15px; font-size:1.2rem; flex-direction:row; border-radius:10px; margin:0;" onclick="startScanner()" title="مسح كود QR للأطفال">
+                    <i class="fas fa-camera"></i>
+                </button>
+            </div>
+        </div>
+        <div class="fields-grid" id="filterKidsGrid" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
 </div>
 
 <div id="printArea"></div>
@@ -200,9 +216,9 @@ async function openTrip(tripId) {
 
 function renderFieldCards() {
     const grid = document.getElementById('fieldsGrid');
+    grid.innerHTML = '';
     
     if(!currentTrip.custom_fields) {
-        // If no custom fields, show all kids in one grid
         renderAllKidsCard();
         return;
     }
@@ -212,7 +228,6 @@ function renderFieldCards() {
     fields.forEach(field => {
         const fieldValues = {};
         
-        // Group kids by their field value
         regsList.forEach(r => {
             if(r.custom_data) {
                 try {
@@ -224,38 +239,24 @@ function renderFieldCards() {
             }
         });
         
-        // Create cards for each value
         Object.keys(fieldValues).sort().forEach(value => {
             const kids = fieldValues[value];
             const card = document.createElement('div');
             card.className = 'field-card';
+            card.style.cursor = 'pointer';
+            card.onclick = () => openFilterKids(field, value, kids);
             
             let iconClass = 'fas fa-tag';
             let iconBg = getFieldIcon(field);
             if(iconBg) { iconClass = iconBg.icon; }
             
             card.innerHTML = `
-                <div class="field-card-header">
+                <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
                     <div class="field-card-icon"><i class="${iconClass}"></i></div>
                     <div>
                         <div class="field-card-title">${value}</div>
                         <div class="field-card-count">${kids.length} طفل</div>
                     </div>
-                </div>
-                <div class="kids-in-field">
-                    ${kids.map(k => {
-                        const name = k.student_name || '؟';
-                        const img = k.student_image || '';
-                        const init = name.charAt(0);
-                        const points = k.trip_points_val || 0;
-                        return `
-                            <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')">
-                                ${img ? `<img class="kid-avatar-sm" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\'>${init}</div>'">` : `<div class="kid-avatar-sm">${init}</div>`}
-                                <div class="kid-name-sm">${name}</div>
-                                <div class="kid-points-sm">⭐ ${points}</div>
-                            </div>
-                        `;
-                    }).join('')}
                 </div>
             `;
             
@@ -268,33 +269,46 @@ function renderAllKidsCard() {
     const grid = document.getElementById('fieldsGrid');
     const card = document.createElement('div');
     card.className = 'field-card';
+    card.style.cursor = 'pointer';
+    card.onclick = () => openFilterKids('جميع الأطفال', '', regsList);
     
     card.innerHTML = `
-        <div class="field-card-header">
+        <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
             <div class="field-card-icon"><i class="fas fa-users"></i></div>
             <div>
                 <div class="field-card-title">جميع الأطفال</div>
                 <div class="field-card-count">${regsList.length} طفل</div>
             </div>
         </div>
-        <div class="kids-in-field">
-            ${regsList.map(k => {
-                const name = k.student_name || '؟';
-                const img = k.student_image || '';
-                const init = name.charAt(0);
-                const points = k.trip_points_val || 0;
-                return `
-                    <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')">
-                        ${img ? `<img class="kid-avatar-sm" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\'>${init}</div>'">` : `<div class="kid-avatar-sm">${init}</div>`}
-                        <div class="kid-name-sm">${name}</div>
-                        <div class="kid-points-sm">⭐ ${points}</div>
-                    </div>
-                `;
-            }).join('')}
-        </div>
     `;
     
     grid.appendChild(card);
+}
+
+function openFilterKids(field, value, kids) {
+    document.getElementById('viewTripDetails').classList.remove('active');
+    document.getElementById('viewFilterKids').classList.add('active');
+    document.getElementById('filterKidsTitle').textContent = value ? `${field}: ${value}` : field;
+    
+    const grid = document.getElementById('filterKidsGrid');
+    grid.innerHTML = kids.map(k => {
+        const name = k.student_name || '؟';
+        const img = k.student_image || '';
+        const init = name.charAt(0);
+        const points = k.trip_points_val || 0;
+        return `
+            <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')" style="padding:15px;">
+                ${img ? `<img class="kid-avatar-sm" src="${img}" style="width:40px;height:40px;" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\' style=\\'width:40px;height:40px;\\'>${init}</div>'">` : `<div class="kid-avatar-sm" style="width:40px;height:40px;">${init}</div>`}
+                <div class="kid-name-sm" style="font-size:1.05rem;">${name}</div>
+                <div class="kid-points-sm" style="font-size:1.05rem;">⭐ ${points}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showTripDetailsView() {
+    document.getElementById('viewFilterKids').classList.remove('active');
+    document.getElementById('viewTripDetails').classList.add('active');
 }
 
 function getFieldIcon(field) {
@@ -420,7 +434,6 @@ function printQRCards() {
             <h2>${name}</h2>
             <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
-            <p style="margin-top:10px;font-size:12px;">للمشرفين فقط - امسح لإدارة النقاط</p>
         </div>
         `;
         
