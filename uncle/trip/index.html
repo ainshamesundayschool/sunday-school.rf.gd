@@ -118,7 +118,10 @@
     <div id="viewTripDetails" class="view-section active">
         <div class="hero-strip">
             <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
-            <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
+            <div style="display:flex;align-items:center;gap:10px; margin-right: auto;">
+                <button class="topbar-btn" onclick="printQRCards()" style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i class="fas fa-print"></i> طباعة الكروت</button>
+                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
+            </div>
         </div>
         
         <!-- Big Camera Button -->
@@ -372,121 +375,6 @@ function stopScanner() {
         });
     } else {
         document.getElementById('scannerModal').style.display = 'none';
-    }
-}
-</script>
-</body>
-</html>
-                    ${r.is_naughty ? '<span class="naughty-badge-sm">شغب</span>' : ''}
-                </div>
-                <div class="reg-meta">
-                    <span style="color:var(--text-2);"><i class="fas fa-layer-group"></i> ${r.student_class || 'بدون فصل'}</span>
-                    <span style="color:var(--success); font-weight:700;"><i class="fas fa-star"></i> ${r.trip_points_val || 0}</span>
-                    ${customHtml}
-                </div>
-            </div>
-            <a href="/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}" class="btn-game"><i class="fas fa-star"></i> نقاط</a>
-        </div>
-        `;
-    }).join('');
-    
-    if(filteredList.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);border:1px dashed var(--border-solid);border-radius:12px;">لا يوجد أطفال يطابقون البحث</div>`;
-    }
-}
-
-function buildFilters() {
-    const container = document.getElementById('customFilters');
-    container.innerHTML = `<div class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">الكل (${regsList.length})</div>`;
-    
-    if(currentTrip.custom_fields) {
-        const fields = currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
-        
-        fields.forEach(field => {
-            const valuesCount = {};
-            regsList.forEach(r => {
-                if(r.custom_data) {
-                    try {
-                        const cd = JSON.parse(r.custom_data);
-                        if(cd[field]) {
-                            valuesCount[cd[field]] = (valuesCount[cd[field]]||0)+1;
-                        }
-                    } catch(e){}
-                }
-            });
-            
-            if(Object.keys(valuesCount).length > 0) {
-                container.innerHTML += `<div style="width:1px;height:20px;background:var(--border-solid);margin:5px 5px;flex-shrink:0;"></div>`;
-                Object.keys(valuesCount).sort().forEach(val => {
-                    container.innerHTML += `<div class="filter-chip" data-key="${field}" data-val="${val}" onclick="setFilter(this)">${val} (${valuesCount[val]})</div>`;
-                });
-            }
-        });
-    }
-}
-
-let currentFilter = {key: null, val: null};
-
-function setFilter(elOrType, el=null) {
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    if(elOrType === 'all') {
-        currentFilter = {key: null, val: null};
-        el.classList.add('active');
-    } else {
-        elOrType.classList.add('active');
-        currentFilter = {key: elOrType.dataset.key, val: elOrType.dataset.val};
-    }
-    renderKids();
-}
-
-function renderKids() {
-    const grid = document.getElementById('kidsGrid');
-    
-    let filtered = regsList;
-    if(currentFilter.key) {
-        filtered = regsList.filter(r => {
-            if(!r.custom_data) return false;
-            try {
-                const cd = JSON.parse(r.custom_data);
-                return cd[currentFilter.key] === currentFilter.val;
-            } catch(e){ return false; }
-        });
-    }
-    
-    grid.innerHTML = filtered.map(r => {
-        const name = r.student_name || '؟';
-        const img = r.student_image || '';
-        const init = name.charAt(0);
-        let customHtml = '';
-        if(r.custom_data) {
-            try {
-                const cd = JSON.parse(r.custom_data);
-                customHtml = Object.entries(cd).map(([k,v]) => `<span style="background:var(--brand-bg);color:var(--brand);padding:2px 6px;border-radius:4px;font-weight:700;"><i class="fas fa-tag"></i> ${v}</span>`).join('');
-            } catch(e){}
-        }
-        
-        return `
-        <div class="reg-card ${r.is_naughty ? 'naughty' : ''}">
-            ${img ? `<img class="reg-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'reg-avatar\\'>${init}</div>'">` : `<div class="reg-avatar">${init}</div>`}
-            <div class="reg-info">
-                <div class="reg-name">
-                    ${name}
-                    ${r.is_naughty ? '<span class="naughty-badge-sm">شغب</span>' : ''}
-                </div>
-                <div class="reg-meta">
-                    <span style="color:var(--text-2);"><i class="fas fa-layer-group"></i> ${r.student_class || 'بدون فصل'}</span>
-                    <span style="color:var(--success); font-weight:700;"><i class="fas fa-star"></i> ${r.trip_points_val || 0}</span>
-                    ${customHtml}
-                </div>
-            </div>
-            <a href="/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}" class="btn-game"><i class="fas fa-star"></i> نقاط</a>
-        </div>
-        `;
-    }).join('');
-    
-    if(filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);border:1px dashed var(--border-solid);border-radius:12px;">لا يوجد أطفال يطابقون الفلتر</div>`;
-    }
 }
 
 function printQRCards() {
@@ -494,7 +382,7 @@ function printQRCards() {
     printArea.innerHTML = '';
     
     let filtered = regsList;
-    if(currentFilter.key) {
+    if(currentFilter && currentFilter.key) {
         filtered = regsList.filter(r => {
             if(!r.custom_data) return false;
             try {
@@ -516,16 +404,7 @@ function printQRCards() {
         if(r.custom_data) {
             try {
                 const cd = JSON.parse(r.custom_data);
-                // Get custom field definitions and icons
-                const fieldDefs = currentTrip.custom_fields ? currentTrip.custom_fields.split(',').map(f => f.trim()) : [];
-                
-                customHtml = Object.entries(cd).map(([key, value]) => {
-                    let iconClass = 'fas fa-tag'; // default icon
-                    if(currentTrip.custom_field_icons && currentTrip.custom_field_icons[key]) {
-                        iconClass = currentTrip.custom_field_icons[key];
-                    }
-                    return `<i class="${iconClass}"></i> ${value}`;
-                }).join(' | ');
+                customHtml = Object.entries(cd).map(([k,v]) => `${k}: ${v}`).join(' | ');
             } catch(e){}
         }
         
@@ -539,6 +418,7 @@ function printQRCards() {
             <h2>${name}</h2>
             <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
+            <p style="margin-top:10px;font-size:12px;">للمشرفين فقط - امسح لإدارة النقاط</p>
         </div>
         `;
         
@@ -559,45 +439,6 @@ function printQRCards() {
         // clear print area after print
         setTimeout(() => { printArea.innerHTML = ''; }, 1000);
     }, 1000);
-}
-
-// QR Code Scanner Logic
-let html5QrcodeScanner = null;
-
-function startScanner() {
-    document.getElementById('scannerModal').style.display = 'flex';
-    if(!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5Qrcode("reader");
-    }
-    html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: {width: 250, height: 250} },
-        (decodedText, decodedResult) => {
-            // Success
-            html5QrcodeScanner.stop().then(() => {
-                document.getElementById('scannerModal').style.display = 'none';
-                window.location.href = decodedText; // Redirect to the points page
-            });
-        },
-        (errorMessage) => {
-            // Ignore parse errors
-        }
-    ).catch((err) => {
-        alert("حدث خطأ في الوصول للكاميرا: " + err);
-        stopScanner();
-    });
-}
-
-function stopScanner() {
-    if(html5QrcodeScanner) {
-        html5QrcodeScanner.stop().then(() => {
-            document.getElementById('scannerModal').style.display = 'none';
-        }).catch(e => {
-            document.getElementById('scannerModal').style.display = 'none';
-        });
-    } else {
-        document.getElementById('scannerModal').style.display = 'none';
-    }
 }
 </script>
 </body>

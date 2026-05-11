@@ -2503,6 +2503,20 @@
     }
 
     /* ... rest of the dashboard HTML continues unchanged ... */
+    /* Print Styles */
+    @media screen {
+        #printArea { display: none !important; }
+    }
+    @media print {
+        body > *:not(#printArea) { display: none !important; }
+        #printArea { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 20px; align-content: start; position: absolute; top: 0; left: 0; width: 100%; padding: 20px; }
+        .print-card { border: 2px dashed #000; padding: 20px; text-align: center; border-radius: 10px; break-inside: avoid; page-break-inside: avoid; display: block !important; }
+        .print-card img.qr { width: 150px; height: 150px; margin: 10px auto; display: block !important; }
+        .print-card img.avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px; object-fit: cover; display: block !important; }
+        .print-card h3 { font-size: 18px; margin-bottom: 5px; color: #000 !important; }
+        .print-card p { font-size: 14px; color: #000 !important; margin-bottom: 5px; }
+        .print-card .custom-info { font-size: 14px; font-weight: bold; color: #000 !important; }
+    }
   </style>
 </head>
 
@@ -2854,7 +2868,12 @@
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل في لوحة الكنيسة</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
+            ${(trip.custom_fields && trip.custom_fields.trim()) ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث حقول إضافية</button>
+            <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
+            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>
+            <button class="btn btn-outline btn-sm" onclick="printQRCards(${trip.id})" style="background:#10b981;color:white;border-color:#10b981;"><i class="fas fa-print"></i> طباعة كروت QR</button>` : ''}
         </div>`;
 
       const pm = { paid: ['var(--success)', 'مدفوع بالكامل'], partial: ['var(--warning)', 'جزئي'], pending: ['var(--danger)', 'غير مدفوع'] };
@@ -3737,6 +3756,198 @@
     }
   </script>
 
-</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function downloadCustomDataCSV(tripId) {
+    const regs = currentTripData?.registrations || [];
+    const trip = currentTripData;
+    const fields = parseCustomFieldsString(trip?.custom_fields);
+    if(!trip || !fields.length) return;
+    let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
+    regs.forEach(r => {
+        let row = [r.id, `"${r.student_name}"`];
+        let cd = {};
+        if(r.custom_data) {
+            try { cd = JSON.parse(r.custom_data); } catch(e){}
+        }
+        fields.forEach(f => { row.push(`"${cd[f] || ''}"`); });
+        csv += row.join(',') + '\n';
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `trip_${tripId}_custom_data.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
+function uploadCustomDataCSV(e, tripId) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const trip = currentTripData;
+    const fields = parseCustomFieldsString(trip?.custom_fields);
+    if(!trip || !fields.length) return;
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+        const text = ev.target.result;
+        const lines = text.split('\n');
+        if(lines.length < 2) { showToast('الملف فارغ', 'error'); return; }
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const payload = [];
+        for(let i=1; i<lines.length; i++) {
+            if(!lines[i].trim()) continue;
+            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            const regId = cols[0];
+            const cd = {};
+            fields.forEach(f => {
+                const idx = headers.indexOf(f);
+                if(idx !== -1 && cols[idx]) { cd[f] = cols[idx]; }
+            });
+            payload.push({ registration_id: regId, custom_data: cd });
+        }
+        const fd = new FormData();
+        fd.append('action', 'bulkUpdateCustomData');
+        fd.append('trip_id', tripId);
+        fd.append('data', JSON.stringify(payload));
+        showToast('جاري تحديث البيانات...', 'info');
+        try {
+            const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
+            if(res.success) {
+                showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
+                window.location.reload();
+            } else { showToast(res.message, 'error'); }
+        } catch(err) { showToast('خطأ في الاتصال', 'error'); }
+        document.getElementById('uploadCustomDataCsv').value = '';
+    };
+    reader.readAsText(file);
+}
+
+function buildBulkCustomDataTable(trip, regs, fields) {
+    if (!regs.length) {
+        return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
+    }
+    const rows = regs.map(r => {
+        let values = {};
+        if (r.custom_data) {
+            try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
+        }
+        return `<tr data-reg-id="${r.id}">
+            <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
+            <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
+            ${fields.map(field => `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">
+                <input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(values[field] || '')}" placeholder="${escHtml(field)}">
+            </td>`).join('')}
+        </tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">ID</th><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">الطفل</th>${fields.map(field => `<th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">${escHtml(field)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function openBulkCustomDataModal(tripId) {
+    const trip = currentTripData;
+    const regs = currentTripData?.registrations || [];
+    const fields = parseCustomFieldsString(trip?.custom_fields);
+    if (!trip || !fields.length) return;
+    document.getElementById('bulkCustomDataTripId').value = tripId;
+    document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
+    document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+    document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
+    openModal('bulkCustomDataModal');
+}
+
+async function bulkCustomDataSave() {
+    const tripId = document.getElementById('bulkCustomDataTripId').value;
+    const rows = Array.from(document.querySelectorAll('#bulkCustomDataTable tbody tr'));
+    if (!rows.length) { showToast('لا يوجد بيانات لحفظها', 'warning'); return; }
+    const payload = rows.map(row => {
+        const regId = row.dataset.regId;
+        const customData = {};
+        row.querySelectorAll('.bulk-custom-data-input').forEach(input => {
+            const key = input.dataset.field;
+            const val = input.value.trim();
+            if (val !== '') customData[key] = val;
+        });
+        return { registration_id: regId, custom_data: customData };
+    });
+    const fd = new FormData();
+    fd.append('action', 'bulkUpdateCustomData');
+    fd.append('trip_id', tripId);
+    fd.append('data', JSON.stringify(payload));
+    const btn = document.getElementById('bulkCustomDataSubmitBtn');
+    btn.classList.add('btn-loading'); btn.disabled = true;
+    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+    btn.classList.remove('btn-loading'); btn.disabled = false;
+    if (res.success) {
+        showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
+        closeModal('bulkCustomDataModal');
+        window.location.reload();
+    } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
+}
+
+function printQRCards(tripId) {
+    const regs = currentTripData?.registrations || [];
+    const trip = currentTripData;
+    if(!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
+    const printArea = document.getElementById('printArea');
+    printArea.innerHTML = '';
+    regs.forEach(r => {
+        const name = r.student_name || '؟';
+        const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text='+name.charAt(0);
+        let customHtml = '';
+        if(r.custom_data) {
+            try {
+                const cd = JSON.parse(r.custom_data);
+                const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
+                customHtml = Object.entries(cd).map(([key, value]) => {
+                    let iconClass = 'fas fa-tag';
+                    if(trip.custom_field_icons && trip.custom_field_icons[key]) { iconClass = trip.custom_field_icons[key]; }
+                    return `<i class="${iconClass}"></i> ${value}`;
+                }).join(' | ');
+            } catch(e){}
+        }
+        const cardId = 'qrcode_' + r.id;
+        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
+        printArea.innerHTML += `
+        <div class="print-card">
+            <h3>${trip.title}</h3>
+            <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
+            <h2>${name}</h2>
+            <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
+            <div id="${cardId}" style="display:flex;justify-content:center;"></div>
+        </div>`;
+        setTimeout(() => {
+            new QRCode(document.getElementById(cardId), { text: link, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+        }, 100);
+    });
+    setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1000); }, 1000);
+}
+</script>
+
+<!-- Bulk Custom Data Update -->
+<div id="bulkCustomDataModal" class="modal">
+    <div class="modal-box wide">
+        <div class="modal-head"><h2><i class="fas fa-table"></i> تحديث بيانات الحقول الإضافية</h2><button class="modal-close" onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="bulkCustomDataTripId">
+            <div id="bulkCustomDataHeader" style="font-weight:700;margin-bottom:10px;"></div>
+            <div id="bulkCustomDataFieldsInfo" style="margin-bottom:14px;color:var(--muted);font-size:0.9rem;"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                <button class="btn btn-outline btn-sm" type="button" onclick="downloadCustomDataCSV(document.getElementById('bulkCustomDataTripId').value)"><i class="fas fa-file-download"></i> تنزيل CSV</button>
+                <button class="btn btn-outline btn-sm" type="button" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>
+            </div>
+            <div id="bulkCustomDataTable" style="overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:12px;padding:12px;">
+                <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة لعرض جدول التحديث.</div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary" onclick="bulkCustomDataSave()" id="bulkCustomDataSubmitBtn"><i class="fas fa-save"></i> حفظ التحديثات</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('bulkCustomDataModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="file" id="uploadCustomDataCsv" accept=".csv" style="display:none;" onchange="uploadCustomDataCSV(event, window.currentTripId || document.getElementById('bulkCustomDataTripId')?.value)">
+
+<!-- Print Area -->
+<div id="printArea" style="display:none;"></div>
+</body>
 </html>
