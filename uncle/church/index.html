@@ -2877,6 +2877,7 @@ button, a, [role="button"] { touch-action: manipulation; }
 <div id="printArea" style="display:none;"></div>
 
 <!-- ══════════════════ SCRIPT ══════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 function downloadCustomDataCSV(tripId) {
     const regs = tripRegistrationsCache[tripId] || [];
@@ -2977,6 +2978,21 @@ function buildBulkCustomDataTable(trip, regs, fields) {
     }).join('');
 
     return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">ID</th><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">الطفل</th>${fields.map(field => `<th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">${escHtml(field)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function openBulkCustomDataModal(tripId) {
+    const trip = allTripsCache.find(t => t.id == tripId);
+    const regs = tripRegistrationsCache[tripId] || [];
+    const fields = parseCustomFieldsString(trip?.custom_fields);
+    if (!trip || !fields.length) return;
+    
+    document.getElementById('bulkCustomDataTripId').value = tripId;
+    document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
+    document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+    
+    document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
+    
+    openModal('bulkCustomDataModal');
 }
 
 function showTripCollaborationModal(tripId) {
