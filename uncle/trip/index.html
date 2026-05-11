@@ -13,6 +13,9 @@
           --brand-dark:   #4354e8;
           --brand-light:  #a5b0ff;
           --brand-bg:     #eef0ff;
+          --success:      #10b981;
+          --success-dark: #059669;
+          --success-bg:   #d1fae5;
           --danger:       #ef4444;
           --bg:           #f3f4f9;
           --surface:      #ffffff;
@@ -27,51 +30,55 @@
           --t: .22s; --ease: cubic-bezier(.4,0,.2,1); --spring: cubic-bezier(.16,1,.3,1);
         }
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
-        body { background:var(--bg); color:var(--text); min-height:100vh; padding-bottom: 80px; }
+        body { background:var(--bg); color:var(--text); min-height:100vh; padding-bottom: 20px; }
         
-        .topbar { position:sticky; top:0; z-index:300; background:var(--surface); padding:0 16px; height:58px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); }
-        .topbar-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .topbar-logo { width:36px; height:36px; border-radius:10px; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); }
+        .topbar { position:sticky; top:0; z-index:300; background:var(--surface); padding:0 16px; height:58px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); gap:12px; }
+        .topbar-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
+        .topbar-logo { width:36px; height:36px; border-radius:10px; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); flex-shrink:0; }
         .topbar-title { font-size:0.95rem; font-weight:800; color:var(--text); }
-        .topbar-btn { height:38px; padding:0 12px; border-radius:var(--r-md); display:flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--border-solid); color:var(--text-2); font-size:0.88rem; font-weight:700; cursor:pointer; text-decoration:none; transition:all var(--t) var(--ease); }
+        
+        .topbar-search-container { flex:1; max-width:300px; position:relative; }
+        .topbar-search-input { width:100%; padding:8px 12px; border:1.5px solid var(--border-solid); border-radius:var(--r-md); font-size:0.85rem; background:var(--bg); color:var(--text); transition:all var(--t) var(--ease); }
+        .topbar-search-input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-bg); }
+        .topbar-search-results { position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:5px; max-height:300px; overflow-y:auto; display:none; z-index:400; box-shadow:var(--shadow-lg); }
+        .topbar-search-results.show { display:block; }
+        .search-result-item { padding:10px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:all 0.2s; }
+        .search-result-item:hover { background:var(--brand-bg); color:var(--brand); }
+        .search-result-item:last-child { border-bottom:none; }
+        
+        .topbar-actions { display:flex; align-items:center; gap:6px; }
+        .topbar-btn { height:38px; padding:0 12px; border-radius:var(--r-md); display:flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--border-solid); color:var(--text-2); font-size:0.88rem; font-weight:700; cursor:pointer; text-decoration:none; transition:all var(--t) var(--ease); flex-shrink:0; }
         .topbar-btn:hover { background:var(--brand-bg); color:var(--brand); border-color:var(--brand); }
         
         .page-wrap { max-width:1440px; margin:0 auto; padding:20px; }
         
-        /* Grid */
-        .classes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:15px; margin-bottom:24px; }
-        .class-card { background:var(--surface); border-radius:var(--r-xl); padding:20px 14px; text-align:center; cursor:pointer; border:1.5px solid var(--border); box-shadow:var(--shadow-sm); transition:all var(--t) var(--spring); position:relative; overflow:hidden; }
-        .class-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--brand); transform:scaleX(0); transform-origin:left; transition:transform .3s var(--spring); }
-        .class-card:hover { transform:translateY(-5px) scale(1.01); box-shadow:var(--shadow-lg); border-color:var(--brand); }
-        .class-card:hover::before { transform:scaleX(1); }
-        .class-icon { width:60px; height:60px; border-radius:var(--r-lg); background:var(--brand-bg); color:var(--brand); display:inline-flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:12px; font-weight:800; transition:all var(--t) var(--spring); }
-        .class-card:hover .class-icon { background:var(--brand); color:#fff; transform:rotate(6deg) scale(1.1); }
-        .class-name { font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:8px; }
-        .class-badge { display:inline-flex; align-items:center; gap:4px; background:var(--brand-bg); color:var(--brand); padding:3px 10px; border-radius:var(--r-full); font-size:.72rem; font-weight:700; }
-        
-        /* Inner View */
-        .view-section { display:none; }
-        .view-section.active { display:block; animation:fadeIn 0.3s ease; }
-        @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-        
-        .hero-strip { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap: 10px; flex-wrap: wrap; }
+        .hero-strip { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:10px; flex-wrap:wrap; }
         .hero-greeting { font-size:1.2rem; font-weight:800; }
         
-        .filters-bar { display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px; align-items:center; scrollbar-width: none; }
-        .filters-bar::-webkit-scrollbar { display:none; }
-        .filter-chip { padding:6px 14px; background:var(--surface); border:1px solid var(--border-solid); border-radius:20px; font-size:0.85rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.2s; color:var(--text-2); }
-        .filter-chip.active { background:var(--brand); color:#fff; border-color:var(--brand); }
+        /* Camera Button */
+        .btn-camera-big { padding:30px; border-radius:var(--r-xl); background:var(--success); color:white; border:none; cursor:pointer; font-size:2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:var(--shadow-lg); transition:all var(--t) var(--spring); font-weight:900; flex-direction:column; text-decoration:none; margin-bottom:20px; }
+        .btn-camera-big:hover { background:var(--success-dark); transform:translateY(-5px) scale(1.02); box-shadow:0 25px 50px rgba(16,185,129,0.3); }
+        .btn-camera-big:active { transform:translateY(-2px) scale(0.98); }
+        .btn-camera-text { font-size:1.2rem; }
         
-        .reg-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:8px; display:flex; align-items:center; gap:10px; padding:10px 12px; transition:all 0.2s; position: relative; }
-        .reg-card.naughty { border-color: var(--danger); background: var(--danger-bg); }
-        .naughty-badge-sm { background: var(--danger); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-right: 6px; }
-        .reg-card:hover { box-shadow:var(--shadow-sm); border-color:var(--brand); }
-        .reg-avatar { width:40px; height:40px; border-radius:50%; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); font-weight:800; flex-shrink:0; object-fit:cover; }
-        .reg-info { flex:1; min-width:0; }
-        .reg-name { font-size:0.9rem; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .reg-meta { font-size:0.75rem; color:var(--text-3); margin-top:3px; display:flex; gap:8px; flex-wrap:wrap; }
-        .btn-game { padding:8px 12px; background:var(--brand-bg); color:var(--brand); border-radius:var(--r-md); text-decoration:none; font-weight:700; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s; }
-        .btn-game:hover { background:var(--brand); color:#fff; transform:translateY(-1px); }
+        /* Custom Field Cards */
+        .fields-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-bottom:20px; }
+        .field-card { background:var(--surface); border-radius:var(--r-xl); padding:20px; border:1.5px solid var(--border); box-shadow:var(--shadow-sm); transition:all var(--t) var(--spring); }
+        .field-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--brand); }
+        .field-card-header { display:flex; align-items:center; gap:10px; margin-bottom:15px; padding-bottom:15px; border-bottom:2px solid var(--border); }
+        .field-card-icon { width:40px; height:40px; border-radius:var(--r-lg); background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+        .field-card-title { font-size:1rem; font-weight:800; color:var(--text); }
+        .field-card-count { font-size:0.75rem; color:var(--text-3); font-weight:700; }
+        
+        .kids-in-field { display:flex; flex-direction:column; gap:8px; }
+        .kid-item { background:var(--bg); border-radius:var(--r-md); padding:8px 10px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.2s; }
+        .kid-item:hover { background:var(--brand-bg); transform:translateX(-5px); }
+        .kid-avatar-sm { width:30px; height:30px; border-radius:50%; background:var(--brand-light); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; flex-shrink:0; object-fit:cover; }
+        .kid-name-sm { font-size:0.85rem; font-weight:700; color:var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .kid-points-sm { font-size:0.75rem; color:var(--success); font-weight:800; }
+        
+        .loading { text-align:center; padding:40px; color:var(--text-3); display:none; }
+        .loading i { font-size:2rem; margin-bottom:10px; }
         
         /* Print Styles */
         @media screen {
@@ -96,46 +103,36 @@
         <div class="topbar-logo"><i class="fas fa-trophy"></i></div>
         <div class="topbar-title">مسابقات الرحلات</div>
     </a>
+    <div class="topbar-search-container">
+        <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث بالاسم..." oninput="topbarSearchHandler()">
+        <div class="topbar-search-results" id="topbarSearchResults"></div>
+    </div>
+    <div class="topbar-actions">
+        <button class="topbar-btn" onclick="startScanner()" title="مسح QR"><i class="fas fa-camera"></i></button>
+    </div>
 </div>
 
 <div class="page-wrap">
     
     <!-- VIEW: TRIP DETAILS -->
     <div id="viewTripDetails" class="view-section active">
-        <div class="hero-strip" style="flex-wrap: nowrap; overflow-x: auto;">
-            <div style="display:flex;align-items:center;gap:12px;">
-                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
-                <div class="hero-greeting" id="detailTripTitle" style="white-space: nowrap;">الرحلة</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px; margin-right: auto;">
-                <button class="topbar-btn" onclick="startScanner()" style="background:var(--success-bg);color:var(--success-dark);border-color:var(--success);margin:0;white-space:nowrap;"><i class="fas fa-camera"></i> مسح QR</button>
-            </div>
+        <div class="hero-strip">
+            <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
+            <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
         </div>
         
-        <!-- Main Features: QR Code and Search -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
-            <!-- QR Code Access -->
-            <div class="class-card" style="text-align:center;padding:25px;">
-                <div style="width:120px;height:120px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;margin:0 auto 15px;" id="tripQRCode">QR Code</div>
-                <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;">كود QR للرحلة</div>
-                <div style="font-size:0.85rem;color:var(--text-3);">امسح هذا الكود للوصول السريع للأطفال</div>
-            </div>
-            
-            <!-- Search Bar -->
-            <div class="class-card" style="padding:25px;">
-                <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:15px;text-align:center;">البحث في الأطفال</div>
-                <input type="text" id="globalStudentSearch" placeholder="ابحث بالاسم أو البيانات المخصصة..." style="width:100%;padding:12px 16px;border:2px solid var(--border-solid);border-radius:12px;font-size:1rem;background:var(--bg);color:var(--text);transition:all 0.2s;" oninput="filterStudents()">
-                <div style="font-size:0.8rem;color:var(--text-3);margin-top:8px;text-align:center;">البحث في جميع الأطفال المسجلين</div>
-            </div>
+        <!-- Big Camera Button -->
+        <button class="btn-camera-big" onclick="startScanner()" title="مسح كود QR للأطفال">
+            <i class="fas fa-camera"></i>
+            <span class="btn-camera-text">مسح QR</span>
+        </button>
+        
+        <div id="loadingDetails" class="loading">
+            <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
         </div>
         
-        <div class="filters-bar" id="customFilters"></div>
-        
-        <div id="loadingDetails" style="text-align:center;padding:40px;color:var(--text-3);display:none;">
-            <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>جاري التحميل...
-        </div>
-        
-        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:10px;" id="kidsGrid"></div>
+        <!-- Custom Fields as Cards -->
+        <div class="fields-grid" id="fieldsGrid"></div>
     </div>
 </div>
 
@@ -155,7 +152,6 @@
 
 <script>
 const API_URL = '/api.php';
-let tripsList = [];
 let currentTrip = null;
 let regsList = [];
 
@@ -172,25 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function loadTrips() {
-    const fd = new FormData();
-    fd.append('action', 'getTrips');
-    try {
-        const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
-        if(res.success && res.trips) {
-            tripsList = res.trips.filter(t => String(t.has_points_game) === '1');
-        }
-    } catch(e) {}
-}
-
-function showTripsView() {
-    // Removed - no longer needed
-}
-
 async function openTrip(tripId) {
     document.getElementById('loadingDetails').style.display = 'block';
-    document.getElementById('kidsGrid').innerHTML = '';
-    document.getElementById('customFilters').innerHTML = '';
+    document.getElementById('fieldsGrid').innerHTML = '';
     
     const fd = new FormData();
     fd.append('action', 'getTripDetails');
@@ -204,100 +184,199 @@ async function openTrip(tripId) {
             currentTrip = res.trip;
             regsList = res.trip.registrations || [];
             document.getElementById('detailTripTitle').textContent = currentTrip.title;
-            
-            // Generate trip QR code
-            generateTripQRCode();
-            
-            buildFilters();
-            renderKids();
+            renderFieldCards();
         } else {
-            document.getElementById('kidsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
+            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
         }
     } catch(e) {
         document.getElementById('loadingDetails').style.display = 'none';
-        document.getElementById('kidsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
+        document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
     }
 }
 
-function generateTripQRCode() {
-    const qrContainer = document.getElementById('tripQRCode');
-    qrContainer.innerHTML = '';
+function renderFieldCards() {
+    const grid = document.getElementById('fieldsGrid');
     
-    const link = `${window.location.origin}/uncle/trip/?trip_id=${currentTrip.id}`;
-    
-    new QRCode(qrContainer, {
-        text: link,
-        width: 120,
-        height: 120,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-    });
-}
-
-function filterStudents() {
-    const searchTerm = document.getElementById('globalStudentSearch').value.toLowerCase().trim();
-    
-    if(!searchTerm) {
-        currentFilter = {key: null, val: null};
-        renderKids();
+    if(!currentTrip.custom_fields) {
+        // If no custom fields, show all kids in one grid
+        renderAllKidsCard();
         return;
     }
     
-    // Filter students by name, custom data, or church info (for collaborative trips)
-    const filtered = regsList.filter(r => {
-        const name = r.student_name || '';
-        if(name.toLowerCase().includes(searchTerm)) return true;
-        
-        // Check custom data
-        if(r.custom_data) {
-            try {
-                const cd = JSON.parse(r.custom_data);
-                for(const [key, value] of Object.entries(cd)) {
-                    if(String(value).toLowerCase().includes(searchTerm)) return true;
-                }
-            } catch(e) {}
-        }
-        
-        // Check church info for collaborative trips
-        if(currentTrip.collaborating_churches) {
-            try {
-                const collaborators = JSON.parse(currentTrip.collaborating_churches);
-                if(collaborators.length > 0) {
-                    // Could add church name search here if available
-                    if(String(r.church_id || '').includes(searchTerm)) return true;
-                }
-            } catch(e) {}
-        }
-        
-        return false;
-    });
+    const fields = currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
     
-    // Temporarily render filtered results
-    renderFilteredKids(filtered);
+    fields.forEach(field => {
+        const fieldValues = {};
+        
+        // Group kids by their field value
+        regsList.forEach(r => {
+            if(r.custom_data) {
+                try {
+                    const cd = JSON.parse(r.custom_data);
+                    const value = cd[field] || 'بدون تحديد';
+                    if(!fieldValues[value]) fieldValues[value] = [];
+                    fieldValues[value].push(r);
+                } catch(e){}
+            }
+        });
+        
+        // Create cards for each value
+        Object.keys(fieldValues).sort().forEach(value => {
+            const kids = fieldValues[value];
+            const card = document.createElement('div');
+            card.className = 'field-card';
+            
+            let iconClass = 'fas fa-tag';
+            let iconBg = getFieldIcon(field);
+            if(iconBg) { iconClass = iconBg.icon; }
+            
+            card.innerHTML = `
+                <div class="field-card-header">
+                    <div class="field-card-icon"><i class="${iconClass}"></i></div>
+                    <div>
+                        <div class="field-card-title">${value}</div>
+                        <div class="field-card-count">${kids.length} طفل</div>
+                    </div>
+                </div>
+                <div class="kids-in-field">
+                    ${kids.map(k => {
+                        const name = k.student_name || '؟';
+                        const img = k.student_image || '';
+                        const init = name.charAt(0);
+                        const points = k.trip_points_val || 0;
+                        return `
+                            <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')">
+                                ${img ? `<img class="kid-avatar-sm" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\'>${init}</div>'">` : `<div class="kid-avatar-sm">${init}</div>`}
+                                <div class="kid-name-sm">${name}</div>
+                                <div class="kid-points-sm">⭐ ${points}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+    });
 }
 
-function renderFilteredKids(filteredList) {
-    const grid = document.getElementById('kidsGrid');
+function renderAllKidsCard() {
+    const grid = document.getElementById('fieldsGrid');
+    const card = document.createElement('div');
+    card.className = 'field-card';
     
-    grid.innerHTML = filteredList.map(r => {
+    card.innerHTML = `
+        <div class="field-card-header">
+            <div class="field-card-icon"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="field-card-title">جميع الأطفال</div>
+                <div class="field-card-count">${regsList.length} طفل</div>
+            </div>
+        </div>
+        <div class="kids-in-field">
+            ${regsList.map(k => {
+                const name = k.student_name || '؟';
+                const img = k.student_image || '';
+                const init = name.charAt(0);
+                const points = k.trip_points_val || 0;
+                return `
+                    <div class="kid-item" onclick="openKidPoints('${currentTrip.id}', '${k.student_id}')">
+                        ${img ? `<img class="kid-avatar-sm" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar-sm\\'>${init}</div>'">` : `<div class="kid-avatar-sm">${init}</div>`}
+                        <div class="kid-name-sm">${name}</div>
+                        <div class="kid-points-sm">⭐ ${points}</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+    
+    grid.appendChild(card);
+}
+
+function getFieldIcon(field) {
+    const icons = {
+        'الفصل': { icon: 'fas fa-layer-group' },
+        'المستوى': { icon: 'fas fa-chart-line' },
+        'المجموعة': { icon: 'fas fa-users' },
+        'الفريق': { icon: 'fas fa-users' },
+        'الكنيسة': { icon: 'fas fa-church' }
+    };
+    return icons[field] || null;
+}
+
+function topbarSearchHandler() {
+    const searchTerm = document.getElementById('topbarSearch').value.toLowerCase().trim();
+    const resultsDiv = document.getElementById('topbarSearchResults');
+    
+    if(!searchTerm) {
+        resultsDiv.classList.remove('show');
+        return;
+    }
+    
+    const filtered = regsList.filter(r => {
+        const name = r.student_name || '';
+        return name.toLowerCase().includes(searchTerm);
+    });
+    
+    if(filtered.length === 0) {
+        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا توجد نتائج</div>';
+        resultsDiv.classList.add('show');
+        return;
+    }
+    
+    resultsDiv.innerHTML = filtered.map(r => {
         const name = r.student_name || '؟';
-        const img = r.student_image || '';
-        const init = name.charAt(0);
-        let customHtml = '';
-        if(r.custom_data) {
-            try {
-                const cd = JSON.parse(r.custom_data);
-                customHtml = Object.entries(cd).map(([k,v]) => `<span style="background:var(--brand-bg);color:var(--brand);padding:2px 6px;border-radius:4px;font-weight:700;"><i class="fas fa-tag"></i> ${v}</span>`).join('');
-            } catch(e){}
+        return `<div class="search-result-item" onclick="openKidPoints('${currentTrip.id}', '${r.student_id}')">${name}</div>`;
+    }).join('');
+    
+    resultsDiv.classList.add('show');
+}
+
+function openKidPoints(tripId, studentId) {
+    window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
+}
+
+// QR Code Scanner Logic
+let html5QrcodeScanner = null;
+
+function startScanner() {
+    document.getElementById('scannerModal').style.display = 'flex';
+    if(!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("reader");
+    }
+    html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: {width: 250, height: 250} },
+        (decodedText, decodedResult) => {
+            // Success
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('scannerModal').style.display = 'none';
+                window.location.href = decodedText; // Redirect to the points page
+            });
+        },
+        (errorMessage) => {
+            // Ignore parse errors
         }
-        
-        return `
-        <div class="reg-card ${r.is_naughty ? 'naughty' : ''}">
-            ${img ? `<img class="reg-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'reg-avatar\\'>${init}</div>'">` : `<div class="reg-avatar">${init}</div>`}
-            <div class="reg-info">
-                <div class="reg-name">
-                    ${name}
+    ).catch((err) => {
+        alert("حدث خطأ في الوصول للكاميرا: " + err);
+        stopScanner();
+    });
+}
+
+function stopScanner() {
+    if(html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            document.getElementById('scannerModal').style.display = 'none';
+        }).catch(e => {
+            document.getElementById('scannerModal').style.display = 'none';
+        });
+    } else {
+        document.getElementById('scannerModal').style.display = 'none';
+    }
+}
+</script>
+</body>
+</html>
                     ${r.is_naughty ? '<span class="naughty-badge-sm">شغب</span>' : ''}
                 </div>
                 <div class="reg-meta">
