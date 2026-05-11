@@ -8,19 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #e0e7ff;
+            --brand: #5b6cf5; --brand-dark: #4354e8; --brand-light: #a5b0ff; --brand-bg: #eef0ff; --brand-glow: rgba(91,108,245,.18);
             --success: #10b981; --success-dark: #059669; --success-light: #d1fae5;
             --danger: #ef4444; --danger-dark: #dc2626; --danger-light: #fee2e2;
             --warning: #f59e0b; --warning-dark: #d97706; --warning-light: #fef3c7;
-            --dark: #111827; --text: #1f2937; --muted: #6b7280;
-            --bg: #f3f4f6; --surface: #ffffff;
-            --border: #e5e7eb;
+            --bg: #f3f4f9; --surface: #ffffff; --text: #1a1d2e; --text-2: #4b5068; --text-3: #8b90a8; --border: rgba(91,108,245,.12); --border-solid: #e4e6f0;
+            --shadow-sm: 0 2px 8px -2px rgba(0,0,0,.07); --shadow-lg: 0 20px 48px -8px rgba(0,0,0,.14);
+            --r-md: 14px; --r-lg: 18px; --r-xl: 24px; --r-full: 9999px; --t: .22s; --ease: cubic-bezier(.4,0,.2,1); --spring: cubic-bezier(.16,1,.3,1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        .header { background: var(--surface); padding: 12px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; flex-shrink: 0; }
-        .header h1 { font-size: 1.1rem; font-weight: 800; color: var(--dark); display:flex; align-items:center; justify-content:center; gap:8px; margin: 0; }
+
+        .topbar { position: sticky; top: 0; z-index: 300; background: var(--bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 0 16px; height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: background var(--t) var(--ease), border-color var(--t) var(--ease); }
+        .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+        .topbar-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-bg); display: flex; align-items: center; justify-content: center; color: var(--brand); }
+        .topbar-logo i { font-size: 1rem; }
+        .topbar-title { font-size: 0.95rem; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; max-width: 140px; line-break: auto; line-height: 18px; }
+        .topbar-actions { display: flex; align-items: center; gap: 6px; padding-left: 4px; }
+        .topbar-btn { height: 38px; min-width: 38px; padding: 0 11px; border-radius: var(--r-md); display: flex; align-items: center; gap: 5px; background: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text-2); font-size: 0.88rem; cursor: pointer; text-decoration: none; flex-shrink: 0; transition: all var(--t) var(--ease); }
+        .topbar-btn:hover { background: var(--brand-bg); color: var(--brand); border-color: var(--brand); transform: translateY(-1px); box-shadow: 0 3px 8px var(--brand-glow); }
         
         .container { flex: 1; padding: 15px; max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: none; }
         .container::-webkit-scrollbar { display: none; }
@@ -33,13 +39,13 @@
         
         .avatar-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
         
-        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary-light); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; object-fit: cover; flex-shrink: 0; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--brand-light); background: var(--brand-light); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; object-fit: cover; flex-shrink: 0; }
         
         .info-col { text-align: right; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
-        .name { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .class-name { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+        .name { font-size: 1.2rem; font-weight: 800; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .class-name { font-size: 0.85rem; color: var(--text-3); font-weight: 600; }
         
-        .points-display { background: var(--primary-light); color: var(--primary-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--primary); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 100px; min-height: 60px; text-align: center; }
+        .points-display { background: var(--brand-light); color: var(--brand-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--brand); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 100px; min-height: 60px; text-align: center; }
         .points-display.naughty { background: var(--danger-light); color: var(--danger-dark); border-color: var(--danger); font-size: 1.5rem; }
         
         .points-display.settling { opacity: 0.7; pointer-events: none; color: transparent !important; }
@@ -63,7 +69,7 @@
             font-size: 1.2rem;
             animation: fa-spin 1s infinite linear;
             z-index: 2;
-            color: var(--primary-dark) !important;
+            color: var(--brand-dark) !important;
         }
         .points-display.naughty.settling::after { color: var(--danger-dark) !important; }
         .points-display:not(.settling)::after { display: none; }
@@ -71,15 +77,16 @@
         .btn-action:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5); }
         
         .custom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 15px; }
-        .tag { background: var(--bg); color: var(--muted); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); }
+        .tag { background: var(--bg); color: var(--text-3); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); display: flex; align-items: center; gap: 4px; }
+        .tag i { font-size: 0.8rem; }
         
         .control-panel { background: var(--surface); border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); flex-shrink: 0; }
         
-        .section-title { font-size: 0.9rem; font-weight: 800; color: var(--muted); margin-bottom: 10px; text-align: center; }
+        .section-title { font-size: 0.9rem; font-weight: 800; color: var(--text-3); margin-bottom: 10px; text-align: center; }
         
         .points-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
         .point-chip { padding: 10px 0; border-radius: 10px; font-size: 1.2rem; font-weight: 800; border: 2px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .point-chip.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); transform: scale(1.05); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2); }
+        .point-chip.selected { border-color: var(--brand); background: var(--brand-light); color: var(--brand-dark); transform: scale(1.05); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2); }
         
         .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-action { padding: 15px; border-radius: 12px; font-size: 1.2rem; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -91,13 +98,46 @@
         .btn-sub { background: var(--warning); color: white; border-bottom: 4px solid var(--warning-dark); }
         .btn-sub:hover { background: var(--warning-dark); }
         
-        .loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); text-align: center; min-height: 300px; }
-        .loading i { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+        .loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-3); text-align: center; min-height: 300px; }
+        .loading i { font-size: 2.5rem; color: var(--brand); margin-bottom: 10px; }
         
-        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
         .toast.show { bottom: 20px; }
         .toast.success { background: var(--success); }
         .toast.error { background: var(--danger); }
+        
+        #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+        .btn-naughty-sm.active { background: var(--danger); color: white; box-shadow: 0 0 10px var(--danger); }
+        .naughty-tag { background: var(--danger); color: white; font-size: 0.7rem; padding: 2px 10px; border-radius: 6px; font-weight: 800; margin-left: 8px; display: none; animation: tagPulse 2s infinite; }
+        @keyframes tagPulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .naughty-tag.show { display: inline-block; }
+
+        /* QR Code Access */
+        .qr-access { background: var(--surface); border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 15px; flex-shrink: 0; }
+        .qr-access h3 { font-size: 1rem; font-weight: 800; color: var(--text); margin-bottom: 10px; text-align: center; }
+        .qr-code-container { display: flex; justify-content: center; margin-bottom: 10px; }
+        .qr-code { width: 120px; height: 120px; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; }
+        .qr-access p { font-size: 0.8rem; color: var(--text-3); text-align: center; margin: 0; }
+
+        /* Search Bar */
+        .search-bar { background: var(--surface); border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 15px; flex-shrink: 0; }
+        .search-input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; background: var(--bg); color: var(--text); transition: all 0.2s; }
+        .search-input:focus { outline: none; border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 3px var(--brand-glow); }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .profile-card { padding: 15px 10px; }
+            .avatar { width: 70px; height: 70px; font-size: 1.8rem; }
+            .name { font-size: 1.1rem; }
+            .points-display { font-size: 1.8rem; min-width: 90px; min-height: 55px; }
+            .control-panel { padding: 12px; }
+            .points-selector { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .point-chip { padding: 8px 0; font-size: 1.1rem; }
+            .action-row { gap: 8px; }
+            .btn-action { padding: 12px; font-size: 1.1rem; }
+            .qr-code { width: 100px; height: 100px; }
+        }
         
         #fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
         .btn-naughty-sm.active { background: var(--danger); color: white; box-shadow: 0 0 10px var(--danger-mid); }
@@ -108,8 +148,14 @@
 </head>
 <body>
 
-<div class="header">
-    <h1 id="headerTripTitle"><i class="fas fa-star" style="color:var(--primary);"></i> إدارة النقاط</h1>
+<div class="topbar">
+    <a href="/uncle/dashboard/" class="topbar-brand">
+        <div class="topbar-logo"><i class="fas fa-trophy"></i></div>
+        <div class="topbar-title">نقاط الرحلة</div>
+    </a>
+    <div class="topbar-actions">
+        <button class="topbar-btn" onclick="startScanner()" title="مسح QR"><i class="fas fa-camera"></i></button>
+    </div>
 </div>
 
 <div class="container" id="mainContainer">
@@ -117,11 +163,25 @@
         <i class="fas fa-circle-notch fa-spin"></i>
         <h3>جاري تحميل البيانات...</h3>
     </div>
-    
+
     <div id="contentView" style="display:none; width: 100%;">
+        <!-- QR Code Access -->
+        <div class="qr-access">
+            <h3>كود QR للطفل</h3>
+            <div class="qr-code-container">
+                <div id="studentQR" class="qr-code">QR Code</div>
+            </div>
+            <p>امسح هذا الكود لإضافة نقاط للطفل</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="studentSearch" class="search-input" placeholder="البحث في الأطفال..." oninput="filterStudents()">
+        </div>
+
         <div class="profile-card">
             <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i class="fas fa-exclamation-triangle"></i></button>
-            
+
             <div class="avatar-container">
                 <div id="studentAvatar" class="avatar">؟</div>
                 <div class="info-col">
@@ -129,13 +189,13 @@
                     <div id="studentClass" class="class-name">الفصل</div>
                 </div>
             </div>
-            
+
             <div id="pointsDisplay" class="points-display settling">--</div>
-            <div style="font-size:0.8rem; color:var(--muted); font-weight:700; margin-top:2px;">النقاط الحالية</div>
-            
+            <div style="font-size:0.8rem; color:var(--text-3); font-weight:700; margin-top:2px;">النقاط الحالية</div>
+
             <div id="customTags" class="custom-tags"></div>
         </div>
-        
+
         <div class="control-panel">
             <div class="section-title">اختر قيمة النقاط</div>
             <div class="points-selector">
@@ -144,12 +204,24 @@
                 <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
                 <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
             </div>
-            
+
             <div class="action-row">
                 <button class="btn-action btn-add" onclick="executeAction('increment')"><i class="fas fa-plus"></i> إضافة</button>
                 <button class="btn-action btn-sub" onclick="executeAction('decrement')"><i class="fas fa-minus"></i> خصم</button>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"><i class="fas fa-info-circle"></i> <span id="toastMsg">رسالة</span></div>
+<canvas id="fireworks"></canvas>
+
+<!-- Scanner Modal -->
+<div id="scannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+    <div style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
+        <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+        <div id="reader" style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
+        <button class="topbar-btn" onclick="stopScanner()" style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i class="fas fa-times"></i> إلغاء</button>
     </div>
 </div>
 
@@ -163,6 +235,7 @@ const tripId = urlParams.get('trip_id');
 const studentId = urlParams.get('student_id');
 
 let studentData = null;
+let tripData = null;
 let currentSelectedPoint = 10;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -221,17 +294,45 @@ async function apiCall(action, data={}) {
 async function loadStudentData() {
     const data = await apiCall('getTripDetails', {trip_id: tripId});
     if(data.success && data.trip && data.trip.registrations) {
-        document.getElementById('headerTripTitle').innerHTML = `<i class="fas fa-star" style="color:var(--primary);"></i> ${data.trip.title}`;
+        tripData = data.trip;
         const reg = data.trip.registrations.find(r => String(r.student_id) === String(studentId));
         if(reg) {
             studentData = reg;
             renderStudent();
+            generateQRCode();
             fetchPoints();
             return;
         }
     }
     showToast('لم يتم العثور على بيانات الطفل', 'error');
     document.getElementById('loadingView').innerHTML = '<i class="fas fa-user-slash" style="color:var(--danger)"></i><h2>لم يتم العثور على بيانات الطفل</h2>';
+}
+
+function generateQRCode() {
+    const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
+    const qrContainer = document.getElementById('studentQR');
+    qrContainer.innerHTML = '';
+    
+    new QRCode(qrContainer, {
+        text: link,
+        width: 120,
+        height: 120,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
+
+function filterStudents() {
+    // This would be used if we had a list of students to filter
+    // For now, it's just for the current student display
+    const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+    const studentName = studentData?.student_name || '';
+    
+    if(searchTerm && !studentName.toLowerCase().includes(searchTerm)) {
+        // Could hide/show elements based on search
+        showToast('لم يتم العثور على نتائج', 'error');
+    }
 }
 
 async function fetchPoints() {
@@ -269,8 +370,23 @@ function renderStudent() {
     if(studentData.custom_data) {
         try {
             const cd = JSON.parse(studentData.custom_data);
-            tagsHtml = Object.entries(cd).map(([k,v]) => `<span class="tag"><i class="fas fa-tag"></i> ${k}: ${v}</span>`).join('');
-        } catch(e){}
+            // Get custom field definitions from trip data
+            const fieldDefs = tripData.custom_fields ? tripData.custom_fields.split(',').map(f => f.trim()) : [];
+            
+            Object.entries(cd).forEach(([key, value]) => {
+                let iconHtml = '';
+                // Check if we have an icon for this field
+                if(tripData.custom_field_icons && tripData.custom_field_icons[key]) {
+                    iconHtml = `<i class="${tripData.custom_field_icons[key]}"></i>`;
+                } else {
+                    iconHtml = '<i class="fas fa-tag"></i>';
+                }
+                tagsHtml += `<span class="tag">${iconHtml} ${value}</span>`;
+            });
+        } catch(e){
+            // Fallback for old format
+            tagsHtml = Object.entries(JSON.parse(studentData.custom_data)).map(([k,v]) => `<span class="tag"><i class="fas fa-tag"></i> ${v}</span>`).join('');
+        }
     }
     document.getElementById('customTags').innerHTML = tagsHtml;
     
@@ -346,50 +462,43 @@ async function updatePoints(action, amount) {
     }
 }
 
-function fireworks() {
-    const canvas = document.getElementById('fireworks');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    const particles = [];
-    const colors = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
-    
-    for(let i=0; i<40; i++) {
-        particles.push({
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            vx: (Math.random() - 0.5) * 12,
-            vy: (Math.random() - 0.5) * 12,
-            size: Math.random() * 4 + 2,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            life: 1
-        });
+// QR Code Scanner Logic
+let html5QrcodeScanner = null;
+
+function startScanner() {
+    document.getElementById('scannerModal').style.display = 'flex';
+    if(!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("reader");
     }
-    
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        let active = false;
-        
-        particles.forEach(p => {
-            if(p.life > 0) {
-                active = true;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = p.color + Math.floor(p.life * 255).toString(16).padStart(2, '0');
-                ctx.fill();
-                
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2; // gravity
-                p.life -= 0.02;
-            }
+    html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: {width: 250, height: 250} },
+        (decodedText, decodedResult) => {
+            // Success
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('scannerModal').style.display = 'none';
+                window.location.href = decodedText; // Redirect to the points page
+            });
+        },
+        (errorMessage) => {
+            // Ignore parse errors
+        }
+    ).catch((err) => {
+        alert("حدث خطأ في الوصول للكاميرا: " + err);
+        stopScanner();
+    });
+}
+
+function stopScanner() {
+    if(html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            document.getElementById('scannerModal').style.display = 'none';
+        }).catch(e => {
+            document.getElementById('scannerModal').style.display = 'none';
         });
-        
-        if(active) requestAnimationFrame(draw);
-        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } else {
+        document.getElementById('scannerModal').style.display = 'none';
     }
-    draw();
 }
 </script>
 </body>

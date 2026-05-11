@@ -100,27 +100,32 @@
 
 <div class="page-wrap">
     
-    <!-- VIEW: TRIPS LIST -->
-    <div id="viewTrips" class="view-section active">
-        <div class="hero-strip">
-            <div class="hero-greeting">اختر رحلة لإدارة المسابقة</div>
-        </div>
-        <div id="loadingTrips" style="text-align:center;padding:40px;color:var(--text-3);">
-            <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>جاري التحميل...
-        </div>
-        <div class="classes-grid" id="tripsGrid"></div>
-    </div>
-
     <!-- VIEW: TRIP DETAILS -->
-    <div id="viewTripDetails" class="view-section">
+    <div id="viewTripDetails" class="view-section active">
         <div class="hero-strip" style="flex-wrap: nowrap; overflow-x: auto;">
             <div style="display:flex;align-items:center;gap:12px;">
-                <button class="topbar-btn" onclick="showTripsView()" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
+                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
                 <div class="hero-greeting" id="detailTripTitle" style="white-space: nowrap;">الرحلة</div>
             </div>
             <div style="display:flex;align-items:center;gap:10px; margin-right: auto;">
                 <button class="topbar-btn" onclick="startScanner()" style="background:var(--success-bg);color:var(--success-dark);border-color:var(--success);margin:0;white-space:nowrap;"><i class="fas fa-camera"></i> مسح QR</button>
-                <button class="topbar-btn" onclick="printQRCards()" style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i class="fas fa-print"></i> طباعة الكروت</button>
+            </div>
+        </div>
+        
+        <!-- Main Features: QR Code and Search -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
+            <!-- QR Code Access -->
+            <div class="class-card" style="text-align:center;padding:25px;">
+                <div style="width:120px;height:120px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;margin:0 auto 15px;" id="tripQRCode">QR Code</div>
+                <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;">كود QR للرحلة</div>
+                <div style="font-size:0.85rem;color:var(--text-3);">امسح هذا الكود للوصول السريع للأطفال</div>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="class-card" style="padding:25px;">
+                <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:15px;text-align:center;">البحث في الأطفال</div>
+                <input type="text" id="globalStudentSearch" placeholder="ابحث بالاسم أو البيانات المخصصة..." style="width:100%;padding:12px 16px;border:2px solid var(--border-solid);border-radius:12px;font-size:1rem;background:var(--bg);color:var(--text);transition:all 0.2s;" oninput="filterStudents()">
+                <div style="font-size:0.8rem;color:var(--text-3);margin-top:8px;text-align:center;">البحث في جميع الأطفال المسجلين</div>
             </div>
         </div>
         
@@ -155,7 +160,16 @@ let currentTrip = null;
 let regsList = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadTrips();
+    // Get trip ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const tripId = urlParams.get('trip_id');
+    
+    if(tripId) {
+        openTrip(tripId);
+    } else {
+        // If no trip ID, redirect to dashboard
+        window.location.href = '/uncle/dashboard/';
+    }
 });
 
 async function loadTrips() {
@@ -163,46 +177,20 @@ async function loadTrips() {
     fd.append('action', 'getTrips');
     try {
         const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
-        document.getElementById('loadingTrips').style.display = 'none';
         if(res.success && res.trips) {
             tripsList = res.trips.filter(t => String(t.has_points_game) === '1');
-            const grid = document.getElementById('tripsGrid');
-            grid.innerHTML = tripsList.map(t => {
-                let iconHtml = `<div class="class-icon"><i class="fas fa-bus"></i></div>`;
-                if(t.image_url) {
-                    iconHtml = `<div class="class-icon" style="background:transparent;"><img src="${t.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-lg);"></div>`;
-                }
-                return `
-                <div class="class-card" onclick="openTrip(${t.id})">
-                    ${iconHtml}
-                    <div class="class-name">${t.title}</div>
-                    <div class="class-badge"><i class="fas fa-calendar"></i> ${t.start_date_formatted}</div>
-                </div>
-                `;
-            }).join('');
-            
-            if(tripsList.length === 0) {
-                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:40px;border:1px dashed var(--border-solid);border-radius:12px;">لا توجد رحلات مفعل بها نظام مسابقة النقاط.<br><br>الرجاء تفعيل مسابقة النقاط من إعدادات الرحلة.</div>`;
-            }
         }
     } catch(e) {}
 }
 
 function showTripsView() {
-    document.getElementById('viewTripDetails').classList.remove('active');
-    document.getElementById('viewTrips').classList.add('active');
-    currentTrip = null;
+    // Removed - no longer needed
 }
 
 async function openTrip(tripId) {
-    document.getElementById('viewTrips').classList.remove('active');
-    document.getElementById('viewTripDetails').classList.add('active');
     document.getElementById('loadingDetails').style.display = 'block';
     document.getElementById('kidsGrid').innerHTML = '';
     document.getElementById('customFilters').innerHTML = '';
-    
-    currentTrip = tripsList.find(t => t.id == tripId);
-    document.getElementById('detailTripTitle').textContent = currentTrip ? currentTrip.title : 'تفاصيل الرحلة';
     
     const fd = new FormData();
     fd.append('action', 'getTripDetails');
@@ -215,10 +203,117 @@ async function openTrip(tripId) {
         if(res.success && res.trip) {
             currentTrip = res.trip;
             regsList = res.trip.registrations || [];
+            document.getElementById('detailTripTitle').textContent = currentTrip.title;
+            
+            // Generate trip QR code
+            generateTripQRCode();
+            
             buildFilters();
             renderKids();
+        } else {
+            document.getElementById('kidsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
         }
-    } catch(e) {}
+    } catch(e) {
+        document.getElementById('loadingDetails').style.display = 'none';
+        document.getElementById('kidsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
+    }
+}
+
+function generateTripQRCode() {
+    const qrContainer = document.getElementById('tripQRCode');
+    qrContainer.innerHTML = '';
+    
+    const link = `${window.location.origin}/uncle/trip/?trip_id=${currentTrip.id}`;
+    
+    new QRCode(qrContainer, {
+        text: link,
+        width: 120,
+        height: 120,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
+
+function filterStudents() {
+    const searchTerm = document.getElementById('globalStudentSearch').value.toLowerCase().trim();
+    
+    if(!searchTerm) {
+        currentFilter = {key: null, val: null};
+        renderKids();
+        return;
+    }
+    
+    // Filter students by name, custom data, or church info (for collaborative trips)
+    const filtered = regsList.filter(r => {
+        const name = r.student_name || '';
+        if(name.toLowerCase().includes(searchTerm)) return true;
+        
+        // Check custom data
+        if(r.custom_data) {
+            try {
+                const cd = JSON.parse(r.custom_data);
+                for(const [key, value] of Object.entries(cd)) {
+                    if(String(value).toLowerCase().includes(searchTerm)) return true;
+                }
+            } catch(e) {}
+        }
+        
+        // Check church info for collaborative trips
+        if(currentTrip.collaborating_churches) {
+            try {
+                const collaborators = JSON.parse(currentTrip.collaborating_churches);
+                if(collaborators.length > 0) {
+                    // Could add church name search here if available
+                    if(String(r.church_id || '').includes(searchTerm)) return true;
+                }
+            } catch(e) {}
+        }
+        
+        return false;
+    });
+    
+    // Temporarily render filtered results
+    renderFilteredKids(filtered);
+}
+
+function renderFilteredKids(filteredList) {
+    const grid = document.getElementById('kidsGrid');
+    
+    grid.innerHTML = filteredList.map(r => {
+        const name = r.student_name || '؟';
+        const img = r.student_image || '';
+        const init = name.charAt(0);
+        let customHtml = '';
+        if(r.custom_data) {
+            try {
+                const cd = JSON.parse(r.custom_data);
+                customHtml = Object.entries(cd).map(([k,v]) => `<span style="background:var(--brand-bg);color:var(--brand);padding:2px 6px;border-radius:4px;font-weight:700;"><i class="fas fa-tag"></i> ${v}</span>`).join('');
+            } catch(e){}
+        }
+        
+        return `
+        <div class="reg-card ${r.is_naughty ? 'naughty' : ''}">
+            ${img ? `<img class="reg-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'reg-avatar\\'>${init}</div>'">` : `<div class="reg-avatar">${init}</div>`}
+            <div class="reg-info">
+                <div class="reg-name">
+                    ${name}
+                    ${r.is_naughty ? '<span class="naughty-badge-sm">شغب</span>' : ''}
+                </div>
+                <div class="reg-meta">
+                    <span style="color:var(--text-2);"><i class="fas fa-layer-group"></i> ${r.student_class || 'بدون فصل'}</span>
+                    <span style="color:var(--success); font-weight:700;"><i class="fas fa-star"></i> ${r.trip_points_val || 0}</span>
+                    ${customHtml}
+                </div>
+            </div>
+            <a href="/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}" class="btn-game"><i class="fas fa-star"></i> نقاط</a>
+        </div>
+        `;
+    }).join('');
+    
+    if(filteredList.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);border:1px dashed var(--border-solid);border-radius:12px;">لا يوجد أطفال يطابقون البحث</div>`;
+    }
 }
 
 function buildFilters() {
@@ -342,7 +437,16 @@ function printQRCards() {
         if(r.custom_data) {
             try {
                 const cd = JSON.parse(r.custom_data);
-                customHtml = Object.entries(cd).map(([k,v]) => `${k}: ${v}`).join(' | ');
+                // Get custom field definitions and icons
+                const fieldDefs = currentTrip.custom_fields ? currentTrip.custom_fields.split(',').map(f => f.trim()) : [];
+                
+                customHtml = Object.entries(cd).map(([key, value]) => {
+                    let iconClass = 'fas fa-tag'; // default icon
+                    if(currentTrip.custom_field_icons && currentTrip.custom_field_icons[key]) {
+                        iconClass = currentTrip.custom_field_icons[key];
+                    }
+                    return `<i class="${iconClass}"></i> ${value}`;
+                }).join(' | ');
             } catch(e){}
         }
         
@@ -356,7 +460,6 @@ function printQRCards() {
             <h2>${name}</h2>
             <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
-            <p style="margin-top:10px;font-size:12px;">للمشرفين فقط - امسح لإدارة النقاط</p>
         </div>
         `;
         

@@ -2580,6 +2580,20 @@ button, a, [role="button"] { touch-action: manipulation; }
 </div>
 <input type="file" id="uploadCustomDataCsv" accept=".csv" style="display:none;" onchange="uploadCustomDataCSV(event, window.currentTripId || document.getElementById('bulkCustomDataTripId')?.value)">
 
+<!-- Trip Collaboration -->
+<div id="tripCollaborationModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-head"><h2><i class="fas fa-handshake"></i> التعاون في الرحلة</h2><button class="modal-close" onclick="closeModal('tripCollaborationModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <div id="collaborationContent">
+                <div style="text-align:center;padding:40px;color:var(--text-3);">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>جاري التحميل...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Payment -->
 <div id="addPaymentModal" class="modal">
     <div class="modal-box">
@@ -2760,6 +2774,9 @@ button, a, [role="button"] { touch-action: manipulation; }
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Print Area -->
+<div id="printArea" style="display:none;"></div>
+
 <!-- ══════════════════ SCRIPT ══════════════════ -->
 <script>
 function downloadCustomDataCSV(tripId) {
@@ -2863,19 +2880,111 @@ function buildBulkCustomDataTable(trip, regs, fields) {
     return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">ID</th><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">الطفل</th>${fields.map(field => `<th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">${escHtml(field)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-function openBulkCustomDataModal(tripId) {
-    const trip = allTripsCache.find(t => String(t.id) === String(tripId));
-    const regs = tripRegistrationsCache[tripId] || [];
-    const fields = parseCustomFieldsString(trip?.custom_fields);
-    if (!trip || !fields.length) {
-        showToast('الرحلة لا تحتوي على حقول إضافية', 'warning');
+function showTripCollaborationModal(tripId) {
+    const trip = allTripsCache.find(t => t.id == tripId);
+    if (!trip) {
+        showToast('الرحلة غير موجودة', 'error');
         return;
     }
-    document.getElementById('bulkCustomDataTripId').value = tripId;
-    document.getElementById('bulkCustomDataHeader').textContent = `تحديث بيانات الحقول الإضافية لرحلة: ${trip.title}`;
-    document.getElementById('bulkCustomDataFieldsInfo').innerHTML = `الحقول: ${fields.map(f => `<strong>${escHtml(f)}</strong>`).join(', ')}`;
-    document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
-    openModal('bulkCustomDataModal');
+    
+    let collaborators = [];
+    try {
+        collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+    } catch(e) {
+        collaborators = [];
+    }
+    
+    const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}`;
+    
+    document.getElementById('collaborationContent').innerHTML = `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-info-circle"></i> معلومات التعاون</h4>
+            <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.85rem;color:var(--muted);line-height:1.6;">
+                يمكنك دعوة كنائس أخرى للمشاركة في هذه الرحلة. ستتمكن الكنائس المشاركة من مسح كروت QR للأطفال من جميع الكنائس المشاركة وإدارة نقاط المسابقة.
+            </div>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط الدعوة</h4>
+            <div style="display:flex;gap:8px;">
+                <input type="text" value="${collaborationLink}" readonly style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);">
+                <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${collaborationLink}'); showToast('تم نسخ الرابط', 'success');"><i class="fas fa-copy"></i> نسخ</button>
+            </div>
+        </div>
+        
+        ${collaborators.length > 0 ? `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة (${collaborators.length})</h4>
+            <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:14px;">
+                <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
+                <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
+                    ${collaborators.map(id => `كنيسة رقم ${id}`).join('، ')}
+                </div>
+            </div>
+        </div>
+        ` : `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة</h4>
+            <div style="background:#fef3c7;border:1px solid #d97706;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:0.85rem;color:#92400e;">لا توجد كنائس أخرى تشارك في هذه الرحلة حالياً</div>
+            </div>
+        </div>
+        `}
+        
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('tripCollaborationModal')">إغلاق</button>
+        </div>
+    `;
+    
+    openModal('tripCollaborationModal');
+}
+
+async function handleJoinTrip(tripId) {
+    if (!tripId || isNaN(tripId)) return;
+    
+    // Clean URL
+    const url = new URL(window.location);
+    url.searchParams.delete('joinTrip');
+    window.history.replaceState({}, '', url);
+    
+    // Check if already a collaborator
+    const fd = new FormData();
+    fd.append('action', 'getTripDetails');
+    fd.append('trip_id', tripId);
+    
+    try {
+        const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
+        if (res.success && res.trip) {
+            const trip = res.trip;
+            let collaborators = [];
+            try {
+                collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+            } catch(e) {}
+            
+            if (collaborators.includes(sessionChurchId)) {
+                showToast('كنيستك مشاركة بالفعل في هذه الرحلة', 'info');
+                return;
+            }
+            
+            // Join the trip
+            const joinFd = new FormData();
+            joinFd.append('action', 'joinTrip');
+            joinFd.append('trip_id', tripId);
+            
+            const joinRes = await fetch(API_URL, {method:'POST', body:joinFd}).then(r=>r.json());
+            if (joinRes.success) {
+                showToast(`تم الانضمام بنجاح إلى رحلة: ${trip.title}`, 'success');
+                // Reload trips data
+                await loadTrips();
+            } else {
+                showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
+            }
+        } else {
+            showToast('الرحلة غير موجودة', 'error');
+        }
+    } catch(e) {
+        showToast('حدث خطأ في الاتصال', 'error');
+    }
 }
 
 async function bulkCustomDataSave() {
@@ -3165,6 +3274,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const _urlP = new URLSearchParams(window.location.search);
     if (_urlP.get('class') && _urlP.get('id')) {
         handleStudentRouteParams();
+    }
+    
+    // 14. Handle ?joinTrip=X for collaboration
+    const joinTripId = _urlP.get('joinTrip');
+    if (joinTripId) {
+        handleJoinTrip(parseInt(joinTripId));
     }
 });
 
@@ -4509,6 +4624,7 @@ function renderTripsList(trips) {
                     <button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
                     <button class="act-btn" style="background:#8b5cf6;" onclick="showTripDetails(${t.id});setTimeout(()=>switchTripTab('exp'),200)" title="مصروفات"><i class="fas fa-receipt"></i></button>
+                    <button class="act-btn" style="background:#059669;" onclick="event.stopPropagation(); printQRCards(${t.id})" title="طباعة كروت QR"><i class="fas fa-print"></i></button>
                     <button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
@@ -4758,24 +4874,43 @@ function renderTripDetailsFull(trip) {
     document.getElementById('tripInfoContent').innerHTML=`
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
             <div class="info-box" style="border:1.5px solid var(--border);"><small>تاريخ البدء</small><div style="font-weight:700;">${trip.start_date_formatted||trip.start_date||'—'}</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>عدد المسجلين</small><div style="color:var(--primary);font-weight:800;">${regs.length} طفل</div></div>
             <div class="info-box" style="border:1.5px solid var(--border);"><small>سعر الرحلة الأساسي</small><div style="color:var(--primary);font-weight:800;">${basePrice} ج</div></div>
             ${expPerKid>0?`<div class="info-box" style="border:1.5px solid var(--warning);background:#fffbeb;"><small>مصروفات على الطفل</small><div style="color:var(--warning);font-weight:800;">+${expPerKid} ج</div></div>`:''}
             <div class="info-box" style="border:2px solid var(--primary);background:var(--primary-light);"><small>الإجمالي / طفل</small><div style="color:var(--primary);font-weight:900;font-size:1.2rem;">${totalPerKid} ج</div></div>
             <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:800;">${totalCollected} ج</div></div>
             <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>نسبة الدفع</small><div style="color:var(--info);font-weight:800;">${totalPerKid*regs.length>0?Math.round(totalCollected/(totalPerKid*regs.length)*100):0}%</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>متوسط الدفع</small><div style="color:var(--warning);font-weight:800;">${regs.length>0?Math.round(totalCollected/regs.length):0} ج</div></div>
         </div>
+        
+        ${(() => {
+            let collabHtml = '';
+            try {
+                const collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+                if (collaborators.length > 0) {
+                    collabHtml = `<div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:12px;margin-bottom:16px;">
+                        <div style="font-size:0.85rem;font-weight:700;color:#0ea5e9;margin-bottom:6px;"><i class="fas fa-handshake"></i> التعاون مع الكنائس الأخرى</div>
+                        <div style="font-size:0.75rem;color:#0369a1;">${collaborators.length} كنيسة أخرى تشارك في هذه الرحلة</div>
+                    </div>`;
+                }
+            } catch(e) {}
+            return collabHtml;
+        })()}
+        
         ${trip.description?`<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>`:''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
+            <button class="btn btn-outline btn-sm" onclick="showTripCollaborationModal(${trip.id})" style="background:#f0f9ff;color:#0ea5e9;border-color:#0ea5e9;"><i class="fas fa-handshake"></i> التعاون</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
             ${customFieldList.length ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث حقول إضافية</button>
             <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
-            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> طباعة كروت الـ QR والمسابقة</a>` : ''}
+            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>` : ''}
         </div>`;
 
     // ── REGS PANEL ──
@@ -4801,7 +4936,7 @@ function renderTripDetailsFull(trip) {
             if(r.custom_data) {
                 try {
                     const cData = JSON.parse(r.custom_data);
-                    customDataHtml = `<div style="font-size:0.75rem;color:var(--primary);margin-top:2px;background:var(--primary-light);padding:2px 6px;border-radius:6px;display:inline-block;">${Object.entries(cData).map(([k,v])=>`<strong>${k}:</strong> ${v}`).join(' &bull; ')}</div>`;
+                    customDataHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${Object.entries(cData).map(([k,v])=>`<span style="font-size:0.65rem;background:var(--primary-light);color:var(--primary);padding:1px 4px;border-radius:4px;font-weight:600;"><i class="fas fa-tag"></i> ${v}</span>`).join('')}</div>`;
                 } catch(e){}
             }
             return `<div class="reg-row">
@@ -8558,6 +8693,70 @@ function toggleFieldPwd(inputId, iconId) {
         const rd=document.getElementById('reportYearDisplay2');
         if(rd)rd.textContent=new Date().getFullYear();
     })();
+
+function printQRCards(tripId) {
+    const regs = tripRegistrationsCache[tripId] || [];
+    const trip = allTripsCache.find(t => t.id == tripId);
+    
+    if(!trip || regs.length === 0) {
+        showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning');
+        return;
+    }
+    
+    const printArea = document.getElementById('printArea');
+    printArea.innerHTML = '';
+    
+    regs.forEach(r => {
+        const name = r.student_name || '؟';
+        const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text='+name.charAt(0);
+        let customHtml = '';
+        if(r.custom_data) {
+            try {
+                const cd = JSON.parse(r.custom_data);
+                // Get custom field definitions and icons
+                const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
+                
+                customHtml = Object.entries(cd).map(([key, value]) => {
+                    let iconClass = 'fas fa-tag'; // default icon
+                    if(trip.custom_field_icons && trip.custom_field_icons[key]) {
+                        iconClass = trip.custom_field_icons[key];
+                    }
+                    return `<i class="${iconClass}"></i> ${value}`;
+                }).join(' | ');
+            } catch(e){}
+        }
+        
+        const cardId = 'qrcode_' + r.id;
+        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
+        
+        printArea.innerHTML += `
+        <div class="print-card">
+            <h3>${trip.title}</h3>
+            <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
+            <h2>${name}</h2>
+            <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
+            <div id="${cardId}" style="display:flex;justify-content:center;"></div>
+        </div>
+        `;
+        
+        setTimeout(() => {
+            new QRCode(document.getElementById(cardId), {
+                text: link,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }, 100);
+    });
+    
+    setTimeout(() => {
+        window.print();
+        // clear print area after print
+        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+    }, 1000);
+}
 
     </script>
 
