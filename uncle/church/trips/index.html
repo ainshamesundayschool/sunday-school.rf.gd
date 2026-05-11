@@ -3759,8 +3759,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 function downloadCustomDataCSV(tripId) {
-    const regs = currentTripData?.registrations || [];
-    const trip = currentTripData;
+    const regs = tripRegistrationsCache[tripId] || [];
+    const trip = allTripsCache.find(t => t.id == tripId);
     const fields = parseCustomFieldsString(trip?.custom_fields);
     if(!trip || !fields.length) return;
     let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
@@ -3785,7 +3785,7 @@ function downloadCustomDataCSV(tripId) {
 function uploadCustomDataCSV(e, tripId) {
     const file = e.target.files[0];
     if(!file) return;
-    const trip = currentTripData;
+    const trip = allTripsCache.find(t => t.id == tripId);
     const fields = parseCustomFieldsString(trip?.custom_fields);
     if(!trip || !fields.length) return;
     const reader = new FileReader();
@@ -3844,8 +3844,8 @@ function buildBulkCustomDataTable(trip, regs, fields) {
 }
 
 function openBulkCustomDataModal(tripId) {
-    const trip = currentTripData;
-    const regs = currentTripData?.registrations || [];
+    const trip = allTripsCache.find(t => t.id == tripId);
+    const regs = tripRegistrationsCache[tripId] || [];
     const fields = parseCustomFieldsString(trip?.custom_fields);
     if (!trip || !fields.length) return;
     document.getElementById('bulkCustomDataTripId').value = tripId;
@@ -3885,8 +3885,8 @@ async function bulkCustomDataSave() {
 }
 
 function printQRCards(tripId) {
-    const regs = currentTripData?.registrations || [];
-    const trip = currentTripData;
+    const regs = tripRegistrationsCache[tripId] || [];
+    const trip = allTripsCache.find(t => t.id == tripId);
     if(!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
     const printArea = document.getElementById('printArea');
     printArea.innerHTML = '';
