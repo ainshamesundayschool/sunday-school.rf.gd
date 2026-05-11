@@ -350,12 +350,8 @@ body {
 
 /* ── MAIN CONTENT ───────────────────────────────────────────────── */
 .main-content { flex: 1; padding: 24px; }
-.tab-panel { display: none; animation: fadeSlide 0.28s var(--ease-out); }
+.tab-panel { display: none; }
 .tab-panel.active { display: block; }
-@keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
 
 /* ── TAB LOADER ─────────────────────────────────────────────────── */
 .tab-loader {
@@ -404,6 +400,10 @@ body {
     grid-template-columns: repeat(4, 1fr);
     gap: 14px; margin-bottom: 20px;
 }
+.stats-row.overview-stats {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
 .stat-card {
     background: var(--card);
     border-radius: var(--radius);
@@ -411,7 +411,7 @@ body {
     border: 1px solid var(--border);
     box-shadow: var(--shadow-xs);
     display: flex; align-items: center; gap: 14px;
-    transition: all var(--t-base) var(--ease);
+    transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
     position: relative; overflow: hidden;
     cursor: default;
     text-align: center;
@@ -423,7 +423,7 @@ body {
     background: linear-gradient(90deg, transparent, transparent);
     transition: background var(--t-base) var(--ease);
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-2); }
+.stat-card:hover { box-shadow: var(--shadow-sm); border-color: var(--border-2); }
 .stat-card:hover::before { background: linear-gradient(90deg, transparent, var(--_accent, var(--primary)), transparent); }
 .stat-card:nth-child(1) { --_accent: var(--primary); }
 .stat-card:nth-child(2) { --_accent: var(--success); }
@@ -1502,6 +1502,91 @@ tbody tr:last-child td { border-bottom: none; }
     .class-chip:hover { transform: none; }
 }
 
+/* Dashboard refresh */
+.overview-shell { display: grid; gap: 18px; }
+.overview-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow-xs);
+}
+.overview-kicker {
+    color: var(--primary);
+    font-size: .76rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+.overview-title {
+    color: var(--text);
+    font-size: clamp(1.25rem, 2vw, 1.8rem);
+    line-height: 1.25;
+    font-weight: 900;
+    margin-bottom: 6px;
+}
+.overview-subtitle {
+    color: var(--text-3);
+    font-size: .9rem;
+    font-weight: 600;
+}
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 10px;
+    min-width: 280px;
+}
+.quick-action {
+    min-height: 46px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: .84rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.quick-action.primary { background: var(--primary); color: white; border-color: var(--primary); }
+.quick-action:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+.quick-action.primary:hover { background: var(--primary-dark); color: white; }
+.overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+    gap: 18px;
+    align-items: start;
+}
+.card, .stat-card, .trip-card, .kid-card, .church-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 260px;
+}
+@media (max-width: 1180px) {
+    .stats-row.overview-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .overview-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+    .overview-hero { grid-template-columns: 1fr; padding: 16px; }
+    .quick-actions { min-width: 0; grid-template-columns: 1fr 1fr; }
+    .stats-row.overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}
+
 /* Prevent touch delay */
 button, a, [role="button"] { touch-action: manipulation; }
         .custom-fields-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 12px; background: var(--bg); border-radius: var(--radius); min-height: 52px; border: 2px dashed var(--border-2); transition: all 0.2s; }
@@ -1623,13 +1708,26 @@ button, a, [role="button"] { touch-action: manipulation; }
 
         <!-- ── OVERVIEW ── -->
         <div id="overview" class="tab-panel">
-            <div class="stats-row">
+            <div class="overview-shell">
+            <section class="overview-hero">
+                <div>
+                    <div class="overview-kicker" id="overviewDate">اليوم</div>
+                    <h1 class="overview-title">مرحباً، <span id="overviewChurchName">مدارس الأحد</span></h1>
+                    <p class="overview-subtitle">كل أرقام الخدمة وأهم الاختصارات في مكان واحد، بدون زحمة أو انتظار غير ضروري.</p>
+                </div>
+                <div class="quick-actions" aria-label="اختصارات سريعة">
+                    <button class="quick-action primary" onclick="switchTabByName('attendance')"><i class="fas fa-calendar-check"></i> تسجيل الحضور</button>
+                    <button class="quick-action" onclick="switchTabByName('students')"><i class="fas fa-child"></i> الأطفال</button>
+                    <button class="quick-action" onclick="switchTabByName('trips')"><i class="fas fa-bus"></i> الرحلات</button>
+                    <button class="quick-action" onclick="switchTabByName('pending')"><i class="fas fa-clock"></i> الطلبات</button>
+                </div>
+            </section>
+
+            <div class="stats-row overview-stats">
                 <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-child"></i></div><div class="stat-info"><p>الأطفال</p><h3 id="totalStudents">0</h3></div></div>
                 <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chalkboard"></i></div><div class="stat-info"><p>الفصول</p><h3 id="totalClasses">0</h3></div></div>
                 <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-user-tie"></i></div><div class="stat-info"><p>الخُدام</p><h3 id="totalUncles">0</h3></div></div>
                 <div class="stat-card"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-info"><p>طلبات معلقة</p><h3 id="pendingRequests">0</h3></div></div>
-            </div>
-            <div class="stats-row" style="grid-template-columns: repeat(3,1fr);">
                 <div class="stat-card"><div class="stat-icon green"><i class="fas fa-percent"></i></div><div class="stat-info"><p>حضور اليوم</p><h3 id="todayAttendance">0%</h3></div></div>
                 <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-star"></i></div><div class="stat-info"><p>إجمالي الكوبونات</p><h3 id="totalCoupons">0</h3></div></div>
                 <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-bus"></i></div><div class="stat-info"><p>الرحلات النشطة</p><h3 id="activeTrips">0</h3></div></div>
@@ -1689,7 +1787,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                     </div>
                 </div>
             </div>
-            <div>
+            <div class="overview-grid">
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-chalkboard"></i> الفصول</div>
@@ -1701,6 +1799,7 @@ button, a, [role="button"] { touch-action: manipulation; }
                     <div class="card-header"><div class="card-title"><i class="fas fa-history"></i> آخر الأنشطة</div></div>
                     <div class="card-body" id="recentActivity"></div>
                 </div>
+            </div>
             </div>
         </div>
 
@@ -3039,6 +3138,25 @@ let sessionChurchId = 0;
 let sessionChurchCode = '';
 let devViewChurchId = 0;
 let devOrigChurchId = 0;
+let activeTabName = 'overview';
+const loadedTabs = new Set();
+const inFlightLoads = {};
+
+function runWhenIdle(fn, timeout = 900) {
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(fn, { timeout });
+    } else {
+        setTimeout(fn, Math.min(timeout, 300));
+    }
+}
+
+function runDataLoad(key, loader) {
+    if (inFlightLoads[key]) return inFlightLoads[key];
+    inFlightLoads[key] = Promise.resolve()
+        .then(loader)
+        .finally(() => { inFlightLoads[key] = null; });
+    return inFlightLoads[key];
+}
 
 // ── Tab persistence via URL hash ─────────────────────────────
 function getHashData() {
@@ -3046,7 +3164,7 @@ function getHashData() {
     const parts = hash.split('?');
     const tab = parts[0];
     const params = new URLSearchParams(parts[1] || '');
-    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending', 'history', 'churchSettings'];
+    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending','devChurches','devMessages','history','churchSettings'];
     return {
         tab: valid.includes(tab) ? tab : 'overview',
         params: params
@@ -3178,19 +3296,13 @@ async function restoreSessionAndReload() {
 (function() {
     const hash = window.location.hash.substring(1);
     const tab = hash.split('?')[0];
-    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending', 'history', 'churchSettings'];
+    const valid = ['overview','uncles','students','attendance','uncleAttendance','trips','classes','pending','devChurches','devMessages','history','churchSettings'];
     if (valid.includes(tab)) {
         window._initialTab = tab;
     }
 })();
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Immediate tab switch if we have one
-    if (window._initialTab) {
-        const btn = document.getElementById('nav-' + window._initialTab) || document.querySelector(`.nav-item[onclick*="'${window._initialTab}'"]`);
-        switchTab(window._initialTab, btn);
-    }
-
     // 1. Get authoritative session from server
     const sess = await initSession();
     
@@ -3225,6 +3337,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('sidebarAvatar').textContent   = displayName.charAt(0);
     document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
     document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
+    document.getElementById('overviewChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+    document.getElementById('overviewDate').textContent = new Date().toLocaleDateString('ar-EG', { weekday:'long', day:'numeric', month:'long' });
     
     setTimeout(renderKidRegLinks, 100);
 
@@ -3240,19 +3354,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 6. Restore tab from URL hash (if not already done by _initialTab)
     const hashData = getHashData();
     const savedTab = hashData.tab || 'overview';
-    if (!window._initialTab) {
-        const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
-        switchTab(savedTab, btn);
-    }
+    const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
+    await switchTab(savedTab, btn);
 
-    // 7. Load all data in parallel
-    await Promise.all([
-        loadStatistics(),
-        loadStudents(),
-        loadUncles(),
-        loadPendingRegistrations(),
-        loadTrips(),
-    ]);
+    // Warm secondary data after the first screen is usable.
+    runWhenIdle(() => {
+        const warmups = [];
+        if (savedTab !== 'students') warmups.push(runDataLoad('students', loadStudents).then(() => loadedTabs.add('students')));
+        if (savedTab !== 'trips') warmups.push(runDataLoad('trips', loadTrips).then(() => loadedTabs.add('trips')));
+        if (savedTab !== 'pending') warmups.push(runDataLoad('pending', loadPendingRegistrations).then(() => loadedTabs.add('pending')));
+        Promise.allSettled(warmups).then(() => loadStatistics());
+        if (isDeveloper) loadAllChurches();
+    }, 1200);
 
     // Handle deep links (modals)
     if (savedTab === 'trips' && hashData.params.get('trip_id')) {
@@ -3263,12 +3376,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // UI init
     toggleTripDates();
     recalcTripPrice();
-    initAttendance();
+    if (savedTab === 'attendance') initAttendance();
     
     // Notifications
-    setTimeout(loadNotifications, 1200);
-    setTimeout(loadDevMessages, 1500);
-    setTimeout(initDevMsgUI, 600);
+    runWhenIdle(loadNotifications, 1800);
+    runWhenIdle(loadDevMessages, 2200);
+    runWhenIdle(initDevMsgUI, 1400);
 
     // 13. Handle ?class=X&id=Y routing
     const _urlP = new URLSearchParams(window.location.search);
@@ -3316,14 +3429,8 @@ function logout() {
 }
 
 function refreshData() {
-    Promise.all([
-        loadStatistics(),
-        loadUncles(),
-        loadStudents(),
-        loadPendingRegistrations(),
-        loadTrips(),
-    ]).then(() => showToast('تم تحديث البيانات', 'success'));
-    if (isDeveloper) loadAllChurches();
+    loadedTabs.delete(activeTabName);
+    switchTabByName(activeTabName).then(() => showToast('تم تحديث البيانات', 'success'));
 }
 
 // ── Sidebar ──────────────────────────────────────────────────
@@ -3351,6 +3458,7 @@ const tabTitles = {
 };
 
 async function switchTab(name, btn) {
+    activeTabName = name;
     // UI: Update sidebar buttons
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -3366,26 +3474,32 @@ async function switchTab(name, btn) {
     // UI: Manage panels and loader
     const loader = document.getElementById('tabLoader');
     const panels = document.querySelectorAll('.tab-panel');
+    const isColdTab = !loadedTabs.has(name);
     
     // Hide all panels immediately to prevent "stale" view
     panels.forEach(p => p.classList.remove('active'));
     
     // Show loader
-    if (loader) loader.classList.add('active');
+    if (loader && isColdTab) loader.classList.add('active');
 
     // Save state to URL
     setHashTab(name);
 
     // Define loaders with promise handling
     const loaders = {
-        overview:       async () => { await loadStatistics(); renderKidRegLinks(); },
-        uncles:         () => loadUncles(),
-        students:       async () => { await loadStudents(); renderKidRegLinks(); },
-        trips:          () => loadTrips(),
-        attendance:     () => initAttendance(),
+        overview:       async () => {
+            await loadStatistics();
+            renderKidRegLinks();
+            if (!allStudents.length) runDataLoad('students', loadStudents).then(calculateTotalCoupons);
+            if (!allTripsCache.length) runDataLoad('trips', loadTrips);
+        },
+        uncles:         () => runDataLoad('uncles', loadUncles),
+        students:       async () => { await runDataLoad('students', loadStudents); renderKidRegLinks(); },
+        trips:          () => runDataLoad('trips', loadTrips),
+        attendance:     () => runDataLoad('attendance', initAttendance),
         uncleAttendance: () => initUncleAttendanceTab(),
         classes:        () => loadClassSettings(),
-        pending:        () => loadPendingRegistrations(),
+        pending:        () => runDataLoad('pending', loadPendingRegistrations),
         history:        () => loadAuditLogs(),
         devChurches:    async () => { await loadAllChurches(); await loadRegKeys(); },
         devMessages:    () => loadDevMessages(),
@@ -3394,8 +3508,9 @@ async function switchTab(name, btn) {
     
     // Execute loader
     try {
-        if (loaders[name]) {
+        if (loaders[name] && !loadedTabs.has(name)) {
             await loaders[name]();
+            loadedTabs.add(name);
         }
     } catch (err) {
         console.error('Error switching tab:', err);
@@ -3411,8 +3526,9 @@ async function switchTab(name, btn) {
     }
 }
 function switchTabByName(name) {
+    if (!document.getElementById(name)) return false;
     const btn = document.querySelector(`.nav-item[onclick*="'${name}'"]`);
-    switchTab(name, btn);
+    return switchTab(name, btn);
 }
 
 // ── Modals ────────────────────────────────────────────────────
