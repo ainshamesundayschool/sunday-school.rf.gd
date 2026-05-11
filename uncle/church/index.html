@@ -4924,7 +4924,14 @@ async function addTrip(e) {
     const btn=e.target.querySelector('button[type="submit"]');
     btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-    if (d.success) { showToast('تم إضافة الرحلة','success'); e.target.reset(); document.getElementById('tripFieldsContainer').innerHTML = ''; toggleTripDates(); recalcTripPrice(); loadTrips(); }
+    if (d.success) { 
+        showToast('تم إضافة الرحلة','success'); 
+        e.target.reset(); 
+        document.getElementById('tripFieldsContainer').innerHTML = ''; 
+        toggleTripDates(); 
+        recalcTripPrice(); 
+        await loadTrips(); 
+    }
     else showToast(d.message||'فشل في الإضافة','error');
     btn.innerHTML='<i class="fas fa-plus"></i> إضافة رحلة'; btn.disabled=false;
 }
@@ -4994,7 +5001,11 @@ async function updateTrip(e) {
     fd.append('custom_fields', getCustomFieldsFromContainer('editTripFieldsContainer'));
     fd.append('custom_field_icons', getCustomFieldIconsFromContainer('editTripFieldsContainer'));
     const d=await fetch(API_URL,{method:'POST',body:fd}).then(r=>r.json()).catch(()=>({success:false}));
-    if (d.success) { showToast('تم تحديث الرحلة','success'); closeModal('editTripModal'); loadTrips(); }
+    if (d.success) { 
+        showToast('تم تحديث الرحلة','success'); 
+        closeModal('editTripModal'); 
+        await loadTrips(); 
+    }
     else showToast(d.message||'فشل','error');
 }
 
