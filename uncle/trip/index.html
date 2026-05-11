@@ -56,7 +56,7 @@
         .hero-greeting { font-size:1.2rem; font-weight:800; }
         
         /* Camera Button */
-        .btn-camera-big { padding:30px; border-radius:var(--r-xl); background:var(--success); color:white; border:none; cursor:pointer; font-size:2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:var(--shadow-lg); transition:all var(--t) var(--spring); font-weight:900; flex-direction:column; text-decoration:none; margin-bottom:20px; }
+        .btn-camera-big { padding:30px; border-radius:var(--r-xl); background:var(--success); color:white; border:none; cursor:pointer; font-size:2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:var(--shadow-lg); transition:all var(--t) var(--spring); font-weight:900; flex-direction:column; text-decoration:none; margin: 0 auto 20px; width: fit-content; min-width: 200px; }
         .btn-camera-big:hover { background:var(--success-dark); transform:translateY(-5px) scale(1.02); box-shadow:0 25px 50px rgba(16,185,129,0.3); }
         .btn-camera-big:active { transform:translateY(-2px) scale(0.98); }
         .btn-camera-text { font-size:1.2rem; }
@@ -115,11 +115,11 @@
     
     <!-- VIEW: TRIP DETAILS -->
     <div id="viewTripDetails" class="view-section active">
-        <div class="hero-strip">
+        <div class="hero-strip" style="justify-content: flex-start; gap: 12px;">
+            <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
             <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
-            <div style="display:flex;align-items:center;gap:10px; margin-right: auto;">
+            <div id="adminActions" style="display:none; align-items:center; gap:10px; margin-right: auto;">
                 <button class="topbar-btn" onclick="printQRCards()" style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i class="fas fa-print"></i> طباعة الكروت</button>
-                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
             </div>
         </div>
         
@@ -184,6 +184,12 @@ async function openTrip(tripId) {
         
         if(res.success && res.trip) {
             currentTrip = res.trip;
+        
+        // Admin check
+        if (res.user_role === 'admin') {
+            const adminActions = document.getElementById('adminActions');
+            if (adminActions) adminActions.style.display = 'flex';
+        }
             regsList = res.trip.registrations || [];
             document.getElementById('detailTripTitle').textContent = currentTrip.title;
             renderFieldCards();

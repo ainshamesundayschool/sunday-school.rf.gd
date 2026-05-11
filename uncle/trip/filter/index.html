@@ -96,6 +96,9 @@
         <div class="topbar-logo"><img src="/logo.png" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'"></div>
     </a>
     <div class="topbar-actions">
+        <button class="topbar-btn" id="printBtn" onclick="printFilterQRCards()" style="display:none; background:var(--brand); color:white; border-color:var(--brand);" title="طباعة الكروت">
+            <i class="fas fa-print"></i>
+        </button>
         <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR">
             <i class="fas fa-qrcode"></i>
         </button>
@@ -173,6 +176,13 @@ async function loadTrip() {
         }
 
         currentTrip = res.trip;
+        
+        // Admin check for print button
+        if (res.user_role === 'admin') {
+            const pBtn = document.getElementById('printBtn');
+            if (pBtn) pBtn.style.display = 'flex';
+        }
+
         const regs  = res.trip.registrations || [];
 
         const decodedField = field ? decodeURIComponent(field) : null;
@@ -193,15 +203,12 @@ async function loadTrip() {
 
         document.getElementById('kidsCountLabel').textContent = `${filteredKids.length} طفل`;
 
-        // Show print button only if trip has points competition
-        if (currentTrip.points_enabled || currentTrip.has_points || currentTrip.custom_fields) {
-            document.getElementById('printBtn').style.display = 'flex';
-        }
-
+        // Render kids
         renderKids();
     } catch(e) {
+        console.error("LoadTrip Error:", e);
         document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('kidsList').innerHTML = '<div class="empty-state"><i class="fas fa-wifi-slash"></i><h3>خطأ في الاتصال</h3></div>';
+        document.getElementById('kidsList').innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><h3>خطأ في الاتصال</h3><p style="font-size:0.8rem; margin-top:5px;">${e.message}</p></div>`;
     }
 }
 

@@ -8315,7 +8315,8 @@ function getTripDetails() {
         
         sendJSON([
             'success' => true,
-            'trip' => $trip
+            'trip' => $trip,
+            'user_role' => $_SESSION['uncle_role'] ?? 'uncle'
         ]);
         
     } catch (Exception $e) {
