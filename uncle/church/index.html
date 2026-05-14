@@ -5145,6 +5145,37 @@ function renderTripDetailsFull(trip) {
             ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>` : ''}
         </div>`;
 
+    // Render custom fields breakdown (clickable chips that open filter view)
+    if (customFieldList.length) {
+        // Build an HTML block with value chips that carry data attributes; attach click handlers after inserting
+        const fieldBlocks = customFieldList.map(field => {
+            const counts = {};
+            regs.forEach(r => {
+                if (!r.custom_data) return;
+                try {
+                    const cd = typeof r.custom_data === 'string' ? JSON.parse(r.custom_data) : r.custom_data;
+                    const v = cd[field] || 'بدون تحديد';
+                    counts[v] = (counts[v] || 0) + 1;
+                } catch(e) {}
+            });
+            const values = Object.keys(counts).sort();
+            const valuesHtml = values.map(v => `<button class="btn btn-sm field-value-btn" data-field="${escHtml(field)}" data-value="${escHtml(v)}" style="margin:4px;padding:6px 8px;">${escHtml(v)} <span style=\"opacity:0.7;margin-left:6px;\">(${counts[v]})</span></button>`).join(' ');
+            return `<div style="margin-top:12px;"><div style=\"font-weight:800;margin-bottom:6px;\">${escHtml(field)}</div><div>${valuesHtml}</div></div>`;
+        }).join('');
+        const containerHtml = `<div id="tripCustomFieldsPanel" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">${fieldBlocks}</div>`;
+        document.getElementById('tripInfoContent').insertAdjacentHTML('beforeend', containerHtml);
+        // attach handlers
+        setTimeout(() => {
+            document.querySelectorAll('#tripCustomFieldsPanel .field-value-btn').forEach(btn => {
+                btn.onclick = function(e) {
+                    const f = this.dataset.field || '';
+                    const v = this.dataset.value || '';
+                    window.open(`/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(f)}&value=${encodeURIComponent(v)}`, '_blank');
+                };
+            });
+        }, 10);
+    }
+
     // ── REGS PANEL ──
     const pm={paid:['var(--success)','مدفوع بالكامل'],partial:['var(--warning)','جزئي'],pending:['var(--danger)','غير مدفوع']};
     document.getElementById('tripRegsContent').innerHTML= regs.length
@@ -8926,10 +8957,31 @@ function toggleFieldPwd(inputId, iconId) {
         if(rd)rd.textContent=new Date().getFullYear();
     })();
 
-function printQRCards(tripId) {
-    const regs = tripRegistrationsCache[tripId] || [];
-    const trip = allTripsCache.find(t => t.id == tripId);
-    
+async function printQRCards(tripId) {
+    let regs = tripRegistrationsCache[tripId] || [];
+    let trip = allTripsCache.find(t => t.id == tripId);
+
+    // If we don't have registrations cached, fetch trip details first
+    if ((!trip || regs.length === 0)) {
+        try {
+            const fd = new FormData(); fd.append('action', 'getTripDetails'); fd.append('trip_id', tripId);
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            if (res && res.success && res.trip) {
+                trip = res.trip;
+                // normalize icons
+                if (res.trip.custom_field_icons) {
+                    try { trip.custom_field_icons = typeof res.trip.custom_field_icons === 'string' ? JSON.parse(res.trip.custom_field_icons) : res.trip.custom_field_icons; } catch(e) { trip.custom_field_icons = res.trip.custom_field_icons || {}; }
+                } else {
+                    trip.custom_field_icons = res.trip.custom_field_icons || {};
+                }
+                regs = res.trip.registrations || [];
+                tripRegistrationsCache[tripId] = regs;
+            }
+        } catch (e) {
+            // ignore fetch error, will handle below
+        }
+    }
+
     if(!trip || regs.length === 0) {
         showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning');
         return;
