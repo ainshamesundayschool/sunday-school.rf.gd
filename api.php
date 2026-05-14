@@ -7864,6 +7864,22 @@ function getTrips() {
             } else {
                 $row['custom_field_icons'] = [];
             }
+            // If custom_fields is empty but icons are present, derive fields from the icon keys and persist
+            if ((empty($row['custom_fields']) || in_array(strtolower(trim($row['custom_fields'])), ['0','null','undefined'], true)) && !empty($row['custom_field_icons'])) {
+                $keys = array_keys($row['custom_field_icons']);
+                $keys = array_filter(array_map('trim', $keys), function($f){ return $f !== ''; });
+                if (count($keys)) {
+                    $derived = implode(',', $keys);
+                    $row['custom_fields'] = $derived;
+                    try {
+                        $u = $conn->prepare("UPDATE trips SET custom_fields = ? WHERE id = ?");
+                        $u->bind_param('si', $derived, $row['id']);
+                        $u->execute();
+                    } catch (Exception $e) {
+                        // don't break listing on failure to update
+                    }
+                }
+            }
             
             $trips[] = $row;
         }
@@ -8215,6 +8231,22 @@ function getTripDetails() {
             $trip['custom_field_icons'] = is_array($decoded) ? $decoded : [];
         } else {
             $trip['custom_field_icons'] = [];
+        }
+        // If custom_fields is empty but icons exist, derive and persist custom_fields
+        if ((empty($trip['custom_fields']) || in_array(strtolower(trim($trip['custom_fields'])), ['0','null','undefined'], true)) && !empty($trip['custom_field_icons'])) {
+            $keys = array_keys($trip['custom_field_icons']);
+            $keys = array_filter(array_map('trim', $keys), function($f){ return $f !== ''; });
+            if (count($keys)) {
+                $derived = implode(',', $keys);
+                $trip['custom_fields'] = $derived;
+                try {
+                    $up = $conn->prepare("UPDATE trips SET custom_fields = ? WHERE id = ? AND church_id = ?");
+                    $up->bind_param('sii', $derived, $tripId, $churchId);
+                    $up->execute();
+                } catch (Exception $e) {
+                    // ignore update failure
+                }
+            }
         }
         
         // قائمة المسجلين
