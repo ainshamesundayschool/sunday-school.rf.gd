@@ -426,11 +426,12 @@ function printQRCards() {
         }, 100);
     });
     
+    // give QR library a bit more time to finish rendering before opening print dialog
     setTimeout(() => {
         window.print();
         // clear print area after print
-        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
-    }, 1000);
+        setTimeout(() => { printArea.innerHTML = ''; }, 1500);
+    }, 1500);
 }
 </script>
 </body>

@@ -3935,7 +3935,8 @@ function printQRCards(tripId) {
             new QRCode(document.getElementById(cardId), { text: link, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
         }, 100);
     });
-    setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1000); }, 1000);
+    // Allow extra time for QR images to be generated before invoking print
+    setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1500); }, 1500);
 }
 </script>
 

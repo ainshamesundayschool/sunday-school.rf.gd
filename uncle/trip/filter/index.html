@@ -335,10 +335,11 @@ function printFilterQRCards() {
         }, 100);
     });
 
+    // Give QR library a bit more time to render before printing
     setTimeout(() => {
         window.print();
-        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
-    }, 1000);
+        setTimeout(() => { printArea.innerHTML = ''; }, 1500);
+    }, 1500);
 }
 </script>
 </body>

@@ -7914,6 +7914,17 @@ function addTrip() {
                 $customFieldIcons = json_encode($decoded, JSON_UNESCAPED_UNICODE);
             }
         }
+        // If custom fields are empty but icons were sent as keys, derive fields from icons keys
+        if ((empty($customFields) || $customFields === '0') && !empty($customFieldIconsRaw)) {
+            $tryDec = json_decode($customFieldIconsRaw, true);
+            if (is_array($tryDec) && count($tryDec) > 0) {
+                $keys = array_keys($tryDec);
+                $keys = array_filter(array_map('trim', $keys), function($f){ return $f !== ''; });
+                if (count($keys)) {
+                    $customFields = implode(',', $keys);
+                }
+            }
+        }
         
         if (empty($title) || empty($startDate)) {
             sendJSON(['success' => false, 'message' => 'العنوان وتاريخ البدء مطلوبان']);
@@ -8043,6 +8054,17 @@ function updateTrip() {
             $decoded = json_decode($customFieldIconsRaw, true);
             if (is_array($decoded)) {
                 $customFieldIcons = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+            }
+        }
+        // If custom fields are empty but icons were sent, derive fields from the icon keys
+        if ((empty($customFields) || $customFields === '0') && !empty($customFieldIconsRaw)) {
+            $tryDec = json_decode($customFieldIconsRaw, true);
+            if (is_array($tryDec) && count($tryDec) > 0) {
+                $keys = array_keys($tryDec);
+                $keys = array_filter(array_map('trim', $keys), function($f){ return $f !== ''; });
+                if (count($keys)) {
+                    $customFields = implode(',', $keys);
+                }
             }
         }
         
