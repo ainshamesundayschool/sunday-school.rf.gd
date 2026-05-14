@@ -232,9 +232,10 @@
             position: absolute;
             top: 15px;
             left: 15px;
-            width: 36px;
+            width: auto;
+            gap: 5px;
             height: 36px;
-            border-radius: 50%;
+            border-radius: 50px;
             background: #f3f3f3;
             color: var(--text-2);
             border: none;
@@ -246,6 +247,7 @@
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
             z-index: 10;
+            padding: 10px;
         }
 
         .btn-naughty-sm:hover {
@@ -664,7 +666,8 @@
         <div id="contentView" style="display:none; width: 100%;">
             <div class="profile-card">
                 <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i
-                        class="fas fa-exclamation-triangle"></i> <span id="btnNaughtyLabel">تعيين شغب</span>
+                        class="fas fa-exclamation-triangle"></i> <span id="btnNaughtyLabel"
+                        style="font-size: 0.7rem;">تعيين شغب</span>
                 </button>
 
                 <div class="avatar-container">
