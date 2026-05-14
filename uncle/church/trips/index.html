@@ -4052,19 +4052,40 @@
     }
   </script>
   <script>
+    function _getAllSubFieldColumns(fields, icons) {
+      const allColumns = [];
+      fields.forEach(field => {
+        const meta = icons[field] || {};
+        if (meta.type === 'sub_group') {
+          const subFields = Array.isArray(meta.sub_fields) ? meta.sub_fields : [];
+          subFields.forEach(sf => {
+            allColumns.push({ field: field + '__sf__' + sf.name, label: field + ' → ' + sf.name, meta: sf, isGroup: true });
+          });
+        } else {
+          allColumns.push({ field, label: field, meta, isGroup: false });
+        }
+      });
+      return allColumns;
+    }
+
     function downloadCustomDataCSV(tripId) {
       const regs = tripRegistrationsCache[tripId] || [];
       const trip = allTripsCache.find(t => t.id == tripId);
       const fields = parseCustomFieldsString(trip?.custom_fields);
+      const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
       if (!trip || !fields.length) return;
-      let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
+      
+      const allColumns = _getAllSubFieldColumns(fields, icons);
+      const headers = ['Registration ID', 'Student Name', ...allColumns.map(c => c.field)];
+      let csv = '\uFEFF' + headers.join(',') + '\n';
+      
       regs.forEach(r => {
         let row = [r.id, `"${r.student_name}"`];
         let cd = {};
         if (r.custom_data) {
           try { cd = JSON.parse(r.custom_data); } catch (e) { }
         }
-        fields.forEach(f => { row.push(`"${cd[f] || ''}"`); });
+        allColumns.forEach(c => { row.push(`"${cd[c.field] || ''}"`); });
         csv += row.join(',') + '\n';
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -4081,7 +4102,12 @@
       if (!file) return;
       const trip = allTripsCache.find(t => t.id == tripId);
       const fields = parseCustomFieldsString(trip?.custom_fields);
+      const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
       if (!trip || !fields.length) return;
+      
+      const allColumns = _getAllSubFieldColumns(fields, icons);
+      const validFields = allColumns.map(c => c.field);
+      
       const reader = new FileReader();
       reader.onload = async function (ev) {
         const text = ev.target.result;
@@ -4094,7 +4120,7 @@
           const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
           const regId = cols[0];
           const cd = {};
-          fields.forEach(f => {
+          validFields.forEach(f => {
             const idx = headers.indexOf(f);
             if (idx !== -1 && cols[idx]) { cd[f] = cols[idx]; }
           });
@@ -4122,34 +4148,19 @@
         return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
       }
       const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      // Build all fields including sub-fields
-      const allColumns = [];
-      fields.forEach(field => {
-        const meta = icons[field] || {};
-        allColumns.push({ field, label: field, meta, isSubOf: null, parentField: null });
-        // Add sub-fields: each sub-field is keyed under choice name
-        if (meta.sub_fields && typeof meta.sub_fields === 'object') {
-          Object.entries(meta.sub_fields).forEach(([choiceVal, subObj]) => {
-            Object.entries(subObj).forEach(([subName, subMeta]) => {
-              const subKey = field + '__sub__' + choiceVal + '__' + subName;
-              allColumns.push({ field: subKey, label: field + ' → ' + choiceVal + ' → ' + subName, meta: subMeta, isSubOf: field, triggerChoice: choiceVal, subName });
-            });
-          });
-        }
-      });
-      function buildCell(col, currentVal, parentVal) {
+      const allColumns = _getAllSubFieldColumns(fields, icons);
+      
+      function buildCell(col, currentVal) {
         const { field, meta } = col;
-        // Hide sub-field cell if parent value doesn't match trigger
-        const hidden = col.isSubOf && col.triggerChoice && parentVal !== col.triggerChoice;
         const choices = Array.isArray(meta.choices) ? meta.choices : [];
-        const style = `min-width:130px;font-size:0.82rem;${hidden ? 'opacity:0.3;' : ''}`;
+        const style = `min-width:130px;font-size:0.82rem;`;
         if (choices.length > 0) {
-          return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}" ${hidden ? 'disabled' : ''}>
+          return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}">
                 <option value="">— اختر —</option>
                 ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
             </select>`;
         }
-        return `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(currentVal || '')}" placeholder="${escHtml(col.label || field)}" style="${style}" ${hidden ? 'disabled' : ''}>`;
+        return `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(currentVal || '')}" placeholder="${escHtml(col.label || field)}" style="${style}">`;
       }
       const rows = regs.map(r => {
         let values = {};
@@ -4160,10 +4171,8 @@
             <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
             <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
             ${allColumns.map(col => {
-          const parentField = col.isSubOf;
-          const parentVal = parentField ? (values[parentField] || '') : '';
           const currentVal = values[col.field] || '';
-          return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, parentVal)}</td>`;
+          return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal)}</td>`;
         }).join('')}
         </tr>`;
       }).join('');
@@ -4199,46 +4208,52 @@
         <div style="font-size:0.78rem;font-weight:800;color:var(--text-2);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
             <i class="fas fa-tag"></i> حقول إضافية للرحلة
         </div>
-        ${fields.map(field => renderRegisterField(field, icons[field] || {}, '', icons)).join('')}
+        ${fields.map(field => renderRegisterField(field, icons[field] || {}, '')).join('')}
     </div>`;
     }
 
-    function renderRegisterField(fieldName, meta, currentVal, allIcons, prefix, explicitKey) {
-      const key = explicitKey || (prefix ? prefix + fieldName : fieldName);
+    function renderRegisterField(fieldName, meta, currentVal) {
       const icon = meta.icon || 'fas fa-tag';
+      const isGroup = meta.type === 'sub_group';
+
+      // ── sub_group: render each sub-field as its own input ──────────────────
+      if (isGroup) {
+        const subFields = Array.isArray(meta.sub_fields) ? meta.sub_fields : [];
+        if (!subFields.length) return '';
+        return `<div style="border:1.5px solid var(--primary-light);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--primary-light);">
+          <div style="font-size:0.78rem;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+            <i class="${icon}"></i> ${escHtml(fieldName)}
+          </div>
+          ${subFields.map(sf => {
+            const sfKey = fieldName + '__sf__' + sf.name;
+            const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
+            const inputHtml = sfChoices.length
+              ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.85rem;">
+                  <option value="">— اختر —</option>
+                  ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
+                </select>`
+              : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.85rem;">`;
+            return `<div class="form-group" style="margin-bottom:6px;">
+              <label class="form-label" style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
+              ${inputHtml}
+            </div>`;
+          }).join('')}
+        </div>`;
+      }
+
+      // ── choices or free text ────────────────────────────────────────────────
       const choices = Array.isArray(meta.choices) ? meta.choices : [];
-      const hasSubFields = !explicitKey && meta.sub_fields && typeof meta.sub_fields === 'object' && Object.keys(meta.sub_fields).length > 0;
-      let inputHtml;
-      if (choices.length > 0) {
-        const subChange = hasSubFields ? `onchange="updateRegisterSubFields('${escHtml(key)}', this.value, ${JSON.stringify(JSON.stringify(meta.sub_fields)).replace(/'/g, "\\'")})"` : '';
-        inputHtml = `<select class="form-input" name="cf_${escHtml(key)}" id="regcf_${escHtml(key)}" ${subChange} style="font-size:0.85rem;">
+      const inputHtml = choices.length
+        ? `<select class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" style="font-size:0.85rem;">
             <option value="">— اختر —</option>
             ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
-        </select>`;
-      } else {
-        inputHtml = `<input type="text" class="form-input" name="cf_${escHtml(key)}" id="regcf_${escHtml(key)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.85rem;">`;
-      }
-      const subDiv = hasSubFields ? `<div id="regcf_sub_${escHtml(key)}" class="sub-field-wrapper" style="display:none;"></div>` : '';
+          </select>`
+        : `<input type="text" class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.85rem;">`;
+
       return `<div class="form-group" style="margin-bottom:8px;">
         <label class="form-label" style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
         ${inputHtml}
-        ${subDiv}
-    </div>`;
-    }
-
-    function updateRegisterSubFields(parentKey, parentVal, subFieldsJson) {
-      const subDiv = document.getElementById('regcf_sub_' + parentKey);
-      if (!subDiv) return;
-      let subFields = {};
-      try { subFields = JSON.parse(subFieldsJson); } catch (e) { }
-      if (!parentVal || !subFields[parentVal]) { subDiv.style.display = 'none'; subDiv.innerHTML = ''; return; }
-      const sub = subFields[parentVal]; // { subName: { icon, choices, ... } }
-      subDiv.style.display = 'block';
-      // Key format: parentKey + '__sub__' + choiceVal + '__' + subName  (matches bulk table)
-      subDiv.innerHTML = Object.entries(sub).map(([subName, subMeta]) => {
-        const subKey = parentKey + '__sub__' + parentVal + '__' + subName;
-        return renderRegisterField(subName, subMeta, '', {}, null, subKey);
-      }).join('');
+      </div>`;
     }
 
     function collectRegisterCustomData() {
@@ -4539,13 +4554,20 @@
         if (r.custom_data) {
           try {
             const cd = JSON.parse(r.custom_data);
-            const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
+            const cfIcons = trip.custom_field_icons || {};
             customHtml = Object.entries(cd).map(([key, value]) => {
-              let iconClass = 'fas fa-tag';
-              if (trip.custom_field_icons && trip.custom_field_icons[key]) {
-                const meta = trip.custom_field_icons[key];
-                iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+              // sub_group sub-field key: "ParentField__sf__SubFieldName"
+              if (key.includes('__sf__')) {
+                const [parentName, sfName] = key.split('__sf__');
+                const parentMeta = cfIcons[parentName] || {};
+                const subFields = Array.isArray(parentMeta.sub_fields) ? parentMeta.sub_fields : [];
+                const sfMeta = subFields.find(sf => sf.name === sfName) || {};
+                const iconClass = sfMeta.icon || parentMeta.icon || 'fas fa-tag';
+                return `<i class="${iconClass}"></i> <small style="opacity:.6">${parentName} •</small> ${sfName}: <strong>${value}</strong>`;
               }
+              // normal field
+              const meta = cfIcons[key];
+              const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
               return `<i class="${iconClass}"></i> ${value}`;
             }).join(' | ');
           } catch (e) { }

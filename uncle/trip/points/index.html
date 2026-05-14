@@ -874,21 +874,33 @@
             if (studentData.custom_data) {
                 try {
                     const cd = JSON.parse(studentData.custom_data);
-                    // Get custom field definitions from trip data
-                    const fieldDefs = tripData.custom_fields ? tripData.custom_fields.split(',').map(f => f.trim()) : [];
+                    const cfIcons = tripData.custom_field_icons || {};
 
                     Object.entries(cd).forEach(([key, value]) => {
-                        let iconHtml = '';
-                        // Check if we have an icon/meta for this field
-                        const meta = tripData.custom_field_icons && tripData.custom_field_icons[key] ? tripData.custom_field_icons[key] : null;
-                        if (meta) {
-                            const iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+                        let iconHtml = '<i class="fas fa-tag"></i>';
+                        let labelHtml = '';
+
+                        // Check if this is a sub_group field (e.g. Building__sf__Room)
+                        if (key.includes('__sf__')) {
+                            const [parentName, sfName] = key.split('__sf__');
+                            const parentMeta = cfIcons[parentName] || {};
+                            const subFields = Array.isArray(parentMeta.sub_fields) ? parentMeta.sub_fields : [];
+                            const sfMeta = subFields.find(sf => sf.name === sfName) || {};
+                            const iconClass = sfMeta.icon || parentMeta.icon || 'fas fa-tag';
                             iconHtml = `<i class="${iconClass}"></i>`;
+                            labelHtml = `<small style="opacity:.6">${escHtml(parentName)} •</small> ${escHtml(sfName)}: <strong>${escHtml(value)}</strong>`;
                         } else {
-                            iconHtml = '<i class="fas fa-tag"></i>';
+                            // Normal field
+                            const meta = cfIcons[key];
+                            if (meta) {
+                                const iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+                                iconHtml = `<i class="${iconClass}"></i>`;
+                            }
+                            labelHtml = escHtml(value);
                         }
+
                         // make tag clickable to open filtered list of kids for this field/value
-                        tagsHtml += `<button class="tag" onclick="window.open('/uncle/trip/filter/?trip_id=${tripId}&field=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}','_blank')">${iconHtml} ${escHtml(value)}</button>`;
+                        tagsHtml += `<button class="tag" onclick="window.open('/uncle/trip/filter/?trip_id=${tripId}&field=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}','_blank')">${iconHtml} ${labelHtml}</button>`;
                     });
                 } catch (e) {
                     // Fallback for old format
