@@ -55,7 +55,7 @@
         .name { font-size: 1.2rem; font-weight: 800; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .class-name { font-size: 0.85rem; color: var(--text-3); font-weight: 600; }
         
-        .points-display { background: var(--brand-light); color: var(--brand-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--brand); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 100px; min-height: 60px; text-align: center; }
+        .points-display { background: var(--surface); color: var(--brand-dark); font-size: 2rem; font-weight: 900; padding: 5px 20px; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--brand); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; min-width: 100px; min-height: 60px; text-align: center; }
         .points-display.naughty { background: var(--danger-light); color: var(--danger-dark); border-color: var(--danger); font-size: 1.5rem; }
         
         .points-display.settling { opacity: 0.7; pointer-events: none; color: transparent !important; }
@@ -367,7 +367,8 @@ function renderStudent() {
                 } else {
                     iconHtml = '<i class="fas fa-tag"></i>';
                 }
-                tagsHtml += `<span class="tag">${iconHtml} ${value}</span>`;
+                // make tag clickable to open filtered list of kids for this field/value
+                tagsHtml += `<button class="tag" onclick="window.open('/uncle/trip/filter/?trip_id=${tripId}&field=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}','_blank')">${iconHtml} ${escHtml(value)}</button>`;
             });
         } catch(e){
             // Fallback for old format
@@ -386,7 +387,7 @@ function updatePointsDisplay(points, isNaughty = false) {
     const btn = document.getElementById('btnNaughty');
     
     // show a star icon and points to make it more magical
-    display.innerHTML = `<i class="fas fa-star" style="color:gold;margin-left:10px;margin-right:8px;text-shadow:0 4px 18px rgba(255,215,0,0.25);"></i>${points}`;
+    display.innerHTML = `<i class="fas fa-star" style="color: #4254e8;margin-left:10px;margin-right:8px;"></i>${points}`;
     display.className = "points-display" + (isNaughty ? " naughty" : "");
     
     const label = document.getElementById('btnNaughtyLabel');

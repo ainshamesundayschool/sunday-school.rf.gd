@@ -5199,7 +5199,7 @@ function renderTripDetailsFull(trip) {
             if(r.custom_data) {
                 try {
                     const cData = JSON.parse(r.custom_data);
-                    customDataHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${Object.entries(cData).map(([k,v])=>`<span style="font-size:0.65rem;background:var(--primary-light);color:var(--primary);padding:1px 4px;border-radius:4px;font-weight:600;"><i class="fas fa-tag"></i> ${v}</span>`).join('')}</div>`;
+                    customDataHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${Object.entries(cData).map(([k,v])=>`<button class="field-chip" style="font-size:0.65rem;background:var(--primary-light);color:var(--primary);padding:4px 8px;border-radius:14px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;" onclick="window.open('/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(k)}&value=${encodeURIComponent(v)}','_blank')"><i class=\"fas fa-tag\"></i> ${escHtml(v)}</button>`).join('')}</div>`;
                 } catch(e){}
             }
             return `<div class="reg-row">
