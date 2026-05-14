@@ -3322,23 +3322,26 @@
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
           </div>
-          <details class="register-settings-collapse" style="margin-bottom:12px; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px;">
-            <summary style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.9rem; user-select:none; display:flex; align-items:center; gap:8px;">
-              <i class="fas fa-sliders-h"></i> إعدادات التسجيل (دفع، حقول إضافية، ملاحظات)
+          <details id="registerCustomFieldsWrapper" style="display:none; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--bg);">
+            <summary style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.85rem; outline:none; display:flex; align-items:center; gap:8px;">
+               <i class="fas fa-tags"></i> حقول إضافية للرحلة (اختياري)
             </summary>
-            <div style="padding-top:12px; margin-top:8px; border-top:1px solid var(--border);">
-              <div id="registerCustomFieldsSection" style="display:none;margin-bottom:10px;"></div>
-              <div class="register-fields" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;">
-                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0" style="padding:6px; font-size:0.9rem;"></div>
-                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">تبرع (ج)</label><input type="number" id="registerDonation" class="form-input" step="1" min="0" value="0" style="padding:6px; font-size:0.9rem;"></div>
-                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري" style="padding:6px; font-size:0.9rem;"></div>
-              </div>
-            </div>
+            <div id="registerCustomFieldsSection" style="margin-top:12px; max-height:160px; overflow-y:auto; padding-right:4px;"></div>
           </details>
-          <div class="register-sticky-footer" style="padding-top:10px; border-top:1px solid var(--border);">
-            <div class="register-actions" style="display:flex; gap:10px;">
-              <button type="submit" class="btn btn-primary" style="flex:2; font-weight:bold;" id="regSubmitBtn"><i class="fas fa-check-circle"></i> تأكيد التسجيل</button>
-              <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
+          <div class="register-sticky-footer">
+            <div class="register-fields">
+              <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number"
+                  id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label">قيمة التبرع (ج)</label><input type="number"
+                  id="registerDonation" class="form-input" step="1" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes"
+                  class="form-input" placeholder="اختياري"></div>
+            </div>
+            <div class="register-actions">
+              <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i
+                  class="fas fa-save"></i> تسجيل</button>
+              <button type="button" class="btn btn-outline" style="flex:1;"
+                onclick="closeModal('registerStudentModal')">إلغاء</button>
             </div>
           </div>
         </form>
@@ -4200,16 +4203,24 @@
 
     // ─── Custom Fields in Registration Form ───────────────────────────────────────
     function renderRegisterCustomFields(tripId) {
+      const wrapper = document.getElementById('registerCustomFieldsWrapper');
       const section = document.getElementById('registerCustomFieldsSection');
       const trip = allTripsCache.find(t => t.id == tripId);
       const fields = parseCustomFieldsString(trip?.custom_fields);
       const icons = (trip && typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      if (!fields.length) { section.style.display = 'none'; section.innerHTML = ''; return; }
-      section.style.display = 'block';
+      
+      if (!fields.length) { 
+        if(wrapper) wrapper.style.display = 'none'; 
+        section.innerHTML = ''; 
+        return; 
+      }
+      
+      if(wrapper) {
+        wrapper.style.display = 'block';
+        wrapper.removeAttribute('open'); // start collapsed
+      }
+      
       section.innerHTML = `<div class="custom-fields-register" id="regCustomFieldsInner">
-        <div style="font-size:0.78rem;font-weight:800;color:var(--text-2);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
-            <i class="fas fa-tag"></i> حقول إضافية للرحلة
-        </div>
         ${fields.map(field => renderRegisterField(field, icons[field] || {}, '')).join('')}
     </div>`;
     }
@@ -4222,21 +4233,21 @@
       if (isGroup) {
         const subFields = Array.isArray(meta.sub_fields) ? meta.sub_fields : [];
         if (!subFields.length) return '';
-        return `<div style="border:1.5px solid var(--primary-light);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--primary-light);">
-          <div style="font-size:0.78rem;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        return `<div style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:var(--bg-hover);">
+          <div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
             <i class="${icon}"></i> ${escHtml(fieldName)}
           </div>
           ${subFields.map(sf => {
             const sfKey = fieldName + '__sf__' + sf.name;
             const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
             const inputHtml = sfChoices.length
-              ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.85rem;">
+              ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
                   <option value="">— اختر —</option>
                   ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
                 </select>`
-              : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.85rem;">`;
-            return `<div class="form-group" style="margin-bottom:6px;">
-              <label class="form-label" style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
+              : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
+            return `<div class="form-group" style="margin-bottom:4px;">
+              <label class="form-label" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
               ${inputHtml}
             </div>`;
           }).join('')}
@@ -4246,14 +4257,14 @@
       // ── choices or free text ────────────────────────────────────────────────
       const choices = Array.isArray(meta.choices) ? meta.choices : [];
       const inputHtml = choices.length
-        ? `<select class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" style="font-size:0.85rem;">
+        ? `<select class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
             <option value="">— اختر —</option>
             ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
           </select>`
-        : `<input type="text" class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.85rem;">`;
+        : `<input type="text" class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
 
-      return `<div class="form-group" style="margin-bottom:8px;">
-        <label class="form-label" style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
+      return `<div class="form-group" style="margin-bottom:6px;">
+        <label class="form-label" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
         ${inputHtml}
       </div>`;
     }
