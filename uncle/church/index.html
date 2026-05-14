@@ -4787,8 +4787,8 @@ function renderTripsList(trips) {
                 <div class="trip-actions-overlay" onclick="event.stopPropagation()">
                     <button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
-                    <button class="act-btn" style="background:#8b5cf6;" onclick="showTripDetails(${t.id});setTimeout(()=>switchTripTab('exp'),200)" title="مصروفات"><i class="fas fa-receipt"></i></button>
-                    <button class="act-btn" style="background:#059669;" onclick="event.stopPropagation(); printQRCards(${t.id})" title="طباعة كروت QR"><i class="fas fa-print"></i></button>
+                    <button class="act-btn" style="background:#8b5cf6;" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
+                    <button class="act-btn" style="background:#059669;" onclick="event.stopPropagation(); window.open('/uncle/church/trips/#trips?trip_id=${t.id}&action=print','_blank')" title="طباعة كروت QR"><i class="fas fa-print"></i></button>
                     <button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
