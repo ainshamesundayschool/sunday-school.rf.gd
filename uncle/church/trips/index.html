@@ -1920,6 +1920,178 @@
       transition: all .2s;
     }
 
+    /* Custom Fields in Registration */
+    .custom-fields-register {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .custom-fields-register label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .custom-fields-register select,
+    .custom-fields-register input {
+      width: 100%;
+      font-size: 0.85rem;
+    }
+
+    .sub-field-wrapper {
+      padding-right: 16px;
+      border-right: 3px solid var(--primary-light);
+      margin-top: 4px;
+    }
+
+    /* Custom Field Editor */
+    .cfe-field-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .cfe-field-card .cfe-handle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: var(--muted);
+      cursor: grab;
+      font-size: 0.85rem;
+    }
+
+    .cfe-field-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .cfe-icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--primary);
+      transition: all .15s;
+    }
+
+    .cfe-icon-btn:hover {
+      background: var(--primary-light);
+    }
+
+    .cfe-choices-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .cfe-choice-tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 8px 3px 5px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .cfe-choice-tag button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--danger);
+      font-size: 0.7rem;
+      padding: 0;
+      line-height: 1;
+      display: flex;
+    }
+
+    .cfe-add-choice {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .cfe-add-choice input {
+      flex: 1;
+      font-size: 0.8rem;
+      padding: 5px 10px;
+    }
+
+    .cfe-sub-fields {
+      border-right: 3px solid var(--primary-light);
+      padding-right: 12px;
+      margin-top: 4px;
+    }
+
+    .cfe-sub-header {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cfe-icon-picker-popup {
+      position: absolute;
+      z-index: 200;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, 32px);
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .cfe-icon-picker-popup button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .1s;
+    }
+
+    .cfe-icon-picker-popup button:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
     #registerStudentModal .modal-body {
       display: flex;
       min-height: 0;
@@ -2505,17 +2677,71 @@
     /* ... rest of the dashboard HTML continues unchanged ... */
     /* Print Styles */
     @media screen {
-        #printArea { display: none !important; }
+      #printArea {
+        display: none !important;
+      }
     }
+
     @media print {
-        body > *:not(#printArea) { display: none !important; }
-        #printArea { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 20px; align-content: start; position: absolute; top: 0; left: 0; width: 100%; padding: 20px; }
-        .print-card { border: 2px dashed #000; padding: 20px; text-align: center; border-radius: 10px; break-inside: avoid; page-break-inside: avoid; display: block !important; }
-        .print-card img.qr { width: 150px; height: 150px; margin: 10px auto; display: block !important; }
-        .print-card img.avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px; object-fit: cover; display: block !important; }
-        .print-card h3 { font-size: 18px; margin-bottom: 5px; color: #000 !important; }
-        .print-card p { font-size: 14px; color: #000 !important; margin-bottom: 5px; }
-        .print-card .custom-info { font-size: 14px; font-weight: bold; color: #000 !important; }
+      body>*:not(#printArea) {
+        display: none !important;
+      }
+
+      #printArea {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        align-content: start;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .print-card {
+        border: 2px dashed #000;
+        padding: 20px;
+        text-align: center;
+        border-radius: 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: block !important;
+      }
+
+      .print-card img.qr {
+        width: 150px;
+        height: 150px;
+        margin: 10px auto;
+        display: block !important;
+      }
+
+      .print-card img.avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+        object-fit: cover;
+        display: block !important;
+      }
+
+      .print-card h3 {
+        font-size: 18px;
+        margin-bottom: 5px;
+        color: #000 !important;
+      }
+
+      .print-card p {
+        font-size: 14px;
+        color: #000 !important;
+        margin-bottom: 5px;
+      }
+
+      .print-card .custom-info {
+        font-size: 14px;
+        font-weight: bold;
+        color: #000 !important;
+      }
     }
   </style>
 </head>
@@ -2579,7 +2805,8 @@
             الملخص</div>
           <div class="td-tab" id="tdtab-regs" onclick="switchTripTab('regs')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
-            <span class="td-badge" id="tdRegsCount"></span></div>
+            <span class="td-badge" id="tdRegsCount"></span>
+          </div>
           <div class="td-tab" id="tdtab-exp" onclick="switchTripTab('exp')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
             المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
@@ -2678,7 +2905,7 @@
       const params = new URLSearchParams(parts[1] || '');
       const fromParam = parseInt(params.get('trip_id') || params.get('id') || 0);
       if (fromParam) return fromParam;
-      
+
       // Legacy fallback
       const tabAndParams = parts[0];
       if (tabAndParams.startsWith('trip-')) return parseInt(tabAndParams.replace('trip-', ''));
@@ -2867,6 +3094,7 @@
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل في لوحة الكنيسة</button>
+            <button class="btn btn-outline btn-sm" onclick="openCustomFieldEditor(${trip.id})" style="background:#f0f4ff;color:#4f46e5;border-color:#c7d2fe;"><i class="fas fa-sliders-h"></i> تعديل الحقول الإضافية</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
             ${(trip.custom_fields && trip.custom_fields.trim()) ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث حقول إضافية</button>
             <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
@@ -3021,27 +3249,27 @@
       const tripId = getSelectedTripId();
       if (tripId) {
         await showTripDetails(tripId);
-        
+
         // Check for auto-open actions
         const params = new URLSearchParams(location.hash.substring(1).split('?')[1] || '');
         const action = params.get('action');
         const regId = params.get('reg_id');
         const studentName = params.get('student_name');
-        
+
         if (action === 'add_payment' && regId) {
-            // Need to fetch or calculate price/paid... or just open modal and let it load?
-            // The showAddPaymentModal expects price and paid. 
-            // We can try to find the registration in the cache.
-            setTimeout(() => {
-                const regs = tripRegistrationsCache[tripId] || [];
-                const r = regs.find(x => String(x.id) === String(regId));
-                if (r) {
-                    const basePrice = Math.round(calcFinalPrice?.(allTripsCache[0]) || 0);
-                    const exps = tripExpensesCache[tripId] || [];
-                    const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || 0), 0));
-                    showAddPaymentModal(r.id, r.student_name, basePrice + expPerKid, parseFloat(r.total_paid)||0);
-                }
-            }, 800);
+          // Need to fetch or calculate price/paid... or just open modal and let it load?
+          // The showAddPaymentModal expects price and paid. 
+          // We can try to find the registration in the cache.
+          setTimeout(() => {
+            const regs = tripRegistrationsCache[tripId] || [];
+            const r = regs.find(x => String(x.id) === String(regId));
+            if (r) {
+              const basePrice = Math.round(calcFinalPrice?.(allTripsCache[0]) || 0);
+              const exps = tripExpensesCache[tripId] || [];
+              const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || 0), 0));
+              showAddPaymentModal(r.id, r.student_name, basePrice + expPerKid, parseFloat(r.total_paid) || 0);
+            }
+          }, 800);
         }
       } else {
         document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-route"></i><h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3></div>`;
@@ -3086,6 +3314,7 @@
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
           </div>
+          <div id="registerCustomFieldsSection" style="display:none;margin-bottom:10px;"></div>
           <div class="register-sticky-footer">
             <div class="register-fields">
               <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number"
@@ -3401,6 +3630,8 @@
       document.getElementById('registerStudentId').value = '';
       document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
       document.getElementById('kidPickerGrid').innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
+      // Render custom fields for this trip
+      renderRegisterCustomFields(tripId);
       openModal('registerStudentModal');
       const fd = new FormData(); fd.append('action', 'getData');
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -3472,6 +3703,8 @@
       document.getElementById('registerDeposit').value = '0';
       document.getElementById('registerNotes').value = '';
       document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
+      // Reset custom field dropdowns
+      document.querySelectorAll('#registerCustomFieldsSection select, #registerCustomFieldsSection input').forEach(el => { el.value = ''; });
       filterRegisterStudents();
     }
     async function registerStudentForTrip(e) {
@@ -3486,6 +3719,11 @@
       fd.append('deposit', document.getElementById('registerDeposit').value || 0);
       fd.append('donation', document.getElementById('registerDonation').value || 0);
       fd.append('notes', document.getElementById('registerNotes').value);
+      // Collect custom fields data
+      const customData = collectRegisterCustomData();
+      if (Object.keys(customData).length > 0) {
+        fd.append('custom_data', JSON.stringify(customData));
+      }
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       btn.classList.remove('btn-loading'); btn.disabled = false;
       if (d.success) {
@@ -3756,71 +3994,71 @@
     }
   </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-function escHtml(str) {
-    if (!str) return '';
-    return String(str)
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-}
-function parseCustomFieldsString(value) {
-    const raw = String(value ?? '').trim();
-    if (!raw || raw === '0' || raw === 'null' || raw === 'undefined') return [];
-    return raw.split(',').map(f => f.trim()).filter(Boolean);
-}
-</script>
-<script>
-function downloadCustomDataCSV(tripId) {
-    const regs = tripRegistrationsCache[tripId] || [];
-    const trip = allTripsCache.find(t => t.id == tripId);
-    const fields = parseCustomFieldsString(trip?.custom_fields);
-    if(!trip || !fields.length) return;
-    let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
-    regs.forEach(r => {
+    }
+    function parseCustomFieldsString(value) {
+      const raw = String(value ?? '').trim();
+      if (!raw || raw === '0' || raw === 'null' || raw === 'undefined') return [];
+      return raw.split(',').map(f => f.trim()).filter(Boolean);
+    }
+  </script>
+  <script>
+    function downloadCustomDataCSV(tripId) {
+      const regs = tripRegistrationsCache[tripId] || [];
+      const trip = allTripsCache.find(t => t.id == tripId);
+      const fields = parseCustomFieldsString(trip?.custom_fields);
+      if (!trip || !fields.length) return;
+      let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
+      regs.forEach(r => {
         let row = [r.id, `"${r.student_name}"`];
         let cd = {};
-        if(r.custom_data) {
-            try { cd = JSON.parse(r.custom_data); } catch(e){}
+        if (r.custom_data) {
+          try { cd = JSON.parse(r.custom_data); } catch (e) { }
         }
         fields.forEach(f => { row.push(`"${cd[f] || ''}"`); });
         csv += row.join(',') + '\n';
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `trip_${tripId}_custom_data.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `trip_${tripId}_custom_data.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
 
-function uploadCustomDataCSV(e, tripId) {
-    const file = e.target.files[0];
-    if(!file) return;
-    const trip = allTripsCache.find(t => t.id == tripId);
-    const fields = parseCustomFieldsString(trip?.custom_fields);
-    if(!trip || !fields.length) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
+    function uploadCustomDataCSV(e, tripId) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const trip = allTripsCache.find(t => t.id == tripId);
+      const fields = parseCustomFieldsString(trip?.custom_fields);
+      if (!trip || !fields.length) return;
+      const reader = new FileReader();
+      reader.onload = async function (ev) {
         const text = ev.target.result;
         const lines = text.split('\n');
-        if(lines.length < 2) { showToast('الملف فارغ', 'error'); return; }
+        if (lines.length < 2) { showToast('الملف فارغ', 'error'); return; }
         const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         const payload = [];
-        for(let i=1; i<lines.length; i++) {
-            if(!lines[i].trim()) continue;
-            const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-            const regId = cols[0];
-            const cd = {};
-            fields.forEach(f => {
-                const idx = headers.indexOf(f);
-                if(idx !== -1 && cols[idx]) { cd[f] = cols[idx]; }
-            });
-            payload.push({ registration_id: regId, custom_data: cd });
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const regId = cols[0];
+          const cd = {};
+          fields.forEach(f => {
+            const idx = headers.indexOf(f);
+            if (idx !== -1 && cols[idx]) { cd[f] = cols[idx]; }
+          });
+          payload.push({ registration_id: regId, custom_data: cd });
         }
         const fd = new FormData();
         fd.append('action', 'bulkUpdateCustomData');
@@ -3828,101 +4066,450 @@ function uploadCustomDataCSV(e, tripId) {
         fd.append('data', JSON.stringify(payload));
         showToast('جاري تحديث البيانات...', 'info');
         try {
-            const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
-            if(res.success) {
-                showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
-                window.location.reload();
-            } else { showToast(res.message, 'error'); }
-        } catch(err) { showToast('خطأ في الاتصال', 'error'); }
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success) {
+            showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
+            window.location.reload();
+          } else { showToast(res.message, 'error'); }
+        } catch (err) { showToast('خطأ في الاتصال', 'error'); }
         document.getElementById('uploadCustomDataCsv').value = '';
-    };
-    reader.readAsText(file);
-}
-
-function buildBulkCustomDataTable(trip, regs, fields) {
-    if (!regs.length) {
-        return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
+      };
+      reader.readAsText(file);
     }
-    const rows = regs.map(r => {
+
+    function buildBulkCustomDataTable(trip, regs, fields) {
+      if (!regs.length) {
+        return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
+      }
+      const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      // Build all fields including sub-fields
+      const allColumns = [];
+      fields.forEach(field => {
+        const meta = icons[field] || {};
+        allColumns.push({ field, label: field, meta, isSubOf: null, parentField: null });
+        // Add sub-fields: each sub-field is keyed under choice name
+        if (meta.sub_fields && typeof meta.sub_fields === 'object') {
+          Object.entries(meta.sub_fields).forEach(([choiceVal, subObj]) => {
+            Object.entries(subObj).forEach(([subName, subMeta]) => {
+              const subKey = field + '__sub__' + choiceVal + '__' + subName;
+              allColumns.push({ field: subKey, label: field + ' → ' + choiceVal + ' → ' + subName, meta: subMeta, isSubOf: field, triggerChoice: choiceVal, subName });
+            });
+          });
+        }
+      });
+      function buildCell(col, currentVal, parentVal) {
+        const { field, meta } = col;
+        // Hide sub-field cell if parent value doesn't match trigger
+        const hidden = col.isSubOf && col.triggerChoice && parentVal !== col.triggerChoice;
+        const choices = Array.isArray(meta.choices) ? meta.choices : [];
+        const style = `min-width:130px;font-size:0.82rem;${hidden ? 'opacity:0.3;' : ''}`;
+        if (choices.length > 0) {
+          return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}" ${hidden ? 'disabled' : ''}>
+                <option value="">— اختر —</option>
+                ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
+            </select>`;
+        }
+        return `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(currentVal || '')}" placeholder="${escHtml(col.label || field)}" style="${style}" ${hidden ? 'disabled' : ''}>`;
+      }
+      const rows = regs.map(r => {
         let values = {};
         if (r.custom_data) {
-            try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
+          try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
         }
         return `<tr data-reg-id="${r.id}">
             <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
             <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
-            ${fields.map(field => `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">
-                <input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(values[field] || '')}" placeholder="${escHtml(field)}">
-            </td>`).join('')}
+            ${allColumns.map(col => {
+          const parentField = col.isSubOf;
+          const parentVal = parentField ? (values[parentField] || '') : '';
+          const currentVal = values[col.field] || '';
+          return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, parentVal)}</td>`;
+        }).join('')}
         </tr>`;
-    }).join('');
-    return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">ID</th><th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">الطفل</th>${fields.map(field => `<th style="text-align:left;padding:10px;border-bottom:2px solid var(--border);">${escHtml(field)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
-}
+      }).join('');
+      const thStyle = `text-align:right;padding:10px;border-bottom:2px solid var(--border);white-space:nowrap;`;
+      return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;direction:rtl;"><thead><tr>
+        <th style="${thStyle}">ID</th>
+        <th style="${thStyle}">الطفل</th>
+        ${allColumns.map(col => `<th style="${thStyle}">${escHtml(col.label || col.field)}</th>`).join('')}
+    </tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
 
-function openBulkCustomDataModal(tripId) {
-    const trip = allTripsCache.find(t => t.id == tripId);
-    const regs = tripRegistrationsCache[tripId] || [];
-    const fields = parseCustomFieldsString(trip?.custom_fields);
-    if (!trip || !fields.length) return;
-    document.getElementById('bulkCustomDataTripId').value = tripId;
-    document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
-    document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
-    document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
-    openModal('bulkCustomDataModal');
-}
+    function openBulkCustomDataModal(tripId) {
+      const trip = allTripsCache.find(t => t.id == tripId);
+      const regs = tripRegistrationsCache[tripId] || [];
+      const fields = parseCustomFieldsString(trip?.custom_fields);
+      if (!trip || !fields.length) return;
+      document.getElementById('bulkCustomDataTripId').value = tripId;
+      document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
+      document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+      document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
+      openModal('bulkCustomDataModal');
+    }
 
-async function bulkCustomDataSave() {
-    const tripId = document.getElementById('bulkCustomDataTripId').value;
-    const rows = Array.from(document.querySelectorAll('#bulkCustomDataTable tbody tr'));
-    if (!rows.length) { showToast('لا يوجد بيانات لحفظها', 'warning'); return; }
-    const payload = rows.map(row => {
+    // ─── Custom Fields in Registration Form ───────────────────────────────────────
+    function renderRegisterCustomFields(tripId) {
+      const section = document.getElementById('registerCustomFieldsSection');
+      const trip = allTripsCache.find(t => t.id == tripId);
+      const fields = parseCustomFieldsString(trip?.custom_fields);
+      const icons = (trip && typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      if (!fields.length) { section.style.display = 'none'; section.innerHTML = ''; return; }
+      section.style.display = 'block';
+      section.innerHTML = `<div class="custom-fields-register" id="regCustomFieldsInner">
+        <div style="font-size:0.78rem;font-weight:800;color:var(--text-2);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+            <i class="fas fa-tag"></i> حقول إضافية للرحلة
+        </div>
+        ${fields.map(field => renderRegisterField(field, icons[field] || {}, '', icons)).join('')}
+    </div>`;
+    }
+
+    function renderRegisterField(fieldName, meta, currentVal, allIcons, prefix, explicitKey) {
+      const key = explicitKey || (prefix ? prefix + fieldName : fieldName);
+      const icon = meta.icon || 'fas fa-tag';
+      const choices = Array.isArray(meta.choices) ? meta.choices : [];
+      const hasSubFields = !explicitKey && meta.sub_fields && typeof meta.sub_fields === 'object' && Object.keys(meta.sub_fields).length > 0;
+      let inputHtml;
+      if (choices.length > 0) {
+        const subChange = hasSubFields ? `onchange="updateRegisterSubFields('${escHtml(key)}', this.value, ${JSON.stringify(JSON.stringify(meta.sub_fields)).replace(/'/g, "\\'")})"` : '';
+        inputHtml = `<select class="form-input" name="cf_${escHtml(key)}" id="regcf_${escHtml(key)}" ${subChange} style="font-size:0.85rem;">
+            <option value="">— اختر —</option>
+            ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
+        </select>`;
+      } else {
+        inputHtml = `<input type="text" class="form-input" name="cf_${escHtml(key)}" id="regcf_${escHtml(key)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.85rem;">`;
+      }
+      const subDiv = hasSubFields ? `<div id="regcf_sub_${escHtml(key)}" class="sub-field-wrapper" style="display:none;"></div>` : '';
+      return `<div class="form-group" style="margin-bottom:8px;">
+        <label class="form-label" style="font-size:0.78rem;display:flex;align-items:center;gap:6px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
+        ${inputHtml}
+        ${subDiv}
+    </div>`;
+    }
+
+    function updateRegisterSubFields(parentKey, parentVal, subFieldsJson) {
+      const subDiv = document.getElementById('regcf_sub_' + parentKey);
+      if (!subDiv) return;
+      let subFields = {};
+      try { subFields = JSON.parse(subFieldsJson); } catch (e) { }
+      if (!parentVal || !subFields[parentVal]) { subDiv.style.display = 'none'; subDiv.innerHTML = ''; return; }
+      const sub = subFields[parentVal]; // { subName: { icon, choices, ... } }
+      subDiv.style.display = 'block';
+      // Key format: parentKey + '__sub__' + choiceVal + '__' + subName  (matches bulk table)
+      subDiv.innerHTML = Object.entries(sub).map(([subName, subMeta]) => {
+        const subKey = parentKey + '__sub__' + parentVal + '__' + subName;
+        return renderRegisterField(subName, subMeta, '', {}, null, subKey);
+      }).join('');
+    }
+
+    function collectRegisterCustomData() {
+      const data = {};
+      document.querySelectorAll('#registerCustomFieldsSection [name^="cf_"]').forEach(el => {
+        const key = el.name.replace(/^cf_/, '');
+        const val = el.value.trim();
+        if (val) data[key] = val;
+      });
+      return data;
+    }
+
+    // ─── Custom Field Editor Modal ────────────────────────────────────────────────
+    let _cfeState = { tripId: null, fields: [] };
+    const CFE_ICONS = ['fas fa-bed', 'fas fa-home', 'fas fa-users', 'fas fa-tag', 'fas fa-star', 'fas fa-heart', 'fas fa-flag', 'fas fa-map-marker-alt', 'fas fa-building', 'fas fa-school', 'fas fa-bus', 'fas fa-church', 'fas fa-cross', 'fas fa-book', 'fas fa-pray', 'fas fa-music', 'fas fa-microphone', 'fas fa-paint-brush', 'fas fa-futbol', 'fas fa-bicycle', 'fas fa-utensils', 'fas fa-laptop', 'fas fa-mobile-alt', 'fas fa-camera', 'fas fa-crown', 'fas fa-gem', 'fas fa-fire', 'fas fa-leaf', 'fas fa-sun', 'fas fa-moon', 'fas fa-cloud', 'fas fa-snowflake'];
+
+    function openCustomFieldEditor(tripId) {
+      const trip = allTripsCache.find(t => t.id == tripId);
+      if (!trip) return;
+      _cfeState.tripId = tripId;
+      const fields = parseCustomFieldsString(trip.custom_fields);
+      const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      // Build state: array of field objects with stable IDs
+      _cfeState.fields = fields.map((name, i) => {
+        const meta = icons[name] || {};
+        return {
+          _id: 'f' + Date.now() + i,
+          name,
+          icon: meta.icon || 'fas fa-tag',
+          type: meta.type || 'choices',
+          choices: Array.isArray(meta.choices) ? [...meta.choices] : [],
+          sub_fields: meta.sub_fields ? JSON.parse(JSON.stringify(meta.sub_fields)) : {}
+        };
+      });
+      document.getElementById('cfeModalTitle').textContent = `تعديل الحقول الإضافية: ${trip.title}`;
+      renderCfeFields();
+      openModal('customFieldEditorModal');
+    }
+
+    function renderCfeFields() {
+      const container = document.getElementById('cfeFieldsList');
+      if (!_cfeState.fields.length) {
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد حقول بعد. أضف حقلاً جديداً.</div>`;
+        return;
+      }
+      container.innerHTML = _cfeState.fields.map((f, idx) => renderCfeFieldCard(f, idx)).join('');
+    }
+
+    function renderCfeFieldCard(f, idx) {
+      const choiceTagsHtml = f.choices.map((c, ci) =>
+        `<span class="cfe-choice-tag">${escHtml(c)}<button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button></span>`
+      ).join('');
+
+      // Sub-fields per choice
+      const subFieldsHtml = f.choices.map(choice => {
+        const sub = (f.sub_fields && f.sub_fields[choice]) || {};
+        const subEntries = Object.entries(sub);
+        return `<div style="margin-bottom:10px;">
+            <div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                <i class="fas fa-level-down-alt" style="opacity:.5;"></i> عند اختيار "<strong>${escHtml(choice)}</strong>":
+            </div>
+            ${subEntries.map(([subName, subMeta], si) => `
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:6px 10px;background:white;border-radius:8px;border:1px solid var(--border);">
+                    <button type="button" class="cfe-icon-btn" style="width:30px;height:30px;font-size:0.75rem;" onclick="cfePickSubIcon('${f._id}','${escHtml(choice)}','${escHtml(subName)}')" title="تغيير الأيقونة"><i class="${subMeta.icon || 'fas fa-tag'}"></i></button>
+                    <span style="flex:1;font-size:0.82rem;font-weight:700;">${escHtml(subName)}</span>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;flex:2;">
+                        ${(subMeta.choices || []).map((sc, sci) => `<span class="cfe-choice-tag">${escHtml(sc)}<button type="button" onclick="cfeRemoveSubChoice('${f._id}','${escHtml(choice)}','${escHtml(subName)}',${sci})"><i class="fas fa-times"></i></button></span>`).join('')}
+                        <div class="cfe-add-choice" style="margin-top:2px;">
+                            <input type="text" class="form-input" id="subChoiceInput_${f._id}_${escHtml(choice)}_${si}" placeholder="خيار جديد..." style="min-width:80px;max-width:120px;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubChoice('${f._id}','${escHtml(choice)}','${escHtml(subName)}',${si})"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <button type="button" class="act-btn act-delete" style="width:26px;height:26px;font-size:0.65rem;" onclick="cfeRemoveSubField('${f._id}','${escHtml(choice)}','${escHtml(subName)}')"><i class="fas fa-trash"></i></button>
+                </div>`).join('')}
+            <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+                <input type="text" class="form-input" id="newSubName_${f._id}_${escHtml(choice)}" placeholder="اسم الحقل الفرعي..." style="flex:1;font-size:0.82rem;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubField('${f._id}','${escHtml(choice)}')"><i class="fas fa-plus"></i> إضافة حقل فرعي</button>
+            </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="cfe-field-card" id="cfe_card_${f._id}">
+        <div class="cfe-field-row">
+            <button type="button" class="cfe-icon-btn" onclick="cfePickIcon('${f._id}')" title="تغيير الأيقونة" id="cfe_iconbtn_${f._id}"><i id="cfe_icon_${f._id}" class="${f.icon}"></i></button>
+            <input type="text" class="form-input" value="${escHtml(f.name)}" placeholder="اسم الحقل" style="font-weight:700;" onchange="cfeUpdateName('${f._id}',this.value)" oninput="cfeUpdateName('${f._id}',this.value)">
+            <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
+        </div>
+        <div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات:</div>
+            <div class="cfe-choices-list" id="cfe_choices_${f._id}">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
+            <div class="cfe-add-choice" style="margin-top:8px;">
+                <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
+                <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+        ${f.choices.length > 0 ? `<details style="margin-top:4px;"><summary style="font-size:0.75rem;font-weight:800;color:var(--primary);cursor:pointer;"><i class="fas fa-sitemap"></i> الحقول الفرعية (Sub-fields)</summary><div class="cfe-sub-fields" style="margin-top:10px;">${subFieldsHtml}</div></details>` : ''}
+    </div>`;
+    }
+
+    function cfeUpdateName(id, val) {
+      const f = _cfeState.fields.find(x => x._id === id);
+      if (f) f.name = val;
+    }
+    function cfePickIcon(id) {
+      // Close any open pickers
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      const btn = document.getElementById('cfe_iconbtn_' + id);
+      if (!btn) return;
+      const popup = document.createElement('div');
+      popup.className = 'cfe-icon-picker-popup';
+      popup.style.top = (btn.offsetTop + btn.offsetHeight + 4) + 'px';
+      popup.style.right = btn.offsetLeft + 'px';
+      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetIcon('${id}','${ic}')"><i class="${ic}"></i></button>`).join('');
+      btn.parentElement.style.position = 'relative';
+      btn.parentElement.appendChild(popup);
+      setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target) && e.target !== btn) { popup.remove(); document.removeEventListener('click', h); } }), 10);
+    }
+    function cfeSetIcon(id, icon) {
+      const f = _cfeState.fields.find(x => x._id === id);
+      if (f) { f.icon = icon; }
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      renderCfeFields();
+    }
+    function cfePickSubIcon(parentId, choice, subName) {
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      // We'll just use a global approach — render picker near the button
+      const allBtns = document.querySelectorAll('.cfe-icon-btn');
+      // Find a nearby element to anchor to — fallback to body
+      const popup = document.createElement('div');
+      popup.className = 'cfe-icon-picker-popup';
+      popup.style.position = 'fixed';
+      popup.style.top = '30%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translateX(-50%)';
+      popup.style.zIndex = '9999';
+      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetSubIcon('${parentId}','${choice}','${subName}','${ic}')"><i class="${ic}"></i></button>`).join('');
+      document.body.appendChild(popup);
+      setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', h); } }), 10);
+    }
+    function cfeSetSubIcon(parentId, choice, subName, icon) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      if (f && f.sub_fields && f.sub_fields[choice] && f.sub_fields[choice][subName]) {
+        f.sub_fields[choice][subName].icon = icon;
+      }
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      renderCfeFields();
+    }
+    function cfeRemoveField(id) {
+      _cfeState.fields = _cfeState.fields.filter(x => x._id !== id);
+      renderCfeFields();
+    }
+    function cfeAddChoice(id) {
+      const f = _cfeState.fields.find(x => x._id === id);
+      const inp = document.getElementById('cfe_newChoice_' + id);
+      const val = inp ? inp.value.trim() : '';
+      if (!f || !val) return;
+      if (!f.choices.includes(val)) f.choices.push(val);
+      renderCfeFields();
+    }
+    function cfeRemoveChoice(id, ci) {
+      const f = _cfeState.fields.find(x => x._id === id);
+      if (!f) return;
+      const removed = f.choices[ci];
+      f.choices.splice(ci, 1);
+      // Remove sub-field for this choice
+      if (f.sub_fields && removed) delete f.sub_fields[removed];
+      renderCfeFields();
+    }
+    function cfeAddField() {
+      _cfeState.fields.push({ _id: 'f' + Date.now(), name: '', icon: 'fas fa-tag', type: 'choices', choices: [], sub_fields: {} });
+      renderCfeFields();
+      // Focus the new name input
+      setTimeout(() => {
+        const last = document.querySelector('#cfeFieldsList .cfe-field-card:last-child input[type=text]');
+        if (last) last.focus();
+      }, 50);
+    }
+    function cfeAddSubField(parentId, choice) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      const inp = document.getElementById('newSubName_' + parentId + '_' + choice);
+      const name = inp ? inp.value.trim() : '';
+      if (!f || !name) { showToast('أدخل اسم الحقل الفرعي', 'warning'); return; }
+      if (!f.sub_fields) f.sub_fields = {};
+      if (!f.sub_fields[choice]) f.sub_fields[choice] = {};
+      if (!f.sub_fields[choice][name]) f.sub_fields[choice][name] = { icon: 'fas fa-tag', type: 'choices', choices: [] };
+      renderCfeFields();
+    }
+    function cfeRemoveSubField(parentId, choice, subName) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      if (f && f.sub_fields && f.sub_fields[choice]) {
+        delete f.sub_fields[choice][subName];
+        renderCfeFields();
+      }
+    }
+    function cfeAddSubChoice(parentId, choice, subName, si) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      const inp = document.getElementById('subChoiceInput_' + parentId + '_' + choice + '_' + si);
+      const val = inp ? inp.value.trim() : '';
+      if (!f || !val) return;
+      if (!f.sub_fields[choice][subName].choices) f.sub_fields[choice][subName].choices = [];
+      if (!f.sub_fields[choice][subName].choices.includes(val)) f.sub_fields[choice][subName].choices.push(val);
+      renderCfeFields();
+    }
+    function cfeRemoveSubChoice(parentId, choice, subName, ci) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      if (f && f.sub_fields && f.sub_fields[choice] && f.sub_fields[choice][subName]) {
+        f.sub_fields[choice][subName].choices.splice(ci, 1);
+        renderCfeFields();
+      }
+    }
+
+    async function cfeSave() {
+      const tripId = _cfeState.tripId;
+      const trip = allTripsCache.find(t => t.id == tripId);
+      if (!trip) return;
+      // Validate
+      for (const f of _cfeState.fields) {
+        if (!f.name.trim()) { showToast('أدخل اسم لكل حقل', 'warning'); return; }
+      }
+      const customFields = _cfeState.fields.map(f => f.name.trim()).join(',');
+      const customFieldIcons = {};
+      _cfeState.fields.forEach(f => {
+        customFieldIcons[f.name.trim()] = { icon: f.icon, type: f.type, choices: f.choices, sub_fields: f.sub_fields || {} };
+      });
+      const fd = new FormData();
+      fd.append('action', 'updateTrip');
+      fd.append('trip_id', tripId);
+      // Pass all existing trip fields to avoid overwriting
+      fd.append('title', trip.title || '');
+      fd.append('description', trip.description || '');
+      fd.append('type', trip.type || 'one_day');
+      fd.append('start_date', trip.start_date || '');
+      fd.append('end_date', trip.end_date || '');
+      fd.append('price', trip.price || 0);
+      fd.append('discount', trip.discount || 0);
+      fd.append('discount_type', trip.discount_type || 'percentage');
+      fd.append('max_participants', trip.max_participants || 0);
+      fd.append('status', trip.status || 'planned');
+      fd.append('show_registered_kids', trip.show_registered_kids ?? 1);
+      fd.append('has_points_game', trip.has_points_game ?? 0);
+      fd.append('custom_fields', customFields);
+      fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
+      const btn = document.getElementById('cfeSaveBtn');
+      btn.classList.add('btn-loading'); btn.disabled = true;
+      const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      btn.classList.remove('btn-loading'); btn.disabled = false;
+      if (res.success) {
+        // Update local cache
+        trip.custom_fields = customFields;
+        trip.custom_field_icons = customFieldIcons;
+        showToast('تم حفظ الحقول الإضافية ✅', 'success');
+        closeModal('customFieldEditorModal');
+        // Refresh trip details
+        await showTripDetails(tripId);
+      } else {
+        showToast(res.message || 'فشل في الحفظ', 'error');
+      }
+    }
+
+    async function bulkCustomDataSave() {
+      const tripId = document.getElementById('bulkCustomDataTripId').value;
+      const rows = Array.from(document.querySelectorAll('#bulkCustomDataTable tbody tr'));
+      if (!rows.length) { showToast('لا يوجد بيانات لحفظها', 'warning'); return; }
+      const payload = rows.map(row => {
         const regId = row.dataset.regId;
         const customData = {};
         row.querySelectorAll('.bulk-custom-data-input').forEach(input => {
-            const key = input.dataset.field;
-            const val = input.value.trim();
-            if (val !== '') customData[key] = val;
+          const key = input.dataset.field;
+          const val = input.value.trim();
+          if (val !== '') customData[key] = val;
         });
         return { registration_id: regId, custom_data: customData };
-    });
-    const fd = new FormData();
-    fd.append('action', 'bulkUpdateCustomData');
-    fd.append('trip_id', tripId);
-    fd.append('data', JSON.stringify(payload));
-    const btn = document.getElementById('bulkCustomDataSubmitBtn');
-    btn.classList.add('btn-loading'); btn.disabled = true;
-    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-    btn.classList.remove('btn-loading'); btn.disabled = false;
-    if (res.success) {
+      });
+      const fd = new FormData();
+      fd.append('action', 'bulkUpdateCustomData');
+      fd.append('trip_id', tripId);
+      fd.append('data', JSON.stringify(payload));
+      const btn = document.getElementById('bulkCustomDataSubmitBtn');
+      btn.classList.add('btn-loading'); btn.disabled = true;
+      const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      btn.classList.remove('btn-loading'); btn.disabled = false;
+      if (res.success) {
         showToast(`تم تحديث ${res.updated} سجل بنجاح!`, 'success');
         closeModal('bulkCustomDataModal');
         window.location.reload();
-    } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
-}
+      } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
+    }
 
-function printQRCards(tripId) {
-    const regs = tripRegistrationsCache[tripId] || [];
-    const trip = allTripsCache.find(t => t.id == tripId);
-    if(!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = '';
-    regs.forEach(r => {
+    function printQRCards(tripId) {
+      const regs = tripRegistrationsCache[tripId] || [];
+      const trip = allTripsCache.find(t => t.id == tripId);
+      if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = '';
+      regs.forEach(r => {
         const name = r.student_name || '؟';
-        const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text='+name.charAt(0);
+        const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
         let customHtml = '';
-        if(r.custom_data) {
-            try {
-                const cd = JSON.parse(r.custom_data);
-                const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
-                customHtml = Object.entries(cd).map(([key, value]) => {
-                  let iconClass = 'fas fa-tag';
-                  if(trip.custom_field_icons && trip.custom_field_icons[key]) {
-                    const meta = trip.custom_field_icons[key];
-                    iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
-                  }
-                  return `<i class="${iconClass}"></i> ${value}`;
-                }).join(' | ');
-            } catch(e){}
+        if (r.custom_data) {
+          try {
+            const cd = JSON.parse(r.custom_data);
+            const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
+            customHtml = Object.entries(cd).map(([key, value]) => {
+              let iconClass = 'fas fa-tag';
+              if (trip.custom_field_icons && trip.custom_field_icons[key]) {
+                const meta = trip.custom_field_icons[key];
+                iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+              }
+              return `<i class="${iconClass}"></i> ${value}`;
+            }).join(' | ');
+          } catch (e) { }
         }
         const cardId = 'qrcode_' + r.id;
         const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
@@ -3935,39 +4522,79 @@ function printQRCards(tripId) {
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
         </div>`;
         setTimeout(() => {
-            new QRCode(document.getElementById(cardId), { text: link, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+          new QRCode(document.getElementById(cardId), { text: link, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
         }, 100);
-    });
-    // Allow extra time for QR images to be generated before invoking print
-    setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1500); }, 1500);
-}
-</script>
+      });
+      // Allow extra time for QR images to be generated before invoking print
+      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1500); }, 1500);
+    }
+  </script>
 
-<!-- Bulk Custom Data Update -->
-<div id="bulkCustomDataModal" class="modal">
+  <!-- Bulk Custom Data Update -->
+  <div id="bulkCustomDataModal" class="modal">
     <div class="modal-box wide">
-        <div class="modal-head"><h2><i class="fas fa-table"></i> تحديث بيانات الحقول الإضافية</h2><button class="modal-close" onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button></div>
-        <div class="modal-body">
-            <input type="hidden" id="bulkCustomDataTripId">
-            <div id="bulkCustomDataHeader" style="font-weight:700;margin-bottom:10px;"></div>
-            <div id="bulkCustomDataFieldsInfo" style="margin-bottom:14px;color:var(--muted);font-size:0.9rem;"></div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                <button class="btn btn-outline btn-sm" type="button" onclick="downloadCustomDataCSV(document.getElementById('bulkCustomDataTripId').value)"><i class="fas fa-file-download"></i> تنزيل CSV</button>
-                <button class="btn btn-outline btn-sm" type="button" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>
-            </div>
-            <div id="bulkCustomDataTable" style="overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:12px;padding:12px;">
-                <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة لعرض جدول التحديث.</div>
-            </div>
-            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                <button type="button" class="btn btn-primary" onclick="bulkCustomDataSave()" id="bulkCustomDataSubmitBtn"><i class="fas fa-save"></i> حفظ التحديثات</button>
-                <button type="button" class="btn btn-outline" onclick="closeModal('bulkCustomDataModal')">إلغاء</button>
-            </div>
+      <div class="modal-head">
+        <h2><i class="fas fa-table"></i> تحديث بيانات الحقول الإضافية</h2><button class="modal-close"
+          onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="bulkCustomDataTripId">
+        <div id="bulkCustomDataHeader" style="font-weight:700;margin-bottom:10px;"></div>
+        <div id="bulkCustomDataFieldsInfo" style="margin-bottom:14px;color:var(--muted);font-size:0.9rem;"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="btn btn-outline btn-sm" type="button"
+            onclick="downloadCustomDataCSV(document.getElementById('bulkCustomDataTripId').value)"><i
+              class="fas fa-file-download"></i> تنزيل CSV</button>
+          <button class="btn btn-outline btn-sm" type="button"
+            onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع
+            CSV</button>
         </div>
+        <div id="bulkCustomDataTable"
+          style="overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:12px;padding:12px;">
+          <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة لعرض جدول التحديث.</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" onclick="bulkCustomDataSave()" id="bulkCustomDataSubmitBtn"><i
+              class="fas fa-save"></i> حفظ التحديثات</button>
+          <button type="button" class="btn btn-outline" onclick="closeModal('bulkCustomDataModal')">إلغاء</button>
+        </div>
+      </div>
     </div>
-</div>
-<input type="file" id="uploadCustomDataCsv" accept=".csv" style="display:none;" onchange="uploadCustomDataCSV(event, window.currentTripId || document.getElementById('bulkCustomDataTripId')?.value)">
+  </div>
+  <input type="file" id="uploadCustomDataCsv" accept=".csv" style="display:none;"
+    onchange="uploadCustomDataCSV(event, window.currentTripId || document.getElementById('bulkCustomDataTripId')?.value)">
 
-<!-- Print Area -->
-<div id="printArea" style="display:none;"></div>
+  <!-- Custom Field Editor Modal -->
+  <div id="customFieldEditorModal" class="modal">
+    <div class="modal-box wide" style="max-width:720px;">
+      <div class="modal-head">
+        <h2><i class="fas fa-sliders-h"></i> <span id="cfeModalTitle">تعديل الحقول الإضافية</span></h2>
+        <button class="modal-close" onclick="closeModal('customFieldEditorModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div
+          style="background:var(--primary-light);border-radius:10px;padding:12px 14px;font-size:0.82rem;color:var(--primary);display:flex;align-items:flex-start;gap:8px;">
+          <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0;"></i>
+          <div>يمكنك تعديل أسماء الحقول وأيقوناتها وخياراتها. كل حقل يمكن أن يحتوي على <strong>حقول فرعية</strong> تظهر
+            عند اختيار خيار معين (مثلاً: عند اختيار مبنى معين، تظهر خيارات الغرف الخاصة به).</div>
+        </div>
+        <div id="cfeFieldsList"
+          style="display:flex;flex-direction:column;gap:12px;max-height:55vh;overflow-y:auto;padding:2px 4px;"></div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddField()" style="align-self:flex-start;">
+          <i class="fas fa-plus"></i> إضافة حقل جديد
+        </button>
+        <div
+          style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+          <button type="button" class="btn btn-primary" onclick="cfeSave()" id="cfeSaveBtn"><i class="fas fa-save"></i>
+            حفظ التغييرات</button>
+          <button type="button" class="btn btn-outline" onclick="closeModal('customFieldEditorModal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Area -->
+  <div id="printArea" style="display:none;"></div>
 </body>
+
 </html>
