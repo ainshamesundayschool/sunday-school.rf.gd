@@ -4252,6 +4252,10 @@
     }
 
     // ─── Custom Field Editor Modal ────────────────────────────────────────────────
+    // Data model per field:
+    //   { _id, name, icon, type: 'choices'|'sub_group',
+    //     choices: [],           // used when type==='choices'
+    //     sub_fields: [{_id,name,icon,choices:[]}] }  // used when type==='sub_group'
     let _cfeState = { tripId: null, fields: [] };
     const CFE_ICONS = ['fas fa-bed', 'fas fa-home', 'fas fa-users', 'fas fa-tag', 'fas fa-star', 'fas fa-heart', 'fas fa-flag', 'fas fa-map-marker-alt', 'fas fa-building', 'fas fa-school', 'fas fa-bus', 'fas fa-church', 'fas fa-cross', 'fas fa-book', 'fas fa-pray', 'fas fa-music', 'fas fa-microphone', 'fas fa-paint-brush', 'fas fa-futbol', 'fas fa-bicycle', 'fas fa-utensils', 'fas fa-laptop', 'fas fa-mobile-alt', 'fas fa-camera', 'fas fa-crown', 'fas fa-gem', 'fas fa-fire', 'fas fa-leaf', 'fas fa-sun', 'fas fa-moon', 'fas fa-cloud', 'fas fa-snowflake'];
 
@@ -4259,18 +4263,28 @@
       const trip = allTripsCache.find(t => t.id == tripId);
       if (!trip) return;
       _cfeState.tripId = tripId;
-      const fields = parseCustomFieldsString(trip.custom_fields);
-      const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      // Build state: array of field objects with stable IDs
-      _cfeState.fields = fields.map((name, i) => {
-        const meta = icons[name] || {};
+      const fieldNames = parseCustomFieldsString(trip.custom_fields);
+      const iconsRaw = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      _cfeState.fields = fieldNames.map((name, i) => {
+        const meta = iconsRaw[name] || {};
+        // Normalise sub_fields: stored as flat array or legacy object
+        let subArr = [];
+        if (meta.type === 'sub_group') {
+          const raw = meta.sub_fields;
+          if (Array.isArray(raw)) {
+            subArr = raw.map((sf, si) => ({ _id: 'sf' + Date.now() + i + si, name: sf.name || '', icon: sf.icon || 'fas fa-tag', choices: Array.isArray(sf.choices) ? [...sf.choices] : [] }));
+          } else if (raw && typeof raw === 'object') {
+            // legacy: {subName: {icon,choices}}
+            subArr = Object.entries(raw).map(([sn, sm], si) => ({ _id: 'sf' + Date.now() + i + si, name: sn, icon: sm.icon || 'fas fa-tag', choices: Array.isArray(sm.choices) ? [...sm.choices] : [] }));
+          }
+        }
         return {
           _id: 'f' + Date.now() + i,
           name,
           icon: meta.icon || 'fas fa-tag',
-          type: meta.type || 'choices',
+          type: meta.type === 'sub_group' ? 'sub_group' : 'choices',
           choices: Array.isArray(meta.choices) ? [...meta.choices] : [],
-          sub_fields: meta.sub_fields ? JSON.parse(JSON.stringify(meta.sub_fields)) : {}
+          sub_fields: subArr
         };
       });
       document.getElementById('cfeModalTitle').textContent = `تعديل الحقول الإضافية: ${trip.title}`;
@@ -4278,117 +4292,125 @@
       openModal('customFieldEditorModal');
     }
 
+
+
     function renderCfeFields() {
-      const container = document.getElementById('cfeFieldsList');
-      if (!_cfeState.fields.length) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد حقول بعد. أضف حقلاً جديداً.</div>`;
-        return;
-      }
-      container.innerHTML = _cfeState.fields.map((f, idx) => renderCfeFieldCard(f, idx)).join('');
+      const c = document.getElementById('cfeFieldsList');
+      if (!_cfeState.fields.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد حقول بعد.</div>`; return; }
+      c.innerHTML = _cfeState.fields.map(f => renderCfeFieldCard(f)).join('');
     }
 
-    function renderCfeFieldCard(f, idx) {
-      const choiceTagsHtml = f.choices.map((c, ci) =>
-        `<span class="cfe-choice-tag">${escHtml(c)}<button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button></span>`
-      ).join('');
+    function renderCfeFieldCard(f) {
+      const isGroup = f.type === 'sub_group';
 
-      // Sub-fields per choice
-      const subFieldsHtml = f.choices.map(choice => {
-        const sub = (f.sub_fields && f.sub_fields[choice]) || {};
-        const subEntries = Object.entries(sub);
-        return `<div style="margin-bottom:10px;">
-            <div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                <i class="fas fa-level-down-alt" style="opacity:.5;"></i> عند اختيار "<strong>${escHtml(choice)}</strong>":
+      // ── choices mode ──────────────────────────────────────────
+      const choiceTagsHtml = !isGroup ? f.choices.map((c, ci) =>
+        `<span class="cfe-choice-tag">${escHtml(c)}<button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button></span>`
+      ).join('') : '';
+
+      // ── sub_group mode ────────────────────────────────────────
+      const subFieldsHtml = isGroup ? (f.sub_fields || []).map((sf, si) => {
+        const scTags = sf.choices.map((sc, sci) =>
+          `<span class="cfe-choice-tag">${escHtml(sc)}<button type="button" onclick="cfeRemoveSubChoice('${f._id}',${si},${sci})"><i class="fas fa-times"></i></button></span>`
+        ).join('');
+        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding:10px;background:white;border-radius:10px;border:1px solid var(--border);">
+          <button type="button" class="cfe-icon-btn" style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;" onclick="cfePickSubIcon('${f._id}',${si})"><i class="${sf.icon || 'fas fa-tag'}"></i></button>
+          <div style="flex:1;min-width:0;">
+            <input type="text" class="form-input" value="${escHtml(sf.name)}" placeholder="اسم الحقل الفرعي" style="font-weight:700;margin-bottom:6px;" oninput="cfeUpdateSubName('${f._id}',${si},this.value)">
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${scTags || '<span style="color:var(--muted);font-size:0.72rem;">لا يوجد خيارات</span>'}</div>
+            <div class="cfe-add-choice">
+              <input type="text" class="form-input" id="sfChoiceInp_${f._id}_${si}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddSubChoice('${f._id}',${si});}">
+              <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubChoice('${f._id}',${si})"><i class="fas fa-plus"></i></button>
             </div>
-            ${subEntries.map(([subName, subMeta], si) => `
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:6px 10px;background:white;border-radius:8px;border:1px solid var(--border);">
-                    <button type="button" class="cfe-icon-btn" style="width:30px;height:30px;font-size:0.75rem;" onclick="cfePickSubIcon('${f._id}','${escHtml(choice)}','${escHtml(subName)}')" title="تغيير الأيقونة"><i class="${subMeta.icon || 'fas fa-tag'}"></i></button>
-                    <span style="flex:1;font-size:0.82rem;font-weight:700;">${escHtml(subName)}</span>
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;flex:2;">
-                        ${(subMeta.choices || []).map((sc, sci) => `<span class="cfe-choice-tag">${escHtml(sc)}<button type="button" onclick="cfeRemoveSubChoice('${f._id}','${escHtml(choice)}','${escHtml(subName)}',${sci})"><i class="fas fa-times"></i></button></span>`).join('')}
-                        <div class="cfe-add-choice" style="margin-top:2px;">
-                            <input type="text" class="form-input" id="subChoiceInput_${f._id}_${escHtml(choice)}_${si}" placeholder="خيار جديد..." style="min-width:80px;max-width:120px;">
-                            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubChoice('${f._id}','${escHtml(choice)}','${escHtml(subName)}',${si})"><i class="fas fa-plus"></i></button>
-                        </div>
-                    </div>
-                    <button type="button" class="act-btn act-delete" style="width:26px;height:26px;font-size:0.65rem;" onclick="cfeRemoveSubField('${f._id}','${escHtml(choice)}','${escHtml(subName)}')"><i class="fas fa-trash"></i></button>
-                </div>`).join('')}
-            <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
-                <input type="text" class="form-input" id="newSubName_${f._id}_${escHtml(choice)}" placeholder="اسم الحقل الفرعي..." style="flex:1;font-size:0.82rem;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubField('${f._id}','${escHtml(choice)}')"><i class="fas fa-plus"></i> إضافة حقل فرعي</button>
-            </div>
+          </div>
+          <button type="button" class="act-btn act-delete" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;" onclick="cfeRemoveSubField('${f._id}',${si})"><i class="fas fa-trash"></i></button>
         </div>`;
-      }).join('');
+      }).join('') : '';
+
+      const typeBtnChoices = `<button type="button" onclick="cfeSetType('${f._id}','choices')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${!isGroup?'var(--primary)':'var(--border)'};background:${!isGroup?'var(--primary)':'transparent'};color:${!isGroup?'white':'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">خيارات</button>`;
+      const typeBtnGroup = `<button type="button" onclick="cfeSetType('${f._id}','sub_group')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${isGroup?'var(--primary)':'var(--border)'};background:${isGroup?'var(--primary)':'transparent'};color:${isGroup?'white':'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">مجموعة فرعية</button>`;
 
       return `<div class="cfe-field-card" id="cfe_card_${f._id}">
         <div class="cfe-field-row">
-            <button type="button" class="cfe-icon-btn" onclick="cfePickIcon('${f._id}')" title="تغيير الأيقونة" id="cfe_iconbtn_${f._id}"><i id="cfe_icon_${f._id}" class="${f.icon}"></i></button>
-            <input type="text" class="form-input" value="${escHtml(f.name)}" placeholder="اسم الحقل" style="font-weight:700;" onchange="cfeUpdateName('${f._id}',this.value)" oninput="cfeUpdateName('${f._id}',this.value)">
-            <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
+          <button type="button" class="cfe-icon-btn" onclick="cfePickIcon('${f._id}')" id="cfe_iconbtn_${f._id}"><i id="cfe_icon_${f._id}" class="${f.icon}"></i></button>
+          <input type="text" class="form-input" value="${escHtml(f.name)}" placeholder="اسم الحقل" style="font-weight:700;" oninput="cfeUpdateName('${f._id}',this.value)">
+          <div style="display:flex;gap:4px;flex-shrink:0;">${typeBtnChoices}${typeBtnGroup}</div>
+          <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
         </div>
-        <div>
+        ${isGroup ? `
+          <div style="margin-top:8px;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;">الحقول الفرعية (كل حقل له خياراته الخاصة):</div>
+            ${subFieldsHtml}
+            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubField('${f._id}')" style="margin-top:4px;"><i class="fas fa-plus"></i> إضافة حقل فرعي</button>
+          </div>` : `
+          <div style="margin-top:8px;">
             <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات:</div>
-            <div class="cfe-choices-list" id="cfe_choices_${f._id}">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
+            <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
             <div class="cfe-add-choice" style="margin-top:8px;">
-                <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
-                <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
+              <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
+              <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
             </div>
-        </div>
-        ${f.choices.length > 0 ? `<details style="margin-top:4px;"><summary style="font-size:0.75rem;font-weight:800;color:var(--primary);cursor:pointer;"><i class="fas fa-sitemap"></i> الحقول الفرعية (Sub-fields)</summary><div class="cfe-sub-fields" style="margin-top:10px;">${subFieldsHtml}</div></details>` : ''}
-    </div>`;
+          </div>`}
+      </div>`;
     }
 
     function cfeUpdateName(id, val) {
       const f = _cfeState.fields.find(x => x._id === id);
       if (f) f.name = val;
     }
+    function cfeUpdateSubName(parentId, si, val) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
+      if (f && f.sub_fields[si]) f.sub_fields[si].name = val;
+    }
+    function cfeSetType(id, type) {
+      const f = _cfeState.fields.find(x => x._id === id);
+      if (!f) return;
+      f.type = type;
+      if (type === 'sub_group' && !Array.isArray(f.sub_fields)) f.sub_fields = [];
+      if (type === 'choices' && !Array.isArray(f.choices)) f.choices = [];
+      renderCfeFields();
+    }
     function cfePickIcon(id) {
-      // Close any open pickers
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
       const btn = document.getElementById('cfe_iconbtn_' + id);
       if (!btn) return;
       const popup = document.createElement('div');
       popup.className = 'cfe-icon-picker-popup';
-      popup.style.top = (btn.offsetTop + btn.offsetHeight + 4) + 'px';
-      popup.style.right = btn.offsetLeft + 'px';
+      popup.style.cssText = 'position:absolute;z-index:9999;top:100%;right:0;';
       popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetIcon('${id}','${ic}')"><i class="${ic}"></i></button>`).join('');
-      btn.parentElement.style.position = 'relative';
-      btn.parentElement.appendChild(popup);
+      btn.style.position = 'relative';
+      btn.appendChild(popup);
       setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target) && e.target !== btn) { popup.remove(); document.removeEventListener('click', h); } }), 10);
     }
     function cfeSetIcon(id, icon) {
       const f = _cfeState.fields.find(x => x._id === id);
-      if (f) { f.icon = icon; }
+      if (f) f.icon = icon;
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
       renderCfeFields();
     }
-    function cfePickSubIcon(parentId, choice, subName) {
+    function cfePickSubIcon(parentId, si) {
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
-      // We'll just use a global approach — render picker near the button
-      const allBtns = document.querySelectorAll('.cfe-icon-btn');
-      // Find a nearby element to anchor to — fallback to body
       const popup = document.createElement('div');
       popup.className = 'cfe-icon-picker-popup';
-      popup.style.position = 'fixed';
-      popup.style.top = '30%';
-      popup.style.left = '50%';
-      popup.style.transform = 'translateX(-50%)';
-      popup.style.zIndex = '9999';
-      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetSubIcon('${parentId}','${choice}','${subName}','${ic}')"><i class="${ic}"></i></button>`).join('');
+      popup.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;';
+      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetSubIcon('${parentId}',${si},'${ic}')"><i class="${ic}"></i></button>`).join('');
       document.body.appendChild(popup);
       setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', h); } }), 10);
     }
-    function cfeSetSubIcon(parentId, choice, subName, icon) {
+    function cfeSetSubIcon(parentId, si, icon) {
       const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields && f.sub_fields[choice] && f.sub_fields[choice][subName]) {
-        f.sub_fields[choice][subName].icon = icon;
-      }
+      if (f && f.sub_fields[si]) f.sub_fields[si].icon = icon;
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
       renderCfeFields();
     }
     function cfeRemoveField(id) {
       _cfeState.fields = _cfeState.fields.filter(x => x._id !== id);
       renderCfeFields();
+    }
+    function cfeAddField() {
+      _cfeState.fields.push({ _id: 'f' + Date.now(), name: '', icon: 'fas fa-tag', type: 'choices', choices: [], sub_fields: [] });
+      renderCfeFields();
+      setTimeout(() => { const last = document.querySelector('#cfeFieldsList .cfe-field-card:last-child input[type=text]'); if (last) last.focus(); }, 50);
     }
     function cfeAddChoice(id) {
       const f = _cfeState.fields.find(x => x._id === id);
@@ -4400,83 +4422,63 @@
     }
     function cfeRemoveChoice(id, ci) {
       const f = _cfeState.fields.find(x => x._id === id);
+      if (f) { f.choices.splice(ci, 1); renderCfeFields(); }
+    }
+    function cfeAddSubField(parentId) {
+      const f = _cfeState.fields.find(x => x._id === parentId);
       if (!f) return;
-      const removed = f.choices[ci];
-      f.choices.splice(ci, 1);
-      // Remove sub-field for this choice
-      if (f.sub_fields && removed) delete f.sub_fields[removed];
+      if (!Array.isArray(f.sub_fields)) f.sub_fields = [];
+      f.sub_fields.push({ _id: 'sf' + Date.now(), name: '', icon: 'fas fa-tag', choices: [] });
       renderCfeFields();
+      setTimeout(() => { const cards = document.querySelectorAll(`#cfe_card_${parentId} input[type=text]`); if (cards.length) cards[cards.length - 1].focus(); }, 50);
     }
-    function cfeAddField() {
-      _cfeState.fields.push({ _id: 'f' + Date.now(), name: '', icon: 'fas fa-tag', type: 'choices', choices: [], sub_fields: {} });
-      renderCfeFields();
-      // Focus the new name input
-      setTimeout(() => {
-        const last = document.querySelector('#cfeFieldsList .cfe-field-card:last-child input[type=text]');
-        if (last) last.focus();
-      }, 50);
-    }
-    function cfeAddSubField(parentId, choice) {
+    function cfeRemoveSubField(parentId, si) {
       const f = _cfeState.fields.find(x => x._id === parentId);
-      const inp = document.getElementById('newSubName_' + parentId + '_' + choice);
-      const name = inp ? inp.value.trim() : '';
-      if (!f || !name) { showToast('أدخل اسم الحقل الفرعي', 'warning'); return; }
-      if (!f.sub_fields) f.sub_fields = {};
-      if (!f.sub_fields[choice]) f.sub_fields[choice] = {};
-      if (!f.sub_fields[choice][name]) f.sub_fields[choice][name] = { icon: 'fas fa-tag', type: 'choices', choices: [] };
-      renderCfeFields();
+      if (f && f.sub_fields) { f.sub_fields.splice(si, 1); renderCfeFields(); }
     }
-    function cfeRemoveSubField(parentId, choice, subName) {
+    function cfeAddSubChoice(parentId, si) {
       const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields && f.sub_fields[choice]) {
-        delete f.sub_fields[choice][subName];
-        renderCfeFields();
-      }
-    }
-    function cfeAddSubChoice(parentId, choice, subName, si) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      const inp = document.getElementById('subChoiceInput_' + parentId + '_' + choice + '_' + si);
+      const inp = document.getElementById(`sfChoiceInp_${parentId}_${si}`);
       const val = inp ? inp.value.trim() : '';
-      if (!f || !val) return;
-      if (!f.sub_fields[choice][subName].choices) f.sub_fields[choice][subName].choices = [];
-      if (!f.sub_fields[choice][subName].choices.includes(val)) f.sub_fields[choice][subName].choices.push(val);
+      if (!f || !val || !f.sub_fields[si]) return;
+      if (!f.sub_fields[si].choices.includes(val)) f.sub_fields[si].choices.push(val);
       renderCfeFields();
     }
-    function cfeRemoveSubChoice(parentId, choice, subName, ci) {
+    function cfeRemoveSubChoice(parentId, si, ci) {
       const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields && f.sub_fields[choice] && f.sub_fields[choice][subName]) {
-        f.sub_fields[choice][subName].choices.splice(ci, 1);
-        renderCfeFields();
-      }
+      if (f && f.sub_fields[si]) { f.sub_fields[si].choices.splice(ci, 1); renderCfeFields(); }
     }
 
     async function cfeSave() {
       const tripId = _cfeState.tripId;
       const trip = allTripsCache.find(t => t.id == tripId);
       if (!trip) return;
-      // Validate
       for (const f of _cfeState.fields) {
         if (!f.name.trim()) { showToast('أدخل اسم لكل حقل', 'warning'); return; }
+        if (f.type === 'sub_group') {
+          for (const sf of (f.sub_fields || [])) {
+            if (!sf.name.trim()) { showToast('أدخل اسم لكل حقل فرعي', 'warning'); return; }
+          }
+        }
       }
       const customFields = _cfeState.fields.map(f => f.name.trim()).join(',');
       const customFieldIcons = {};
       _cfeState.fields.forEach(f => {
-        customFieldIcons[f.name.trim()] = { icon: f.icon, type: f.type, choices: f.choices, sub_fields: f.sub_fields || {} };
+        const payload = { icon: f.icon, type: f.type };
+        if (f.type === 'sub_group') {
+          payload.sub_fields = (f.sub_fields || []).map(sf => ({ name: sf.name, icon: sf.icon, choices: sf.choices }));
+        } else {
+          payload.choices = f.choices;
+        }
+        customFieldIcons[f.name.trim()] = payload;
       });
       const fd = new FormData();
-      fd.append('action', 'updateTrip');
-      fd.append('trip_id', tripId);
-      // Pass all existing trip fields to avoid overwriting
-      fd.append('title', trip.title || '');
-      fd.append('description', trip.description || '');
-      fd.append('type', trip.type || 'one_day');
-      fd.append('start_date', trip.start_date || '');
-      fd.append('end_date', trip.end_date || '');
-      fd.append('price', trip.price || 0);
-      fd.append('discount', trip.discount || 0);
-      fd.append('discount_type', trip.discount_type || 'percentage');
-      fd.append('max_participants', trip.max_participants || 0);
-      fd.append('status', trip.status || 'planned');
+      fd.append('action', 'updateTrip'); fd.append('trip_id', tripId);
+      fd.append('title', trip.title || ''); fd.append('description', trip.description || '');
+      fd.append('type', trip.type || 'one_day'); fd.append('start_date', trip.start_date || '');
+      fd.append('end_date', trip.end_date || ''); fd.append('price', trip.price || 0);
+      fd.append('discount', trip.discount || 0); fd.append('discount_type', trip.discount_type || 'percentage');
+      fd.append('max_participants', trip.max_participants || 0); fd.append('status', trip.status || 'planned');
       fd.append('show_registered_kids', trip.show_registered_kids ?? 1);
       fd.append('has_points_game', trip.has_points_game ?? 0);
       fd.append('custom_fields', customFields);
@@ -4486,17 +4488,14 @@
       const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       btn.classList.remove('btn-loading'); btn.disabled = false;
       if (res.success) {
-        // Update local cache
-        trip.custom_fields = customFields;
-        trip.custom_field_icons = customFieldIcons;
+        trip.custom_fields = customFields; trip.custom_field_icons = customFieldIcons;
         showToast('تم حفظ الحقول الإضافية ✅', 'success');
         closeModal('customFieldEditorModal');
-        // Refresh trip details
         await showTripDetails(tripId);
-      } else {
-        showToast(res.message || 'فشل في الحفظ', 'error');
-      }
+      } else { showToast(res.message || 'فشل في الحفظ', 'error'); }
     }
+
+
 
     async function bulkCustomDataSave() {
       const tripId = document.getElementById('bulkCustomDataTripId').value;
