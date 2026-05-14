@@ -361,9 +361,11 @@ function renderStudent() {
             
             Object.entries(cd).forEach(([key, value]) => {
                 let iconHtml = '';
-                // Check if we have an icon for this field
-                if(tripData.custom_field_icons && tripData.custom_field_icons[key]) {
-                    iconHtml = `<i class="${tripData.custom_field_icons[key]}"></i>`;
+                // Check if we have an icon/meta for this field
+                const meta = tripData.custom_field_icons && tripData.custom_field_icons[key] ? tripData.custom_field_icons[key] : null;
+                if (meta) {
+                    const iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+                    iconHtml = `<i class="${iconClass}"></i>`;
                 } else {
                     iconHtml = '<i class="fas fa-tag"></i>';
                 }

@@ -232,7 +232,9 @@ function renderKids() {
             try {
                 const cd = JSON.parse(k.custom_data);
                 metaParts = Object.entries(cd).map(([fk, fv]) => {
-                    const ic = icons[fk] ? `<i class="${icons[fk]}" style="margin-left:4px;"></i>` : '';
+                    const meta = icons[fk] ? icons[fk] : null;
+                    const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
+                    const ic = iconClass ? `<i class="${iconClass}" style="margin-left:4px;"></i>` : '';
                     return `${ic}${fk}: ${fv}`;
                 });
             } catch(e) {}
@@ -311,7 +313,9 @@ function printFilterQRCards() {
                 const cd    = JSON.parse(r.custom_data);
                 const icons = currentTrip?.custom_field_icons || {};
                 customHtml = Object.entries(cd).map(([k, v]) => {
-                    const ic = icons[k] ? `<i class="${icons[k]}"></i> ` : '';
+                    const meta = icons[k] ? icons[k] : null;
+                    const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
+                    const ic = iconClass ? `<i class="${iconClass}"></i> ` : '';
                     return `${ic}${k}: ${v}`;
                 }).join(' &nbsp;|&nbsp; ');
             } catch(e) {}

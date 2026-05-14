@@ -3915,9 +3915,12 @@ function printQRCards(tripId) {
                 const cd = JSON.parse(r.custom_data);
                 const fieldDefs = trip.custom_fields ? trip.custom_fields.split(',').map(f => f.trim()) : [];
                 customHtml = Object.entries(cd).map(([key, value]) => {
-                    let iconClass = 'fas fa-tag';
-                    if(trip.custom_field_icons && trip.custom_field_icons[key]) { iconClass = trip.custom_field_icons[key]; }
-                    return `<i class="${iconClass}"></i> ${value}`;
+                  let iconClass = 'fas fa-tag';
+                  if(trip.custom_field_icons && trip.custom_field_icons[key]) {
+                    const meta = trip.custom_field_icons[key];
+                    iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+                  }
+                  return `<i class="${iconClass}"></i> ${value}`;
                 }).join(' | ');
             } catch(e){}
         }

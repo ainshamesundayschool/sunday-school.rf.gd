@@ -237,7 +237,8 @@ function renderFieldCards() {
             let iconClass = 'fas fa-tag';
             // Prefer icon set by admin; fall back to static map
             if (currentTrip.custom_field_icons && currentTrip.custom_field_icons[field]) {
-                iconClass = currentTrip.custom_field_icons[field];
+                const meta = currentTrip.custom_field_icons[field];
+                iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
             } else {
                 let iconBg = getFieldIcon(field);
                 if (iconBg) { iconClass = iconBg.icon; }

@@ -2143,6 +2143,11 @@ button, a, [role="button"] { touch-action: manipulation; }
                                         <div id="newFieldIconPicker" class="icon-picker-popup" style="display:none;"></div>
                                     </div>
                                     <input type="text" id="newFieldName" class="form-input" style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الغرفة)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName','newFieldIcon');}">
+                                    <select id="newFieldType" class="form-select" style="width:140px;">
+                                        <option value="input">إدخال حر</option>
+                                        <option value="choices">اختيارات</option>
+                                    </select>
+                                    <input type="text" id="newFieldChoices" class="form-input" placeholder="قائمة القيم مفصولة بفواصل (عند اختيار الاختيارات)" style="min-width:180px;display:none;">
                                     <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName', 'newFieldIcon')"><i class="fas fa-plus"></i> إضافة</button>
                                 </div>
                                 <div id="tripFieldsContainer" class="custom-fields-container"></div>
@@ -2438,6 +2443,13 @@ button, a, [role="button"] { touch-action: manipulation; }
             <div id="auditPagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap;"></div>
         </div>
     </div>
+    <script>
+        // toggle choices input visibility
+        document.getElementById('newFieldType').addEventListener('change', function(){
+            const v = this.value;
+            document.getElementById('newFieldChoices').style.display = v === 'choices' ? 'block' : 'none';
+        });
+    </script>
 </div>
         
 
@@ -2613,9 +2625,15 @@ button, a, [role="button"] { touch-action: manipulation; }
                                 <div id="editNewFieldIconPicker" class="icon-picker-popup" style="display:none;"></div>
                             </div>
                             <input type="text" id="editNewFieldName" class="form-input" style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الفريق)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('editTripFieldsContainer','editNewFieldName','editNewFieldIcon');}">
+                            <select id="editNewFieldType" class="form-select" style="width:140px;">
+                                <option value="input">إدخال حر</option>
+                                <option value="choices">اختيارات</option>
+                            </select>
+                            <input type="text" id="editNewFieldChoices" class="form-input" placeholder="قائمة القيم مفصولة بفواصل (عند اختيار الاختيارات)" style="min-width:180px;display:none;">
                             <button type="button" class="btn btn-outline" onclick="addCustomFieldTag('editTripFieldsContainer', 'editNewFieldName', 'editNewFieldIcon')"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
                         <div id="editTripFieldsContainer" class="custom-fields-container"></div>
+                        <script>document.getElementById('editNewFieldType').addEventListener('change', function(){document.getElementById('editNewFieldChoices').style.display = this.value === 'choices' ? 'block' : 'none';});</script>
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;">
@@ -4850,27 +4868,42 @@ function addCustomFieldTag(containerId, inputId, iconElemId = null) {
     // Get icon
     const iconEl = iconElemId ? document.getElementById(iconElemId) : null;
     const icon = iconEl ? (iconEl.dataset.icon || iconEl.className) : 'fas fa-tag';
+    // type and choices
+    const typeEl = document.getElementById(inputId.replace('Name','Type'));
+    const choicesEl = document.getElementById(inputId.replace('Name','Choices'));
+    const ftype = typeEl ? typeEl.value : 'input';
+    const fchoices = choicesEl && choicesEl.value ? choicesEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
     const tag = document.createElement('div');
     tag.className = 'field-tag';
     tag.dataset.field = val;
     tag.dataset.icon = icon;
+    tag.dataset.type = ftype;
+    if (fchoices.length) tag.dataset.choices = JSON.stringify(fchoices);
     tag.innerHTML = `<i class="${escHtml(icon)}" style="margin-left:6px;"></i><span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
     container.appendChild(tag);
     if (input) input.value = '';
     // Reset icon picker to default
     if (iconEl) { iconEl.className = 'fas fa-tag'; delete iconEl.dataset.icon; }
+    if (typeEl) typeEl.value = 'input';
+    if (choicesEl) { choicesEl.value=''; choicesEl.style.display='none'; }
 }
 function addCustomFieldTagWithValue(containerId, fieldName, iconClass) {
     const container = document.getElementById(containerId);
     if (!container) return;
     const val = String(fieldName).trim();
     if (!val) return;
-    const icon = iconClass || 'fas fa-tag';
+    const meta = iconClass || 'fas fa-tag';
+    const icon = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+    const ftype = (typeof meta === 'object' && meta.type) ? meta.type : 'input';
+    const fchoices = (typeof meta === 'object' && Array.isArray(meta.choices)) ? meta.choices : [];
     const tag = document.createElement('div');
     tag.className = 'field-tag';
     tag.dataset.field = val;
     tag.dataset.icon = icon;
-    tag.innerHTML = `<i class="${escHtml(icon)}" style="margin-left:6px;"></i><span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>`;
+    tag.dataset.type = ftype;
+    if (fchoices.length) tag.dataset.choices = JSON.stringify(fchoices);
+    let choicesPreview = fchoices.length ? `<small style="display:block;color:var(--text-3);margin-top:6px;">قيم: ${escHtml(fchoices.join(', '))}</small>` : '';
+    tag.innerHTML = `<i class="${escHtml(icon)}" style="margin-left:6px;"></i><span>${escHtml(val)}</span><i class="fas fa-times" onclick="this.parentElement.remove()"></i>${choicesPreview}`;
     container.appendChild(tag);
 }
 function getCustomFieldsFromContainer(containerId) {
@@ -4880,8 +4913,15 @@ function getCustomFieldIconsFromContainer(containerId) {
     const obj = {};
     document.querySelectorAll(`#${containerId} .field-tag`).forEach(t => {
         const field = t.dataset.field || t.querySelector('span')?.textContent || '';
+        if (!field) return;
         const icon  = t.dataset.icon || 'fas fa-tag';
-        if (field) obj[field] = icon;
+        const type  = t.dataset.type || 'input';
+        const choices = t.dataset.choices ? (function(){ try { return JSON.parse(t.dataset.choices); } catch(e){ return []; } })() : [];
+        if (type === 'input' && (!choices || !choices.length)) {
+            obj[field] = icon; // legacy simple mapping
+        } else {
+            obj[field] = { icon: icon, type: type, choices: choices };
+        }
     });
     return JSON.stringify(obj);
 }
@@ -5147,8 +5187,10 @@ function renderTripDetailsFull(trip) {
 
     // Render custom fields breakdown (clickable chips that open filter view)
     if (customFieldList.length) {
-        // Build an HTML block with value chips that carry data attributes; attach click handlers after inserting
+        // Build an HTML block with value chips only for fields configured as 'choices'
         const fieldBlocks = customFieldList.map(field => {
+            const meta = trip.custom_field_icons && trip.custom_field_icons[field] ? trip.custom_field_icons[field] : null;
+            if (!meta || (typeof meta === 'object' && meta.type !== 'choices')) return '';
             const counts = {};
             regs.forEach(r => {
                 if (!r.custom_data) return;
@@ -5253,7 +5295,12 @@ async function showRegisterStudentModal(tripId) {
     if (trip && registerFields.length) {
         let html = '';
         registerFields.forEach((field) => {
-            html += `<div class="form-group"><label class="form-label">${escHtml(field)}</label><input type="text" class="form-input register-custom-field" data-name="${escHtml(field)}" placeholder="${escHtml(field)}"></div>`;
+            const meta = (trip.custom_field_icons && trip.custom_field_icons[field]) ? trip.custom_field_icons[field] : null;
+            if (meta && typeof meta === 'object' && meta.type === 'choices' && Array.isArray(meta.choices) && meta.choices.length) {
+                html += `<div class="form-group"><label class="form-label">${escHtml(field)}</label><select class="form-select register-custom-field" data-name="${escHtml(field)}">${['<option value="">اختر...</option>'].concat(meta.choices.map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`)).join('')}</select></div>`;
+            } else {
+                html += `<div class="form-group"><label class="form-label">${escHtml(field)}</label><input type="text" class="form-input register-custom-field" data-name="${escHtml(field)}" placeholder="${escHtml(field)}"></div>`;
+            }
         });
         customFieldsContainer.innerHTML = html;
     }
@@ -9003,7 +9050,8 @@ async function printQRCards(tripId) {
                 customHtml = Object.entries(cd).map(([key, value]) => {
                     let iconClass = 'fas fa-tag'; // default icon
                     if(trip.custom_field_icons && trip.custom_field_icons[key]) {
-                        iconClass = trip.custom_field_icons[key];
+                        const meta = trip.custom_field_icons[key];
+                        iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
                     }
                     return `<i class="${iconClass}"></i> ${value}`;
                 }).join(' | ');
