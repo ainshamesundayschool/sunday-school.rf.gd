@@ -18,3 +18,4 @@ db_migrations/add_trip_registered_kids_visibility.sql
 db_migrations/add_soft_delete_to_trip_payments.sql
 if0_40860329_sunday_school (7).sql
 db_migrations/add_custom_field_icons.sql
+db_migrations/migrate_custom_fields.sql
