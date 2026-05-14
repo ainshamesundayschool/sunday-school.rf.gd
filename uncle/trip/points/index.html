@@ -666,8 +666,9 @@
         <div id="contentView" style="display:none; width: 100%;">
             <div class="profile-card">
                 <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i
-                        class="fas fa-exclamation-triangle"></i> <span id="btnNaughtyLabel"
-                        style="font-size: 0.7rem;">تعيين شغب</span>
+                        class="fas fa-exclamation-triangle"></i> <span id="btnNaughtyLabel" style="
+    font-size: 0.9rem;
+">تعيين شغب</span>
                 </button>
 
                 <div class="avatar-container">
@@ -917,7 +918,7 @@
             } else {
                 tag.classList.remove('show');
                 btn.classList.remove('active');
-                if (label) { label.textContent = 'تعيين شغب'; label.style.color = 'var(--danger)'; }
+                if (label) { label.textContent = 'تعيين شغب'; label.style.color = 'white'; }
             }
 
             display.style.transform = 'scale(1.2)';
