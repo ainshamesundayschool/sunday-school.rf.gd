@@ -3322,21 +3322,23 @@
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
           </div>
-          <div id="registerCustomFieldsSection" style="display:none;margin-bottom:10px;"></div>
-          <div class="register-sticky-footer">
-            <div class="register-fields">
-              <div class="form-group"><label class="form-label">دفعة مقدمة (ج)</label><input type="number"
-                  id="registerDeposit" class="form-input" step="1" min="0" value="0"></div>
-              <div class="form-group"><label class="form-label">قيمة التبرع (ج)</label><input type="number"
-                  id="registerDonation" class="form-input" step="1" min="0" value="0"></div>
-              <div class="form-group"><label class="form-label">ملاحظات</label><input type="text" id="registerNotes"
-                  class="form-input" placeholder="اختياري"></div>
+          <details class="register-settings-collapse" style="margin-bottom:12px; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px;">
+            <summary style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.9rem; user-select:none; display:flex; align-items:center; gap:8px;">
+              <i class="fas fa-sliders-h"></i> إعدادات التسجيل (دفع، حقول إضافية، ملاحظات)
+            </summary>
+            <div style="padding-top:12px; margin-top:8px; border-top:1px solid var(--border);">
+              <div id="registerCustomFieldsSection" style="display:none;margin-bottom:10px;"></div>
+              <div class="register-fields" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;">
+                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">دفعة مقدمة (ج)</label><input type="number" id="registerDeposit" class="form-input" step="1" min="0" value="0" style="padding:6px; font-size:0.9rem;"></div>
+                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">تبرع (ج)</label><input type="number" id="registerDonation" class="form-input" step="1" min="0" value="0" style="padding:6px; font-size:0.9rem;"></div>
+                <div class="form-group" style="margin-bottom:0;"><label class="form-label" style="font-size:0.8rem;">ملاحظات</label><input type="text" id="registerNotes" class="form-input" placeholder="اختياري" style="padding:6px; font-size:0.9rem;"></div>
+              </div>
             </div>
-            <div class="register-actions">
-              <button type="submit" class="btn btn-primary" style="flex:2;" id="regSubmitBtn"><i
-                  class="fas fa-save"></i> تسجيل</button>
-              <button type="button" class="btn btn-outline" style="flex:1;"
-                onclick="closeModal('registerStudentModal')">إلغاء</button>
+          </details>
+          <div class="register-sticky-footer" style="padding-top:10px; border-top:1px solid var(--border);">
+            <div class="register-actions" style="display:flex; gap:10px;">
+              <button type="submit" class="btn btn-primary" style="flex:2; font-weight:bold;" id="regSubmitBtn"><i class="fas fa-check-circle"></i> تأكيد التسجيل</button>
+              <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('registerStudentModal')">إلغاء</button>
             </div>
           </div>
         </form>
@@ -4289,8 +4291,19 @@
           if (Array.isArray(raw)) {
             subArr = raw.map((sf, si) => ({ _id: 'sf' + Date.now() + i + si, name: sf.name || '', icon: sf.icon || 'fas fa-tag', choices: Array.isArray(sf.choices) ? [...sf.choices] : [] }));
           } else if (raw && typeof raw === 'object') {
-            // legacy: {subName: {icon,choices}}
-            subArr = Object.entries(raw).map(([sn, sm], si) => ({ _id: 'sf' + Date.now() + i + si, name: sn, icon: sm.icon || 'fas fa-tag', choices: Array.isArray(sm.choices) ? [...sm.choices] : [] }));
+            // legacy: { ChoiceVal: { SubName: { icon, choices } } }
+            const seen = new Set();
+            let si = 0;
+            Object.entries(raw).forEach(([choiceVal, subObj]) => {
+              if (subObj && typeof subObj === 'object') {
+                Object.entries(subObj).forEach(([sn, sm]) => {
+                  if (!seen.has(sn)) {
+                    seen.add(sn);
+                    subArr.push({ _id: 'sf' + Date.now() + i + (si++), name: sn, icon: sm.icon || 'fas fa-tag', choices: Array.isArray(sm.choices) ? [...sm.choices] : [] });
+                  }
+                });
+              }
+            });
           }
         }
         return {
