@@ -243,8 +243,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
         .search-input {
             width: 100%;
-            padding: 12px 48px 12px 20px;
-            border-radius: 14px;
+            padding: 14px 52px 14px 24px;
+            border-radius: 999px;
             border: 2px solid var(--border-solid);
             background: var(--surface);
             font-size: 1rem;
@@ -258,11 +258,12 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
         .search-input:focus {
             border-color: var(--brand);
+            box-shadow: 0 0 0 4px var(--brand-glow);
         }
 
         .search-icon {
             position: absolute;
-            right: 18px;
+            right: 22px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-3);
@@ -343,8 +344,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         }
 
         .pill {
-            padding: 8px 18px;
-            border-radius: 12px;
+            padding: 8px 20px;
+            border-radius: 999px;
             background: var(--surface);
             border: 1.5px solid var(--border-solid);
             font-size: .85rem;
@@ -354,12 +355,16 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             white-space: nowrap;
             transition: all var(--t);
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .pill.active {
             background: var(--brand);
             color: #fff;
             border-color: var(--brand);
+            box-shadow: 0 4px 12px var(--brand-glow);
         }
 
         /* ── STUDENT LIST ── */
@@ -755,21 +760,29 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         <div class="search-section">
             <h1 class="search-title">ابحث عن طفل للسحب</h1>
             <div class="search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-input" placeholder="اسم الطفل أو الفصل...">
-            </div>
-            <div style="margin-top:16px;display:flex;justify-content:center;gap:10px">
-                <div style="position:relative">
-                    <i class="fas fa-sort-amount-down"
-                        style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--text-3);pointer-events:none"></i>
-                    <select id="sortSelect" class="pill"
-                        style="padding-right:34px;appearance:none;cursor:pointer;outline:none"
-                        onchange="performSearch()">
-                        <option value="name_asc">الاسم (أ-ي)</option>
-                        <option value="name_desc">الاسم (ي-أ)</option>
-                        <option value="coupons_desc">الأعلى كوبونات</option>
-                        <option value="coupons_asc">الأقل كوبونات</option>
-                    </select>
+                <div style="display:flex; flex-direction: column; gap:12px; max-width: 500px; margin: 0 auto;">
+                    <!-- Sort and Filters Info Row -->
+                    <div style="display:flex; justify-content: space-between; align-items: center; padding: 0 8px;">
+                         <div style="position:relative">
+                            <i class="fas fa-sort-amount-down"
+                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text-3);pointer-events:none"></i>
+                            <select id="sortSelect" class="pill"
+                                style="padding: 4px 30px 4px 12px; font-size: 0.75rem; border-radius: 999px; height: 32px; appearance:none; cursor:pointer; outline:none; background: var(--surface); border-color: var(--border-solid); width: auto;"
+                                onchange="performSearch()">
+                                <option value="name_asc">الاسم (أ-ي)</option>
+                                <option value="name_desc">الاسم (ي-أ)</option>
+                                <option value="coupons_desc">الأعلى كوبونات</option>
+                                <option value="coupons_asc">الأقل كوبونات</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-3);">ترتيب حسب</div>
+                    </div>
+                    
+                    <!-- Search Row -->
+                    <div style="position:relative">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="اسم الطفل أو الفصل...">
+                    </div>
                 </div>
             </div>
         </div>
@@ -826,8 +839,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 if (resp.success) {
                     allStudents = resp.data || resp.allStudents || [];
                     classes = resp.classes || [];
-                    renderFilters();
-                    renderClasses();
+                    setFilter('classes');
                 } else {
                     showToast(resp.message || 'فشل تحميل البيانات', 'error');
                 }
@@ -845,7 +857,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
         function renderFilters() {
             const container = document.getElementById('classFilters');
-            let html = `<div class="pill ${currentClass === 'all' ? 'active' : ''}" onclick="setFilter('all')">الكل</div>`;
+            let html = `<div class="pill ${currentClass === 'all' ? 'active' : ''}" onclick="toggleAllFilter()">الكل</div>`;
             classes.forEach(c => {
                 const name = c.arabic_name || c.code;
                 html += `<div class="pill ${currentClass === name ? 'active' : ''}" onclick="setFilter('${name}')">${name}</div>`;
@@ -853,22 +865,35 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             container.innerHTML = html;
         }
 
+        function toggleAllFilter() {
+            if (currentClass === 'all') {
+                setFilter('classes');
+            } else {
+                setFilter('all');
+            }
+        }
+
         function setFilter(cls) {
             currentClass = cls;
             renderFilters();
+            
             const searchVal = document.getElementById('searchInput').value.trim();
-            if (searchVal) {
-                performSearch();
-                return;
-            }
-
-            if (cls === 'all') {
+            
+            if (cls === 'classes') {
                 document.getElementById('classList').style.display = 'grid';
                 document.getElementById('studentList').style.display = 'none';
                 renderClasses();
+                return;
+            }
+
+            document.getElementById('classList').style.display = 'none';
+            document.getElementById('studentList').style.display = 'flex';
+
+            if (searchVal) {
+                performSearch();
+            } else if (cls === 'all') {
+                renderStudents(allStudents);
             } else {
-                document.getElementById('classList').style.display = 'none';
-                document.getElementById('studentList').style.display = 'flex';
                 renderStudents(allStudents.filter(s => s['الفصل'] === cls));
             }
         }
@@ -934,6 +959,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const q = document.getElementById('searchInput').value.trim().toLowerCase();
             const sort = document.getElementById('sortSelect').value;
 
+            // If no search and in classes view, stay in classes view
+            if (!q && currentClass === 'classes') {
+                setFilter('classes');
+                return;
+            }
+
+            // If no search and in all kids view, stay in all kids view
             if (!q && currentClass === 'all') {
                 setFilter('all');
                 return;
@@ -943,7 +975,12 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             document.getElementById('studentList').style.display = 'flex';
 
             let filtered = allStudents;
-            if (currentClass !== 'all') filtered = filtered.filter(s => s['الفصل'] === currentClass);
+            
+            // If we have a specific class selected (not 'all' and not 'classes' view), filter by that class
+            if (currentClass !== 'all' && currentClass !== 'classes') {
+                filtered = filtered.filter(s => s['الفصل'] === currentClass);
+            }
+
             if (q) {
                 filtered = filtered.filter(s =>
                     (s['الاسم'] || '').toLowerCase().includes(q) ||
