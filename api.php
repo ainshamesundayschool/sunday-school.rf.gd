@@ -1578,6 +1578,7 @@ function getAllClassesForDropdown_churchAware(): array
 function getData()
 {
     try {
+        $conn = getDBConnection();
         $churchId = getChurchId();
         $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
         if ($isAll) {
@@ -1683,6 +1684,13 @@ function getData()
         error_log("Total students in database for church ID " . $churchId . ": " . $totalStudents);
 
         $stmt = $conn->prepare("
+            SELECT 
+                s.id, 
+                s.name, 
+                s.address, 
+                s.phone, 
+                s.birthday, 
+                s.coupons, 
                 s.attendance_coupons, 
                 s.commitment_coupons, 
                 s.task_coupons,

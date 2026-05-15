@@ -466,12 +466,24 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
             if (r.success) {
                 showToast('تم الاسترجاع', 'success');
-                // Refresh full data
-                const refreshR = await fetch(API_URL, { method: 'POST', body: new FormData(), credentials: 'include' }); // Wait, need action
-                init();
-                setTimeout(() => { if(selectedStudent) openProfile(selectedStudent['_studentId']); }, 500);
+                // Soft refresh all data in background
+                const refreshFd = new FormData(); refreshFd.append('action', 'getData');
+                const refreshR = await fetch(API_URL, { method: 'POST', body: refreshFd, credentials: 'include' }).then(r => r.json());
+                if (refreshR.success) {
+                    allStudents = refreshR.data || refreshR.allStudents || [];
+                    if (selectedStudent) {
+                        const updated = allStudents.find(x => x['_studentId'] === selectedStudent['_studentId']);
+                        if (updated) {
+                            selectedStudent = updated;
+                            document.getElementById('curTotal').textContent = updated['كوبونات'];
+                        }
+                    }
+                }
+                if (selectedStudent) loadHistory(selectedStudent['_studentId']);
+            } else {
+                showToast(r.message || 'فشل الاسترجاع', 'error');
             }
-        } catch (e) { }
+        } catch (e) { showToast('خطأ في الاتصال', 'error'); }
     }
 
     function showToast(m, t='info') {
