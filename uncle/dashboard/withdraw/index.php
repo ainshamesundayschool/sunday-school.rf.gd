@@ -526,31 +526,52 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         fd.append('entity', 'coupon');
         fd.append('entity_id', sid);
         
-        showToast('جاري تحميل السجل العام...', 'info');
+        showToast('جاري تحميل السجل...', 'info');
         try {
             const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
             if (r.success) {
-                let html = `<div style="padding:20px"><h3 style="margin-bottom:20px;font-weight:900"><i class="fas fa-list-alt"></i> السجل التاريخي للكوبونات</h3>`;
+                let listHtml = '';
                 if (!r.logs.length) {
-                    html += `<div style="text-align:center;padding:40px;color:var(--text-3);font-weight:800">لا يوجد سجلات لهذه الطفل</div>`;
+                    listHtml = `<div style="text-align:center;padding:60px;color:var(--text-3);font-weight:800"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.3"></i>لا يوجد سجلات تاريخية لهذا الطفل</div>`;
                 } else {
-                    html += r.logs.map(l => `
-                        <div class="hist-item" style="background:var(--surface);border-radius:16px;margin-bottom:12px;padding:14px">
-                            <div class="hist-row">
-                                <div style="font-weight:900;color:var(--brand);font-size:.95rem">${l.notes || l.action}</div>
-                                <div class="hist-date">${l.created_at_formatted}</div>
+                    listHtml = r.logs.map(l => {
+                        let icon = 'fa-star';
+                        let color = 'var(--brand)';
+                        if (l.action.includes('add')) { icon = 'fa-plus'; color = 'var(--success)'; }
+                        if (l.action.includes('delete')) { icon = 'fa-trash'; color = 'var(--danger)'; }
+                        
+                        return `
+                            <div class="hist-item" style="border:none;background:var(--surface-2);border-radius:14px;padding:12px 16px;margin-bottom:10px;position:relative;border-right:3px solid ${color}">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                                    <div style="font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:4px">
+                                        <i class="fas ${icon}" style="color:${color};margin-left:6px;width:16px"></i>
+                                        ${l.notes || l.action}
+                                    </div>
+                                    <div style="font-size:.7rem;color:var(--text-3);font-weight:800;white-space:nowrap">${l.created_at_formatted}</div>
+                                </div>
+                                <div style="font-size:.75rem;color:var(--text-3);font-weight:700">
+                                    <i class="fas fa-user-edit" style="margin-left:4px;font-size:.65rem"></i> بواسطة: ${l.uncle_name}
+                                </div>
                             </div>
-                            <div style="font-size:.8rem;color:var(--text-3);font-weight:700;margin-top:4px">بواسطة: ${l.uncle_name}</div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
-                html += `<button class="withdraw-btn" style="width:100%;margin-top:20px" onclick="closeAudit()">إغلاق</button></div>`;
-                
+
                 const auditDiv = document.createElement('div');
                 auditDiv.id = 'auditModal';
                 auditDiv.className = 'profile-overlay active';
                 auditDiv.style.zIndex = '1100';
-                auditDiv.innerHTML = `<div class="profile-sheet" style="border-radius:24px 24px 0 0">${html}</div>`;
+                auditDiv.innerHTML = `
+                    <div class="profile-sheet" style="border-radius:24px 24px 0 0">
+                        <div class="sheet-header" style="padding:24px 20px 16px">
+                            <div class="sheet-close" onclick="closeAudit()"><i class="fas fa-times"></i></div>
+                            <h3 style="font-weight:900;font-size:1.1rem">السجل التاريخي الشامل</h3>
+                        </div>
+                        <div style="padding:16px;max-height:70vh;overflow-y:auto">
+                            ${listHtml}
+                        </div>
+                    </div>
+                `;
                 document.body.appendChild(auditDiv);
             }
         } catch(e) { showToast('خطأ في تحميل السجل', 'error'); }
@@ -558,7 +579,10 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
     function closeAudit() {
         const m = document.getElementById('auditModal');
-        if (m) m.remove();
+        if (m) {
+            m.classList.remove('active');
+            setTimeout(() => m.remove(), 400);
+        }
     }
 
     init();
