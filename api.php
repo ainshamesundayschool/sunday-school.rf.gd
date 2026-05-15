@@ -9324,8 +9324,8 @@ function rebalanceTripWaitlist()
         }
 
         // Get all active registrations ordered by creation date (earliest first stay in)
-        $regStmt = $conn->prepare(\"SELECT id, student_id, deposit, notes, custom_data, created_at FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC\");
-        $regStmt->bind_param(\"i\", $tripId);
+        $regStmt = $conn->prepare("SELECT id, student_id, deposit, notes, custom_data, created_at FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC");
+        $regStmt->bind_param("i", $tripId);
         $regStmt->execute();
         $regs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -9342,8 +9342,8 @@ function rebalanceTripWaitlist()
             $studentId = $r['student_id'];
             
             // Calc total paid for this registration to preserve it in waitlist
-            $paidStmt = $conn->prepare(\"SELECT COALESCE(SUM(amount), 0) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0\");
-            $paidStmt->bind_param(\"i\", $regId);
+            $paidStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
+            $paidStmt->bind_param("i", $regId);
             $paidStmt->execute();
             $totalPaid = floatval($paidStmt->get_result()->fetch_assoc()['total']);
             
@@ -9351,25 +9351,25 @@ function rebalanceTripWaitlist()
 
             // Move to waitlist
             $pos = getWaitlistNextPosition($conn, $tripId);
-            $ins = $conn->prepare(\"INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, custom_data, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\");
-            $ins->bind_param(\"iiiissss\", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $r['custom_data'], $r['created_at']);
+            $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, custom_data, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins->bind_param("iiiissss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $r['custom_data'], $r['created_at']);
             
             if ($ins->execute()) {
                 // Delete payments (they are consolidated in waitlist.deposit)
-                $delP = $conn->prepare(\"DELETE FROM trip_payments WHERE registration_id = ?\");
-                $delP->bind_param(\"i\", $regId);
+                $delP = $conn->prepare("DELETE FROM trip_payments WHERE registration_id = ?");
+                $delP->bind_param("i", $regId);
                 $delP->execute();
 
                 // Delete the registration
-                $del = $conn->prepare(\"DELETE FROM trip_registrations WHERE id = ?\");
-                $del->bind_param(\"i\", $regId);
+                $del = $conn->prepare("DELETE FROM trip_registrations WHERE id = ?");
+                $del->bind_param("i", $regId);
                 $del->execute();
                 
                 $movedCount++;
             }
         }
 
-        sendJSON(['success' => true, 'message' => \"تم نقل $movedCount طفل إلى قائمة الانتظار بنجاح\", 'moved' => $movedCount]);
+        sendJSON(['success' => true, 'message' => "تم نقل $movedCount طفل إلى قائمة الانتظار بنجاح", 'moved' => $movedCount]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }

@@ -7030,8 +7030,10 @@
             document.getElementById('sidebarAvatar').textContent = displayName.charAt(0);
             document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
             document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
-            document.getElementById('overviewChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
-            document.getElementById('overviewDate').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+            const ovCN = document.getElementById('overviewChurchName');
+            if (ovCN) ovCN.textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+            const ovD = document.getElementById('overviewDate');
+            if (ovD) ovD.textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
 
             setTimeout(renderKidRegLinks, 100);
 
