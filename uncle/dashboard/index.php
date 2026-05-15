@@ -1081,7 +1081,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 0 2px;
+            padding: 35px 2px 10px 2px;
+            margin: -35px 0 -10px 0;
             overflow-x: auto;
             scrollbar-width: none;
             flex: 1;
@@ -1102,7 +1103,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .uncles-list {
             display: flex;
             padding-right: 8px;
-            gap: 8px;
             flex-wrap: nowrap;
         }
 
