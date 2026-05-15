@@ -6825,11 +6825,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div class="hero-actions">
                         <div class="action-dropdown">
-                            <button class="header-btn" style="background:var(--surface-2); padding:0 12px; border-radius:100px; display:flex; align-items:center; gap:6px; font-family:'Cairo', sans-serif;" onclick="toggleDropdown('heroActionsMenu')">
+                            <button class="topbar-btn" style="font-family: inherit;" onclick="toggleDropdown('heroActionsMenu')">
                                 <i class="fas fa-ellipsis-v"></i> إجراءات
                             </button>
                             <div class="dropdown-menu" id="heroActionsMenu" style="left:0; right:auto;">
-                                <div class="dropdown-group-label">إدارة عامة</div>
                                 <button class="dropdown-item" onclick="openIntelligentSearchModal(); closeAllDropdowns()"><i class="fas fa-search"></i> بحث ذكي</button>
                                 <button class="dropdown-item" id="showAllStudentsModalBtn" onclick="closeAllDropdowns()"><i class="fas fa-list"></i> جميع الأطفال</button>
                                 <a href="/uncle/dashboard/withdraw/" class="dropdown-item"><i class="fas fa-star"></i> سحب كوبونات</a>
