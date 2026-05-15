@@ -1905,6 +1905,9 @@ function withdrawCoupons()
             student_id INT NOT NULL,
             uncle_id INT NOT NULL,
             amount INT NOT NULL,
+            att_amount INT DEFAULT 0,
+            com_amount INT DEFAULT 0,
+            tsk_amount INT DEFAULT 0,
             note TEXT,
             is_refunded TINYINT(1) DEFAULT 0,
             refunded_at DATETIME DEFAULT NULL,
@@ -1912,6 +1915,10 @@ function withdrawCoupons()
             INDEX(student_id),
             INDEX(created_at)
         )");
+        // Add columns if they don't exist (for existing tables)
+        $conn->query("ALTER TABLE coupon_withdrawals ADD COLUMN IF NOT EXISTS att_amount INT DEFAULT 0 AFTER amount");
+        $conn->query("ALTER TABLE coupon_withdrawals ADD COLUMN IF NOT EXISTS com_amount INT DEFAULT 0 AFTER att_amount");
+        $conn->query("ALTER TABLE coupon_withdrawals ADD COLUMN IF NOT EXISTS tsk_amount INT DEFAULT 0 AFTER com_amount");
 
         $studentId = intval($_POST['student_id'] ?? 0);
         $amount = intval($_POST['amount'] ?? 0);
@@ -1925,8 +1932,8 @@ function withdrawCoupons()
 
         $conn->begin_transaction();
 
-        // Get current coupons
-        $stmt = $conn->prepare("SELECT coupons FROM students WHERE id = ? FOR UPDATE");
+        // Get current coupons with breakdown
+        $stmt = $conn->prepare("SELECT coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? FOR UPDATE");
         $stmt->bind_param("i", $studentId);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
@@ -1939,18 +1946,35 @@ function withdrawCoupons()
             throw new Exception('رصيد الكوبونات غير كافٍ');
         }
 
+        // Greedy subtraction from categories
+        $rem = $amount;
+        $att_sub = min(intval($res['attendance_coupons']), $rem);
+        $rem -= $att_sub;
+        
+        $com_sub = 0;
+        if ($rem > 0) {
+            $com_sub = min(intval($res['commitment_coupons']), $rem);
+            $rem -= $com_sub;
+        }
+        
+        $tsk_sub = 0;
+        if ($rem > 0) {
+            $tsk_sub = min(intval($res['task_coupons']), $rem);
+            $rem -= $tsk_sub;
+        }
+
         $newTotal = $current - $amount;
 
         // Update student
-        $upd = $conn->prepare("UPDATE students SET coupons = ? WHERE id = ?");
-        $upd->bind_param("ii", $newTotal, $studentId);
+        $upd = $conn->prepare("UPDATE students SET coupons = ?, attendance_coupons = attendance_coupons - ?, commitment_coupons = commitment_coupons - ?, task_coupons = task_coupons - ? WHERE id = ?");
+        $upd->bind_param("iiiii", $newTotal, $att_sub, $com_sub, $tsk_sub, $studentId);
         if (!$upd->execute()) {
             throw new Exception('فشل تحديث رصيد الطفل');
         }
 
-        // Record history
-        $hist = $conn->prepare("INSERT INTO coupon_withdrawals (student_id, uncle_id, amount, note) VALUES (?, ?, ?, ?)");
-        $hist->bind_param("iiis", $studentId, $uncleId, $amount, $note);
+        // Record history with breakdown
+        $hist = $conn->prepare("INSERT INTO coupon_withdrawals (student_id, uncle_id, amount, att_amount, com_amount, tsk_amount, note) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $hist->bind_param("iiiiiis", $studentId, $uncleId, $amount, $att_sub, $com_sub, $tsk_sub, $note);
         if (!$hist->execute()) {
             throw new Exception('فشل تسجيل عملية السحب');
         }
@@ -2021,10 +2045,13 @@ function refundWithdrawal()
 
         $amount = intval($w['amount']);
         $studentId = intval($w['student_id']);
+        $att = intval($w['att_amount'] ?? 0);
+        $com = intval($w['com_amount'] ?? 0);
+        $tsk = intval($w['tsk_amount'] ?? 0);
 
-        // Update student
-        $upd = $conn->prepare("UPDATE students SET coupons = coupons + ? WHERE id = ?");
-        $upd->bind_param("ii", $amount, $studentId);
+        // Update student - restore breakdown as well
+        $upd = $conn->prepare("UPDATE students SET coupons = coupons + ?, attendance_coupons = attendance_coupons + ?, commitment_coupons = commitment_coupons + ?, task_coupons = task_coupons + ? WHERE id = ?");
+        $upd->bind_param("iiiii", $amount, $att, $com, $tsk, $studentId);
         if (!$upd->execute()) {
             throw new Exception('فشل استعادة الكوبونات للطفل');
         }
