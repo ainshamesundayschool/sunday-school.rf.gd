@@ -2709,25 +2709,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text)
         }
 
+        .header-btn,
         .close-btn {
             background: var(--surface-3);
             border: none;
-            color: var(--text-3);
-            font-size: 1.2rem;
-            cursor: pointer;
-            border-radius: 50%;
+            color: var(--text-2);
             width: 34px;
             height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
             transition: all var(--t) var(--ease);
+            flex-shrink: 0;
+            padding: 0;
+            position: relative;
         }
 
+        .close-btn {
+            font-size: 1.2rem;
+            color: var(--text-3);
+        }
+
+        .header-btn {
+            font-size: 0.95rem;
+        }
+
+        .header-btn:hover,
         .close-btn:hover {
             background: var(--brand-bg);
             color: var(--brand);
-            transform: scale(1.1)
+            transform: scale(1.1);
+        }
+
+        .header-btn.open {
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .header-btn i {
+            transition: transform 0.2s;
+        }
+
+        .header-btn:active i {
+            transform: scale(0.85);
         }
 
         @media(min-width:769px) {
@@ -7199,25 +7225,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <input type="text" class="form-input" id="sheetToDate" placeholder="إلى DD/MM/YYYY"
                         style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric"
                         oninput="autoFormatCustomDate(this)">
-                    <button class="btn btn-secondary btn-sm" id="applySheetDateRangeBtn"><i
-                            class="fas fa-filter"></i></button>
-                    <button class="btn btn-ghost btn-sm" id="clearSheetDateRangeBtn"><i
-                            class="fas fa-times"></i></button>
+                    <button class="header-btn" id="applySheetDateRangeBtn" title="تصفية"><i class="fas fa-filter" style="color:var(--brand)"></i></button>
+                    <button class="header-btn" id="clearSheetDateRangeBtn" title="مسح التصفية"><i class="fas fa-eraser" style="color:var(--text-3)"></i></button>
                     <div class="zoom-controls" id="sheetZoomControls">
-                        <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i
-                                class="fas fa-minus"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i class="fas fa-minus"></i></button>
                         <span class="zoom-level" id="sheetZoomLevel">100%</span>
-                        <button class="zoom-btn" onclick="sheetZoom(1)" title="تكبير"><i
-                                class="fas fa-plus"></i></button>
-                        <button class="zoom-btn" onclick="sheetZoomReset()" title="إعادة ضبط"><i
-                                class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoom(1)" title="تكبير"><i class="fas fa-plus"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoomReset()" title="إعادة ضبط"><i class="fas fa-compress-arrows-alt"></i></button>
                     </div>
-                    <button class="btn btn-danger btn-sm" id="saveSheetAsPdfBtn"><i class="fas fa-file-pdf"></i>
-                        PDF</button>
-                    <button class="btn btn-info btn-sm" id="saveSheetAsImageBtn"><i class="fas fa-image"></i>
-                        صورة</button>
-                    <button class="btn btn-success btn-sm" id="saveSheetAsCsvBtn"><i class="fas fa-file-csv"></i>
-                        CSV</button>
+                    <button class="header-btn" id="saveSheetAsPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf" style="color:var(--danger)"></i></button>
+                    <button class="header-btn" id="saveSheetAsImageBtn" title="تصدير صورة"><i class="fas fa-image" style="color:var(--info)"></i></button>
+                    <button class="header-btn" id="saveSheetAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--success)"></i></button>
                     <button class="close-btn" id="closeSheetModal">&times;</button>
                 </div>
             </div>
@@ -7250,12 +7268,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="gap:8px;flex-wrap:wrap">
                 <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                    <button class="btn btn-success btn-sm" id="customExportCsvBtn"><i class="fas fa-file-csv"></i>
-                        CSV</button>
-                    <button class="btn btn-danger btn-sm" id="customExportPdfBtn"><i class="fas fa-file-pdf"></i>
-                        PDF</button>
-                    <button class="btn btn-info btn-sm" id="customExportImageBtn"><i class="fas fa-image"></i>
-                        صورة</button>
+                    <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--success)"></i></button>
+                    <button class="header-btn" id="customExportPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf" style="color:var(--danger)"></i></button>
+                    <button class="header-btn" id="customExportImageBtn" title="تصدير صورة"><i class="fas fa-image" style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeCustomExportModal">&times;</button>
                 </div>
             </div>
@@ -7437,13 +7452,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="modal modal-lg">
             <div class="modal-header">
                 <h3><i class="fas fa-user-check" style="color:var(--success)"></i> الأطفال الحاضرين</h3>
-                <div style="display:flex;gap:5px;align-items:center">
-                    <button class="btn btn-success btn-sm" id="copyAttendedModalBtn"><i class="fas fa-copy"></i>
-                        نسخ</button>
-                    <button class="btn btn-sm" style="background:#25d366;color:#fff"
-                        onclick="shareAttendedToWhatsApp()"><i class="fab fa-whatsapp"></i></button>
-                    <button class="btn btn-info btn-sm" id="saveAttendedAsCsvBtn"><i
-                            class="fas fa-file-csv"></i></button>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <button class="header-btn" id="copyAttendedModalBtn" title="نسخ"><i class="fas fa-copy" style="color:var(--success)"></i></button>
+                    <button class="header-btn" onclick="shareAttendedToWhatsApp()" title="واتساب"><i class="fab fa-whatsapp" style="color:#25d366"></i></button>
+                    <button class="header-btn" id="saveAttendedAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeAttendedModal">&times;</button>
                 </div>
             </div>
@@ -7476,11 +7488,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="modal modal-lg">
             <div class="modal-header">
                 <h3><i class="fas fa-user-times" style="color:var(--danger)"></i> الأطفال الغائبين</h3>
-                <div style="display:flex;gap:5px;align-items:center">
+                <div style="display:flex;gap:6px;align-items:center">
                     <!-- Copy Dropdown -->
                     <div class="action-dropdown" style="flex:none">
-                        <button class="btn btn-success btn-sm" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')" style="display:flex;align-items:center;gap:4px">
-                            <i class="fas fa-copy"></i> نسخ <i class="fas fa-chevron-down chevron" style="font-size:.6rem"></i>
+                        <button class="header-btn" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')" title="نسخ">
+                            <i class="fas fa-copy" style="color:var(--success)"></i>
                         </button>
                         <div class="dropdown-menu" id="absentCopyMenu" style="right:0;left:auto">
                             <div class="dropdown-item" onclick="executeAbsentAction('copy', 'phones')">
@@ -7493,8 +7505,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- WhatsApp Dropdown -->
                     <div class="action-dropdown" style="flex:none">
-                        <button class="btn btn-sm" id="absentWaBtn" style="background:#25d366;color:#fff;display:flex;align-items:center;gap:4px" onclick="toggleAbsentDropdown('wa')">
-                            <i class="fab fa-whatsapp"></i> <i class="fas fa-chevron-down chevron" style="font-size:.6rem"></i>
+                        <button class="header-btn" id="absentWaBtn" onclick="toggleAbsentDropdown('wa')" title="واتساب">
+                            <i class="fab fa-whatsapp" style="color:#25d366"></i>
                         </button>
                         <div class="dropdown-menu" id="absentWaMenu" style="right:0;left:auto">
                             <div class="dropdown-item" onclick="executeAbsentAction('wa', 'phones')">
@@ -7505,7 +7517,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-info btn-sm" id="saveAbsentAsCsvBtn"><i class="fas fa-file-csv"></i></button>
+                    <button class="header-btn" id="saveAbsentAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeAbsentModal">&times;</button>
                 </div>
             </div>
@@ -12257,7 +12269,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (mode === 'phones') return buildAttendanceShareText('absent', 'الغائبين', '📋');
             if (absent.length === 1) return `افتقدناك يا ${absent[0]['الاسم']}`;
             let txt = `افتقدناكم انهارده\n\n`;
-            absent.forEach((s, i) => { txt += `• ${s['الاسم']}\n`; });
+            absent.forEach((s) => { txt += `${s['الاسم']}\n`; });
             return txt.trim();
         }
         function shareAttendedToWhatsApp() {
