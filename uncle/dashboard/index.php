@@ -7375,11 +7375,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
                                 <option value="كوبونات">إجمالي الكوبونات</option>
-                                <option value="attendance_coupons">كوبونات الحضور</option>
-                                <option value="commitment_coupons">كوبونات الالتزام</option>
-                                <option value="task_coupons">كوبونات المهام</option>
+                                <option value="كوبونات الحضور">كوبونات الحضور</option>
+                                <option value="كوبونات الالتزام">كوبونات الالتزام</option>
+                                <option value="كوبونات المهام">كوبونات المهام</option>
                                 <option value="رقم التليفون">رقم التليفون</option>
-                                <option value="emergency_phone">تليفون الطوارئ</option>
+                                <option value="تليفون الطوارئ">تليفون الطوارئ</option>
                                 <option value="عيد الميلاد">عيد الميلاد</option>
                                 <option value="العنوان">العنوان</option>
                             </select>
@@ -10960,16 +10960,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
                 { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
-                { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'emergency_phone', selected: false },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'تليفون الطوارئ', selected: false },
                 { key: 'address', label: 'العنوان', source: 'العنوان', selected: false },
                 { key: 'birthday', label: 'عيد الميلاد', source: 'عيد الميلاد', selected: false },
                 { key: 'age', label: 'السن', type: 'age', selected: false },
-                { key: 'medical_notes', label: 'ملاحظات طبية', source: 'medical_notes', selected: false },
+                { key: 'medical_notes', label: 'ملاحظات طبية', source: 'ملاحظات طبية', selected: false },
                 { key: 'coupons', label: 'إجمالي الكوبونات', source: 'كوبونات', selected: false },
-                { key: 'attendance_coupons', label: 'كوبونات الحضور', source: 'attendance_coupons', selected: false },
-                { key: 'commitment_coupons', label: 'كوبونات الالتزام', source: 'commitment_coupons', selected: false },
-                { key: 'task_coupons', label: 'كوبونات المهام', source: 'task_coupons', selected: false },
-                { key: 'custom_info', label: 'معلومات إضافية', source: 'custom_info', selected: false },
+                { key: 'attendance_coupons', label: 'كوبونات الحضور', source: 'كوبونات الحضور', selected: false },
+                { key: 'commitment_coupons', label: 'كوبونات الالتزام', source: 'كوبونات الالتزام', selected: false },
+                { key: 'task_coupons', label: 'كوبونات المهام', source: 'كوبونات المهام', selected: false },
+                { key: 'custom_info', label: 'معلومات إضافية', source: 'معلومات إضافية', selected: false },
                 { key: 'attended_count', label: 'إجمالي الحضور', type: 'attendance_count', selected: false },
             ];
             if (churchCustomFields && churchCustomFields.length) {
@@ -11096,7 +11096,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             arr.sort((a, b) => {
                 let vA = a[cfg.sortBy] || '', vB = b[cfg.sortBy] || '';
                 let res = 0;
-                const numericFields = ['كوبونات', 'attendance_coupons', 'commitment_coupons', 'task_coupons'];
+                const numericFields = ['كوبونات', 'كوبونات الحضور', 'كوبونات الالتزام', 'كوبونات المهام'];
                 if (numericFields.includes(cfg.sortBy)) {
                     res = (parseInt(vA) || 0) - (parseInt(vB) || 0);
                 } else if (cfg.sortBy === 'عيد الميلاد') {

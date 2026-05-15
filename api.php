@@ -1569,7 +1569,9 @@ function getData()
             $stmt = $conn->prepare("
         SELECT 
             s.id, s.name, s.phone, s.birthday, s.coupons,
-            s.attendance_coupons, s.commitment_coupons, s.image_url, s.class_id,
+            s.attendance_coupons, s.commitment_coupons, s.task_coupons,
+            s.emergency_phone, s.medical_notes, s.custom_info,
+            s.image_url, s.class_id,
             COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
             COALESCE(cc.code, gc.code) as class_code,
             c.church_name, c.id as church_id_val
@@ -1595,6 +1597,10 @@ function getData()
                     'كوبونات' => intval($row['coupons']),
                     'كوبونات الحضور' => intval($row['attendance_coupons']),
                     'كوبونات الالتزام' => intval($row['commitment_coupons']),
+                    'كوبونات المهام' => intval($row['task_coupons']),
+                    'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
+                    'ملاحظات طبية' => $row['medical_notes'] ?? '',
+                    'معلومات إضافية' => $row['custom_info'] ?? '',
                     'صورة' => $row['image_url'] ?? '',
                     '_studentId' => intval($row['id']),
                     '_allAttendance' => [],
@@ -1662,15 +1668,11 @@ function getData()
         error_log("Total students in database for church ID " . $churchId . ": " . $totalStudents);
 
         $stmt = $conn->prepare("
-            SELECT 
-                s.id, 
-                s.name, 
-                s.address, 
-                s.phone, 
-                s.birthday, 
-                s.coupons, 
                 s.attendance_coupons, 
                 s.commitment_coupons, 
+                s.task_coupons,
+                s.emergency_phone,
+                s.medical_notes,
                 s.image_url,
                 s.class_id,
                 s.custom_info,
@@ -1741,6 +1743,10 @@ function getData()
                 'كوبونات' => intval($row['coupons']),
                 'كوبونات الحضور' => intval($row['attendance_coupons']),
                 'كوبونات الالتزام' => intval($row['commitment_coupons']),
+                'كوبونات المهام' => intval($row['task_coupons']),
+                'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
+                'ملاحظات طبية' => $row['medical_notes'] ?? '',
+                'معلومات إضافية' => $row['custom_info'] ?? '',
                 'صورة' => $row['image_url'] ?? '',
                 '_studentId' => intval($row['id']),
                 '_customInfo' => !empty($row['custom_info'])
