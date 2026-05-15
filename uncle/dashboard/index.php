@@ -3174,6 +3174,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--brand-bg);
         }
 
+        .trip-skeleton {
+            flex: 0 0 auto;
+            width: 240px;
+            height: 70px;
+            background: var(--surface-3);
+            border-radius: var(--r-lg);
+            animation: skeleton-pulse 1.5s infinite;
+        }
+
+        @keyframes skeleton-pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
         .trip-slim-info {
             flex: 1;
             min-width: 0;
@@ -8973,6 +8996,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const container = document.getElementById('tripsContainer');
             const head = document.getElementById('tripsSectionHead');
             if (!container || !head) return;
+
+            // Show skeleton if empty
+            if (!container.innerHTML.trim()) {
+                head.style.display = 'flex';
+                container.style.display = 'flex';
+                container.innerHTML = '<div class="trip-skeleton"></div><div class="trip-skeleton"></div><div class="trip-skeleton"></div>';
+            }
 
             try {
                 const fd = new FormData();
