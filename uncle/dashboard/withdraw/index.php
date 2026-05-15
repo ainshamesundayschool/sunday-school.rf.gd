@@ -978,8 +978,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 { val: student['الاسم'], weight: 1.0 },
                 { val: student['الفصل'], weight: 0.7 },
                 { val: student['_studentId']?.toString(), weight: 1.1 }, // ID is high priority
-                { val: student['تليفون'], weight: 1.1 },
-                { val: student['موبايل'], weight: 1.1 }
+                { val: student['رقم التليفون'], weight: 1.1 },
+                { val: student['تليفون الطوارئ'], weight: 1.1 }
             ];
 
             fields.forEach(field => {
