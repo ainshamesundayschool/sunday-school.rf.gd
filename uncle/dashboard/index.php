@@ -735,6 +735,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: none;
             font-weight: 600;
             transition: all var(--t) var(--ease);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .hero-actions .btn:hover {
@@ -4604,20 +4609,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         /* ── Today's Birthday Banner (homepage) ── */
+        /* Stats Toggle */
+        .stats-toggle-wrap {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #toggleStatsBtn {
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: .75rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: var(--r-full);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+
+        #toggleStatsBtn:hover {
+            background: var(--surface-3);
+            border-color: var(--text-4);
+            transform: translateY(-1px);
+        }
+
+        /* ── Today's Birthday Banner (homepage) ── */
         #todayBirthdayBanner {
             display: none;
-            background: linear-gradient(135deg, #fce7f3, #fdf4ff);
-            border: 1.5px solid #db2777;
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-right: 4px solid #db2777;
             border-radius: var(--r-xl);
-            padding: 14px 16px;
+            padding: 12px 16px;
             margin-bottom: 16px;
-            box-shadow: 0 0 0 3px rgba(219, 39, 119, .1), var(--shadow-md);
+            box-shadow: var(--shadow-sm);
             animation: fadeSlideDown .35s var(--spring);
         }
 
         [data-theme="dark"] #todayBirthdayBanner {
-            background: linear-gradient(135deg, rgba(219, 39, 119, .15), rgba(139, 92, 246, .12));
-            border-color: #db2777;
+            background: var(--surface-2);
+            border-color: var(--border-solid);
         }
 
         #todayBirthdayBanner.show {
@@ -4664,16 +4699,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bday-banner-chip {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(219, 39, 119, .12);
-            color: #9d174d;
-            border: 1px solid rgba(219, 39, 119, .3);
-            padding: 5px 12px;
+            gap: 8px;
+            background: var(--surface-3);
+            color: var(--text);
+            border: 1px solid var(--border-solid);
+            padding: 4px 10px 4px 6px;
             border-radius: var(--r-full);
-            font-size: .82rem;
+            font-size: .8rem;
             font-weight: 700;
             cursor: pointer;
             transition: all var(--t) var(--ease);
+        }
+
+        .bday-chip-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid #db2777;
+            background: #fff;
         }
 
         [data-theme="dark"] .bday-banner-chip {
@@ -6755,14 +6799,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="btn btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                         <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i> الإعلانات</button>
                         <a href="/uncle/dashboard/tasks/" class="btn btn-sm" id="tasksGlobalBtn"
-                            style="border:none;text-decoration:none;display:inline-flex;align-items:center;gap:5px;position:relative;"><i
-                                class="fas fa-tasks"></i> المهام<span id="globalTasksBadge"
+                            style="position:relative;"><i class="fas fa-tasks"></i> المهام<span id="globalTasksBadge"
                                 style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;"></span></a>
                     </div>
                 </div>
 
+                <!-- Stats Toggle -->
+                <div class="stats-toggle-wrap">
+                    <button id="toggleStatsBtn" onclick="toggleStats()">
+                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
+                    </button>
+                </div>
+
                 <!-- Stats -->
-                <div class="stats-row">
+                <div class="stats-row" id="mainStatsRow" style="display:none">
                     <div class="stat-tile" onclick="showAllStudentsModal()" style="cursor:pointer"
                         title="عرض جميع الأطفال">
                         <div class="stat-tile-icon blue"><i class="fas fa-users"></i></div>
@@ -8694,6 +8744,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
         }
 
+        function toggleStats() {
+            const row = document.getElementById('mainStatsRow');
+            const btn = document.getElementById('toggleStatsBtn');
+            if (!row || !btn) return;
+            const isHidden = row.style.display === 'none';
+            row.style.display = isHidden ? 'grid' : 'none';
+            btn.innerHTML = isHidden ? '<i class="fas fa-times"></i> إخفاء الإحصائيات' : '<i class="fas fa-chart-line"></i> عرض الإحصائيات';
+        }
+
         function renderTodayBirthdayBanner() {
             const banner = document.getElementById('todayBirthdayBanner');
             const list = document.getElementById('todayBirthdayList');
@@ -8706,11 +8765,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             list.innerHTML = kids.map(s => {
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '';
+                const photo = s['photo'] || s['الصورة'] || '';
                 const safe = name.replace(/'/g, "\\'");
+                const avatar = photo ? `/uncle/dashboard/uploads/${photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
                 return `<div class="bday-banner-chip" onclick="showStudentDetails('${safe}')">
-            <i class="fas fa-birthday-cake" style="font-size:.7rem"></i>
-            ${name}${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
-        </div>`;
+                    <img src="${avatar}" class="bday-chip-img">
+                    <span>${name}</span>
+                    ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
+                </div>`;
             }).join('');
             banner.classList.add('show');
         }
@@ -13185,7 +13247,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Global exposure
         Object.assign(window, {
             showClassView, showClassesView, showCombinedClassView, showAllTogetherView, markStudentAttendance, showStudentDetails,
-            showSheetModal, showCustomExportModal, showAllKidsCustomExport, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
+            showSheetModal, showCustomExportModal, showAllKidsCustomExport, toggleStats, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
             showImageModal, hideImageModal, showAddPersonModal, showBirthdayModal, showBirthdaysByMonth,
             showPastFridaysModal, loadFridayAttendance, performSearch, clearSearch, showRegistrationDetails,
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
