@@ -132,6 +132,10 @@
             font-size: 14px;
         }
 
+        button, input, select, textarea {
+            font-family: 'Cairo', sans-serif !important;
+        }
+
         /* Ambient mesh background */
         body::before {
             content: '';
@@ -827,11 +831,17 @@
         }
 
         .stat-info h3 {
-            font-size: 1.6rem;
+            font-size: 1.85rem;
             font-weight: 900;
             color: var(--text);
             line-height: 1;
             letter-spacing: -0.03em;
+            word-break: break-all;
+        }
+
+        #totalCoupons {
+            font-size: 1.45rem;
+            letter-spacing: -0.05em;
         }
 
         /* ═══════════════════════════════════════════════════════════════════
@@ -4058,20 +4068,6 @@
             gap: 18px;
         }
 
-        .overview-hero {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 18px;
-            align-items: center;
-            background: linear-gradient(135deg, var(--primary), #4354e8 50%, #7c3aed);
-            border: none;
-            border-radius: var(--radius-xl);
-            padding: 28px 28px;
-            box-shadow: 0 8px 32px rgba(91, 108, 245, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
         /* Quick Actions Hub */
         .quick-actions-hub {
             display: grid;
@@ -4121,13 +4117,21 @@
             color: var(--muted);
         }
 
-        .overview-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse 60% 80% at 80% -10%, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
-            pointer-events: none;
+        /* Minimal Reg Link */
+        .reg-link-minimal {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: var(--primary-light);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
         }
+        .rlm-label { font-size: 0.75rem; font-weight: 800; color: var(--primary); }
+        .rlm-url { flex: 1; font-size: 0.75rem; font-family: monospace; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: ltr; }
+        .rlm-actions { display: flex; gap: 4px; }
 
         .overview-kicker {
             color: rgba(255, 255, 255, 0.7);
@@ -4641,22 +4645,14 @@
             <!-- ── OVERVIEW ── -->
             <div id="overview" class="tab-panel">
                 <div class="overview-shell">
-                    <section class="overview-hero">
-                        <div>
-                            <div class="overview-kicker" id="overviewDate">اليوم</div>
-                            <h1 class="overview-title">مرحباً، <span id="overviewChurchName">مدارس الأحد</span></h1>
+                    <div id="kidRegBanner" class="reg-link-minimal" style="display:none; margin-bottom: 20px;">
+                        <div class="rlm-label">رابط تسجيل الأطفال:</div>
+                        <div class="rlm-url" id="overviewKidRegUrl"></div>
+                        <div class="rlm-actions">
+                            <button class="btn btn-primary btn-sm" style="padding: 4px 8px;" onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i></button>
+                            <button class="btn btn-outline btn-sm" style="padding: 4px 8px;" onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i></button>
                         </div>
-                        <div class="quick-actions" aria-label="اختصارات سريعة">
-                            <button class="quick-action primary" onclick="switchTabByName('attendance')"><i
-                                    class="fas fa-calendar-check"></i> تسجيل الحضور</button>
-                            <button class="quick-action" onclick="switchTabByName('students')"><i
-                                    class="fas fa-child"></i> الأطفال</button>
-                            <button class="quick-action" onclick="switchTabByName('trips')"><i class="fas fa-bus"></i>
-                                الرحلات</button>
-                            <button class="quick-action" onclick="switchTabByName('pending')"><i
-                                    class="fas fa-clock"></i> الطلبات</button>
-                        </div>
-                    </section>
+                    </div>
 
                     <div class="stats-row overview-stats">
                         <div class="stat-card">
@@ -4711,34 +4707,6 @@
                     </div>
 
 
-                    <!-- ── KID REG LINK BANNER ── -->
-                    <div id="kidRegBanner" class="card" style="margin-bottom:20px;display:none;">
-                        <div class="card-body" style="padding:16px 20px;">
-                            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-                                <div
-                                    style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#eef0ff,#dde0ff);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.1rem;flex-shrink:0;">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:3px;">
-                                        رابط تسجيل الأطفال</div>
-                                    <div id="overviewKidRegUrl"
-                                        style="font-size:0.75rem;color:var(--primary);font-family:monospace;word-break:break-all;background:#eef0ff;padding:4px 10px;border-radius:6px;cursor:text;user-select:all;">
-                                    </div>
-                                </div>
-                                <div style="display:flex;gap:8px;flex-shrink:0;">
-                                    <button class="btn btn-primary btn-sm"
-                                        onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')">
-                                        <i class="fas fa-copy"></i> نسخ
-                                    </button>
-                                    <button class="btn btn-outline btn-sm"
-                                        onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="overview-grid" style="grid-template-columns: 1fr;">
                         <div class="card">
                             <div class="card-header">
@@ -4797,40 +4765,14 @@
 
             <!-- ── UNCLES ── -->
             <div id="uncles" class="tab-panel">
-                <!-- ── UNCLE REG LINK CARD ── -->
-                <div class="card" style="margin-bottom:20px;" id="uncleRegLinkCard">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-link" style="color:var(--success,#10b981);"></i> رابط
-                            تسجيل الخدام</div>
-                    </div>
-                    <div class="card-body">
-                        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">
-                            شارك هذا الرابط مع الخادم ليتمكن من تسجيل حسابه مباشرة — الرابط دائم وقابل للمشاركة مع أي
-                            عدد من الخدام.
-                        </p>
-                        <div id="uncleRegLinksContainer">
-                            <div
-                                style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--success-light,#d1fae5);border-radius:8px;border:1px solid rgba(16,185,129,.2);">
-                                <i class="fas fa-user-tie" style="color:var(--success,#10b981);flex-shrink:0;"></i>
-                                <span id="uncleDirectRegUrl"
-                                    style="flex:1;font-size:0.78rem;font-family:monospace;color:#059669;word-break:break-all;cursor:text;user-select:all;">جاري
-                                    التحميل...</span>
-                                <button onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"
-                                    style="padding:6px 12px;border-radius:6px;border:1px solid rgba(16,185,129,.3);background:#d1fae5;color:#059669;font-size:0.78rem;cursor:pointer;flex-shrink:0;font-family:'Cairo',sans-serif;">
-                                    <i class="fas fa-copy"></i> نسخ
-                                </button>
-                                <button
-                                    onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"
-                                    style="padding:6px 12px;border-radius:6px;border:none;background:#25D366;color:white;font-size:0.78rem;cursor:pointer;flex-shrink:0;">
-                                    <i class="fab fa-whatsapp"></i> واتساب
-                                </button>
-                                <button
-                                    onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"
-                                    style="padding:6px 10px;border-radius:6px;border:1px solid rgba(16,185,129,.3);background:#d1fae5;color:#059669;font-size:0.78rem;cursor:pointer;flex-shrink:0;">
-                                    <i class="fas fa-external-link-alt"></i>
-                                </button>
-                            </div>
-                        </div>
+                <!-- ── UNCLE REG LINK MINIMAL ── -->
+                <div id="uncleRegLinkCard" class="reg-link-minimal" style="margin-bottom:20px;">
+                    <div class="rlm-label">رابط تسجيل الخدام:</div>
+                    <div class="rlm-url" id="uncleDirectRegUrl">جاري التحميل...</div>
+                    <div class="rlm-actions">
+                        <button class="btn btn-primary btn-sm" style="padding: 4px 8px;" onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i class="fas fa-copy"></i></button>
+                        <button class="btn btn-success btn-sm" style="padding: 4px 8px; background: #25D366; border: none;" onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-outline btn-sm" style="padding: 4px 8px;" onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i></button>
                     </div>
                 </div>
 
@@ -5027,7 +4969,7 @@
                         <div class="year-selector">
                             <button class="btn btn-outline btn-sm" onclick="changeYear(-1)"><i
                                     class="fas fa-chevron-right"></i></button>
-                            <span id="currentYearDisplay"
+                            <span id="attendanceYearDisplay"
                                 style="font-weight:700;font-size:1.1rem;min-width:60px;text-align:center;"></span>
                             <button class="btn btn-outline btn-sm" onclick="changeYear(1)"><i
                                     class="fas fa-chevron-left"></i></button>
@@ -9364,15 +9306,17 @@
             rc.innerHTML = html;
         }
         // ── Attendance ─────────────────────────────────────────────────
-        function initAttendance() {
+        async function initAttendance() {
             // Set current year and month
             const today = new Date();
             currentAttYear = today.getFullYear();
             currentAttMonth = today.getMonth();
 
-            document.getElementById('attendanceYearDisplay').textContent = currentAttYear;
+            const yearEl = document.getElementById('attendanceYearDisplay');
+            if (yearEl) yearEl.textContent = currentAttYear;
+            
             renderMonthTabs();
-            return renderFridayCards();
+            await renderFridayCards();
         }
         function changeYear(dir) {
             currentAttYear += dir;
@@ -12348,10 +12292,10 @@
         const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
         // Called by switchTab loader
-        function initUncleAttendanceTab() {
+        async function initUncleAttendanceTab() {
             document.getElementById('uncleAttYearDisplay2').textContent = ua2Year;
             renderUa2MonthTabs();
-            return renderUa2FridayCards();
+            await renderUa2FridayCards();
         }
 
         // Sub-tab switching (Calendar / Report)
@@ -12787,6 +12731,18 @@
             }, 1000);
         }
 
+        function toggleElement(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'block' : 'none';
+            
+            const chevId = id.replace('Wrap', 'Chevron');
+            const chev = document.getElementById(chevId);
+            if (chev) {
+                chev.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+            }
+        }
     </script>
 
     <!-- Uncle Attendance Modal -->
