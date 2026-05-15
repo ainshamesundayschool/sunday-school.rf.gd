@@ -70,7 +70,10 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         body::before {
             content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .07) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .05) 0%, transparent 60%);
-            pointer-        /* ── TOPBAR ── */
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── TOPBAR ── */
         .topbar {
             position: sticky; top: 0; z-index: 300; background: var(--bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             padding: 0 16px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
