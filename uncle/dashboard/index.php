@@ -7494,7 +7494,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="header-btn" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')" title="نسخ">
                             <i class="fas fa-copy" style="color:var(--success)"></i>
                         </button>
-                        <div class="dropdown-menu" id="absentCopyMenu" style="right:0;left:auto">
+                        <div class="dropdown-menu" id="absentCopyMenu" style="left:0;right:auto">
                             <div class="dropdown-item" onclick="executeAbsentAction('copy', 'phones')">
                                 <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
                             </div>
@@ -7508,7 +7508,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="header-btn" id="absentWaBtn" onclick="toggleAbsentDropdown('wa')" title="واتساب">
                             <i class="fab fa-whatsapp" style="color:#25d366"></i>
                         </button>
-                        <div class="dropdown-menu" id="absentWaMenu" style="right:0;left:auto">
+                        <div class="dropdown-menu" id="absentWaMenu" style="left:0;right:auto">
                             <div class="dropdown-item" onclick="executeAbsentAction('wa', 'phones')">
                                 <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
                             </div>
