@@ -67,9 +67,10 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         img { max-height: 100%; }
         
         /* ── Custom Scrollbar ── */
-        *::-webkit-scrollbar { width: 4px; height: 4px; }
-        *::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 10px; }
-        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-thumb { background: rgba(91, 108, 245, 0.2); border-radius: 10px; transition: background 0.3s; }
+        *::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+        *::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 10px; }
         html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
         html, body { scrollbar-width: none; -ms-overflow-style: none; }
 
