@@ -475,40 +475,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             transform: translateY(0);
         }
 
-        .sheet-header {
-            padding: 32px 24px 20px;
-            text-align: center;
-            position: relative;
-            border-bottom: 1px solid var(--border-solid);
-        }
-
-        .sheet-close {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: var(--surface-2);
-            border: 1.5px solid var(--border-solid);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-2);
-            transition: all var(--t);
-        }
-
-        .sheet-photo {
-            width: 110px;
-            height: 110px;
-            border-radius: 28px;
-            border: 4px solid var(--surface);
-            box-shadow: var(--shadow-md);
-            margin: 0 auto 16px;
-            object-fit: cover;
-            display: block;
-        }
+        .sheet-header { padding: 20px 24px 12px; text-align: center; position: relative; border-bottom: 1px solid var(--border-solid); }
+        .sheet-close { position: absolute; top: 12px; left: 16px; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); border: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); transition: all var(--t); }
+        .sheet-photo { width: 80px; height: 80px; border-radius: 22px; border: 3px solid var(--surface); box-shadow: var(--shadow-md); margin: 0 auto 10px; object-fit: cover; display: block; }
 
         .sheet-name {
             font-size: 1.4rem;
@@ -525,14 +494,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 20px;
+            gap: 10px;
+            padding: 12px 20px;
         }
 
         .stat-box {
             background: var(--surface-2);
-            border-radius: 16px;
-            padding: 16px;
+            border-radius: 14px;
+            padding: 12px;
             border: 1.5px solid var(--border-solid);
             text-align: center;
         }
@@ -1007,9 +976,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             ${photo}
             <div class="sheet-name">${s['الاسم']}</div>
             <div class="sheet-class">${s['الفصل']}</div>
-            <div style="margin-top:12px">
-                <button class="pill" style="background:var(--brand-bg);color:var(--brand);border:none;padding:8px 16px;font-size:.85rem" onclick="viewFullAudit(${s['_studentId']})">
-                    <i class="fas fa-history"></i> سجل الكوبونات العام
+            <div style="margin-top:8px">
+                <button class="pill" style="background:var(--brand-bg);color:var(--brand);border:none;padding:6px 14px;font-size:.8rem;border-radius:10px" onclick="viewFullAudit(${s['_studentId']})">
+                    <i class="fas fa-history"></i> سجل العام
                 </button>
             </div>
         `;
@@ -1030,11 +999,11 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${s['كوبونات الالتزام'] || 0}</div></div>
                 <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${s['كوبونات المهام'] || 0}</div></div>
             </div>
-            <div class="action-box">
-                <div style="font-weight:900;margin-bottom:12px;padding-right:8px">سحب كوبونات</div>
+            <div class="action-box" style="padding-bottom:20px">
+                <div style="font-weight:900;margin-bottom:8px;padding-right:8px;font-size:0.9rem">سحب كوبونات</div>
                 <div class="input-group">
-                    <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()">
-                    <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()">سحب</button>
+                    <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
+                    <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
                 </div>
                 <div id="wError" style="color:var(--danger);font-size:.8rem;font-weight:800;margin-top:8px;padding-right:8px;display:none;animation:shake 0.3s">القيمة أكبر من الرصيد المتاح!</div>
             </div>
