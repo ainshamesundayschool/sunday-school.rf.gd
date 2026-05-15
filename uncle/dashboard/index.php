@@ -1081,8 +1081,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 35px 2px 10px 2px;
-            margin: -35px 0 -10px 0;
+            padding: 40px 20px 10px 20px;
+            margin: -40px 0 -10px 0;
             overflow-x: auto;
             scrollbar-width: none;
             flex: 1;
@@ -1130,7 +1130,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .uncle-tooltip {
             position: absolute;
-            bottom: calc(100% + 6px);
+            bottom: calc(100% - 4px);
             left: 50%;
             transform: translateX(-50%) translateY(4px);
             background: var(--text);
