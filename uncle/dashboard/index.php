@@ -4665,7 +4665,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
-            border-right: 4px solid #db2777;
             border-radius: var(--r-xl);
             padding: 12px 16px;
             margin-bottom: 16px;
@@ -4739,8 +4738,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 24px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid #db2777;
-            background: #fff;
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface);
         }
 
         [data-theme="dark"] .bday-banner-chip {
@@ -7375,8 +7374,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <select class="form-input" id="customExportSortBy" style="flex:1.5" onchange="renderCustomExportPreview()">
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
-                                <option value="كوبونات">كوبونات</option>
+                                <option value="كوبونات">إجمالي الكوبونات</option>
+                                <option value="attendance_coupons">كوبونات الحضور</option>
+                                <option value="commitment_coupons">كوبونات الالتزام</option>
+                                <option value="task_coupons">كوبونات المهام</option>
                                 <option value="رقم التليفون">رقم التليفون</option>
+                                <option value="emergency_phone">تليفون الطوارئ</option>
                                 <option value="عيد الميلاد">عيد الميلاد</option>
                                 <option value="العنوان">العنوان</option>
                             </select>
@@ -10957,10 +10960,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
                 { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'emergency_phone', selected: false },
                 { key: 'address', label: 'العنوان', source: 'العنوان', selected: false },
                 { key: 'birthday', label: 'عيد الميلاد', source: 'عيد الميلاد', selected: false },
                 { key: 'age', label: 'السن', type: 'age', selected: false },
-                { key: 'coupons', label: 'الكوبونات', source: 'كوبونات', selected: false },
+                { key: 'medical_notes', label: 'ملاحظات طبية', source: 'medical_notes', selected: false },
+                { key: 'coupons', label: 'إجمالي الكوبونات', source: 'كوبونات', selected: false },
+                { key: 'attendance_coupons', label: 'كوبونات الحضور', source: 'attendance_coupons', selected: false },
+                { key: 'commitment_coupons', label: 'كوبونات الالتزام', source: 'commitment_coupons', selected: false },
+                { key: 'task_coupons', label: 'كوبونات المهام', source: 'task_coupons', selected: false },
+                { key: 'custom_info', label: 'معلومات إضافية', source: 'custom_info', selected: false },
                 { key: 'attended_count', label: 'إجمالي الحضور', type: 'attendance_count', selected: false },
             ];
             if (churchCustomFields && churchCustomFields.length) {
@@ -11087,7 +11096,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             arr.sort((a, b) => {
                 let vA = a[cfg.sortBy] || '', vB = b[cfg.sortBy] || '';
                 let res = 0;
-                if (cfg.sortBy === 'كوبونات') {
+                const numericFields = ['كوبونات', 'attendance_coupons', 'commitment_coupons', 'task_coupons'];
+                if (numericFields.includes(cfg.sortBy)) {
                     res = (parseInt(vA) || 0) - (parseInt(vB) || 0);
                 } else if (cfg.sortBy === 'عيد الميلاد') {
                     const pA = vA.split('/'), pB = vB.split('/');
