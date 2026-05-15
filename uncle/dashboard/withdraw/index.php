@@ -113,8 +113,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
         /* ── CLASSES GRID ── */
         .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
-        .class-card { background: var(--surface); border-radius: 16px; padding: 20px 12px; border: 1.5px solid var(--border-solid); text-align: center; cursor: pointer; transition: all var(--t); }
-        .class-card:hover { border-color: var(--brand); transform: translateY(-2px); }
+        .class-card { background: var(--surface); border-radius: 16px; padding: 20px 12px; border: 1.5px solid var(--border-solid); text-align: center; cursor: pointer; transition: all var(--t); position: relative; overflow: hidden; }
+        .class-card:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .class-icon { width: 44px; height: 44px; background: var(--brand-bg); color: var(--brand); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.2rem; }
         .class-name { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; color: var(--text); }
         .class-badge { font-size: .7rem; font-weight: 800; color: var(--text-3); opacity: 0.7; }
 
@@ -345,6 +346,26 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         }
     }
 
+    function getClassIcon(name, cls) {
+        if (cls && cls.icon) {
+            if (/^\d+$/.test(cls.icon)) return `<span style="font-weight:900;font-size:1.2rem">${cls.icon}</span>`;
+            return `<i class="fas ${cls.icon}"></i>`;
+        }
+        const icons = {
+            'حضانة': '<i class="fas fa-baby"></i>',
+            'أولى': '<span style="font-weight:900;font-size:1.2rem">١</span>',
+            'تانية': '<span style="font-weight:900;font-size:1.2rem">٢</span>',
+            'تالتة': '<span style="font-weight:900;font-size:1.2rem">٣</span>',
+            'رابعة': '<span style="font-weight:900;font-size:1.2rem">٤</span>',
+            'خامسة': '<span style="font-weight:900;font-size:1.2rem">٥</span>',
+            'سادسة': '<span style="font-weight:900;font-size:1.2rem">٦</span>',
+            'سادسه': '<span style="font-weight:900;font-size:1.2rem">٦</span>',
+            'سابعة': '<span style="font-weight:900;font-size:1.2rem">٧</span>',
+            'ثامنة': '<span style="font-weight:900;font-size:1.2rem">٨</span>',
+        };
+        return icons[name] || `<i class="fas fa-chalkboard-teacher"></i>`;
+    }
+
     function renderClasses() {
         const container = document.getElementById('classList');
         container.innerHTML = classes.map(c => {
@@ -352,6 +373,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const count = allStudents.filter(s => s['الفصل'] === name).length;
             return `
                 <div class="class-card" onclick="setFilter('${name}')">
+                    <div class="class-icon">${getClassIcon(name, c)}</div>
                     <div class="class-name">${name}</div>
                     <div class="class-badge">${count} طفل</div>
                 </div>
@@ -367,12 +389,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         }
         container.innerHTML = list.map(s => {
             const photo = s['صورة'] ? `<img src="${s['صورة']}" class="kid-photo" onerror="this.outerHTML='<div class=\\'kid-photo\\'><i class=\\'fas fa-user\\'></i></div>'">` : '<div class="kid-photo"><i class="fas fa-user"></i></div>';
+            const clsData = classes.find(c => (c.arabic_name || c.code) === s['الفصل']);
             return `
                 <div class="kid-item" onclick="openProfile(${s['_studentId']})">
                     ${photo}
                     <div class="kid-info">
                         <div class="kid-name">${s['الاسم']}</div>
-                        <div class="kid-meta"><span>${s['الفصل']}</span></div>
+                        <div class="kid-meta"><span style="display:flex;align-items:center;gap:4px"><span style="font-size:0.7rem;opacity:0.7">${getClassIcon(s['الفصل'], clsData)}</span> ${s['الفصل']}</span></div>
                     </div>
                     <div class="kid-coupons">${s['كوبونات'] || 0} <i class="fas fa-star" style="font-size:.7rem"></i></div>
                 </div>
