@@ -580,6 +580,21 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         setTimeout(() => el.classList.remove('active'), 3000);
     }
 
+    function timeSince(date) {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return 'منذ ' + Math.floor(interval) + ' سنة';
+        interval = seconds / 2592000;
+        if (interval > 1) return 'منذ ' + Math.floor(interval) + ' شهر';
+        interval = seconds / 86400;
+        if (interval > 1) return 'منذ ' + Math.floor(interval) + ' يوم';
+        interval = seconds / 3600;
+        if (interval > 1) return 'منذ ' + Math.floor(interval) + ' ساعة';
+        interval = seconds / 60;
+        if (interval > 1) return 'منذ ' + Math.floor(interval) + ' دقيقة';
+        return 'الآن';
+    }
+
     async function viewFullAudit(sid) {
         const fd = new FormData();
         fd.append('action', 'getEntityAuditHistory');
@@ -592,29 +607,40 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             if (r.success) {
                 let listHtml = '';
                 if (!r.logs.length) {
-                    listHtml = `<div style="text-align:center;padding:60px;color:var(--text-3);font-weight:800"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:12px;opacity:0.3"></i>لا يوجد سجلات تاريخية لهذا الطفل</div>`;
+                    listHtml = `<div style="text-align:center;padding:80px 20px;color:var(--text-3);font-weight:800"><i class="fas fa-history" style="font-size:3rem;display:block;margin-bottom:16px;opacity:0.1"></i>لا يوجد سجلات تاريخية لهذا الطفل حتى الآن</div>`;
                 } else {
-                    listHtml = r.logs.map(l => {
-                        let icon = 'fa-star';
-                        let color = 'var(--brand)';
-                        if (l.action.includes('add')) { icon = 'fa-plus'; color = 'var(--success)'; }
-                        if (l.action.includes('delete')) { icon = 'fa-trash'; color = 'var(--danger)'; }
-                        
-                        return `
-                            <div class="hist-item" style="border:none;background:var(--surface-2);border-radius:14px;padding:12px 16px;margin-bottom:10px;position:relative;border-right:3px solid ${color}">
-                                <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                                    <div style="font-weight:900;font-size:.9rem;color:var(--text);margin-bottom:4px">
-                                        <i class="fas ${icon}" style="color:${color};margin-left:6px;width:16px"></i>
-                                        ${l.notes || l.action}
+                    listHtml = `
+                        <div style="position:relative;padding-right:20px;margin-top:10px">
+                            <div style="position:absolute;right:4px;top:0;bottom:0;width:2px;background:var(--border-solid);border-radius:1px"></div>
+                            ${r.logs.map(l => {
+                                let badge = 'تعديل'; let color = '#5b6cf5'; let bg = 'rgba(91,108,245,0.08)';
+                                if (l.action.includes('add')) { badge = 'إضافة'; color = '#10b981'; bg = 'rgba(16,185,129,0.08)'; }
+                                if (l.action.includes('withdraw')) { badge = 'سحب'; color = '#f59e0b'; bg = 'rgba(245,158,11,0.08)'; }
+                                if (l.action.includes('refund')) { badge = 'استرجاع'; color = '#8b5cf6'; bg = 'rgba(139,92,246,0.08)'; }
+                                if (l.action.includes('delete')) { badge = 'حذف'; color = '#ef4444'; bg = 'rgba(239,68,68,0.08)'; }
+                                
+                                return `
+                                    <div class="tl-item" style="position:relative;padding-bottom:24px">
+                                        <div style="position:absolute;right:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:${color};border:2px solid var(--surface);box-shadow:0 0 0 4px var(--bg);z-index:1"></div>
+                                        <div style="background:var(--surface-2);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border-solid)">
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                                <span style="background:${bg};color:${color};padding:4px 10px;border-radius:8px;font-size:0.7rem;font-weight:900">${badge}</span>
+                                                <span style="font-size:0.65rem;font-weight:800;color:var(--text-3)">${timeSince(l.created_at)}</span>
+                                            </div>
+                                            <div style="font-weight:900;font-size:0.95rem;color:var(--text);margin-bottom:10px;line-height:1.4">${l.notes || l.action}</div>
+                                            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px dashed var(--border-solid)">
+                                                <div style="display:flex;align-items:center;gap:6px">
+                                                    <div style="width:20px;height:20px;border-radius:6px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.6rem"><i class="fas fa-user-shield"></i></div>
+                                                    <span style="font-size:0.75rem;font-weight:800;color:var(--text-2)">${l.uncle_name}</span>
+                                                </div>
+                                                <div style="font-size:0.65rem;font-weight:700;color:var(--text-3)">${l.created_at_formatted.split(' ')[0]}</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style="font-size:.7rem;color:var(--text-3);font-weight:800;white-space:nowrap">${l.created_at_formatted}</div>
-                                </div>
-                                <div style="font-size:.75rem;color:var(--text-3);font-weight:700">
-                                    <i class="fas fa-user-edit" style="margin-left:4px;font-size:.65rem"></i> بواسطة: ${l.uncle_name}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
                 }
 
                 const auditDiv = document.createElement('div');
@@ -622,12 +648,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 auditDiv.className = 'profile-overlay active';
                 auditDiv.style.zIndex = '1100';
                 auditDiv.innerHTML = `
-                    <div class="profile-sheet" style="border-radius:24px 24px 0 0">
-                        <div class="sheet-header" style="padding:24px 20px 16px">
+                    <div class="profile-sheet">
+                        <div class="sheet-header">
                             <div class="sheet-close" onclick="closeAudit()"><i class="fas fa-times"></i></div>
-                            <h3 style="font-weight:900;font-size:1.1rem">السجل التاريخي الشامل</h3>
+                            <h3 style="font-weight:900;font-size:1.2rem;margin-top:10px">السجل التاريخي الشامل</h3>
+                            <p style="font-size:0.75rem;font-weight:700;color:var(--text-3);margin-top:4px">تتبع كافة حركات الكوبونات والبيانات</p>
                         </div>
-                        <div class="sheet-body">
+                        <div class="sheet-body" style="padding:20px 24px">
                             ${listHtml}
                         </div>
                     </div>
