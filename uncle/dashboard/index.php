@@ -310,11 +310,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
          below — this means: use Cairo if already cached, otherwise keep
          the fallback for THIS paint and cache for next load. ── -->
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=optional"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
         media="print" onload="this.media='all'">
     <noscript>
         <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=optional">
+            href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
     </noscript>
 
     <!-- ── Font Awesome: async load so icons don't block first paint ── -->
@@ -347,7 +347,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ─────────────────────────────────────────────────────────────── */
         @font-face {
             font-family: 'Cairo';
-            font-display: optional;
+            font-display: swap;
         }
 
         :root {
@@ -4640,6 +4640,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         #toggleStatsBtn {
+            font-family: inherit;
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
@@ -6815,16 +6816,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 id="heroName"><?php echo htmlspecialchars($uncleName ?: $churchName); ?></span> 👋</div>
                     </div>
                     <div class="hero-actions">
-                        <button class="btn btn-sm" onclick="openIntelligentSearchModal()"><i class="fas fa-search"></i> بحث ذكي</button>
-                        <button class="btn btn-sm" id="showBirthdayModalBtn"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="btn btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i> الأطفال</button>
-                        <button class="btn btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
-                        <button class="btn btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
-                        <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <a href="/uncle/dashboard/withdraw/" class="btn btn-sm"><i class="fas fa-star"></i> سحب كوبونات</a>
-                        <a href="/uncle/dashboard/tasks/" class="btn btn-sm" id="tasksGlobalBtn"
-                            style="position:relative;"><i class="fas fa-tasks"></i> المهام<span id="globalTasksBadge"
-                                style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;"></span></a>
+                        <div class="action-dropdown">
+                            <button class="header-btn" style="background:var(--surface-2); padding:0 12px; border-radius:100px; display:flex; align-items:center; gap:6px; font-family:'Cairo', sans-serif;" onclick="toggleDropdown('heroActionsMenu')">
+                                <i class="fas fa-ellipsis-v"></i> إجراءات
+                            </button>
+                            <div class="dropdown-menu" id="heroActionsMenu" style="left:0; right:auto;">
+                                <div class="dropdown-group-label">إدارة عامة</div>
+                                <button class="dropdown-item" onclick="openIntelligentSearchModal(); closeAllDropdowns()"><i class="fas fa-search"></i> بحث ذكي</button>
+                                <button class="dropdown-item" id="showAllStudentsModalBtn" onclick="closeAllDropdowns()"><i class="fas fa-list"></i> جميع الأطفال</button>
+                                <a href="/uncle/dashboard/withdraw/" class="dropdown-item"><i class="fas fa-star"></i> سحب كوبونات</a>
+                                
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-group-label">أدوات إضافية</div>
+                                <button class="dropdown-item" id="showBirthdayModalBtn" onclick="closeAllDropdowns()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                                <button class="dropdown-item" id="manageAnnouncementsBtn" onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                                <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn" style="position:relative; display:flex; justify-content:space-between; align-items:center;">
+                                    <span><i class="fas fa-tasks"></i> المهام</span>
+                                    <span id="globalTasksBadge" style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;"></span>
+                                </a>
+                                
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-group-label">إضافات وتصدير</div>
+                                <button class="dropdown-item" onclick="showAllKidsCustomExport(); closeAllDropdowns()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
+                                <button class="dropdown-item" id="bulkAddKidsBtn" onclick="showBulkAddModal(); closeAllDropdowns()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
