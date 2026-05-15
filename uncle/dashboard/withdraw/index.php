@@ -958,38 +958,70 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function normalizeArabic(text) {
             if (!text) return "";
             return text
-                .replace(/[أإآ]/g, "ا")
+                .replace(/[أإآٱ]/g, "ا")
+                .replace(/[ىئ]/g, "ي")
                 .replace(/ة/g, "ه")
-                .replace(/ى/g, "ي")
+                .replace(/ؤ/g, "و")
                 .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
                 .toLowerCase()
                 .trim();
         }
 
-        function getMatchScore(target, query) {
-            const t = normalizeArabic(target);
-            const q = normalizeArabic(query);
+        function getMatchScore(student, query) {
+            const qNormalized = normalizeArabic(query);
+            const qRaw = query.trim().toLowerCase();
             
-            if (t === q) return 100; // Exact match
-            if (t.startsWith(q)) return 80; // Starts with
-            if (t.includes(q)) return 60; // Simple inclusion
-            
-            // Fuzzy match (subsequence)
-            let score = 0;
-            let queryIdx = 0;
-            for (let i = 0; i < t.length && queryIdx < q.length; i++) {
-                if (t[i] === q[queryIdx]) {
-                    queryIdx++;
-                    score++;
+            let maxScore = 0;
+
+            // Fields to search in
+            const fields = [
+                { val: student['الاسم'], weight: 1.0 },
+                { val: student['الفصل'], weight: 0.7 },
+                { val: student['_studentId']?.toString(), weight: 1.1 }, // ID is high priority
+                { val: student['تليفون'], weight: 1.1 },
+                { val: student['موبايل'], weight: 1.1 }
+            ];
+
+            fields.forEach(field => {
+                if (!field.val) return;
+                
+                const target = field.val.toString();
+                const tNormalized = normalizeArabic(target);
+                const tRaw = target.toLowerCase();
+
+                let currentScore = 0;
+
+                // Exact match (highest)
+                if (tRaw === qRaw || tNormalized === qNormalized) {
+                    currentScore = 100;
                 }
-            }
-            
-            // If all characters in query are found in sequence
-            if (queryIdx === q.length) {
-                return (score / t.length) * 40; 
-            }
-            
-            return 0;
+                // Starts with
+                else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) {
+                    currentScore = 80;
+                }
+                // Contains
+                else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) {
+                    currentScore = 60;
+                }
+                // Fuzzy subsequence
+                else {
+                    let score = 0;
+                    let queryIdx = 0;
+                    for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
+                        if (tNormalized[i] === qNormalized[queryIdx]) {
+                            queryIdx++;
+                            score++;
+                        }
+                    }
+                    if (queryIdx === qNormalized.length) {
+                        currentScore = (score / tNormalized.length) * 40;
+                    }
+                }
+
+                maxScore = Math.max(maxScore, currentScore * field.weight);
+            });
+
+            return maxScore;
         }
 
         function performSearch() {
@@ -1021,9 +1053,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             if (q) {
                 // Calculate scores for each student
                 filtered = filtered.map(s => {
-                    const nameScore = getMatchScore(s['الاسم'] || '', q);
-                    const classScore = getMatchScore(s['الفصل'] || '', q);
-                    return { ...s, _searchScore: Math.max(nameScore, classScore) };
+                    return { ...s, _searchScore: getMatchScore(s, q) };
                 })
                 .filter(s => s._searchScore > 0);
 
