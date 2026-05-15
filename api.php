@@ -1431,6 +1431,21 @@ try {
             bulkUpdateCustomData();
             break;
 
+        case 'withdrawCoupons':
+            checkUncleAuth();
+            withdrawCoupons();
+            break;
+
+        case 'getWithdrawalHistory':
+            checkUncleAuth();
+            getWithdrawalHistory();
+            break;
+
+        case 'refundWithdrawal':
+            checkUncleAuth();
+            refundWithdrawal();
+            break;
+
         case 'getSessionInfo':
             getSessionInfo();
             break;
@@ -1870,6 +1885,155 @@ function getData()
                 'line' => $e->getLine()
             ]
         ]);
+    }
+}
+
+function withdrawCoupons()
+{
+    try {
+        $conn = getDBConnection();
+        $conn->query("CREATE TABLE IF NOT EXISTS coupon_withdrawals (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_id INT NOT NULL,
+            uncle_id INT NOT NULL,
+            amount INT NOT NULL,
+            note TEXT,
+            is_refunded TINYINT(1) DEFAULT 0,
+            refunded_at DATETIME DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX(student_id),
+            INDEX(created_at)
+        )");
+
+        $studentId = intval($_POST['student_id'] ?? 0);
+        $amount = intval($_POST['amount'] ?? 0);
+        $note = sanitize($_POST['note'] ?? '');
+        $uncleId = $_SESSION['uncle_id'] ?? 0;
+
+        if ($studentId <= 0 || $amount <= 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
+            return;
+        }
+
+        $conn->begin_transaction();
+
+        // Get current coupons
+        $stmt = $conn->prepare("SELECT coupons FROM students WHERE id = ? FOR UPDATE");
+        $stmt->bind_param("i", $studentId);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        if (!$res) {
+            throw new Exception('الطفل غير موجود');
+        }
+
+        $current = intval($res['coupons']);
+        if ($current < $amount) {
+            throw new Exception('رصيد الكوبونات غير كافٍ');
+        }
+
+        $newTotal = $current - $amount;
+
+        // Update student
+        $upd = $conn->prepare("UPDATE students SET coupons = ? WHERE id = ?");
+        $upd->bind_param("ii", $newTotal, $studentId);
+        if (!$upd->execute()) {
+            throw new Exception('فشل تحديث رصيد الطفل');
+        }
+
+        // Record history
+        $hist = $conn->prepare("INSERT INTO coupon_withdrawals (student_id, uncle_id, amount, note) VALUES (?, ?, ?, ?)");
+        $hist->bind_param("iiis", $studentId, $uncleId, $amount, $note);
+        if (!$hist->execute()) {
+            throw new Exception('فشل تسجيل عملية السحب');
+        }
+
+        $conn->commit();
+        sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal]);
+    } catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollback();
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function getWithdrawalHistory()
+{
+    try {
+        $conn = getDBConnection();
+        $studentId = intval($_POST['student_id'] ?? 0);
+        if ($studentId <= 0) {
+            sendJSON(['success' => false, 'message' => 'id required']);
+            return;
+        }
+
+        $stmt = $conn->prepare("
+            SELECT w.*, u.name as uncle_name 
+            FROM coupon_withdrawals w
+            LEFT JOIN uncles u ON w.uncle_id = u.id
+            WHERE w.student_id = ?
+            ORDER BY w.created_at DESC
+        ");
+        $stmt->bind_param("i", $studentId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $history = [];
+        while ($row = $res->fetch_assoc()) {
+            $history[] = $row;
+        }
+        sendJSON(['success' => true, 'history' => $history]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function refundWithdrawal()
+{
+    try {
+        $conn = getDBConnection();
+        $withdrawalId = intval($_POST['withdrawal_id'] ?? 0);
+        $uncleId = $_SESSION['uncle_id'] ?? 0;
+
+        if ($withdrawalId <= 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
+            return;
+        }
+
+        $conn->begin_transaction();
+
+        $stmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE id = ? FOR UPDATE");
+        $stmt->bind_param("i", $withdrawalId);
+        $stmt->execute();
+        $w = $stmt->get_result()->fetch_assoc();
+        if (!$w) {
+            throw new Exception('السحب غير موجود');
+        }
+        if ($w['is_refunded']) {
+            throw new Exception('تم استرجاع هذا السحب بالفعل');
+        }
+
+        $amount = intval($w['amount']);
+        $studentId = intval($w['student_id']);
+
+        // Update student
+        $upd = $conn->prepare("UPDATE students SET coupons = coupons + ? WHERE id = ?");
+        $upd->bind_param("ii", $amount, $studentId);
+        if (!$upd->execute()) {
+            throw new Exception('فشل استعادة الكوبونات للطفل');
+        }
+
+        // Mark as refunded
+        $mark = $conn->prepare("UPDATE coupon_withdrawals SET is_refunded = 1, refunded_at = NOW() WHERE id = ?");
+        $mark->bind_param("i", $withdrawalId);
+        if (!$mark->execute()) {
+            throw new Exception('فشل تحديث حالة السحب');
+        }
+
+        $conn->commit();
+        sendJSON(['success' => true, 'message' => 'تم استرجاع الكوبونات بنجاح']);
+    } catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollback();
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }
 }
 

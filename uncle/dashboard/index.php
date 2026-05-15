@@ -6820,6 +6820,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="btn btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
                         <button class="btn btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                         <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                        <a href="/uncle/dashboard/withdraw/" class="btn btn-sm"><i class="fas fa-star"></i> سحب كوبونات</a>
                         <a href="/uncle/dashboard/tasks/" class="btn btn-sm" id="tasksGlobalBtn"
                             style="position:relative;"><i class="fas fa-tasks"></i> المهام<span id="globalTasksBadge"
                                 style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;"></span></a>
