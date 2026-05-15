@@ -7338,7 +7338,8 @@
                     document.getElementById('pendingCount').dataset.count = _pc;
 
                     // Update additional stats
-                    const activeTrips = (allTripsCache || []).filter(t => t.status === 'active').length;
+                    const trips = d.trips || allTripsCache || [];
+                    const activeTrips = trips.filter(t => t.status === 'active').length;
                     document.getElementById('activeTrips').textContent = activeTrips;
 
                     // Calculate today's attendance
@@ -7356,10 +7357,20 @@
                 });
         }
         function calculateTodayAttendance() {
-            const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+            const today = new Date();
+            const attDaySetting = localStorage.getItem('settingAttendanceDay');
+            const attDay = (attDaySetting !== null && attDaySetting !== undefined) ? parseInt(attDaySetting) : 5;
+            const currentDay = today.getDay();
+
+            let diff = currentDay - attDay;
+            if (diff < 0) diff += 7;
+
+            const target = new Date(today);
+            target.setDate(today.getDate() - diff);
+            const dateStr = target.toLocaleDateString('en-CA');
 
             const fd = mkFd('getAttendanceByDate');
-            fd.append('date', today);
+            fd.append('date', dateStr);
 
             fetch(API_URL, { method: 'POST', body: fd })
                 .then(r => r.json())
@@ -9581,6 +9592,7 @@
             else showToast(d.message || 'فشل', 'error');
         }
 
+
         // ── Pending ─────────────────────────────────────────────────────
         function loadPendingRegistrations() {
             const cls = document.getElementById('pendingClassFilter')?.value || '';
@@ -10268,16 +10280,40 @@
 
         async function loadAuditLogs() {
             const tb = document.getElementById('auditTable');
-            if (tb) tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="font-size:16px;"></i> جاري التحميل...</td></tr>`;
-            const fd = mkFd('getAuditLogs'); fd.append('limit', 500);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) {
-                auditLogsCache = d.logs || [];
-                auditPage = 1;
-                renderAuditStats(auditLogsCache);
-                filterAuditLogs();
-            } else {
-                if (tb) tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${d.message || 'تعذّر تحميل السجل'}</h3></div></td></tr>`;
+            if (tb) {
+                tb.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:16px;"></i> جاري التحميل...
+        </td></tr>`;
+            }
+
+            const fd = mkFd('getAuditLogs');
+            fd.append('limit', 500);
+
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: fd });
+                const d = await response.json();
+
+                if (d.success) {
+                    auditLogsCache = d.logs || [];
+                    auditPage = 1;
+                    renderAuditStats(auditLogsCache);
+                    filterAuditLogs();
+                } else {
+                    if (tb) {
+                        tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>${d.message || 'تعذّر تحميل السجل'}</h3>
+                </div></td></tr>`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading audit logs:', error);
+                if (tb) {
+                    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>خطأ في الاتصال بالخادم</h3>
+            </div></td></tr>`;
+                }
             }
         }
 
@@ -10618,35 +10654,6 @@
             return fieldMap[field] || field;
         }
 
-        // Enhanced loadAuditLogs function
-        async function loadAuditLogs() {
-            const tb = document.getElementById('auditTable');
-            if (tb) {
-                tb.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px;">
-            <i class="fas fa-spinner fa-spin" style="font-size:16px;"></i> جاري التحميل...
-        </td></tr>`;
-            }
-
-            const fd = mkFd('getAuditLogs');
-            fd.append('limit', 500);
-
-            try {
-                const response = await fetch(API_URL, { method: 'POST', body: fd });
-                const d = await response.json();
-
-                if (d.success) {
-                    auditLogsCache = d.logs || [];
-                    auditPage = 1;
-                    renderAuditStats(auditLogsCache);
-                    filterAuditLogs();
-                } else {
-                    if (tb) {
-                        tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>${d.message || 'تعذّر تحميل السجل'}</h3>
-                </div></td></tr>`;
-                    }
-                }
             } catch (error) {
                 console.error('Error loading audit logs:', error);
                 if (tb) {
@@ -11184,13 +11191,13 @@
             <td>${avatarHtml}</td>
             ${churchCell}
             <td><strong>${u.name}</strong></td>
-            <td>${u.username}</td>
+            <td>${u.role === 'developer' ? '—' : u.username}</td>
             <td><span class="badge ${roleCls}">${roleText}</span></td>
             <td>${classDisplay}</td>
             <td>${date}</td>
             <td><div class="actions">
                 <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
-                <button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}')"><i class="fas fa-edit"></i></button>
+                ${u.role === 'developer' ? '' : `<button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}')" title="تعديل"><i class="fas fa-edit"></i></button>`}
                 <button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>
             </div></td>
         </tr>`;
@@ -11818,15 +11825,29 @@
         // ADMIN PROFILE (Church Settings Tab)
         // ══════════════════════════════════════════════════════
         async function loadAdminProfile() {
-            // Populate fields from current session / allUncles admin
-            const admin = allUncles.find(u => u.role === 'admin');
-            const name = admin?.name || localStorage.getItem('uncleName') || '';
-            const user = admin?.username || localStorage.getItem('uncleUsername') || '';
-            const nameEl = document.getElementById('adminProfileName');
-            const userEl = document.getElementById('adminProfileUsername');
-            if (nameEl) nameEl.value = name;
-            if (userEl) userEl.value = user;
-
+            const fd = mkFd('getAdminProfile');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                document.getElementById('adminProfileName').value = d.profile.name || '';
+                const userInp = document.getElementById('adminProfileUsername');
+                if (userInp) {
+                    userInp.value = isDeveloper ? '—' : (d.profile.username || '');
+                    userInp.closest('.form-group').style.display = isDeveloper ? 'none' : '';
+                }
+                
+                // Hide password section for developers
+                const dividers = document.querySelectorAll('.settings-section-divider');
+                dividers.forEach(div => {
+                    if (div.textContent.includes('كلمة المرور')) {
+                        div.style.display = isDeveloper ? 'none' : '';
+                        let next = div.nextElementSibling;
+                        while (next && next.classList.contains('form-group')) {
+                            next.style.display = isDeveloper ? 'none' : '';
+                            next = next.nextElementSibling;
+                        }
+                    }
+                });
+            }
             // Also populate church info fields
             loadChurchInfoSettings();
         }

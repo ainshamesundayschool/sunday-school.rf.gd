@@ -4032,12 +4032,19 @@
       const badge = document.getElementById('tdWaitlistCount');
       if (badge) badge.textContent = list.length || '';
       if (!list.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><h3>قائمة الانتظار فارغة</h3><p style="color:var(--muted);font-size:0.85rem;">عند امتلاء الرحلة يتم إضافة الأطفال هنا تلقائياً</p></div>`;
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><h3>قائمة الانتظار فارغة</h3><p style="color:var(--muted);font-size:0.85rem;margin-bottom:15px;">عند امتلاء الرحلة يتم إضافة الأطفال هنا تلقائياً</p>
+          <button class="btn btn-outline btn-sm" onclick="autoDetectWaitlist(${tripId})" style="border-color:var(--primary);color:var(--primary);">
+            <i class="fas fa-magic"></i> فحص التجاوز والموازنة
+          </button>
+        </div>`;
         return;
       }
       container.innerHTML = `
-        <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);">
-          <div style="font-size:0.88rem;color:var(--text-2);"><strong>${list.length}</strong> طفل في قائمة الانتظار — سيتم ترقية الأول تلقائياً عند إلغاء أي تسجيل</div>
+        <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <div style="font-size:0.88rem;color:var(--text-2);flex:1;"><strong>${list.length}</strong> طفل في قائمة الانتظار — سيتم ترقية الأول تلقائياً عند إلغاء أي تسجيل</div>
+          <button class="btn btn-outline btn-sm" onclick="autoDetectWaitlist(${tripId})" style="border-color:var(--primary);color:var(--primary);">
+            <i class="fas fa-magic"></i> موازنة تلقائية
+          </button>
         </div>
         <div style="display:grid;gap:8px;">
           ${list.map((w, idx) => {
@@ -4066,6 +4073,39 @@
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       if (d.success) { showToast('تمت الإزالة', 'success'); loadWaitlist(tripId); }
       else showToast(d.message || 'فشل', 'error');
+    }
+
+    async function autoDetectWaitlist(tripId) {
+      const trip = allTripsCache.find(t => t.id == tripId);
+      if (!trip) return;
+      const max = parseInt(trip.max_participants || 0);
+      const regs = tripRegistrationsCache[tripId] || [];
+
+      if (max <= 0) {
+        showToast('الرحلة ليس لها حد أقصى للمشاركين', 'info');
+        return;
+      }
+
+      if (regs.length <= max) {
+        showToast('لا يوجد تجاوز للحد الأقصى في المسجلين الحاليين', 'success');
+        return;
+      }
+
+      const extra = regs.length - max;
+      if (confirm(`تم اكتشاف ${extra} طفل مسجلين فوق الحد الأقصى (${max}).\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`)) {
+        const fd = mkFd('rebalanceTripWaitlist');
+        fd.append('trip_id', tripId);
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+        if (res.success) {
+          showToast(res.message, 'success');
+          await showTripDetails(tripId);
+          if (document.getElementById('tdpanel-waitlist').style.display !== 'none') {
+            loadWaitlist(tripId);
+          }
+        } else {
+          showToast(res.message || 'فشل في العملية', 'error');
+        }
+      }
     }
 
     async function cancelRegistration(regId, tripId) {

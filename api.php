@@ -1439,6 +1439,10 @@ try {
             removeFromWaitlist();
             break;
 
+        case 'rebalanceTripWaitlist':
+            rebalanceTripWaitlist();
+            break;
+
 
         case 'withdrawCoupons':
             checkUncleAuth();
@@ -9290,6 +9294,87 @@ function removeFromWaitlist()
 }
 // ── END WAITLIST HELPERS ──────────────────────────────────────────────────────
 
+function rebalanceTripWaitlist()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        if (!$tripId) {
+            sendJSON(['success' => false, 'message' => 'trip_id مطلوب']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+
+        // Get trip max
+        $tripStmt = $conn->prepare("SELECT max_participants FROM trips WHERE id = ? AND church_id = ?");
+        $tripStmt->bind_param("ii", $tripId, $churchId);
+        $tripStmt->execute();
+        $trip = $tripStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+        $max = intval($trip['max_participants']);
+        if ($max <= 0) {
+            sendJSON(['success' => true, 'message' => 'لا يوجد حد أقصى للرحلة، لا حاجة للموازنة', 'moved' => 0]);
+            return;
+        }
+
+        // Get all active registrations ordered by creation date (earliest first stay in)
+        $regStmt = $conn->prepare(\"SELECT id, student_id, deposit, notes, custom_data, created_at FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC\");
+        $regStmt->bind_param(\"i\", $tripId);
+        $regStmt->execute();
+        $regs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        if (count($regs) <= $max) {
+            sendJSON(['success' => true, 'message' => 'الرحلة لم تتخطى الحد الأقصى بعد', 'moved' => 0]);
+            return;
+        }
+
+        $extra = array_slice($regs, $max);
+        $movedCount = 0;
+
+        foreach ($extra as $r) {
+            $regId = $r['id'];
+            $studentId = $r['student_id'];
+            
+            // Calc total paid for this registration to preserve it in waitlist
+            $paidStmt = $conn->prepare(\"SELECT COALESCE(SUM(amount), 0) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0\");
+            $paidStmt->bind_param(\"i\", $regId);
+            $paidStmt->execute();
+            $totalPaid = floatval($paidStmt->get_result()->fetch_assoc()['total']);
+            
+            $totalFunds = floatval($r['deposit'] ?? 0) + $totalPaid;
+
+            // Move to waitlist
+            $pos = getWaitlistNextPosition($conn, $tripId);
+            $ins = $conn->prepare(\"INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, custom_data, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\");
+            $ins->bind_param(\"iiiissss\", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $r['custom_data'], $r['created_at']);
+            
+            if ($ins->execute()) {
+                // Delete payments (they are consolidated in waitlist.deposit)
+                $delP = $conn->prepare(\"DELETE FROM trip_payments WHERE registration_id = ?\");
+                $delP->bind_param(\"i\", $regId);
+                $delP->execute();
+
+                // Delete the registration
+                $del = $conn->prepare(\"DELETE FROM trip_registrations WHERE id = ?\");
+                $del->bind_param(\"i\", $regId);
+                $del->execute();
+                
+                $movedCount++;
+            }
+        }
+
+        sendJSON(['success' => true, 'message' => \"تم نقل $movedCount طفل إلى قائمة الانتظار بنجاح\", 'moved' => $movedCount]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
 function registerStudentForTrip()
 {
     try {
@@ -11316,6 +11401,10 @@ try {
 
         case 'removeFromWaitlist':
             removeFromWaitlist();
+            break;
+
+        case 'rebalanceTripWaitlist':
+            rebalanceTripWaitlist();
             break;
 
 
