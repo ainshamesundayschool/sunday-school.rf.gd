@@ -1,250 +1,618 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>أطفال المجموعة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-          --brand: #5b6cf5; --brand-dark: #4354e8; --brand-light: #a5b0ff; --brand-bg: #eef0ff; --brand-glow: rgba(91,108,245,.18);
-          --success: #10b981; --success-dark: #059669; --success-bg: #d1fae5;
-          --danger: #ef4444;
-          --bg: #f3f4f9; --surface: #ffffff; --text: #1a1d2e; --text-2: #4b5068; --text-3: #8b90a8;
-          --border: rgba(91,108,245,.12); --border-solid: #e4e6f0;
-          --shadow-sm: 0 2px 8px -2px rgba(0,0,0,.07); --shadow-lg: 0 20px 48px -8px rgba(0,0,0,.14);
-          --r-md: 14px; --r-lg: 18px; --r-xl: 24px; --r-full: 9999px;
-          --t: .22s; --ease: cubic-bezier(.4,0,.2,1); --spring: cubic-bezier(.16,1,.3,1);
+            --brand: #5b6cf5;
+            --brand-dark: #4354e8;
+            --brand-light: #a5b0ff;
+            --brand-bg: #eef0ff;
+            --brand-glow: rgba(91, 108, 245, .18);
+            --success: #10b981;
+            --success-dark: #059669;
+            --success-bg: #d1fae5;
+            --danger: #ef4444;
+            --bg: #f3f4f9;
+            --surface: #ffffff;
+            --text: #1a1d2e;
+            --text-2: #4b5068;
+            --text-3: #8b90a8;
+            --border: rgba(91, 108, 245, .12);
+            --border-solid: #e4e6f0;
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .07);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
+            --r-md: 14px;
+            --r-lg: 18px;
+            --r-xl: 24px;
+            --r-full: 9999px;
+            --t: .22s;
+            --ease: cubic-bezier(.4, 0, .2, 1);
+            --spring: cubic-bezier(.16, 1, .3, 1);
         }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
-        body { background:var(--bg); color:var(--text); min-height:100vh; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
 
         /* TOPBAR */
-        .topbar { position:sticky; top:0; z-index:300; background:var(--surface); padding:0 16px; height:58px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); gap:12px; }
-        .topbar-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
-        .topbar-logo { width:36px; height:36px; border-radius:10px; overflow:hidden; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); flex-shrink:0; }
-        .topbar-logo img { width:100%; height:100%; object-fit:cover; }
-        .topbar-title { font-size:0.95rem; font-weight:800; color:var(--text); }
-        .topbar-actions { display:flex; align-items:center; gap:6px; }
-        .topbar-btn { height:38px; padding:0 12px; border-radius:var(--r-md); display:flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--border-solid); color:var(--text-2); font-size:0.88rem; font-weight:700; cursor:pointer; text-decoration:none; transition:all var(--t) var(--ease); flex-shrink:0; }
-        .topbar-btn:hover { background:var(--brand-bg); color:var(--brand); border-color:var(--brand); }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 300;
+            background: var(--surface);
+            padding: 0 16px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .topbar-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--brand-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand);
+            flex-shrink: 0;
+        }
+
+        .topbar-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .topbar-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-btn {
+            height: 38px;
+            padding: 0 12px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--t) var(--ease);
+            flex-shrink: 0;
+        }
+
+        .topbar-btn:hover {
+            background: var(--brand-bg);
+            color: var(--brand);
+            border-color: var(--brand);
+        }
 
         /* PAGE */
-        .page-wrap { max-width:700px; margin:0 auto; padding:20px 16px; }
-        .page-header { margin-bottom:20px; }
-        .page-title { font-size:1.35rem; font-weight:900; color:var(--text); }
-        .page-subtitle { font-size:0.85rem; color:var(--text-3); margin-top:4px; font-weight:600; }
+        .page-wrap {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        .page-header {
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-3);
+            margin-top: 4px;
+            font-weight: 600;
+        }
 
         /* SCAN BUTTON */
-        .scan-btn { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:18px; border-radius:var(--r-xl); background:var(--success); color:white; border:none; cursor:pointer; font-size:1.1rem; font-weight:900; box-shadow:0 8px 24px rgba(16,185,129,0.3); transition:all var(--t) var(--spring); margin-bottom:20px; text-decoration:none; }
-        .scan-btn:hover { background:var(--success-dark); transform:translateY(-3px); box-shadow:0 12px 30px rgba(16,185,129,0.4); }
-        .scan-btn:active { transform:translateY(-1px); }
+        .scan-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--r-xl);
+            background: var(--success);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 900;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            transition: all var(--t) var(--spring);
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .scan-btn:hover {
+            background: var(--success-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .scan-btn:active {
+            transform: translateY(-1px);
+        }
 
         /* PRINT BUTTON */
-        .print-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:13px; border-radius:var(--r-xl); background:var(--brand); color:white; border:none; cursor:pointer; font-size:0.95rem; font-weight:800; box-shadow:0 6px 18px var(--brand-glow); transition:all var(--t) var(--spring); margin-bottom:20px; }
-        .print-btn:hover { background:var(--brand-dark); transform:translateY(-2px); }
+        .print-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px;
+            border-radius: var(--r-xl);
+            background: var(--brand);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 800;
+            box-shadow: 0 6px 18px var(--brand-glow);
+            transition: all var(--t) var(--spring);
+            margin-bottom: 20px;
+        }
+
+        .print-btn:hover {
+            background: var(--brand-dark);
+            transform: translateY(-2px);
+        }
 
         /* KIDS LIST */
-        .kids-list { display:flex; flex-direction:column; gap:10px; }
-        .kid-card { background:var(--surface); border-radius:var(--r-xl); padding:14px 18px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all var(--t) var(--spring); border:1.5px solid var(--border); box-shadow:var(--shadow-sm); }
-        .kid-card:hover { border-color:var(--brand); background:var(--brand-bg); transform:translateX(-4px); box-shadow:var(--shadow-lg); }
-        .kid-avatar { width:50px; height:50px; border-radius:50%; background:var(--brand-light); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:900; flex-shrink:0; object-fit:cover; }
-        .kid-info { flex:1; min-width:0; }
-        .kid-name { font-size:1rem; font-weight:800; color:var(--text); }
-        .kid-meta { font-size:0.8rem; color:var(--text-3); margin-top:2px; font-weight:600; }
-        .kid-points { display:flex; align-items:center; gap:5px; background:var(--success-bg); color:var(--success-dark); padding:5px 12px; border-radius:var(--r-full); font-size:0.9rem; font-weight:900; flex-shrink:0; }
-        .kid-arrow { color:var(--text-3); font-size:0.85rem; flex-shrink:0; }
+        .kids-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .kid-card {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all var(--t) var(--spring);
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .kid-card:hover {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+            transform: translateX(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .kid-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--brand-light);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 900;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .kid-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .kid-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .kid-meta {
+            font-size: 0.8rem;
+            color: var(--text-3);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .kid-points {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--success-bg);
+            color: var(--success-dark);
+            padding: 5px 12px;
+            border-radius: var(--r-full);
+            font-size: 0.9rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .kid-arrow {
+            color: var(--text-3);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
 
         /* EMPTY STATE */
-        .empty-state { text-align:center; padding:60px 20px; color:var(--text-3); }
-        .empty-state i { font-size:3rem; margin-bottom:15px; display:block; }
-        .empty-state h3 { font-size:1.1rem; font-weight:800; margin-bottom:8px; color:var(--text-2); }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-3);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-2);
+        }
 
         /* LOADING */
-        .loading { text-align:center; padding:60px 20px; color:var(--text-3); }
-        .loading i { font-size:2rem; margin-bottom:10px; display:block; }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-3);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
 
         /* SCANNER MODAL */
-        #scannerModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
-        #scannerModal.open { display:flex; }
-        .scanner-box { background:var(--surface); padding:24px; border-radius:var(--r-xl); width:92%; max-width:420px; text-align:center; }
-        .scanner-box h3 { margin-bottom:15px; font-weight:900; font-size:1.1rem; }
-        #reader { width:100%; min-height:280px; background:#000; border-radius:var(--r-lg); overflow:hidden; }
-        .scanner-cancel { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px; margin-top:16px; border-radius:var(--r-md); background:var(--danger); color:white; border:none; cursor:pointer; font-size:0.95rem; font-weight:800; }
+        #scannerModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #scannerModal.open {
+            display: flex;
+        }
+
+        .scanner-box {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: var(--r-xl);
+            width: 92%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .scanner-box h3 {
+            margin-bottom: 15px;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        #reader {
+            width: 100%;
+            min-height: 280px;
+            background: #000;
+            border-radius: var(--r-lg);
+            overflow: hidden;
+        }
+
+        .scanner-cancel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: var(--r-md);
+            background: var(--danger);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
 
         /* PRINT STYLES */
-        @media screen { #printArea { display:none !important; } }
+        @media screen {
+            #printArea {
+                display: none !important;
+            }
+        }
+
         @media print {
-            body > *:not(#printArea) { display:none !important; }
-            #printArea { display:grid !important; grid-template-columns:repeat(2,1fr); gap:20px; padding:20px; position:absolute; top:0; left:0; width:100%; }
-            .print-card { border:2px dashed #000; padding:20px; text-align:center; border-radius:10px; break-inside:avoid; }
-            .print-card img.avatar { width:80px; height:80px; border-radius:50%; margin:0 auto 10px; object-fit:cover; display:block; }
-            .print-card h3 { font-size:16px; margin-bottom:4px; color:#000; }
-            .print-card h2 { font-size:20px; margin-bottom:8px; color:#000; }
-            .print-card .custom-info { font-size:14px; font-weight:bold; color:#000; margin-bottom:10px; }
+            body>*:not(#printArea) {
+                display: none !important;
+            }
+
+            #printArea {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                padding: 20px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .print-card {
+                border: 2px dashed #000;
+                padding: 20px;
+                text-align: center;
+                border-radius: 10px;
+                break-inside: avoid;
+            }
+
+            .print-card img.avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                margin: 0 auto 10px;
+                object-fit: cover;
+                display: block;
+            }
+
+            .print-card h3 {
+                font-size: 16px;
+                margin-bottom: 4px;
+                color: #000;
+            }
+
+            .print-card h2 {
+                font-size: 20px;
+                margin-bottom: 8px;
+                color: #000;
+            }
+
+            .print-card .custom-info {
+                font-size: 14px;
+                font-weight: bold;
+                color: #000;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="topbar">
-    <a href="javascript:history.back()" class="topbar-btn" id="backBtn">
-        <i class="fas fa-arrow-right"></i> عودة
-    </a>
-    <a href="/uncle/church/" class="topbar-brand">
-        <div class="topbar-logo"><img src="/logo.png" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'"></div>
-    </a>
-    <div class="topbar-actions">
-        <button class="topbar-btn" id="printBtn" onclick="printFilterQRCards()" style="display:none; background:var(--brand); color:white; border-color:var(--brand);" title="طباعة الكروت">
-            <i class="fas fa-print"></i>
-        </button>
-        <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR">
-            <i class="fas fa-qrcode"></i>
-        </button>
-    </div>
-</div>
-
-<div class="page-wrap">
-    <div class="page-header">
-        <div class="page-title" id="filterLabel">جاري التحميل...</div>
-        <div class="page-subtitle" id="kidsCountLabel"></div>
+    <div class="topbar">
+        <a href="javascript:history.back()" class="topbar-btn" id="backBtn">
+            <i class="fas fa-arrow-right"></i> عودة
+        </a>
+        <a href="/uncle/church/" class="topbar-brand">
+            <div class="topbar-logo"><img src="/logo.png" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'">
+            </div>
+        </a>
+        <div class="topbar-actions">
+            <button class="topbar-btn" id="printBtn" onclick="printFilterQRCards()"
+                style="display:none; background:var(--brand); color:white; border-color:var(--brand);"
+                title="طباعة الكروت">
+                <i class="fas fa-print"></i>
+            </button>
+            <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR">
+                <i class="fas fa-qrcode"></i>
+            </button>
+        </div>
     </div>
 
-    <div id="loadingState" class="loading">
-        <i class="fas fa-circle-notch fa-spin"></i>
-        جاري التحميل...
+    <div class="page-wrap">
+        <div class="page-header">
+            <div class="page-title" id="filterLabel">جاري التحميل...</div>
+            <div class="page-subtitle" id="kidsCountLabel"></div>
+        </div>
+
+        <div id="loadingState" class="loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            جاري التحميل...
+        </div>
+
+        <div class="kids-list" id="kidsList"></div>
     </div>
 
-    <div class="kids-list" id="kidsList"></div>
-</div>
+    <div id="printArea"></div>
 
-<div id="printArea"></div>
-
-<!-- Scanner Modal -->
-<div id="scannerModal">
-    <div class="scanner-box">
-        <h3><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
-        <div id="reader"></div>
-        <button class="scanner-cancel" onclick="stopScanner()">
-            <i class="fas fa-times"></i> إلغاء
-        </button>
+    <!-- Scanner Modal -->
+    <div id="scannerModal">
+        <div class="scanner-box">
+            <h3><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+            <div id="reader"></div>
+            <button class="scanner-cancel" onclick="stopScanner()">
+                <i class="fas fa-times"></i> إلغاء
+            </button>
+        </div>
     </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<script>
-const API_URL = '/api.php';
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        const API_URL = '/api.php';
 
-const params  = new URLSearchParams(window.location.search);
-const tripId  = params.get('trip_id');
-const field   = params.get('field');   // custom field name, e.g. "الفريق"
-const value   = params.get('value');   // e.g. "أحمر"  (empty = show all)
+        const params = new URLSearchParams(window.location.search);
+        const tripId = params.get('trip_id');
+        const field = params.get('field');   // custom field name, e.g. "الفريق"
+        const value = params.get('value');   // e.g. "أحمر"  (empty = show all)
 
-let currentTrip = null;
-let filteredKids = [];
-let html5QrcodeScanner = null;
+        let currentTrip = null;
+        let filteredKids = [];
+        let html5QrcodeScanner = null;
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    if (!tripId) { window.location.href = '/uncle/church/'; return; }
+        // ── INIT ─────────────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!tripId) { window.location.href = '/uncle/church/'; return; }
 
-    const label = value
-        ? `${field}: ${value}`
-        : (field || 'جميع الأطفال');
+            const label = value
+                ? `${field}: ${value}`
+                : (field || 'جميع الأطفال');
 
-    document.getElementById('filterLabel').textContent = label;
-    document.title = label;
+            document.getElementById('filterLabel').textContent = label;
+            document.title = label;
 
-    loadTrip();
-});
+            loadTrip();
+        });
 
-async function loadTrip() {
-    document.getElementById('loadingState').style.display = 'block';
-    const fd = new FormData();
-    fd.append('action', 'getTripDetails');
-    fd.append('trip_id', tripId);
+        async function loadTrip() {
+            document.getElementById('loadingState').style.display = 'block';
+            const fd = new FormData();
+            fd.append('action', 'getTripDetails');
+            fd.append('trip_id', tripId);
 
-    try {
-        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-        document.getElementById('loadingState').style.display = 'none';
-
-        if (!res.success || !res.trip) {
-            document.getElementById('kidsList').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>لم يتم العثور على الرحلة</h3></div>';
-            return;
-        }
-
-        currentTrip = res.trip;
-        
-        // Admin check for print button
-        if (res.user_role === 'admin') {
-            const pBtn = document.getElementById('printBtn');
-            if (pBtn) pBtn.style.display = 'flex';
-        }
-
-        const regs  = res.trip.registrations || [];
-
-        const decodedField = field || null;
-        const decodedValue = value || null;
-
-        // Filter kids
-        if (decodedField && decodedValue) {
-            filteredKids = regs.filter(r => {
-                if (!r.custom_data) return false;
-                try {
-                    const cd = JSON.parse(r.custom_data);
-                    return cd[decodedField] === decodedValue;
-                } catch(e) { return false; }
-            });
-        } else {
-            filteredKids = regs;
-        }
-
-        document.getElementById('kidsCountLabel').textContent = `${filteredKids.length} طفل`;
-
-        // Render kids
-        renderKids();
-    } catch(e) {
-        console.error("LoadTrip Error:", e);
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('kidsList').innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><h3>خطأ في الاتصال</h3><p style="font-size:0.8rem; margin-top:5px;">${e.message}</p></div>`;
-    }
-}
-
-function renderKids() {
-    const list = document.getElementById('kidsList');
-
-    if (filteredKids.length === 0) {
-        list.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد أطفال في هذه المجموعة</h3></div>';
-        return;
-    }
-
-    list.innerHTML = filteredKids.map(k => {
-        const name   = k.student_name  || '؟';
-        const img    = k.student_image || '';
-        const init   = name.charAt(0);
-        const points = k.trip_points_val || 0;
-        const icons  = currentTrip?.custom_field_icons || {};
-
-        let metaParts = [];
-        if (k.custom_data) {
             try {
-                const cd = JSON.parse(k.custom_data);
-                metaParts = Object.entries(cd).map(([fk, fv]) => {
-                    const meta = icons[fk] ? icons[fk] : null;
-                    const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
-                    const ic = iconClass ? `<i class="${iconClass}" style="margin-left:4px;"></i>` : '';
-                    return `${ic}${fk}: ${fv}`;
-                });
-            } catch(e) {}
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (!res.success || !res.trip) {
+                    document.getElementById('kidsList').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>لم يتم العثور على الرحلة</h3></div>';
+                    return;
+                }
+
+                currentTrip = res.trip;
+
+                // Admin check for print button
+                if (res.user_role === 'admin') {
+                    const pBtn = document.getElementById('printBtn');
+                    if (pBtn) pBtn.style.display = 'flex';
+                }
+
+                const regs = res.trip.registrations || [];
+
+                const decodedField = field || null;
+                const decodedValue = (value !== null && value !== undefined) ? value : null;
+
+                // Filter kids
+                if (decodedField && decodedValue !== null && decodedValue !== '') {
+                    filteredKids = regs.filter(r => {
+                        // Kids with no custom_data at all count as "بدون تحديد" for every field
+                        if (!r.custom_data) {
+                            return decodedValue === 'بدون تحديد';
+                        }
+                        try {
+                            const cd = JSON.parse(r.custom_data);
+                            const kidValue = cd[decodedField];
+                            // No value set for this field → also "بدون تحديد"
+                            if (kidValue === undefined || kidValue === null || kidValue === '') {
+                                return decodedValue === 'بدون تحديد';
+                            }
+                            return kidValue === decodedValue;
+                        } catch (e) {
+                            return decodedValue === 'بدون تحديد';
+                        }
+                    });
+                } else {
+                    filteredKids = regs;
+                }
+
+                document.getElementById('kidsCountLabel').textContent = `${filteredKids.length} طفل`;
+
+                // Render kids
+                renderKids();
+            } catch (e) {
+                console.error("LoadTrip Error:", e);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('kidsList').innerHTML = `<div class="empty-state"><i class="fas fa-wifi-slash"></i><h3>خطأ في الاتصال</h3><p style="font-size:0.8rem; margin-top:5px;">${e.message}</p></div>`;
+            }
         }
 
-        const avatar = img
-            ? `<img class="kid-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar\\'>${init}</div>'">`
-            : `<div class="kid-avatar">${init}</div>`;
+        function renderKids() {
+            const list = document.getElementById('kidsList');
 
-        return `
+            if (filteredKids.length === 0) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد أطفال في هذه المجموعة</h3></div>';
+                return;
+            }
+
+            list.innerHTML = filteredKids.map(k => {
+                const name = k.student_name || '؟';
+                const img = k.student_image || '';
+                const init = name.charAt(0);
+                const points = k.trip_points_val || 0;
+                const icons = currentTrip?.custom_field_icons || {};
+
+                let metaParts = [];
+                if (k.custom_data) {
+                    try {
+                        const cd = JSON.parse(k.custom_data);
+                        metaParts = Object.entries(cd).map(([fk, fv]) => {
+                            const meta = icons[fk] ? icons[fk] : null;
+                            const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
+                            const ic = iconClass ? `<i class="${iconClass}" style="margin-left:4px;"></i>` : '';
+                            return `${ic}${fk}: ${fv}`;
+                        });
+                    } catch (e) { }
+                }
+
+                const avatar = img
+                    ? `<img class="kid-avatar" src="${img}" onerror="this.outerHTML='<div class=\\'kid-avatar\\'>${init}</div>'">`
+                    : `<div class="kid-avatar">${init}</div>`;
+
+                return `
         <div class="kid-card" onclick="openKidPoints('${k.student_id}')">
             ${avatar}
             <div class="kid-info">
@@ -254,74 +622,74 @@ function renderKids() {
             <div class="kid-points">⭐ ${points}</div>
             <i class="fas fa-chevron-left kid-arrow"></i>
         </div>`;
-    }).join('');
-}
-
-function openKidPoints(studentId) {
-    window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
-}
-
-// ── SCANNER ──────────────────────────────────────────────────────────────────
-function startScanner() {
-    document.getElementById('scannerModal').classList.add('open');
-    if (!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5Qrcode('reader');
-    }
-    html5QrcodeScanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decodedText) => {
-            html5QrcodeScanner.stop().then(() => {
-                document.getElementById('scannerModal').classList.remove('open');
-                window.location.href = decodedText;
-            });
-        },
-        () => {}
-    ).catch(err => {
-        alert('حدث خطأ في الوصول للكاميرا: ' + err);
-        stopScanner();
-    });
-}
-
-function stopScanner() {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.stop().then(() => {
-            document.getElementById('scannerModal').classList.remove('open');
-        }).catch(() => {
-            document.getElementById('scannerModal').classList.remove('open');
-        });
-    } else {
-        document.getElementById('scannerModal').classList.remove('open');
-    }
-}
-
-// ── PRINT QR ─────────────────────────────────────────────────────────────────
-function printFilterQRCards() {
-    if (!filteredKids.length) { alert('لا يوجد أطفال لطباعة كروت لهم'); return; }
-
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = '';
-
-    filteredKids.forEach(r => {
-        const name      = r.student_name  || '؟';
-        const img       = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
-        const cardId    = 'qr_' + r.id;
-        const link      = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
-        let customHtml  = '';
-        if (r.custom_data) {
-            try {
-                const cd    = JSON.parse(r.custom_data);
-                const icons = currentTrip?.custom_field_icons || {};
-                customHtml = Object.entries(cd).map(([k, v]) => {
-                    const meta = icons[k] ? icons[k] : null;
-                    const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
-                    const ic = iconClass ? `<i class="${iconClass}"></i> ` : '';
-                    return `${ic}${k}: ${v}`;
-                }).join(' &nbsp;|&nbsp; ');
-            } catch(e) {}
+            }).join('');
         }
 
-        printArea.innerHTML += `
+        function openKidPoints(studentId) {
+            window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
+        }
+
+        // ── SCANNER ──────────────────────────────────────────────────────────────────
+        function startScanner() {
+            document.getElementById('scannerModal').classList.add('open');
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode('reader');
+            }
+            html5QrcodeScanner.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 240, height: 240 } },
+                (decodedText) => {
+                    html5QrcodeScanner.stop().then(() => {
+                        document.getElementById('scannerModal').classList.remove('open');
+                        window.location.href = decodedText;
+                    });
+                },
+                () => { }
+            ).catch(err => {
+                alert('حدث خطأ في الوصول للكاميرا: ' + err);
+                stopScanner();
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById('scannerModal').classList.remove('open');
+                }).catch(() => {
+                    document.getElementById('scannerModal').classList.remove('open');
+                });
+            } else {
+                document.getElementById('scannerModal').classList.remove('open');
+            }
+        }
+
+        // ── PRINT QR ─────────────────────────────────────────────────────────────────
+        function printFilterQRCards() {
+            if (!filteredKids.length) { alert('لا يوجد أطفال لطباعة كروت لهم'); return; }
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = '';
+
+            filteredKids.forEach(r => {
+                const name = r.student_name || '؟';
+                const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
+                const cardId = 'qr_' + r.id;
+                const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
+                let customHtml = '';
+                if (r.custom_data) {
+                    try {
+                        const cd = JSON.parse(r.custom_data);
+                        const icons = currentTrip?.custom_field_icons || {};
+                        customHtml = Object.entries(cd).map(([k, v]) => {
+                            const meta = icons[k] ? icons[k] : null;
+                            const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
+                            const ic = iconClass ? `<i class="${iconClass}"></i> ` : '';
+                            return `${ic}${k}: ${v}`;
+                        }).join(' &nbsp;|&nbsp; ');
+                    } catch (e) { }
+                }
+
+                printArea.innerHTML += `
         <div class="print-card">
             <h3>${currentTrip?.title || ''}</h3>
             <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
@@ -330,21 +698,22 @@ function printFilterQRCards() {
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
         </div>`;
 
-        setTimeout(() => {
-            new QRCode(document.getElementById(cardId), {
-                text: link, width: 150, height: 150,
-                colorDark: '#000000', colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
+                setTimeout(() => {
+                    new QRCode(document.getElementById(cardId), {
+                        text: link, width: 150, height: 150,
+                        colorDark: '#000000', colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }, 100);
             });
-        }, 100);
-    });
 
-    // Give QR library a bit more time to render before printing
-    setTimeout(() => {
-        window.print();
-        setTimeout(() => { printArea.innerHTML = ''; }, 1500);
-    }, 1500);
-}
-</script>
+            // Give QR library a bit more time to render before printing
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => { printArea.innerHTML = ''; }, 1500);
+            }, 1500);
+        }
+    </script>
 </body>
+
 </html>
