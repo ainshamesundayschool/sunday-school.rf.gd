@@ -92,9 +92,10 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .search-section { padding: 24px 16px 16px; text-align: center; }
         .search-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 16px; color: var(--text); }
         .search-wrap { position: relative; max-width: 500px; margin: 0 auto; }
-        .search-input { width: 100%; padding: 12px 48px 12px 20px; border-radius: 14px; border: 2px solid var(--border-solid); background: var(--surface); font-size: 1rem; color: var(--text); outline: none; transition: all var(--t); text-align: center; box-shadow: var(--shadow-sm); }
+        .search-input { width: 100%; padding: 12px 48px 12px 20px; border-radius: 14px; border: 2px solid var(--border-solid); background: var(--surface); font-size: 1rem; font-family: 'Cairo', sans-serif; color: var(--text); outline: none; transition: all var(--t); text-align: center; box-shadow: var(--shadow-sm); }
         .search-input:focus { border-color: var(--brand); }
         .search-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 1.1rem; }
+        #sortSelect { font-family: 'Cairo', sans-serif; font-weight: 800; }
 
         /* ── CLASSES GRID ── */
         .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
@@ -205,7 +206,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             <div style="position:relative">
                 <i class="fas fa-sort-amount-down" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--text-3);pointer-events:none"></i>
                 <select id="sortSelect" class="pill" style="padding-right:34px;appearance:none;cursor:pointer;outline:none" onchange="performSearch()">
-                    <option value="name">الاسم (أ-ي)</option>
+                    <option value="name_asc">الاسم (أ-ي)</option>
+                    <option value="name_desc">الاسم (ي-أ)</option>
                     <option value="coupons_desc">الأعلى كوبونات</option>
                     <option value="coupons_asc">الأقل كوبونات</option>
                 </select>
@@ -334,7 +336,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                     ${photo}
                     <div class="kid-info">
                         <div class="kid-name">${s['الاسم']}</div>
-                        <div class="kid-meta"><span><i class="fas fa-school"></i> ${s['الفصل']}</span></div>
+                        <div class="kid-meta"><span>${s['الفصل']}</span></div>
                     </div>
                     <div class="kid-coupons">${s['كوبونات'] || 0} <i class="fas fa-star" style="font-size:.7rem"></i></div>
                 </div>
@@ -365,7 +367,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
         // Apply Sorting
         filtered.sort((a, b) => {
-            if (sort === 'name') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
+            if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
+            if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
             if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
             if (sort === 'coupons_asc') return (parseInt(a['كوبونات']) || 0) - (parseInt(b['كوبونات']) || 0);
             return 0;
