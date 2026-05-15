@@ -129,7 +129,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .sheet-header { padding: 40px 24px 24px; text-align: center; position: relative; border-bottom: 1px solid var(--border-solid); }
         .sheet-close { position: absolute; top: 20px; left: 20px; width: 44px; height: 44px; border-radius: 15px; background: var(--surface-2); border: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); transition: all var(--t); }
         .sheet-close:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); transform: rotate(90deg); }
-        .sheet-photo { width: 120px; height: 120px; border-radius: 36px; border: 5px solid var(--surface); box-shadow: var(--shadow-md); margin-bottom: 18px; object-fit: cover; }
+        .sheet-photo { width: 120px; height: 120px; border-radius: 36px; border: 5px solid var(--surface); box-shadow: var(--shadow-md); margin: 0 auto 18px; object-fit: cover; display: block; }
         .sheet-name { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
         .sheet-class { color: var(--brand); font-weight: 800; font-size: 1rem; }
 
@@ -368,6 +368,11 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             ${photo}
             <div class="sheet-name">${s['الاسم']}</div>
             <div class="sheet-class">${s['الفصل']}</div>
+            <div style="margin-top:12px">
+                <button class="pill" style="background:var(--brand-bg);color:var(--brand);border:none;padding:8px 16px;font-size:.85rem" onclick="viewFullAudit(${s['_studentId']})">
+                    <i class="fas fa-history"></i> سجل الكوبونات العام
+                </button>
+            </div>
         `;
 
         document.getElementById('profileBody').innerHTML = `
@@ -515,6 +520,47 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         const el = document.getElementById('toast');
         el.textContent = m; el.className = 'toast active ' + t;
         setTimeout(() => el.classList.remove('active'), 3000);
+    }
+
+    async function viewFullAudit(sid) {
+        const fd = new FormData();
+        fd.append('action', 'getEntityAuditHistory');
+        fd.append('entity', 'coupon');
+        fd.append('entity_id', sid);
+        
+        showToast('جاري تحميل السجل العام...', 'info');
+        try {
+            const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+            if (r.success) {
+                let html = `<div style="padding:20px"><h3 style="margin-bottom:20px;font-weight:900"><i class="fas fa-list-alt"></i> السجل التاريخي للكوبونات</h3>`;
+                if (!r.logs.length) {
+                    html += `<div style="text-align:center;padding:40px;color:var(--text-3);font-weight:800">لا يوجد سجلات لهذه الطفل</div>`;
+                } else {
+                    html += r.logs.map(l => `
+                        <div class="hist-item" style="background:var(--surface);border-radius:16px;margin-bottom:12px;padding:14px">
+                            <div class="hist-row">
+                                <div style="font-weight:900;color:var(--brand);font-size:.95rem">${l.notes || l.action}</div>
+                                <div class="hist-date">${l.created_at_formatted}</div>
+                            </div>
+                            <div style="font-size:.8rem;color:var(--text-3);font-weight:700;margin-top:4px">بواسطة: ${l.uncle_name}</div>
+                        </div>
+                    `).join('');
+                }
+                html += `<button class="withdraw-btn" style="width:100%;margin-top:20px" onclick="closeAudit()">إغلاق</button></div>`;
+                
+                const auditDiv = document.createElement('div');
+                auditDiv.id = 'auditModal';
+                auditDiv.className = 'profile-overlay active';
+                auditDiv.style.zIndex = '1100';
+                auditDiv.innerHTML = `<div class="profile-sheet" style="border-radius:24px 24px 0 0">${html}</div>`;
+                document.body.appendChild(auditDiv);
+            }
+        } catch(e) { showToast('خطأ في تحميل السجل', 'error'); }
+    }
+
+    function closeAudit() {
+        const m = document.getElementById('auditModal');
+        if (m) m.remove();
     }
 
     init();
