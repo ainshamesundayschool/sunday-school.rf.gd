@@ -728,6 +728,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-wrap: wrap
         }
 
+        .hero-actions .btn {
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            color: var(--text);
+            box-shadow: none;
+            font-weight: 600;
+            transition: all var(--t) var(--ease);
+        }
+
+        .hero-actions .btn:hover {
+            background: var(--surface-4);
+            border-color: var(--text-4);
+            transform: translateY(-1.5px);
+        }
+
+        .hero-actions .btn i {
+            color: var(--text-2);
+        }
+
         /* Stats cards */
         .stats-row {
             display: grid;
@@ -6730,20 +6749,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 id="heroName"><?php echo htmlspecialchars($uncleName ?: $churchName); ?></span> 👋</div>
                     </div>
                     <div class="hero-actions">
-                        <button class="btn btn-info btn-sm" id="showBirthdayModalBtn"><i
-                                class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="btn btn-success btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i>
-                            الأطفال</button>
-                        <button class="btn btn-warning btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i>
-                            تصدير مخصص</button>
-                        <button class="btn btn-success btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i
-                                class="fas fa-upload"></i> إضافة مجموعة</button>
-                        <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i>
-                            الإعلانات</button>
+                        <button class="btn btn-sm" id="showBirthdayModalBtn"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                        <button class="btn btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i> الأطفال</button>
+                        <button class="btn btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
+                        <button class="btn btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i> الإعلانات</button>
                         <a href="/uncle/dashboard/tasks/" class="btn btn-sm" id="tasksGlobalBtn"
-                            style="background:linear-gradient(135deg,#5b6cf5,#4154e8);color:#fff;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:5px;position:relative;"><i
+                            style="border:none;text-decoration:none;display:inline-flex;align-items:center;gap:5px;position:relative;"><i
                                 class="fas fa-tasks"></i> المهام<span id="globalTasksBadge"
-                                style="display:none;background:#fff;color:#4f46e5;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;display:none;"></span></a>
+                                style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;margin-right:4px;"></span></a>
                     </div>
                 </div>
 
