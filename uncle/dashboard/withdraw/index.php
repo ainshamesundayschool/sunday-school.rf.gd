@@ -201,6 +201,16 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchInput" class="search-input" placeholder="اسم الطفل أو الفصل...">
         </div>
+        <div style="margin-top:16px;display:flex;justify-content:center;gap:10px">
+            <div style="position:relative">
+                <i class="fas fa-sort-amount-down" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--text-3);pointer-events:none"></i>
+                <select id="sortSelect" class="pill" style="padding-right:34px;appearance:none;cursor:pointer;outline:none" onchange="performSearch()">
+                    <option value="name">الاسم (أ-ي)</option>
+                    <option value="coupons_desc">الأعلى كوبونات</option>
+                    <option value="coupons_asc">الأقل كوبونات</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="filter-pills" id="classFilters">
@@ -304,7 +314,6 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const count = allStudents.filter(s => s['الفصل'] === name).length;
             return `
                 <div class="class-card" onclick="setFilter('${name}')">
-                    <div class="class-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                     <div class="class-name">${name}</div>
                     <div class="class-badge">${count} طفل</div>
                 </div>
@@ -335,10 +344,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
     function performSearch() {
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        const sort = document.getElementById('sortSelect').value;
+
         if (!q && currentClass === 'all') {
             setFilter('all');
             return;
         }
+
         document.getElementById('classList').style.display = 'none';
         document.getElementById('studentList').style.display = 'flex';
         
@@ -350,6 +362,15 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 (s['الفصل'] || '').toLowerCase().includes(q)
             );
         }
+
+        // Apply Sorting
+        filtered.sort((a, b) => {
+            if (sort === 'name') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
+            if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
+            if (sort === 'coupons_asc') return (parseInt(a['كوبونات']) || 0) - (parseInt(b['كوبونات']) || 0);
+            return 0;
+        });
+
         renderStudents(filtered);
     }
 
