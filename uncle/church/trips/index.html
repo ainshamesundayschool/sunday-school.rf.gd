@@ -4058,7 +4058,7 @@
               <div class="reg-info" style="flex:1;">
                 <strong>${escHtml(w.student_name)}</strong>
                 <span>${escHtml(w.student_class || '—')}</span>
-                ${idx === 0 ? `<div style="font-size:0.68rem;color:var(--warning);font-weight:700;margin-top:2px;"><i class="fas fa-star"></i> التالي للترقية</div>` : ''}
+                ${idx === 0 ? `<div style="font-size:0.68rem;color:var(--warning);font-weight:700;margin-top:2px;"><i class="fas fa-star"></i> التالي</div>` : ''}
               </div>
               <div style="font-size:0.72rem;color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
               <button class="act-btn act-delete" title="إزالة من قائمة الانتظار" onclick="removeFromWaitlist(${tripId},${w.student_id})"><i class="fas fa-times"></i></button>
