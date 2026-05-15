@@ -11720,11 +11720,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('absentSearchInput', 'input', renderAbsentTable);
             on('classSortSelect', 'change', e => { classSortMode = e.target.value; renderAttendanceList(currentClass); });
             on('clearAbsentDataBtn', 'click', clearAbsentData);
-            on('photoUploadArea', 'click', () => document.getElementById('photoInput').click());
             on('photoInput', 'change', handleImageSelect);
             on('savePhotoBtn', 'click', uploadStudentPhoto);
             on('cancelUploadBtn', 'click', cancelPhotoUpload);
-            on('newStudentPhotoUploadArea', 'click', () => document.getElementById('newStudentPhotoInput').click());
             on('newStudentPhotoInput', 'change', handleNewStudentImageSelect);
             on('saveNewStudentPhotoBtn', 'click', uploadNewStudentPhoto);
             on('cancelNewStudentUploadBtn', 'click', cancelNewStudentPhotoUpload);
