@@ -1259,7 +1259,11 @@
             justify-content: center;
             font-size: 0.75rem;
             transition: all var(--t-fast) var(--ease);
-            color: white;
+            color: white !important;
+        }
+
+        .act-btn i {
+            color: white !important;
         }
 
         .act-btn:hover {
@@ -4068,6 +4072,55 @@
             overflow: hidden;
         }
 
+        /* Quick Actions Hub */
+        .quick-actions-hub {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .qa-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--t-fast) var(--ease-spring);
+        }
+        .qa-item:hover {
+            border-color: var(--primary);
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .qa-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-xs);
+        }
+        .qa-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .qa-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .qa-desc {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
         .overview-hero::before {
             content: '';
             position: absolute;
@@ -4686,22 +4739,57 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overview-grid">
+                    <div class="overview-grid" style="grid-template-columns: 1fr;">
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-title"><i class="fas fa-chalkboard"></i> الفصول</div>
-                                <button class="btn btn-primary btn-sm" onclick="switchTabByName('attendance')"><i
-                                        class="fas fa-calendar-check"></i> الحضور</button>
+                                <div class="card-title"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
                             </div>
                             <div class="card-body">
-                                <div class="classes-grid" id="classesOverview"></div>
+                                <div class="quick-actions-hub">
+                                    <div class="qa-item" onclick="showBulkAddModal()">
+                                        <div class="qa-icon" style="background: var(--primary-bg); color: var(--primary);"><i class="fas fa-user-plus"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">إضافة مجموعة أطفال</div>
+                                            <div class="qa-desc">إضافة سريعة من ملف أو قائمة</div>
+                                        </div>
+                                    </div>
+                                    <div class="qa-item" onclick="switchTabByName('uncles'); toggleAddUncleForm();">
+                                        <div class="qa-icon" style="background: var(--success-light); color: var(--success);"><i class="fas fa-user-tie"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">إضافة خادم جديد</div>
+                                            <div class="qa-desc">إنشاء حساب لخادم جديد</div>
+                                        </div>
+                                    </div>
+                                    <div class="qa-item" onclick="showAddAttendanceModal()">
+                                        <div class="qa-icon" style="background: var(--warning-light); color: var(--warning);"><i class="fas fa-calendar-plus"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">تسجيل حضور</div>
+                                            <div class="qa-desc">فتح نافذة تسجيل الحضور اليومي</div>
+                                        </div>
+                                    </div>
+                                    <div class="qa-item" onclick="switchTabByName('trips'); toggleAddTripForm();">
+                                        <div class="qa-icon" style="background: var(--danger-light); color: var(--danger);"><i class="fas fa-bus"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">إنشاء رحلة جديدة</div>
+                                            <div class="qa-desc">إضافة رحلة وتحديد تفاصيلها</div>
+                                        </div>
+                                    </div>
+                                    <div class="qa-item" onclick="switchTabByName('pending');">
+                                        <div class="qa-icon" style="background: var(--info-light); color: var(--info);"><i class="fas fa-hourglass-half"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">مراجعة الطلبات</div>
+                                            <div class="qa-desc">الطلبات المعلقة من أولياء الأمور</div>
+                                        </div>
+                                    </div>
+                                    <div class="qa-item" onclick="switchTabByName('churchSettings');">
+                                        <div class="qa-icon" style="background: var(--dev-light); color: var(--dev);"><i class="fas fa-cog"></i></div>
+                                        <div class="qa-text">
+                                            <div class="qa-title">إعدادات الكنيسة</div>
+                                            <div class="qa-desc">تعديل الفصول والبيانات الأساسية</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title"><i class="fas fa-history"></i> آخر الأنشطة</div>
-                            </div>
-                            <div class="card-body" id="recentActivity"></div>
                         </div>
                     </div>
                 </div>
@@ -8357,8 +8445,8 @@
                 <div class="trip-actions-overlay" onclick="event.stopPropagation()">
                     <button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
-                    <button class="act-btn" style="background:#8b5cf6;" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
-                    <button class="act-btn" style="background:#059669;" onclick="event.stopPropagation(); window.open('/uncle/church/trips/#trips?trip_id=${t.id}&action=print','_blank')" title="طباعة كروت QR"><i class="fas fa-print"></i></button>
+                    <button class="act-btn" style="background:#4f46e5;" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
+                    <button class="act-btn" style="background:var(--primary);" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'" title="إعدادات الرحلة"><i class="fas fa-cog"></i></button>
                     <button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
