@@ -1553,6 +1553,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: 'Cairo', sans-serif;
         }
 
+        .btn.open .chevron {
+            transform: rotate(180deg);
+        }
+
         .dropdown-item:hover {
             background: var(--brand-bg);
             color: var(--brand)
@@ -7473,10 +7477,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header">
                 <h3><i class="fas fa-user-times" style="color:var(--danger)"></i> الأطفال الغائبين</h3>
                 <div style="display:flex;gap:5px;align-items:center">
-                    <button class="btn btn-success btn-sm" id="copyAbsentModalBtn"><i class="fas fa-copy"></i>
-                        نسخ</button>
-                    <button class="btn btn-sm" style="background:#25d366;color:#fff"
-                        onclick="shareAbsentToWhatsApp()"><i class="fab fa-whatsapp"></i></button>
+                    <!-- Copy Dropdown -->
+                    <div class="action-dropdown" style="flex:none">
+                        <button class="btn btn-success btn-sm" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')" style="display:flex;align-items:center;gap:4px">
+                            <i class="fas fa-copy"></i> نسخ <i class="fas fa-chevron-down chevron" style="font-size:.6rem"></i>
+                        </button>
+                        <div class="dropdown-menu" id="absentCopyMenu" style="right:0;left:auto">
+                            <div class="dropdown-item" onclick="executeAbsentAction('copy', 'phones')">
+                                <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
+                            </div>
+                            <div class="dropdown-item" onclick="executeAbsentAction('copy', 'message')">
+                                <i class="fas fa-comment-alt"></i> رسالة افتقاد (أسماء فقط)
+                            </div>
+                        </div>
+                    </div>
+                    <!-- WhatsApp Dropdown -->
+                    <div class="action-dropdown" style="flex:none">
+                        <button class="btn btn-sm" id="absentWaBtn" style="background:#25d366;color:#fff;display:flex;align-items:center;gap:4px" onclick="toggleAbsentDropdown('wa')">
+                            <i class="fab fa-whatsapp"></i> <i class="fas fa-chevron-down chevron" style="font-size:.6rem"></i>
+                        </button>
+                        <div class="dropdown-menu" id="absentWaMenu" style="right:0;left:auto">
+                            <div class="dropdown-item" onclick="executeAbsentAction('wa', 'phones')">
+                                <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
+                            </div>
+                            <div class="dropdown-item" onclick="executeAbsentAction('wa', 'message')">
+                                <i class="fas fa-comment-alt"></i> رسالة افتقاد (أسماء فقط)
+                            </div>
+                        </div>
+                    </div>
                     <button class="btn btn-info btn-sm" id="saveAbsentAsCsvBtn"><i class="fas fa-file-csv"></i></button>
                     <button class="close-btn" id="closeAbsentModal">&times;</button>
                 </div>
@@ -9539,11 +9567,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             absentDataStore[currentClass] = getAttendanceStatusStudents('absent')
                 .map(s => ({ id: getStudentId(s), name: s['الاسم'], phone: s['رقم التليفون'] || '', address: s['العنوان'] || '' }));
         }
-        function copyAbsentData() {
+        function copyAbsentData(mode = 'phones') {
             if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
             const absent = getAttendanceStatusStudents('absent');
             if (!absent.length) { showToast('لا يوجد غائبون', 'info'); return; }
-            const txt = buildAttendanceShareText('absent', 'الغائبين', '📋');
+            const txt = buildAbsentMessageText(mode);
+            if (!txt) return;
             copyToClipboard(txt); showToast(`تم نسخ ${absent.length} غائب`, 'success');
         }
         function copyAttendedData() {
@@ -11719,7 +11748,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('saveAttendedAsCsvBtn', 'click', saveAttendedAsCSV);
             on('copyAttendedModalBtn', 'click', copyAttendedData);
             on('saveAbsentAsCsvBtn', 'click', saveAbsentAsCSV);
-            on('copyAbsentModalBtn', 'click', copyAbsentData);
+            // on('copyAbsentModalBtn', 'click', copyAbsentData); // Handled by toggleAbsentDropdown
             on('absentSearchInput', 'input', renderAbsentTable);
             on('classSortSelect', 'change', e => { classSortMode = e.target.value; renderAttendanceList(currentClass); });
             on('clearAbsentDataBtn', 'click', clearAbsentData);
@@ -12192,13 +12221,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ══════════════════════════════════════════════════════════════
         // WHATSAPP SHARE ABSENCE
         // ══════════════════════════════════════════════════════════════
-        function shareAbsentToWhatsApp() {
+        function shareAbsentToWhatsApp(mode = 'phones') {
             if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
             const absent = getAttendanceStatusStudents('absent');
             if (!absent.length) { showToast('لا يوجد غائبون', 'info'); return; }
-            const txt = buildAttendanceShareText('absent', 'الغائبين', '📋');
+            const txt = buildAbsentMessageText(mode);
+            if (!txt) return;
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
             window.open(url, '_blank');
+        }
+
+        function toggleAbsentDropdown(type) {
+            if (window.event) window.event.stopPropagation();
+            const id = type === 'copy' ? 'absentCopyMenu' : 'absentWaMenu';
+            const menu = document.getElementById(id);
+            const btnId = type === 'copy' ? 'copyAbsentModalBtn' : 'absentWaBtn';
+            const btn = document.getElementById(btnId);
+            const wasOpen = menu.classList.contains('open');
+            closeAllDropdowns();
+            if (!wasOpen) {
+                menu.classList.add('open');
+                btn.classList.add('open');
+            }
+        }
+
+        function executeAbsentAction(action, mode) {
+            closeAllDropdowns();
+            if (action === 'copy') copyAbsentData(mode);
+            else if (action === 'wa') shareAbsentToWhatsApp(mode);
+        }
+
+        function buildAbsentMessageText(mode) {
+            const absent = getAttendanceStatusStudents('absent');
+            if (!absent.length) return '';
+            if (mode === 'phones') return buildAttendanceShareText('absent', 'الغائبين', '📋');
+            if (absent.length === 1) return `افتقدناك يا ${absent[0]['الاسم']}`;
+            let txt = `افتقدناكم انهارده\n\n`;
+            absent.forEach((s, i) => { txt += `• ${s['الاسم']}\n`; });
+            return txt.trim();
         }
         function shareAttendedToWhatsApp() {
             if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
@@ -13060,6 +13120,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             // New
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV, triggerPwaInstall, doPwaInstall, closePwaModal,
+            toggleAbsentDropdown, executeAbsentAction,
             toggleCustomExportField, moveCustomExportField, renderCustomExportPreview,
             exportCustomAsCSV, exportCustomPreviewAsImage, exportCustomPreviewAsPdf,
             requestNotifPermission, _updateNotifBtnVisibility,
