@@ -553,11 +553,12 @@
                 const grid = document.getElementById('fieldsGrid');
                 grid.innerHTML = '';
 
+                const JUNK = new Set(['0', 'null', 'undefined', 'none', '']);
                 const fields = currentTrip.custom_fields
-                    ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean)
+                    ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(f => f && !JUNK.has(f.toLowerCase()))
                     : [];
 
-                // If no custom fields → group by class instead
+                // If no valid custom fields → group by class instead
                 if (fields.length === 0) {
                     renderByClass();
                     return;

@@ -8721,7 +8721,7 @@ function getTripDetails()
             SELECT 
                 tr.*,
                 s.name as student_name,
-                s.class as student_class,
+                COALESCE(cc.arabic_name, gc.arabic_name, s.class) as student_class,
                 s.phone as student_phone,
                 s.image_url as student_image,
                 s.trip_points as student_trip_points,
@@ -8731,6 +8731,8 @@ function getTripDetails()
                 tr.payment_history
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
+            LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
+            LEFT JOIN classes gc ON gc.id = s.class_id
             LEFT JOIN uncles u ON tr.registered_by = u.id
             WHERE tr.trip_id = ? AND tr.cancelled = 0
             ORDER BY tr.registration_date
