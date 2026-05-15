@@ -1431,6 +1431,15 @@ try {
             bulkUpdateCustomData();
             break;
 
+        case 'getWaitlist':
+            getWaitlistAction();
+            break;
+
+        case 'removeFromWaitlist':
+            removeFromWaitlist();
+            break;
+
+
         case 'withdrawCoupons':
             checkUncleAuth();
             withdrawCoupons();
@@ -1950,13 +1959,13 @@ function withdrawCoupons()
         $rem = $amount;
         $att_sub = min(intval($res['attendance_coupons']), $rem);
         $rem -= $att_sub;
-        
+
         $com_sub = 0;
         if ($rem > 0) {
             $com_sub = min(intval($res['commitment_coupons']), $rem);
             $rem -= $com_sub;
         }
-        
+
         $tsk_sub = 0;
         if ($rem > 0) {
             $tsk_sub = min(intval($res['task_coupons']), $rem);
@@ -9124,6 +9133,163 @@ function bulkUpdateCustomData()
     }
 }
 
+// ── WAITLIST HELPERS ──────────────────────────────────────────────────────────
+function ensureWaitlistTable($conn)
+{
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS `trip_waitlist` (
+            `id`          INT AUTO_INCREMENT PRIMARY KEY,
+            `trip_id`     INT NOT NULL,
+            `student_id`  INT NOT NULL,
+            `church_id`   INT NOT NULL,
+            `added_by`    INT DEFAULT NULL,
+            `position`    INT NOT NULL DEFAULT 1,
+            `notes`       TEXT DEFAULT NULL,
+            `deposit`     DECIMAL(10,2) DEFAULT 0,
+            `donation`    DECIMAL(10,2) DEFAULT 0,
+            `custom_data` TEXT DEFAULT NULL,
+            `added_at`    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_trip_student` (`trip_id`, `student_id`),
+            KEY `idx_trip_pos` (`trip_id`, `position`),
+            KEY `idx_church` (`church_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
+function getWaitlistNextPosition($conn, $tripId)
+{
+    $stmt = $conn->prepare("SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM trip_waitlist WHERE trip_id = ?");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    return (int) $stmt->get_result()->fetch_assoc()['next_pos'];
+}
+
+function promoteFirstFromWaitlist($conn, $tripId, $churchId)
+{
+    // Get the first student in the waitlist
+    $stmt = $conn->prepare("
+        SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+        FROM trip_waitlist tw
+        JOIN students s ON s.id = tw.student_id
+        WHERE tw.trip_id = ?
+        ORDER BY tw.position ASC
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    $waiting = $stmt->get_result()->fetch_assoc();
+    if (!$waiting)
+        return null;
+
+    $deposit = floatval($waiting['deposit'] ?? 0);
+    $notes = $waiting['notes'] ?? '';
+    $customData = $waiting['custom_data'];
+    $addedBy = $waiting['added_by'];
+    $studentId = $waiting['student_id'];
+
+    // Remove any old cancelled registration for this student on this trip
+    $del = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 1");
+    $del->bind_param("ii", $tripId, $studentId);
+    $del->execute();
+
+    // Insert a normal registration
+    $ins = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, deposit, notes, custom_data) VALUES (?, ?, ?, ?, ?, ?)");
+    $ins->bind_param("iiidss", $tripId, $studentId, $addedBy, $deposit, $notes, $customData);
+    if (!$ins->execute())
+        return null;
+
+    $registrationId = $conn->insert_id;
+
+    // Record deposit payment if any
+    if ($deposit > 0) {
+        $ps = $conn->prepare("INSERT INTO trip_payments (registration_id, amount, received_by, notes) VALUES (?, ?, ?, 'دفعة مقدمة - ترقية من قائمة الانتظار')");
+        $ps->bind_param("idi", $registrationId, $deposit, $addedBy);
+        $ps->execute();
+    }
+
+    // Remove from waitlist
+    $delW = $conn->prepare("DELETE FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
+    $delW->bind_param("ii", $tripId, $studentId);
+    $delW->execute();
+
+    // Re-number remaining positions
+    $conn->query("SET @pos := 0");
+    $upd = $conn->prepare("UPDATE trip_waitlist SET position = (@pos := @pos + 1) WHERE trip_id = ? ORDER BY position ASC");
+    $upd->bind_param("i", $tripId);
+    $upd->execute();
+
+    return [
+        'student_id' => $studentId,
+        'student_name' => $waiting['student_name'],
+        'student_image' => $waiting['student_image'],
+        'registration_id' => $registrationId,
+    ];
+}
+
+function getWaitlistData($tripId, $conn)
+{
+    ensureWaitlistTable($conn);
+    $stmt = $conn->prepare("
+        SELECT tw.*, s.name AS student_name, s.image_url AS student_image,
+               COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS student_class
+        FROM trip_waitlist tw
+        JOIN students s ON s.id = tw.student_id
+        LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+        LEFT JOIN classes cl ON cl.id = s.class_id
+        WHERE tw.trip_id = ?
+        ORDER BY tw.position ASC
+    ");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+function getWaitlistAction()
+{
+    try {
+        checkAuth();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        if (!$tripId) {
+            sendJSON(['success' => false, 'message' => 'trip_id مطلوب']);
+            return;
+        }
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+        $list = getWaitlistData($tripId, $conn);
+        sendJSON(['success' => true, 'waitlist' => $list, 'count' => count($list)]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function removeFromWaitlist()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $studentId = intval($_POST['student_id'] ?? 0);
+        if (!$tripId || !$studentId) {
+            sendJSON(['success' => false, 'message' => 'بيانات ناقصة']);
+            return;
+        }
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+        $stmt = $conn->prepare("DELETE FROM trip_waitlist WHERE trip_id = ? AND student_id = ? AND church_id = ?");
+        $stmt->bind_param("iii", $tripId, $studentId, $churchId);
+        $stmt->execute();
+        // Re-number
+        $conn->query("SET @pos := 0");
+        $upd = $conn->prepare("UPDATE trip_waitlist SET position = (@pos := @pos + 1) WHERE trip_id = ? ORDER BY position ASC");
+        $upd->bind_param("i", $tripId);
+        $upd->execute();
+        sendJSON(['success' => true, 'message' => 'تمت إزالة الطفل من قائمة الانتظار']);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+// ── END WAITLIST HELPERS ──────────────────────────────────────────────────────
+
 function registerStudentForTrip()
 {
     try {
@@ -9164,6 +9330,7 @@ function registerStudentForTrip()
         }
 
         $conn = getDBConnection();
+        ensureWaitlistTable($conn);
 
         // التحقق من وجود الطفل في نفس الكنيسة
         $checkStudent = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
@@ -9174,21 +9341,62 @@ function registerStudentForTrip()
             return;
         }
 
-        // التحقق من عدم تسجيل الطفل مسبقاً
-        $checkReg = $conn->prepare("
-            SELECT id, cancelled FROM trip_registrations 
-            WHERE trip_id = ? AND student_id = ?
-        ");
+        // التحقق من عدم تسجيل الطفل مسبقاً (نشط)
+        $checkReg = $conn->prepare("SELECT id, cancelled FROM trip_registrations WHERE trip_id = ? AND student_id = ?");
         $checkReg->bind_param("ii", $tripId, $studentId);
         $checkReg->execute();
         $regResult = $checkReg->get_result();
-
         if ($regResult->num_rows > 0) {
             $existing = $regResult->fetch_assoc();
             if ($existing['cancelled'] == 0) {
                 sendJSON(['success' => false, 'message' => 'الطفل مسجل بالفعل في هذه الرحلة']);
                 return;
             }
+        }
+
+        // التحقق من عدم وجوده في قائمة الانتظار
+        $checkWait = $conn->prepare("SELECT id FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
+        $checkWait->bind_param("ii", $tripId, $studentId);
+        $checkWait->execute();
+        if ($checkWait->get_result()->num_rows > 0) {
+            sendJSON(['success' => false, 'message' => 'الطفل موجود بالفعل في قائمة الانتظار']);
+            return;
+        }
+
+        // تحقق من الحد الأقصى للمشاركين
+        $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ? AND church_id = ?");
+        $tripStmt->bind_param("ii", $tripId, $churchId);
+        $tripStmt->execute();
+        $trip = $tripStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+
+        $maxParticipants = intval($trip['max_participants'] ?? 0);
+
+        // عدد المسجلين النشطين
+        $countStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
+        $countStmt->bind_param("i", $tripId);
+        $countStmt->execute();
+        $activeCount = (int) $countStmt->get_result()->fetch_assoc()['cnt'];
+
+        // إذا الرحلة ممتلئة → أضفه لقائمة الانتظار
+        if ($maxParticipants > 0 && $activeCount >= $maxParticipants) {
+            $position = getWaitlistNextPosition($conn, $tripId);
+            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, added_by, position, notes, deposit, donation, custom_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $insW->bind_param("iiiiiidds", $tripId, $studentId, $churchId, $uncleId, $position, $notes, $deposit, $donation, $customData);
+            if ($insW->execute()) {
+                sendJSON([
+                    'success' => true,
+                    'waitlisted' => true,
+                    'position' => $position,
+                    'message' => "تم إضافة الطفل إلى قائمة الانتظار (رقم $position) — الرحلة ممتلئة"
+                ]);
+            } else {
+                sendJSON(['success' => false, 'message' => 'فشل في إضافة الطفل لقائمة الانتظار: ' . $insW->error]);
+            }
+            return;
         }
 
         // إلغاء أي تسجيل سابق ملغي
@@ -9267,6 +9475,7 @@ function registerStudentForTrip()
 
             sendJSON([
                 'success' => true,
+                'waitlisted' => false,
                 'message' => 'تم تسجيل الطفل في الرحلة بنجاح',
                 'registration_id' => $registrationId
             ]);
@@ -9429,6 +9638,19 @@ function cancelTripRegistration()
         }
 
         $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+
+        // Fetch trip_id and student name before cancelling
+        $infoStmt = $conn->prepare("
+            SELECT tr.trip_id, s.name AS student_name
+            FROM trip_registrations tr
+            JOIN students s ON s.id = tr.student_id
+            WHERE tr.id = ?
+        ");
+        $infoStmt->bind_param("i", $registrationId);
+        $infoStmt->execute();
+        $regInfo = $infoStmt->get_result()->fetch_assoc();
+        $tripId = $regInfo ? (int) $regInfo['trip_id'] : 0;
 
         $stmt = $conn->prepare("
             UPDATE trip_registrations tr
@@ -9439,7 +9661,7 @@ function cancelTripRegistration()
         $stmt->bind_param("iii", $uncleId, $registrationId, $churchId);
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
-            // ► AUDIT (get info before cancel if possible)
+            // ► AUDIT
             writeAuditLog(
                 'trip_cancel',
                 'trip_registration',
@@ -9450,7 +9672,22 @@ function cancelTripRegistration()
                 "إلغاء تسجيل في رحلة — registration ID: $registrationId"
             );
 
-            sendJSON(['success' => true, 'message' => 'تم إلغاء التسجيل بنجاح']);
+            // Auto-promote first student from waitlist
+            $promoted = null;
+            if ($tripId > 0) {
+                $promoted = promoteFirstFromWaitlist($conn, $tripId, $churchId);
+            }
+
+            $response = ['success' => true, 'message' => 'تم إلغاء التسجيل بنجاح'];
+
+            if ($promoted) {
+                $response['promoted'] = true;
+                $response['promoted_student_name'] = $promoted['student_name'];
+                $response['promoted_student_image'] = $promoted['student_image'];
+                $response['message'] = "تم إلغاء التسجيل بنجاح ✅\n🎉 تم ترقية {$promoted['student_name']} من قائمة الانتظار تلقائياً!";
+            }
+
+            sendJSON($response);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في إلغاء التسجيل أو لم يتم العثور عليه']);
         }
@@ -11072,6 +11309,15 @@ try {
         case 'bulkUpdateCustomData':
             bulkUpdateCustomData();
             break;
+
+        case 'getWaitlist':
+            getWaitlistAction();
+            break;
+
+        case 'removeFromWaitlist':
+            removeFromWaitlist();
+            break;
+
 
         // دوال تحسين الحضور
         case 'getFridaysInMonth':

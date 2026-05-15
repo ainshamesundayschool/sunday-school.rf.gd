@@ -2223,7 +2223,7 @@
     }
 
     .td-badge.warn {
-      background: var(--danger);
+      background: var(--warning, #f59e0b);
     }
 
     @media (max-width: 520px) {
@@ -2807,6 +2807,11 @@
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
             <span class="td-badge" id="tdRegsCount"></span>
           </div>
+          <div class="td-tab" id="tdtab-waitlist" onclick="switchTripTab('waitlist')"
+            style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
+            الانتظار
+            <span class="td-badge warn" id="tdWaitlistCount"></span>
+          </div>
           <div class="td-tab" id="tdtab-exp" onclick="switchTripTab('exp')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
             المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
@@ -2818,6 +2823,9 @@
         </div>
         <div class="td-panel" id="tdpanel-regs">
           <div id="tripRegsContent"></div>
+        </div>
+        <div class="td-panel" id="tdpanel-waitlist">
+          <div id="tripWaitlistContent"></div>
         </div>
         <div class="td-panel" id="tdpanel-exp">
           <input type="hidden" id="expTripId">
@@ -2960,10 +2968,11 @@
 
     function switchTripTab(tab, updateUrl = true) {
       currentTripTab = tab;
-      ['info', 'regs', 'exp'].forEach(t => {
+      ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.classList.toggle('active', t === tab);
         document.getElementById('tdpanel-' + t)?.classList.toggle('active', t === tab);
       });
+      if (tab === 'waitlist') loadWaitlist(window.currentTripId);
       if (updateUrl && window.currentTripId) updateHashParam('trip_tab', tab);
     }
 
@@ -3070,6 +3079,14 @@
       document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}`;
       document.getElementById('tdRegsCount').textContent = regs.length || '';
       document.getElementById('tdExpCount').textContent = exps.length || '';
+      // Load waitlist count async
+      (async () => {
+        const fd2 = mkFd('getWaitlist'); fd2.append('trip_id', trip.id);
+        const wd = await fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).catch(() => ({ success: false }));
+        const wCount = wd.success ? (wd.waitlist || []).length : 0;
+        const badge = document.getElementById('tdWaitlistCount');
+        if (badge) badge.textContent = wCount || '';
+      })();
       document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
       document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر الرحلة`;
       if (trip.image_url) { document.getElementById('tdCoverBg').style.backgroundImage = `url('${trip.image_url}')`; document.getElementById('tdCoverThumb').innerHTML = `<img src="${trip.image_url}" style="width:100%;height:100%;object-fit:cover;">`; }
@@ -3322,11 +3339,14 @@
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
           </div>
-          <details id="registerCustomFieldsWrapper" style="display:none; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--bg);">
-            <summary style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.85rem; outline:none; display:flex; align-items:center; gap:8px;">
-               <i class="fas fa-tags"></i> حقول إضافية للرحلة (اختياري)
+          <details id="registerCustomFieldsWrapper"
+            style="display:none; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--bg);">
+            <summary
+              style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.85rem; outline:none; display:flex; align-items:center; gap:8px;">
+              <i class="fas fa-tags"></i> حقول إضافية للرحلة (اختياري)
             </summary>
-            <div id="registerCustomFieldsSection" style="margin-top:12px; max-height:160px; overflow-y:auto; padding-right:4px;"></div>
+            <div id="registerCustomFieldsSection"
+              style="margin-top:12px; max-height:160px; overflow-y:auto; padding-right:4px;"></div>
           </details>
           <div class="register-sticky-footer">
             <div class="register-fields">
@@ -3690,8 +3710,8 @@
         const att = s['_allAttendance'] || {};
         const attValues = Object.values(att);
         const attendedDays = attValues.filter(v => v === 'ح').length;
-        const absentDays  = attValues.filter(v => v === 'غ').length;
-        const totalDays   = attValues.length;
+        const absentDays = attValues.filter(v => v === 'غ').length;
+        const totalDays = attValues.length;
 
         // Check if registered in any OTHER trip
         let otherTripName = '';
@@ -3772,10 +3792,22 @@
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       btn.classList.remove('btn-loading'); btn.disabled = false;
       if (d.success) {
-        showToast('تم التسجيل بنجاح ✅', 'success');
-        updateHashParam('trip_tab', 'regs');
-        await showTripDetails(tripId, { tab: 'regs' });
-        switchTripTab('regs');
+        if (d.waitlisted) {
+          // Show waitlist toast with position
+          let t = document.getElementById('toast');
+          if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+          t.innerHTML = `<i class="fas fa-clock" style="color:#fbbf24;font-size:1.3rem;"></i><div><div style="font-weight:700;">تمت الإضافة لقائمة الانتظار</div><div style="font-size:0.8rem;opacity:.8;">رقم الطفل في القائمة: <strong>#${d.position}</strong> — الرحلة ممتلئة حالياً</div></div>`;
+          t.className = 'toast show warning';
+          clearTimeout(window._toastTimer);
+          window._toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
+          await showTripDetails(tripId, { tab: 'waitlist' });
+          switchTripTab('waitlist');
+        } else {
+          showToast('تم التسجيل بنجاح ✅', 'success');
+          updateHashParam('trip_tab', 'regs');
+          await showTripDetails(tripId, { tab: 'regs' });
+          switchTripTab('regs');
+        }
         resetRegisterKidPicker();
       } else showToast(d.message || 'فشل', 'error');
     }
@@ -3988,12 +4020,71 @@
         loadTrips();
       } else showToast(d.message || 'فشل', 'error');
     }
+    // ── WAITLIST ──────────────────────────────────────────────────
+    async function loadWaitlist(tripId) {
+      const container = document.getElementById('tripWaitlistContent');
+      if (!container) return;
+      container.innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
+      const fd = mkFd('getWaitlist'); fd.append('trip_id', tripId);
+      const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      const list = d.success ? (d.waitlist || []) : [];
+      // Update badge
+      const badge = document.getElementById('tdWaitlistCount');
+      if (badge) badge.textContent = list.length || '';
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><h3>قائمة الانتظار فارغة</h3><p style="color:var(--muted);font-size:0.85rem;">عند امتلاء الرحلة يتم إضافة الأطفال هنا تلقائياً</p></div>`;
+        return;
+      }
+      container.innerHTML = `
+        <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);">
+          <div style="font-size:0.88rem;color:var(--text-2);"><strong>${list.length}</strong> طفل في قائمة الانتظار — سيتم ترقية الأول تلقائياً عند إلغاء أي تسجيل</div>
+        </div>
+        <div style="display:grid;gap:8px;">
+          ${list.map((w, idx) => {
+        const initials = (w.student_name || '؟').charAt(0);
+        const img = w.student_image || '';
+        return `<div class="reg-row" style="border-right:3px solid ${idx === 0 ? 'var(--warning)' : 'var(--border-2)'};">
+              <div style="width:28px;height:28px;border-radius:50%;background:${idx === 0 ? 'var(--warning-light)' : 'var(--bg)'};color:${idx === 0 ? 'var(--warning)' : 'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;flex-shrink:0;">${w.position}</div>
+              <div class="reg-ava" style="border-color:${idx === 0 ? 'var(--warning)' : 'var(--border)'}33;">
+                ${img ? `<img src="${img}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;"><span style="display:none">${initials}</span>` : initials}
+              </div>
+              <div class="reg-info" style="flex:1;">
+                <strong>${escHtml(w.student_name)}</strong>
+                <span>${escHtml(w.student_class || '—')}</span>
+                ${idx === 0 ? `<div style="font-size:0.68rem;color:var(--warning);font-weight:700;margin-top:2px;"><i class="fas fa-star"></i> التالي للترقية</div>` : ''}
+              </div>
+              <div style="font-size:0.72rem;color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
+              <button class="act-btn act-delete" title="إزالة من قائمة الانتظار" onclick="removeFromWaitlist(${tripId},${w.student_id})"><i class="fas fa-times"></i></button>
+            </div>`;
+      }).join('')}
+        </div>`;
+    }
+
+    async function removeFromWaitlist(tripId, studentId) {
+      if (!confirm('إزالة هذا الطفل من قائمة الانتظار؟')) return;
+      const fd = mkFd('removeFromWaitlist'); fd.append('trip_id', tripId); fd.append('student_id', studentId);
+      const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      if (d.success) { showToast('تمت الإزالة', 'success'); loadWaitlist(tripId); }
+      else showToast(d.message || 'فشل', 'error');
+    }
+
     async function cancelRegistration(regId, tripId) {
       if (!confirm('إلغاء تسجيل هذا الطفل؟')) return;
       const fd = new FormData(); fd.append('action', 'cancelTripRegistration'); fd.append('registration_id', regId);
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       if (d.success) {
-        showToast('تم الإلغاء', 'success');
+        if (d.promoted && d.promoted_student_name) {
+          // Show rich promotion notification
+          const img = d.promoted_student_image ? `<img src="${d.promoted_student_image}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #6ee7b7;flex-shrink:0;" onerror="this.style.display='none'">` : `<div style="width:42px;height:42px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-weight:800;color:#059669;flex-shrink:0;">${d.promoted_student_name.charAt(0)}</div>`;
+          let t = document.getElementById('toast');
+          if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+          t.innerHTML = `<i class="fas fa-arrow-up" style="color:#6ee7b7;"></i><div style="display:flex;align-items:center;gap:10px;">${img}<div><div style="font-weight:700;">تم الترقية من قائمة الانتظار!</div><div style="font-size:0.8rem;opacity:.8;">🎉 <strong>${d.promoted_student_name}</strong> دخل الرحلة تلقائياً</div></div></div>`;
+          t.className = 'toast show success';
+          clearTimeout(window._toastTimer);
+          window._toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
+        } else {
+          showToast('تم الإلغاء', 'success');
+        }
         loadTrips();
         await showTripDetails(tripId);
       } else showToast(d.message || 'فشل', 'error');
@@ -4079,11 +4170,11 @@
       const fields = parseCustomFieldsString(trip?.custom_fields);
       const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
       if (!trip || !fields.length) return;
-      
+
       const allColumns = _getAllSubFieldColumns(fields, icons);
       const headers = ['Registration ID', 'Student Name', ...allColumns.map(c => c.field)];
       let csv = '\uFEFF' + headers.join(',') + '\n';
-      
+
       regs.forEach(r => {
         let row = [r.id, `"${r.student_name}"`];
         let cd = {};
@@ -4109,10 +4200,10 @@
       const fields = parseCustomFieldsString(trip?.custom_fields);
       const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
       if (!trip || !fields.length) return;
-      
+
       const allColumns = _getAllSubFieldColumns(fields, icons);
       const validFields = allColumns.map(c => c.field);
-      
+
       const reader = new FileReader();
       reader.onload = async function (ev) {
         const text = ev.target.result;
@@ -4154,7 +4245,7 @@
       }
       const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
       const allColumns = _getAllSubFieldColumns(fields, icons);
-      
+
       function buildCell(col, currentVal) {
         const { field, meta } = col;
         const choices = Array.isArray(meta.choices) ? meta.choices : [];
@@ -4208,18 +4299,18 @@
       const trip = allTripsCache.find(t => t.id == tripId);
       const fields = parseCustomFieldsString(trip?.custom_fields);
       const icons = (trip && typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      
-      if (!fields.length) { 
-        if(wrapper) wrapper.style.display = 'none'; 
-        section.innerHTML = ''; 
-        return; 
+
+      if (!fields.length) {
+        if (wrapper) wrapper.style.display = 'none';
+        section.innerHTML = '';
+        return;
       }
-      
-      if(wrapper) {
+
+      if (wrapper) {
         wrapper.style.display = 'block';
         wrapper.removeAttribute('open'); // start collapsed
       }
-      
+
       section.innerHTML = `<div class="custom-fields-register" id="regCustomFieldsInner">
         ${fields.map(field => renderRegisterField(field, icons[field] || {}, '')).join('')}
     </div>`;
@@ -4238,19 +4329,19 @@
             <i class="${icon}"></i> ${escHtml(fieldName)}
           </div>
           ${subFields.map(sf => {
-            const sfKey = fieldName + '__sf__' + sf.name;
-            const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
-            const inputHtml = sfChoices.length
-              ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
+          const sfKey = fieldName + '__sf__' + sf.name;
+          const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
+          const inputHtml = sfChoices.length
+            ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
                   <option value="">— اختر —</option>
                   ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
                 </select>`
-              : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
-            return `<div class="form-group" style="margin-bottom:4px;">
+            : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
+          return `<div class="form-group" style="margin-bottom:4px;">
               <label class="form-label" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
               ${inputHtml}
             </div>`;
-          }).join('')}
+        }).join('')}
         </div>`;
       }
 
@@ -4366,8 +4457,8 @@
         </div>`;
       }).join('') : '';
 
-      const typeBtnChoices = `<button type="button" onclick="cfeSetType('${f._id}','choices')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${!isGroup?'var(--primary)':'var(--border)'};background:${!isGroup?'var(--primary)':'transparent'};color:${!isGroup?'white':'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">خيارات</button>`;
-      const typeBtnGroup = `<button type="button" onclick="cfeSetType('${f._id}','sub_group')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${isGroup?'var(--primary)':'var(--border)'};background:${isGroup?'var(--primary)':'transparent'};color:${isGroup?'white':'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">مجموعة فرعية</button>`;
+      const typeBtnChoices = `<button type="button" onclick="cfeSetType('${f._id}','choices')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${!isGroup ? 'var(--primary)' : 'var(--border)'};background:${!isGroup ? 'var(--primary)' : 'transparent'};color:${!isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">خيارات</button>`;
+      const typeBtnGroup = `<button type="button" onclick="cfeSetType('${f._id}','sub_group')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${isGroup ? 'var(--primary)' : 'var(--border)'};background:${isGroup ? 'var(--primary)' : 'transparent'};color:${isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">مجموعة فرعية</button>`;
 
       return `<div class="cfe-field-card" id="cfe_card_${f._id}">
         <div class="cfe-field-row">
