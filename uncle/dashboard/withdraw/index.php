@@ -955,8 +955,45 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             }).join('');
         }
 
+        function normalizeArabic(text) {
+            if (!text) return "";
+            return text
+                .replace(/[أإآ]/g, "ا")
+                .replace(/ة/g, "ه")
+                .replace(/ى/g, "ي")
+                .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
+                .toLowerCase()
+                .trim();
+        }
+
+        function getMatchScore(target, query) {
+            const t = normalizeArabic(target);
+            const q = normalizeArabic(query);
+            
+            if (t === q) return 100; // Exact match
+            if (t.startsWith(q)) return 80; // Starts with
+            if (t.includes(q)) return 60; // Simple inclusion
+            
+            // Fuzzy match (subsequence)
+            let score = 0;
+            let queryIdx = 0;
+            for (let i = 0; i < t.length && queryIdx < q.length; i++) {
+                if (t[i] === q[queryIdx]) {
+                    queryIdx++;
+                    score++;
+                }
+            }
+            
+            // If all characters in query are found in sequence
+            if (queryIdx === q.length) {
+                return (score / t.length) * 40; 
+            }
+            
+            return 0;
+        }
+
         function performSearch() {
-            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const q = document.getElementById('searchInput').value.trim();
             const sort = document.getElementById('sortSelect').value;
 
             // If no search and in classes view, stay in classes view
@@ -982,20 +1019,36 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             }
 
             if (q) {
-                filtered = filtered.filter(s =>
-                    (s['الاسم'] || '').toLowerCase().includes(q) ||
-                    (s['الفصل'] || '').toLowerCase().includes(q)
-                );
-            }
+                // Calculate scores for each student
+                filtered = filtered.map(s => {
+                    const nameScore = getMatchScore(s['الاسم'] || '', q);
+                    const classScore = getMatchScore(s['الفصل'] || '', q);
+                    return { ...s, _searchScore: Math.max(nameScore, classScore) };
+                })
+                .filter(s => s._searchScore > 0);
 
-            // Apply Sorting
-            filtered.sort((a, b) => {
-                if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
-                if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
-                if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
-                if (sort === 'coupons_asc') return (parseInt(a['كوبونات']) || 0) - (parseInt(b['كوبونات']) || 0);
-                return 0;
-            });
+                // Sort by search score first, then by the selected sort option
+                filtered.sort((a, b) => {
+                    if (b._searchScore !== a._searchScore) {
+                        return b._searchScore - a._searchScore;
+                    }
+                    
+                    if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
+                    if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
+                    if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
+                    if (sort === 'coupons_asc') return (parseInt(a['كوبونات']) || 0) - (parseInt(b['كوبونات']) || 0);
+                    return 0;
+                });
+            } else {
+                // Standard sort when no query
+                filtered.sort((a, b) => {
+                    if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
+                    if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
+                    if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
+                    if (sort === 'coupons_asc') return (parseInt(a['كوبونات']) || 0) - (parseInt(b['كوبونات']) || 0);
+                    return 0;
+                });
+            }
 
             renderStudents(filtered);
         }
