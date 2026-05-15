@@ -28,28 +28,22 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             --success-bg: #d1fae5;
             --danger: #ef4444;
             --danger-bg: #fee2e2;
-            --warning: #f59e0b;
-            --warning-bg: #fef3c7;
-            --coupon: #8b5cf6;
-            --coupon-bg: #ede9fe;
             --bg: #f3f4f9;
             --surface: #ffffff;
             --surface-2: #f7f8fc;
             --surface-3: #eef0f8;
-            --border: rgba(91, 108, 245, .12);
             --border-solid: #e4e6f0;
             --text: #1a1d2e;
             --text-2: #4b5068;
             --text-3: #8b90a8;
             --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .07);
             --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .10);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
             --r-md: 14px;
             --r-lg: 18px;
             --r-xl: 24px;
-            --r-full: 9999px;
             --t: .22s;
             --ease: cubic-bezier(.4, 0, .2, 1);
-            --spring: cubic-bezier(.16, 1, .3, 1);
         }
 
         [data-theme="dark"] {
@@ -64,13 +58,33 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; transition: background var(--t), color var(--t); overflow-x: hidden; }
         
-        /* Ambient background - More minimal */
+        /* ── Custom Scrollbar ── */
+        *::-webkit-scrollbar { width: 4px; height: 4px; }
+        *::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 10px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+        html, body { scrollbar-width: none; -ms-overflow-style: none; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ── Ambient Mesh ── */
         body::before {
-            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(ellipse 60% 40% at 10% -10%, rgba(91, 108, 245, .04) 0%, transparent 60%);
-            pointer-events: none; z-index: 0;
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* ── TOPBAR ── */
@@ -101,7 +115,6 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 12px; }
         .class-card { background: var(--surface); border-radius: 16px; padding: 20px 12px; border: 1.5px solid var(--border-solid); text-align: center; cursor: pointer; transition: all var(--t); }
         .class-card:hover { border-color: var(--brand); transform: translateY(-2px); }
-        .class-icon { width: 48px; height: 48px; background: var(--brand-bg); color: var(--brand); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 1.3rem; }
         .class-name { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; color: var(--text); }
         .class-badge { font-size: .7rem; font-weight: 800; color: var(--text-3); opacity: 0.7; }
 
@@ -115,21 +128,44 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .kid-list { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
         .kid-item { background: var(--surface); border-radius: 14px; padding: 12px; border: 1.5px solid var(--border-solid); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all var(--t); }
         .kid-item:hover { border-color: var(--brand); transform: translateX(-2px); }
-        .kid-photo { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 1.1rem; flex-shrink: 0; }
-        .kid-info { flex: 1; }
         .kid-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; }
         .kid-meta { font-size: .75rem; color: var(--text-3); font-weight: 700; display: flex; gap: 8px; align-items: center; }
-        .kid-coupons { background: var(--coupon-bg); color: var(--coupon); padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+        .kid-coupons { background: var(--brand-bg); color: var(--brand); padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; }
 
         /* ── PROFILE MODAL ── */
-        .profile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 17, 23, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .3s; display: flex; align-items: flex-end; justify-content: center; }
-        .profile-overlay.active { opacity: 1; pointer-events: auto; }
-        .profile-sheet { width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform .4s var(--spring); max-height: 90vh; overflow-y: auto; padding-bottom: 40px; }
+        .profile-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s var(--ease);
+        }
+        .profile-overlay.active { opacity: 1; visibility: visible; }
+
+        .profile-sheet {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--surface);
+            border-radius: 32px 32px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
         .profile-overlay.active .profile-sheet { transform: translateY(0); }
         
         .sheet-header { padding: 32px 24px 20px; text-align: center; position: relative; border-bottom: 1px solid var(--border-solid); }
         .sheet-close { position: absolute; top: 16px; left: 16px; width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2); border: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); transition: all var(--t); }
-        .sheet-close:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
         .sheet-photo { width: 110px; height: 110px; border-radius: 28px; border: 4px solid var(--surface); box-shadow: var(--shadow-md); margin: 0 auto 16px; object-fit: cover; display: block; }
         .sheet-name { font-size: 1.4rem; font-weight: 900; margin-bottom: 4px; }
         .sheet-class { color: var(--brand); font-weight: 800; font-size: 0.9rem; }
@@ -591,7 +627,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                             <div class="sheet-close" onclick="closeAudit()"><i class="fas fa-times"></i></div>
                             <h3 style="font-weight:900;font-size:1.1rem">السجل التاريخي الشامل</h3>
                         </div>
-                        <div style="padding:16px;max-height:70vh;overflow-y:auto">
+                        <div class="sheet-body">
                             ${listHtml}
                         </div>
                     </div>
