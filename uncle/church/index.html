@@ -1546,6 +1546,7 @@
 
         .trip-img i {
             font-size: 0.9rem;
+            color: var(--primary-light);
         }
 
         .trip-status-pill {
@@ -4302,6 +4303,168 @@
         .add-field-row input {
             flex: 1;
         }
+
+        /* ═══════════════════════════════════════════════════════════════════
+   SETTINGS HUB + PAGE ROUTING
+═══════════════════════════════════════════════════════════════════ */
+        .settings-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .settings-bc-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            transition: all var(--t-fast) var(--ease);
+        }
+
+        .settings-bc-item:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .settings-bc-item.active {
+            color: var(--text);
+            pointer-events: none;
+            background: none;
+        }
+
+        .settings-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .settings-hub-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            cursor: pointer;
+            text-align: right;
+            transition: all var(--t-fast) var(--ease-spring);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .settings-hub-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .settings-hub-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .settings-hub-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .settings-hub-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .settings-hub-desc {
+            font-size: 0.74rem;
+            color: var(--text-3);
+        }
+
+        .settings-hub-arrow {
+            color: var(--muted);
+            font-size: 0.72rem;
+            transition: transform var(--t-fast) var(--ease);
+        }
+
+        .settings-hub-card:hover .settings-hub-arrow {
+            transform: translateX(-3px);
+            color: var(--primary);
+        }
+
+        .settings-page {
+            animation: settingsPageIn 0.22s var(--ease-spring);
+        }
+
+        @keyframes settingsPageIn {
+            from {
+                opacity: 0;
+                transform: translateX(-14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .settings-section-divider {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-top: 4px;
+        }
+
+        .settings-toggle-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--t-fast) var(--ease);
+        }
+
+        .settings-toggle-row:hover {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .pwd-eye-btn {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* ── Add uncle: collapse the form by default ── */
+        #addUncleFormWrap {
+            display: none;
+        }
     </style>
 </head>
 
@@ -4429,7 +4592,7 @@
                         <div>
                             <div class="overview-kicker" id="overviewDate">اليوم</div>
                             <h1 class="overview-title">مرحباً، <span id="overviewChurchName">مدارس الأحد</span></h1>
-     </div>
+                        </div>
                         <div class="quick-actions" aria-label="اختصارات سريعة">
                             <button class="quick-action primary" onclick="switchTabByName('attendance')"><i
                                     class="fas fa-calendar-check"></i> تسجيل الحضور</button>
@@ -4586,83 +4749,69 @@
                 <!-- ── ADD UNCLE CARD ── -->
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-user-plus"></i> تسجيل خادم جديد</div>
-                        <button class="btn btn-outline btn-sm" type="button" id="addUncleToggleBtn"
-                            onclick="toggleAddUncleForm()">
-                            <i class="fas fa-chevron-up" id="addUncleChevron"></i> إخفاء
+                        <div class="card-title"><i class="fas fa-users"></i> قائمة الخُدام</div>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddUncleForm()">
+                            <i class="fas fa-plus" id="addUncleChevron"></i> <span id="addUncleToggleLbl">إضافة
+                                خادم</span>
                         </button>
                     </div>
-                    <div id="addUncleFormWrap" class="card-body">
-                        <form id="addUncleForm" onsubmit="addUncle(event)" novalidate autocomplete="off">
-                            <div class="form-grid" style="margin-bottom:18px;">
-                                <!-- Full Name -->
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-id-badge"
-                                            style="color:var(--primary-light);margin-left:4px;"></i> الاسم الكامل
-                                        *</label>
-                                    <input type="text" id="uncleName" class="form-input" required
-                                        placeholder="اسم الخادم كاملاً" autocomplete="off">
-                                </div>
-                                <!-- Username -->
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-user"
-                                            style="color:var(--primary-light);margin-left:4px;"></i> اسم المستخدم
-                                        *</label>
-                                    <div style="position:relative;">
-                                        <input type="text" id="uncleUsername" class="form-input" required
-                                            placeholder="بدون مسافات"
-                                            oninput="this.value=this.value.replace(/\s/g,'');checkUncleUsername(this.value)"
-                                            autocomplete="off" style="padding-left:36px;">
-                                        <span id="uncleUsernameStatus"
-                                            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.85rem;"></span>
+                    <div id="addUncleFormWrap" style="display:none;border-top:1px solid var(--border);">
+                        <div class="card-body" style="background:var(--surface-2);">
+                            <form id="addUncleForm" onsubmit="addUncle(event)" novalidate autocomplete="off">
+                                <div class="form-grid" style="margin-bottom:18px;">
+                                    <div class="form-group">
+                                        <label class="form-label">الاسم الكامل *</label>
+                                        <input type="text" id="uncleName" class="form-input" required
+                                            placeholder="اسم الخادم كاملاً" autocomplete="off">
                                     </div>
-                                    <small id="uncleUsernameHint" style="color:var(--muted);">يُستخدم لتسجيل الدخول — لا
-                                        يمكن تكراره</small>
-                                </div>
-                                <!-- Password -->
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-lock"
-                                            style="color:var(--primary-light);margin-left:4px;"></i> كلمة المرور
-                                        *</label>
-                                    <div style="position:relative;">
-                                        <input type="password" id="unclePassword" class="form-input" required
-                                            minlength="6" placeholder="6 أحرف على الأقل" style="padding-left:40px;">
-                                        <button type="button" onclick="toggleUnclePassword()"
-                                            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;"><i
-                                                class="fas fa-eye" id="unclePasswordEye"></i></button>
+                                    <div class="form-group">
+                                        <label class="form-label">اسم المستخدم *</label>
+                                        <div style="position:relative;">
+                                            <input type="text" id="uncleUsername" class="form-input" required
+                                                placeholder="بدون مسافات"
+                                                oninput="this.value=this.value.replace(/\s/g,'');checkUncleUsername(this.value)"
+                                                autocomplete="off" style="padding-left:36px;">
+                                            <span id="uncleUsernameStatus"
+                                                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.85rem;"></span>
+                                        </div>
+                                        <small id="uncleUsernameHint" style="color:var(--muted);">يُستخدم لتسجيل الدخول
+                                            — لا يمكن تكراره</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">كلمة المرور *</label>
+                                        <div style="position:relative;">
+                                            <input type="password" id="unclePassword" class="form-input" required
+                                                minlength="6" placeholder="6 أحرف على الأقل" style="padding-left:40px;">
+                                            <button type="button" onclick="toggleUnclePassword()" class="pwd-eye-btn"><i
+                                                    class="fas fa-eye" id="unclePasswordEye"></i></button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- Classes in same section -->
-                            <div class="form-group" style="margin-bottom:18px;">
-                                <label class="form-label"><i class="fas fa-graduation-cap"
-                                        style="color:var(--primary-light);margin-left:4px;"></i> الفصول المسؤول
-                                    عنها</label>
-                                <div id="uncleClassCheckboxes"
-                                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px;max-height:220px;overflow-y:auto;padding:2px;">
-                                    <div style="color:var(--muted);font-size:0.82rem;padding:8px;"><i
-                                            class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                                <div class="form-group" style="margin-bottom:18px;">
+                                    <label class="form-label">الفصول المسؤول عنها</label>
+                                    <div id="uncleClassCheckboxes"
+                                        style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px;max-height:200px;overflow-y:auto;padding:2px;">
+                                        <div style="color:var(--muted);font-size:0.82rem;padding:8px;"><i
+                                                class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                                    </div>
+                                    <small style="color:var(--muted);margin-top:6px;display:block;">اتركها فارغة لتعيين
+                                        الخادم على جميع الفصول</small>
+                                    <select id="uncleClass" multiple style="display:none;"></select>
                                 </div>
-                                <small style="color:var(--muted);margin-top:6px;display:block;">اتركها فارغة لتعيين
-                                    الخادم على جميع الفصول</small>
-                                <select id="uncleClass" multiple style="display:none;"></select>
-                            </div>
-                            <button type="submit" class="btn btn-primary" id="addUncleSubmitBtn"
-                                style="margin-top:4px;">
-                                <i class="fas fa-plus"></i> إضافة الخادم
-                            </button>
-                        </form>
+                                <button type="submit" class="btn btn-primary" id="addUncleSubmitBtn">
+                                    <i class="fas fa-plus"></i> إضافة الخادم
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
+                <!-- ── UNCLES LIST CARD ── -->
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-list"></i> قائمة الخُدام</div>
+                        <div class="card-title"><i class="fas fa-users"></i> الخُدام المسجلون</div>
                         <div class="export-row">
                             <button class="exp-btn" style="background:#8b5cf6;" onclick="saveUnclesTableAsImage()"
-                                title="حفظ كصورة">
-                                <i class="fas fa-image"></i> صورة
-                            </button>
-
+                                title="حفظ كصورة"><i class="fas fa-image"></i> صورة</button>
                             <button class="exp-btn exp-csv" onclick="exportUnclesToCSV()"><i
                                     class="fas fa-file-csv"></i> CSV</button>
                             <button class="exp-btn exp-copy" onclick="copyUnclesToClipboard()"><i
@@ -4937,100 +5086,107 @@
 
             <!-- ── TRIPS ── -->
             <div id="trips" class="tab-panel">
-                <div class="card">
+                <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-plus-circle"></i> إضافة رحلة جديدة</div>
+                        <div class="card-title"><i class="fas fa-route"></i> الرحلات</div>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddTripForm()">
+                            <i class="fas fa-plus" id="addTripChevron"></i> <span id="addTripToggleLbl">رحلة
+                                جديدة</span>
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <form id="addTripForm" onsubmit="addTrip(event)">
-                            <div class="form-grid">
-                                <div class="form-group"><label class="form-label">عنوان الرحلة *</label><input
-                                        type="text" id="tripTitle" class="form-input" required placeholder=""></div>
-                                <div class="form-group"><label class="form-label">نوع الرحلة</label><select
-                                        id="tripType" class="form-select" style="width:100%;"
-                                        onchange="toggleTripDates()">
-                                        <option value="one_day">يوم واحد</option>
-                                        <option value="multiple_days">عدة أيام</option>
-                                    </select></div>
-                                <div class="form-group"><label class="form-label">تاريخ البدء *</label><input
-                                        type="date" id="tripStartDate" class="form-input" required></div>
-                                <div class="form-group" id="endDateGroup" style="display:none;"><label
-                                        class="form-label">تاريخ الانتهاء</label><input type="date" id="tripEndDate"
-                                        class="form-input"></div>
-                                <div class="form-group"><label class="form-label">السعر (جنيه)</label><input
-                                        type="number" id="tripPrice" class="form-input" step="1" min="0" value="0"
-                                        onchange="recalcTripPrice()"></div>
-                                <div class="form-group"><label class="form-label">الخصم</label>
-                                    <div style="display:flex;gap:6px;"><input type="number" id="tripDiscount"
-                                            class="form-input" step="1" min="0" value="0"
-                                            onchange="recalcTripPrice()"><select id="tripDiscountType"
-                                            class="form-select" style="width:80px;" onchange="recalcTripPrice()">
-                                            <option value="percentage">%</option>
-                                            <option value="fixed">ج</option>
+                    <div id="addTripFormWrap" style="display:none;border-top:1px solid var(--border);">
+                        <div class="card-body" style="background:var(--surface-2);">
+                            <form id="addTripForm" onsubmit="addTrip(event)">
+                                <div class="form-grid">
+                                    <div class="form-group"><label class="form-label">عنوان الرحلة *</label><input
+                                            type="text" id="tripTitle" class="form-input" required placeholder=""></div>
+                                    <div class="form-group"><label class="form-label">نوع الرحلة</label><select
+                                            id="tripType" class="form-select" style="width:100%;"
+                                            onchange="toggleTripDates()">
+                                            <option value="one_day">يوم واحد</option>
+                                            <option value="multiple_days">عدة أيام</option>
                                         </select></div>
-                                </div>
-                                <div class="form-group"><label class="form-label">السعر النهائي</label><input
-                                        type="text" id="tripFinalPriceDisplay" class="form-input" disabled
-                                        style="font-weight:700;color:var(--primary);"></div>
-                                <div class="form-group"><label class="form-label">الحد الأقصى للمشاركين</label><input
-                                        type="number" id="tripMaxParticipants" class="form-input" min="0"
-                                        placeholder="غير محدد"></div>
-                                <div class="form-group"><label class="form-label">الحالة</label><select id="tripStatus"
-                                        class="form-select" style="width:100%;">
-                                        <option value="planned">مخطط لها</option>
-                                        <option value="active">نشطة</option>
-                                        <option value="completed">منتهية</option>
-                                    </select></div>
-                                <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف
-                                        الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2"
-                                        placeholder="تفاصيل الرحلة..."></textarea></div>
-                                <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور
-                                        المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids"
-                                        class="form-select" style="width:100%;">
-                                        <option value="1">يظهر للأطفال من سجل في الرحلة</option>
-                                        <option value="0">لا يظهر إلا بيانات الطفل نفسه</option>
-                                    </select></div>
-                                <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد
-                                        للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame" class="form-select"
-                                        style="width:100%;">
-                                        <option value="0">لا</option>
-                                        <option value="1">نعم</option>
-                                    </select></div>
-                                <div class="form-group" style="grid-column:1/-1;">
-                                    <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
-                                    <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
-                                        <div style="position:relative;flex-shrink:0;">
-                                            <button type="button" id="newFieldIconBtn"
-                                                onclick="toggleIconPicker('newFieldIconPicker','newFieldIcon')"
-                                                style="width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border-solid);background:var(--bg);cursor:pointer;font-size:1.1rem;"
-                                                title="اختر أيقونة">
-                                                <i class="fas fa-tag" id="newFieldIcon"></i>
-                                            </button>
-                                            <div id="newFieldIconPicker" class="icon-picker-popup"
-                                                style="display:none;"></div>
-                                        </div>
-                                        <input type="text" id="newFieldName" class="form-input"
-                                            style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الغرفة)"
-                                            onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName','newFieldIcon');}">
-                                        <select id="newFieldType" class="form-select" style="width:140px;">
-                                            <option value="input">إدخال حر</option>
-                                            <option value="choices">اختيارات</option>
-                                        </select>
-                                        <input type="text" id="newFieldChoices" class="form-input"
-                                            placeholder="قائمة القيم مفصولة بفواصل (عند اختيار الاختيارات)"
-                                            style="min-width:180px;display:none;">
-                                        <button type="button" class="btn btn-outline"
-                                            onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName', 'newFieldIcon')"><i
-                                                class="fas fa-plus"></i> إضافة</button>
+                                    <div class="form-group"><label class="form-label">تاريخ البدء *</label><input
+                                            type="date" id="tripStartDate" class="form-input" required></div>
+                                    <div class="form-group" id="endDateGroup" style="display:none;"><label
+                                            class="form-label">تاريخ الانتهاء</label><input type="date" id="tripEndDate"
+                                            class="form-input"></div>
+                                    <div class="form-group"><label class="form-label">السعر (جنيه)</label><input
+                                            type="number" id="tripPrice" class="form-input" step="1" min="0" value="0"
+                                            onchange="recalcTripPrice()"></div>
+                                    <div class="form-group"><label class="form-label">الخصم</label>
+                                        <div style="display:flex;gap:6px;"><input type="number" id="tripDiscount"
+                                                class="form-input" step="1" min="0" value="0"
+                                                onchange="recalcTripPrice()"><select id="tripDiscountType"
+                                                class="form-select" style="width:80px;" onchange="recalcTripPrice()">
+                                                <option value="percentage">%</option>
+                                                <option value="fixed">ج</option>
+                                            </select></div>
                                     </div>
-                                    <div id="tripFieldsContainer" class="custom-fields-container"></div>
+                                    <div class="form-group"><label class="form-label">السعر النهائي</label><input
+                                            type="text" id="tripFinalPriceDisplay" class="form-input" disabled
+                                            style="font-weight:700;color:var(--primary);"></div>
+                                    <div class="form-group"><label class="form-label">الحد الأقصى
+                                            للمشاركين</label><input type="number" id="tripMaxParticipants"
+                                            class="form-input" min="0" placeholder="غير محدد"></div>
+                                    <div class="form-group"><label class="form-label">الحالة</label><select
+                                            id="tripStatus" class="form-select" style="width:100%;">
+                                            <option value="planned">مخطط لها</option>
+                                            <option value="active">نشطة</option>
+                                            <option value="completed">منتهية</option>
+                                        </select></div>
+                                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">وصف
+                                            الرحلة</label><textarea id="tripDescription" class="form-textarea" rows="2"
+                                            placeholder="تفاصيل الرحلة..."></textarea></div>
+                                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ظهور
+                                            المسجلين في بروفايل الطفل</label><select id="tripShowRegisteredKids"
+                                            class="form-select" style="width:100%;">
+                                            <option value="1">يظهر للأطفال من سجل في الرحلة</option>
+                                            <option value="0">لا يظهر إلا بيانات الطفل نفسه</option>
+                                        </select></div>
+                                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">هل يوجد
+                                            للرحلة مسابقة نقاط؟</label><select id="tripHasPointsGame"
+                                            class="form-select" style="width:100%;">
+                                            <option value="0">لا</option>
+                                            <option value="1">نعم</option>
+                                        </select></div>
+                                    <div class="form-group" style="grid-column:1/-1;">
+                                        <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق،
+                                            الحافلة)</label>
+                                        <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+                                            <div style="position:relative;flex-shrink:0;">
+                                                <button type="button" id="newFieldIconBtn"
+                                                    onclick="toggleIconPicker('newFieldIconPicker','newFieldIcon')"
+                                                    style="width:42px;height:42px;border-radius:10px;border:1.5px solid var(--border-solid);background:var(--bg);cursor:pointer;font-size:1.1rem;"
+                                                    title="اختر أيقونة">
+                                                    <i class="fas fa-tag" id="newFieldIcon"></i>
+                                                </button>
+                                                <div id="newFieldIconPicker" class="icon-picker-popup"
+                                                    style="display:none;"></div>
+                                            </div>
+                                            <input type="text" id="newFieldName" class="form-input"
+                                                style="flex:1;min-width:140px;" placeholder="اسم الحقل (مثلاً: الغرفة)"
+                                                onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFieldTag('tripFieldsContainer','newFieldName','newFieldIcon');}">
+                                            <select id="newFieldType" class="form-select" style="width:140px;">
+                                                <option value="input">إدخال حر</option>
+                                                <option value="choices">اختيارات</option>
+                                            </select>
+                                            <input type="text" id="newFieldChoices" class="form-input"
+                                                placeholder="قائمة القيم مفصولة بفواصل (عند اختيار الاختيارات)"
+                                                style="min-width:180px;display:none;">
+                                            <button type="button" class="btn btn-outline"
+                                                onclick="addCustomFieldTag('tripFieldsContainer', 'newFieldName', 'newFieldIcon')"><i
+                                                    class="fas fa-plus"></i> إضافة</button>
+                                        </div>
+                                        <div id="tripFieldsContainer" class="custom-fields-container"></div>
+                                    </div>
+                                    <div class="form-group"><label class="form-label">صورة الرحلة</label><input
+                                            type="file" id="tripImage" class="form-input" accept="image/*"></div>
                                 </div>
-                                <div class="form-group"><label class="form-label">صورة الرحلة</label><input type="file"
-                                        id="tripImage" class="form-input" accept="image/*"></div>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i
-                                    class="fas fa-plus"></i> إضافة رحلة</button>
-                        </form>
+                                <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i
+                                        class="fas fa-plus"></i> إضافة رحلة</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 <div class="card">
@@ -5085,38 +5241,116 @@
 
             <!-- ── CHURCH SETTINGS ── -->
             <div id="churchSettings" class="tab-panel">
-                <!-- Admin Profile Card -->
-                <div class="card" style="margin-bottom:20px;">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-user-cog"></i> إعدادات حساب المسؤول</div>
+                <!-- ═══ SETTINGS HUB (page router) ═══ -->
+                <!-- Page: Hub -->
+                <div id="settingsHub">
+                    <!-- Breadcrumb -->
+                    <div class="settings-breadcrumb">
+                        <span class="settings-bc-item active"><i class="fas fa-cog"></i> الإعدادات</span>
                     </div>
-                    <div class="card-body">
-                        <div class="form-grid" style="margin-bottom:16px;">
+
+                    <!-- Grid of setting groups -->
+                    <div class="settings-hub-grid">
+                        <button class="settings-hub-card" onclick="openSettingsPage('adminProfile')">
+                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);">
+                                <i class="fas fa-user-cog"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">حساب المسؤول</div>
+                                <div class="settings-hub-desc">الاسم، اسم المستخدم، وكلمة المرور</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('churchInfo')">
+                            <div class="settings-hub-icon"
+                                style="background:var(--success-light);color:var(--success);">
+                                <i class="fas fa-church"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">بيانات الكنيسة</div>
+                                <div class="settings-hub-desc">اسم الكنيسة، البريد الإلكتروني، وكلمة المرور</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('churchPrefs')">
+                            <div class="settings-hub-icon"
+                                style="background:var(--warning-light);color:var(--warning-dark);">
+                                <i class="fas fa-sliders-h"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">تفضيلات الخدمة</div>
+                                <div class="settings-hub-desc">يوم الحضور، صلاحيات الخادم، طريقة العرض</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('customFields')">
+                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">حقول مخصصة</div>
+                                <div class="settings-hub-desc">أضف معلومات إضافية لكل طفل</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('classGroups')">
+                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">مجموعات الفصول</div>
+                                <div class="settings-hub-desc">ادمج فصولاً في مجموعة واحدة</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
+                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">القبول التلقائي</div>
+                                <div class="settings-hub-desc">قبول الأطفال الجدد فوراً بدون موافقة</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Page: Admin Profile -->
+                <div id="settingsPage_adminProfile" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">حساب المسؤول</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-user-cog"></i> حساب المسؤول</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
                             <div class="form-group">
-                                <label class="form-label"><i class="fas fa-id-badge"
-                                        style="color:var(--primary-light);margin-left:4px;"></i> الاسم الكامل</label>
+                                <label class="form-label">الاسم الكامل</label>
                                 <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول">
                             </div>
                             <div class="form-group">
-                                <label class="form-label"><i class="fas fa-at"
-                                        style="color:var(--primary-light);margin-left:4px;"></i> اسم المستخدم</label>
+                                <label class="form-label">اسم المستخدم</label>
                                 <input type="text" id="adminProfileUsername" class="form-input" placeholder="username"
                                     oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
                             </div>
-                        </div>
-                        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px;">
-                        <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:14px;color:var(--text);"><i
-                                class="fas fa-key" style="color:var(--primary);margin-left:6px;"></i> تغيير كلمة المرور
-                        </h4>
-                        <div class="form-grid">
+                            <div class="settings-section-divider">تغيير كلمة المرور</div>
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الحالية</label>
                                 <div style="position:relative;">
                                     <input type="password" id="adminCurrentPassword" class="form-input"
                                         placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
                                     <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')"
-                                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;"><i
-                                            class="fas fa-eye" id="eyeCurrent"></i></button>
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -5125,8 +5359,7 @@
                                     <input type="password" id="adminNewPassword" class="form-input"
                                         placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
                                     <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')"
-                                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;"><i
-                                            class="fas fa-eye" id="eyeNew"></i></button>
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -5135,51 +5368,45 @@
                                     <input type="password" id="adminConfirmPassword" class="form-input"
                                         placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
                                     <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')"
-                                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;"><i
-                                            class="fas fa-eye" id="eyeConfirm"></i></button>
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
                                 </div>
                             </div>
-                        </div>
-                        <div style="display:flex;gap:10px;margin-top:8px;">
-                            <button class="btn btn-primary" onclick="saveAdminProfile()" style="min-width:180px;"><i
-                                    class="fas fa-save"></i> حفظ بيانات الحساب</button>
+                            <button class="btn btn-primary" onclick="saveAdminProfile()"
+                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Church Info Edit Card -->
-                <div class="card" style="margin-bottom:20px;">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-church"></i> بيانات الكنيسة</div>
+                <!-- Page: Church Info -->
+                <div id="settingsPage_churchInfo" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">بيانات الكنيسة</span>
                     </div>
-                    <div class="card-body">
-                        <div class="form-grid" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-church"></i> بيانات الكنيسة</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
                             <div class="form-group">
-                                <label class="form-label"><i class="fas fa-building"
-                                        style="color:var(--primary-light);margin-left:4px;"></i> اسم الكنيسة</label>
+                                <label class="form-label">اسم الكنيسة</label>
                                 <input type="text" id="churchEditName" class="form-input" placeholder="اسم الكنيسة">
                             </div>
                             <div class="form-group">
-                                <label class="form-label"><i class="fas fa-envelope"
-                                        style="color:var(--primary-light);margin-left:4px;"></i> البريد
-                                    الإلكتروني</label>
+                                <label class="form-label">البريد الإلكتروني</label>
                                 <input type="email" id="churchEditEmail" class="form-input"
                                     placeholder="البريد الإلكتروني للكنيسة">
                             </div>
-                        </div>
-                        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px;">
-                        <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:14px;color:var(--text);"><i
-                                class="fas fa-lock" style="color:var(--primary);margin-left:6px;"></i> تغيير كلمة مرور
-                            الكنيسة</h4>
-                        <div class="form-grid">
+                            <div class="settings-section-divider">تغيير كلمة مرور الكنيسة</div>
                             <div class="form-group">
-                                <label class="form-label">كلمة المرور الجديدة للكنيسة</label>
+                                <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
                                     <input type="password" id="churchEditPassword" class="form-input"
                                         placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
                                     <button type="button" onclick="toggleFieldPwd('churchEditPassword','eyeChurchPwd')"
-                                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;"><i
-                                            class="fas fa-eye" id="eyeChurchPwd"></i></button>
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwd"></i></button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -5189,25 +5416,175 @@
                                         placeholder="أعد كتابة كلمة المرور" style="padding-left:40px;">
                                     <button type="button"
                                         onclick="toggleFieldPwd('churchEditPasswordConfirm','eyeChurchPwdConfirm')"
-                                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;"><i
-                                            class="fas fa-eye" id="eyeChurchPwdConfirm"></i></button>
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwdConfirm"></i></button>
                                 </div>
                             </div>
-                        </div>
-                        <div style="display:flex;gap:10px;margin-top:8px;">
                             <button class="btn btn-primary" onclick="saveChurchInfoSettings()"
-                                style="min-width:180px;"><i class="fas fa-save"></i> حفظ بيانات الكنيسة</button>
+                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Church Settings Card (moved from classes tab) -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-cog"></i> إعدادات الكنيسة</div>
+                <!-- Page: Church Prefs (attendance day, uncle nav, view mode) -->
+                <div id="settingsPage_churchPrefs" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">تفضيلات الخدمة</span>
                     </div>
-                    <div class="card-body" id="churchSettingsContainer"></div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-sliders-h"></i> تفضيلات الخدمة</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:20px;">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-calendar-day"
+                                        style="margin-left:6px;color:var(--primary);"></i> يوم الحضور الافتراضي</label>
+                                <select id="settingAttendanceDay" class="form-select" style="max-width:280px;">
+                                    <option value="1">الاثنين</option>
+                                    <option value="2">الثلاثاء</option>
+                                    <option value="3">الأربعاء</option>
+                                    <option value="4">الخميس</option>
+                                    <option value="5" selected>الجمعة</option>
+                                    <option value="6">السبت</option>
+                                    <option value="7">الأحد</option>
+                                </select>
+                                <small style="color:var(--muted);margin-top:4px;display:block;">يُحسب تلقائياً في لوحة
+                                    الخادم</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-user-lock"
+                                        style="margin-left:6px;color:var(--primary);"></i> صلاحية الخادم للتنقل</label>
+                                <select id="settingUncleNav" class="form-select" style="max-width:280px;">
+                                    <option value="all">يرى جميع الفصول</option>
+                                    <option value="own">فصوله المعينة فقط</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-section-divider">طريقة عرض القائمة الرئيسية</div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <label class="settings-toggle-row" id="viewModeClassesLabel">
+                                    <input type="checkbox" id="settingViewClasses" checked
+                                        style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
+                                        onchange="_updateViewModeStyle()">
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.88rem;">عرض الفصول منفصلة</div>
+                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل
+                                            فصل كبطاقة مستقلة</div>
+                                    </div>
+                                </label>
+                                <label class="settings-toggle-row" id="viewModeAllLabel">
+                                    <input type="checkbox" id="settingViewAll"
+                                        style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
+                                        onchange="_updateViewModeStyle()">
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.88rem;">عرض الكل معاً</div>
+                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل
+                                            الأطفال في قائمة موحدة</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <p id="viewModeWarning"
+                                style="display:none;padding:8px 12px;background:var(--danger-light);color:var(--danger);border-radius:8px;font-size:0.8rem;">
+                                <i class="fas fa-exclamation-triangle"></i> يجب تفعيل خيار واحد على الأقل
+                            </p>
+                            <button class="btn btn-primary" onclick="saveChurchSettings()"
+                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ التفضيلات</button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Page: Custom Fields -->
+                <div id="settingsPage_customFields" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">حقول مخصصة</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-tags"></i> حقول مخصصة للأطفال</div>
+                            <button class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i
+                                    class="fas fa-plus"></i> إضافة حقل</button>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">أضف معلومات إضافية تظهر
+                                في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى</p>
+                            <div id="customFieldsList" style="margin-bottom:10px;"></div>
+                            <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:10px;"><i
+                                    class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Class Groups -->
+                <div id="settingsPage_classGroups" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">مجموعات الفصول</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-layer-group"></i> مجموعات الفصول المدمجة</div>
+                            <button class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i
+                                    class="fas fa-plus"></i> مجموعة جديدة</button>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">ادمج عدة فصول في مجموعة
+                                تظهر كفصل واحد في لوحة الخادم</p>
+                            <div id="combinedGroupsList" style="margin-bottom:14px;"></div>
+                            <button class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i>
+                                حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Auto Approval -->
+                <div id="settingsPage_autoApproval" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">القبول التلقائي</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-user-check"></i> القبول التلقائي للأطفال</div>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size:0.84rem;color:var(--muted);margin-bottom:20px;">عند التفعيل، يُضاف الطفل
+                                مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم الطلبات المعلقة.</p>
+                            <label class="settings-toggle-row" id="autoApprovalLabel" style="max-width:480px;">
+                                <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
+                                    <input type="checkbox" id="settingAutoKidsApproval"
+                                        style="opacity:0;width:0;height:0;position:absolute;"
+                                        onchange="_updateAutoApprovalStyle()">
+                                    <span id="autoApprovalTrack"
+                                        style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                    <span id="autoApprovalThumb"
+                                        style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i
+                                            class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
+                                        القبول التلقائي معطّل</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد
+                                        في لوحة الطلبات المعلقة</div>
+                                </div>
+                            </label>
+                            <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:24px;"><i
+                                    class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden container needed by loadChurchSettingsTab JS (keep invisible) -->
+                <div id="churchSettingsContainer" style="display:none;"></div>
             </div>
 
             <!-- ── PENDING ── -->
@@ -6745,6 +7122,13 @@
 
         async function switchTab(name, btn) {
             activeTabName = name;
+
+            // Reset settings to hub when navigating away
+            if (name !== 'churchSettings') {
+                const hub = document.getElementById('settingsHub');
+                if (hub) hub.style.display = '';
+                document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
+            }
             // UI: Update sidebar buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
@@ -7524,86 +7908,25 @@
         }
 
         // ── Church Settings Tab loader ────────────────────────────────
+        // ── Settings Page Router ──────────────────────────────────────────
+        function openSettingsPage(page) {
+            // Hide hub, show the requested page
+            document.getElementById('settingsHub').style.display = 'none';
+            const el = document.getElementById('settingsPage_' + page);
+            if (el) { el.style.display = ''; el.style.removeProperty('display'); }
+            // Scroll to top of content
+            const panel = document.getElementById('churchSettings');
+            if (panel) panel.scrollTop = 0;
+        }
+
+        function closeSettingsPage() {
+            // Hide all sub-pages, show hub
+            document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
+            document.getElementById('settingsHub').style.display = '';
+        }
+
         async function loadChurchSettingsTab() {
-            const c = document.getElementById('churchSettingsContainer'); if (!c) return;
-            c.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-            <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label"><i class="fas fa-calendar-day"></i> يوم الحضور الافتراضي</label>
-                <select id="settingAttendanceDay" class="form-select" style="width:100%;">
-                    <option value="1">الاثنين</option><option value="2">الثلاثاء</option>
-                    <option value="3">الأربعاء</option><option value="4">الخميس</option>
-                    <option value="5" selected>الجمعة</option><option value="6">السبت</option>
-                    <option value="7">الأحد</option>
-                </select>
-                <p style="font-size:0.74rem;color:var(--muted);margin-top:4px;">يُحسب تلقائياً في لوحة الخادم</p>
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label"><i class="fas fa-user-lock"></i> صلاحية الخادم للتنقل</label>
-                <select id="settingUncleNav" class="form-select" style="width:100%;">
-                    <option value="all">يرى جميع الفصول</option>
-                    <option value="own">فصوله المعينة فقط</option>
-                </select>
-                <p style="font-size:0.74rem;color:var(--muted);margin-top:4px;">يتحكم في فصول الخادم المرئية</p>
-            </div>
-        </div>
-        <div class="form-group" style="margin-bottom:20px;">
-            <label class="form-label"><i class="fas fa-layer-group"></i> مجموعات الفصول المدمجة</label>
-            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;">ادمج عدة فصول في مجموعة تظهر كفصل واحد في لوحة الخادم</p>
-            <div id="combinedGroupsList" style="margin-bottom:10px;"></div>
-            <button class="btn btn-outline btn-sm" onclick="addCombinedGroup()"><i class="fas fa-plus"></i> إضافة مجموعة مدمجة</button>
-        </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px;">
-        <div class="form-group" style="margin-bottom:20px;">
-            <label class="form-label"><i class="fas fa-th-large"></i> طريقة عرض القائمة الرئيسية</label>
-            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">اختر ما يظهر للخادم في الشاشة الرئيسية</p>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-                <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all var(--transition);" id="viewModeClassesLabel">
-                    <input type="checkbox" id="settingViewClasses" checked style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;" onchange="_updateViewModeStyle()">
-                    <div>
-                        <div style="font-weight:700;font-size:0.9rem;"><i class="fas fa-th-large" style="color:var(--primary);margin-left:6px;"></i> عرض الفصول منفصلة</div>
-                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل فصل كبطاقة مستقلة</div>
-                    </div>
-                </label>
-                <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all var(--transition);" id="viewModeAllLabel">
-                    <input type="checkbox" id="settingViewAll" style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;" onchange="_updateViewModeStyle()">
-                    <div>
-                        <div style="font-weight:700;font-size:0.9rem;"><i class="fas fa-users" style="color:var(--primary);margin-left:6px;"></i> عرض الكل معاً</div>
-                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يظهر زر يفتح كل الأطفال دفعة واحدة في قائمة حضور موحدة</div>
-                    </div>
-                </label>
-            </div>
-            <p id="viewModeWarning" style="display:none;margin-top:8px;padding:8px 12px;background:var(--danger-light);color:var(--danger);border-radius:8px;font-size:0.8rem;">
-                <i class="fas fa-exclamation-triangle"></i> يجب تفعيل خيار واحد على الأقل
-            </p>
-        </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px;">
-        <div class="form-group" style="margin-bottom:20px;">
-            <label class="form-label"><i class="fas fa-tags"></i> حقول المعلومات المخصصة للأطفال</label>
-            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">أضف حقولاً إضافية تظهر في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى...</p>
-            <div id="customFieldsList" style="margin-bottom:10px;"></div>
-            <button class="btn btn-outline btn-sm" onclick="addCustomFieldItem()"><i class="fas fa-plus"></i> إضافة حقل جديد</button>
-        </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px;">
-        <div class="form-group" style="margin-bottom:20px;">
-            <label class="form-label"><i class="fas fa-user-check"></i> القبول التلقائي للأطفال الجدد</label>
-            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">عند التفعيل، يُضاف الطفل مباشرة عند التسجيل دون الحاجة لموافقة الخادم — ولن يظهر في قسم الطلبات المعلقة</p>
-            <label style="display:flex;align-items:center;gap:12px;padding:14px 18px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all var(--transition);max-width:480px;" id="autoApprovalLabel">
-                <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
-                    <input type="checkbox" id="settingAutoKidsApproval" style="opacity:0;width:0;height:0;position:absolute;" onchange="_updateAutoApprovalStyle()">
-                    <span id="autoApprovalTrack" style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
-                    <span id="autoApprovalThumb" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
-                </div>
-                <div>
-                    <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> القبول التلقائي معطّل</div>
-                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد في لوحة الطلبات المعلقة</div>
-                </div>
-            </label>
-        </div>
-        <div style="padding-top:8px;border-top:1px solid var(--border);">
-            <button class="btn btn-primary" onclick="saveChurchSettings()" style="min-width:180px;"><i class="fas fa-save"></i> حفظ إعدادات الكنيسة</button>
-        </div>
-    `;
+            // All DOM elements are already in the HTML — just apply the saved values
             loadAndApplyChurchSettings();
         }
 
@@ -8217,6 +8540,13 @@
                 document.getElementById('tripFieldsContainer').innerHTML = '';
                 toggleTripDates();
                 recalcTripPrice();
+                // Close add form
+                const tw = document.getElementById('addTripFormWrap');
+                if (tw) tw.style.display = 'none';
+                const ti = document.getElementById('addTripChevron');
+                const tl = document.getElementById('addTripToggleLbl');
+                if (ti) ti.className = 'fas fa-plus';
+                if (tl) tl.textContent = 'رحلة جديدة';
                 await loadTrips();
             }
             else showToast(d.message || 'فشل في الإضافة', 'error');
@@ -10687,6 +11017,13 @@
                 document.getElementById('uncleUsernameStatus').textContent = '';
                 document.getElementById('uncleUsernameHint').textContent = 'يُستخدم لتسجيل الدخول — لا يمكن تكراره';
                 document.getElementById('uncleUsernameHint').style.color = 'var(--muted)';
+                // Close the form
+                const wrap = document.getElementById('addUncleFormWrap');
+                if (wrap) { wrap.style.display = 'none'; }
+                const icon = document.getElementById('addUncleChevron');
+                const lbl = document.getElementById('addUncleToggleLbl');
+                if (icon) icon.className = 'fas fa-plus';
+                if (lbl) lbl.textContent = 'إضافة خادم';
                 // Reload class checkboxes
                 loadUncleClassCheckboxes();
                 loadUncles();
@@ -11170,12 +11507,37 @@
 
         function toggleAddUncleForm() {
             const wrap = document.getElementById('addUncleFormWrap');
-            const chevron = document.getElementById('addUncleChevron');
-            const btn = document.getElementById('addUncleToggleBtn');
-            const hidden = wrap.style.display === 'none';
-            wrap.style.display = hidden ? '' : 'none';
-            chevron.className = hidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-            btn.querySelector('i').nextSibling && (btn.lastChild.textContent = hidden ? ' إخفاء' : ' إظهار');
+            const icon = document.getElementById('addUncleChevron');
+            const lbl = document.getElementById('addUncleToggleLbl');
+            const open = wrap.style.display === 'none' || wrap.style.display === '';
+            if (open) {
+                wrap.style.display = 'block';
+                icon.className = 'fas fa-times';
+                lbl.textContent = 'إلغاء';
+            } else {
+                wrap.style.display = 'none';
+                icon.className = 'fas fa-plus';
+                lbl.textContent = 'إضافة خادم';
+            }
+        }
+
+        function toggleAddTripForm() {
+            const wrap = document.getElementById('addTripFormWrap');
+            const icon = document.getElementById('addTripChevron');
+            const lbl = document.getElementById('addTripToggleLbl');
+            const open = wrap.style.display === 'none' || wrap.style.display === '';
+            if (open) {
+                wrap.style.display = 'block';
+                icon.className = 'fas fa-times';
+                lbl.textContent = 'إلغاء';
+                // Reset form when opening
+                document.getElementById('addTripForm').reset();
+                recalcTripPrice && recalcTripPrice();
+            } else {
+                wrap.style.display = 'none';
+                icon.className = 'fas fa-plus';
+                lbl.textContent = 'رحلة جديدة';
+            }
         }
 
         function uncleNextStep() {
