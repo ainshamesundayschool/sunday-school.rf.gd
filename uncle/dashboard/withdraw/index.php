@@ -282,7 +282,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             <div class="sheet-close" onclick="closeProfile()"><i class="fas fa-times"></i></div>
             <div id="profileHead"></div>
         </div>
-        <div id="profileBody"></div>
+        <div id="profileBody" class="sheet-body"></div>
     </div>
 </div>
 
@@ -498,6 +498,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         `;
         
         document.getElementById('profileOverlay').classList.add('active');
+        document.getElementById('profileOverlay').style.display = 'flex'; // Ensure visible
         loadHistory(id);
     }
 
@@ -535,12 +536,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             list.innerHTML = r.history.map(h => `
                 <div class="hist-item">
                     <div class="hist-row">
-                        <div class="hist-amt ${h.is_refunded?'refunded':''}">${h.amount} <i class="fas fa-star" style="font-size:.7rem"></i></div>
+                        <div class="hist-amt ${h.is_refunded?'refunded':''}">
+                            <span class="audit-tag tag-danger">${h.amount} <i class="fas fa-star" style="font-size:.6rem"></i></span>
+                        </div>
                         <div class="hist-date">${h.created_at}</div>
                     </div>
                     <div class="hist-row">
                         <div class="hist-uncle">بواسطة: ${h.uncle_name}</div>
-                        ${h.is_refunded ? '<span style="color:var(--warning);font-weight:900;font-size:.75rem">تم الاسترجاع</span>' : `<button class="refund-btn" onclick="refund(${h.id})">استرجاع</button>`}
+                        ${h.is_refunded ? '<span class="audit-tag tag-brand">تم الاسترجاع</span>' : `<button class="refund-btn" onclick="refund(${h.id})">استرجاع</button>`}
                     </div>
                 </div>
             `).join('');
