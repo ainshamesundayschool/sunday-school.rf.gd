@@ -46,6 +46,12 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             --ease: cubic-bezier(.4, 0, .2, 1);
         }
 
+        /* ── AUDIT TAGS ── */
+        .audit-tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; margin: 0 2px; border: 1px solid transparent; line-height: 1.4; vertical-align: middle; }
+        .tag-success { background: var(--success-bg); color: var(--success); border-color: rgba(16, 185, 129, 0.15); }
+        .tag-danger { background: var(--danger-bg); color: var(--danger); border-color: rgba(239, 68, 68, 0.15); }
+        .tag-brand { background: var(--brand-bg); color: var(--brand); border-color: rgba(91, 108, 245, 0.15); }
+
         [data-theme="dark"] {
             --bg: #0f1117;
             --surface: #181b26;
@@ -58,6 +64,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        img { max-height: 100%; }
         
         /* ── Custom Scrollbar ── */
         *::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -129,7 +136,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .kid-list { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
         .kid-item { background: var(--surface); border-radius: 14px; padding: 12px; border: 1.5px solid var(--border-solid); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all var(--t); }
         .kid-item:hover { border-color: var(--brand); transform: translateX(-2px); }
-        .kid-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; }
+        .kid-photo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 1.1rem; flex-shrink: 0; }
+        .kid-info { flex: 1; min-width: 0; }
+        .kid-name { font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .kid-meta { font-size: .75rem; color: var(--text-3); font-weight: 700; display: flex; gap: 8px; align-items: center; }
         .kid-coupons { background: var(--brand-bg); color: var(--brand); padding: 6px 12px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; }
 
@@ -618,6 +627,16 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         return 'الآن';
     }
 
+    function formatAuditNote(text) {
+        if (!text) return '';
+        // Wrap status words in tags
+        let html = text
+            .replace(/حاضر/g, '<span class="audit-tag tag-success">حاضر</span>')
+            .replace(/غائب/g, '<span class="audit-tag tag-danger">غائب</span>')
+            .replace(/(\d+)\s*كوبون/g, '<span class="audit-tag tag-brand">$1 كوبون</span>');
+        return html;
+    }
+
     async function viewFullAudit(sid) {
         const fd = new FormData();
         fd.append('action', 'getEntityAuditHistory');
@@ -646,11 +665,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                                     <div class="tl-item" style="position:relative;padding-bottom:24px">
                                         <div style="position:absolute;right:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:${color};border:2px solid var(--surface);box-shadow:0 0 0 4px var(--bg);z-index:1"></div>
                                         <div style="background:var(--surface-2);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border-solid)">
-                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                                                <span style="background:${bg};color:${color};padding:4px 10px;border-radius:8px;font-size:0.7rem;font-weight:900">${badge}</span>
+                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                                                <span style="background:${bg};color:${color};padding:4px 10px;border-radius:8px;font-size:0.7rem;font-weight:900;border:1px solid ${color}33">${badge}</span>
                                                 <span style="font-size:0.65rem;font-weight:800;color:var(--text-3)">${timeSince(l.created_at)}</span>
                                             </div>
-                                            <div style="font-weight:900;font-size:0.95rem;color:var(--text);margin-bottom:10px;line-height:1.4">${l.notes || l.action}</div>
+                                            <div style="font-weight:800;font-size:0.95rem;color:var(--text);margin-bottom:12px;line-height:1.8">
+                                                ${formatAuditNote(l.notes || l.action)}
+                                            </div>
                                             <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px dashed var(--border-solid)">
                                                 <div style="display:flex;align-items:center;gap:6px">
                                                     <div style="width:20px;height:20px;border-radius:6px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.6rem"><i class="fas fa-user-shield"></i></div>
