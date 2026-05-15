@@ -10654,16 +10654,7 @@
             return fieldMap[field] || field;
         }
 
-            } catch (error) {
-                console.error('Error loading audit logs:', error);
-                if (tb) {
-                    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>خطأ في الاتصال بالخادم</h3>
-            </div></td></tr>`;
-                }
-            }
-        }
+
         let _filteredAuditLogs = [];
         function auditGoPage(p) {
             auditPage = p;
