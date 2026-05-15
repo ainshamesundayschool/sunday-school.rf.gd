@@ -70,10 +70,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         *::-webkit-scrollbar { width: 6px; height: 6px; }
         *::-webkit-scrollbar-thumb { background: rgba(91, 108, 245, 0.2); border-radius: 10px; transition: background 0.3s; }
         *::-webkit-scrollbar-thumb:hover { background: var(--brand); }
-        *::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 10px; }
-        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
-        html, body { scrollbar-width: none; -ms-overflow-style: none; }
-
+        *::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); border-radius: 10px; }
+        
         body {
             font-family: 'Cairo', sans-serif;
             background: var(--bg);
@@ -216,23 +214,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .toast.success { background: var(--success); }
         .toast.error { background: var(--danger); }
 
-        .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 500; transition: opacity .4s; }
-        .loading-spinner { width: 40px; height: 40px; border: 4px solid var(--border-solid); border-top-color: var(--brand); border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .skeleton { animation: pulse 1.5s infinite ease-in-out; background: var(--surface-3); border-radius: 8px; }
-        @keyframes pulse { 0% { opacity: 1 } 50% { opacity: 0.5 } 100% { opacity: 1 } }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
+        /* ── SKELETONS ── */
+        .skeleton { background: var(--surface-3); border-radius: 14px; position: relative; overflow: hidden; }
+        .skeleton::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     </style>
 </head>
 <body>
-
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-</div>
 
 <header class="topbar">
     <a href="/uncle/dashboard/" class="topbar-brand">
@@ -306,6 +294,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
     };
 
     async function init() {
+        showSkeletons();
         const fd = new FormData();
         fd.append('action', 'getData');
         try {
@@ -320,10 +309,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             }
         } catch (e) {
             showToast('خطأ في الاتصال بالسيرفر', 'error');
-        } finally {
-            document.getElementById('loadingOverlay').style.opacity = '0';
-            setTimeout(() => document.getElementById('loadingOverlay').style.display = 'none', 400);
         }
+    }
+
+    function showSkeletons() {
+        const grid = document.getElementById('classList');
+        grid.innerHTML = Array(6).fill(0).map(() => `
+            <div class="skeleton" style="height:120px"></div>
+        `).join('');
     }
 
     function renderFilters() {
