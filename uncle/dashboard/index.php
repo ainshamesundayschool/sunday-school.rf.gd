@@ -6815,6 +6815,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 id="heroName"><?php echo htmlspecialchars($uncleName ?: $churchName); ?></span> 👋</div>
                     </div>
                     <div class="hero-actions">
+                        <button class="btn btn-sm" onclick="openIntelligentSearchModal()"><i class="fas fa-search"></i> بحث ذكي</button>
                         <button class="btn btn-sm" id="showBirthdayModalBtn"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                         <button class="btn btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i> الأطفال</button>
                         <button class="btn btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
@@ -7514,6 +7515,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                     <button class="btn" style="flex:1;"
                         onclick="document.getElementById('bulkAddModal').classList.remove('active')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intelligent Search Modal -->
+    <div class="modal-overlay" id="intelligentSearchModal">
+        <div class="modal modal-md">
+            <div class="modal-header">
+                <h3><i class="fas fa-search"></i> بحث ذكي</h3>
+                <button class="close-btn" onclick="closeIntelligentSearchModal()">&times;</button>
+            </div>
+            <div style="padding: 16px;">
+                <div class="search-wrap" style="width: 100%; margin-bottom: 16px; position: relative;">
+                    <input type="text" class="search-input" id="intelligentSearchInput" placeholder="اسم الطفل، الفصل، التليفون..." oninput="performIntelligentSearch()" style="width:100%">
+                </div>
+                <div id="intelligentSearchResults" class="kid-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-bottom: 10px;">
+                    <div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem">اكتب للبحث...</div>
                 </div>
             </div>
         </div>
@@ -13506,6 +13525,150 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.body.style.overflow = _notifPanelOpen ? 'hidden' : '';
             }
             if (_notifPanelOpen) { loadUnifiedNotifications(); renderNotifPanel(); }
+        }
+
+        // ── INTELLIGENT SEARCH ──────────────────────────────────────────
+        function normalizeArabic(text) {
+            if (!text) return "";
+            return String(text)
+                .replace(/[أإآٱ]/g, "ا")
+                .replace(/[ىئ]/g, "ي")
+                .replace(/ة/g, "ه")
+                .replace(/ؤ/g, "و")
+                .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
+                .toLowerCase()
+                .trim();
+        }
+
+        function getMatchScore(student, query) {
+            const qNormalized = normalizeArabic(query);
+            const qRaw = query.trim().toLowerCase();
+            
+            let maxScore = 0;
+            const fields = [
+                { val: student['الاسم'], weight: 1.0 },
+                { val: student['الفصل'], weight: 0.7 },
+                { val: student['id'] || student['معرف'] || student['id_student'], weight: 1.1 },
+                { val: student['رقم التليفون'], weight: 1.1 },
+                { val: student['تليفون الطوارئ'], weight: 1.1 }
+            ];
+
+            fields.forEach(field => {
+                if (!field.val) return;
+                const target = String(field.val);
+                const tNormalized = normalizeArabic(target);
+                const tRaw = target.toLowerCase();
+                let currentScore = 0;
+
+                if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
+                else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
+                else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
+                else {
+                    let score = 0, queryIdx = 0;
+                    for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
+                        if (tNormalized[i] === qNormalized[queryIdx]) { queryIdx++; score++; }
+                    }
+                    if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
+                }
+                maxScore = Math.max(maxScore, currentScore * field.weight);
+            });
+            return maxScore;
+        }
+
+        function openIntelligentSearchModal() {
+            document.getElementById('intelligentSearchModal').classList.add('active');
+            document.getElementById('intelligentSearchInput').value = '';
+            document.getElementById('intelligentSearchResults').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem"><i class="fas fa-search" style="font-size:2rem;opacity:0.2;margin-bottom:10px;display:block"></i>اكتب للبحث...</div>';
+            setTimeout(() => document.getElementById('intelligentSearchInput').focus(), 100);
+        }
+
+        function closeIntelligentSearchModal() {
+            document.getElementById('intelligentSearchModal').classList.remove('active');
+        }
+
+        function performIntelligentSearch() {
+            const q = document.getElementById('intelligentSearchInput').value.trim();
+            const container = document.getElementById('intelligentSearchResults');
+            
+            if (!q) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem"><i class="fas fa-search" style="font-size:2rem;opacity:0.2;margin-bottom:10px;display:block"></i>اكتب للبحث...</div>';
+                return;
+            }
+
+            const searchData = allStudentsData.length ? allStudentsData : students;
+            if (!searchData || !searchData.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem">البيانات غير متاحة. الرجاء التأكد من الاتصال بالإنترنت.</div>';
+                return;
+            }
+
+            let results = searchData.map(s => ({ ...s, _searchScore: getMatchScore(s, q) }))
+                .filter(s => s._searchScore > 0)
+                .sort((a, b) => b._searchScore - a._searchScore)
+                .slice(0, 50); // Limit to top 50
+
+            if (!results.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem">لا توجد نتائج مطابقة</div>';
+                return;
+            }
+
+            container.innerHTML = results.map(s => {
+                const name = s['الاسم'] || '---';
+                const cls = s['الفصل'] || '---';
+                const id = s['id'] || s['معرف'] || s['id_student'] || 0;
+                const photo = s['صورة'] 
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:36px;height:36px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>`;
+                
+                return `
+                <div style="background:var(--surface-2); padding:10px 14px; border-radius:10px; border:1px solid var(--border-solid); display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-3)'" onmouseout="this.style.background='var(--surface-2)'" onclick="selectStudentFromIntelligentSearch(${id})">
+                    ${photo}
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-3);"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
+                </div>`;
+            }).join('');
+        }
+
+        function selectStudentFromIntelligentSearch(studentId) {
+            const searchData = allStudentsData.length ? allStudentsData : students;
+            const s = searchData.find(x => x['id'] == studentId || x['معرف'] == studentId || x['id_student'] == studentId);
+            if (!s) return;
+            
+            closeIntelligentSearchModal();
+            
+            // Go to his class
+            if (s['الفصل']) {
+                showClassView(s['الفصل']);
+                
+                // Wait for render, then scroll to row and highlight
+                setTimeout(() => {
+                    const rowId = \`ai-\${studentId}\`;
+                    const row = document.getElementById(rowId);
+                    if (row) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Add a temporary highlight class or style
+                        const originalBg = row.style.background;
+                        row.style.transition = 'background 0.5s ease';
+                        row.style.background = 'var(--brand-glow)';
+                        setTimeout(() => {
+                            row.style.background = originalBg;
+                        }, 2000);
+                        
+                        // Open his menu
+                        setTimeout(() => {
+                            showStudentDetails(s['الاسم']);
+                        }, 300);
+                    } else {
+                        // If row not found, just open menu
+                        showStudentDetails(s['الاسم']);
+                    }
+                }, 300);
+            } else {
+                // If no class, just open his menu
+                showStudentDetails(s['الاسم']);
+            }
         }
 
         function escStr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
