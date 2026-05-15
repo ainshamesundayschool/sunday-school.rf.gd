@@ -6734,6 +6734,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                         <button class="btn btn-success btn-sm" id="showAllStudentsModalBtn"><i class="fas fa-list"></i>
                             الأطفال</button>
+                        <button class="btn btn-warning btn-sm" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i>
+                            تصدير مخصص</button>
                         <button class="btn btn-success btn-sm" id="bulkAddKidsBtn" onclick="showBulkAddModal()"><i
                                 class="fas fa-upload"></i> إضافة مجموعة</button>
                         <button class="btn btn-sm" id="manageAnnouncementsBtn"><i class="fas fa-bullhorn"></i>
@@ -10721,8 +10723,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function getActiveViewStudents() {
             if (isCombinedView) return combinedStudents || [];
-            if (currentClass) return students.filter(s => s['الفصل'] === currentClass);
-            return allStudentsData.length ? allStudentsData : students;
+            if (currentClass && currentClass !== '__ALL__') return students.filter(s => s['الفصل'] === currentClass);
+            return (allStudentsData && allStudentsData.length) ? allStudentsData : students;
         }
         function getActiveViewLabel() {
             if (currentClass === '__ALL__') return window.IS_YOUTH ? 'كل الشباب' : 'كل الأطفال';
@@ -10993,6 +10995,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('customExportModal').classList.add('active');
             renderCustomExportPreview();
             stopAutoRefresh();
+        }
+        function showAllKidsCustomExport() {
+            currentClass = '__ALL__';
+            isCombinedView = false;
+            showCustomExportModal();
         }
         function hideCustomExportModal() { document.getElementById('customExportModal').classList.remove('active'); startAutoRefresh(); }
         function updateCustomExportDateControls() {
@@ -13122,7 +13129,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Global exposure
         Object.assign(window, {
             showClassView, showClassesView, showCombinedClassView, showAllTogetherView, markStudentAttendance, showStudentDetails,
-            showSheetModal, showCustomExportModal, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
+            showSheetModal, showCustomExportModal, showAllKidsCustomExport, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
             showImageModal, hideImageModal, showAddPersonModal, showBirthdayModal, showBirthdaysByMonth,
             showPastFridaysModal, loadFridayAttendance, performSearch, clearSearch, showRegistrationDetails,
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
