@@ -7297,6 +7297,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <input type="text" class="form-input" id="customExportTitle" placeholder="مثلاً: حضور فصل أولى">
                     </div>
                     <div class="export-panel">
+                        <div class="export-panel-title"><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</div>
+                        <div style="display:flex;gap:6px">
+                            <select class="form-input" id="customExportSortBy" style="flex:1.5" onchange="renderCustomExportPreview()">
+                                <option value="الاسم">الاسم</option>
+                                <option value="الفصل">الفصل</option>
+                                <option value="كوبونات">كوبونات</option>
+                                <option value="رقم التليفون">رقم التليفون</option>
+                                <option value="عيد الميلاد">عيد الميلاد</option>
+                                <option value="العنوان">العنوان</option>
+                            </select>
+                            <select class="form-input" id="customExportSortOrder" style="flex:1" onchange="renderCustomExportPreview()">
+                                <option value="asc">تصاعدي</option>
+                                <option value="desc">تنازلي</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="export-panel">
                         <div class="export-panel-title"><i class="fas fa-table-columns"></i> البيانات والترتيب</div>
                         <div class="export-field-list" id="customExportFields"></div>
                     </div>
@@ -10966,13 +10983,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = customExportFields.filter(f => f.selected);
             const dates = parseCustomExportDates();
             const title = (document.getElementById('customExportTitle')?.value || '').trim() || ('تقرير ' + getActiveViewLabel());
-            return { fields, dates, title };
+            const sortBy = document.getElementById('customExportSortBy')?.value || 'الاسم';
+            const sortOrder = document.getElementById('customExportSortOrder')?.value || 'asc';
+            return { fields, dates, title, sortBy, sortOrder };
+        }
+        function getCustomExportSortedStudents() {
+            const cfg = getCustomExportConfig();
+            const list = getActiveViewStudents();
+            const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
+            const arr = [...(list || [])];
+            arr.sort((a, b) => {
+                let vA = a[cfg.sortBy] || '', vB = b[cfg.sortBy] || '';
+                let res = 0;
+                if (cfg.sortBy === 'كوبونات') {
+                    res = (parseInt(vA) || 0) - (parseInt(vB) || 0);
+                } else if (cfg.sortBy === 'عيد الميلاد') {
+                    const pA = vA.split('/'), pB = vB.split('/');
+                    if (pA.length === 3 && pB.length === 3) res = new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
+                    else res = collator.compare(vA, vB);
+                } else {
+                    res = collator.compare(vA, vB);
+                }
+                if (cfg.sortOrder === 'desc') res = -res;
+                if (res === 0) return collator.compare(a['الاسم'] || '', b['الاسم'] || '');
+                return res;
+            });
+            return arr;
         }
         function renderCustomExportPreview() {
             const preview = document.getElementById('customExportPreview');
             if (!preview) return;
             const cfg = getCustomExportConfig();
-            const fs = sortStudentsForCurrentView(getActiveViewStudents());
+            const fs = getCustomExportSortedStudents();
             if (!cfg.fields.length && !cfg.dates.length) {
                 preview.innerHTML = '<div style="text-align:center;padding:3rem;color:#64748b">اختر عموداً واحداً على الأقل</div>';
                 return;
@@ -11028,7 +11070,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const cfg = getCustomExportConfig();
             if (!cfg.fields.length && !cfg.dates.length) { showToast('اختر بيانات للتصدير', 'info'); return; }
             const headers = [...cfg.fields.map(f => f.label), ...cfg.dates];
-            const rows = sortStudentsForCurrentView(getActiveViewStudents()).map(s => {
+            const rows = getCustomExportSortedStudents().map(s => {
                 const row = {};
                 cfg.fields.forEach(f => { row[f.label] = getCustomExportCellValue(s, f, true); });
                 cfg.dates.forEach(d => { row[d] = getAttendanceDisplayValue(s, d); });
