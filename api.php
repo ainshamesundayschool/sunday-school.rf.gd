@@ -208,6 +208,8 @@ function updateTripPointsConfig()
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
+ini_set('memory_limit', '256M');
+set_time_limit(60);
 
 // Set session cookie to expire in 10 years (practically permanent)
 // Keep cookie host-only (no forced domain) to avoid browser rejections.
@@ -5884,7 +5886,8 @@ function exportKidsData()
 
             // Escape cell: wrap in quotes, escape internal quotes
             $esc = function ($v) {
-                return '"' . str_replace('"', '""', $v) . '"'; };
+                return '"' . str_replace('"', '""', $v) . '"';
+            };
 
             $line = $id . ',' . $esc($class) . ',' . $esc($name) . ',' .
                 $esc($address) . ',' . $esc($phone) . ',' . $esc($birthday);
@@ -5975,7 +5978,8 @@ function bulkAddKids()
         // Read and detect header
         $headerRow = fgetcsv($file);
         $headerRow = array_map(function ($h) {
-            return mb_strtolower(trim(str_replace('"', '', $h))); }, $headerRow);
+            return mb_strtolower(trim(str_replace('"', '', $h)));
+        }, $headerRow);
 
         // Detect mode: does the CSV have a student_id column?
         $colStudentId = array_search('student_id', $headerRow);
@@ -8166,7 +8170,8 @@ function getTrips()
             if ((empty($row['custom_fields']) || in_array(strtolower(trim($row['custom_fields'])), ['0', 'null', 'undefined'], true)) && !empty($row['custom_field_icons'])) {
                 $keys = array_keys($row['custom_field_icons']);
                 $keys = array_filter(array_map('trim', $keys), function ($f) {
-                    return $f !== ''; });
+                    return $f !== '';
+                });
                 if (count($keys)) {
                     $derived = implode(',', $keys);
                     $row['custom_fields'] = $derived;
@@ -8221,7 +8226,8 @@ function addTrip()
             $customFields = '';
         }
         $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function ($field) {
-            return $field !== ''; }));
+            return $field !== '';
+        }));
         // custom_field_icons — includes nested sub_fields; sanitize scalars but preserve structure
         $customFieldIconsRaw = $_POST['custom_field_icons'] ?? '';
         $customFieldIcons = null;
@@ -8239,11 +8245,13 @@ function addTrip()
                         'choices' => array_values(array_filter(
                             array_map(
                                 function ($c) {
-                                    return strip_tags(trim((string) $c)); },
+                                    return strip_tags(trim((string) $c));
+                                },
                                 is_array($fieldMeta['choices'] ?? null) ? $fieldMeta['choices'] : []
                             ),
                             function ($c) {
-                                return $c !== ''; }
+                                return $c !== '';
+                            }
                         )),
                     ];
                     if (!empty($fieldMeta['sub_fields']) && is_array($fieldMeta['sub_fields'])) {
@@ -8263,11 +8271,13 @@ function addTrip()
                                     'choices' => array_values(array_filter(
                                         array_map(
                                             function ($c) {
-                                                return strip_tags(trim((string) $c)); },
+                                                return strip_tags(trim((string) $c));
+                                            },
                                             is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []
                                         ),
                                         function ($c) {
-                                            return $c !== ''; }
+                                            return $c !== '';
+                                        }
                                     )),
                                 ];
                             }
@@ -8287,7 +8297,8 @@ function addTrip()
             if (is_array($tryDec) && count($tryDec) > 0) {
                 $keys = array_keys($tryDec);
                 $keys = array_filter(array_map('trim', $keys), function ($f) {
-                    return $f !== ''; });
+                    return $f !== '';
+                });
                 if (count($keys)) {
                     $customFields = implode(',', $keys);
                 }
@@ -8428,7 +8439,8 @@ function updateTrip()
             $customFields = '';
         }
         $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function ($field) {
-            return $field !== ''; }));
+            return $field !== '';
+        }));
         // custom_field_icons — includes nested sub_fields; sanitize scalars but preserve structure
         $customFieldIconsRaw = $_POST['custom_field_icons'] ?? '';
         $customFieldIcons = null;
@@ -8446,11 +8458,13 @@ function updateTrip()
                         'choices' => array_values(array_filter(
                             array_map(
                                 function ($c) {
-                                    return strip_tags(trim((string) $c)); },
+                                    return strip_tags(trim((string) $c));
+                                },
                                 is_array($fieldMeta['choices'] ?? null) ? $fieldMeta['choices'] : []
                             ),
                             function ($c) {
-                                return $c !== ''; }
+                                return $c !== '';
+                            }
                         )),
                     ];
                     // Preserve sub_fields: { choiceVal: { subName: { icon, choices } } }
@@ -8471,11 +8485,13 @@ function updateTrip()
                                     'choices' => array_values(array_filter(
                                         array_map(
                                             function ($c) {
-                                                return strip_tags(trim((string) $c)); },
+                                                return strip_tags(trim((string) $c));
+                                            },
                                             is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []
                                         ),
                                         function ($c) {
-                                            return $c !== ''; }
+                                            return $c !== '';
+                                        }
                                     )),
                                 ];
                             }
@@ -8495,7 +8511,8 @@ function updateTrip()
             if (is_array($tryDec) && count($tryDec) > 0) {
                 $keys = array_keys($tryDec);
                 $keys = array_filter(array_map('trim', $keys), function ($f) {
-                    return $f !== ''; });
+                    return $f !== '';
+                });
                 if (count($keys)) {
                     $customFields = implode(',', $keys);
                 }
@@ -8668,7 +8685,8 @@ function getTripDetails()
         if ((empty($trip['custom_fields']) || in_array(strtolower(trim($trip['custom_fields'])), ['0', 'null', 'undefined'], true)) && !empty($trip['custom_field_icons'])) {
             $keys = array_keys($trip['custom_field_icons']);
             $keys = array_filter(array_map('trim', $keys), function ($f) {
-                return $f !== ''; });
+                return $f !== '';
+            });
             if (count($keys)) {
                 $derived = implode(',', $keys);
                 $trip['custom_fields'] = $derived;
@@ -9560,7 +9578,8 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
     $plainFields = [];
     if (!empty($trip['custom_fields'])) {
         $plainFields = array_filter(array_map('trim', explode(',', $trip['custom_fields'])), function ($f) {
-            return $f !== ''; });
+            return $f !== '';
+        });
     }
     $processedFields = !empty($fieldIconsMeta) ? array_keys($fieldIconsMeta) : $plainFields;
     foreach ($processedFields as $fieldName) {
