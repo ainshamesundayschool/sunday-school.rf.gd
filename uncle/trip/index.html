@@ -1,250 +1,598 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>إدارة مسابقة الرحلات</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Essential tokens from dashboard */
         :root {
-          --brand:        #5b6cf5;
-          --brand-dark:   #4354e8;
-          --brand-light:  #a5b0ff;
-          --brand-bg:     #eef0ff;
-          --success:      #10b981;
-          --success-dark: #059669;
-          --success-bg:   #d1fae5;
-          --danger:       #ef4444;
-          --bg:           #f3f4f9;
-          --surface:      #ffffff;
-          --text:         #1a1d2e;
-          --text-2:       #4b5068;
-          --text-3:       #8b90a8;
-          --border:       rgba(91,108,245,.12);
-          --border-solid: #e4e6f0;
-          --shadow-sm:    0 2px 8px -2px rgba(0,0,0,.07);
-          --shadow-lg:    0 20px 48px -8px rgba(0,0,0,.14);
-          --r-md: 14px; --r-lg: 18px; --r-xl: 24px; --r-full: 9999px;
-          --t: .22s; --ease: cubic-bezier(.4,0,.2,1); --spring: cubic-bezier(.16,1,.3,1);
+            --brand: #5b6cf5;
+            --brand-dark: #4354e8;
+            --brand-light: #a5b0ff;
+            --brand-bg: #eef0ff;
+            --success: #10b981;
+            --success-dark: #059669;
+            --success-bg: #d1fae5;
+            --danger: #ef4444;
+            --bg: #f3f4f9;
+            --surface: #ffffff;
+            --text: #1a1d2e;
+            --text-2: #4b5068;
+            --text-3: #8b90a8;
+            --border: rgba(91, 108, 245, .12);
+            --border-solid: #e4e6f0;
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .07);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
+            --r-md: 14px;
+            --r-lg: 18px;
+            --r-xl: 24px;
+            --r-full: 9999px;
+            --t: .22s;
+            --ease: cubic-bezier(.4, 0, .2, 1);
+            --spring: cubic-bezier(.16, 1, .3, 1);
         }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
-        body { background:var(--bg); color:var(--text); min-height:100vh; padding-bottom: 20px; }
-        
-        .topbar { position:sticky; top:0; z-index:300; background:var(--surface); padding:0 16px; height:58px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); gap:12px; }
-        .topbar-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
-        .topbar-logo { width:36px; height:36px; border-radius:10px; background:var(--brand-bg); display:flex; align-items:center; justify-content:center; color:var(--brand); flex-shrink:0; }
-        .topbar-title { font-size:0.95rem; font-weight:800; color:var(--text); }
-        
-        .topbar-search-container { flex:1; max-width:300px; position:relative; }
-        .topbar-search-input { width:100%; padding:8px 12px; border:1.5px solid var(--border-solid); border-radius:var(--r-md); font-size:0.85rem; background:var(--bg); color:var(--text); transition:all var(--t) var(--ease); }
-        .topbar-search-input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-bg); }
-        .topbar-search-results { position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:5px; max-height:300px; overflow-y:auto; display:none; z-index:400; box-shadow:var(--shadow-lg); }
-        .topbar-search-results.show { display:block; }
-        .search-result-item { padding:10px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:all 0.2s; }
-        .search-result-item:hover { background:var(--brand-bg); color:var(--brand); }
-        .search-result-item:last-child { border-bottom:none; }
-        
-        .topbar-actions { display:flex; align-items:center; gap:6px; }
-        .topbar-btn { height:38px; padding:0 12px; border-radius:var(--r-md); display:flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--border-solid); color:var(--text-2); font-size:0.88rem; font-weight:700; cursor:pointer; text-decoration:none; transition:all var(--t) var(--ease); flex-shrink:0; }
-        .topbar-btn:hover { background:var(--brand-bg); color:var(--brand); border-color:var(--brand); }
-        
-        .page-wrap { max-width:1440px; margin:0 auto; padding:20px; }
-        
-        .hero-strip { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:10px; flex-wrap:wrap; }
-        .hero-greeting { font-size:1.2rem; font-weight:800; }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 300;
+            background: var(--surface);
+            padding: 0 16px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .topbar-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--brand-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand);
+            flex-shrink: 0;
+        }
+
+        .topbar-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .topbar-search-container {
+            flex: 1;
+            max-width: 300px;
+            position: relative;
+        }
+
+        .topbar-search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-md);
+            font-size: 0.85rem;
+            background: var(--bg);
+            color: var(--text);
+            transition: all var(--t) var(--ease);
+        }
+
+        .topbar-search-input:focus {
+            outline: none;
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px var(--brand-bg);
+        }
+
+        .topbar-search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            margin-top: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 400;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .topbar-search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-btn {
+            height: 38px;
+            padding: 0 12px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--t) var(--ease);
+            flex-shrink: 0;
+        }
+
+        .topbar-btn:hover {
+            background: var(--brand-bg);
+            color: var(--brand);
+            border-color: var(--brand);
+        }
+
+        .page-wrap {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hero-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hero-greeting {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
         /* Camera Button */
-        .btn-camera-big { padding:30px; border-radius:var(--r-xl); background:var(--success); color:white; border:none; cursor:pointer; font-size:2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:var(--shadow-lg); transition:all var(--t) var(--spring); font-weight:900; flex-direction:column; text-decoration:none; margin: 0 auto 20px; width: fit-content; min-width: 200px; }
-        .btn-camera-big:hover { background:var(--success-dark); transform:translateY(-5px) scale(1.02); box-shadow:0 25px 50px rgba(16,185,129,0.3); }
-        .btn-camera-big:active { transform:translateY(-2px) scale(0.98); }
-        .btn-camera-text { font-size:1.2rem; }
-        
+        .btn-camera-big {
+            padding: 30px;
+            border-radius: var(--r-xl);
+            background: var(--success);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--t) var(--spring);
+            font-weight: 900;
+            flex-direction: column;
+            text-decoration: none;
+            margin: 0 auto 20px;
+            width: fit-content;
+            min-width: 200px;
+        }
+
+        .btn-camera-big:hover {
+            background: var(--success-dark);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-camera-big:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .btn-camera-text {
+            font-size: 1.2rem;
+        }
+
         /* Custom Field Cards */
-        .fields-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-bottom:20px; }
-        .field-card { background:var(--surface); border-radius:var(--r-xl); padding:20px; border:1.5px solid var(--border); box-shadow:var(--shadow-sm); transition:all var(--t) var(--spring); }
-        .field-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--brand); }
-        .field-card-header { display:flex; align-items:center; gap:10px; margin-bottom:15px; padding-bottom:15px; border-bottom:2px solid var(--border); }
-        .field-card-icon { width:40px; height:40px; border-radius:var(--r-lg); background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
-        .field-card-title { font-size:1rem; font-weight:800; color:var(--text); }
-        .field-card-count { font-size:0.75rem; color:var(--text-3); font-weight:700; }
-        
-        .kids-in-field { display:flex; flex-direction:column; gap:8px; }
-        .kid-item { background:var(--bg); border-radius:var(--r-md); padding:8px 10px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.2s; }
-        .kid-item:hover { background:var(--brand-bg); transform:translateX(-5px); }
-        .kid-avatar-sm { width:30px; height:30px; border-radius:50%; background:var(--brand-light); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; flex-shrink:0; object-fit:cover; }
-        .kid-name-sm { font-size:0.85rem; font-weight:700; color:var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .kid-points-sm { font-size:0.75rem; color:var(--success); font-weight:800; }
-        
-        .loading { text-align:center; padding:40px; color:var(--text-3); display:none; }
-        .loading i { font-size:2rem; margin-bottom:10px; }
-        
+        .fields-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .field-card {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            padding: 20px;
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--t) var(--spring);
+        }
+
+        .field-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--brand);
+        }
+
+        .field-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .field-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r-lg);
+            background: var(--brand-bg);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .field-card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .field-card-count {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-weight: 700;
+        }
+
+        .kids-in-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .kid-item {
+            background: var(--bg);
+            border-radius: var(--r-md);
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .kid-item:hover {
+            background: var(--brand-bg);
+            transform: translateX(-5px);
+        }
+
+        .kid-avatar-sm {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--brand-light);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+
+        .kid-name-sm {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .kid-points-sm {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 800;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-3);
+            display: none;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
         /* Print Styles */
         @media screen {
-            #printArea { display: none !important; }
+            #printArea {
+                display: none !important;
+            }
         }
+
         @media print {
-            body > *:not(#printArea) { display: none !important; }
-            #printArea { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 20px; align-content: start; position: absolute; top: 0; left: 0; width: 100%; padding: 20px; }
-            .print-card { border: 2px dashed #000; padding: 20px; text-align: center; border-radius: 10px; break-inside: avoid; page-break-inside: avoid; display: block !important; }
-            .print-card img.qr { width: 150px; height: 150px; margin: 10px auto; display: block !important; }
-            .print-card img.avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px; object-fit: cover; display: block !important; }
-            .print-card h3 { font-size: 18px; margin-bottom: 5px; color: #000 !important; }
-            .print-card p { font-size: 14px; color: #000 !important; margin-bottom: 5px; }
-            .print-card .custom-info { font-size: 14px; font-weight: bold; color: #000 !important; }
+            body>*:not(#printArea) {
+                display: none !important;
+            }
+
+            #printArea {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                align-content: start;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+
+            .print-card {
+                border: 2px dashed #000;
+                padding: 20px;
+                text-align: center;
+                border-radius: 10px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                display: block !important;
+            }
+
+            .print-card img.qr {
+                width: 150px;
+                height: 150px;
+                margin: 10px auto;
+                display: block !important;
+            }
+
+            .print-card img.avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                margin: 0 auto 10px;
+                object-fit: cover;
+                display: block !important;
+            }
+
+            .print-card h3 {
+                font-size: 18px;
+                margin-bottom: 5px;
+                color: #000 !important;
+            }
+
+            .print-card p {
+                font-size: 14px;
+                color: #000 !important;
+                margin-bottom: 5px;
+            }
+
+            .print-card .custom-info {
+                font-size: 14px;
+                font-weight: bold;
+                color: #000 !important;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="topbar">
-    <a href="/uncle/church/" class="topbar-brand">
-        <div class="topbar-logo" style="overflow:hidden;"><img src="/logo.png" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<i class=\\'fas fa-cross\\'></i>'"></div>
-    </a>
-    <div class="topbar-search-container">
-        <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث بالاسم..." oninput="topbarSearchHandler()">
-        <div class="topbar-search-results" id="topbarSearchResults"></div>
+    <div class="topbar">
+        <a href="/uncle/church/" class="topbar-brand">
+            <div class="topbar-logo" style="overflow:hidden;"><img src="/logo.png"
+                    style="width:100%;height:100%;object-fit:cover;"
+                    onerror="this.outerHTML='<i class=\\'fas fa-cross\\'></i>'"></div>
+        </a>
+        <div class="topbar-search-container">
+            <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث بالاسم..."
+                oninput="topbarSearchHandler()">
+            <div class="topbar-search-results" id="topbarSearchResults"></div>
+        </div>
+        <div class="topbar-actions">
+            <button class="topbar-btn" onclick="startScanner()" title="مسح QR"><i class="fas fa-qrcode"></i></button>
+        </div>
     </div>
-    <div class="topbar-actions">
-        <button class="topbar-btn" onclick="startScanner()" title="مسح QR"><i class="fas fa-qrcode"></i></button>
-    </div>
-</div>
 
-<div class="page-wrap">
-    
-    <!-- VIEW: TRIP DETAILS -->
-    <div id="viewTripDetails" class="view-section active">
-        <div class="hero-strip" style="justify-content: flex-start; gap: 12px;">
-            <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i class="fas fa-arrow-right"></i> عودة</button>
-            <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
-            <div id="adminActions" style="display:none; align-items:center; gap:10px; margin-right: auto;">
-                <button class="topbar-btn" onclick="printQRCards()" style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i class="fas fa-print"></i> طباعة الكروت</button>
+    <div class="page-wrap">
+
+        <!-- VIEW: TRIP DETAILS -->
+        <div id="viewTripDetails" class="view-section active">
+            <div class="hero-strip" style="justify-content: flex-start; gap: 12px;">
+                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
+                    style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i
+                        class="fas fa-arrow-right"></i> عودة</button>
+                <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
+                <div id="adminActions" style="display:none; align-items:center; gap:10px; margin-right: auto;">
+                    <button class="topbar-btn" onclick="printQRCards()"
+                        style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i
+                            class="fas fa-print"></i> طباعة الكروت</button>
+                </div>
+            </div>
+
+            <!-- Big Camera Button -->
+            <button class="btn-camera-big" onclick="startScanner()" title="مسح كود QR للأطفال">
+                <i class="fas fa-camera"></i>
+                <span class="btn-camera-text">مسح QR</span>
+            </button>
+
+            <div id="loadingDetails" class="loading">
+                <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
+            </div>
+
+            <!-- Custom Fields as Cards -->
+            <div class="fields-grid" id="fieldsGrid"></div>
+        </div>
+
+        <div id="printArea"></div>
+
+        <!-- Scanner Modal -->
+        <div id="scannerModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+            <div
+                style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
+                <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+                <div id="reader"
+                    style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
+                <button class="topbar-btn" onclick="stopScanner()"
+                    style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
+                        class="fas fa-times"></i> إلغاء</button>
             </div>
         </div>
-        
-        <!-- Big Camera Button -->
-        <button class="btn-camera-big" onclick="startScanner()" title="مسح كود QR للأطفال">
-            <i class="fas fa-camera"></i>
-            <span class="btn-camera-text">مسح QR</span>
-        </button>
-        
-        <div id="loadingDetails" class="loading">
-            <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
-        </div>
-        
-        <!-- Custom Fields as Cards -->
-        <div class="fields-grid" id="fieldsGrid"></div>
-</div>
 
-<div id="printArea"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-<!-- Scanner Modal -->
-<div id="scannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
-    <div style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
-        <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
-        <div id="reader" style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
-        <button class="topbar-btn" onclick="stopScanner()" style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i class="fas fa-times"></i> إلغاء</button>
-    </div>
-</div>
+        <script>
+            const API_URL = '/api.php';
+            let currentTrip = null;
+            let regsList = [];
+            let currentFilter = null;
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Get trip ID from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const tripId = urlParams.get('trip_id');
 
-<script>
-const API_URL = '/api.php';
-let currentTrip = null;
-let regsList = [];
-let currentFilter = null;
+                if (tripId) {
+                    openTrip(tripId);
+                } else {
+                    // If no trip ID, redirect to dashboard
+                    window.location.href = '/uncle/dashboard/';
+                }
+            });
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Get trip ID from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const tripId = urlParams.get('trip_id');
-    
-    if(tripId) {
-        openTrip(tripId);
-    } else {
-        // If no trip ID, redirect to dashboard
-        window.location.href = '/uncle/dashboard/';
-    }
-});
+            async function openTrip(tripId) {
+                document.getElementById('loadingDetails').style.display = 'block';
+                document.getElementById('fieldsGrid').innerHTML = '';
 
-async function openTrip(tripId) {
-    document.getElementById('loadingDetails').style.display = 'block';
-    document.getElementById('fieldsGrid').innerHTML = '';
-    
-    const fd = new FormData();
-    fd.append('action', 'getTripDetails');
-    fd.append('trip_id', tripId);
-    
-    try {
-        const res = await fetch(API_URL, {method:'POST', body:fd}).then(r=>r.json());
-        document.getElementById('loadingDetails').style.display = 'none';
-        
-        if(res.success && res.trip) {
-            currentTrip = res.trip;
-        
-        // Admin check
-        if (res.user_role === 'admin') {
-            const adminActions = document.getElementById('adminActions');
-            if (adminActions) adminActions.style.display = 'flex';
-        }
-            regsList = res.trip.registrations || [];
-            document.getElementById('detailTripTitle').textContent = currentTrip.title;
-            renderFieldCards();
-        } else {
-            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
-        }
-    } catch(e) {
-        document.getElementById('loadingDetails').style.display = 'none';
-        document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
-    }
-}
+                const fd = new FormData();
+                fd.append('action', 'getTripDetails');
+                fd.append('trip_id', tripId);
 
-function renderFieldCards() {
-    const grid = document.getElementById('fieldsGrid');
-    grid.innerHTML = '';
-    
-    if(!currentTrip.custom_fields) {
-        renderAllKidsCard();
-        return;
-    }
-    
-    const fields = currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
-    
-    fields.forEach(field => {
-        const fieldValues = {};
-        
-        regsList.forEach(r => {
-            if(r.custom_data) {
                 try {
-                    const cd = JSON.parse(r.custom_data);
-                    const value = cd[field] || 'بدون تحديد';
-                    if(!fieldValues[value]) fieldValues[value] = [];
-                    fieldValues[value].push(r);
-                } catch(e){}
+                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    document.getElementById('loadingDetails').style.display = 'none';
+
+                    if (res.success && res.trip) {
+                        currentTrip = res.trip;
+
+                        // Admin check
+                        if (res.user_role === 'admin') {
+                            const adminActions = document.getElementById('adminActions');
+                            if (adminActions) adminActions.style.display = 'flex';
+                        }
+                        regsList = res.trip.registrations || [];
+                        document.getElementById('detailTripTitle').textContent = currentTrip.title;
+                        renderFieldCards();
+                    } else {
+                        document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
+                    }
+                } catch (e) {
+                    document.getElementById('loadingDetails').style.display = 'none';
+                    document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
+                }
             }
-        });
-        
-        Object.keys(fieldValues).sort().forEach(value => {
-            const kids = fieldValues[value];
-            const card = document.createElement('div');
-            card.className = 'field-card';
-            card.style.cursor = 'pointer';
-            card.onclick = () => openFilterKids(field, value);
-            
-            let iconClass = 'fas fa-tag';
-            // Prefer icon set by admin; fall back to static map
-            if (currentTrip.custom_field_icons && currentTrip.custom_field_icons[field]) {
-                const meta = currentTrip.custom_field_icons[field];
-                iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
-            } else {
-                let iconBg = getFieldIcon(field);
-                if (iconBg) { iconClass = iconBg.icon; }
-            }
-            
-            card.innerHTML = `
+
+            function renderFieldCards() {
+                const grid = document.getElementById('fieldsGrid');
+                grid.innerHTML = '';
+
+                if (!currentTrip.custom_fields) {
+                    renderAllKidsCard();
+                    return;
+                }
+
+                const fields = currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
+
+                fields.forEach(field => {
+                    const fieldValues = {};
+
+                    regsList.forEach(r => {
+                        let value = 'بدون تحديد';
+                        if (r.custom_data) {
+                            try {
+                                const cd = JSON.parse(r.custom_data);
+                                value = cd[field] || 'بدون تحديد';
+                            } catch (e) { }
+                        }
+                        if (!fieldValues[value]) fieldValues[value] = [];
+                        fieldValues[value].push(r);
+                    });
+
+                    Object.keys(fieldValues).sort().forEach(value => {
+                        const kids = fieldValues[value];
+                        const card = document.createElement('div');
+                        card.className = 'field-card';
+                        card.style.cursor = 'pointer';
+                        card.onclick = () => openFilterKids(field, value);
+
+                        let iconClass = 'fas fa-tag';
+                        // Prefer icon set by admin; fall back to static map
+                        if (currentTrip.custom_field_icons && currentTrip.custom_field_icons[field]) {
+                            const meta = currentTrip.custom_field_icons[field];
+                            iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+                        } else {
+                            let iconBg = getFieldIcon(field);
+                            if (iconBg) { iconClass = iconBg.icon; }
+                        }
+
+                        card.innerHTML = `
                 <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
                     <div class="field-card-icon"><i class="${iconClass}"></i></div>
                     <div>
@@ -253,20 +601,20 @@ function renderFieldCards() {
                     </div>
                 </div>
             `;
-            
-            grid.appendChild(card);
-        });
-    });
-}
 
-function renderAllKidsCard() {
-    const grid = document.getElementById('fieldsGrid');
-    const card = document.createElement('div');
-    card.className = 'field-card';
-    card.style.cursor = 'pointer';
-    card.onclick = () => openFilterKids('جميع الأطفال', '');
-    
-    card.innerHTML = `
+                        grid.appendChild(card);
+                    });
+                });
+            }
+
+            function renderAllKidsCard() {
+                const grid = document.getElementById('fieldsGrid');
+                const card = document.createElement('div');
+                card.className = 'field-card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => openFilterKids('جميع الأطفال', '');
+
+                card.innerHTML = `
         <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
             <div class="field-card-icon"><i class="fas fa-users"></i></div>
             <div>
@@ -275,137 +623,137 @@ function renderAllKidsCard() {
             </div>
         </div>
     `;
-    
-    grid.appendChild(card);
-}
 
-function openFilterKids(field, value) {
-    const f = encodeURIComponent(field);
-    const v = encodeURIComponent(value || '');
-    window.location.href = `/uncle/trip/filter/?trip_id=${currentTrip.id}&field=${f}&value=${v}`;
-}
+                grid.appendChild(card);
+            }
 
-function getFieldIcon(field) {
-    const icons = {
-        'الفصل': { icon: 'fas fa-layer-group' },
-        'المستوى': { icon: 'fas fa-chart-line' },
-        'المجموعة': { icon: 'fas fa-users' },
-        'الفريق': { icon: 'fas fa-users' },
-        'الكنيسة': { icon: 'fas fa-church' }
-    };
-    return icons[field] || null;
-}
+            function openFilterKids(field, value) {
+                const f = encodeURIComponent(field);
+                const v = encodeURIComponent(value || '');
+                window.location.href = `/uncle/trip/filter/?trip_id=${currentTrip.id}&field=${f}&value=${v}`;
+            }
 
-function topbarSearchHandler() {
-    const searchTerm = document.getElementById('topbarSearch').value.toLowerCase().trim();
-    const resultsDiv = document.getElementById('topbarSearchResults');
-    
-    if(!searchTerm) {
-        resultsDiv.classList.remove('show');
-        return;
-    }
-    
-    const filtered = regsList.filter(r => {
-        const name = r.student_name || '';
-        return name.toLowerCase().includes(searchTerm);
-    });
-    
-    if(filtered.length === 0) {
-        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا توجد نتائج</div>';
-        resultsDiv.classList.add('show');
-        return;
-    }
-    
-    resultsDiv.innerHTML = filtered.map(r => {
-        const name = r.student_name || '؟';
-        return `<div class="search-result-item" onclick="openKidPoints('${currentTrip.id}', '${r.student_id}')">${name}</div>`;
-    }).join('');
-    
-    resultsDiv.classList.add('show');
-}
+            function getFieldIcon(field) {
+                const icons = {
+                    'الفصل': { icon: 'fas fa-layer-group' },
+                    'المستوى': { icon: 'fas fa-chart-line' },
+                    'المجموعة': { icon: 'fas fa-users' },
+                    'الفريق': { icon: 'fas fa-users' },
+                    'الكنيسة': { icon: 'fas fa-church' }
+                };
+                return icons[field] || null;
+            }
 
-function openKidPoints(tripId, studentId) {
-    window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
-}
+            function topbarSearchHandler() {
+                const searchTerm = document.getElementById('topbarSearch').value.toLowerCase().trim();
+                const resultsDiv = document.getElementById('topbarSearchResults');
 
-// QR Code Scanner Logic
-let html5QrcodeScanner = null;
+                if (!searchTerm) {
+                    resultsDiv.classList.remove('show');
+                    return;
+                }
 
-function startScanner() {
-    document.getElementById('scannerModal').style.display = 'flex';
-    if(!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5Qrcode("reader");
-    }
-    html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: {width: 250, height: 250} },
-        (decodedText, decodedResult) => {
-            // Success
-            html5QrcodeScanner.stop().then(() => {
-                document.getElementById('scannerModal').style.display = 'none';
-                window.location.href = decodedText; // Redirect to the points page
-            });
-        },
-        (errorMessage) => {
-            // Ignore parse errors
-        }
-    ).catch((err) => {
-        alert("حدث خطأ في الوصول للكاميرا: " + err);
-        stopScanner();
-    });
-}
+                const filtered = regsList.filter(r => {
+                    const name = r.student_name || '';
+                    return name.toLowerCase().includes(searchTerm);
+                });
 
-function stopScanner() {
-    if(html5QrcodeScanner) {
-        html5QrcodeScanner.stop().then(() => {
-            document.getElementById('scannerModal').style.display = 'none';
-        }).catch(e => {
-            document.getElementById('scannerModal').style.display = 'none';
-        });
-    } else {
-        document.getElementById('scannerModal').style.display = 'none';
-    }
-}
+                if (filtered.length === 0) {
+                    resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا توجد نتائج</div>';
+                    resultsDiv.classList.add('show');
+                    return;
+                }
 
-function printQRCards() {
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = '';
-    
-    let filtered = regsList;
-    if(currentFilter && currentFilter.key) {
-        filtered = regsList.filter(r => {
-            if(!r.custom_data) return false;
-            try {
-                const cd = JSON.parse(r.custom_data);
-                return cd[currentFilter.key] === currentFilter.val;
-            } catch(e){ return false; }
-        });
-    }
-    
-    if(filtered.length === 0) {
-        alert('لا يوجد أطفال لطباعة كروت لهم');
-        return;
-    }
-    
-    filtered.forEach(r => {
-        const name = r.student_name || '؟';
-        const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text='+name.charAt(0);
-        let customHtml = '';
-        if(r.custom_data) {
-            try {
-                const cd = JSON.parse(r.custom_data);
-                const icons = currentTrip?.custom_field_icons || {};
-                customHtml = Object.entries(cd).map(([k,v]) => {
-                    const ic = icons[k] ? `<i class="${icons[k]}" style="margin-left:4px;"></i>` : '';
-                    return `<span>${ic}${k}: ${v}</span>`;
-                }).join(' | ');
-            } catch(e){}
-        }
-        
-        const cardId = 'qrcode_' + r.id;
-        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}`;
-        
-        printArea.innerHTML += `
+                resultsDiv.innerHTML = filtered.map(r => {
+                    const name = r.student_name || '؟';
+                    return `<div class="search-result-item" onclick="openKidPoints('${currentTrip.id}', '${r.student_id}')">${name}</div>`;
+                }).join('');
+
+                resultsDiv.classList.add('show');
+            }
+
+            function openKidPoints(tripId, studentId) {
+                window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
+            }
+
+            // QR Code Scanner Logic
+            let html5QrcodeScanner = null;
+
+            function startScanner() {
+                document.getElementById('scannerModal').style.display = 'flex';
+                if (!html5QrcodeScanner) {
+                    html5QrcodeScanner = new Html5Qrcode("reader");
+                }
+                html5QrcodeScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText, decodedResult) => {
+                        // Success
+                        html5QrcodeScanner.stop().then(() => {
+                            document.getElementById('scannerModal').style.display = 'none';
+                            window.location.href = decodedText; // Redirect to the points page
+                        });
+                    },
+                    (errorMessage) => {
+                        // Ignore parse errors
+                    }
+                ).catch((err) => {
+                    alert("حدث خطأ في الوصول للكاميرا: " + err);
+                    stopScanner();
+                });
+            }
+
+            function stopScanner() {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.stop().then(() => {
+                        document.getElementById('scannerModal').style.display = 'none';
+                    }).catch(e => {
+                        document.getElementById('scannerModal').style.display = 'none';
+                    });
+                } else {
+                    document.getElementById('scannerModal').style.display = 'none';
+                }
+            }
+
+            function printQRCards() {
+                const printArea = document.getElementById('printArea');
+                printArea.innerHTML = '';
+
+                let filtered = regsList;
+                if (currentFilter && currentFilter.key) {
+                    filtered = regsList.filter(r => {
+                        if (!r.custom_data) return false;
+                        try {
+                            const cd = JSON.parse(r.custom_data);
+                            return cd[currentFilter.key] === currentFilter.val;
+                        } catch (e) { return false; }
+                    });
+                }
+
+                if (filtered.length === 0) {
+                    alert('لا يوجد أطفال لطباعة كروت لهم');
+                    return;
+                }
+
+                filtered.forEach(r => {
+                    const name = r.student_name || '؟';
+                    const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
+                    let customHtml = '';
+                    if (r.custom_data) {
+                        try {
+                            const cd = JSON.parse(r.custom_data);
+                            const icons = currentTrip?.custom_field_icons || {};
+                            customHtml = Object.entries(cd).map(([k, v]) => {
+                                const ic = icons[k] ? `<i class="${icons[k]}" style="margin-left:4px;"></i>` : '';
+                                return `<span>${ic}${k}: ${v}</span>`;
+                            }).join(' | ');
+                        } catch (e) { }
+                    }
+
+                    const cardId = 'qrcode_' + r.id;
+                    const link = `${window.location.origin}/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}`;
+
+                    printArea.innerHTML += `
         <div class="print-card">
             <h3>${currentTrip.title}</h3>
             <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
@@ -414,26 +762,27 @@ function printQRCards() {
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
         </div>
         `;
-        
-        setTimeout(() => {
-            new QRCode(document.getElementById(cardId), {
-                text: link,
-                width: 150,
-                height: 150,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        }, 100);
-    });
-    
-    // give QR library a bit more time to finish rendering before opening print dialog
-    setTimeout(() => {
-        window.print();
-        // clear print area after print
-        setTimeout(() => { printArea.innerHTML = ''; }, 1500);
-    }, 1500);
-}
-</script>
+
+                    setTimeout(() => {
+                        new QRCode(document.getElementById(cardId), {
+                            text: link,
+                            width: 150,
+                            height: 150,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    }, 100);
+                });
+
+                // give QR library a bit more time to finish rendering before opening print dialog
+                setTimeout(() => {
+                    window.print();
+                    // clear print area after print
+                    setTimeout(() => { printArea.innerHTML = ''; }, 1500);
+                }, 1500);
+            }
+        </script>
 </body>
+
 </html>
