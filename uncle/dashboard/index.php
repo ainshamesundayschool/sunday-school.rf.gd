@@ -13548,7 +13548,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = [
                 { val: student['الاسم'], weight: 1.0 },
                 { val: student['الفصل'], weight: 0.7 },
-                { val: student['id'] || student['معرف'] || student['id_student'], weight: 1.1 },
+                { val: student['_studentId'] || student['id'] || student['معرف'] || student['id_student'], weight: 1.1 },
                 { val: student['رقم التليفون'], weight: 1.1 },
                 { val: student['تليفون الطوارئ'], weight: 1.1 }
             ];
@@ -13614,7 +13614,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             container.innerHTML = results.map(s => {
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '---';
-                const id = s['id'] || s['معرف'] || s['id_student'] || 0;
+                const id = s['_studentId'] || s['id'] || s['معرف'] || s['id_student'] || 0;
                 const photo = s['صورة'] 
                     ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
                     : `<div style="width:36px;height:36px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>`;
@@ -13633,7 +13633,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function selectStudentFromIntelligentSearch(studentId) {
             const searchData = allStudentsData.length ? allStudentsData : students;
-            const s = searchData.find(x => x['id'] == studentId || x['معرف'] == studentId || x['id_student'] == studentId);
+            const s = searchData.find(x => x['_studentId'] == studentId || x['id'] == studentId || x['معرف'] == studentId || x['id_student'] == studentId);
             if (!s) return;
             
             closeIntelligentSearchModal();
@@ -13644,7 +13644,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 
                 // Wait for render, then scroll to row and highlight
                 setTimeout(() => {
-                    const rowId = `ai-${studentId}`;
+                    const rowId = `ai-${s['الفصل']}_${s['الاسم']}`;
                     const row = document.getElementById(rowId);
                     if (row) {
                         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
