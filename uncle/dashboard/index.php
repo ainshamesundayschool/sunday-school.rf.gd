@@ -1081,9 +1081,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
             padding: 0 2px;
-            flex-wrap: wrap
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .uncles-bar::-webkit-scrollbar {
+            display: none;
         }
 
         .uncles-bar-label {
@@ -1095,7 +1101,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .uncles-list {
             display: flex;
-            padding-right: 8px
+            padding-right: 8px;
+            gap: 8px;
+            flex-wrap: nowrap;
         }
 
         .uncle-avatar-wrap {
@@ -6940,10 +6948,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <!-- Uncles bar -->
-                <div class="uncles-bar" id="unclesBar" style="display:none">
-                    <span class="uncles-bar-label"><i class="fas fa-users"></i> الخدام:</span>
-                    <div class="uncles-list" id="unclesList"></div>
+                <!-- Uncles & Sort Bar -->
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
+                    <!-- Uncles bar -->
+                    <div class="uncles-bar" id="unclesBar" style="display:none">
+                        <span class="uncles-bar-label"><i class="fas fa-users"></i> الخدام:</span>
+                        <div class="uncles-list" id="unclesList"></div>
+                    </div>
+                    
+                    <!-- Sort -->
+                    <div style="flex-shrink: 0; margin-right: auto;">
+                        <select class="search-input" id="classSortSelect" onchange="renderAttendanceList(currentClass)" title="ترتيب القائمة" style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.85rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2);">
+                            <option value="name_az">الاسم أ-ي</option>
+                            <option value="name_za">الاسم ي-أ</option>
+                            <option value="age_asc">الأصغر سناً</option>
+                            <option value="age_desc">الأكبر سناً</option>
+                            <option value="class_az">الفصل</option>
+                            <option value="coupons_desc">الأكثر كوبونات</option>
+                            <option value="attendance_desc">الأكثر حضوراً</option>
+                            <option value="top_desc">الأوائل</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Pending registrations -->
@@ -7052,20 +7077,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
                     <button class="clear-search-btn" id="clearSearchBtn"><i class="fas fa-times"></i> إلغاء</button>
                 </div>
-                <div class="search-wrap" style="margin-top:-8px">
-                    <select class="search-input" id="classSortSelect" title="ترتيب القائمة">
-                        <option value="name_az">الترتيب: الاسم أ-ي</option>
-                        <option value="name_za">الاسم ي-أ</option>
-                        <option value="age_asc">الأصغر سناً</option>
-                        <option value="age_desc">الأكبر سناً</option>
-                        <option value="class_az">الفصل</option>
-                        <option value="coupons_desc">الأكثر كوبونات</option>
-                        <option value="attendance_desc">الأكثر حضوراً</option>
-                        <option value="top_desc">الأوائل</option>
-                    </select>
-                    <button class="search-btn" onclick="renderAttendanceList(currentClass)" title="تطبيق الترتيب"><i
-                            class="fas fa-sort"></i></button>
-                </div>
+                <!-- Old sort element removed -->
                 <div class="search-results-info" id="searchResultsInfo"></div>
 
                 <!-- Sticky attendance toolbar -->
