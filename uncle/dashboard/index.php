@@ -13644,7 +13644,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 
                 // Wait for render, then scroll to row and highlight
                 setTimeout(() => {
-                    const rowId = \`ai-\${studentId}\`;
+                    const rowId = `ai-${studentId}`;
                     const row = document.getElementById(rowId);
                     if (row) {
                         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
