@@ -553,12 +553,15 @@
                 const grid = document.getElementById('fieldsGrid');
                 grid.innerHTML = '';
 
-                if (!currentTrip.custom_fields) {
-                    renderAllKidsCard();
+                const fields = currentTrip.custom_fields
+                    ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean)
+                    : [];
+
+                // If no custom fields → group by class instead
+                if (fields.length === 0) {
+                    renderByClass();
                     return;
                 }
-
-                const fields = currentTrip.custom_fields.split(',').map(f => f.trim()).filter(Boolean);
 
                 fields.forEach(field => {
                     const fieldValues = {};
@@ -583,13 +586,12 @@
                         card.onclick = () => openFilterKids(field, value);
 
                         let iconClass = 'fas fa-tag';
-                        // Prefer icon set by admin; fall back to static map
                         if (currentTrip.custom_field_icons && currentTrip.custom_field_icons[field]) {
                             const meta = currentTrip.custom_field_icons[field];
                             iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
                         } else {
-                            let iconBg = getFieldIcon(field);
-                            if (iconBg) { iconClass = iconBg.icon; }
+                            const iconBg = getFieldIcon(field);
+                            if (iconBg) iconClass = iconBg.icon;
                         }
 
                         card.innerHTML = `
@@ -601,30 +603,41 @@
                     </div>
                 </div>
             `;
-
                         grid.appendChild(card);
                     });
                 });
             }
 
-            function renderAllKidsCard() {
+            // Fallback: group by student class when the trip has no custom fields
+            function renderByClass() {
                 const grid = document.getElementById('fieldsGrid');
-                const card = document.createElement('div');
-                card.className = 'field-card';
-                card.style.cursor = 'pointer';
-                card.onclick = () => openFilterKids('جميع الأطفال', '');
+                const byClass = {};
 
-                card.innerHTML = `
-        <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
-            <div class="field-card-icon"><i class="fas fa-users"></i></div>
-            <div>
-                <div class="field-card-title">جميع الأطفال</div>
-                <div class="field-card-count">${regsList.length} طفل</div>
+                regsList.forEach(r => {
+                    const cls = r.student_class || 'بدون فصل';
+                    if (!byClass[cls]) byClass[cls] = [];
+                    byClass[cls].push(r);
+                });
+
+                const sorted = Object.keys(byClass).sort();
+                sorted.forEach(cls => {
+                    const kids = byClass[cls];
+                    const card = document.createElement('div');
+                    card.className = 'field-card';
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => openFilterKids('__class__', cls);
+
+                    card.innerHTML = `
+            <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                <div class="field-card-icon"><i class="fas fa-layer-group"></i></div>
+                <div>
+                    <div class="field-card-title">${cls}</div>
+                    <div class="field-card-count">${kids.length} طفل</div>
+                </div>
             </div>
-        </div>
-    `;
-
-                grid.appendChild(card);
+        `;
+                    grid.appendChild(card);
+                });
             }
 
             function openFilterKids(field, value) {

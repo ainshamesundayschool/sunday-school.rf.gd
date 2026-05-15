@@ -509,7 +509,7 @@
             if (!tripId) { window.location.href = '/uncle/church/'; return; }
 
             const label = value
-                ? `${field}: ${value}`
+                ? (field === '__class__' ? `فصل: ${value}` : `${field}: ${value}`)
                 : (field || 'جميع الأطفال');
 
             document.getElementById('filterLabel').textContent = label;
@@ -549,6 +549,10 @@
                 // Filter kids
                 if (decodedField && decodedValue !== null && decodedValue !== '') {
                     filteredKids = regs.filter(r => {
+                        // Virtual field: filter by student class
+                        if (decodedField === '__class__') {
+                            return (r.student_class || 'بدون فصل') === decodedValue;
+                        }
                         // Kids with no custom_data at all count as "بدون تحديد" for every field
                         if (!r.custom_data) {
                             return decodedValue === 'بدون تحديد';
@@ -596,14 +600,18 @@
                 const icons = currentTrip?.custom_field_icons || {};
 
                 let metaParts = [];
+                // Always show the student's class first
+                if (k.student_class) {
+                    metaParts.push(`<i class="fas fa-layer-group" style="margin-left:4px;"></i>${k.student_class}`);
+                }
                 if (k.custom_data) {
                     try {
                         const cd = JSON.parse(k.custom_data);
-                        metaParts = Object.entries(cd).map(([fk, fv]) => {
+                        Object.entries(cd).forEach(([fk, fv]) => {
                             const meta = icons[fk] ? icons[fk] : null;
                             const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
                             const ic = iconClass ? `<i class="${iconClass}" style="margin-left:4px;"></i>` : '';
-                            return `${ic}${fk}: ${fv}`;
+                            metaParts.push(`${ic}${fk}: ${fv}`);
                         });
                     } catch (e) { }
                 }
