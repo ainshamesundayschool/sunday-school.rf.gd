@@ -8633,7 +8633,8 @@ function deleteTrip()
 function getTripDetails()
 {
     try {
-        checkAuth();
+        // Allow both church admins AND uncles to access trip details
+        checkUncleAuth();
         $churchId = getChurchId();
         $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
 
@@ -8644,14 +8645,14 @@ function getTripDetails()
 
         $conn = getDBConnection();
 
-        // معلومات الرحلة
+        // معلومات الرحلة — no church_id filter so collaborators can also view
         $tripStmt = $conn->prepare("
             SELECT t.*, u.name as created_by_name
             FROM trips t
             LEFT JOIN uncles u ON t.created_by = u.id
-            WHERE t.id = ? AND t.church_id = ?
+            WHERE t.id = ?
         ");
-        $tripStmt->bind_param("ii", $tripId, $churchId);
+        $tripStmt->bind_param("i", $tripId);
         $tripStmt->execute();
         $tripResult = $tripStmt->get_result();
 
@@ -8661,6 +8662,21 @@ function getTripDetails()
         }
 
         $trip = $tripResult->fetch_assoc();
+
+        // Verify caller is the trip owner OR a collaborating church
+        $participants = [$trip['church_id']];
+        $collabRaw = $trip['collaborating_churches'] ?? '';
+        if (!empty($collabRaw)) {
+            $collab = json_decode($collabRaw, true);
+            if (is_array($collab)) {
+                $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+            }
+        }
+        // $churchId may be 0 when accessed by uncle with no church (edge case); allow trip owner's church
+        if ($churchId > 0 && !in_array($churchId, $participants)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح بعرض هذه الرحلة']);
+            return;
+        }
 
         // حساب السعر بعد الخصم
         $finalPrice = $trip['price'];
