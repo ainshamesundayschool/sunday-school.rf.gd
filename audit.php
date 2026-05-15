@@ -232,15 +232,29 @@ function getEntityAuditHistory(): void {
         }
 
         $conn = getDBConnection();
-        $stmt = $conn->prepare("
+        $sql = "
             SELECT al.*, u.image_url as uncle_image
             FROM audit_logs al
             LEFT JOIN uncles u ON al.uncle_id = u.id
-            WHERE al.church_id = ? AND al.entity = ? AND al.entity_id = ?
-            ORDER BY al.created_at DESC
-            LIMIT 200
-        ");
-        $stmt->bind_param("isi", $churchId, $entity, $entityId);
+            WHERE al.church_id = ? AND al.entity_id = ?
+        ";
+        
+        // If entity is 'student', we want profile edits, coupons, and attendance
+        if ($entity === 'student' || $entity === 'coupon') {
+            $sql .= " AND al.entity IN ('student', 'coupon', 'attendance')";
+        } else {
+            $sql .= " AND al.entity = ?";
+        }
+        
+        $sql .= " ORDER BY al.created_at DESC LIMIT 200";
+        
+        $stmt = $conn->prepare($sql);
+        if ($entity === 'student' || $entity === 'coupon') {
+            $stmt->bind_param("ii", $churchId, $entityId);
+        } else {
+            $stmt->bind_param("iis", $churchId, $entityId, $entity);
+        }
+        
         $stmt->execute();
         $result = $stmt->get_result();
 

@@ -1979,6 +1979,10 @@ function withdrawCoupons()
             throw new Exception('فشل تسجيل عملية السحب');
         }
 
+        // ► Comprehensive Audit
+        require_once 'audit.php';
+        writeAuditLog('coupon_withdraw', 'coupon', $studentId, '', null, ['amount' => $amount], "سحب $amount كوبون" . ($note ? " ($note)" : ''));
+
         $conn->commit();
         sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal]);
     } catch (Exception $e) {
@@ -2064,6 +2068,11 @@ function refundWithdrawal()
         }
 
         $conn->commit();
+
+        // ► Comprehensive Audit
+        require_once 'audit.php';
+        writeAuditLog('coupon_refund', 'coupon', $studentId, '', null, ['amount' => $amount], "استرجاع $amount كوبون (عملية #$withdrawalId)");
+
         sendJSON(['success' => true, 'message' => 'تم استرجاع الكوبونات بنجاح']);
     } catch (Exception $e) {
         if (isset($conn))
