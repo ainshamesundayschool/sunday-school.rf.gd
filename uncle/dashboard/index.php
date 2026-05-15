@@ -6679,8 +6679,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
                 <?php /* Admin/Settings button moved into profile modal */ ?>
-                <div class="topbar-avatar-btn" id="uncleChip" style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>"
-                    onclick="showAccountModal()">
+                <div class="topbar-avatar-btn" id="uncleChip"
+                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
                         onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">
                     <span id="uncleInitials"
@@ -7073,19 +7073,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="photo-circle-plus"><i class="fas fa-plus"></i></div>
                             <input type="file" id="photoInput" accept="image/*" style="display:none">
                         </div>
-                        <div class="upload-controls" id="uploadControls" style="margin-top:10px">
-                            <div class="enhancement-toggle" style="margin-bottom:8px">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enhanceImage" checked>
-                                    <span class="checkmark"></span>
-                                    تحسين الصورة بالذكاء الاصطناعي
-                                </label>
-                            </div>
-                            <button type="button" class="btn btn-success btn-sm" id="savePhotoBtn"><i
-                                    class="fas fa-upload"></i> رفع</button>
-                            <button type="button" class="btn btn-danger btn-sm" id="cancelUploadBtn"><i
-                                    class="fas fa-times"></i> إلغاء</button>
-                        </div>
+                        <div id="uploadControls" style="display:none"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -7148,19 +7136,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="photo-circle-plus"><i class="fas fa-plus"></i></div>
                             <input type="file" id="newStudentPhotoInput" accept="image/*" style="display:none">
                         </div>
-                        <div class="upload-controls" id="newStudentUploadControls" style="margin-top:10px">
-                            <div class="enhancement-toggle" style="margin-bottom:8px">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="enhanceNewStudentImage" checked>
-                                    <span class="checkmark"></span>
-                                    تحسين الصورة بالذكاء الاصطناعي
-                                </label>
-                            </div>
-                            <button type="button" class="btn btn-success btn-sm" id="saveNewStudentPhotoBtn"><i
-                                    class="fas fa-upload"></i> رفع</button>
-                            <button type="button" class="btn btn-danger btn-sm" id="cancelNewStudentUploadBtn"><i
-                                    class="fas fa-times"></i> إلغاء</button>
-                        </div>
+                        <div id="newStudentUploadControls" style="display:none"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -9696,7 +9672,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cs.innerHTML = '<option value="">اختر الفصل</option>';
             classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
             document.getElementById('editStudentName').value = s['الاسم'] || '';
-            const cid = s._classId; if (cid) cs.value = cid;
+            // Match student's class by arabic_name or code against الفصل
+            const studentClass = s['الفصل'] || '';
+            const matchedOption = Array.from(cs.options).find(o =>
+                o.textContent === studentClass || o.value === studentClass
+            );
+            if (matchedOption) cs.value = matchedOption.value;
             document.getElementById('editStudentAddress').value = s['العنوان'] || '';
             document.getElementById('editStudentPhone').value = s['رقم التليفون'] || '';
             const bd = s['عيد الميلاد'] || '';
@@ -9786,7 +9767,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (Object.keys(infoObj).length) fd.append('custom_info', JSON.stringify(infoObj));
             }
             if (currentCroppedBlob && currentPhotoEditorType === 'new') fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
-            fd.append('enhanceImage', document.getElementById('enhanceNewStudentImage').checked ? 'true' : 'false');
+            fd.append('enhanceImage', 'false');
             fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { showToast('تم الإضافة بنجاح', 'success'); hideAddPersonModal(); document.getElementById('addPersonForm').reset(); cancelNewStudentPhotoUpload(); currentCroppedBlob = null; setTimeout(loadData, 1000); }
                 else showToast('فشل: ' + (d.message || 'خطأ'), 'error');
@@ -11277,15 +11258,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function confirmCrop() {
             if (!cropper) return;
             const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 }), dataURL = canvas.toDataURL('image/jpeg', .9);
-            if (currentPhotoEditorType === 'uncle') { canvas.toBlob(blob => { currentCroppedBlob = blob; document.getElementById('accountBigAvatar').src = dataURL; closeCropModal(); uploadUnclePhoto(blob); }, 'image/jpeg', .9); }
-            else {
-                const isNew = currentPhotoEditorType === 'new';
-                const prev = document.getElementById(isNew ? 'newStudentUploadPreview' : 'uploadPreview');
-                const ctrl = document.getElementById(isNew ? 'newStudentUploadControls' : 'uploadControls');
-                const ph = document.getElementById(isNew ? 'newStudentPhotoPlaceholder' : 'photoPlaceholder');
-                if (prev && ctrl) { prev.src = dataURL; prev.style.display = 'block'; ctrl.style.display = 'flex'; }
+            if (currentPhotoEditorType === 'uncle') {
+                canvas.toBlob(blob => { currentCroppedBlob = blob; document.getElementById('accountBigAvatar').src = dataURL; closeCropModal(); uploadUnclePhoto(blob); }, 'image/jpeg', .9);
+            } else if (currentPhotoEditorType === 'existing') {
+                // Auto-save immediately after crop — no manual upload button needed
+                canvas.toBlob(blob => {
+                    currentCroppedBlob = blob;
+                    const prev = document.getElementById('uploadPreview');
+                    const ph = document.getElementById('photoPlaceholder');
+                    if (prev) { prev.src = dataURL; prev.style.display = 'block'; }
+                    if (ph) ph.style.display = 'none';
+                    closeCropModal();
+                    if (!currentStudentForEdit) { showToast('خطأ: لا يوجد طفل محدد', 'error'); return; }
+                    showLoading('جاري الرفع...');
+                    const fd = new FormData();
+                    fd.append('photo', new File([blob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+                    fd.append('studentName', currentStudentForEdit['الاسم']);
+                    fd.append('studentClass', currentStudentForEdit['الفصل']);
+                    fd.append('enhanceImage', 'false');
+                    fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
+                        else showToast('فشل الرفع: ' + (d.message || ''), 'error');
+                    }).catch(() => showToast('خطأ في الاتصال', 'error'));
+                }, 'image/jpeg', .9);
+            } else {
+                // new student — still stage the blob for later submission
+                const isNew = true;
+                const prev = document.getElementById('newStudentUploadPreview');
+                const ph = document.getElementById('newStudentPhotoPlaceholder');
+                if (prev) { prev.src = dataURL; prev.style.display = 'block'; }
                 if (ph) ph.style.display = 'none';
-                canvas.toBlob(blob => { currentCroppedBlob = blob; closeCropModal(); showToast('تم القص، يمكنك الرفع الآن', 'success'); }, 'image/jpeg', .9);
+                canvas.toBlob(blob => { currentCroppedBlob = blob; closeCropModal(); showToast('تم اختيار الصورة', 'success'); }, 'image/jpeg', .9);
             }
         }
         function handleImageSelect(e) { if (e.target.files?.[0]) { currentImageFile = e.target.files[0]; currentPhotoEditorType = 'existing'; openCropModal(URL.createObjectURL(currentImageFile)); } }
@@ -11294,7 +11297,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!currentCroppedBlob || !currentStudentForEdit) { showToast('اختر صورة أولاً', 'error'); return; }
             showLoading('جاري الرفع...');
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
-            fd.append('enhanceImage', document.getElementById('enhanceImage').checked ? 'true' : 'false');
+            fd.append('enhanceImage', 'false');
             fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                 else showToast('فشل الرفع: ' + (d.message || ''), 'error');
