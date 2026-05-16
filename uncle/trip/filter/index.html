@@ -509,8 +509,8 @@
             if (!tripId) { window.location.href = '/uncle/church/'; return; }
 
             const label = value
-                ? (field === '__class__' ? `فصل: ${value}` : `${field}: ${value}`)
-                : (field || 'جميع الأطفال');
+                ? (field === '__class__' ? `فصل: ${value}` : `${field.replace(/.*__sf__/, '')}: ${value}`)
+                : (field ? field.replace(/.*__sf__/, '') : 'جميع الأطفال');
 
             document.getElementById('filterLabel').textContent = label;
             document.title = label;
@@ -608,10 +608,27 @@
                     try {
                         const cd = JSON.parse(k.custom_data);
                         Object.entries(cd).forEach(([fk, fv]) => {
-                            const meta = icons[fk] ? icons[fk] : null;
-                            const iconClass = meta ? (typeof meta === 'string' ? meta : (meta.icon || '')) : '';
+                            let iconClass = '';
+                            let displayName = fk;
+                            
+                            if (fk.includes('__sf__')) {
+                                const parts = fk.split('__sf__');
+                                const parentField = parts[0];
+                                const subName = parts[1];
+                                displayName = subName;
+                                
+                                const parentChoice = cd[parentField];
+                                if (parentChoice && icons[parentField]?.sub_fields?.[parentChoice]) {
+                                    const sfMeta = icons[parentField].sub_fields[parentChoice].find(x => x.name === subName);
+                                    if (sfMeta) iconClass = sfMeta.icon;
+                                }
+                            } else {
+                                const meta = icons[fk] || {};
+                                iconClass = typeof meta === 'string' ? meta : (meta.icon || '');
+                            }
+
                             const ic = iconClass ? `<i class="${iconClass}" style="margin-left:4px;"></i>` : '';
-                            metaParts.push(`${ic}${fk}: ${fv}`);
+                            metaParts.push(`${ic}${displayName}: ${fv}`);
                         });
                     } catch (e) { }
                 }

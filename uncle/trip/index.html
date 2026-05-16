@@ -428,6 +428,9 @@
                 color: #000 !important;
             }
         }
+        .breadcrumb-item { cursor:pointer; color:var(--primary); font-weight:700; transition:opacity 0.2s; }
+        .breadcrumb-item:hover { opacity:0.8; }
+        .breadcrumb-item.active { color:var(--text); cursor:default; }
     </style>
 </head>
 
@@ -476,6 +479,8 @@
             </div>
 
             <!-- Custom Fields as Cards -->
+            <div id="fieldsBreadcrumbs" style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:12px; border:1px solid var(--border);">
+            </div>
             <div class="fields-grid" id="fieldsGrid"></div>
         </div>
 
@@ -502,6 +507,7 @@
             const API_URL = '/api.php';
             let currentTrip = null;
             let regsList = [];
+            let filterPath = []; // Array of { type: 'field'|'choice'|'subfield', name: string, fieldName?: string, choiceVal?: string }
             let currentFilter = null;
 
             document.addEventListener('DOMContentLoaded', () => {
@@ -547,66 +553,187 @@
                     document.getElementById('loadingDetails').style.display = 'none';
                     document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
                 }
+            function renderBreadcrumbs() {
+                const bc = document.getElementById('fieldsBreadcrumbs');
+                if (!bc) return;
+                if (filterPath.length === 0) {
+                    bc.style.display = 'none';
+                    return;
+                }
+                bc.style.display = 'flex';
+                let html = `<div class="breadcrumb-item" onclick="clearFilterPath()">الرئيسية</div>`;
+                filterPath.forEach((p, i) => {
+                    html += `<i class="fas fa-chevron-left" style="font-size:0.7rem;opacity:0.5;"></i>`;
+                    html += `<div class="breadcrumb-item ${i === filterPath.length - 1 ? 'active' : ''}" onclick="sliceFilterPath(${i})">${p.name}</div>`;
+                });
+                bc.innerHTML = html;
+            }
+
+            function clearFilterPath() {
+                filterPath = [];
+                renderBreadcrumbs();
+                renderFieldCards();
+            }
+
+            function sliceFilterPath(index) {
+                filterPath = filterPath.slice(0, index + 1);
+                renderBreadcrumbs();
+                renderFieldCards();
             }
 
             function renderFieldCards() {
                 const grid = document.getElementById('fieldsGrid');
                 grid.innerHTML = '';
+                renderBreadcrumbs();
 
                 const JUNK = new Set(['0', 'null', 'undefined', 'none', '']);
                 const fields = currentTrip.custom_fields
                     ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(f => f && !JUNK.has(f.toLowerCase()))
                     : [];
 
-                // If no valid custom fields → group by class instead
                 if (fields.length === 0) {
                     renderByClass();
                     return;
                 }
 
-                fields.forEach(field => {
-                    const fieldValues = {};
-
-                    regsList.forEach(r => {
-                        let value = 'بدون تحديد';
-                        if (r.custom_data) {
-                            try {
-                                const cd = JSON.parse(r.custom_data);
-                                value = cd[field] || 'بدون تحديد';
-                            } catch (e) { }
-                        }
-                        if (!fieldValues[value]) fieldValues[value] = [];
-                        fieldValues[value].push(r);
-                    });
-
-                    Object.keys(fieldValues).sort().forEach(value => {
-                        const kids = fieldValues[value];
+                // ── Level 0: Show Main Fields ──────────────────────────────────────────
+                if (filterPath.length === 0) {
+                    fields.forEach(field => {
                         const card = document.createElement('div');
                         card.className = 'field-card';
-                        card.style.cursor = 'pointer';
-                        card.onclick = () => openFilterKids(field, value);
-
-                        let iconClass = 'fas fa-tag';
-                        if (currentTrip.custom_field_icons && currentTrip.custom_field_icons[field]) {
-                            const meta = currentTrip.custom_field_icons[field];
-                            iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
-                        } else {
-                            const iconBg = getFieldIcon(field);
-                            if (iconBg) iconClass = iconBg.icon;
-                        }
+                        card.onclick = () => {
+                            filterPath.push({ type: 'field', name: field, fieldName: field });
+                            renderFieldCards();
+                        };
+                        
+                        let icon = 'fas fa-folder';
+                        const meta = currentTrip.custom_field_icons?.[field];
+                        if (meta) icon = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-folder');
 
                         card.innerHTML = `
-                <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
-                    <div class="field-card-icon"><i class="${iconClass}"></i></div>
-                    <div>
-                        <div class="field-card-title">${value}</div>
-                        <div class="field-card-count">${kids.length} طفل</div>
-                    </div>
-                </div>
-            `;
+                            <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                                <div class="field-card-icon"><i class="${icon}"></i></div>
+                                <div>
+                                    <div class="field-card-title">${field}</div>
+                                    <div class="field-card-count">عرض الخيارات</div>
+                                </div>
+                            </div>
+                        `;
                         grid.appendChild(card);
                     });
-                });
+                    return;
+                }
+
+                // ── Level 1: Show Choices for a Field ──────────────────────────────────
+                const last = filterPath[filterPath.length - 1];
+                if (last.type === 'field') {
+                    const fieldName = last.fieldName;
+                    const meta = currentTrip.custom_field_icons?.[fieldName] || {};
+                    const choices = Array.isArray(meta.choices) ? meta.choices : [];
+                    
+                    // Group kids by this field value
+                    const groups = {};
+                    regsList.forEach(r => {
+                        let val = 'بدون تحديد';
+                        try {
+                            const cd = JSON.parse(r.custom_data || '{}');
+                            val = cd[fieldName] || 'بدون تحديد';
+                        } catch(e){}
+                        if (!groups[val]) groups[val] = [];
+                        groups[val].push(r);
+                    });
+
+                    Object.keys(groups).sort().forEach(val => {
+                        const kids = groups[val];
+                        const card = document.createElement('div');
+                        card.className = 'field-card';
+                        card.onclick = () => {
+                            // If this field is a sub_group AND the choice has subfields, drill down
+                            if (meta.type === 'sub_group' && meta.sub_fields?.[val]) {
+                                filterPath.push({ type: 'choice', name: val, fieldName: fieldName, choiceVal: val });
+                                renderFieldCards();
+                            } else {
+                                // Otherwise show kids directly
+                                openFilterKids(fieldName, val);
+                            }
+                        };
+
+                        card.innerHTML = `
+                            <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                                <div class="field-card-icon"><i class="${meta.icon || 'fas fa-tag'}"></i></div>
+                                <div>
+                                    <div class="field-card-title">${val}</div>
+                                    <div class="field-card-count">${kids.length} طفل</div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    return;
+                }
+
+                // ── Level 2: Show Sub-fields for a Choice ──────────────────────────────
+                if (last.type === 'choice') {
+                    const fieldName = last.fieldName;
+                    const choiceVal = last.choiceVal;
+                    const meta = currentTrip.custom_field_icons?.[fieldName] || {};
+                    const subFields = meta.sub_fields?.[choiceVal] || [];
+
+                    subFields.forEach(sf => {
+                        const sfKey = fieldName + '__sf__' + sf.name;
+                        const card = document.createElement('div');
+                        card.className = 'field-card';
+                        card.onclick = () => {
+                            filterPath.push({ type: 'subfield', name: sf.name, fieldName: sfKey });
+                            renderFieldCards();
+                        };
+
+                        card.innerHTML = `
+                            <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                                <div class="field-card-icon"><i class="${sf.icon || 'fas fa-sitemap'}"></i></div>
+                                <div>
+                                    <div class="field-card-title">${sf.name}</div>
+                                    <div class="field-card-count">عرض خيارات الحقل الفرعي</div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    return;
+                }
+
+                // ── Level 3: Show Choices for a Sub-field ──────────────────────────────
+                if (last.type === 'subfield') {
+                    const sfKey = last.fieldName;
+                    const groups = {};
+                    regsList.forEach(r => {
+                        let val = 'بدون تحديد';
+                        try {
+                            const cd = JSON.parse(r.custom_data || '{}');
+                            val = cd[sfKey] || 'بدون تحديد';
+                        } catch(e){}
+                        if (!groups[val]) groups[val] = [];
+                        groups[val].push(r);
+                    });
+
+                    Object.keys(groups).sort().forEach(val => {
+                        const kids = groups[val];
+                        const card = document.createElement('div');
+                        card.className = 'field-card';
+                        card.onclick = () => openFilterKids(sfKey, val);
+
+                        card.innerHTML = `
+                            <div class="field-card-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                                <div class="field-card-icon"><i class="fas fa-tag"></i></div>
+                                <div>
+                                    <div class="field-card-title">${val}</div>
+                                    <div class="field-card-count">${kids.length} طفل</div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                }
             }
 
             // Fallback: group by student class when the trip has no custom fields

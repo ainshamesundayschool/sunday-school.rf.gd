@@ -4591,88 +4591,201 @@
     </tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
-    function openBulkCustomDataModal(tripId) {
-      const trip = allTripsCache.find(t => t.id == tripId) || (window.currentTripId == tripId ? window.currentTripObj : null);
-      let regs = tripRegistrationsCache[tripId];
-      if (!regs && trip && trip.registrations) regs = trip.registrations;
-      regs = regs || [];
-
-      const fields = parseCustomFieldsString(trip?.custom_fields);
-      if (!trip || !fields.length) {
-        showToast?.('لا توجد حقول إضافية لهذه الرحلة', 'info');
-        return;
-      }
-      document.getElementById('bulkCustomDataTripId').value = tripId;
-      document.getElementById('bulkCustomDataHeader').textContent = `تحديث البيانات الإضافية: ${trip.title}`;
-      document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
-      document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
-      openModal('bulkCustomDataModal');
-    }
-
-    // ─── Custom Fields in Registration Form ───────────────────────────────────────
-    function renderRegisterCustomFields(tripId) {
-      const wrapper = document.getElementById('registerCustomFieldsWrapper');
-      const section = document.getElementById('registerCustomFieldsSection');
-      const trip = allTripsCache.find(t => t.id == tripId);
-      const fields = parseCustomFieldsString(trip?.custom_fields);
-      const icons = (trip && typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-
-      if (!fields.length) {
-        if (wrapper) wrapper.style.display = 'none';
-        section.innerHTML = '';
-        return;
-      }
-
-      if (wrapper) {
-        wrapper.style.display = 'block';
-        wrapper.removeAttribute('open'); // start collapsed
-      }
-
-      section.innerHTML = `<div class="custom-fields-register" id="regCustomFieldsInner">
-        ${fields.map(field => renderRegisterField(field, icons[field] || {}, '')).join('')}
-    </div>`;
-    }
-
     function renderRegisterField(fieldName, meta, currentVal) {
       const icon = meta.icon || 'fas fa-tag';
       const isGroup = meta.type === 'sub_group';
-
-      // ── sub_group: render each sub-field as its own input ──────────────────
-      if (isGroup) {
-        const subFields = Array.isArray(meta.sub_fields) ? meta.sub_fields : [];
-        if (!subFields.length) return '';
-        return `<div style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:var(--bg-hover);">
-          <div style="font-size:0.75rem;font-weight:800;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-            <i class="${icon}"></i> ${escHtml(fieldName)}
-          </div>
-          ${subFields.map(sf => {
-          const sfKey = fieldName + '__sf__' + sf.name;
-          const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
-          const inputHtml = sfChoices.length
-            ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
-                  <option value="">— اختر —</option>
-                  ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
-                </select>`
-            : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
-          return `<div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
-              ${inputHtml}
-            </div>`;
-        }).join('')}
-        </div>`;
-      }
-
-      // ── choices or free text ────────────────────────────────────────────────
       const choices = Array.isArray(meta.choices) ? meta.choices : [];
-      const inputHtml = choices.length
-        ? `<select class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" style="font-size:0.8rem;padding:5px;min-height:30px;">
+
+      // Main field HTML
+      const inputHtml = (choices.length || isGroup)
+        ? `<select class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" 
+                   style="font-size:0.8rem;padding:5px;min-height:30px;" 
+                   onchange="onRegisterMainFieldChange('${escHtml(fieldName)}')">
             <option value="">— اختر —</option>
             ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
           </select>`
         : `<input type="text" class="form-input" name="cf_${escHtml(fieldName)}" id="regcf_${escHtml(fieldName)}" value="${escHtml(currentVal)}" placeholder="${escHtml(fieldName)}" style="font-size:0.8rem;padding:5px;min-height:30px;">`;
 
-      return `<div class="form-group" style="margin-bottom:6px;">
+      return `<div class="form-group" style="margin-bottom:8px;" id="regcf_wrap_${escHtml(fieldName)}">
         <label class="form-label" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
+        ${inputHtml}
+        <div id="regcf_subs_${escHtml(fieldName)}" style="margin-top:6px; padding-right:12px; border-right:2px solid var(--primary-light);"></div>
+      </div>`;
+    }
+
+    function onRegisterMainFieldChange(fieldName) {
+      const select = document.getElementById('regcf_' + fieldName);
+      const val = select?.value;
+      const subWrap = document.getElementById('regcf_subs_' + fieldName);
+      if (!subWrap) return;
+      subWrap.innerHTML = '';
+      if (!val) return;
+
+      const trip = window.currentTripObj;
+      const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
+      const meta = icons[fieldName] || {};
+      if (meta.type !== 'sub_group') return;
+
+      const subFields = meta.sub_fields && meta.sub_fields[val] ? meta.sub_fields[val] : [];
+      if (!Array.isArray(subFields)) return;
+
+      subWrap.innerHTML = subFields.map(sf => {
+        const sfKey = fieldName + '__sf__' + sf.name;
+        const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
+        const sfInput = sfChoices.length
+          ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.75rem;padding:4px;min-height:28px;">
+              <option value="">— اختر ${escHtml(sf.name)} —</option>
+              ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
+            </select>`
+          : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.75rem;padding:4px;min-height:28px;">`;
+        
+        return `<div class="form-group" style="margin-bottom:6px;">
+          <label class="form-label" style="font-size:0.65rem;margin-bottom:2px;display:flex;align-items:center;gap:4px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
+          ${sfInput}
+        </div>`;
+      }).join('');
+    }
+
+    function collectRegisterCustomData() {
+      const data = {};
+      document.querySelectorAll('#registerCustomFieldsSection [name^="cf_"]').forEach(el => {
+        const key = el.name.replace(/^cf_/, '');
+        const val = el.value.trim();
+        if (val) data[key] = val;
+      });
+      return data;
+    }
+
+      function renderCfeFieldCard(f) {
+      const isGroup = f.type === 'sub_group';
+      const choiceTagsHtml = f.choices.map((c, ci) => {
+        let subBtn = '';
+        if (isGroup) {
+          const subCount = (f.sub_fields_map[c] || []).length;
+          subBtn = `<button type="button" class="btn btn-outline btn-xs" onclick="cfeOpenSubConfig('${f._id}', ${ci})" style="margin-right:5px; font-size:0.65rem; padding:2px 6px;">
+            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة حقول فرعية'}
+          </button>`;
+        }
+        return `<div class="cfe-choice-tag" style="display:flex; align-items:center;">
+          ${subBtn}
+          <span>${escHtml(c)}</span>
+          <button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button>
+        </div>`;
+      }).join('');
+
+      const typeBtnChoices = `<button type="button" onclick="cfeSetType('${f._id}','choices')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${!isGroup ? 'var(--primary)' : 'var(--border)'};background:${!isGroup ? 'var(--primary)' : 'transparent'};color:${!isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">خيارات</button>`;
+      const typeBtnGroup = `<button type="button" onclick="cfeSetType('${f._id}','sub_group')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${isGroup ? 'var(--primary)' : 'var(--border)'};background:${isGroup ? 'var(--primary)' : 'transparent'};color:${isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">مجموعة فرعية</button>`;
+
+      return `<div class="cfe-field-card" id="cfe_card_${f._id}">
+        <div class="cfe-field-row">
+          <button type="button" class="cfe-icon-btn" onclick="cfePickIcon('${f._id}')" id="cfe_iconbtn_${f._id}"><i id="cfe_icon_${f._id}" class="${f.icon}"></i></button>
+          <input type="text" class="form-input" value="${escHtml(f.name)}" placeholder="اسم الحقل" style="font-weight:700;" oninput="cfeUpdateName('${f._id}',this.value)">
+          <div style="display:flex;gap:4px;flex-shrink:0;">${typeBtnChoices}${typeBtnGroup}</div>
+          <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
+        </div>
+        <div style="margin-top:8px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة حقول فرعية تظهر عند اختياره)' : ''}:</div>
+          <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
+          <div class="cfe-add-choice" style="margin-top:8px;">
+            <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
+            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function cfeOpenSubConfig(fieldId, choiceIndex) {
+      const f = _cfeState.fields.find(x => x._id === fieldId);
+      const choice = f.choices[choiceIndex];
+      if (!f.sub_fields_map[choice]) f.sub_fields_map[choice] = [];
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal open';
+      modal.id = 'cfeSubConfigModal';
+      modal.innerHTML = `
+        <div class="modal-box" style="max-width:500px;">
+          <div class="modal-head">
+            <h2><i class="fas fa-sitemap"></i> حقول فرعية لـ: ${choice}</h2>
+            <button class="modal-close" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body">
+            <div id="cfeSubFieldsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;"></div>
+            <button class="btn btn-outline btn-sm" onclick="cfeAddSubFieldToChoice('${fieldId}', '${choice}')"><i class="fas fa-plus"></i> إضافة حقل فرعي</button>
+            <div style="margin-top:20px; text-align:left;">
+              <button class="btn btn-primary" onclick="this.closest('.modal').remove(); renderCfeFields();">تم</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      renderCfeSubFields(fieldId, choice);
+    }
+
+    function renderCfeSubFields(fieldId, choice) {
+      const f = _cfeState.fields.find(x => x._id === fieldId);
+      const subs = f.sub_fields_map[choice] || [];
+      const list = document.getElementById('cfeSubFieldsList');
+      list.innerHTML = subs.map((sf, si) => {
+        const scTags = sf.choices.map((sc, sci) =>
+          `<span class="cfe-choice-tag">${escHtml(sc)}<button type="button" onclick="cfeRemoveSubChoiceOfChoice('${fieldId}', '${choice}', ${si}, ${sci})"><i class="fas fa-times"></i></button></span>`
+        ).join('');
+        return `<div style="padding:10px; background:var(--bg); border-radius:10px; border:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <button type="button" class="cfe-icon-btn" style="width:28px; height:28px; font-size:0.7rem;" onclick="cfePickSubIconOfChoice('${fieldId}', '${choice}', ${si})"><i class="${sf.icon}"></i></button>
+            <input type="text" class="form-input" value="${escHtml(sf.name)}" placeholder="اسم الحقل" style="font-size:0.85rem;" oninput="cfeUpdateSubNameOfChoice('${fieldId}', '${choice}', ${si}, this.value)">
+            <button type="button" class="act-btn act-delete" style="width:28px; height:28px;" onclick="cfeRemoveSubFieldOfChoice('${fieldId}', '${choice}', ${si})"><i class="fas fa-trash"></i></button>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;">${scTags}</div>
+          <div class="cfe-add-choice">
+            <input type="text" class="form-input" id="subChoiceInp_${si}" placeholder="أضف خياراً..." style="font-size:0.75rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddSubChoiceOfChoice('${fieldId}', '${choice}', ${si});}">
+            <button type="button" class="btn btn-outline btn-xs" onclick="cfeAddSubChoiceOfChoice('${fieldId}', '${choice}', ${si})"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function cfeAddSubFieldToChoice(fid, choice) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      f.sub_fields_map[choice].push({ name: '', icon: 'fas fa-tag', choices: [] });
+      renderCfeSubFields(fid, choice);
+    }
+    function cfeUpdateSubNameOfChoice(fid, choice, si, val) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      f.sub_fields_map[choice][si].name = val;
+    }
+    function cfeRemoveSubFieldOfChoice(fid, choice, si) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      f.sub_fields_map[choice].splice(si, 1);
+      renderCfeSubFields(fid, choice);
+    }
+    function cfeAddSubChoiceOfChoice(fid, choice, si) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      const inp = document.getElementById('subChoiceInp_' + si);
+      const val = inp?.value.trim();
+      if (!val) return;
+      if (!f.sub_fields_map[choice][si].choices.includes(val)) f.sub_fields_map[choice][si].choices.push(val);
+      renderCfeSubFields(fid, choice);
+    }
+    function cfeRemoveSubChoiceOfChoice(fid, choice, si, sci) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      f.sub_fields_map[choice][si].choices.splice(sci, 1);
+      renderCfeSubFields(fid, choice);
+    }
+    function cfePickSubIconOfChoice(fid, choice, si) {
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      const popup = document.createElement('div');
+      popup.className = 'cfe-icon-picker-popup';
+      popup.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:10000;';
+      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetSubIconOfChoice('${fid}','${choice}',${si},'${ic}')"><i class="${ic}"></i></button>`).join('');
+      document.body.appendChild(popup);
+      setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', h); } }), 10);
+    }
+    function cfeSetSubIconOfChoice(fid, choice, si, icon) {
+      const f = _cfeState.fields.find(x => x._id === fid);
+      f.sub_fields_map[choice][si].icon = icon;
+      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
+      renderCfeSubFields(fid, choice);
+    }abel" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
         ${inputHtml}
       </div>`;
     }
@@ -4703,40 +4816,36 @@
       const iconsRaw = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
       _cfeState.fields = fieldNames.map((name, i) => {
         const meta = iconsRaw[name] || {};
-        // Normalise sub_fields: stored as flat array or legacy object
-        let subArr = [];
-        if (meta.type === 'sub_group') {
+        let type = meta.type || 'choices';
+        let choices = Array.isArray(meta.choices) ? [...meta.choices] : [];
+        let subFieldsMap = {}; // choice -> [ {name, icon, choices[]} ]
+
+        if (type === 'sub_group') {
           const raw = meta.sub_fields;
-          if (Array.isArray(raw)) {
-            subArr = raw.map((sf, si) => ({
-              _id: 'sf' + Date.now() + i + si,
-              name: String(sf.name || '').trim(),
-              icon: String(sf.icon || 'fas fa-tag'),
-              // Normalize choices to plain strings
-              choices: (Array.isArray(sf.choices) ? sf.choices : [])
-                .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
-                .filter(c => c !== '')
-            }));
-          } else if (raw && typeof raw === 'object') {
-            // legacy: { ChoiceVal: { SubName: { icon, choices } } }
-            const seen = new Set();
-            let si = 0;
-            Object.entries(raw).forEach(([choiceVal, subObj]) => {
-              if (subObj && typeof subObj === 'object') {
-                Object.entries(subObj).forEach(([sn, sm]) => {
-                  if (!seen.has(sn)) {
-                    seen.add(sn);
-                    subArr.push({
-                      _id: 'sf' + Date.now() + i + (si++),
-                      name: sn,
-                      icon: sm.icon || 'fas fa-tag',
-                      choices: (Array.isArray(sm.choices) ? sm.choices : [])
-                        .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
-                        .filter(c => c !== '')
-                    });
-                  }
+          if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            // New/Legacy format: { choiceVal: [ {name, icon, choices} ] or {subName: {icon, choices}} }
+            Object.entries(raw).forEach(([choiceVal, subData]) => {
+              let subArr = [];
+              if (Array.isArray(subData)) {
+                subArr = subData.map((sf, si) => ({
+                  _id: 'sf' + Date.now() + i + choiceVal + si,
+                  name: String(sf.name || '').trim(),
+                  icon: String(sf.icon || 'fas fa-tag'),
+                  choices: (Array.isArray(sf.choices) ? sf.choices : []).map(c => String(c))
+                }));
+              } else if (subData && typeof subData === 'object') {
+                // Legacy: { subName: { icon, choices } }
+                Object.entries(subData).forEach(([sn, sm], si) => {
+                  subArr.push({
+                    _id: 'sf' + Date.now() + i + choiceVal + si,
+                    name: sn,
+                    icon: sm.icon || 'fas fa-tag',
+                    choices: (Array.isArray(sm.choices) ? sm.choices : []).map(c => String(c))
+                  });
                 });
               }
+              subFieldsMap[choiceVal] = subArr;
+              if (!choices.includes(choiceVal)) choices.push(choiceVal);
             });
           }
         }
@@ -4744,12 +4853,9 @@
           _id: 'f' + Date.now() + i,
           name,
           icon: String(meta.icon || 'fas fa-tag'),
-          type: meta.type === 'sub_group' ? 'sub_group' : 'choices',
-          // Normalize choices as plain strings
-          choices: (Array.isArray(meta.choices) ? meta.choices : [])
-            .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
-            .filter(c => c !== ''),
-          sub_fields: subArr
+          type,
+          choices,
+          sub_fields_map: subFieldsMap
         };
       });
       document.getElementById('cfeModalTitle').textContent = `تعديل الحقول الإضافية: ${trip.title}`;
@@ -4831,8 +4937,7 @@
       const f = _cfeState.fields.find(x => x._id === id);
       if (!f) return;
       f.type = type;
-      if (type === 'sub_group' && !Array.isArray(f.sub_fields)) f.sub_fields = [];
-      if (type === 'choices' && !Array.isArray(f.choices)) f.choices = [];
+      if (type === 'sub_group' && !f.sub_fields_map) f.sub_fields_map = {};
       renderCfeFields();
     }
     function cfePickIcon(id) {
@@ -4942,25 +5047,24 @@
 
         const payload = {
           icon: String(f.icon || 'fas fa-tag'),
-          type: f.type || 'choices'
+          type: f.type || 'choices',
+          choices: (Array.isArray(f.choices) ? f.choices : []).filter(c => c)
         };
 
         if (f.type === 'sub_group') {
-          // Serialize sub_fields as a clean array of { name, icon, choices[] }
-          payload.sub_fields = (f.sub_fields || []).map(sf => ({
-            name: String(sf.name || '').trim(),
-            icon: String(sf.icon || 'fas fa-tag'),
-            // Ensure choices is always an array of strings, never objects
-            choices: (Array.isArray(sf.choices) ? sf.choices : [])
-              .map(c => (typeof c === 'object' ? (c.value || c.name || JSON.stringify(c)) : String(c)))
-              .filter(c => c !== '')
-          }));
-          payload.choices = []; // no top-level choices for sub_group
-        } else {
-          // Ensure choices is always an array of strings
-          payload.choices = (Array.isArray(f.choices) ? f.choices : [])
-            .map(c => (typeof c === 'object' ? (c.value || c.name || JSON.stringify(c)) : String(c)))
-            .filter(c => c !== '');
+          // Serialize sub_fields as choice -> [ {name, icon, choices} ]
+          const subMap = {};
+          f.choices.forEach(c => {
+            const subs = f.sub_fields_map[c] || [];
+            if (subs.length) {
+              subMap[c] = subs.map(sf => ({
+                name: String(sf.name || '').trim(),
+                icon: String(sf.icon || 'fas fa-tag'),
+                choices: (Array.isArray(sf.choices) ? sf.choices : []).filter(ch => ch)
+              }));
+            }
+          });
+          payload.sub_fields = subMap;
         }
 
         customFieldIcons[fieldName] = payload;
