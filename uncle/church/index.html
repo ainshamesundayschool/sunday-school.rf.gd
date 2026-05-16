@@ -1866,18 +1866,17 @@
 ═══════════════════════════════════════════════════════════════════ */
         .name-link {
             color: var(--primary);
-            font-weight: 700;
-            background: var(--primary-bg);
-            padding: 2px 9px;
-            border-radius: var(--radius-pill);
+            font-weight: 600;
             cursor: pointer;
             transition: all var(--t-fast) var(--ease);
-            font-size: 0.84rem;
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-underline-offset: 3px;
         }
 
         .name-link:hover {
-            background: var(--primary);
-            color: white;
+            color: var(--primary-dark);
+            text-decoration-color: var(--primary-dark);
         }
 
         .divider-line {
@@ -3575,6 +3574,14 @@
    RESPONSIVE — MOBILE 768px
 ═══════════════════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
+            html {
+                font-size: 12px;
+            }
+            
+            body, .main-wrapper {
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
 
             /* Layout */
             .sidebar {
