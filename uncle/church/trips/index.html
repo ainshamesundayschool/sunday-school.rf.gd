@@ -4708,7 +4708,15 @@
         if (meta.type === 'sub_group') {
           const raw = meta.sub_fields;
           if (Array.isArray(raw)) {
-            subArr = raw.map((sf, si) => ({ _id: 'sf' + Date.now() + i + si, name: sf.name || '', icon: sf.icon || 'fas fa-tag', choices: Array.isArray(sf.choices) ? [...sf.choices] : [] }));
+            subArr = raw.map((sf, si) => ({
+              _id: 'sf' + Date.now() + i + si,
+              name: String(sf.name || '').trim(),
+              icon: String(sf.icon || 'fas fa-tag'),
+              // Normalize choices to plain strings
+              choices: (Array.isArray(sf.choices) ? sf.choices : [])
+                .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
+                .filter(c => c !== '')
+            }));
           } else if (raw && typeof raw === 'object') {
             // legacy: { ChoiceVal: { SubName: { icon, choices } } }
             const seen = new Set();
@@ -4728,9 +4736,12 @@
         return {
           _id: 'f' + Date.now() + i,
           name,
-          icon: meta.icon || 'fas fa-tag',
+          icon: String(meta.icon || 'fas fa-tag'),
           type: meta.type === 'sub_group' ? 'sub_group' : 'choices',
-          choices: Array.isArray(meta.choices) ? [...meta.choices] : [],
+          // Normalize choices as plain strings
+          choices: (Array.isArray(meta.choices) ? meta.choices : [])
+            .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
+            .filter(c => c !== ''),
           sub_fields: subArr
         };
       });
@@ -4898,27 +4909,56 @@
 
     async function cfeSave() {
       const tripId = _cfeState.tripId;
-      const trip = allTripsCache.find(t => t.id == tripId);
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
       if (!trip) return;
+
       for (const f of _cfeState.fields) {
-        if (!f.name.trim()) { showToast('أدخل اسم لكل حقل', 'warning'); return; }
+        const name = typeof f.name === 'object' ? '' : String(f.name || '').trim();
+        if (!name) { showToast('أدخل اسم لكل حقل', 'warning'); return; }
         if (f.type === 'sub_group') {
           for (const sf of (f.sub_fields || [])) {
-            if (!sf.name.trim()) { showToast('أدخل اسم لكل حقل فرعي', 'warning'); return; }
+            const sfName = typeof sf.name === 'object' ? '' : String(sf.name || '').trim();
+            if (!sfName) { showToast('أدخل اسم لكل حقل فرعي', 'warning'); return; }
           }
         }
       }
-      const customFields = _cfeState.fields.map(f => f.name.trim()).join(',');
+
+      const customFields = _cfeState.fields
+        .map(f => String(f.name || '').trim())
+        .filter(n => n)
+        .join(',');
+
       const customFieldIcons = {};
       _cfeState.fields.forEach(f => {
-        const payload = { icon: f.icon, type: f.type };
+        const fieldName = String(f.name || '').trim();
+        if (!fieldName) return;
+
+        const payload = {
+          icon: String(f.icon || 'fas fa-tag'),
+          type: f.type || 'choices'
+        };
+
         if (f.type === 'sub_group') {
-          payload.sub_fields = (f.sub_fields || []).map(sf => ({ name: sf.name, icon: sf.icon, choices: sf.choices }));
+          // Serialize sub_fields as a clean array of { name, icon, choices[] }
+          payload.sub_fields = (f.sub_fields || []).map(sf => ({
+            name: String(sf.name || '').trim(),
+            icon: String(sf.icon || 'fas fa-tag'),
+            // Ensure choices is always an array of strings, never objects
+            choices: (Array.isArray(sf.choices) ? sf.choices : [])
+              .map(c => (typeof c === 'object' ? (c.value || c.name || JSON.stringify(c)) : String(c)))
+              .filter(c => c !== '')
+          }));
+          payload.choices = []; // no top-level choices for sub_group
         } else {
-          payload.choices = f.choices;
+          // Ensure choices is always an array of strings
+          payload.choices = (Array.isArray(f.choices) ? f.choices : [])
+            .map(c => (typeof c === 'object' ? (c.value || c.name || JSON.stringify(c)) : String(c)))
+            .filter(c => c !== '');
         }
-        customFieldIcons[f.name.trim()] = payload;
+
+        customFieldIcons[fieldName] = payload;
       });
+
       const fd = new FormData();
       fd.append('action', 'updateTrip'); fd.append('trip_id', tripId);
       fd.append('title', trip.title || ''); fd.append('description', trip.description || '');
@@ -4930,16 +4970,26 @@
       fd.append('has_points_game', trip.has_points_game ?? 0);
       fd.append('custom_fields', customFields);
       fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
+
       const btn = document.getElementById('cfeSaveBtn');
       btn.classList.add('btn-loading'); btn.disabled = true;
       const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       btn.classList.remove('btn-loading'); btn.disabled = false;
+
       if (res.success) {
-        trip.custom_fields = customFields; trip.custom_field_icons = customFieldIcons;
+        // Update in-memory cache with clean objects (not raw JSON strings)
+        trip.custom_fields = customFields;
+        trip.custom_field_icons = customFieldIcons;
+        if (window.currentTripObj && window.currentTripObj.id == tripId) {
+          window.currentTripObj.custom_fields = customFields;
+          window.currentTripObj.custom_field_icons = customFieldIcons;
+        }
         showToast('تم حفظ الحقول الإضافية ✅', 'success');
         closeModal('customFieldEditorModal');
         await showTripDetails(tripId);
-      } else { showToast(res.message || 'فشل في الحفظ', 'error'); }
+      } else {
+        showToast(res.message || 'فشل في الحفظ', 'error');
+      }
     }
 
 
