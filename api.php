@@ -10118,7 +10118,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     $filename = 'رحلة_' . str_replace(' ', '_', $trip['title']) . '_' . date('Y-m-d') . '.csv';
 
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
 
     $output = fopen('php://output', 'w');
     fwrite($output, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM

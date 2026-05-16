@@ -2248,10 +2248,11 @@
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      background: rgba(10,8,26,0.55);
+      background: rgba(10, 8, 26, 0.55);
       backdrop-filter: blur(6px);
       animation: fadeIn .2s var(--ease-out);
     }
+
     .kid-overview-box {
       background: white;
       border-radius: 20px 20px 0 0;
@@ -2260,25 +2261,39 @@
       max-height: 80vh;
       overflow-y: auto;
       padding: 20px 20px 30px;
-      animation: slideUp .3s var(--ease-spring);
+      animation: slideUp .3s var(--ease);
     }
+
     .kid-overview-header {
       display: flex;
       align-items: center;
       gap: 14px;
       margin-bottom: 18px;
     }
+
     .kid-ov-avatar {
-      width: 52px; height: 52px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: var(--primary-light);
       color: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; font-weight: 800;
-      flex-shrink: 0; overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      overflow: hidden;
       border: 2px solid var(--primary);
     }
-    .kid-ov-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+
+    .kid-ov-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
     .kid-overview-row {
       display: flex;
       justify-content: space-between;
@@ -2287,21 +2302,56 @@
       border-bottom: 1px solid var(--border);
       font-size: 0.88rem;
     }
-    .kid-overview-row:last-child { border-bottom: none; }
-    .kid-overview-row .ov-label { color: var(--muted); font-size: 0.78rem; }
-    .kid-overview-row .ov-val { font-weight: 700; }
+
+    .kid-overview-row:last-child {
+      border-bottom: none;
+    }
+
+    .kid-overview-row .ov-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .kid-overview-row .ov-val {
+      font-weight: 700;
+    }
+
     .kid-ov-progress {
-      height: 7px; background: var(--border);
-      border-radius: 99px; overflow: hidden; margin-top: 6px;
+      height: 7px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 6px;
     }
-    .kid-ov-progress-fill { height:100%; border-radius:99px; transition: width .6s; }
+
+    .kid-ov-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s;
+    }
+
     .kid-ov-actions {
-      display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
     }
-    .kid-ov-actions .btn { flex: 1; min-width: 100px; }
+
+    .kid-ov-actions .btn {
+      flex: 1;
+      min-width: 100px;
+    }
+
     @keyframes slideUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     /* ── TRIP ACTIONS GRID ───────────────────────────────────────── */
@@ -2311,6 +2361,7 @@
       gap: 8px;
       margin-top: 16px;
     }
+
     .trip-action-btn {
       display: flex;
       flex-direction: column;
@@ -2331,14 +2382,19 @@
       text-decoration: none;
       line-height: 1.2;
     }
+
     .trip-action-btn i {
       font-size: 1.1rem;
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: var(--bg);
       transition: all var(--t-fast) var(--ease);
     }
+
     .trip-action-btn:hover {
       border-color: var(--primary);
       background: var(--primary-light);
@@ -2346,20 +2402,67 @@
       transform: translateY(-2px);
       box-shadow: var(--shadow-sm);
     }
-    .trip-action-btn:hover i { background: rgba(79,70,229,0.12); color: var(--primary); }
-    .trip-action-btn.primary i { background: var(--primary); color: white; }
-    .trip-action-btn.primary { border-color: var(--primary); color: var(--primary); }
-    .trip-action-btn.primary:hover i { filter: brightness(1.1); }
-    .trip-action-btn.danger { color: var(--danger); border-color: var(--danger-mid); }
-    .trip-action-btn.danger i { background: var(--danger-light); color: var(--danger); }
-    .trip-action-btn.danger:hover { background: var(--danger-light); border-color: var(--danger); }
-    .trip-action-btn.success { color: var(--success); border-color: var(--success-mid); }
-    .trip-action-btn.success i { background: var(--success-light); color: var(--success); }
-    .trip-action-btn.success:hover { background: var(--success-light); border-color: var(--success); }
+
+    .trip-action-btn:hover i {
+      background: rgba(79, 70, 229, 0.12);
+      color: var(--primary);
+    }
+
+    .trip-action-btn.primary i {
+      background: var(--primary);
+      color: white;
+    }
+
+    .trip-action-btn.primary {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .trip-action-btn.primary:hover i {
+      filter: brightness(1.1);
+    }
+
+    .trip-action-btn.danger {
+      color: var(--danger);
+      border-color: var(--danger-mid);
+    }
+
+    .trip-action-btn.danger i {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .trip-action-btn.danger:hover {
+      background: var(--danger-light);
+      border-color: var(--danger);
+    }
+
+    .trip-action-btn.success {
+      color: var(--success);
+      border-color: var(--success-mid);
+    }
+
+    .trip-action-btn.success i {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .trip-action-btn.success:hover {
+      background: var(--success-light);
+      border-color: var(--success);
+    }
 
     @media (max-width: 768px) {
-      html { font-size: 12px; }
-      body, .modal-box { max-width: 100vw; overflow-x: hidden; }
+      html {
+        font-size: 12px;
+      }
+
+      body,
+      .modal-box {
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+
       .main-content {
         padding: 14px 12px;
       }
@@ -2491,8 +2594,13 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     .modal-box {
@@ -2518,8 +2626,13 @@
       animation: fadeIn 0.22s var(--ease-out);
     }
 
-    .modal-box.wide { max-width: 680px !important; }
-    .modal-box.xl   { max-width: 860px !important; }
+    .modal-box.wide {
+      max-width: 680px !important;
+    }
+
+    .modal-box.xl {
+      max-width: 860px !important;
+    }
 
     .modal-body {
       overflow-y: auto;
@@ -3161,6 +3274,7 @@
     function escHtml(s = '') { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
 
     function renderTripDetailsFull(trip) {
+      window.currentTripObj = trip;
       const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
       const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
       const regs = trip.registrations || [];
@@ -3238,7 +3352,7 @@
           </button>
           ${(trip.custom_fields && trip.custom_fields.trim()) ? `
           <button class="trip-action-btn" onclick="openBulkCustomDataModal(${trip.id})">
-            <i class="fas fa-table"></i>تحديث CSV
+            <i class="fas fa-table"></i>تعديل البيانات الإضافية
           </button>` : ''}
           ${trip.has_points_game == 1 ? `
           <a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="trip-action-btn" style="background:linear-gradient(135deg,#5b6cf5,#818cf8);color:white;border-color:#5b6cf5;">
@@ -3268,8 +3382,8 @@
           const pct = totalPerKid > 0 ? Math.min(100, Math.round(paid / totalPerKid * 100)) : 0;
           const initials = (r.student_name || '؟').charAt(0);
           const img = r.student_image || r.image_url || r['صورة'] || r.photo || '';
-          const regJson = JSON.stringify({id:r.id,student_name:r.student_name,student_class:r.student_class,student_image:r.student_image||r.image_url||r['صورة']||r.photo||'',total_paid:r.total_paid,total_donation:r.total_donation});
-          return `<div class="reg-row" style="cursor:pointer;" onclick="showKidOverview(this)" data-reg='${regJson.replace(/'/g,"&#39;")}' data-total="${totalPerKid}" data-trip="${trip.id}">
+          const regJson = JSON.stringify({ id: r.id, student_name: r.student_name, student_class: r.student_class, student_image: r.student_image || r.image_url || r['صورة'] || r.photo || '', total_paid: r.total_paid, total_donation: r.total_donation });
+          return `<div class="reg-row" style="cursor:pointer;" onclick="showKidOverview(this)" data-reg='${regJson.replace(/'/g, "&#39;")}' data-total="${totalPerKid}" data-trip="${trip.id}">
                   <div class="reg-ava" style="border:2px solid ${col}33;">${img ? `<img src="${img}" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">${initials}</span>` : `<span class="reg-ava-fallback">${initials}</span>`}</div>
                   <div class="reg-info" style="flex:1;min-width:0;">
                     <strong style="font-size:0.9rem;">${escHtml(r.student_name)}</strong>
@@ -4481,12 +4595,18 @@
     }
 
     function openBulkCustomDataModal(tripId) {
-      const trip = allTripsCache.find(t => t.id == tripId);
-      const regs = tripRegistrationsCache[tripId] || [];
+      const trip = allTripsCache.find(t => t.id == tripId) || (window.currentTripId == tripId ? window.currentTripObj : null);
+      let regs = tripRegistrationsCache[tripId];
+      if (!regs && trip && trip.registrations) regs = trip.registrations;
+      regs = regs || [];
+
       const fields = parseCustomFieldsString(trip?.custom_fields);
-      if (!trip || !fields.length) return;
+      if (!trip || !fields.length) {
+        showToast?.('لا توجد حقول إضافية لهذه الرحلة', 'info');
+        return;
+      }
       document.getElementById('bulkCustomDataTripId').value = tripId;
-      document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
+      document.getElementById('bulkCustomDataHeader').textContent = `تحديث البيانات الإضافية: ${trip.title}`;
       document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
       document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
       openModal('bulkCustomDataModal');
