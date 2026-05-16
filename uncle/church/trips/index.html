@@ -3379,7 +3379,7 @@
           const pct = totalPerKid > 0 ? Math.min(100, Math.round(paid / totalPerKid * 100)) : 0;
           const initials = (r.student_name || '؟').charAt(0);
           const img = r.student_image || r.image_url || r['صورة'] || r.photo || '';
-          const regJson = JSON.stringify({ id: r.id, student_name: r.student_name, student_class: r.student_class, student_image: r.student_image || r.image_url || r['صورة'] || r.photo || '', total_paid: r.total_paid, total_donation: r.total_donation });
+          const regJson = JSON.stringify({ id: r.id, student_name: r.student_name, student_class: r.student_class, student_image: r.student_image || r.image_url || r['صورة'] || r.photo || '', total_paid: r.total_paid, total_donation: r.total_donation, custom_data: r.custom_data });
           return `<div class="reg-row" style="cursor:pointer;" onclick="showKidOverview(this)" data-reg='${regJson.replace(/'/g, "&#39;")}' data-total="${totalPerKid}" data-trip="${trip.id}">
                   <div class="reg-ava" style="border:2px solid ${col}33;">${img ? `<img src="${img}" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">${initials}</span>` : `<span class="reg-ava-fallback">${initials}</span>`}</div>
                   <div class="reg-info" style="flex:1;min-width:0;">
@@ -3565,6 +3565,7 @@
           <div class="kid-overview-row"><span class="ov-label">المدفوع</span><span class="ov-val" style="color:var(--success);">${Math.round(paid)} ج</span></div>
           <div class="kid-overview-row"><span class="ov-label">المتبقي</span><span class="ov-val" style="color:var(--danger);">${Math.round(remaining)} ج</span></div>
           ${donation > 0 ? `<div class="kid-overview-row"><span class="ov-label">التبرع</span><span class="ov-val" style="color:#e11d48;">${Math.round(donation)} ج</span></div>` : ''}
+          <div id="kidOvCustomData"></div>
           <div style="margin-top:10px;">
             <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">${pct}% مدفوع</div>
             <div class="kid-ov-progress"><div class="kid-ov-progress-fill" style="width:${pct}%;background:${col};"></div></div>
@@ -3577,6 +3578,35 @@
           </div>
         </div>`;
       document.body.appendChild(panel);
+
+      // Render custom data
+      let customData = {};
+      try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+      const icons = (tripId && allTripsCache.find(t => t.id == tripId)?.custom_field_icons) || window.currentTripObj?.custom_field_icons || {};
+      let customHtml = '';
+      Object.entries(customData).forEach(([key, val]) => {
+        if (key.includes('__sf__')) return;
+        const meta = icons[key] || {};
+        const icon = meta.icon || 'fas fa-tag';
+        customHtml += `<div class="kid-overview-row"><span class="ov-label"><i class="${icon}"></i> ${escHtml(key)}</span><span class="ov-val">${escHtml(val)}</span></div>`;
+        if (meta.type === 'sub_group' && meta.sub_fields && meta.sub_fields[val]) {
+          let subs = meta.sub_fields[val];
+          if (subs && typeof subs === 'object' && !Array.isArray(subs)) {
+            subs = Object.entries(subs).map(([n, m]) => ({ name: n, ...m }));
+          }
+          if (Array.isArray(subs)) {
+            subs.forEach(sf => {
+              const sfKey = key + '__sf__' + sf.name;
+              const sfVal = customData[sfKey];
+              if (sfVal) {
+                customHtml += `<div class="kid-overview-row" style="padding-right:15px; font-size:0.8rem; border-right:2px solid var(--primary-light); margin-right:5px; background:rgba(0,0,0,0.02);"><span class="ov-label"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</span><span class="ov-val">${escHtml(sfVal)}</span></div>`;
+              }
+            });
+          }
+        }
+      });
+      const cDiv = document.getElementById('kidOvCustomData');
+      if (cDiv) cDiv.innerHTML = customHtml;
     }
   </script>
 
@@ -4463,13 +4493,27 @@
       const allColumns = [];
       fields.forEach(field => {
         const meta = icons[field] || {};
-        if (meta.type === 'sub_group') {
-          const subFields = Array.isArray(meta.sub_fields) ? meta.sub_fields : [];
-          subFields.forEach(sf => {
-            allColumns.push({ field: field + '__sf__' + sf.name, label: field + ' → ' + sf.name, meta: sf, isGroup: true });
+        // Always add the parent field itself
+        allColumns.push({ field, label: field, meta, isGroup: false });
+
+        if (meta.type === 'sub_group' && meta.sub_fields && typeof meta.sub_fields === 'object') {
+          // Choice-based sub-fields: collect unique sub-fields across all choices
+          const subFieldNames = new Set();
+          Object.values(meta.sub_fields).forEach(choiceSubs => {
+            if (Array.isArray(choiceSubs)) {
+              choiceSubs.forEach(sf => {
+                if (!subFieldNames.has(sf.name)) {
+                  subFieldNames.add(sf.name);
+                  allColumns.push({ 
+                    field: field + '__sf__' + sf.name, 
+                    label: field + ' → ' + sf.name, 
+                    meta: sf, 
+                    isGroup: true 
+                  });
+                }
+              });
+            }
           });
-        } else {
-          allColumns.push({ field, label: field, meta, isGroup: false });
         }
       });
       return allColumns;
@@ -4641,7 +4685,10 @@
       const meta = icons[fieldName] || {};
       if (meta.type !== 'sub_group') return;
 
-      const subFields = meta.sub_fields && meta.sub_fields[val] ? meta.sub_fields[val] : [];
+      let subFields = meta.sub_fields && meta.sub_fields[val] ? meta.sub_fields[val] : [];
+      if (subFields && typeof subFields === 'object' && !Array.isArray(subFields)) {
+        subFields = Object.entries(subFields).map(([n, m]) => ({ name: n, ...m }));
+      }
       if (!Array.isArray(subFields)) return;
 
       subWrap.innerHTML = subFields.map(sf => {
@@ -4661,9 +4708,26 @@
       }).join('');
     }
 
+    function renderRegisterCustomFields(tripId) {
+      const section = document.getElementById('registerCustomFieldsSection');
+      if (!section) return;
+      section.innerHTML = '';
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      if (!trip) return;
+      const fieldNames = parseCustomFieldsString(trip.custom_fields);
+      const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      if (!fieldNames.length) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      fieldNames.forEach(name => {
+        const meta = icons[name] || {};
+        section.innerHTML += renderRegisterField(name, meta, '');
+      });
+    }
+
     function collectRegisterCustomData() {
       const data = {};
-      document.querySelectorAll('#registerCustomFieldsSection [name^="cf_"]').forEach(el => {
+      document.querySelectorAll('#registerCustomFieldsSection select, #registerCustomFieldsSection input').forEach(el => {
+        if (!el.name.startsWith('cf_')) return;
         const key = el.name.replace(/^cf_/, '');
         const val = el.value.trim();
         if (val) data[key] = val;
@@ -4802,15 +4866,7 @@
       renderCfeSubFields(fid, choice);
     }
 
-    function collectRegisterCustomData() {
-      const data = {};
-      document.querySelectorAll('#registerCustomFieldsSection [name^="cf_"]').forEach(el => {
-        const key = el.name.replace(/^cf_/, '');
-        const val = el.value.trim();
-        if (val) data[key] = val;
-      });
-      return data;
-    }
+
 
     // ─── Custom Field Editor Modal ────────────────────────────────────────────────
     let _cfeState = { tripId: null, fields: [] };
