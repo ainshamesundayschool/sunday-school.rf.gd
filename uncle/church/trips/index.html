@@ -2240,7 +2240,82 @@
       }
     }
 
+    /* ── KID OVERVIEW PANEL ─────────────────────────────────────── */
+    .kid-overview-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 2100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(10,8,26,0.55);
+      backdrop-filter: blur(6px);
+      animation: fadeIn .2s var(--ease-out);
+    }
+    .kid-overview-box {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 520px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 20px 20px 30px;
+      animation: slideUp .3s var(--ease-spring);
+    }
+    .kid-overview-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .kid-ov-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 800;
+      flex-shrink: 0; overflow: hidden;
+      border: 2px solid var(--primary);
+    }
+    .kid-ov-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .kid-overview-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .kid-overview-row:last-child { border-bottom: none; }
+    .kid-overview-row .ov-label { color: var(--muted); font-size: 0.78rem; }
+    .kid-overview-row .ov-val { font-weight: 700; }
+    .kid-ov-progress {
+      height: 7px; background: var(--border);
+      border-radius: 99px; overflow: hidden; margin-top: 6px;
+    }
+    .kid-ov-progress-fill { height:100%; border-radius:99px; transition: width .6s; }
+    .kid-ov-actions {
+      display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+    }
+    .kid-ov-actions .btn { flex: 1; min-width: 100px; }
+    @keyframes slideUp {
+      from { transform: translateY(60px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ── TRIP ACTIONS GROUPED ────────────────────────────────────── */
+    .trip-action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .trip-action-group .btn { flex: 0 0 auto; }
+
     @media (max-width: 768px) {
+      html { font-size: 12px; }
+      body, .modal-box { max-width: 100vw; overflow-x: hidden; }
       .main-content {
         padding: 14px 12px;
       }
@@ -3114,19 +3189,19 @@
             <div class="info-box"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
         </div>
         ${trip.description ? `<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>` : ''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal?.(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
-            <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
-            <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
-            <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل في لوحة الكنيسة</button>
-            <button class="btn btn-outline btn-sm" onclick="openCustomFieldEditor(${trip.id})" style="background:#f0f4ff;color:#4f46e5;border-color:#c7d2fe;"><i class="fas fa-sliders-h"></i> تعديل الحقول الإضافية</button>
-            <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
-            ${(trip.custom_fields && trip.custom_fields.trim()) ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث حقول إضافية</button>
-            <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
-            <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>` : ''}
-            <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
-            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>
-            <button class="btn btn-outline btn-sm" onclick="printQRCards(${trip.id})" style="background:#10b981;color:white;border-color:#10b981;"><i class="fas fa-print"></i> طباعة كروت QR</button>` : ''}
+        <div class="trip-action-group">
+          <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal?.(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> المصروفات</button>
+        </div>
+        <div class="trip-action-group" style="margin-top:8px;">
+          <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل</button>
+          <button class="btn btn-outline btn-sm" onclick="openCustomFieldEditor(${trip.id})" style="background:#f0f4ff;color:#4f46e5;border-color:#c7d2fe;"><i class="fas fa-sliders-h"></i> الحقول الإضافية</button>
+          <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير</button>
+          ${(trip.custom_fields && trip.custom_fields.trim()) ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث CSV</button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
+          ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> المسابقة</a>
+          <button class="btn btn-outline btn-sm" onclick="printQRCards(${trip.id})" style="background:#10b981;color:white;border-color:#10b981;"><i class="fas fa-print"></i> طباعة QR</button>` : ''}
         </div>`;
 
       const pm = { paid: ['var(--success)', 'مدفوع بالكامل'], partial: ['var(--warning)', 'جزئي'], pending: ['var(--danger)', 'غير مدفوع'] };
@@ -3148,7 +3223,8 @@
           const pct = totalPerKid > 0 ? Math.min(100, Math.round(paid / totalPerKid * 100)) : 0;
           const initials = (r.student_name || '؟').charAt(0);
           const img = r.student_image || r.image_url || r['صورة'] || r.photo || '';
-          return `<div class="reg-row">
+          const regJson = JSON.stringify({id:r.id,student_name:r.student_name,student_class:r.student_class,student_image:r.student_image||r.image_url||r['صورة']||r.photo||'',total_paid:r.total_paid,total_donation:r.total_donation});
+          return `<div class="reg-row" style="cursor:pointer;" onclick="showKidOverview(this)" data-reg='${regJson.replace(/'/g,"&#39;")}' data-total="${totalPerKid}" data-trip="${trip.id}">
                   <div class="reg-ava" style="border:2px solid ${col}33;">${img ? `<img src="${img}" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'" style="width:100%;height:100%;object-fit:cover;"><span class="reg-ava-fallback">${initials}</span>` : `<span class="reg-ava-fallback">${initials}</span>`}</div>
                   <div class="reg-info" style="flex:1;min-width:0;">
                     <strong style="font-size:0.9rem;">${escHtml(r.student_name)}</strong>
@@ -3158,18 +3234,12 @@
                       <span style="font-size:0.65rem;color:${col};font-weight:700;">${pct}%</span>
                     </div>
                   </div>
-                  <div style="text-align:left;flex-shrink:0;min-width:80px;">
-                    <div style="font-size:0.75rem;color:var(--muted);">المطلوب: <strong style="color:var(--primary);">${totalPerKid} ج</strong></div>
+                  <div style="text-align:left;flex-shrink:0;">
                     <div style="font-size:0.88rem;font-weight:800;color:var(--success);">${Math.round(paid)} ج</div>
                     <div style="font-size:0.72rem;color:var(--danger);">متبقي: ${Math.round(remaining)} ج</div>
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                   </div>
-                  <div style="display:flex;gap:5px;flex-shrink:0;">
-                    <button class="act-btn act-history" title="سجل الدفعات" onclick="showPaymentHistoryModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-history"></i></button>
-                    <button class="act-btn act-pay" title="إضافة دفعة" onclick="showAddPaymentModal(${r.id},&quot;${escHtml(r.student_name)}&quot;,${totalPerKid},${paid})"><i class="fas fa-money-bill"></i></button>
-                    <button class="act-btn act-donate" title="إضافة تبرع" onclick="showAddDonationModal(${r.id},&quot;${escHtml(r.student_name)}&quot;)"><i class="fas fa-heart"></i></button>
-                    <button class="act-btn act-delete" title="إلغاء التسجيل" onclick="cancelRegistration(${r.id},${trip.id})"><i class="fas fa-times"></i></button>
-                  </div>
+                  <i class="fas fa-chevron-left" style="color:var(--muted);font-size:0.75rem;flex-shrink:0;"></i>
                 </div>`;
         }).join('')}
             </div>`
@@ -3307,6 +3377,51 @@
       if (tripId && tripId !== window.currentTripId) showTripDetails(tripId);
       else if (tripId) switchTripTab(getSelectedTripTab(), false);
     });
+
+    function showKidOverview(el) {
+      const r = JSON.parse(el.dataset.reg);
+      const totalPerKid = parseFloat(el.dataset.total) || 0;
+      const tripId = parseInt(el.dataset.trip) || window.currentTripId;
+      const paid = parseFloat(r.total_paid) || 0;
+      const remaining = Math.max(0, totalPerKid - paid);
+      const pct = totalPerKid > 0 ? Math.min(100, Math.round(paid / totalPerKid * 100)) : 0;
+      const status = remaining < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending');
+      const col = { paid: 'var(--success)', partial: 'var(--warning)', pending: 'var(--danger)' }[status];
+      const lbl = { paid: 'مدفوع بالكامل', partial: 'جزئي', pending: 'غير مدفوع' }[status];
+      const img = r.student_image || '';
+      const initials = (r.student_name || '؟').charAt(0);
+      const donation = parseFloat(r.total_donation) || 0;
+      const panel = document.createElement('div');
+      panel.className = 'kid-overview-panel';
+      panel.onclick = (e) => { if (e.target === panel) panel.remove(); };
+      panel.innerHTML = `
+        <div class="kid-overview-box">
+          <div class="kid-overview-header">
+            <div class="kid-ov-avatar">${img ? `<img src="${img}">` : initials}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:1rem;font-weight:800;color:var(--text);">${escHtml(r.student_name)}</div>
+              <div style="font-size:0.78rem;color:var(--muted);">${escHtml(r.student_class || '—')}</div>
+            </div>
+            <button onclick="this.closest('.kid-overview-panel').remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:4px 8px;"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="kid-overview-row"><span class="ov-label">الحالة</span><span class="ov-val" style="color:${col};">${lbl}</span></div>
+          <div class="kid-overview-row"><span class="ov-label">المطلوب</span><span class="ov-val" style="color:var(--primary);">${totalPerKid} ج</span></div>
+          <div class="kid-overview-row"><span class="ov-label">المدفوع</span><span class="ov-val" style="color:var(--success);">${Math.round(paid)} ج</span></div>
+          <div class="kid-overview-row"><span class="ov-label">المتبقي</span><span class="ov-val" style="color:var(--danger);">${Math.round(remaining)} ج</span></div>
+          ${donation > 0 ? `<div class="kid-overview-row"><span class="ov-label">التبرع</span><span class="ov-val" style="color:#e11d48;">${Math.round(donation)} ج</span></div>` : ''}
+          <div style="margin-top:10px;">
+            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">${pct}% مدفوع</div>
+            <div class="kid-ov-progress"><div class="kid-ov-progress-fill" style="width:${pct}%;background:${col};"></div></div>
+          </div>
+          <div class="kid-ov-actions">
+            <button class="btn btn-success btn-sm" onclick="this.closest('.kid-overview-panel').remove(); showAddPaymentModal(${r.id},'${escHtml(r.student_name)}',${totalPerKid},${paid})"><i class="fas fa-money-bill"></i> دفعة</button>
+            <button class="btn btn-outline btn-sm" onclick="this.closest('.kid-overview-panel').remove(); showPaymentHistoryModal(${r.id},'${escHtml(r.student_name)}')"><i class="fas fa-history"></i> السجل</button>
+            <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="this.closest('.kid-overview-panel').remove(); showAddDonationModal(${r.id},'${escHtml(r.student_name)}')"><i class="fas fa-heart"></i> تبرع</button>
+            <button class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="if(confirm('إلغاء تسجيل هذا الطفل؟')){this.closest('.kid-overview-panel').remove(); cancelRegistration(${r.id},${tripId});}"><i class="fas fa-user-times"></i> إلغاء</button>
+          </div>
+        </div>`;
+      document.body.appendChild(panel);
+    }
   </script>
 
   <!-- Auxiliary modals copied from canonical dashboard -->
