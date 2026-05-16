@@ -4550,6 +4550,21 @@
       reader.readAsText(file);
     }
 
+    function openBulkCustomDataModal(tripId) {
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      const regs = tripRegistrationsCache[tripId] || [];
+      const fields = parseCustomFieldsString(trip?.custom_fields);
+      if (!trip || !fields.length) return;
+
+      document.getElementById('bulkCustomDataTripId').value = tripId;
+      document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
+      document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+
+      document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
+
+      openModal('bulkCustomDataModal');
+    }
+
     function buildBulkCustomDataTable(trip, regs, fields) {
       if (!regs.length) {
         return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
