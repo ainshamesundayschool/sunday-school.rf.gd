@@ -3227,8 +3227,10 @@
         }
       }
       else {
-        document.getElementById('standaloneTripSummary').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${tripResp.message || 'فشل في تحميل الرحلة'}</h3></div>`;
-        document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+        const sumDiv = document.getElementById('standaloneTripSummary');
+        if (sumDiv) sumDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${tripResp.message || 'فشل في تحميل الرحلة'}</h3></div>`;
+        const infoDiv = document.getElementById('tripInfoContent');
+        if (infoDiv) infoDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
       }
     }
 

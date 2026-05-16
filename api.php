@@ -8513,10 +8513,11 @@ function addTrip()
                                         'icon'    => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
                                         'type'    => strip_tags(trim($subMeta['type'] ?? 'choices')),
                                         'choices' => array_values(array_filter(
-                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($subMeta['choices'] ?? null) ? $sf['choices'] : []),
+                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
                                             function($c){ return $c !== ''; }
                                         )),
                                     ];
+                                }
                             }
                         }
                         if (!empty($cleanSubFields)) {
@@ -9063,9 +9064,9 @@ function getTripDetails()
         $trip['registrations'] = $registrations;
         $trip['stats'] = [
             'registered' => count($registrations),
-            'paid_count' => count(array_filter($registrations, fn($r) => $r['payment_status'] === 'paid')),
-            'partial_count' => count(array_filter($registrations, fn($r) => $r['payment_status'] === 'partial')),
-            'pending_count' => count(array_filter($registrations, fn($r) => $r['payment_status'] === 'pending')),
+            'paid_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'paid'; })),
+            'partial_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'partial'; })),
+            'pending_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'pending'; })),
             'total_collected' => $totalPaid,
             'total_donations' => $totalDonations,
             'pending_amount' => $pendingAmount
