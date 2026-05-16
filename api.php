@@ -10016,19 +10016,20 @@ function exportTripData()
             }
         }
 
-        // بيانات المسجلين
+        // بيانات المسجلين مع إجمالي الدفعات والتبرعات (مجمعة لكل طفل)
         $regStmt = $conn->prepare("
-            SELECT 
+            SELECT
                 s.name as student_name,
                 s.class as student_class,
                 s.phone as student_phone,
                 s.emergency_phone,
                 s.medical_notes,
+                tr.id as reg_id,
                 tr.registration_date,
-                tr.deposit,
                 tr.notes,
                 tr.custom_data,
-                (SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0) as total_paid,
+                COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
+                COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
                 u.name as registered_by_name
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
@@ -10042,13 +10043,16 @@ function exportTripData()
 
         $registrations = [];
         while ($row = $regResult->fetch_assoc()) {
-            $row['total_paid'] = floatval($row['total_paid'] ?? 0);
-            $row['remaining'] = max(0, $finalPrice - $row['total_paid']);
-            $row['payment_status'] = $row['remaining'] == 0 ? 'مدفوع بالكامل' : ($row['total_paid'] > 0 ? 'مدفوع جزئياً' : 'غير مدفوع');
+            $row['total_paid']     = floatval($row['total_paid']);
+            $row['total_donation'] = floatval($row['total_donation']);
+            $row['remaining']      = max(0, $finalPrice - $row['total_paid']);
+            $row['payment_status'] = $row['remaining'] == 0
+                ? 'مدفوع بالكامل'
+                : ($row['total_paid'] > 0 ? 'مدفوع جزئياً' : 'غير مدفوع');
             $registrations[] = $row;
         }
 
-        // بيانات المدفوعات
+        // سجل الدفعات التفصيلي (كل دفعة على حدة — بدون مكررات)
         $payStmt = $conn->prepare("
             SELECT
                 s.name as student_name,
@@ -10074,8 +10078,30 @@ function exportTripData()
             $payments[] = $row;
         }
 
+        // قائمة الانتظار
+        $waitlist = [];
+        try {
+            ensureWaitlistTable($conn);
+            $wStmt = $conn->prepare("
+                SELECT tw.position, tw.notes, tw.deposit, tw.added_at,
+                       s.name as student_name, s.class as student_class, s.phone as student_phone,
+                       u.name as added_by_name
+                FROM trip_waitlist tw
+                JOIN students s ON s.id = tw.student_id
+                LEFT JOIN uncles u ON u.id = tw.added_by
+                WHERE tw.trip_id = ?
+                ORDER BY tw.position ASC
+            ");
+            $wStmt->bind_param("i", $tripId);
+            $wStmt->execute();
+            $wResult = $wStmt->get_result();
+            while ($row = $wResult->fetch_assoc()) {
+                $waitlist[] = $row;
+            }
+        } catch (Exception $we) { /* ignore if waitlist table missing */ }
+
         if ($format === 'csv') {
-            exportTripToCSV($trip, $finalPrice, $registrations, $payments);
+            exportTripToCSV($trip, $finalPrice, $registrations, $payments, $waitlist);
         } else {
             exportTripToPDF($trip, $finalPrice, $registrations, $payments);
         }
@@ -10087,7 +10113,7 @@ function exportTripData()
 }
 
 
-function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
+function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $waitlist = [])
 {
     $filename = 'رحلة_' . str_replace(' ', '_', $trip['title']) . '_' . date('Y-m-d') . '.csv';
 
@@ -10097,13 +10123,13 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
     $output = fopen('php://output', 'w');
     fwrite($output, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
 
-    // معلومات الرحلة
+    // ─── معلومات الرحلة ───────────────────────────────────────────────────────
     fputcsv($output, ['معلومات الرحلة']);
     fputcsv($output, ['العنوان', $trip['title']]);
     fputcsv($output, ['الوصف', $trip['description'] ?? '']);
     fputcsv($output, ['النوع', $trip['type'] === 'one_day' ? 'يوم واحد' : 'عدة أيام']);
     fputcsv($output, ['تاريخ البدء', date('d/m/Y', strtotime($trip['start_date']))]);
-    if ($trip['end_date']) {
+    if (!empty($trip['end_date'])) {
         fputcsv($output, ['تاريخ الانتهاء', date('d/m/Y', strtotime($trip['end_date']))]);
     }
     fputcsv($output, ['السعر الأصلي', $trip['price'] . ' جنيه']);
@@ -10116,9 +10142,8 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
     fputcsv($output, ['الحالة', $trip['status']]);
     fputcsv($output, ['']);
 
-    // ── Build custom field column map ─────────────────────────────────────────
-    // We need an ordered list of: [ storageKey => displayLabel ]
-    $customColumns = []; // [ ['key' => ..., 'label' => ...] ]
+    // ─── بناء أعمدة الحقول الإضافية ─────────────────────────────────────────
+    $customColumns = [];
     $fieldIconsMeta = [];
     if (!empty($trip['custom_field_icons'])) {
         $decoded = is_array($trip['custom_field_icons'])
@@ -10128,22 +10153,17 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
             $fieldIconsMeta = $decoded;
         }
     }
-    // Also fall back to plain custom_fields string if no icons meta
     $plainFields = [];
     if (!empty($trip['custom_fields'])) {
-        $plainFields = array_filter(array_map('trim', explode(',', $trip['custom_fields'])), function ($f) {
-            return $f !== '';
-        });
+        $plainFields = array_filter(array_map('trim', explode(',', $trip['custom_fields'])), fn($f) => $f !== '');
     }
     $processedFields = !empty($fieldIconsMeta) ? array_keys($fieldIconsMeta) : $plainFields;
     foreach ($processedFields as $fieldName) {
         $customColumns[] = ['key' => $fieldName, 'label' => $fieldName];
-        // Add sub-field columns
         $meta = $fieldIconsMeta[$fieldName] ?? [];
         if (!empty($meta['sub_fields']) && is_array($meta['sub_fields'])) {
             foreach ($meta['sub_fields'] as $choiceVal => $subObj) {
-                if (!is_array($subObj))
-                    continue;
+                if (!is_array($subObj)) continue;
                 foreach ($subObj as $subName => $subMeta) {
                     $storageKey = $fieldName . '__sub__' . $choiceVal . '__' . $subName;
                     $label = $fieldName . ' (' . $choiceVal . ') → ' . $subName;
@@ -10153,32 +10173,22 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
         }
     }
 
-    // ── Header row ────────────────────────────────────────────────────────────
+    // ─── قسم المسجلون ─────────────────────────────────────────────────────────
+    fputcsv($output, ['قائمة المسجلين (' . count($registrations) . ')']);
     $headerRow = [
-        '#',
-        'اسم الطفل',
-        'الفصل',
-        'رقم الهاتف',
-        'هاتف الطوارئ',
-        'ملاحظات طبية',
-        'تاريخ التسجيل',
-        'المدفوع',
-        'المتبقي',
-        'الحالة',
-        'ملاحظات'
+        '#', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية',
+        'تاريخ التسجيل', 'المدفوع', 'التبرع', 'المتبقي', 'الحالة', 'ملاحظات'
     ];
     foreach ($customColumns as $col) {
         $headerRow[] = $col['label'];
     }
     fputcsv($output, $headerRow);
 
-    // ── Data rows ─────────────────────────────────────────────────────────────
     foreach ($registrations as $index => $reg) {
         $customData = [];
         if (!empty($reg['custom_data'])) {
             $parsed = json_decode($reg['custom_data'], true);
-            if (is_array($parsed))
-                $customData = $parsed;
+            if (is_array($parsed)) $customData = $parsed;
         }
         $row = [
             $index + 1,
@@ -10188,8 +10198,9 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
             $reg['emergency_phone'] ?? '',
             $reg['medical_notes'] ?? '',
             date('d/m/Y H:i', strtotime($reg['registration_date'])),
-            $reg['total_paid'] . ' جنيه',
-            $reg['remaining'] . ' جنيه',
+            round($reg['total_paid'], 2) . ' جنيه',
+            round($reg['total_donation'] ?? 0, 2) . ' جنيه',
+            round($reg['remaining'], 2) . ' جنيه',
             $reg['payment_status'],
             $reg['notes'] ?? ''
         ];
@@ -10199,33 +10210,61 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
         fputcsv($output, $row);
     }
 
-    // إحصائيات
-    $totalPaid = array_sum(array_column($registrations, 'total_paid'));
+    // ─── إحصائيات الملخص ─────────────────────────────────────────────────────
+    $totalPaid      = array_sum(array_column($registrations, 'total_paid'));
+    $totalDonation  = array_sum(array_column($registrations, 'total_donation'));
     $totalRemaining = array_sum(array_column($registrations, 'remaining'));
+    $totalExpected  = $totalPaid + $totalRemaining;
+    $paidCount      = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع بالكامل'));
+    $partialCount   = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع جزئياً'));
+    $pendingCount   = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'غير مدفوع'));
 
     fputcsv($output, ['']);
-    fputcsv($output, ['إحصائيات']);
-    fputcsv($output, ['إجمالي المسجلين', count($registrations)]);
-    fputcsv($output, ['إجمالي المدفوعات', $totalPaid . ' جنيه']);
-    fputcsv($output, ['المتبقي', $totalRemaining . ' جنيه']);
-    fputcsv($output, ['الإجمالي المتوقع', ($totalPaid + $totalRemaining) . ' جنيه']);
+    fputcsv($output, ['الإحصائيات']);
+    fputcsv($output, ['إجمالي المسجلين',  count($registrations)]);
+    fputcsv($output, ['مدفوع بالكامل',    $paidCount]);
+    fputcsv($output, ['مدفوع جزئياً',     $partialCount]);
+    fputcsv($output, ['غير مدفوع',        $pendingCount]);
+    fputcsv($output, ['إجمالي المحصّل',   round($totalPaid, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي التبرعات',  round($totalDonation, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي المتبقي',   round($totalRemaining, 2) . ' جنيه']);
+    fputcsv($output, ['الإجمالي المتوقع', round($totalExpected, 2) . ' جنيه']);
 
-    // المدفوعات التفصيلية
+    // ─── سجل الدفعات التفصيلي ───────────────────────────────────────────────
     if (!empty($payments)) {
         fputcsv($output, ['']);
-        fputcsv($output, ['سجل المدفوعات والتبرعات']);
-        fputcsv($output, ['#', 'اسم الطفل', 'المبلغ المدفوع', 'التبرع', 'طريقة الدفع', 'المستلم', 'تاريخ الدفع', 'ملاحظات']);
+        fputcsv($output, ['سجل الدفعات التفصيلي (' . count($payments) . ' دفعة)']);
+        fputcsv($output, ['#', 'اسم الطفل', 'المبلغ', 'التبرع', 'طريقة الدفع', 'المستلم', 'تاريخ الدفع', 'ملاحظات']);
         foreach ($payments as $index => $pay) {
             $methodAr = ['cash' => 'نقداً', 'card' => 'بطاقة', 'bank_transfer' => 'تحويل بنكي', 'other' => 'أخرى'][$pay['payment_method']] ?? $pay['payment_method'];
             fputcsv($output, [
                 $index + 1,
                 $pay['student_name'],
                 floatval($pay['amount']) . ' جنيه',
-                floatval($pay['donation']) . ' جنيه',
+                floatval($pay['donation']) > 0 ? floatval($pay['donation']) . ' جنيه' : '—',
                 $methodAr,
                 $pay['received_by_name'] ?? '',
                 date('d/m/Y H:i', strtotime($pay['payment_date'])),
                 $pay['notes'] ?? ''
+            ]);
+        }
+    }
+
+    // ─── قائمة الانتظار ──────────────────────────────────────────────────────
+    if (!empty($waitlist)) {
+        fputcsv($output, ['']);
+        fputcsv($output, ['قائمة الانتظار (' . count($waitlist) . ')']);
+        fputcsv($output, ['الترتيب', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'دفعة مقدمة', 'تاريخ الإضافة', 'أضافه', 'ملاحظات']);
+        foreach ($waitlist as $w) {
+            fputcsv($output, [
+                $w['position'],
+                $w['student_name'],
+                $w['student_class'] ?? '',
+                $w['student_phone'] ?? '',
+                floatval($w['deposit'] ?? 0) > 0 ? floatval($w['deposit']) . ' جنيه' : '—',
+                !empty($w['added_at']) ? date('d/m/Y H:i', strtotime($w['added_at'])) : '',
+                $w['added_by_name'] ?? '',
+                $w['notes'] ?? ''
             ]);
         }
     }
@@ -10237,8 +10276,6 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [])
 
 function exportTripToPDF($trip, $finalPrice, $registrations)
 {
-    // يمكن استخدام مكتبة مثل Dompdf أو TCPDF
-    // حالياً سنعيد رسالة بأن الميزة قيد التطوير
     sendJSON(['success' => false, 'message' => 'تصدير PDF قيد التطوير، استخدم CSV حالياً']);
 }
 
