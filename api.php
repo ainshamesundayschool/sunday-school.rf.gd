@@ -8694,33 +8694,42 @@ function updateTrip()
                             }
                         )),
                     ];
-                    // Preserve sub_fields: { choiceVal: { subName: { icon, choices } } }
+                    // Preserve sub_fields: can be new array format [{name, icon, choices}] or legacy {choice: {name: {icon, choices}}}
                     if (!empty($fieldMeta['sub_fields']) && is_array($fieldMeta['sub_fields'])) {
                         $cleanSubFields = [];
-                        foreach ($fieldMeta['sub_fields'] as $choiceVal => $subObj) {
-                            $cleanChoiceVal = strip_tags(trim((string) $choiceVal));
-                            if ($cleanChoiceVal === '' || !is_array($subObj))
-                                continue;
-                            $cleanSubFields[$cleanChoiceVal] = [];
-                            foreach ($subObj as $subName => $subMeta) {
-                                $cleanSubName = strip_tags(trim((string) $subName));
-                                if ($cleanSubName === '')
-                                    continue;
-                                $cleanSubFields[$cleanChoiceVal][$cleanSubName] = [
-                                    'icon' => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
-                                    'type' => strip_tags(trim($subMeta['type'] ?? 'choices')),
+                        // Check if it's the new array format (numeric keys 0, 1, 2...)
+                        $isNewFormat = isset($fieldMeta['sub_fields'][0]) && is_array($fieldMeta['sub_fields'][0]);
+                        
+                        if ($isNewFormat) {
+                            foreach ($fieldMeta['sub_fields'] as $sf) {
+                                if (!is_array($sf)) continue;
+                                $cleanSubFields[] = [
+                                    'name'    => strip_tags(trim((string)($sf['name'] ?? ''))),
+                                    'icon'    => strip_tags(trim((string)($sf['icon'] ?? 'fas fa-tag'))),
                                     'choices' => array_values(array_filter(
-                                        array_map(
-                                            function ($c) {
-                                                return strip_tags(trim((string) $c));
-                                            },
-                                            is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []
-                                        ),
-                                        function ($c) {
-                                            return $c !== '';
-                                        }
-                                    )),
+                                        array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
+                                        function($c){ return $c !== ''; }
+                                    ))
                                 ];
+                            }
+                        } else {
+                            // Legacy Object Format
+                            foreach ($fieldMeta['sub_fields'] as $choiceVal => $subObj) {
+                                $cleanChoiceVal = strip_tags(trim((string) $choiceVal));
+                                if ($cleanChoiceVal === '' || !is_array($subObj)) continue;
+                                $cleanSubFields[$cleanChoiceVal] = [];
+                                foreach ($subObj as $subName => $subMeta) {
+                                    $cleanSubName = strip_tags(trim((string) $subName));
+                                    if ($cleanSubName === '') continue;
+                                    $cleanSubFields[$cleanChoiceVal][$cleanSubName] = [
+                                        'icon'    => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
+                                        'type'    => strip_tags(trim($subMeta['type'] ?? 'choices')),
+                                        'choices' => array_values(array_filter(
+                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
+                                            function($c){ return $c !== ''; }
+                                        )),
+                                    ];
+                                }
                             }
                         }
                         if (!empty($cleanSubFields)) {

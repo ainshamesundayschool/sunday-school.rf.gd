@@ -4726,7 +4726,14 @@
                 Object.entries(subObj).forEach(([sn, sm]) => {
                   if (!seen.has(sn)) {
                     seen.add(sn);
-                    subArr.push({ _id: 'sf' + Date.now() + i + (si++), name: sn, icon: sm.icon || 'fas fa-tag', choices: Array.isArray(sm.choices) ? [...sm.choices] : [] });
+                    subArr.push({
+                      _id: 'sf' + Date.now() + i + (si++),
+                      name: sn,
+                      icon: sm.icon || 'fas fa-tag',
+                      choices: (Array.isArray(sm.choices) ? sm.choices : [])
+                        .map(c => (typeof c === 'object' ? (c.value || c.name || '') : String(c || '')))
+                        .filter(c => c !== '')
+                    });
                   }
                 });
               }
