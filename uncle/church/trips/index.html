@@ -2300,18 +2300,62 @@
     }
     .kid-ov-actions .btn { flex: 1; min-width: 100px; }
     @keyframes slideUp {
-      from { transform: translateY(60px); opacity: 0; }
+      from { transform: translateY(50px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
 
-    /* ── TRIP ACTIONS GROUPED ────────────────────────────────────── */
-    .trip-action-group {
-      display: flex;
+    /* ── TRIP ACTIONS GRID ───────────────────────────────────────── */
+    .trip-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       gap: 8px;
-      flex-wrap: wrap;
       margin-top: 16px;
     }
-    .trip-action-group .btn { flex: 0 0 auto; }
+    .trip-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+      cursor: pointer;
+      transition: all var(--t-fast) var(--ease);
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-2);
+      text-align: center;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+    .trip-action-btn i {
+      font-size: 1.1rem;
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      transition: all var(--t-fast) var(--ease);
+    }
+    .trip-action-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .trip-action-btn:hover i { background: rgba(79,70,229,0.12); color: var(--primary); }
+    .trip-action-btn.primary i { background: var(--primary); color: white; }
+    .trip-action-btn.primary { border-color: var(--primary); color: var(--primary); }
+    .trip-action-btn.primary:hover i { filter: brightness(1.1); }
+    .trip-action-btn.danger { color: var(--danger); border-color: var(--danger-mid); }
+    .trip-action-btn.danger i { background: var(--danger-light); color: var(--danger); }
+    .trip-action-btn.danger:hover { background: var(--danger-light); border-color: var(--danger); }
+    .trip-action-btn.success { color: var(--success); border-color: var(--success-mid); }
+    .trip-action-btn.success i { background: var(--success-light); color: var(--success); }
+    .trip-action-btn.success:hover { background: var(--success-light); border-color: var(--success); }
 
     @media (max-width: 768px) {
       html { font-size: 12px; }
@@ -2426,18 +2470,18 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════════
-   MODAL
+   MODAL — bottom-sheet style
 ═══════════════════════════════════════════════════════════════════ */
     .modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(10, 8, 26, 0.6);
-      backdrop-filter: blur(8px) saturate(1.2);
-      -webkit-backdrop-filter: blur(8px) saturate(1.2);
+      background: rgba(10, 8, 26, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 1000;
       justify-content: center;
-      align-items: center;
+      align-items: flex-end;
       padding: 0;
     }
 
@@ -2447,59 +2491,40 @@
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal-box {
       background: white;
-      border-radius: 0 !important;
+      border-radius: 20px 20px 0 0 !important;
       width: 100% !important;
-      max-width: 100% !important;
-      height: 100% !important;
-      max-height: 100vh !important;
+      max-width: 560px !important;
+      height: auto !important;
+      max-height: 92vh !important;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: var(--shadow-xl), 0 0 0 1px rgba(255, 255, 255, 0.08);
-      animation: popIn 0.3s var(--ease-);
+      box-shadow: var(--shadow-xl);
+      animation: slideUp 0.28s var(--ease-out);
     }
 
-    .modal-box.wide,
-    .modal-box.xl {
+    /* Full-screen trip detail stays full-screen */
+    #tripDetailsModal .modal-box {
       max-width: 100% !important;
+      height: 100% !important;
+      max-height: 100vh !important;
+      border-radius: 0 !important;
+      animation: fadeIn 0.22s var(--ease-out);
     }
 
-    #addPaymentModal .modal-box,
-    #addDonationModal .modal-box,
-    #paymentHistoryModal .modal-box {
-      width: min(100%, 650px) !important;
-      max-width: 650px !important;
-      height: auto !important;
-      max-height: 90vh !important;
-      border-radius: 18px !important;
-    }
+    .modal-box.wide { max-width: 680px !important; }
+    .modal-box.xl   { max-width: 860px !important; }
 
-    #addPaymentModal .modal-body,
-    #paymentHistoryModal .modal-body {
+    .modal-body {
       overflow-y: auto;
-    }
-
-    @keyframes popIn {
-      from {
-        transform: scale(0.94) translateY(16px);
-        opacity: 0;
-      }
-
-      to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
+      flex: 1;
+      min-height: 0;
     }
 
     .modal-head {
@@ -3189,19 +3214,39 @@
             <div class="info-box"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
         </div>
         ${trip.description ? `<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>` : ''}
-        <div class="trip-action-group">
-          <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal?.(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
-          <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
-          <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> المصروفات</button>
-        </div>
-        <div class="trip-action-group" style="margin-top:8px;">
-          <button class="btn btn-outline btn-sm" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'"><i class="fas fa-edit"></i> تعديل</button>
-          <button class="btn btn-outline btn-sm" onclick="openCustomFieldEditor(${trip.id})" style="background:#f0f4ff;color:#4f46e5;border-color:#c7d2fe;"><i class="fas fa-sliders-h"></i> الحقول الإضافية</button>
-          <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير</button>
-          ${(trip.custom_fields && trip.custom_fields.trim()) ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث CSV</button>` : ''}
-          <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
-          ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> المسابقة</a>
-          <button class="btn btn-outline btn-sm" onclick="printQRCards(${trip.id})" style="background:#10b981;color:white;border-color:#10b981;"><i class="fas fa-print"></i> طباعة QR</button>` : ''}
+        <div class="trip-actions-grid">
+          <button class="trip-action-btn primary" onclick="showRegisterStudentModal?.(${trip.id})">
+            <i class="fas fa-user-plus"></i>تسجيل طفل
+          </button>
+          <button class="trip-action-btn" onclick="switchTripTab('regs')">
+            <i class="fas fa-users"></i>المسجلون<br><span style="font-weight:800;font-size:0.9rem;">${regs.length}</span>
+          </button>
+          <button class="trip-action-btn" onclick="switchTripTab('exp')">
+            <i class="fas fa-receipt"></i>المصروفات
+          </button>
+          <button class="trip-action-btn" onclick="exportTripData(${trip.id},'csv')">
+            <i class="fas fa-file-csv"></i>تصدير CSV
+          </button>
+          <button class="trip-action-btn" onclick="copyTripLink(${trip.id})">
+            <i class="fas fa-link"></i>نسخ الرابط
+          </button>
+          <button class="trip-action-btn" onclick="openCustomFieldEditor(${trip.id})">
+            <i class="fas fa-sliders-h"></i>الحقول الإضافية
+          </button>
+          <button class="trip-action-btn" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'">
+            <i class="fas fa-edit"></i>تعديل الرحلة
+          </button>
+          ${(trip.custom_fields && trip.custom_fields.trim()) ? `
+          <button class="trip-action-btn" onclick="openBulkCustomDataModal(${trip.id})">
+            <i class="fas fa-table"></i>تحديث CSV
+          </button>` : ''}
+          ${trip.has_points_game == 1 ? `
+          <a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="trip-action-btn" style="background:linear-gradient(135deg,#5b6cf5,#818cf8);color:white;border-color:#5b6cf5;">
+            <i class="fas fa-qrcode" style="background:rgba(255,255,255,0.2);color:white;"></i>إدارة المسابقة
+          </a>
+          <button class="trip-action-btn success" onclick="printQRCards(${trip.id})">
+            <i class="fas fa-print"></i>طباعة QR
+          </button>` : ''}
         </div>`;
 
       const pm = { paid: ['var(--success)', 'مدفوع بالكامل'], partial: ['var(--warning)', 'جزئي'], pending: ['var(--danger)', 'غير مدفوع'] };
