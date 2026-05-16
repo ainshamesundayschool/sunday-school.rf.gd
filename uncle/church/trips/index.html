@@ -2896,20 +2896,17 @@
     }
 
     @media print {
-      body>*:not(#printArea) {
+      body > *:not(#printArea) {
         display: none !important;
       }
 
       #printArea {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        align-content: start;
-        position: absolute;
-        top: 0;
-        left: 0;
+        gap: 15px;
         width: 100%;
-        padding: 20px;
+        margin: 0;
+        padding: 0;
       }
 
       .print-card {
@@ -4976,22 +4973,47 @@
       } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
     }
 
-    function printQRCards(tripId) {
-      const regs = tripRegistrationsCache[tripId] || [];
-      const trip = allTripsCache.find(t => t.id == tripId);
-      if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
+    async function printQRCards(tripId) {
+      let regs = tripRegistrationsCache[tripId] || [];
+      let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      
+      // If not cached, fetch details (sync with main dashboard logic)
+      if (!trip || regs.length === 0) {
+        try {
+          const fd = mkFd('getTripDetails'); fd.append('trip_id', tripId);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res && res.success && res.trip) {
+            trip = res.trip;
+            regs = res.trip.registrations || [];
+            tripRegistrationsCache[tripId] = regs;
+          }
+        } catch (e) {}
+      }
+
+      if (!trip || regs.length === 0) {
+        showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning');
+        return;
+      }
+
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
+      
+      // Build all HTML first to avoid destroying DOM in loop
+      let html = '';
+      const qrTasks = [];
+
       regs.forEach(r => {
         const name = r.student_name || '؟';
         const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
         let customHtml = '';
+        
         if (r.custom_data) {
           try {
             const cd = JSON.parse(r.custom_data);
-            const cfIcons = trip.custom_field_icons || {};
+            const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
+            
             customHtml = Object.entries(cd).map(([key, value]) => {
-              // sub_group sub-field key: "ParentField__sf__SubFieldName"
+              // hierarchical support
               if (key.includes('__sf__')) {
                 const [parentName, sfName] = key.split('__sf__');
                 const parentMeta = cfIcons[parentName] || {};
@@ -5000,29 +5022,47 @@
                 const iconClass = sfMeta.icon || parentMeta.icon || 'fas fa-tag';
                 return `<i class="${iconClass}"></i> <small style="opacity:.6">${parentName} •</small> ${sfName}: <strong>${value}</strong>`;
               }
-              // normal field
               const meta = cfIcons[key];
               const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
               return `<i class="${iconClass}"></i> ${value}`;
             }).join(' | ');
           } catch (e) { }
         }
+
         const cardId = 'qrcode_' + r.id;
         const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
-        printArea.innerHTML += `
+        
+        html += `
         <div class="print-card">
-            <h3>${trip.title}</h3>
+            <h3 style="font-weight:900;">${trip.title}</h3>
             <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
-            <h2>${name}</h2>
-            <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
+            <h2 style="font-weight:900;margin-bottom:8px;">${name}</h2>
+            <div class="custom-info" style="margin-bottom:12px;font-size:12px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
         </div>`;
-        setTimeout(() => {
-          new QRCode(document.getElementById(cardId), { text: link, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
-        }, 100);
+        
+        qrTasks.push({ id: cardId, text: link });
       });
-      // Allow extra time for QR images to be generated before invoking print
-      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1500); }, 1500);
+
+      printArea.innerHTML = html;
+
+      // Generate QRs after DOM is stable
+      qrTasks.forEach(task => {
+        new QRCode(document.getElementById(task.id), {
+          text: task.text,
+          width: 140,
+          height: 140,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      });
+
+      // Wait for rendering then print
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+      }, 1200);
     }
   </script>
 
