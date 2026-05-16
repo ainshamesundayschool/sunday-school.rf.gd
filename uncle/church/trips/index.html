@@ -4682,7 +4682,8 @@
       subWrap.innerHTML = '';
       if (!val) return;
 
-      const trip = window.currentTripObj;
+      const tripId = document.getElementById('registerTripId')?.value;
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
       const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
       const meta = icons[fieldName] || {};
       if (meta.type !== 'sub_group') return;
@@ -4697,11 +4698,11 @@
         const sfKey = fieldName + '__sf__' + sf.name;
         const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
         const sfInput = sfChoices.length
-          ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.75rem;padding:4px;min-height:28px;">
+          ? `<select class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" style="font-size:0.75rem;padding:4px;min-height:28px;" required>
               <option value="">— اختر ${escHtml(sf.name)} —</option>
               ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
             </select>`
-          : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.75rem;padding:4px;min-height:28px;">`;
+          : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.75rem;padding:4px;min-height:28px;" required>`;
         
         return `<div class="form-group" style="margin-bottom:6px;">
           <label class="form-label" style="font-size:0.65rem;margin-bottom:2px;display:flex;align-items:center;gap:4px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
@@ -4812,13 +4813,13 @@
         ).join('');
         return `<div style="padding:10px; background:var(--bg); border-radius:10px; border:1px solid var(--border);">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <button type="button" class="cfe-icon-btn" style="width:28px; height:28px; font-size:0.7rem;" onclick="cfePickSubIconOfChoice('${fieldId}', '${choice}', ${si})"><i class="${sf.icon}"></i></button>
+            <button type="button" class="cfe-icon-btn" style="width:28px; height:28px; font-size:0.7rem;" onclick="cfePickSubIconOfChoice('${fieldId}', '${choice}', ${si})" id="cfe_subiconbtn_${fieldId}_${si}"><i class="${sf.icon}"></i></button>
             <input type="text" class="form-input" value="${escHtml(sf.name)}" placeholder="اسم الحقل" style="font-size:0.85rem;" oninput="cfeUpdateSubNameOfChoice('${fieldId}', '${choice}', ${si}, this.value)">
             <button type="button" class="act-btn act-delete" style="width:28px; height:28px;" onclick="cfeRemoveSubFieldOfChoice('${fieldId}', '${choice}', ${si})"><i class="fas fa-trash"></i></button>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;">${scTags}</div>
           <div class="cfe-add-choice">
-            <input type="text" class="form-input" id="subChoiceInp_${si}" placeholder="أضف خياراً..." style="font-size:0.75rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddSubChoiceOfChoice('${fieldId}', '${choice}', ${si});}">
+            <input type="text" class="form-input" id="cfe_subChoiceInp_${fieldId}_${si}" placeholder="أضف خياراً..." style="font-size:0.75rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddSubChoiceOfChoice('${fieldId}', '${choice}', ${si});}">
             <button type="button" class="btn btn-outline btn-xs" onclick="cfeAddSubChoiceOfChoice('${fieldId}', '${choice}', ${si})"><i class="fas fa-plus"></i></button>
           </div>
         </div>`;
@@ -4827,7 +4828,7 @@
 
     function cfeAddSubFieldToChoice(fid, choice) {
       const f = _cfeState.fields.find(x => x._id === fid);
-      f.sub_fields_map[choice].push({ name: '', icon: 'fas fa-tag', choices: [] });
+      f.sub_fields_map[choice].push({ name: '', icon: 'fas fa-tag', type: 'choices', choices: [] });
       renderCfeSubFields(fid, choice);
     }
     function cfeUpdateSubNameOfChoice(fid, choice, si, val) {
@@ -4841,7 +4842,7 @@
     }
     function cfeAddSubChoiceOfChoice(fid, choice, si) {
       const f = _cfeState.fields.find(x => x._id === fid);
-      const inp = document.getElementById('subChoiceInp_' + si);
+      const inp = document.getElementById('cfe_subChoiceInp_' + fid + '_' + si);
       const val = inp?.value.trim();
       if (!val) return;
       if (!f.sub_fields_map[choice][si].choices.includes(val)) f.sub_fields_map[choice][si].choices.push(val);
@@ -5056,6 +5057,7 @@
               subMap[c] = subs.map(sf => ({
                 name: String(sf.name || '').trim(),
                 icon: String(sf.icon || 'fas fa-tag'),
+                type: sf.type || 'choices',
                 choices: (Array.isArray(sf.choices) ? sf.choices : []).filter(ch => ch)
               }));
             }
