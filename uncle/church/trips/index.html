@@ -4785,9 +4785,6 @@
       f.sub_fields_map[choice][si].icon = icon;
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
       renderCfeSubFields(fid, choice);
-    }abel" style="font-size:0.7rem;display:flex;align-items:center;gap:6px;margin-bottom:2px;"><i class="${icon}"></i> ${escHtml(fieldName)}</label>
-        ${inputHtml}
-      </div>`;
     }
 
     function collectRegisterCustomData() {
@@ -4801,10 +4798,6 @@
     }
 
     // ─── Custom Field Editor Modal ────────────────────────────────────────────────
-    // Data model per field:
-    //   { _id, name, icon, type: 'choices'|'sub_group',
-    //     choices: [],           // used when type==='choices'
-    //     sub_fields: [{_id,name,icon,choices:[]}] }  // used when type==='sub_group'
     let _cfeState = { tripId: null, fields: [] };
     const CFE_ICONS = ['fas fa-bed', 'fas fa-home', 'fas fa-users', 'fas fa-tag', 'fas fa-star', 'fas fa-heart', 'fas fa-flag', 'fas fa-map-marker-alt', 'fas fa-building', 'fas fa-school', 'fas fa-bus', 'fas fa-church', 'fas fa-cross', 'fas fa-book', 'fas fa-pray', 'fas fa-music', 'fas fa-microphone', 'fas fa-paint-brush', 'fas fa-futbol', 'fas fa-bicycle', 'fas fa-utensils', 'fas fa-laptop', 'fas fa-mobile-alt', 'fas fa-camera', 'fas fa-crown', 'fas fa-gem', 'fas fa-fire', 'fas fa-leaf', 'fas fa-sun', 'fas fa-moon', 'fas fa-cloud', 'fas fa-snowflake'];
 
@@ -4818,12 +4811,11 @@
         const meta = iconsRaw[name] || {};
         let type = meta.type || 'choices';
         let choices = Array.isArray(meta.choices) ? [...meta.choices] : [];
-        let subFieldsMap = {}; // choice -> [ {name, icon, choices[]} ]
+        let subFieldsMap = {}; 
 
         if (type === 'sub_group') {
           const raw = meta.sub_fields;
           if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-            // New/Legacy format: { choiceVal: [ {name, icon, choices} ] or {subName: {icon, choices}} }
             Object.entries(raw).forEach(([choiceVal, subData]) => {
               let subArr = [];
               if (Array.isArray(subData)) {
@@ -4834,7 +4826,6 @@
                   choices: (Array.isArray(sf.choices) ? sf.choices : []).map(c => String(c))
                 }));
               } else if (subData && typeof subData === 'object') {
-                // Legacy: { subName: { icon, choices } }
                 Object.entries(subData).forEach(([sn, sm], si) => {
                   subArr.push({
                     _id: 'sf' + Date.now() + i + choiceVal + si,
@@ -4863,8 +4854,6 @@
       openModal('customFieldEditorModal');
     }
 
-
-
     function renderCfeFields() {
       const c = document.getElementById('cfeFieldsList');
       if (!_cfeState.fields.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد حقول بعد.</div>`; return; }
@@ -4873,30 +4862,20 @@
 
     function renderCfeFieldCard(f) {
       const isGroup = f.type === 'sub_group';
-
-      // ── choices mode ──────────────────────────────────────────
-      const choiceTagsHtml = !isGroup ? f.choices.map((c, ci) =>
-        `<span class="cfe-choice-tag">${escHtml(c)}<button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button></span>`
-      ).join('') : '';
-
-      // ── sub_group mode ────────────────────────────────────────
-      const subFieldsHtml = isGroup ? (f.sub_fields || []).map((sf, si) => {
-        const scTags = sf.choices.map((sc, sci) =>
-          `<span class="cfe-choice-tag">${escHtml(sc)}<button type="button" onclick="cfeRemoveSubChoice('${f._id}',${si},${sci})"><i class="fas fa-times"></i></button></span>`
-        ).join('');
-        return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding:10px;background:white;border-radius:10px;border:1px solid var(--border);">
-          <button type="button" class="cfe-icon-btn" style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;" onclick="cfePickSubIcon('${f._id}',${si})"><i class="${sf.icon || 'fas fa-tag'}"></i></button>
-          <div style="flex:1;min-width:0;">
-            <input type="text" class="form-input" value="${escHtml(sf.name)}" placeholder="اسم الحقل الفرعي" style="font-weight:700;margin-bottom:6px;" oninput="cfeUpdateSubName('${f._id}',${si},this.value)">
-            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${scTags || '<span style="color:var(--muted);font-size:0.72rem;">لا يوجد خيارات</span>'}</div>
-            <div class="cfe-add-choice">
-              <input type="text" class="form-input" id="sfChoiceInp_${f._id}_${si}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddSubChoice('${f._id}',${si});}">
-              <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubChoice('${f._id}',${si})"><i class="fas fa-plus"></i></button>
-            </div>
-          </div>
-          <button type="button" class="act-btn act-delete" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;" onclick="cfeRemoveSubField('${f._id}',${si})"><i class="fas fa-trash"></i></button>
+      const choiceTagsHtml = f.choices.map((c, ci) => {
+        let subBtn = '';
+        if (isGroup) {
+          const subCount = (f.sub_fields_map[c] || []).length;
+          subBtn = `<button type="button" class="btn btn-outline btn-xs" onclick="cfeOpenSubConfig('${f._id}', ${ci})" style="margin-right:5px; font-size:0.65rem; padding:2px 6px;">
+            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة حقول فرعية'}
+          </button>`;
+        }
+        return `<div class="cfe-choice-tag" style="display:flex; align-items:center;">
+          ${subBtn}
+          <span>${escHtml(c)}</span>
+          <button type="button" onclick="cfeRemoveChoice('${f._id}',${ci})"><i class="fas fa-times"></i></button>
         </div>`;
-      }).join('') : '';
+      }).join('');
 
       const typeBtnChoices = `<button type="button" onclick="cfeSetType('${f._id}','choices')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${!isGroup ? 'var(--primary)' : 'var(--border)'};background:${!isGroup ? 'var(--primary)' : 'transparent'};color:${!isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">خيارات</button>`;
       const typeBtnGroup = `<button type="button" onclick="cfeSetType('${f._id}','sub_group')" style="font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1.5px solid ${isGroup ? 'var(--primary)' : 'var(--border)'};background:${isGroup ? 'var(--primary)' : 'transparent'};color:${isGroup ? 'white' : 'var(--muted)'};cursor:pointer;font-family:inherit;font-weight:700;">مجموعة فرعية</button>`;
@@ -4908,30 +4887,20 @@
           <div style="display:flex;gap:4px;flex-shrink:0;">${typeBtnChoices}${typeBtnGroup}</div>
           <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
         </div>
-        ${isGroup ? `
-          <div style="margin-top:8px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;">الحقول الفرعية (كل حقل له خياراته الخاصة):</div>
-            ${subFieldsHtml}
-            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddSubField('${f._id}')" style="margin-top:4px;"><i class="fas fa-plus"></i> إضافة حقل فرعي</button>
-          </div>` : `
-          <div style="margin-top:8px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات:</div>
-            <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
-            <div class="cfe-add-choice" style="margin-top:8px;">
-              <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
-              <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
-            </div>
-          </div>`}
+        <div style="margin-top:8px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة حقول فرعية تظهر عند اختياره)' : ''}:</div>
+          <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
+          <div class="cfe-add-choice" style="margin-top:8px;">
+            <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
+            <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddChoice('${f._id}')"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
       </div>`;
     }
 
     function cfeUpdateName(id, val) {
       const f = _cfeState.fields.find(x => x._id === id);
       if (f) f.name = val;
-    }
-    function cfeUpdateSubName(parentId, si, val) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields[si]) f.sub_fields[si].name = val;
     }
     function cfeSetType(id, type) {
       const f = _cfeState.fields.find(x => x._id === id);
@@ -4958,27 +4927,12 @@
       document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
       renderCfeFields();
     }
-    function cfePickSubIcon(parentId, si) {
-      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
-      const popup = document.createElement('div');
-      popup.className = 'cfe-icon-picker-popup';
-      popup.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;';
-      popup.innerHTML = CFE_ICONS.map(ic => `<button type="button" onclick="cfeSetSubIcon('${parentId}',${si},'${ic}')"><i class="${ic}"></i></button>`).join('');
-      document.body.appendChild(popup);
-      setTimeout(() => document.addEventListener('click', function h(e) { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', h); } }), 10);
-    }
-    function cfeSetSubIcon(parentId, si, icon) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields[si]) f.sub_fields[si].icon = icon;
-      document.querySelectorAll('.cfe-icon-picker-popup').forEach(p => p.remove());
-      renderCfeFields();
-    }
     function cfeRemoveField(id) {
       _cfeState.fields = _cfeState.fields.filter(x => x._id !== id);
       renderCfeFields();
     }
     function cfeAddField() {
-      _cfeState.fields.push({ _id: 'f' + Date.now(), name: '', icon: 'fas fa-tag', type: 'choices', choices: [], sub_fields: [] });
+      _cfeState.fields.push({ _id: 'f' + Date.now(), name: '', icon: 'fas fa-tag', type: 'choices', choices: [], sub_fields_map: {} });
       renderCfeFields();
       setTimeout(() => { const last = document.querySelector('#cfeFieldsList .cfe-field-card:last-child input[type=text]'); if (last) last.focus(); }, 50);
     }
@@ -4994,30 +4948,6 @@
       const f = _cfeState.fields.find(x => x._id === id);
       if (f) { f.choices.splice(ci, 1); renderCfeFields(); }
     }
-    function cfeAddSubField(parentId) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      if (!f) return;
-      if (!Array.isArray(f.sub_fields)) f.sub_fields = [];
-      f.sub_fields.push({ _id: 'sf' + Date.now(), name: '', icon: 'fas fa-tag', choices: [] });
-      renderCfeFields();
-      setTimeout(() => { const cards = document.querySelectorAll(`#cfe_card_${parentId} input[type=text]`); if (cards.length) cards[cards.length - 1].focus(); }, 50);
-    }
-    function cfeRemoveSubField(parentId, si) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields) { f.sub_fields.splice(si, 1); renderCfeFields(); }
-    }
-    function cfeAddSubChoice(parentId, si) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      const inp = document.getElementById(`sfChoiceInp_${parentId}_${si}`);
-      const val = inp ? inp.value.trim() : '';
-      if (!f || !val || !f.sub_fields[si]) return;
-      if (!f.sub_fields[si].choices.includes(val)) f.sub_fields[si].choices.push(val);
-      renderCfeFields();
-    }
-    function cfeRemoveSubChoice(parentId, si, ci) {
-      const f = _cfeState.fields.find(x => x._id === parentId);
-      if (f && f.sub_fields[si]) { f.sub_fields[si].choices.splice(ci, 1); renderCfeFields(); }
-    }
 
     async function cfeSave() {
       const tripId = _cfeState.tripId;
@@ -5025,14 +4955,8 @@
       if (!trip) return;
 
       for (const f of _cfeState.fields) {
-        const name = typeof f.name === 'object' ? '' : String(f.name || '').trim();
+        const name = String(f.name || '').trim();
         if (!name) { showToast('أدخل اسم لكل حقل', 'warning'); return; }
-        if (f.type === 'sub_group') {
-          for (const sf of (f.sub_fields || [])) {
-            const sfName = typeof sf.name === 'object' ? '' : String(sf.name || '').trim();
-            if (!sfName) { showToast('أدخل اسم لكل حقل فرعي', 'warning'); return; }
-          }
-        }
       }
 
       const customFields = _cfeState.fields
@@ -5052,7 +4976,6 @@
         };
 
         if (f.type === 'sub_group') {
-          // Serialize sub_fields as choice -> [ {name, icon, choices} ]
           const subMap = {};
           f.choices.forEach(c => {
             const subs = f.sub_fields_map[c] || [];
@@ -5066,7 +4989,6 @@
           });
           payload.sub_fields = subMap;
         }
-
         customFieldIcons[fieldName] = payload;
       });
 
@@ -5088,7 +5010,6 @@
       btn.classList.remove('btn-loading'); btn.disabled = false;
 
       if (res.success) {
-        // Update in-memory cache with clean objects (not raw JSON strings)
         trip.custom_fields = customFields;
         trip.custom_field_icons = customFieldIcons;
         if (window.currentTripObj && window.currentTripObj.id == tripId) {
@@ -5102,8 +5023,6 @@
         showToast(res.message || 'فشل في الحفظ', 'error');
       }
     }
-
-
 
     async function bulkCustomDataSave() {
       const tripId = document.getElementById('bulkCustomDataTripId').value;
@@ -5137,29 +5056,20 @@
     async function printQRCards(tripId) {
       let regs = tripRegistrationsCache[tripId] || [];
       let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-      
-      // If not cached, fetch details (sync with main dashboard logic)
       if (!trip || regs.length === 0) {
         try {
           const fd = mkFd('getTripDetails'); fd.append('trip_id', tripId);
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
           if (res && res.success && res.trip) {
-            trip = res.trip;
-            regs = res.trip.registrations || [];
+            trip = res.trip; regs = res.trip.registrations || [];
             tripRegistrationsCache[tripId] = regs;
           }
         } catch (e) {}
       }
-
-      if (!trip || regs.length === 0) {
-        showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning');
-        return;
-      }
+      if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
 
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
-      
-      // Build all HTML first to avoid destroying DOM in loop
       let html = '';
       const qrTasks = [];
 
@@ -5167,21 +5077,18 @@
         const name = r.student_name || '؟';
         const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
         let customHtml = '';
-        
         if (r.custom_data) {
           try {
             const cd = JSON.parse(r.custom_data);
             const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
-            
             customHtml = Object.entries(cd).map(([key, value]) => {
-              // hierarchical support
               if (key.includes('__sf__')) {
                 const [parentName, sfName] = key.split('__sf__');
                 const parentMeta = cfIcons[parentName] || {};
-                const subFields = Array.isArray(parentMeta.sub_fields) ? parentMeta.sub_fields : [];
+                const subFields = (parentMeta.sub_fields && parentMeta.sub_fields[cd[parentName]]) ? parentMeta.sub_fields[cd[parentName]] : [];
                 const sfMeta = subFields.find(sf => sf.name === sfName) || {};
-                const iconClass = sfMeta.icon || parentMeta.icon || 'fas fa-tag';
-                return `<i class="${iconClass}"></i> <small style="opacity:.6">${parentName} •</small> ${sfName}: <strong>${value}</strong>`;
+                const iconClass = sfMeta.icon || 'fas fa-tag';
+                return `<i class="${iconClass}"></i> ${sfName}: <strong>${value}</strong>`;
               }
               const meta = cfIcons[key];
               const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
@@ -5189,41 +5096,16 @@
             }).join(' | ');
           } catch (e) { }
         }
-
         const cardId = 'qrcode_' + r.id;
         const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
-        
-        html += `
-        <div class="print-card">
-            <h3 style="font-weight:900;">${trip.title}</h3>
-            <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
-            <h2 style="font-weight:900;margin-bottom:8px;">${name}</h2>
-            <div class="custom-info" style="margin-bottom:12px;font-size:12px;">${customHtml}</div>
-            <div id="${cardId}" style="display:flex;justify-content:center;"></div>
-        </div>`;
-        
+        html += `<div class="print-card"><h3 style="font-weight:900;">${trip.title}</h3><img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'"><h2 style="font-weight:900;margin-bottom:8px;">${name}</h2><div class="custom-info" style="margin-bottom:12px;font-size:12px;">${customHtml}</div><div id="${cardId}" style="display:flex;justify-content:center;"></div></div>`;
         qrTasks.push({ id: cardId, text: link });
       });
-
       printArea.innerHTML = html;
-
-      // Generate QRs after DOM is stable
       qrTasks.forEach(task => {
-        new QRCode(document.getElementById(task.id), {
-          text: task.text,
-          width: 140,
-          height: 140,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.H
-        });
+        new QRCode(document.getElementById(task.id), { text: task.text, width: 140, height: 140, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
       });
-
-      // Wait for rendering then print
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
-      }, 1200);
+      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1000); }, 1200);
     }
   </script>
 
