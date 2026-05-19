@@ -514,6 +514,9 @@ function saveEnhancedImage($image, $outputPath, $quality = 85)
 // Check if user is logged in
 function checkAuth()
 {
+    if (isset($_SESSION['uncle_role']) && in_array(strtolower($_SESSION['uncle_role']), ['developer', 'dev'])) {
+        return;
+    }
     if (!isset($_SESSION['church_id'])) {
         sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
     }

@@ -29,24 +29,24 @@
         /* ── DESIGN TOKENS ──────────────────────────────────────────────── */
         :root {
             /* Brand — aligned with uncle dashboard */
-            --indigo-50: #eef0ff;
-            --indigo-100: #dde2ff;
-            --indigo-200: #c0c8ff;
+            --indigo-50: #eef2ff;
+            --indigo-100: #e0e7ff;
+            --indigo-200: #c7d2fe;
             --indigo-400: #818cf8;
-            --indigo-500: #5b6cf5;
-            --indigo-600: #4354e8;
-            --indigo-700: #3440d0;
-            --indigo-800: #2a33b0;
-            --indigo-900: #1a1d2e;
-            --indigo-950: #0f1117;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+            --indigo-800: #3730a3;
+            --indigo-900: #312e81;
+            --indigo-950: #1e1b4b;
 
             /* Semantic */
-            --primary: #5b6cf5;
-            --primary-dark: #4354e8;
-            --primary-light: #a5b0ff;
-            --primary-bg: #eef0ff;
-            --primary-glow: rgba(91, 108, 245, 0.18);
-            --primary-glow-lg: rgba(91, 108, 245, 0.25);
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --primary-bg: #eef2ff;
+            --primary-glow: rgba(99, 102, 241, 0.12);
+            --primary-glow-lg: rgba(99, 102, 241, 0.22);
 
             --success: #10b981;
             --success-dark: #059669;
@@ -62,52 +62,52 @@
             --warning-mid: #fcd34d;
             --info: #0284c7;
             --info-light: #f0f9ff;
-            --dev: #7c3aed;
-            --dev-light: #ede9fe;
+            --dev: #6366f1;
+            --dev-light: #eef2ff;
 
-            /* Surfaces */
-            --bg: #f3f4f9;
-            --bg-2: #eef0f8;
-            --card: #ffffff;
-            --card-hover: #fafbff;
-            --surface-2: #f7f8fc;
-            --surface-3: #eef0f8;
-            --sidebar-bg: #0f1117;
-            --sidebar-mid: #181b26;
-            --sidebar-top: #1e2132;
+            /* Surfaces - light theme & glassmorphic */
+            --bg: #f8fafc;
+            --bg-2: #f1f5f9;
+            --card: rgba(255, 255, 255, 0.85); /* dimmed a bit */
+            --card-hover: rgba(255, 255, 255, 0.95);
+            --surface-2: rgba(248, 250, 252, 0.6);
+            --surface-3: #f1f5f9;
+            --sidebar-bg: rgba(255, 255, 255, 0.95); /* light themed sidebar! */
+            --sidebar-mid: #f8fafc;
+            --sidebar-top: #ffffff;
 
             /* Text */
-            --text: #1a1d2e;
-            --text-2: #4b5068;
-            --text-3: #8b90a8;
+            --text: #1e293b;
+            --text-2: #475569;
+            --text-3: #64748b;
             --text-inv: #ffffff;
-            --muted: #8b90a8;
+            --muted: #94a3b8;
 
             /* Borders */
-            --border: rgba(91, 108, 245, 0.12);
-            --border-solid: #e4e6f0;
-            --border-2: rgba(91, 108, 245, 0.2);
+            --border: rgba(99, 102, 241, 0.08);
+            --border-solid: #e2e8f0;
+            --border-2: rgba(99, 102, 241, 0.15);
             --border-focus: var(--primary);
-            --border-sidebar: rgba(255, 255, 255, 0.07);
+            --border-sidebar: #e2e8f0;
 
             /* Dimensions */
             --sidebar-w: 272px;
             --sidebar-collapsed: 70px;
             --topbar-h: 60px;
-            --radius-xs: 6px;
-            --radius-sm: 10px;
-            --radius: 14px;
-            --radius-lg: 18px;
-            --radius-xl: 24px;
-            --radius-2xl: 32px;
+            --radius-xs: 8px;
+            --radius-sm: 12px;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-2xl: 48px;
             --radius-pill: 999px;
 
             /* Shadow */
-            --shadow-xs: 0 2px 8px -2px rgba(0, 0, 0, 0.07);
-            --shadow-sm: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.10);
-            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.14);
-            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, 0.18);
+            --shadow-xs: 0 2px 8px -2px rgba(99, 102, 241, 0.05);
+            --shadow-sm: 0 4px 12px -2px rgba(99, 102, 241, 0.06);
+            --shadow-md: 0 8px 24px -4px rgba(99, 102, 241, 0.08);
+            --shadow-lg: 0 20px 48px -8px rgba(99, 102, 241, 0.12);
+            --shadow-xl: 0 32px 64px -12px rgba(99, 102, 241, 0.16);
             --shadow-glow: 0 0 0 4px var(--primary-glow);
 
             /* Motion */
@@ -123,7 +123,7 @@
         /* ── BASE ───────────────────────────────────────────────────────── */
         body {
             font-family: 'Cairo', sans-serif;
-            background: var(--bg);
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 50%, #e0e7ff 100%);
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
@@ -144,11 +144,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background:
-                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .06) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .04) 0%, transparent 60%);
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
             pointer-events: none;
-            z-index: 0;
+            z-index: -1;
         }
 
         /* ── SCROLLBAR ──────────────────────────────────────────────────── */
@@ -162,7 +163,7 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--border-2);
+            background: var(--border-solid);
             border-radius: var(--radius-pill);
         }
 
@@ -178,20 +179,21 @@
             inset: 0 0 0 auto;
             width: var(--sidebar-w);
             background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
             z-index: 300;
             transition: width var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
             overflow: hidden;
-            border-left: 1px solid rgba(255, 255, 255, 0.04);
+            border-left: 1px solid var(--border-solid);
         }
 
-        /* Subtle gradient shimmer on sidebar top */
         .sidebar::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 280px 200px at 100% 0%, rgba(91, 108, 245, 0.14) 0%, transparent 70%);
+            background: radial-gradient(ellipse 280px 200px at 100% 0%, rgba(99, 102, 241, 0.04) 0%, transparent 70%);
             pointer-events: none;
         }
 
@@ -205,7 +207,7 @@
             align-items: center;
             gap: 12px;
             padding: 20px 16px 18px;
-            border-bottom: 1px solid var(--border-sidebar);
+            border-bottom: 1px solid var(--border-solid);
             min-height: 72px;
             flex-shrink: 0;
             position: relative;
@@ -215,14 +217,14 @@
             width: 38px;
             height: 38px;
             flex-shrink: 0;
-            background: linear-gradient(135deg, #5b6cf5, #8b5cf6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 1rem;
-            box-shadow: 0 4px 16px rgba(91, 108, 245, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
 
         .brand-icon img {
@@ -239,7 +241,7 @@
         .brand-text h2 {
             font-size: 0.95rem;
             font-weight: 800;
-            color: white;
+            color: var(--text);
             white-space: nowrap;
             letter-spacing: -0.01em;
             transition: opacity var(--transition), width var(--transition);
@@ -248,7 +250,7 @@
         .brand-text p {
             font-size: 0.7rem;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.35);
+            color: var(--text-3);
             white-space: nowrap;
             margin-top: 1px;
         }
@@ -266,10 +268,10 @@
             left: 14px;
             width: 28px;
             height: 28px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.1);
             border-radius: var(--radius-xs);
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--primary);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -283,10 +285,8 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
-
-        .sidebar.collapsed .sidebar-toggle {}
 
         /* Nav */
         .sidebar-nav {
@@ -301,14 +301,15 @@
         }
 
         .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: var(--radius-pill);
         }
 
         .nav-section-label {
             font-size: 0.62rem;
             font-weight: 700;
             letter-spacing: 1.8px;
-            color: rgba(255, 255, 255, 0.22);
+            color: var(--muted);
             text-transform: uppercase;
             padding: 18px 18px 6px;
             white-space: nowrap;
@@ -324,12 +325,12 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 5px 14px;
-            margin: 1px 8px;
+            padding: 7px 14px;
+            margin: 2px 8px;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all var(--t-fast) var(--ease);
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-2);
             font-size: 0.875rem;
             font-weight: 600;
             position: relative;
@@ -351,8 +352,8 @@
         }
 
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.07);
-            color: rgba(255, 255, 255, 0.9);
+            background: var(--primary-bg);
+            color: var(--primary-dark);
         }
 
         .nav-item:hover i {
@@ -360,9 +361,9 @@
         }
 
         .nav-item.active {
-            background: linear-gradient(135deg, rgba(91, 108, 245, 0.9), rgba(67, 84, 232, 0.95));
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            box-shadow: 0 4px 16px rgba(91, 108, 245, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
 
         .nav-item.active i {
@@ -371,17 +372,17 @@
 
         /* Dev items */
         .nav-item.dev-item {
-            color: rgba(167, 139, 250, 0.7);
+            color: var(--primary);
         }
 
         .nav-item.dev-item:hover {
-            background: rgba(139, 92, 246, 0.12);
-            color: #c4b5fd;
+            background: var(--primary-bg);
+            color: var(--primary-dark);
         }
 
         .nav-item.dev-item.active {
-            background: linear-gradient(135deg, #7c3aed, #9333ea);
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
             color: white;
         }
 
@@ -427,7 +428,7 @@
             top: 50%;
             transform: translateY(-50%);
             background: var(--sidebar-top);
-            color: white;
+            color: var(--text);
             font-size: 0.78rem;
             font-weight: 600;
             padding: 6px 12px;
@@ -436,7 +437,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.15s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-solid);
             font-family: 'Cairo', sans-serif;
             box-shadow: var(--shadow-md);
         }
@@ -447,7 +448,7 @@
 
         /* Sidebar footer */
         .sidebar-footer {
-            border-top: 1px solid var(--border-sidebar);
+            border-top: 1px solid var(--border-solid);
             padding: 12px 10px;
             flex-shrink: 0;
         }
@@ -463,13 +464,13 @@
         }
 
         .sidebar-footer-user:hover {
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--primary-bg);
         }
 
         .user-avatar {
             width: 34px;
             height: 34px;
-            background: linear-gradient(135deg, #5b6cf5, #8b5cf6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -478,7 +479,7 @@
             font-size: 0.82rem;
             font-weight: 700;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(91, 108, 245, 0.4);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
         }
 
         .user-info {
@@ -488,14 +489,14 @@
 
         .user-info strong {
             font-size: 0.82rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text);
             display: block;
             white-space: nowrap;
         }
 
         .user-info span {
             font-size: 0.68rem;
-            color: rgba(255, 255, 255, 0.35);
+            color: var(--muted);
             white-space: nowrap;
         }
 
@@ -508,10 +509,10 @@
         .footer-btn {
             flex: 1;
             padding: 7px 6px;
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--border-solid);
             border-radius: var(--radius-xs);
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.45);
+            background: var(--bg);
+            color: var(--text-2);
             cursor: pointer;
             font-size: 0.72rem;
             font-family: 'Cairo', sans-serif;
@@ -525,9 +526,9 @@
         }
 
         .footer-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.15);
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            border-color: var(--primary-light);
         }
 
         .footer-btn.danger:hover {
@@ -848,30 +849,34 @@
    CARDS
 ═══════════════════════════════════════════════════════════════════ */
         .card {
-            background: var(--card);
+            background: rgba(255, 255, 255, 0.85); /* dimmed/shaded transparent card */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-xs);
-            margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.05);
+            margin-bottom: 20px;
             overflow: hidden;
-            transition: box-shadow var(--t-base) var(--ease);
+            transition: all var(--t-base) var(--ease);
             position: relative;
             z-index: 1;
         }
 
         .card:hover {
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 15px 35px -10px rgba(99, 102, 241, 0.08);
+            border-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
         }
 
         .card-header {
             padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-solid);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
-            background: var(--surface-2);
+            background: rgba(248, 250, 252, 0.6);
         }
 
         .card-title {
@@ -888,7 +893,7 @@
             width: 30px;
             height: 30px;
             background: var(--primary-bg);
-            color: var(--primary);
+            color: var(--primary-dark);
             border-radius: var(--radius-xs);
             display: flex;
             align-items: center;
@@ -898,8 +903,8 @@
         }
 
         .card-title i.dev-icon {
-            background: var(--dev-light);
-            color: var(--dev);
+            background: var(--primary-bg);
+            color: var(--primary-dark);
         }
 
         .card-body {
@@ -5685,25 +5690,23 @@
                                     <label class="form-label"><i class="fas fa-tag"></i> نوع الكنيسة *</label>
                                     <div style="display:flex;gap:12px;margin-top:6px;">
                                         <label
-                                            style="display:flex;align-items:center;gap:8px;padding:12px 20px;border:2px solid var(--border);border-radius:10px;cursor:pointer;flex:1;transition:all var(--transition);"
+                                            style="display:flex;align-items:center;gap:8px;padding:12px 20px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;transition:all var(--transition);"
                                             id="typeKidsLabel">
                                             <input type="radio" name="newChurchType" id="newChurchTypeKids" value="kids"
                                                 checked style="accent-color:var(--primary);width:16px;height:16px;">
                                             <div>
-                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);">🧒
-                                                    مدارس الأحد (أطفال)</div>
+                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i class="fas fa-child" style="color:var(--primary);margin-left:6px;"></i> مدارس الأحد (أطفال)</div>
                                                 <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
                                                     الكلمات الافتراضية: طفل، أطفال، الفصل</div>
                                             </div>
                                         </label>
                                         <label
-                                            style="display:flex;align-items:center;gap:8px;padding:12px 20px;border:2px solid var(--border);border-radius:10px;cursor:pointer;flex:1;transition:all var(--transition);"
+                                            style="display:flex;align-items:center;gap:8px;padding:12px 20px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;transition:all var(--transition);"
                                             id="typeYouthLabel">
                                             <input type="radio" name="newChurchType" id="newChurchTypeYouth"
                                                 value="youth" style="accent-color:#8b5cf6;width:16px;height:16px;">
                                             <div>
-                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);">🙋 شباب
-                                                </div>
+                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i class="fas fa-user-friends" style="color:#8b5cf6;margin-left:6px;"></i> شباب</div>
                                                 <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
                                                     الكلمات تتحول: شاب/شباب، عضو، خدمة الشباب</div>
                                             </div>
@@ -6517,18 +6520,18 @@
                         <label class="form-label"><i class="fas fa-tag"></i> نوع الكنيسة</label>
                         <div style="display:flex;gap:10px;margin-top:6px;">
                             <label
-                                style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;flex:1;"
+                                style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;"
                                 id="editTypeKidsLabel">
                                 <input type="radio" name="editChurchType" id="editChurchTypeKids" value="kids"
                                     style="accent-color:var(--primary);width:15px;height:15px;">
-                                <span style="font-weight:700;font-size:0.88rem;">🧒 أطفال (مدارس الأحد)</span>
+                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-child" style="color:var(--primary);margin-left:4px;"></i> أطفال (مدارس الأحد)</span>
                             </label>
                             <label
-                                style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;flex:1;"
+                                style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;"
                                 id="editTypeYouthLabel">
                                 <input type="radio" name="editChurchType" id="editChurchTypeYouth" value="youth"
                                     style="accent-color:#8b5cf6;width:15px;height:15px;">
-                                <span style="font-weight:700;font-size:0.88rem;">🙋 شباب</span>
+                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-user-friends" style="color:#8b5cf6;margin-left:4px;"></i> شباب</span>
                             </label>
                         </div>
                     </div>
@@ -7154,7 +7157,7 @@
             trips: ['الرحلات', 'إدارة الرحلات'],
             classes: ['الفصول', 'إدارة الفصول'],
             pending: ['الطلبات المعلقة', 'مراجعة الطلبات'],
-            devChurches: ['إدارة الكنائس 🔒', 'لوحة المطور'],
+            devChurches: ['إدارة الكنائس', 'لوحة المطور'],
             history: ['سجل العمليات', 'سجل التدقيق'],
             churchSettings: ['إعدادات الكنيسة', 'إعدادات الكنيسة والحساب'],
         };
@@ -9408,8 +9411,8 @@
                         const ep = document.getElementById(`p_${iso}`);
                         const ea = document.getElementById(`a_${iso}`);
 
-                        if (ep) ep.textContent = `✅ ${att.filter(a => a.status === 'present').length}`;
-                        if (ea) ea.textContent = `❌ ${att.filter(a => a.status === 'absent').length}`;
+                        if (ep) ep.textContent = `حاضر: ${att.filter(a => a.status === 'present').length}`;
+                        if (ea) ea.textContent = `غائب: ${att.filter(a => a.status === 'absent').length}`;
                     })
                     .catch(err => console.error('Error loading attendance for date:', iso, err));
             });
@@ -9793,7 +9796,7 @@
                 const isUnknown = !_bulkIsUpdateMode && _bulkAvailableClasses.length > 0 && !_bulkAvailableClasses.includes(cls) && cls !== '(بدون فصل)';
                 const rowStyle = isUnknown ? ' style="color:#dc2626;background:#fee2e2"' : '';
                 p += '<tr' + rowStyle + '>';
-                p += '<td>' + escHtml(cls) + (isUnknown ? ' ⚠️' : '') + '</td>';
+                p += '<td>' + escHtml(cls) + (isUnknown ? ' <i class="fas fa-exclamation-triangle" style="color:#d97706;margin-right:4px;"></i>' : '') + '</td>';
                 p += '<td>' + kids.length + '</td>';
                 p += '<td style="color:var(--muted)">' + examples + (kids.length > 3 ? '...' : '') + '</td>';
                 if (customCols.length) p += '<td style="font-size:.75rem;color:var(--muted)">' + customCols.map(c => c.h).join(', ') + '</td>';
@@ -9805,7 +9808,7 @@
 
             if (warnings.length) {
                 document.getElementById('bulkErrors').style.display = 'block';
-                document.getElementById('bulkErrors').innerHTML = '<strong>⚠️ تحذيرات:</strong><br>' + warnings.slice(0, 10).join('<br>');
+                document.getElementById('bulkErrors').innerHTML = '<strong><i class="fas fa-exclamation-triangle" style="color:var(--warning);margin-left:6px;"></i> تحذيرات:</strong><br>' + warnings.slice(0, 10).join('<br>');
             } else {
                 document.getElementById('bulkErrors').style.display = 'none';
             }
@@ -10001,7 +10004,7 @@
             <div class="church-card-stats">
                 <div class="church-stat"><div class="cv">${ch.student_count || 0}</div><div class="cl">${isYouth ? 'شاب' : 'طفل'}</div></div>
                 <div class="church-stat"><div class="cv">${ch.uncle_count || 0}</div><div class="cl">خادم</div></div>
-                <div class="church-stat"><div class="cv">${ch.admin_email ? '✅' : '❌'}</div><div class="cl">إيميل</div></div>
+                <div class="church-stat"><div class="cv">${ch.admin_email ? '<i class="fas fa-check-circle" style="color:var(--success);"></i>' : '<i class="fas fa-times-circle" style="color:var(--danger);"></i>'}</div><div class="cl">إيميل</div></div>
             </div>
             ${ch.admin_email ? `<div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px;"><i class="fas fa-envelope"></i> ${ch.admin_email}</div>` : ''}
             <div class="kid-reg-row" style="margin-top:8px;">
@@ -10189,8 +10192,8 @@
             allChurchesCache.forEach(c => {
                 const o = document.createElement('option');
                 o.value = c.id;
-                const icon = c.church_type === 'youth' ? '🙋' : '🧒';
-                o.textContent = `${icon} ${c.church_name}  (${c.church_code})  — ${c.student_count || 0} طفل`;
+                const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
+                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code}) — ${c.student_count || 0} ${c.church_type === 'youth' ? 'شاب' : 'طفل'}`;
                 if (c.id == devOrigChurchId) o.style.fontWeight = '700';
                 sel.appendChild(o);
             });
@@ -10247,8 +10250,8 @@
                 if (!allChurchesCache.length) await loadAllChurches();
                 const ch = allChurchesCache.find(c => c.id == devViewChurchId);
                 if (pill) pill.style.display = 'flex';
-                if (label) label.textContent = ch ? `${ch.church_type === 'youth' ? '🙋' : '🧒'} ${ch.church_name}` : `ID: ${churchId}`;
-                if (count && ch) count.textContent = `${ch.student_count || 0} طفل`;
+                if (label) label.textContent = ch ? `[${ch.church_type === 'youth' ? 'شباب' : 'أطفال'}] ${ch.church_name}` : `ID: ${churchId}`;
+                if (count && ch) count.textContent = `${ch.student_count || 0} ${ch.church_type === 'youth' ? 'شاب' : 'طفل'}`;
                 if (ch) {
                     document.getElementById('sidebarChurchName').textContent = ch.church_name;
                     document.getElementById('sidebarChurchCode').textContent = 'رمز: ' + ch.church_code;
@@ -12397,8 +12400,8 @@
                     const att = data.attendance || [];
                     const ep = document.getElementById(`ua2p_${iso}`);
                     const ea = document.getElementById(`ua2a_${iso}`);
-                    if (ep) ep.textContent = `✅ ${att.filter(a => a.status === 'present').length}`;
-                    if (ea) ea.textContent = `❌ ${att.filter(a => a.status === 'absent').length}`;
+                    if (ep) ep.textContent = `حاضر: ${att.filter(a => a.status === 'present').length}`;
+                    if (ea) ea.textContent = `غائب: ${att.filter(a => a.status === 'absent').length}`;
                 }).catch(() => { });
             });
             return Promise.all(promises);
@@ -12531,8 +12534,8 @@
                         </div>
                     </div>
                     <div class="uncle-report-stats">
-                        <div class="uncle-stat-box present">✅ ${r.present_count}</div>
-                        <div class="uncle-stat-box absent">❌ ${r.absent_count}</div>
+                        <div class="uncle-stat-box present"><i class="fas fa-check"></i> ${r.present_count}</div>
+                        <div class="uncle-stat-box absent"><i class="fas fa-times"></i> ${r.absent_count}</div>
                         <div class="uncle-stat-box" style="background:var(--primary-light);color:var(--primary);">${r.percentage}%</div>
                     </div>
                 </div>`;
@@ -12552,7 +12555,7 @@
                     return `<div class="day-rank-row">
                     <div style="width:28px;height:28px;border-radius:50%;background:${i < 3 ? 'var(--primary)' : 'var(--border)'};color:${i < 3 ? 'white' : 'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;flex-shrink:0;">${i + 1}</div>
                     <div class="day-rank-bar-wrap">
-                        <div class="day-rank-label"><span>${ds}</span><span style="color:var(--success);">✅ ${day.present_count} حاضر</span></div>
+                        <div class="day-rank-label"><span>${ds}</span><span style="color:var(--success);"><i class="fas fa-check"></i> ${day.present_count} حاضر</span></div>
                         <div class="day-rank-bar"><div class="day-rank-fill" style="width:${pct}%;background:${barColor};"></div></div>
                     </div>
                     <div style="font-size:.75rem;font-weight:800;color:var(--muted);flex-shrink:0;min-width:40px;text-align:center;">${attendPct}%</div>
@@ -12637,8 +12640,8 @@
                 <div class="uncle-att-ava">${imgHtml}${u.image_url ? '' : initials}</div>
                 <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.88rem;">${escHtml(u.name)}</div><div style="font-size:.72rem;color:var(--muted);">${u.role === 'admin' ? 'مسؤول' : 'خادم'}</div></div>
                 <div class="toggle-btns">
-                    <button class="att-toggle-btn present" id="uattP_${u.id}" onclick="setUncleAttStatus(${u.id},'present',this)">✅ حاضر</button>
-                    <button class="att-toggle-btn" id="uattA_${u.id}" onclick="setUncleAttStatus(${u.id},'absent',this)">❌ غائب</button>
+                    <button class="att-toggle-btn present" id="uattP_${u.id}" onclick="setUncleAttStatus(${u.id},'present',this)"><i class="fas fa-check"></i> حاضر</button>
+                    <button class="att-toggle-btn" id="uattA_${u.id}" onclick="setUncleAttStatus(${u.id},'absent',this)"><i class="fas fa-times"></i> غائب</button>
                 </div>
             </div>`;
             }).join('') : '<p style="color:var(--muted);text-align:center;padding:16px;">لا يوجد خُدام</p>';
