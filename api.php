@@ -215,7 +215,8 @@ set_time_limit(60);
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
     $parent = dirname($rootPath);
-    if ($parent === $rootPath) break;
+    if ($parent === $rootPath)
+        break;
     $rootPath = $parent;
 }
 $sessionPath = $rootPath . '/.sessions';
@@ -404,7 +405,8 @@ function verifyTripParticipant($conn, $tripId, $churchId)
     $stmt->bind_param("i", $tripId);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
-    if (!$res) return false;
+    if (!$res)
+        return false;
     $participants = [intval($res['church_id'])];
     $collabRaw = $res['collaborating_churches'] ?? '';
     if (!empty($collabRaw)) {
@@ -427,7 +429,8 @@ function verifyRegistrationParticipant($conn, $registrationId, $churchId)
     $stmt->bind_param("i", $registrationId);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
-    if (!$res) return false;
+    if (!$res)
+        return false;
     $participants = [intval($res['church_id'])];
     $collabRaw = $res['collaborating_churches'] ?? '';
     if (!empty($collabRaw)) {
@@ -506,7 +509,8 @@ function sendCollaborationRequest()
         $collab = [];
         if (!empty($trip['collaborating_churches'])) {
             $collab = json_decode($trip['collaborating_churches'], true);
-            if (!is_array($collab)) $collab = [];
+            if (!is_array($collab))
+                $collab = [];
         }
         if (in_array($toChurchId, $collab)) {
             sendJSON(['success' => false, 'message' => 'هذه الكنيسة تشارك بالفعل في الرحلة']);
@@ -620,7 +624,8 @@ function respondToCollaborationRequest()
             $collab = [];
             if (!empty($trip['collaborating_churches'])) {
                 $collab = json_decode($trip['collaborating_churches'], true);
-                if (!is_array($collab)) $collab = [];
+                if (!is_array($collab))
+                    $collab = [];
             }
             $collab[] = $churchId;
             $collab = array_values(array_unique(array_map('intval', $collab)));
@@ -1988,13 +1993,29 @@ function getData()
         $churchData = $churchResult->fetch_assoc();
         error_log("Church found: " . $churchData['church_name'] . " (ID: " . $churchData['id'] . ")");
 
-        // Check total students count for this church
-        $countStmt = $conn->prepare("SELECT COUNT(*) as total FROM students WHERE church_id = ?");
-        $countStmt->bind_param("i", $churchId);
-        $countStmt->execute();
-        $countResult = $countStmt->get_result();
-        $totalStudents = $countResult->fetch_assoc()['total'];
-        error_log("Total students in database for church ID " . $churchId . ": " . $totalStudents);
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $allowedChurches = [$churchId];
+        if ($tripId > 0) {
+            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
+            $tStmt->bind_param("i", $tripId);
+            $tStmt->execute();
+            $trip = $tStmt->get_result()->fetch_assoc();
+            if ($trip) {
+                $participants = [intval($trip['church_id'])];
+                $collabRaw = $trip['collaborating_churches'] ?? '';
+                if (!empty($collabRaw)) {
+                    $collab = json_decode($collabRaw, true);
+                    if (is_array($collab)) {
+                        $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+                    }
+                }
+                if (in_array($churchId, $participants)) {
+                    $allowedChurches = $participants;
+                }
+            }
+        }
+
+        $inPlaceholder = implode(',', array_map('intval', $allowedChurches));
 
         $stmt = $conn->prepare("
             SELECT 
@@ -2012,6 +2033,8 @@ function getData()
                 s.image_url,
                 s.class_id,
                 s.custom_info,
+                s.church_id,
+                c.church_name,
                 COALESCE(cc.id, gc.id) as class_id,
                 COALESCE(cc.code, gc.code) as class_code, 
                 COALESCE(cc.arabic_name, gc.arabic_name) as class
@@ -2020,8 +2043,11 @@ function getData()
                 ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
             LEFT JOIN classes gc 
                 ON gc.id = s.class_id
-            WHERE s.church_id = ?
+            LEFT JOIN churches c
+                ON s.church_id = c.id
+            WHERE s.church_id IN ($inPlaceholder)
             ORDER BY 
+                c.church_name,
                 CASE 
                     WHEN COALESCE(cc.arabic_name, gc.arabic_name) IS NULL THEN 999 
                     ELSE COALESCE(cc.display_order, gc.display_order) 
@@ -2034,8 +2060,6 @@ function getData()
             sendJSON(['success' => false, 'message' => 'خطأ في تحضير الاستعلام']);
             return;
         }
-
-        $stmt->bind_param("i", $churchId);
 
         if (!$stmt->execute()) {
             error_log("SQL Execute error: " . $stmt->error);
@@ -2073,6 +2097,8 @@ function getData()
                 'الفصل' => $row['class'],
                 '_classId' => intval($row['class_id']),
                 '_classCode' => $row['class_code'] ?? '',
+                '_churchId' => intval($row['church_id']),
+                '_churchName' => $row['church_name'] ?? '',
                 'العنوان' => $row['address'] ?? '',
                 'رقم التليفون' => $row['phone'] ?? '',
                 'عيد الميلاد' => formatDateFromDB($row['birthday']),
@@ -8803,23 +8829,28 @@ function addTrip()
                     if (!empty($fieldMeta['sub_fields']) && is_array($fieldMeta['sub_fields'])) {
                         $cleanSubFields = [];
                         foreach ($fieldMeta['sub_fields'] as $key => $subData) {
-                            $cleanKey = strip_tags(trim((string)$key));
-                            if ($cleanKey === '' || !is_array($subData)) continue;
+                            $cleanKey = strip_tags(trim((string) $key));
+                            if ($cleanKey === '' || !is_array($subData))
+                                continue;
 
                             // If $subData is an array of objects (new format used by frontend)
                             if (isset($subData[0]) && is_array($subData[0])) {
                                 $cleanSubFields[$cleanKey] = [];
                                 foreach ($subData as $sf) {
-                                    if (!is_array($sf)) continue;
-                                    $subName = strip_tags(trim((string)($sf['name'] ?? '')));
-                                    if ($subName === '') continue;
+                                    if (!is_array($sf))
+                                        continue;
+                                    $subName = strip_tags(trim((string) ($sf['name'] ?? '')));
+                                    if ($subName === '')
+                                        continue;
                                     $cleanSubFields[$cleanKey][] = [
-                                        'name'    => $subName,
-                                        'icon'    => strip_tags(trim((string)($sf['icon'] ?? 'fas fa-tag'))),
-                                        'type'    => strip_tags(trim((string)($sf['type'] ?? 'choices'))),
+                                        'name' => $subName,
+                                        'icon' => strip_tags(trim((string) ($sf['icon'] ?? 'fas fa-tag'))),
+                                        'type' => strip_tags(trim((string) ($sf['type'] ?? 'choices'))),
                                         'choices' => array_values(array_filter(
-                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
-                                            function($c){ return $c !== ''; }
+                                            array_map(function ($c) {
+                                                return strip_tags(trim((string) $c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
+                                            function ($c) {
+                                                return $c !== ''; }
                                         ))
                                     ];
                                 }
@@ -8828,13 +8859,16 @@ function addTrip()
                                 $cleanSubFields[$cleanKey] = [];
                                 foreach ($subData as $subName => $subMeta) {
                                     $cleanSubName = strip_tags(trim((string) $subName));
-                                    if ($cleanSubName === '') continue;
+                                    if ($cleanSubName === '')
+                                        continue;
                                     $cleanSubFields[$cleanKey][$cleanSubName] = [
-                                        'icon'    => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
-                                        'type'    => strip_tags(trim($subMeta['type'] ?? 'choices')),
+                                        'icon' => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
+                                        'type' => strip_tags(trim($subMeta['type'] ?? 'choices')),
                                         'choices' => array_values(array_filter(
-                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
-                                            function($c){ return $c !== ''; }
+                                            array_map(function ($c) {
+                                                return strip_tags(trim((string) $c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
+                                            function ($c) {
+                                                return $c !== ''; }
                                         )),
                                     ];
                                 }
@@ -9029,23 +9063,28 @@ function updateTrip()
                     if (!empty($fieldMeta['sub_fields']) && is_array($fieldMeta['sub_fields'])) {
                         $cleanSubFields = [];
                         foreach ($fieldMeta['sub_fields'] as $key => $subData) {
-                            $cleanKey = strip_tags(trim((string)$key));
-                            if ($cleanKey === '' || !is_array($subData)) continue;
+                            $cleanKey = strip_tags(trim((string) $key));
+                            if ($cleanKey === '' || !is_array($subData))
+                                continue;
 
                             // If $subData is an array of objects (new format used by frontend)
                             if (isset($subData[0]) && is_array($subData[0])) {
                                 $cleanSubFields[$cleanKey] = [];
                                 foreach ($subData as $sf) {
-                                    if (!is_array($sf)) continue;
-                                    $subName = strip_tags(trim((string)($sf['name'] ?? '')));
-                                    if ($subName === '') continue;
+                                    if (!is_array($sf))
+                                        continue;
+                                    $subName = strip_tags(trim((string) ($sf['name'] ?? '')));
+                                    if ($subName === '')
+                                        continue;
                                     $cleanSubFields[$cleanKey][] = [
-                                        'name'    => $subName,
-                                        'icon'    => strip_tags(trim((string)($sf['icon'] ?? 'fas fa-tag'))),
-                                        'type'    => strip_tags(trim((string)($sf['type'] ?? 'choices'))),
+                                        'name' => $subName,
+                                        'icon' => strip_tags(trim((string) ($sf['icon'] ?? 'fas fa-tag'))),
+                                        'type' => strip_tags(trim((string) ($sf['type'] ?? 'choices'))),
                                         'choices' => array_values(array_filter(
-                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
-                                            function($c){ return $c !== ''; }
+                                            array_map(function ($c) {
+                                                return strip_tags(trim((string) $c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
+                                            function ($c) {
+                                                return $c !== ''; }
                                         ))
                                     ];
                                 }
@@ -9054,13 +9093,16 @@ function updateTrip()
                                 $cleanSubFields[$cleanKey] = [];
                                 foreach ($subData as $subName => $subMeta) {
                                     $cleanSubName = strip_tags(trim((string) $subName));
-                                    if ($cleanSubName === '') continue;
+                                    if ($cleanSubName === '')
+                                        continue;
                                     $cleanSubFields[$cleanKey][$cleanSubName] = [
-                                        'icon'    => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
-                                        'type'    => strip_tags(trim($subMeta['type'] ?? 'choices')),
+                                        'icon' => strip_tags(trim($subMeta['icon'] ?? 'fas fa-tag')),
+                                        'type' => strip_tags(trim($subMeta['type'] ?? 'choices')),
                                         'choices' => array_values(array_filter(
-                                            array_map(function($c){ return strip_tags(trim((string)$c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
-                                            function($c){ return $c !== ''; }
+                                            array_map(function ($c) {
+                                                return strip_tags(trim((string) $c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
+                                            function ($c) {
+                                                return $c !== ''; }
                                         )),
                                     ];
                                 }
@@ -9387,9 +9429,12 @@ function getTripDetails()
         $trip['registrations'] = $registrations;
         $trip['stats'] = [
             'registered' => count($registrations),
-            'paid_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'paid'; })),
-            'partial_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'partial'; })),
-            'pending_count' => count(array_filter($registrations, function($r) { return $r['payment_status'] === 'pending'; })),
+            'paid_count' => count(array_filter($registrations, function ($r) {
+                return $r['payment_status'] === 'paid'; })),
+            'partial_count' => count(array_filter($registrations, function ($r) {
+                return $r['payment_status'] === 'partial'; })),
+            'pending_count' => count(array_filter($registrations, function ($r) {
+                return $r['payment_status'] === 'pending'; })),
             'total_collected' => $totalPaid,
             'total_donations' => $totalDonations,
             'pending_amount' => $pendingAmount
@@ -9684,20 +9729,20 @@ function rebalanceTripWaitlist()
         foreach ($extra as $r) {
             $regId = $r['id'];
             $studentId = $r['student_id'];
-            
+
             // Calc total paid for this registration to preserve it in waitlist
             $paidStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
             $paidStmt->bind_param("i", $regId);
             $paidStmt->execute();
             $totalPaid = floatval($paidStmt->get_result()->fetch_assoc()['total']);
-            
+
             $totalFunds = floatval($r['deposit'] ?? 0) + $totalPaid;
 
             // Move to waitlist
             $pos = getWaitlistNextPosition($conn, $tripId);
             $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, custom_data, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $ins->bind_param("iiiissss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $r['custom_data'], $r['created_at']);
-            
+
             if ($ins->execute()) {
                 // Delete payments (they are consolidated in waitlist.deposit)
                 $delP = $conn->prepare("DELETE FROM trip_payments WHERE registration_id = ?");
@@ -9708,7 +9753,7 @@ function rebalanceTripWaitlist()
                 $del = $conn->prepare("DELETE FROM trip_registrations WHERE id = ?");
                 $del->bind_param("i", $regId);
                 $del->execute();
-                
+
                 $movedCount++;
             }
         }
@@ -9761,12 +9806,19 @@ function registerStudentForTrip()
         $conn = getDBConnection();
         ensureWaitlistTable($conn);
 
-        // التحقق من وجود الطفل في نفس الكنيسة
-        $checkStudent = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
-        $checkStudent->bind_param("ii", $studentId, $churchId);
+        // التحقق من وجود الطفل وأن كنيسته تشارك في هذه الرحلة
+        $checkStudent = $conn->prepare("SELECT id, church_id FROM students WHERE id = ?");
+        $checkStudent->bind_param("i", $studentId);
         $checkStudent->execute();
-        if ($checkStudent->get_result()->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'الطفل غير موجود في هذه الكنيسة']);
+        $studentRes = $checkStudent->get_result()->fetch_assoc();
+        if (!$studentRes) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+            return;
+        }
+        $studentChurchId = intval($studentRes['church_id']);
+
+        if (!verifyTripParticipant($conn, $tripId, $studentChurchId)) {
+            sendJSON(['success' => false, 'message' => 'كنيسة الطفل لا تشارك في هذه الرحلة']);
             return;
         }
 
@@ -10420,9 +10472,9 @@ function exportTripData()
 
         $registrations = [];
         while ($row = $regResult->fetch_assoc()) {
-            $row['total_paid']     = floatval($row['total_paid']);
+            $row['total_paid'] = floatval($row['total_paid']);
             $row['total_donation'] = floatval($row['total_donation']);
-            $row['remaining']      = max(0, $finalPrice - $row['total_paid']);
+            $row['remaining'] = max(0, $finalPrice - $row['total_paid']);
             $row['payment_status'] = $row['remaining'] == 0
                 ? 'مدفوع بالكامل'
                 : ($row['total_paid'] > 0 ? 'مدفوع جزئياً' : 'غير مدفوع');
@@ -10475,7 +10527,8 @@ function exportTripData()
             while ($row = $wResult->fetch_assoc()) {
                 $waitlist[] = $row;
             }
-        } catch (Exception $we) { /* ignore if waitlist table missing */ }
+        } catch (Exception $we) { /* ignore if waitlist table missing */
+        }
 
         if ($format === 'csv') {
             exportTripToCSV($trip, $finalPrice, $registrations, $payments, $waitlist);
@@ -10540,7 +10593,8 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
         $meta = $fieldIconsMeta[$fieldName] ?? [];
         if (!empty($meta['sub_fields']) && is_array($meta['sub_fields'])) {
             foreach ($meta['sub_fields'] as $choiceVal => $subObj) {
-                if (!is_array($subObj)) continue;
+                if (!is_array($subObj))
+                    continue;
                 foreach ($subObj as $subName => $subMeta) {
                     $storageKey = $fieldName . '__sub__' . $choiceVal . '__' . $subName;
                     $label = $fieldName . ' (' . $choiceVal . ') → ' . $subName;
@@ -10553,8 +10607,19 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     // ─── قسم المسجلون ─────────────────────────────────────────────────────────
     fputcsv($output, ['قائمة المسجلين (' . count($registrations) . ')']);
     $headerRow = [
-        '#', 'اسم الطفل', 'الكنيسة', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية',
-        'تاريخ التسجيل', 'المدفوع', 'التبرع', 'المتبقي', 'الحالة', 'ملاحظات'
+        '#',
+        'اسم الطفل',
+        'الكنيسة',
+        'الفصل',
+        'رقم الهاتف',
+        'هاتف الطوارئ',
+        'ملاحظات طبية',
+        'تاريخ التسجيل',
+        'المدفوع',
+        'التبرع',
+        'المتبقي',
+        'الحالة',
+        'ملاحظات'
     ];
     foreach ($customColumns as $col) {
         $headerRow[] = $col['label'];
@@ -10565,7 +10630,8 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
         $customData = [];
         if (!empty($reg['custom_data'])) {
             $parsed = json_decode($reg['custom_data'], true);
-            if (is_array($parsed)) $customData = $parsed;
+            if (is_array($parsed))
+                $customData = $parsed;
         }
         $row = [
             $index + 1,
@@ -10589,23 +10655,23 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     }
 
     // ─── إحصائيات الملخص ─────────────────────────────────────────────────────
-    $totalPaid      = array_sum(array_column($registrations, 'total_paid'));
-    $totalDonation  = array_sum(array_column($registrations, 'total_donation'));
+    $totalPaid = array_sum(array_column($registrations, 'total_paid'));
+    $totalDonation = array_sum(array_column($registrations, 'total_donation'));
     $totalRemaining = array_sum(array_column($registrations, 'remaining'));
-    $totalExpected  = $totalPaid + $totalRemaining;
-    $paidCount      = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع بالكامل'));
-    $partialCount   = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع جزئياً'));
-    $pendingCount   = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'غير مدفوع'));
+    $totalExpected = $totalPaid + $totalRemaining;
+    $paidCount = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع بالكامل'));
+    $partialCount = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'مدفوع جزئياً'));
+    $pendingCount = count(array_filter($registrations, fn($r) => $r['payment_status'] === 'غير مدفوع'));
 
     fputcsv($output, ['']);
     fputcsv($output, ['الإحصائيات']);
-    fputcsv($output, ['إجمالي المسجلين',  count($registrations)]);
-    fputcsv($output, ['مدفوع بالكامل',    $paidCount]);
-    fputcsv($output, ['مدفوع جزئياً',     $partialCount]);
-    fputcsv($output, ['غير مدفوع',        $pendingCount]);
-    fputcsv($output, ['إجمالي المحصّل',   round($totalPaid, 2) . ' جنيه']);
-    fputcsv($output, ['إجمالي التبرعات',  round($totalDonation, 2) . ' جنيه']);
-    fputcsv($output, ['إجمالي المتبقي',   round($totalRemaining, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي المسجلين', count($registrations)]);
+    fputcsv($output, ['مدفوع بالكامل', $paidCount]);
+    fputcsv($output, ['مدفوع جزئياً', $partialCount]);
+    fputcsv($output, ['غير مدفوع', $pendingCount]);
+    fputcsv($output, ['إجمالي المحصّل', round($totalPaid, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي التبرعات', round($totalDonation, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي المتبقي', round($totalRemaining, 2) . ' جنيه']);
     fputcsv($output, ['الإجمالي المتوقع', round($totalExpected, 2) . ' جنيه']);
 
     // ─── سجل الدفعات التفصيلي ───────────────────────────────────────────────
@@ -12692,7 +12758,7 @@ function listChurchRegKeys()
         LEFT JOIN churches c ON c.id = k.used_by_church
         ORDER BY k.created_at DESC
     ");
-    
+
     if (!$result) {
         sendJSON(['success' => false, 'message' => 'حدث خطأ في قاعدة البيانات: ' . $conn->error]);
         return;

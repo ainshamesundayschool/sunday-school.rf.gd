@@ -688,7 +688,7 @@
             flex: 1;
         }
 
-        .page-header-left > div {
+        .page-header-left>div {
             min-width: 0;
             flex: 1;
         }
@@ -5310,11 +5310,15 @@
             <!-- ── TRIPS ── -->
             <div id="trips" class="tab-panel">
                 <!-- Trip Collaboration Invites Card -->
-                <div id="tripCollaborationInvitesCard" class="card" style="margin-bottom:20px; display:none; border:1px solid #0ea5e9;">
-                    <div class="card-header" style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe;">
-                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات الواردة</div>
+                <div id="tripCollaborationInvitesCard" class="card"
+                    style="margin-bottom:20px; display:none; border:1px solid #0ea5e9;">
+                    <div class="card-header"
+                        style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe;">
+                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات
+                            الواردة</div>
                     </div>
-                    <div class="card-body" id="tripCollaborationInvitesList" style="padding:14px; display:flex; flex-direction:column; gap:10px;">
+                    <div class="card-body" id="tripCollaborationInvitesList"
+                        style="padding:14px; display:flex; flex-direction:column; gap:10px;">
                         <!-- Requests will load here -->
                     </div>
                 </div>
@@ -5985,7 +5989,9 @@
                         </button>
                     </div>
                     <div class="card-body">
-                        <div id="devTemplatesLoading" style="display:none;text-align:center;padding:24px;color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                        <div id="devTemplatesLoading"
+                            style="display:none;text-align:center;padding:24px;color:var(--muted);"><i
+                                class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
                         <div id="devTemplatesList" style="display:flex;flex-direction:column;gap:12px;"></div>
                     </div>
                 </div>
@@ -6172,30 +6178,40 @@
         <div class="modal-box wide" style="max-width:720px;">
             <div class="modal-head">
                 <h2><i class="fas fa-magic"></i> إضافة قالب حقول إضافية جديد</h2>
-                <button class="modal-close" onclick="closeModal('devAddTemplateModal')"><i class="fas fa-times"></i></button>
+                <button class="modal-close" onclick="closeModal('devAddTemplateModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
                 <div class="form-group">
                     <label class="form-label" style="font-weight:700;">اسم القالب *</label>
-                    <input type="text" id="devTemplateName" class="form-input" placeholder="مثال: بيت الاخوه بالسويس" style="font-weight:700;">
+                    <input type="text" id="devTemplateName" class="form-input" placeholder="مثال: بيت الاخوه بالسويس"
+                        style="font-weight:700;">
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight:700;">اسم الحقل الرئيسي *</label>
-                    <input type="text" id="devTemplateFieldName" class="form-input" value="السكن" placeholder="مثال: السكن" style="font-weight:700;">
+                    <input type="text" id="devTemplateFieldName" class="form-input" value="السكن"
+                        placeholder="مثال: السكن" style="font-weight:700;">
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight:700;">خيارات الحقل الرئيسي (مفصولة بفواصل) *</label>
-                    <input type="text" id="devTemplateMainChoices" class="form-input" value="المبنى, فيلا, فيلا الفرح" placeholder="مثال: المبنى, فيلا, فيلا الفرح" style="font-weight:700;" oninput="renderDevTemplateSubfieldsUI()">
+                    <input type="text" id="devTemplateMainChoices" class="form-input" value="المبنى, فيلا, فيلا الفرح"
+                        placeholder="مثال: المبنى, فيلا, فيلا الفرح" style="font-weight:700;"
+                        oninput="renderDevTemplateSubfieldsUI()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="font-weight:700;color:var(--primary);"><i class="fas fa-sliders-h"></i> تكوين الغرف والحقول الفرعية لكل خيار:</label>
-                    <div id="devTemplateSubfieldsArea" style="display:flex;flex-direction:column;gap:10px;background:var(--bg);padding:14px;border-radius:10px;border:1px solid var(--border);">
+                    <label class="form-label" style="font-weight:700;color:var(--primary);"><i
+                            class="fas fa-sliders-h"></i> تكوين الغرف والحقول الفرعية لكل خيار:</label>
+                    <div id="devTemplateSubfieldsArea"
+                        style="display:flex;flex-direction:column;gap:10px;background:var(--bg);padding:14px;border-radius:10px;border:1px solid var(--border);">
                         <!-- Will be dynamically populated by renderDevTemplateSubfieldsUI() -->
                     </div>
                 </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border-solid);padding-top:14px;margin-top:4px;">
-                    <button type="button" class="btn btn-dev" onclick="devTemplateSave()"><i class="fas fa-plus"></i> إضافة القالب</button>
-                    <button type="button" class="btn btn-outline" onclick="closeModal('devAddTemplateModal')">إلغاء</button>
+                <div
+                    style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border-solid);padding-top:14px;margin-top:4px;">
+                    <button type="button" class="btn btn-dev" onclick="devTemplateSave()"><i class="fas fa-plus"></i>
+                        إضافة القالب</button>
+                    <button type="button" class="btn btn-outline"
+                        onclick="closeModal('devAddTemplateModal')">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -6454,6 +6470,7 @@
                     <input type="hidden" id="registerStudentId">
                     <div class="kid-picker-panel" style="margin-bottom:14px;">
                         <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
+                        <div class="church-picker-tabs" id="churchPickerTabs" style="display:none; gap:8px; overflow-x:auto; padding:4px 2px 10px; margin-bottom:12px; border-bottom:1px solid var(--border); direction:rtl;"></div>
                         <!-- search + filter -->
                         <div class="kid-picker-search">
                             <i class="fas fa-search"></i>
@@ -6813,7 +6830,7 @@
                 if (meta.type === 'sub_group' && meta.sub_fields) {
                     let subFieldsObj = meta.sub_fields;
                     if (typeof subFieldsObj === 'string') {
-                        try { subFieldsObj = JSON.parse(subFieldsObj); } catch(e){}
+                        try { subFieldsObj = JSON.parse(subFieldsObj); } catch (e) { }
                     }
                     if (typeof subFieldsObj === 'object' && subFieldsObj !== null) {
                         // Choice-based sub-fields: collect unique sub-fields across all choices
@@ -6821,17 +6838,17 @@
                         Object.values(subFieldsObj).forEach(choiceSubs => {
                             let subs = choiceSubs;
                             if (typeof subs === 'string') {
-                                try { subs = JSON.parse(subs); } catch(e){}
+                                try { subs = JSON.parse(subs); } catch (e) { }
                             }
                             if (Array.isArray(subs)) {
                                 subs.forEach(sf => {
                                     if (!subFieldNames.has(sf.name)) {
                                         subFieldNames.add(sf.name);
-                                        allColumns.push({ 
-                                            field: field + '__sf__' + sf.name, 
-                                            label: field + ' → ' + sf.name, 
-                                            meta: sf, 
-                                            isGroup: true 
+                                        allColumns.push({
+                                            field: field + '__sf__' + sf.name,
+                                            label: field + ' → ' + sf.name,
+                                            meta: sf,
+                                            isGroup: true
                                         });
                                     }
                                 });
@@ -6854,7 +6871,7 @@
             if (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons !== null) {
                 icons = trip.custom_field_icons;
             } else if (typeof trip.custom_field_icons === 'string') {
-                try { icons = JSON.parse(trip.custom_field_icons); } catch(e){}
+                try { icons = JSON.parse(trip.custom_field_icons); } catch (e) { }
             }
 
             const allColumns = _getAllSubFieldColumns(fields, icons);
@@ -6894,7 +6911,7 @@
             if (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons !== null) {
                 icons = trip.custom_field_icons;
             } else if (typeof trip.custom_field_icons === 'string') {
-                try { icons = JSON.parse(trip.custom_field_icons); } catch(e){}
+                try { icons = JSON.parse(trip.custom_field_icons); } catch (e) { }
             }
 
             const allColumns = _getAllSubFieldColumns(fields, icons);
@@ -7004,7 +7021,7 @@
                 return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
             }
             const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-            
+
             const tableColumns = [];
             fields.forEach(field => {
                 const meta = icons[field] || {};
@@ -7022,7 +7039,7 @@
 
                 const choices = Array.isArray(meta.choices) ? meta.choices : [];
                 const style = `min-width:130px;font-size:0.82rem;`;
-                
+
                 if (meta.type === 'sub_group') {
                     return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}" onchange="onTableParentFieldChange(this, '${escHtml(field)}', '${regId}')">
                             <option value="">— اختر —</option>
@@ -7046,12 +7063,12 @@
                     <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
                     <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
                     ${tableColumns.map(col => {
-                        const currentVal = values[col.field] || '';
-                        return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, r.id)}</td>`;
-                    }).join('')}
+                    const currentVal = values[col.field] || '';
+                    return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, r.id)}</td>`;
+                }).join('')}
                 </tr>`;
             }).join('');
-            
+
             const thStyle = `text-align:right;padding:10px;border-bottom:2px solid var(--border);white-space:nowrap;`;
             return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;direction:rtl;"><thead><tr>
                 <th style="${thStyle}">ID</th>
@@ -7098,7 +7115,7 @@
 
             const fd = new FormData();
             fd.append('action', 'getCollaborationRequests');
-            
+
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 if (res.success && res.incoming && res.incoming.length > 0) {
@@ -7128,7 +7145,7 @@
 
         async function respondToCollab(requestId, status) {
             if (status === 'rejected' && !confirm('هل أنت متأكد من رفض هذه الدعوة؟')) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'respondToCollaborationRequest');
             fd.append('request_id', requestId);
@@ -7177,7 +7194,7 @@
             let collaborators = [];
             try {
                 collaborators = trip && trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
-            } catch (e) {}
+            } catch (e) { }
 
             const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
 
@@ -7294,9 +7311,9 @@
                 <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
                 <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
                     ${collaborators.map(id => {
-                        const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
-                        return ch ? ch.name : `كنيسة رقم ${id}`;
-                    }).join('، ')}
+                const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
+                return ch ? ch.name : `كنيسة رقم ${id}`;
+            }).join('، ')}
                 </div>
             </div>
         </div>
@@ -8948,7 +8965,7 @@
 
         function loadTrips() {
             document.getElementById('tripsList').innerHTML = `<div class="trips-grid">${[1, 2, 3].map(() => `<div class="trip-card-skel skel"></div>`).join('')}</div>`;
-            try { loadCollaborationRequests(); } catch(e) {}
+            try { loadCollaborationRequests(); } catch (e) { }
             const fd = mkFd('getTrips'); fd.append('status', 'all'); fd.append('type', 'all');
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
@@ -9501,11 +9518,13 @@
 
         let _selectedKidId = null;
         let _kidPickerClassFilter = '';
+        let _kidPickerChurchFilter = '';
 
         async function showRegisterStudentModal(tripId) {
             const trip = allTripsCache.find(t => String(t.id) === String(tripId));
             _selectedKidId = null;
             _kidPickerClassFilter = '';
+            _kidPickerChurchFilter = '';
             document.getElementById('registerTripId').value = tripId;
             document.getElementById('registerDeposit').value = '0';
             document.getElementById('registerNotes').value = '';
@@ -9531,31 +9550,112 @@
             document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
             document.getElementById('kidPickerGrid').innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
             openModal('registerStudentModal');
-            const fd = new FormData(); fd.append('action', 'getData');
+            
+            const fd = new FormData();
+            fd.append('action', 'getData');
+            fd.append('trip_id', tripId);
+            
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             tripStudentsCache = d.success ? d.data || [] : [];
-            // build class filter chips
-            const classes = [...new Set(tripStudentsCache.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
+
+            const uniqueChurches = [];
+            const seenChurches = new Set();
+            tripStudentsCache.forEach(s => {
+                const cId = s._churchId || 0;
+                const cName = s._churchName || '';
+                if (cId && !seenChurches.has(cId)) {
+                    seenChurches.add(cId);
+                    uniqueChurches.push({ id: cId, name: cName });
+                }
+            });
+
+            const myChurchId = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+            uniqueChurches.sort((a, b) => {
+                if (a.id == myChurchId) return -1;
+                if (b.id == myChurchId) return 1;
+                return a.name.localeCompare(b.name, 'ar');
+            });
+
+            _kidPickerChurchFilter = uniqueChurches.length > 0 ? uniqueChurches[0].id : '';
+
+            const tabsContainer = document.getElementById('churchPickerTabs');
+            if (tabsContainer) {
+                if (uniqueChurches.length > 1) {
+                    tabsContainer.style.display = 'flex';
+                    tabsContainer.innerHTML = uniqueChurches.map(ch => `
+                        <div class="church-tab-btn ${ch.id == _kidPickerChurchFilter ? 'active' : ''}" onclick="setKidChurchFilter(${ch.id}, this)" style="padding:6px 14px;cursor:pointer;border-radius:20px;font-size:0.8rem;white-space:nowrap;font-weight:700;border:1px solid var(--border);color:var(--text);background:var(--bg); transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="if(!this.classList.contains('active'))this.style.borderColor='var(--border)'">
+                            ${ch.name} (${tripStudentsCache.filter(s => s._churchId == ch.id).length})
+                        </div>
+                    `).join('');
+                    
+                    setTimeout(() => {
+                        const activeBtn = tabsContainer.querySelector('.church-tab-btn.active');
+                        if (activeBtn) {
+                            activeBtn.style.background = 'var(--primary)';
+                            activeBtn.style.color = '#fff';
+                            activeBtn.style.borderColor = 'var(--primary)';
+                        }
+                    }, 0);
+                } else {
+                    tabsContainer.style.display = 'none';
+                    tabsContainer.innerHTML = '';
+                }
+            }
+
+            const initialKids = _kidPickerChurchFilter ? tripStudentsCache.filter(s => s._churchId == _kidPickerChurchFilter) : tripStudentsCache;
+            const classes = [...new Set(initialKids.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
             document.getElementById('kidPickerFilters').innerHTML =
-                `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${tripStudentsCache.length})</div>` +
-                classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
-            renderKidPickerGrid(tripStudentsCache);
+                `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${initialKids.length})</div>` +
+                classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${initialKids.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
+            
+            renderKidPickerGrid(initialKids);
+        }
+
+        function setKidChurchFilter(churchId, el) {
+            _kidPickerChurchFilter = churchId;
+            document.querySelectorAll('.church-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'var(--bg)';
+                btn.style.color = 'var(--text)';
+                btn.style.borderColor = 'var(--border)';
+            });
+            if (el) {
+                el.classList.add('active');
+                el.style.background = 'var(--primary)';
+                el.style.color = '#fff';
+                el.style.borderColor = 'var(--primary)';
+            }
+            
+            const churchKids = tripStudentsCache.filter(s => s._churchId == _kidPickerChurchFilter);
+            const classes = [...new Set(churchKids.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
+            
+            _kidPickerClassFilter = '';
+            document.getElementById('kidPickerFilters').innerHTML =
+                `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${churchKids.length})</div>` +
+                classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${churchKids.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
+                
+            filterRegisterStudents();
         }
 
         function setKidClassFilter(cls, el) {
             _kidPickerClassFilter = cls;
             document.querySelectorAll('.kpf-chip').forEach(c => c.classList.remove('active'));
             if (el) el.classList.add('active');
-            const q = document.getElementById('registerStudentSearch').value.toLowerCase();
-            let list = cls ? tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === cls) : tripStudentsCache;
-            if (q) list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
-            renderKidPickerGrid(list);
+            filterRegisterStudents();
         }
 
         function filterRegisterStudents() {
             const q = document.getElementById('registerStudentSearch').value.toLowerCase();
-            let list = _kidPickerClassFilter ? tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === _kidPickerClassFilter) : tripStudentsCache;
-            if (q) list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
+            let list = tripStudentsCache;
+            if (_kidPickerChurchFilter) {
+                list = list.filter(s => s._churchId == _kidPickerChurchFilter);
+            }
+            if (_kidPickerClassFilter) {
+                list = list.filter(s => (s['الفصل'] || s['class'] || '') === _kidPickerClassFilter);
+            }
+            if (q) {
+                list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
+            }
             renderKidPickerGrid(list);
         }
 
@@ -10643,7 +10743,7 @@
             document.getElementById('devTemplateName').value = '';
             document.getElementById('devTemplateFieldName').value = 'السكن';
             document.getElementById('devTemplateMainChoices').value = 'المبنى, فيلا, فيلا الفرح';
-            
+
             renderDevTemplateSubfieldsUI();
             openModal('devAddTemplateModal');
         }
@@ -10676,7 +10776,7 @@
             mainChoices.forEach((choice, index) => {
                 const subnameEl = document.getElementById(`devSubfield_choice_${index}_subname`);
                 const subchoicesEl = document.getElementById(`devSubfield_choice_${index}_subchoices`);
-                
+
                 if (!subnameEl || !subchoicesEl) return;
 
                 const subfieldName = subnameEl.value.trim();
@@ -10946,7 +11046,7 @@
                 'margin-left: 8px',
                 'transition: all 0.2s ease'
             ].join(';');
-            
+
             // Add hover effect
             bar.onmouseover = () => bar.style.background = 'rgba(124, 58, 237, 0.12)';
             bar.onmouseout = () => bar.style.background = 'rgba(124, 58, 237, 0.08)';

@@ -2896,7 +2896,7 @@
     }
 
     @media print {
-      body > *:not(#printArea) {
+      body>*:not(#printArea) {
         display: none !important;
       }
 
@@ -3652,6 +3652,7 @@
           <input type="hidden" id="registerStudentId">
           <div class="kid-picker-panel" style="margin-bottom:14px;">
             <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
+            <div class="church-picker-tabs" id="churchPickerTabs" style="display:none; gap:8px; overflow-x:auto; padding:4px 2px 10px; margin-bottom:12px; border-bottom:1px solid var(--border); direction:rtl;"></div>
             <!-- search + filter -->
             <div class="kid-picker-search">
               <i class="fas fa-search"></i>
@@ -3980,9 +3981,12 @@
     // Kid picker + register + payments + attendance functions (copied from canonical dashboard)
     let _selectedKidId = null;
     let _kidPickerClassFilter = '';
+    let _kidPickerChurchFilter = '';
+
     async function showRegisterStudentModal(tripId) {
       _selectedKidId = null;
       _kidPickerClassFilter = '';
+      _kidPickerChurchFilter = '';
       document.getElementById('registerTripId').value = tripId;
       document.getElementById('registerDeposit').value = '0';
       document.getElementById('registerDonation').value = '0';
@@ -3991,31 +3995,115 @@
       document.getElementById('registerStudentId').value = '';
       document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
       document.getElementById('kidPickerGrid').innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
-      // Render custom fields for this trip
+      
       renderRegisterCustomFields(tripId);
       openModal('registerStudentModal');
-      const fd = new FormData(); fd.append('action', 'getData');
+
+      const fd = new FormData();
+      fd.append('action', 'getData');
+      fd.append('trip_id', tripId);
+      
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       tripStudentsCache = d.success ? d.data || [] : [];
-      const classes = [...new Set(tripStudentsCache.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
+
+      const uniqueChurches = [];
+      const seenChurches = new Set();
+      tripStudentsCache.forEach(s => {
+        const cId = s._churchId || 0;
+        const cName = s._churchName || '';
+        if (cId && !seenChurches.has(cId)) {
+          seenChurches.add(cId);
+          uniqueChurches.push({ id: cId, name: cName });
+        }
+      });
+
+      const myChurchId = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+      uniqueChurches.sort((a, b) => {
+        if (a.id == myChurchId) return -1;
+        if (b.id == myChurchId) return 1;
+        return a.name.localeCompare(b.name, 'ar');
+      });
+
+      _kidPickerChurchFilter = uniqueChurches.length > 0 ? uniqueChurches[0].id : '';
+
+      const tabsContainer = document.getElementById('churchPickerTabs');
+      if (tabsContainer) {
+        if (uniqueChurches.length > 1) {
+          tabsContainer.style.display = 'flex';
+          tabsContainer.innerHTML = uniqueChurches.map(ch => `
+            <div class="church-tab-btn ${ch.id == _kidPickerChurchFilter ? 'active' : ''}" onclick="setKidChurchFilter(${ch.id}, this)" style="padding:6px 14px;cursor:pointer;border-radius:20px;font-size:0.8rem;white-space:nowrap;font-weight:700;border:1px solid var(--border);color:var(--text);background:var(--bg); transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="if(!this.classList.contains('active'))this.style.borderColor='var(--border)'">
+              ${ch.name} (${tripStudentsCache.filter(s => s._churchId == ch.id).length})
+            </div>
+          `).join('');
+          
+          setTimeout(() => {
+            const activeBtn = tabsContainer.querySelector('.church-tab-btn.active');
+            if (activeBtn) {
+              activeBtn.style.background = 'var(--primary)';
+              activeBtn.style.color = '#fff';
+              activeBtn.style.borderColor = 'var(--primary)';
+            }
+          }, 0);
+        } else {
+          tabsContainer.style.display = 'none';
+          tabsContainer.innerHTML = '';
+        }
+      }
+
+      const initialKids = _kidPickerChurchFilter ? tripStudentsCache.filter(s => s._churchId == _kidPickerChurchFilter) : tripStudentsCache;
+      const classes = [...new Set(initialKids.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
       document.getElementById('kidPickerFilters').innerHTML =
-        `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${tripStudentsCache.length})</div>` +
-        classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
-      renderKidPickerGrid(tripStudentsCache);
+        `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${initialKids.length})</div>` +
+        classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${initialKids.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
+      
+      renderKidPickerGrid(initialKids);
     }
+
+    function setKidChurchFilter(churchId, el) {
+      _kidPickerChurchFilter = churchId;
+      document.querySelectorAll('.church-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'var(--bg)';
+        btn.style.color = 'var(--text)';
+        btn.style.borderColor = 'var(--border)';
+      });
+      if (el) {
+        el.classList.add('active');
+        el.style.background = 'var(--primary)';
+        el.style.color = '#fff';
+        el.style.borderColor = 'var(--primary)';
+      }
+      
+      const churchKids = tripStudentsCache.filter(s => s._churchId == _kidPickerChurchFilter);
+      const classes = [...new Set(churchKids.map(s => s['الفصل'] || s['class'] || '').filter(Boolean))].sort();
+      
+      _kidPickerClassFilter = '';
+      document.getElementById('kidPickerFilters').innerHTML =
+        `<div class="kpf-chip active" onclick="setKidClassFilter('',this)">الكل (${churchKids.length})</div>` +
+        classes.map(c => `<div class="kpf-chip" onclick="setKidClassFilter('${escHtml(c)}',this)">${escHtml(c)} (${churchKids.filter(s => (s['الفصل'] || s['class'] || '') === c).length})</div>`).join('');
+        
+      filterRegisterStudents();
+    }
+
     function setKidClassFilter(cls, el) {
       _kidPickerClassFilter = cls;
       document.querySelectorAll('.kpf-chip').forEach(c => c.classList.remove('active'));
       if (el) el.classList.add('active');
-      const q = document.getElementById('registerStudentSearch').value.toLowerCase();
-      let list = cls ? tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === cls) : tripStudentsCache;
-      if (q) list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
-      renderKidPickerGrid(list);
+      filterRegisterStudents();
     }
+
     function filterRegisterStudents() {
       const q = document.getElementById('registerStudentSearch').value.toLowerCase();
-      let list = _kidPickerClassFilter ? tripStudentsCache.filter(s => (s['الفصل'] || s['class'] || '') === _kidPickerClassFilter) : tripStudentsCache;
-      if (q) list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
+      let list = tripStudentsCache;
+      if (_kidPickerChurchFilter) {
+        list = list.filter(s => s._churchId == _kidPickerChurchFilter);
+      }
+      if (_kidPickerClassFilter) {
+        list = list.filter(s => (s['الفصل'] || s['class'] || '') === _kidPickerClassFilter);
+      }
+      if (q) {
+        list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
+      }
       renderKidPickerGrid(list);
     }
     function renderKidPickerGrid(students) {
@@ -4531,11 +4619,11 @@
               choiceSubs.forEach(sf => {
                 if (!subFieldNames.has(sf.name)) {
                   subFieldNames.add(sf.name);
-                  allColumns.push({ 
-                    field: field + '__sf__' + sf.name, 
-                    label: field + ' → ' + sf.name, 
-                    meta: sf, 
-                    isGroup: true 
+                  allColumns.push({
+                    field: field + '__sf__' + sf.name,
+                    label: field + ' → ' + sf.name,
+                    meta: sf,
+                    isGroup: true
                   });
                 }
               });
@@ -4711,7 +4799,7 @@
         return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
       }
       const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      
+
       const tableColumns = [];
       fields.forEach(field => {
         const meta = icons[field] || {};
@@ -4729,7 +4817,7 @@
 
         const choices = Array.isArray(meta.choices) ? meta.choices : [];
         const style = `min-width:130px;font-size:0.82rem;`;
-        
+
         if (meta.type === 'sub_group') {
           return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}" onchange="onTableParentFieldChange(this, '${escHtml(field)}', '${regId}')">
                 <option value="">— اختر —</option>
@@ -4753,9 +4841,9 @@
             <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
             <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
             ${tableColumns.map(col => {
-              const currentVal = values[col.field] || '';
-              return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, r.id)}</td>`;
-            }).join('')}
+          const currentVal = values[col.field] || '';
+          return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, r.id)}</td>`;
+        }).join('')}
         </tr>`;
       }).join('');
       const thStyle = `text-align:right;padding:10px;border-bottom:2px solid var(--border);white-space:nowrap;`;
@@ -4817,7 +4905,7 @@
               ${sfChoices.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
             </select>`
           : `<input type="text" class="form-input" name="cf_${escHtml(sfKey)}" id="regcf_${escHtml(sfKey)}" placeholder="${escHtml(sf.name)}" style="font-size:0.75rem;padding:4px;min-height:28px;" required>`;
-        
+
         return `<div class="form-group" style="margin-bottom:6px;">
           <label class="form-label" style="font-size:0.65rem;margin-bottom:2px;display:flex;align-items:center;gap:4px;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}</label>
           ${sfInput}
@@ -4852,7 +4940,7 @@
       return data;
     }
 
-      function renderCfeFieldCard(f) {
+    function renderCfeFieldCard(f) {
       const isGroup = f.type === 'sub_group';
       const choiceTagsHtml = f.choices.map((c, ci) => {
         let subBtn = '';
@@ -4894,7 +4982,7 @@
       const f = _cfeState.fields.find(x => x._id === fieldId);
       const choice = f.choices[choiceIndex];
       if (!f.sub_fields_map[choice]) f.sub_fields_map[choice] = [];
-      
+
       const modal = document.createElement('div');
       modal.className = 'modal open';
       modal.id = 'cfeSubConfigModal';
@@ -4999,7 +5087,7 @@
           _cfeTemplatesList = res.templates || [];
           const select = document.getElementById('cfeTemplateSelect');
           if (select) {
-            select.innerHTML = '<option value="">— اختر قالباً لإضافته —</option>' + 
+            select.innerHTML = '<option value="">— اختر قالباً لإضافته —</option>' +
               _cfeTemplatesList.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
           }
         }
@@ -5088,7 +5176,7 @@
         const meta = iconsRaw[name] || {};
         let type = meta.type || 'choices';
         let choices = Array.isArray(meta.choices) ? [...meta.choices] : [];
-        let subFieldsMap = {}; 
+        let subFieldsMap = {};
 
         if (type === 'sub_group') {
           const raw = meta.sub_fields;
@@ -5342,7 +5430,7 @@
             trip = res.trip; regs = res.trip.registrations || [];
             tripRegistrationsCache[tripId] = regs;
           }
-        } catch (e) {}
+        } catch (e) { }
       }
       if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
 
@@ -5415,7 +5503,7 @@
       let collaborators = [];
       try {
         collaborators = trip && trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
-      } catch (e) {}
+      } catch (e) { }
 
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
 
@@ -5539,9 +5627,9 @@
                 <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
                 <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
                     ${collaborators.map(id => {
-                        const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
-                        return ch ? ch.name : `كنيسة رقم ${id}`;
-                    }).join('، ')}
+        const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
+        return ch ? ch.name : `كنيسة رقم ${id}`;
+      }).join('، ')}
                 </div>
             </div>
         </div>
@@ -5611,9 +5699,12 @@
           <div>يمكنك تعديل أسماء الحقول وأيقوناتها وخياراتها. كل حقل يمكن أن يحتوي على <strong>حقول فرعية</strong> تظهر
             عند اختيار خيار معين (مثلاً: عند اختيار مبنى معين، تظهر خيارات الغرف الخاصة به).</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border);flex-wrap:wrap;">
-          <span style="font-size:0.8rem;font-weight:700;color:var(--muted);white-space:nowrap;"><i class="fas fa-magic" style="color:var(--primary);"></i> + إضافة قالب:</span>
-          <select id="cfeTemplateSelect" class="form-input" style="padding:4px 8px;font-size:0.8rem;width:auto;min-width:180px;" onchange="cfeLoadTemplate(this.value)">
+        <div
+          style="display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border);flex-wrap:wrap;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--muted);white-space:nowrap;"><i class="fas fa-magic"
+              style="color:var(--primary);"></i> + إضافة قالب:</span>
+          <select id="cfeTemplateSelect" class="form-input"
+            style="padding:4px 8px;font-size:0.8rem;width:auto;min-width:180px;" onchange="cfeLoadTemplate(this.value)">
             <option value="">— اختر قالباً لإضافته —</option>
           </select>
         </div>
