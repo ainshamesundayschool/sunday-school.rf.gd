@@ -220,34 +220,15 @@ while ($rootPath && !file_exists($rootPath . '/api.php')) {
 }
 $sessionPath = $rootPath . '/.sessions';
 if (!is_dir($sessionPath)) {
-    @mkdir($sessionPath, 0777, true);
+    @mkdir($sessionPath, 0755, true);
 }
 if (is_writable($sessionPath)) {
     session_save_path($sessionPath);
 }
 
-// Set session cookie to expire in 10 years (practically permanent)
-// Keep cookie host-only (no forced domain) to avoid browser rejections.
-$isHttps = (
-    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
-    (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) ||
-    ((isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
-);
-
-session_set_cookie_params([
-    'lifetime' => 60 * 60 * 24 * 365 * 10, // 10 years
-    'path' => '/',
-    'secure' => $isHttps,
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-
-// Start session with permanent settings
-session_start([
-    'cookie_lifetime' => 60 * 60 * 24 * 365 * 10,
-    'gc_maxlifetime' => 60 * 60 * 24 * 365 * 10,
-    'use_strict_mode' => true
-]);
+ini_set('session.gc_maxlifetime', 315360000);
+ini_set('session.cookie_lifetime', 315360000);
+session_start();
 
 require_once 'config.php';
 require_once 'audit.php';
@@ -5774,6 +5755,16 @@ function updateUncle()
             $oldData = $oldRow;
         }
 
+        // Prevent editing developer accounts unless the user is the same developer
+        $isTargetDeveloper = in_array(strtolower($oldData['role'] ?? ''), ['developer', 'dev']);
+        if ($isTargetDeveloper) {
+            $callerId = $_SESSION['uncle_id'] ?? 0;
+            if ($uncleId != $callerId) {
+                sendJSON(['success' => false, 'message' => 'لا يمكنك تعديل حساب المطور']);
+                return;
+            }
+        }
+
         $passwordChanged = !empty($newPassword);
 
         if (!empty($newPassword)) {
@@ -5841,7 +5832,7 @@ function deleteUncle()
         $conn = getDBConnection();
 
         // Verify this uncle belongs to the church
-        $checkStmt = $conn->prepare("SELECT id, name FROM uncles WHERE id = ? AND church_id = ?");
+        $checkStmt = $conn->prepare("SELECT id, name, role FROM uncles WHERE id = ? AND church_id = ?");
         $checkStmt->bind_param("ii", $uncleId, $churchId);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
@@ -5853,6 +5844,13 @@ function deleteUncle()
 
         $uncleData = $result->fetch_assoc();
         $uncleName = $uncleData['name'];
+
+        // Prevent deleting developer accounts
+        $isTargetDeveloper = in_array(strtolower($uncleData['role'] ?? ''), ['developer', 'dev']);
+        if ($isTargetDeveloper) {
+            sendJSON(['success' => false, 'message' => 'لا يمكنك حذف حساب المطور']);
+            return;
+        }
 
         // Start transaction
         $conn->begin_transaction();

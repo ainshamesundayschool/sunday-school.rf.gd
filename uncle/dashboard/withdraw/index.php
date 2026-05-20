@@ -12,31 +12,15 @@ while ($rootPath && !file_exists($rootPath . '/api.php')) {
 }
 $sessionPath = $rootPath . '/.sessions';
 if (!is_dir($sessionPath)) {
-    @mkdir($sessionPath, 0777, true);
+    @mkdir($sessionPath, 0755, true);
 }
 if (is_writable($sessionPath)) {
     session_save_path($sessionPath);
 }
 
-$isHttps = (
-    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
-    (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) ||
-    ((isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
-);
-
-session_set_cookie_params([
-    'lifetime' => 60 * 60 * 24 * 365 * 10,
-    'path' => '/',
-    'secure' => $isHttps,
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-
-session_start([
-    'cookie_lifetime' => 60 * 60 * 24 * 365 * 10,
-    'gc_maxlifetime' => 60 * 60 * 24 * 365 * 10,
-    'use_strict_mode' => true
-]);
+ini_set('session.gc_maxlifetime', 315360000);
+ini_set('session.cookie_lifetime', 315360000);
+session_start();
 $isHttps = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443));
 if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
     header("Location: /login/");

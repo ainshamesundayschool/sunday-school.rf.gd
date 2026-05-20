@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <script>
     // Instant theme bootstrap — before any CSS renders
-    (function(){
+    (function () {
         var t = localStorage.getItem('church_theme') || 'light';
         document.documentElement.setAttribute('data-theme', t);
     })();
@@ -38,16 +38,17 @@
             /* Brand */
             --brand: #5b6cf5;
             --brand-dark: #4354e8;
-            --brand-bg: rgba(91, 108, 245, 0.05);
-            --brand-glow: rgba(91,108,245,.18);
+            --brand-light: #a5b0ff;
+            --brand-bg: #eef0ff;
+            --brand-glow: rgba(91, 108, 245, .18);
 
             /* Aliases matching church page usage */
             --primary: #5b6cf5;
             --primary-dark: #4354e8;
             --primary-light: #a5b0ff;
-            --primary-bg: rgba(91, 108, 245, 0.05);
-            --primary-glow: rgba(91,108,245,.15);
-            --primary-glow-lg: rgba(91,108,245,.25);
+            --primary-bg: #eef0ff;
+            --primary-glow: rgba(91, 108, 245, .15);
+            --primary-glow-lg: rgba(91, 108, 245, .25);
             --indigo-200: #c7d2fe;
 
             /* Semantic */
@@ -75,7 +76,7 @@
             --card-hover: #f8f9ff;
             --surface-2: #f7f8fc;
             --surface-3: #eef0f8;
-            --sidebar-bg: rgba(255,255,255,0.97);
+            --sidebar-bg: rgba(255, 255, 255, 0.97);
             --sidebar-mid: #f7f8fc;
             --sidebar-top: #ffffff;
 
@@ -87,9 +88,9 @@
             --muted: #8b90a8;
 
             /* Borders */
-            --border: rgba(91,108,245,.12);
+            --border: rgba(91, 108, 245, .12);
             --border-solid: #e4e6f0;
-            --border-2: rgba(91,108,245,.2);
+            --border-2: rgba(91, 108, 245, .2);
             --border-focus: var(--primary);
             --border-sidebar: #e4e6f0;
 
@@ -106,17 +107,17 @@
             --radius-pill: 9999px;
 
             /* Shadow */
-            --shadow-xs: 0 2px 8px -2px rgba(0,0,0,.07);
-            --shadow-sm: 0 4px 12px -2px rgba(0,0,0,.08);
-            --shadow-md: 0 8px 24px -4px rgba(0,0,0,.10);
-            --shadow-lg: 0 20px 48px -8px rgba(0,0,0,.14);
-            --shadow-xl: 0 32px 64px -12px rgba(0,0,0,.18);
+            --shadow-xs: 0 2px 8px -2px rgba(0, 0, 0, .07);
+            --shadow-sm: 0 4px 12px -2px rgba(0, 0, 0, .08);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .10);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
             --shadow-glow: 0 0 0 4px var(--primary-glow);
 
             /* Motion */
-            --ease: cubic-bezier(.4,0,.2,1);
-            --ease-out: cubic-bezier(0,0,.2,1);
-            --ease-spring: cubic-bezier(.16,1,.3,1);
+            --ease: cubic-bezier(.4, 0, .2, 1);
+            --ease-out: cubic-bezier(0, 0, .2, 1);
+            --ease-spring: cubic-bezier(.16, 1, .3, 1);
             --t-fast: 0.15s;
             --t-base: 0.22s;
             --t-slow: 0.35s;
@@ -131,29 +132,29 @@
             --card-hover: #1e2132;
             --surface-2: #1e2132;
             --surface-3: #252840;
-            --sidebar-bg: rgba(24,27,38,0.98);
+            --sidebar-bg: rgba(24, 27, 38, 0.98);
             --sidebar-mid: #181b26;
             --sidebar-top: #1e2132;
-            --border: rgba(91,108,245,.18);
+            --border: rgba(91, 108, 245, .18);
             --border-solid: #2a2d42;
-            --border-2: rgba(91,108,245,.28);
+            --border-2: rgba(91, 108, 245, .28);
             --border-sidebar: #2a2d42;
             --text: #e8eaf6;
             --text-2: #9299be;
             --text-3: #565c7a;
             --text-inv: #1a1d2e;
             --muted: #565c7a;
-            --shadow-xs: 0 2px 8px -2px rgba(0,0,0,.4);
-            --shadow-sm: 0 4px 12px -2px rgba(0,0,0,.45);
-            --shadow-md: 0 8px 24px -4px rgba(0,0,0,.5);
-            --shadow-lg: 0 20px 48px -8px rgba(0,0,0,.6);
-            --shadow-xl: 0 32px 64px -12px rgba(0,0,0,.7);
-            --brand-bg: rgba(91,108,245,.15);
-            --primary-bg: rgba(91,108,245,.15);
-            --success-light: rgba(16,185,129,.15);
-            --danger-light: rgba(239,68,68,.15);
-            --warning-light: rgba(245,158,11,.15);
-            --info-light: rgba(2,132,199,.15);
+            --shadow-xs: 0 2px 8px -2px rgba(0, 0, 0, .4);
+            --shadow-sm: 0 4px 12px -2px rgba(0, 0, 0, .45);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .5);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .6);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .7);
+            --brand-bg: rgba(91, 108, 245, .15);
+            --primary-bg: rgba(91, 108, 245, .15);
+            --success-light: rgba(16, 185, 129, .15);
+            --danger-light: rgba(239, 68, 68, .15);
+            --warning-light: rgba(245, 158, 11, .15);
+            --info-light: rgba(2, 132, 199, .15);
         }
 
         /* ── BASE ───────────────────────────────────────────────────────── */
@@ -169,7 +170,10 @@
             transition: background var(--t-base) var(--ease), color var(--t-base) var(--ease);
         }
 
-        button, input, select, textarea {
+        button,
+        input,
+        select,
+        textarea {
             font-family: 'Cairo', sans-serif !important;
         }
 
@@ -177,19 +181,21 @@
         body::before {
             content: '';
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background:
-                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91,108,245,.07) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139,92,246,.05) 0%, transparent 60%);
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .05) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
 
         [data-theme="dark"] body::before {
             background:
-                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91,108,245,.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139,92,246,.08) 0%, transparent 60%);
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .08) 0%, transparent 60%);
         }
 
         /* ── SCROLLBAR ──────────────────────────────────────────────────── */
@@ -225,7 +231,7 @@
             flex-direction: column;
             z-index: 300;
             transition: width var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
-            overflow: visible;
+            overflow: hidden;
             border-left: 1px solid var(--border-solid);
         }
 
@@ -305,11 +311,11 @@
         /* Sidebar toggle - Premium floating circle exactly on left border of sidebar header */
         .sidebar-toggle {
             position: absolute;
-            top: 72px;
-            left: 0;
+            top: 84px;
+            left: 35px;
             transform: translate(-50%, -50%);
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             background: var(--card);
             border: 1px solid var(--border-solid);
             border-radius: 50%;
@@ -318,17 +324,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             transition: all var(--t-base) var(--ease);
             z-index: 310;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--shadow-sm);
         }
 
         .sidebar-toggle:hover {
             background: var(--brand);
             color: white;
             border-color: var(--brand);
-            box-shadow: 0 4px 14px rgba(91, 108, 245, 0.35);
+            box-shadow: var(--shadow-md);
             transform: translate(-50%, -50%) scale(1.1);
         }
 
@@ -385,7 +391,7 @@
             margin: 2px 8px;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), padding var(--t-slow) var(--ease), gap var(--t-slow) var(--ease);
+            transition: all var(--t-fast) var(--ease);
             color: var(--text-2);
             font-size: 0.875rem;
             font-weight: 600;
@@ -657,7 +663,9 @@
 
         /* ── TOPBAR ─────────────────────────────────────────────────────── */
         /* ── TOPBAR (hidden — replaced by .page-header) ────────────── */
-        .topbar { display: none !important; }
+        .topbar {
+            display: none !important;
+        }
 
         /* ── PAGE HEADER ────────────────────────────────────────── */
         .page-header {
@@ -668,12 +676,21 @@
             gap: 12px;
             position: relative;
             z-index: 10;
+            flex-wrap: nowrap;
+            overflow: hidden;
         }
 
         .page-header-left {
             display: flex;
             align-items: center;
             gap: 14px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .page-header-left > div {
+            min-width: 0;
+            flex: 1;
         }
 
         .page-header-title {
@@ -682,6 +699,9 @@
             color: var(--text);
             letter-spacing: -0.02em;
             line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .page-header-sub {
@@ -690,16 +710,21 @@
             margin-top: 2px;
         }
 
-        .page-header-sub span { color: var(--brand); font-weight: 600; }
+        .page-header-sub span {
+            color: var(--brand);
+            font-weight: 600;
+        }
 
         .page-header-actions {
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
         }
 
         /* ── ICON BUTTON ─────────────────────────────────────── */
-        .icon-btn, .topbar-btn {
+        .icon-btn,
+        .topbar-btn {
             width: 36px;
             height: 36px;
             border: 1px solid var(--border-solid);
@@ -716,7 +741,8 @@
             box-shadow: var(--shadow-xs);
         }
 
-        .icon-btn:hover, .topbar-btn:hover {
+        .icon-btn:hover,
+        .topbar-btn:hover {
             border-color: var(--brand);
             color: var(--brand);
             background: var(--brand-bg);
@@ -1891,14 +1917,32 @@
             flex-shrink: 0;
         }
 
-        .toast.success .toast-bar { background: var(--success); }
-        .toast.error .toast-bar { background: var(--danger); }
-        .toast.warning .toast-bar { background: var(--warning); }
-        .toast.info .toast-bar { background: var(--brand); }
+        .toast.success .toast-bar {
+            background: var(--success);
+        }
+
+        .toast.error .toast-bar {
+            background: var(--danger);
+        }
+
+        .toast.warning .toast-bar {
+            background: var(--warning);
+        }
+
+        .toast.info .toast-bar {
+            background: var(--brand);
+        }
 
         @keyframes toastIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.95); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(12px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
         }
 
         /* ═══════════════════════════════════════════════════════════════════
@@ -3462,7 +3506,7 @@
 
         .kid-reg-row:hover {
             border-color: var(--brand);
-            background: rgba(91,108,245,.09);
+            background: rgba(91, 108, 245, .09);
         }
 
         .kid-reg-row .kr-label {
@@ -3647,8 +3691,9 @@
             html {
                 font-size: 12px;
             }
-            
-            body, .main-wrapper {
+
+            body,
+            .main-wrapper {
                 max-width: 100vw;
                 overflow-x: hidden;
             }
@@ -4150,6 +4195,7 @@
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 16px;
         }
+
         .qa-item {
             display: flex;
             align-items: center;
@@ -4161,12 +4207,14 @@
             cursor: pointer;
             transition: all var(--t-fast) var(--ease-spring);
         }
+
         .qa-item:hover {
             border-color: var(--primary);
             background: white;
             transform: translateY(-3px);
             box-shadow: var(--shadow-md);
         }
+
         .qa-icon {
             width: 44px;
             height: 44px;
@@ -4178,16 +4226,19 @@
             flex-shrink: 0;
             box-shadow: var(--shadow-xs);
         }
+
         .qa-text {
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
+
         .qa-title {
             font-size: 0.92rem;
             font-weight: 800;
             color: var(--text);
         }
+
         .qa-desc {
             font-size: 0.72rem;
             color: var(--muted);
@@ -4205,9 +4256,28 @@
             margin-bottom: 12px;
             flex-wrap: wrap;
         }
-        .rlm-label { font-size: 0.75rem; font-weight: 800; color: var(--primary); }
-        .rlm-url { flex: 1; font-size: 0.75rem; font-family: monospace; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: ltr; }
-        .rlm-actions { display: flex; gap: 4px; }
+
+        .rlm-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .rlm-url {
+            flex: 1;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--text-2);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        .rlm-actions {
+            display: flex;
+            gap: 4px;
+        }
 
         .overview-kicker {
             color: rgba(255, 255, 255, 0.7);
@@ -4681,25 +4751,29 @@
 
     <!-- MAIN -->
     <div class="main-wrapper" id="mainWrapper">
-    <!-- PAGE HEADER (no sticky topbar background) -->
-    <div class="page-header" id="pageHeader">
-        <div class="page-header-left">
-            <button class="mobile-menu-btn" onclick="openMobileSidebar()"><i class="fas fa-bars"></i></button>
-            <div>
-                <div class="page-header-title" id="topbarTitle">نظرة عامة</div>
-                <div class="page-header-sub">مدارس الأحد &rsaquo; <span id="topbarSub">الرئيسية</span></div>
+        <!-- PAGE HEADER (no sticky topbar background) -->
+        <div class="page-header" id="pageHeader">
+            <div class="page-header-left">
+                <button class="mobile-menu-btn" onclick="openMobileSidebar()"><i class="fas fa-bars"></i></button>
+                <div>
+                    <div class="page-header-title" id="topbarTitle">نظرة عامة</div>
+                    <div class="page-header-sub">مدارس الأحد &rsaquo; <span id="topbarSub">الرئيسية</span></div>
+                </div>
+            </div>
+            <div class="page-header-actions">
+                <button class="icon-btn" onclick="refreshData()" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                <button class="icon-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="إشعارات"
+                    style="position:relative;">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge"
+                        style="display:none;position:absolute;top:4px;left:4px;min-width:18px;height:18px;background:var(--danger);border-radius:9px;border:2px solid white;font-size:.62rem;font-weight:800;color:#fff;align-items:center;justify-content:center;padding:0 3px;"></span>
+                </button>
+                <button class="icon-btn" id="darkModeBtn" onclick="toggleDarkMode()" title="الوضع الليلي"><i
+                        class="fas fa-moon" id="darkModeIcon"></i></button>
+                <button class="icon-btn dev-only" onclick="showDebugInfo()" title="تشخيص الجلسة"
+                    style="display:none;color:var(--brand);"><i class="fas fa-bug"></i></button>
             </div>
         </div>
-        <div class="page-header-actions">
-            <button class="icon-btn" onclick="refreshData()" title="تحديث"><i class="fas fa-sync-alt"></i></button>
-            <button class="icon-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="إشعارات" style="position:relative;">
-                <i class="fas fa-bell"></i>
-                <span class="notif-badge" id="notifBadge" style="display:none;position:absolute;top:4px;left:4px;min-width:18px;height:18px;background:var(--danger);border-radius:9px;border:2px solid white;font-size:.62rem;font-weight:800;color:#fff;align-items:center;justify-content:center;padding:0 3px;"></span>
-            </button>
-            <button class="icon-btn" id="darkModeBtn" onclick="toggleDarkMode()" title="الوضع الليلي"><i class="fas fa-moon" id="darkModeIcon"></i></button>
-            <button class="icon-btn dev-only" onclick="showDebugInfo()" title="تشخيص الجلسة" style="display:none;color:var(--brand);"><i class="fas fa-bug"></i></button>
-        </div>
-    </div>
 
         <main class="main-content">
 
@@ -4723,8 +4797,12 @@
                         <div class="rlm-label">رابط تسجيل الأطفال:</div>
                         <div class="rlm-url" id="overviewKidRegUrl"></div>
                         <div class="rlm-actions">
-                            <button class="btn btn-primary btn-sm" style="padding: 4px 8px;" onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i></button>
-                            <button class="btn btn-outline btn-sm" style="padding: 4px 8px;" onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i></button>
+                            <button class="btn btn-primary btn-sm" style="padding: 4px 8px;"
+                                onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i
+                                    class="fas fa-copy"></i></button>
+                            <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
+                                onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i
+                                    class="fas fa-external-link-alt"></i></button>
                         </div>
                     </div>
 
@@ -4789,42 +4867,53 @@
                             <div class="card-body">
                                 <div class="quick-actions-hub">
                                     <div class="qa-item" onclick="showBulkAddModal()">
-                                        <div class="qa-icon" style="background: var(--primary-bg); color: var(--primary);"><i class="fas fa-user-plus"></i></div>
+                                        <div class="qa-icon"
+                                            style="background: var(--primary-bg); color: var(--primary);"><i
+                                                class="fas fa-user-plus"></i></div>
                                         <div class="qa-text">
                                             <div class="qa-title">إضافة مجموعة أطفال</div>
                                             <div class="qa-desc">إضافة سريعة من ملف أو قائمة</div>
                                         </div>
                                     </div>
                                     <div class="qa-item" onclick="switchTabByName('uncles'); toggleAddUncleForm();">
-                                        <div class="qa-icon" style="background: var(--success-light); color: var(--success);"><i class="fas fa-user-tie"></i></div>
+                                        <div class="qa-icon"
+                                            style="background: var(--success-light); color: var(--success);"><i
+                                                class="fas fa-user-tie"></i></div>
                                         <div class="qa-text">
                                             <div class="qa-title">إضافة خادم جديد</div>
                                             <div class="qa-desc">إنشاء حساب لخادم جديد</div>
                                         </div>
                                     </div>
                                     <div class="qa-item" onclick="showAddAttendanceModal()">
-                                        <div class="qa-icon" style="background: var(--warning-light); color: var(--warning);"><i class="fas fa-calendar-plus"></i></div>
+                                        <div class="qa-icon"
+                                            style="background: var(--warning-light); color: var(--warning);"><i
+                                                class="fas fa-calendar-plus"></i></div>
                                         <div class="qa-text">
                                             <div class="qa-title">تسجيل حضور</div>
                                             <div class="qa-desc">فتح نافذة تسجيل الحضور اليومي</div>
                                         </div>
                                     </div>
                                     <div class="qa-item" onclick="switchTabByName('trips'); toggleAddTripForm();">
-                                        <div class="qa-icon" style="background: var(--danger-light); color: var(--danger);"><i class="fas fa-bus"></i></div>
+                                        <div class="qa-icon"
+                                            style="background: var(--danger-light); color: var(--danger);"><i
+                                                class="fas fa-bus"></i></div>
                                         <div class="qa-text">
                                             <div class="qa-title">إنشاء رحلة جديدة</div>
                                             <div class="qa-desc">إضافة رحلة وتحديد تفاصيلها</div>
                                         </div>
                                     </div>
                                     <div class="qa-item" onclick="switchTabByName('pending');">
-                                        <div class="qa-icon" style="background: var(--info-light); color: var(--info);"><i class="fas fa-hourglass-half"></i></div>
+                                        <div class="qa-icon" style="background: var(--info-light); color: var(--info);">
+                                            <i class="fas fa-hourglass-half"></i>
+                                        </div>
                                         <div class="qa-text">
                                             <div class="qa-title">مراجعة الطلبات</div>
                                             <div class="qa-desc">الطلبات المعلقة من أولياء الأمور</div>
                                         </div>
                                     </div>
                                     <div class="qa-item" onclick="switchTabByName('churchSettings');">
-                                        <div class="qa-icon" style="background: var(--dev-light); color: var(--dev);"><i class="fas fa-cog"></i></div>
+                                        <div class="qa-icon" style="background: var(--dev-light); color: var(--dev);"><i
+                                                class="fas fa-cog"></i></div>
                                         <div class="qa-text">
                                             <div class="qa-title">إعدادات الكنيسة</div>
                                             <div class="qa-desc">تعديل الفصول والبيانات الأساسية</div>
@@ -4844,9 +4933,16 @@
                     <div class="rlm-label">رابط تسجيل الخدام:</div>
                     <div class="rlm-url" id="uncleDirectRegUrl">جاري التحميل...</div>
                     <div class="rlm-actions">
-                        <button class="btn btn-primary btn-sm" style="padding: 4px 8px;" onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i class="fas fa-copy"></i></button>
-                        <button class="btn btn-success btn-sm" style="padding: 4px 8px; background: #25D366; border: none;" onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i class="fab fa-whatsapp"></i></button>
-                        <button class="btn btn-outline btn-sm" style="padding: 4px 8px;" onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i></button>
+                        <button class="btn btn-primary btn-sm" style="padding: 4px 8px;"
+                            onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i
+                                class="fas fa-copy"></i></button>
+                        <button class="btn btn-success btn-sm"
+                            style="padding: 4px 8px; background: #25D366; border: none;"
+                            onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i
+                                class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
+                            onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i
+                                class="fas fa-external-link-alt"></i></button>
                     </div>
                 </div>
 
@@ -5757,7 +5853,10 @@
                                             <input type="radio" name="newChurchType" id="newChurchTypeKids" value="kids"
                                                 checked style="accent-color:var(--primary);width:16px;height:16px;">
                                             <div>
-                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i class="fas fa-child" style="color:var(--primary);margin-left:6px;"></i> مدارس الأحد (أطفال)</div>
+                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i
+                                                        class="fas fa-child"
+                                                        style="color:var(--primary);margin-left:6px;"></i> مدارس الأحد
+                                                    (أطفال)</div>
                                                 <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
                                                     الكلمات الافتراضية: طفل، أطفال، الفصل</div>
                                             </div>
@@ -5768,7 +5867,9 @@
                                             <input type="radio" name="newChurchType" id="newChurchTypeYouth"
                                                 value="youth" style="accent-color:#8b5cf6;width:16px;height:16px;">
                                             <div>
-                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i class="fas fa-user-friends" style="color:#8b5cf6;margin-left:6px;"></i> شباب</div>
+                                                <div style="font-weight:700;font-size:0.9rem;color:var(--text);"><i
+                                                        class="fas fa-user-friends"
+                                                        style="color:#8b5cf6;margin-left:6px;"></i> شباب</div>
                                                 <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
                                                     الكلمات تتحول: شاب/شباب، عضو، خدمة الشباب</div>
                                             </div>
@@ -6586,14 +6687,16 @@
                                 id="editTypeKidsLabel">
                                 <input type="radio" name="editChurchType" id="editChurchTypeKids" value="kids"
                                     style="accent-color:var(--primary);width:15px;height:15px;">
-                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-child" style="color:var(--primary);margin-left:4px;"></i> أطفال (مدارس الأحد)</span>
+                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-child"
+                                        style="color:var(--primary);margin-left:4px;"></i> أطفال (مدارس الأحد)</span>
                             </label>
                             <label
                                 style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;"
                                 id="editTypeYouthLabel">
                                 <input type="radio" name="editChurchType" id="editChurchTypeYouth" value="youth"
                                     style="accent-color:#8b5cf6;width:15px;height:15px;">
-                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-user-friends" style="color:#8b5cf6;margin-left:4px;"></i> شباب</span>
+                                <span style="font-weight:700;font-size:0.88rem;"><i class="fas fa-user-friends"
+                                        style="color:#8b5cf6;margin-left:4px;"></i> شباب</span>
                             </label>
                         </div>
                     </div>
@@ -6919,7 +7022,7 @@
         }
 
         // Apply saved dark mode icon on load
-        (function() {
+        (function () {
             const saved = localStorage.getItem('church_theme') || 'light';
             const icon = document.getElementById('darkModeIcon');
             if (icon) icon.className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
@@ -9417,7 +9520,7 @@
 
             const yearEl = document.getElementById('attendanceYearDisplay');
             if (yearEl) yearEl.textContent = currentAttYear;
-            
+
             renderMonthTabs();
             await renderFridayCards();
         }
@@ -11917,7 +12020,7 @@
                     userInp.value = isDeveloper ? '—' : (d.profile.username || '');
                     userInp.closest('.form-group').style.display = isDeveloper ? 'none' : '';
                 }
-                
+
                 // Hide password section for developers
                 const dividers = document.querySelectorAll('.settings-section-divider');
                 dividers.forEach(div => {
@@ -12840,7 +12943,7 @@
             if (!el) return;
             const isHidden = el.style.display === 'none';
             el.style.display = isHidden ? 'block' : 'none';
-            
+
             const chevId = id.replace('Wrap', 'Chevron');
             const chev = document.getElementById(chevId);
             if (chev) {
