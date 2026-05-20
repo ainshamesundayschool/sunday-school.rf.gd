@@ -151,6 +151,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Persist PHP's value so the next page load can use it from localStorage
             // (useful when session-guard fires before PHP has a session).
             try { localStorage.setItem('churchType', phpType); } catch (e) { }
+
+            // View routing pre-boot block to prevent classesView flash
+            try {
+                var h = location.hash.replace('#', '');
+                var hasClass = h.startsWith('class=') || h.startsWith('combined=') || localStorage.getItem('currentClass');
+                if (hasClass) {
+                    var s2 = document.createElement('style');
+                    s2.id = 'pre-boot-hide';
+                    s2.textContent = '#classesView { display: none !important; }';
+                    document.head.appendChild(s2);
+                }
+            } catch (e) { }
         })();
     </script>
 
@@ -8793,6 +8805,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const grid = document.getElementById('classesGrid');
                 if (grid) grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
             }
+
+            // Remove the pre-boot style hide tag to restore normal render flexibility
+            const preBoot = document.getElementById('pre-boot-hide');
+            if (preBoot) preBoot.remove();
         }
 
         function saveDataToLocalStorage() {
