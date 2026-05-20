@@ -5961,6 +5961,8 @@
                             style="display:none;text-align:center;padding:24px;color:var(--muted);"><i
                                 class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
                         <div id="regKeysList"></div>
+                    </div>
+                </div>
                 <!-- ── CUSTOM FIELD TEMPLATES (DEV ONLY) ── -->
                 <div class="card dev-only" style="margin-top:20px;">
                     <div class="card-header">
@@ -6068,18 +6070,7 @@
             </div>
 
 
-            <!-- ── DEV MESSAGES ── -->
-            <div id="devMessages" class="tab-panel dev-only">
-                <div
-                    style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-                    <h2 style="font-size:1.2rem;font-weight:800;color:#1e293b;"><i class="fas fa-envelope"
-                            style="color:#7c3aed;margin-left:8px;"></i> رسائل للمطور</h2>
-                </div>
-                <div id="devMsgList" style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-inbox"
-                            style="font-size:2rem;margin-bottom:10px;display:block;"></i>لا توجد رسائل</div>
-                </div>
-            </div>
+
 
         </main>
         <!-- NOTIFICATION PANEL (slide-in) -->
@@ -7228,7 +7219,7 @@
             const parts = hash.split('?');
             const tab = parts[0];
             const params = new URLSearchParams(parts[1] || '');
-            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'devMessages', 'history', 'churchSettings'];
+            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'history', 'churchSettings'];
             return {
                 tab: valid.includes(tab) ? tab : 'overview',
                 params: params
@@ -7360,7 +7351,7 @@
         (function () {
             const hash = window.location.hash.substring(1);
             const tab = hash.split('?')[0];
-            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'devMessages', 'history', 'churchSettings'];
+            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'history', 'churchSettings'];
             if (valid.includes(tab)) {
                 window._initialTab = tab;
             }
@@ -7446,8 +7437,6 @@
 
             // Notifications
             runWhenIdle(loadNotifications, 1800);
-            runWhenIdle(loadDevMessages, 2200);
-            runWhenIdle(initDevMsgUI, 1400);
 
             // 13. Handle ?class=X&id=Y routing
             const _urlP = new URLSearchParams(window.location.search);
@@ -7575,7 +7564,6 @@
                 pending: () => runDataLoad('pending', loadPendingRegistrations),
                 history: () => loadAuditLogs(),
                 devChurches: async () => { await loadAllChurches(); await loadRegKeys(); await loadDevTemplates(); },
-                devMessages: () => loadDevMessages(),
                 churchSettings: async () => { await loadChurchSettingsTab(); await loadAdminProfile(); }
             };
 
@@ -12687,127 +12675,8 @@
         }
 
         // ══════════════════════════════════════════════════════
-        // DEVELOPER MESSAGES
+        // UTILITIES
         // ══════════════════════════════════════════════════════
-        async function loadDevMessages() {
-            try {
-                const fd = new FormData(); fd.append('action', 'getDeveloperMessages');
-                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                if (!d.success) return;
-                renderDevMessages(d.messages || []);
-                // Update nav badge
-                const badge = document.getElementById('devMsgNavBadge');
-                if (badge) badge.textContent = d.unread_count || 0;
-            } catch (e) { }
-        }
-
-        function renderDevMessages(msgs) {
-            const el = document.getElementById('devMsgList');
-            if (!el) return;
-            if (!msgs.length) {
-                el.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;"><i class="fas fa-inbox" style="font-size:2rem;margin-bottom:10px;display:block;"></i>لا توجد رسائل</div>';
-                return;
-            }
-            el.innerHTML = msgs.map(m => {
-                const t = new Date(m.created_at).toLocaleString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                return `<div class="dev-msg-item ${m.is_read == 0 ? 'unread' : ''}" id="devmsg_${m.id}">
-                <div class="dev-msg-header">
-                    <div style="width:34px;height:34px;border-radius:8px;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-envelope"></i></div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:.88rem;font-weight:800;color:#1e293b;">${escHtml(m.subject)}</div>
-                        <div style="font-size:.72rem;color:#64748b;">${escHtml(m.from_name)} · ${t}</div>
-                    </div>
-                    ${m.is_read == 0 ? `<span style="background:#7c3aed;color:#fff;border-radius:9px;padding:2px 8px;font-size:.65rem;font-weight:800;">جديد</span>` : ''}
-                    <button onclick="deleteDevMsg(${m.id})" style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:6px;border-radius:6px;" title="حذف"><i class="fas fa-trash"></i></button>
-                </div>
-                <div class="dev-msg-body-text">${escHtml(m.body)}</div>
-                ${m.is_read == 0 ? `<div style="padding:0 16px 12px;"><button onclick="markDevMsgRead(${m.id})" style="font-size:.76rem;font-weight:700;color:#7c3aed;background:none;border:none;cursor:pointer;"><i class="fas fa-check"></i> تعليم كمقروء</button></div>` : ''}
-            </div>`;
-            }).join('');
-        }
-
-        async function markDevMsgRead(id) {
-            const fd = new FormData(); fd.append('action', 'markDevMessageRead');
-            fd.append('id', id);
-            await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-            loadDevMessages();
-        }
-
-        async function deleteDevMsg(id) {
-            if (!confirm('حذف الرسالة؟')) return;
-            const fd = new FormData(); fd.append('action', 'deleteDevMessage');
-            fd.append('id', id);
-            await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-            loadDevMessages();
-        }
-
-        async function sendDevMessage() {
-            const subject = (document.getElementById('devMsgSubject')?.value || '').trim();
-            const body = (document.getElementById('devMsgBody')?.value || '').trim();
-            const toChurchId = document.getElementById('devMsgTarget')?.value || '0';
-            if (!subject || !body) { showToast('اكتب الموضوع والرسالة', 'warning'); return; }
-            const fd = new FormData(); fd.append('action', 'sendDeveloperMessage');
-            fd.append('subject', subject);
-            fd.append('body', body);
-            fd.append('to_church_id', toChurchId);
-            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-            if (d.success) {
-                showToast('تم الإرسال للكنيسة ✓', 'success');
-                document.getElementById('devMsgSubject').value = '';
-                document.getElementById('devMsgBody').value = '';
-                loadDevMessages();
-            } else {
-                showToast(d.message || 'فشل الإرسال', 'error');
-            }
-        }
-
-        // Update dev messages panel title and compose based on role
-        function initDevMsgUI() {
-            const role = localStorage.getItem('uncleRole') || '';
-            const isDev = ['developer', 'dev'].includes(role);
-            const card = document.getElementById('devMsgCard');
-            if (!card) return;
-            card.style.display = 'block';
-            document.getElementById('devMsgComposeArea').style.display = isDev ? 'block' : 'none';
-            document.getElementById('devMsgPreviewArea').style.display = !isDev ? 'block' : 'none';
-            document.getElementById('devMsgCardTitle').textContent = isDev ? 'إرسال رسالة للكنائس' : 'رسائل من المطور';
-            document.getElementById('devMsgCardIcon').innerHTML = isDev
-                ? '<i class="fas fa-paper-plane"></i>'
-                : '<i class="fas fa-envelope-open-text"></i>';
-            if (isDev) loadChurchListForDevMsg();
-            else loadDevMsgPreview();
-        }
-
-        async function loadChurchListForDevMsg() {
-            try {
-                const fd = new FormData(); fd.append('action', 'getChurches');
-                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                if (d.success && d.churches) {
-                    const sel = document.getElementById('devMsgTarget');
-                    d.churches.forEach(ch => {
-                        const opt = document.createElement('option');
-                        opt.value = ch.id; opt.textContent = ch.church_name;
-                        sel.appendChild(opt);
-                    });
-                }
-            } catch (e) { }
-        }
-
-        async function loadDevMsgPreview() {
-            try {
-                const fd = new FormData(); fd.append('action', 'getDeveloperMessages');
-                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                const el = document.getElementById('devMsgPreviewList');
-                if (!el) return;
-                const msgs = (d.messages || []).filter(m => !m.is_read).slice(0, 3);
-                if (!msgs.length) { el.innerHTML = '<span style="color:#94a3b8;">لا توجد رسائل جديدة</span>'; return; }
-                el.innerHTML = msgs.map(m => `<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
-                <div style="font-weight:700;font-size:.82rem;color:#1e293b;">${escHtml(m.subject)}</div>
-                <div style="font-size:.74rem;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(m.body)}</div>
-            </div>`).join('');
-            } catch (e) { }
-        }
-
         function escHtml(s) {
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
