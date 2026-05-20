@@ -9083,14 +9083,23 @@
         }
 
         function buildFamilyGroupCard(group, idx) {
-            const groupLabel = group[0].sibling_group?.label || `مجموعة إخوة ${idx + 1}`;
             const groupStatus = group[0].sibling_group?.status || 'pending';
             const count = group.length;
+            // Show a neutral title (no auto-numbered label)
+            const title = count > 1 ? 'أشقاء / إخوة' : 'عائلة';
+
             const studentsHtml = group.map(s => {
                 const guardian = s.custom_info_parsed?.guardian_name || s.custom_info_parsed?.father_name || s.custom_info_parsed?.parent_name || s.custom_info_parsed?.mother_name || 'غير محدد';
-                return `<div class="family-review-card-item">
-                    <div><strong>${escHtml(s['الاسم'] || s.name || '')}</strong></div>
-                    <div style="font-size:0.82rem;color:var(--muted);">${escHtml(s['الفصل'] || s.class || s['class'] || '')} · ${escHtml(guardian)}</div>
+                const sid = s._studentId || s.id || s.studentId || '';
+                return `<div class="family-review-card-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div>
+                        <div><strong>${escHtml(s['الاسم'] || s.name || '')}</strong></div>
+                        <div style="font-size:0.82rem;color:var(--muted);">${escHtml(s['الفصل'] || s.class || s['class'] || '')} · ${escHtml(guardian)}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="promptMoveStudentToGroup(${sid}, '${encodeURIComponent(group[0].familyKey)}')">نقل</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeStudentFromGroup(${sid})">إزالة</button>
+                    </div>
                 </div>`;
             }).join('');
 
@@ -9098,18 +9107,19 @@
                 <div class="family-review-card" style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px;margin-bottom:14px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
                         <div>
-                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(groupLabel)}</div>
-                            <div style="font-size:0.82rem;color:var(--muted);">${count} طفل${count === 1 ? '' : 'ان'} من نفس العائلة</div>
+                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(title)}</div>
+                            <div style="font-size:0.82rem;color:var(--muted);">${count} طفل${count === 1 ? '' : 'ان'}</div>
                         </div>
                         <div>
                             <span class="badge ${groupStatus === 'approved' ? 'badge-success' : groupStatus === 'rejected' ? 'badge-danger' : 'badge-primary'}" style="font-size:0.78rem;">${groupStatus === 'approved' ? 'معتمد' : groupStatus === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</span>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">${studentsHtml}</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:14px;">${studentsHtml}</div>
                     <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','approved')"><i class="fas fa-check"></i> موافق</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','approved')"><i class="fas fa-check"></i> اعتماد
+                        </button>
                         <button type="button" class="btn btn-danger btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','rejected')"><i class="fas fa-times"></i> رفض</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="editFamilyGroupLabel('${encodeURIComponent(group[0].familyKey)}')"><i class="fas fa-edit"></i> تعديل الاسم</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="mergeGroupPrompt('${encodeURIComponent(group[0].familyKey)}')"><i class="fas fa-compress-arrows-alt"></i> دمج</button>
                     </div>
                 </div>
             `;
@@ -9119,9 +9129,15 @@
             const parsed = students.map(s => {
                 const custom = parseJSON(s.custom_info || s['custom_info'] || '') || {};
                 const guardian = custom.guardian_name || custom.father_name || custom.parent_name || custom.mother_name || '';
-                const address = s.address || s['العنوان'] || '';
+                const address = (s.address || s['العنوان'] || '').trim();
+                // normalize phone (last 9 digits)
+                let phone = (s.phone || s['رقم التليفون'] || custom.phone || '') + '';
+                phone = phone.replace(/[^0-9]/g, '');
+                const phoneShort = phone.length > 9 ? phone.slice(-9) : phone;
                 const lastName = (s.name || s['الاسم'] || '').split(' ').slice(-1)[0] || '';
-                const groupKey = normalizeFamilyString(`${guardian}|${address}|${lastName}`);
+                // include some custom_info keys signature
+                const customVals = Object.keys(custom).sort().map(k => String(custom[k]).trim().toLowerCase()).join('|');
+                const groupKey = normalizeFamilyString(`${guardian}|${address}|${phoneShort}|${lastName}|${customVals}`);
                 return { ...s, custom_info_parsed: custom, sibling_group: custom.sibling_group || {}, familyKey: groupKey };
             });
             const groups = {};
@@ -9130,7 +9146,8 @@
                 groups[s.familyKey] = groups[s.familyKey] || [];
                 groups[s.familyKey].push(s);
             });
-            return Object.values(groups).filter(g => g.length > 1);
+            // return groups with at least 2 members OR where explicit sibling_group exists
+            return Object.values(groups).filter(g => g.length > 1 || g[0].sibling_group?.id);
         }
 
         function normalizeGenderValue(value) {
@@ -9236,11 +9253,71 @@
             const fd = mkFd('saveSiblingGroup');
             fd.append('student_ids', JSON.stringify(ids));
             fd.append('status', status);
-            fd.append('label', label);
+            // no auto label
+            fd.append('label', '');
             fd.append('group_id', groupId);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم تحديث حالة مجموعة الأسرة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
             else showToast(d.message || 'فشل في تحديث المجموعة', 'error');
+        }
+
+        async function promptMoveStudentToGroup(studentId, fromFamilyKey) {
+            // Build list of existing groups
+            const groups = findFamilyCandidateGroups(allStudents || []);
+            const options = groups.map((g, i) => `${i + 1}: ${g.length} طفل`).join('\n');
+            const choice = prompt(`اختر مجموعة للانتقال إليها (أدخل رقم) أو اكتب "new" لإنشاء مجموعة جديدة:\n${options}\nأو اترك فارغاً لإزالة من المجموعة`);
+            if (choice === null) return;
+            const trimmed = String(choice).trim().toLowerCase();
+            if (trimmed === '') {
+                // clear
+                await removeStudentFromGroup(studentId);
+                return;
+            }
+            if (trimmed === 'new') {
+                // create new group with this student
+                const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId]));
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) { showToast('تم نقل الطالب لمجموعة جديدة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+                else showToast(d.message || 'فشل النقل', 'error');
+                return;
+            }
+            const idx = parseInt(trimmed, 10) - 1;
+            if (isNaN(idx) || idx < 0 || idx >= groups.length) { showToast('خيار غير صالح', 'warning'); return; }
+            const targetGroupId = groups[idx][0].sibling_group?.id || makeFamilyGroupId(groups[idx][0].familyKey);
+            // Assign student to target group
+            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('group_id', targetGroupId); fd.append('label', ''); fd.append('status', groups[idx][0].sibling_group?.status || 'pending');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم نقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            else showToast(d.message || 'فشل النقل', 'error');
+        }
+
+        async function removeStudentFromGroup(studentId) {
+            if (!confirm('هل تريد إزالة الطفل من المجموعة؟')) return;
+            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('op', 'clear');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تمت الإزالة من المجموعة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            else showToast(d.message || 'فشل في الإزالة', 'error');
+        }
+
+        async function mergeGroupPrompt(encodedFamilyKey) {
+            const groupKey = decodeURIComponent(encodedFamilyKey);
+            const groups = findFamilyCandidateGroups(allStudents || []);
+            const group = groups.find(g => g[0].familyKey === groupKey);
+            if (!group) { showToast('مجموعة غير موجودة', 'warning'); return; }
+            const other = groups.filter(g => g[0].familyKey !== groupKey);
+            if (!other.length) { showToast('لا توجد مجموعات أخرى للدمج', 'warning'); return; }
+            const opts = other.map((g, i) => `${i + 1}: ${g.length} طفل`).join('\n');
+            const choice = prompt(`اختر مجموعة للدمج معها (أدخل رقم):\n${opts}`);
+            if (!choice) return;
+            const idx = parseInt(choice, 10) - 1;
+            if (isNaN(idx) || idx < 0 || idx >= other.length) { showToast('خيار غير صالح', 'warning'); return; }
+            const targetIds = other[idx].map(s => s._studentId || s.id).filter(Boolean);
+            const srcIds = group.map(s => s._studentId || s.id).filter(Boolean);
+            const allIds = [...new Set([...targetIds, ...srcIds])];
+            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify(allIds)); fd.append('group_id', other[idx][0].sibling_group?.id || makeFamilyGroupId(other[idx][0].familyKey)); fd.append('label', '');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم الدمج', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            else showToast(d.message || 'فشل في الدمج', 'error');
         }
 
         async function editFamilyGroupLabel(encodedFamilyKey) {

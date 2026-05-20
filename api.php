@@ -11357,6 +11357,7 @@ function saveSiblingGroup()
         }
         $label = sanitize($_POST['label'] ?? '');
         $groupId = sanitize($_POST['group_id'] ?? '');
+        $op = sanitize($_POST['op'] ?? 'assign');
         if ($groupId === '') {
             $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
         }
@@ -11390,18 +11391,25 @@ function saveSiblingGroup()
                 }
             }
 
-            if (!isset($customInfo['sibling_group']) || !is_array($customInfo['sibling_group'])) {
-                $customInfo['sibling_group'] = [];
-            }
-            $customInfo['sibling_group']['id'] = $groupId;
-            if ($label !== '') {
-                $customInfo['sibling_group']['label'] = $label;
-            }
-            $customInfo['sibling_group']['status'] = $status;
-            $customInfo['sibling_group']['updated_at'] = date('c');
+            if ($op === 'clear') {
+                // remove sibling_group entirely
+                if (isset($customInfo['sibling_group'])) unset($customInfo['sibling_group']);
+                $customJson = empty($customInfo) ? null : json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt->bind_param('si', $customJson, $studentId);
+            } else {
+                if (!isset($customInfo['sibling_group']) || !is_array($customInfo['sibling_group'])) {
+                    $customInfo['sibling_group'] = [];
+                }
+                $customInfo['sibling_group']['id'] = $groupId;
+                if ($label !== '') {
+                    $customInfo['sibling_group']['label'] = $label;
+                }
+                $customInfo['sibling_group']['status'] = $status;
+                $customInfo['sibling_group']['updated_at'] = date('c');
 
-            $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
-            $updateStmt->bind_param('si', $customJson, $studentId);
+                $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt->bind_param('si', $customJson, $studentId);
+            }
             if (!$updateStmt->execute()) {
                 $errors[] = "ID $studentId: " . $updateStmt->error;
             }
