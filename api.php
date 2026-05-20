@@ -211,6 +211,21 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 ini_set('memory_limit', '256M');
 set_time_limit(60);
 
+// Robust local session directory to prevent aggressive shared hosting garbage collection
+$rootPath = dirname(__FILE__);
+while ($rootPath && !file_exists($rootPath . '/api.php')) {
+    $parent = dirname($rootPath);
+    if ($parent === $rootPath) break;
+    $rootPath = $parent;
+}
+$sessionPath = $rootPath . '/.sessions';
+if (!is_dir($sessionPath)) {
+    @mkdir($sessionPath, 0777, true);
+}
+if (is_writable($sessionPath)) {
+    session_save_path($sessionPath);
+}
+
 // Set session cookie to expire in 10 years (practically permanent)
 // Keep cookie host-only (no forced domain) to avoid browser rejections.
 $isHttps = (
@@ -230,7 +245,7 @@ session_set_cookie_params([
 // Start session with permanent settings
 session_start([
     'cookie_lifetime' => 60 * 60 * 24 * 365 * 10,
-    'gc_maxlifetime' => 0,
+    'gc_maxlifetime' => 60 * 60 * 24 * 365 * 10,
     'use_strict_mode' => true
 ]);
 

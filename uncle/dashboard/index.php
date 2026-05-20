@@ -2,6 +2,22 @@
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
+
+// Robust local session directory to prevent aggressive shared hosting garbage collection
+$rootPath = dirname(__FILE__);
+while ($rootPath && !file_exists($rootPath . '/api.php')) {
+    $parent = dirname($rootPath);
+    if ($parent === $rootPath) break;
+    $rootPath = $parent;
+}
+$sessionPath = $rootPath . '/.sessions';
+if (!is_dir($sessionPath)) {
+    @mkdir($sessionPath, 0777, true);
+}
+if (is_writable($sessionPath)) {
+    session_save_path($sessionPath);
+}
+
 $isHttps = (
     (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
     (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) ||
@@ -15,7 +31,12 @@ session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax'
 ]);
-session_start();
+
+session_start([
+    'cookie_lifetime' => 60 * 60 * 24 * 365 * 10,
+    'gc_maxlifetime' => 60 * 60 * 24 * 365 * 10,
+    'use_strict_mode' => true
+]);
 
 $hasChurchId = isset($_SESSION['church_id']);
 $hasUncleId = isset($_SESSION['uncle_id']);
