@@ -5356,6 +5356,11 @@
                                             <option value="female">أنثى</option>
                                         </select>
                                     </div>
+                                    <div class="form-group">
+                                        <label class="form-label">رقم التليفون *</label>
+                                        <input type="text" id="unclePhone" class="form-input" required
+                                            placeholder="مثال: 01xxxxxxxxx" autocomplete="off">
+                                    </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom:18px;">
                                     <label class="form-label">الفصول المسؤول عنها</label>
@@ -5894,11 +5899,11 @@
 
                         <button class="settings-hub-card" onclick="openSettingsPage('familyReview')">
                             <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);">
-                                <i class="fas fa-users"></i>
+                                <i class="fas fa-venus-mars"></i>
                             </div>
                             <div class="settings-hub-body">
-                                <div class="settings-hub-title">تدقيق الأسرة والإخوة</div>
-                                <div class="settings-hub-desc">اكتشف وأكد أو رفض مجموعات الإخوة داخل الكنيسة</div>
+                                <div class="settings-hub-title">تدقيق جنس الطلاب</div>
+                                <div class="settings-hub-desc">مراجعة وتعديل جنس الطلاب واقتراح النوع المناسب بناءً على الاسم</div>
                             </div>
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
                         </button>
@@ -6121,19 +6126,19 @@
                         <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
                             الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">تدقيق الأسرة والإخوة</span>
+                        <span class="settings-bc-item active">تدقيق جنس الطلاب</span>
                     </div>
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title"><i class="fas fa-users"></i> تدقيق الأسرة والإخوة</div>
+                            <div class="card-title"><i class="fas fa-venus-mars"></i> تدقيق جنس الطلاب</div>
                         </div>
                         <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
-                            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:6px;">اعرض مجموعات الأطفال الذين يبدو أنهم من نفس العائلة في هذه الكنيسة. يمكنك الموافقة على المجموعة، رفضها، أو تعديل اسم المجموعة.</p>
+                            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:6px;">مراجعة وتصحيح جنس الطلاب بناءً على أسماءهم والتأكد من صحتها.</p>
                             <div style="display:flex;flex-wrap:wrap;gap:10px;">
                                 <button class="btn btn-primary" onclick="renderFamilyReviewPage()"><i class="fas fa-sync-alt"></i> تحديث الاقتراحات</button>
                                 <button class="btn btn-outline" onclick="closeSettingsPage()"><i class="fas fa-arrow-left"></i> رجوع</button>
                             </div>
-                            <div id="familyReviewSummary" style="font-size:0.88rem;color:var(--text);font-weight:600;"></div>
+                            <div id="familyReviewSummary" style="font-size:0.88rem;color:var(--text);font-weight:600;display:none;"></div>
                             <div id="familyReviewList"></div>
                             <div id="genderReviewSection" style="margin-top:20px;">
                                 <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
@@ -6548,6 +6553,8 @@
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
                         </select></div>
+                    <div class="form-group" style="margin-bottom:20px;"><label class="form-label">رقم التليفون</label><input
+                            type="text" id="editUnclePhone" class="form-input" placeholder="رقم تليفون الخادم"></div>
                     <div class="form-group" style="margin-bottom:20px;">
                         <label class="form-label">الفصل (يمكن اختيار أكثر من فصل)</label>
                         <select id="editUncleClass" class="form-select" multiple style="width:100%; height:120px;">
@@ -8622,7 +8629,7 @@
             <td><div class="actions">
                 <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
                 <button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}','${u.gender || 'male'}')"><i class="fas fa-edit"></i></button>
-                <button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>
+                ${u.role === 'developer' || u.role === 'dev' ? '' : `<button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>`}
             </div></td></tr>`;
             }).join('');
         }
@@ -8652,6 +8659,7 @@
             fd.append('password', document.getElementById('unclePassword').value);
             fd.append('role', document.getElementById('uncleRole')?.value || 'uncle');
             fd.append('gender', document.getElementById('uncleGender').value);
+            fd.append('phone', document.getElementById('unclePhone').value);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم إضافة الخادم بنجاح', 'success'); e.target.reset(); loadUncles(); }
             else showToast(d.message || 'فشل في إضافة الخادم', 'error');
@@ -8664,6 +8672,8 @@
             document.getElementById('editUncleUsername').value = username;
             document.getElementById('editUncleRole').value = role;
             document.getElementById('editUncleGender').value = gender || 'male';
+            const uncle = allUncles.find(u => u.id === id);
+            document.getElementById('editUnclePhone').value = (uncle && uncle.phone) || '';
             document.getElementById('editUnclePassword').value = '';
             const av = document.getElementById('editUncleAvatar');
             if (imgUrl) { av.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
@@ -8699,6 +8709,7 @@
             fd.append('username', document.getElementById('editUncleUsername').value);
             fd.append('role', document.getElementById('editUncleRole').value);
             fd.append('gender', document.getElementById('editUncleGender').value);
+            fd.append('phone', document.getElementById('editUnclePhone').value);
             const pw = document.getElementById('editUnclePassword').value;
             if (pw) fd.append('new_password', pw);
             const imgFile = document.getElementById('editUncleImageFile').files[0];
@@ -9411,26 +9422,17 @@
             const summary = document.getElementById('familyReviewSummary');
             const list = document.getElementById('familyReviewList');
             const loader = `<div class="empty-state" style="padding:30px;font-size:0.95rem;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:10px;"></i><div>جاري تحليل البيانات...</div></div>`;
-            if (summary) summary.textContent = 'جارٍ تحميل بيانات الأسرة...';
+            if (summary) { summary.style.display = 'none'; }
             if (list) list.innerHTML = loader;
             if (!allStudents?.length) {
                 await loadStudents();
             }
-            const candidates = findFamilyCandidateGroups(allStudents || []);
             const genderCandidates = findGenderReviewCandidates(allStudents || []);
-            if (summary) summary.textContent = `تم العثور على ${candidates.length} مجموعة${candidates.length === 1 ? '' : 'ات'} محتملة.`;
             if (!list) return;
-            const familyHtml = candidates.length
-                ? candidates.map((group, idx) => buildFamilyGroupCard(group, idx)).join('')
-                : `<div class="empty-state"><i class="fas fa-users"></i><h3>لم يتم العثور على مجموعات إخوة واضحة</h3><p>تأكد من أن البيانات تتضمن اسم الأب أو ولي الأمر والعنوان.</p></div>`;
             const genderHtml = genderCandidates.length
                 ? genderCandidates.map((student, idx) => buildGenderReviewCard(student, idx)).join('')
                 : `<div class="empty-state"><i class="fas fa-venus-mars"></i><h3>لا توجد اقتراحات جنس جديدة</h3><p>إذا كان هناك أطفال بدون جنس أو بجنس مكتوب بشكل غير صحيح، فستظهر هنا.</p></div>`;
             list.innerHTML = `
-                <div style="margin-bottom:22px;">
-                    <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;">مجموعات الأسرة المحتملة</div>
-                    ${familyHtml}
-                </div>
                 <div>
                     <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;">اقتراحات جنس الطالب</div>
                     ${genderHtml}
@@ -12849,6 +12851,8 @@
             fd.append('username', document.getElementById('uncleUsername').value);
             fd.append('password', document.getElementById('unclePassword').value);
             fd.append('role', document.getElementById('uncleRole')?.value || 'uncle');
+            fd.append('gender', document.getElementById('uncleGender').value);
+            fd.append('phone', document.getElementById('unclePhone').value);
 
             // Add classes if selected
             if (selectedClasses.length > 0) {
@@ -12891,6 +12895,8 @@
 
             // Get uncle's assigned classes
             const uncle = allUncles.find(u => u.id === id);
+            document.getElementById('editUncleGender').value = (uncle && uncle.gender) || 'male';
+            document.getElementById('editUnclePhone').value = (uncle && uncle.phone) || '';
             const assignedClasses = uncle && uncle.classes ? uncle.classes.map(c => c.class_name) : [];
 
             // Load classes and select assigned ones
@@ -12917,6 +12923,8 @@
             fd.append('name', document.getElementById('editUncleName').value);
             fd.append('username', document.getElementById('editUncleUsername').value);
             fd.append('role', document.getElementById('editUncleRole').value);
+            fd.append('gender', document.getElementById('editUncleGender').value);
+            fd.append('phone', document.getElementById('editUnclePhone').value);
 
             // Get selected classes
             const classSelect = document.getElementById('editUncleClass');
@@ -13005,7 +13013,7 @@
             <td><div class="actions">
                 <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
                 ${u.role === 'developer' ? '' : `<button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}')" title="تعديل"><i class="fas fa-edit"></i></button>`}
-                <button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>
+                ${u.role === 'developer' || u.role === 'dev' ? '' : `<button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>`}
             </div></td>
         </tr>`;
             }).join('');

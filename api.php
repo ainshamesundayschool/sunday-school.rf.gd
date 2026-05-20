@@ -6099,7 +6099,7 @@ function getAllUncles()
 
         if ($isAll) {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.created_at,
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
                        c.church_name
                 FROM uncles u
                 LEFT JOIN churches c ON u.church_id = c.id
@@ -6113,7 +6113,7 @@ function getAllUncles()
             ");
         } else {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.created_at
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
                 FROM uncles u
                 WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0)
                 ORDER BY 
@@ -6205,13 +6205,14 @@ function addUncle()
         if ($gender !== 'male' && $gender !== 'female') {
             $gender = detectGenderFromName($name);
         }
+        $phone = sanitize($_POST['phone'] ?? '');
 
         // Insert uncle
         $stmt = $conn->prepare("
-            INSERT INTO uncles (church_id, name, username, password_hash, role, gender)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO uncles (church_id, name, username, password_hash, role, gender, phone)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("isssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender);
+        $stmt->bind_param("issssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender, $phone);
 
         if ($stmt->execute()) {
             $newUncleId = $conn->insert_id;
@@ -6227,7 +6228,9 @@ function addUncle()
                 'username' => $username,
                 'role' => $uncleRole,
                 'church_id' => $churchId,
-                'classes' => $classes
+                'classes' => $classes,
+                'gender' => $gender,
+                'phone' => $phone
             ], 'إضافة خادم جديد');
 
             sendJSON(['success' => true, 'message' => 'تم إضافة الخادم بنجاح']);
@@ -6273,7 +6276,7 @@ function updateUncle()
 
         // Get old uncle data for audit
         $oldData = [];
-        $oldStmt = $conn->prepare("SELECT name, username, role FROM uncles WHERE id = ?");
+        $oldStmt = $conn->prepare("SELECT name, username, role, gender, phone FROM uncles WHERE id = ?");
         $oldStmt->bind_param("i", $uncleId);
         $oldStmt->execute();
         $oldResult = $oldStmt->get_result();
@@ -6292,22 +6295,24 @@ function updateUncle()
         }
 
         $passwordChanged = !empty($newPassword);
+        $gender = sanitize($_POST['gender'] ?? 'male');
+        $phone = sanitize($_POST['phone'] ?? '');
 
         if (!empty($newPassword)) {
             $passwordHash = hash('sha256', $newPassword);
             $stmt = $conn->prepare("
                 UPDATE uncles 
-                SET name = ?, username = ?, password_hash = ?, role = ?
+                SET name = ?, username = ?, password_hash = ?, role = ?, gender = ?, phone = ?
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param("ssssii", $name, $username, $passwordHash, $uncleRole, $uncleId, $churchId);
+            $stmt->bind_param("ssssssii", $name, $username, $passwordHash, $uncleRole, $gender, $phone, $uncleId, $churchId);
         } else {
             $stmt = $conn->prepare("
                 UPDATE uncles 
-                SET name = ?, username = ?, role = ?
+                SET name = ?, username = ?, role = ?, gender = ?, phone = ?
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param("sssii", $name, $username, $uncleRole, $uncleId, $churchId);
+            $stmt->bind_param("sssssii", $name, $username, $uncleRole, $gender, $phone, $uncleId, $churchId);
         }
 
         if ($stmt->execute()) {
@@ -6318,7 +6323,7 @@ function updateUncle()
             $uncleName = $name;
 
             // Audit log
-            $newData = ['name' => $name, 'username' => $username, 'role' => $uncleRole, 'classes' => $classes];
+            $newData = ['name' => $name, 'username' => $username, 'role' => $uncleRole, 'gender' => $gender, 'phone' => $phone, 'classes' => $classes];
             writeAuditLog('uncle_edit', 'uncle', $uncleId, $uncleName, $oldData, $newData, 'تعديل بيانات خادم');
 
             if ($passwordChanged) {
