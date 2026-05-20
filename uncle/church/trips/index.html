@@ -2910,6 +2910,7 @@
       margin: 0 auto;
       box-sizing: border-box;
       background: #fff;
+      overflow: hidden !important;
     }
 
     .print-card img.avatar {
@@ -2925,7 +2926,8 @@
       font-size: 13px;
       font-weight: 700;
       margin: 0;
-      color: #000 !important;
+      color: var(--text-color, #000) !important;
+      text-shadow: var(--text-shadow, none);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -2936,7 +2938,8 @@
       font-size: 18px;
       font-weight: 800;
       margin: 0;
-      color: #000 !important;
+      color: var(--text-color, #000) !important;
+      text-shadow: var(--text-shadow, none);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -2946,7 +2949,8 @@
     .print-card .custom-info {
       font-size: 11px;
       font-weight: bold;
-      color: #000 !important;
+      color: var(--text-color, #000) !important;
+      text-shadow: var(--text-shadow, none);
       margin: 0;
       display: flex;
       flex-wrap: wrap;
@@ -2956,8 +2960,8 @@
     }
 
     .print-card div[id^="qrcode_"], .print-card div[id^="prev_qrcode_"] {
-      width: 130px;
-      height: 130px;
+      width: var(--qr-size, 130px) !important;
+      height: var(--qr-size, 130px) !important;
       display: flex !important;
       justify-content: center;
       align-items: center;
@@ -2969,8 +2973,8 @@
     }
 
     .print-card div[id^="qrcode_"] img, .print-card div[id^="prev_qrcode_"] img {
-      width: 130px !important;
-      height: 130px !important;
+      width: var(--qr-size, 130px) !important;
+      height: var(--qr-size, 130px) !important;
       display: block !important;
       margin: 0 auto;
     }
@@ -5587,7 +5591,8 @@
     function generateCardMarkup({
       trip, r, scale, padding, showChurch, showTripImage, showTripTitle, 
       showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
-      tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability
+      tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
+      fontColor, strokeColor
     }) {
       const scaledWidth = 260 * scale;
       const scaledHeight = 360 * scale;
@@ -5597,54 +5602,28 @@
       const fChurch = 11 * scale;
       const sLogo = 20 * scale;
       const sAvatar = 70 * scale;
-      const sTripImg = 60 * scale;
+      const sTripImg = 55 * scale;
+      const qrSize = Math.max(80, 130 * scale);
 
       const hasStudentImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
       const avatarHtml = (showStudentImg && hasStudentImg) 
           ? `<img src="${r.student_image}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">` 
           : '';
 
-      // Inline trip image rounding
+      // Inline small trip image rounding & dimensions
       const inlineRadius = tripImgRounded ? `${8 * scale}px` : '0px';
       const tripImageHtml = (showTripImage && !tripImgAsBg && trip.image_url) 
-          ? `<img src="${trip.image_url}" style="width:100%; height:${sTripImg}px; object-fit:contain; border-radius:${inlineRadius}; margin-bottom:6px;" onerror="this.style.display='none'">` 
+          ? `<img src="${trip.image_url}" style="width:${80 * scale}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">` 
           : '';
 
-      // Apply Text Readability Styles
-      let itemStyle = 'margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
-      let customStyle = 'display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;';
-      let titleColor = '#000';
-      let nameColor = '#000';
-      let customColor = '#000';
-      let churchColor = '#000';
-
-      // If full background is active, set default text color to white with high contrast shadow!
-      if (tripImgAsBg && trip.image_url) {
-        titleColor = '#fff';
-        nameColor = '#fff';
-        customColor = '#fff';
-        churchColor = '#fff';
-      }
-
+      // Set CSS Variables for the entire card
+      let textShadowStyle = 'none';
       if (textReadability === 'stroke') {
-        const strokeCss = `text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; color:#000 !important;`;
-        itemStyle += strokeCss;
-        customStyle += `text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; color:#000 !important;`;
+        textShadowStyle = '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff';
       }
-
-      const wrapInRect = (val) => {
-        if (textReadability === 'rect') {
-          return `<span style="background:rgba(255,255,255,0.92); border:1px solid #ddd; padding:2px 8px; border-radius:${4 * scale}px; display:inline-block; max-width:95%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color:#000;">${val}</span>`;
-        }
-        return val;
-      };
-
-      const nameVal = wrapInRect(r.student_name || '؟');
-      const titleVal = wrapInRect(trip.title || '');
-      const churchVal = wrapInRect(churchName);
 
       // Card Background & Image Overlay HTML
-      let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; border:2px dashed #000; border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden;`;
+      let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; border:2px dashed #000; border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
       let bgHtml = '';
 
       if (showTripImage && tripImgAsBg && trip.image_url) {
@@ -5654,26 +5633,80 @@
         `;
       }
 
+      // Church Header Group
+      let churchHeaderHtml = '';
+      if (showChurch) {
+        if (textReadability === 'rect') {
+          churchHeaderHtml = `
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${4 * scale}px ${8 * scale}px; border-radius:${6 * scale}px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+            </div>
+          `;
+        } else {
+          churchHeaderHtml = `
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+            </div>
+          `;
+        }
+      }
+
+      // Trip Title + Inline Image Group
+      let tripInfoGroupHtml = '';
+      if (showTripImage || showTripTitle) {
+        const titleTag = showTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${trip.title}</h3>` : '';
+        if (textReadability === 'rect') {
+          tripInfoGroupHtml = `
+            <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px ${10 * scale}px; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                ${tripImageHtml}
+                ${titleTag}
+            </div>
+          `;
+        } else {
+          tripInfoGroupHtml = `
+            ${tripImageHtml}
+            ${titleTag}
+          `;
+        }
+      }
+
+      // Student Avatar + Name + Custom Info Group
+      let studentInfoGroupHtml = '';
+      if (showStudentImg || showStudentName || showCustom) {
+        const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${r.student_name || '؟'}</h2>` : '';
+        const customTag = showCustom ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
+        
+        if (textReadability === 'rect') {
+          studentInfoGroupHtml = `
+            <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${8 * scale}px ${10 * scale}px; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                ${avatarHtml}
+                ${nameTag}
+                ${customTag}
+            </div>
+          `;
+        } else {
+          studentInfoGroupHtml = `
+            ${avatarHtml}
+            ${nameTag}
+            ${customTag}
+          `;
+        }
+      }
+
       return `
       <div class="print-card" style="${bgStyles}">
           ${bgHtml}
           <!-- Card Content Wrapper (renders above BG image and overlay) -->
           <div style="position:relative; z-index:3; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
-              ${showChurch ? `<div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                  <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                  <span style="font-size:${fChurch}px; font-weight:800; color:${churchColor}; text-align:center; line-height:1.2; word-break:break-word;">${churchVal}</span>
-              </div>` : ''}
-              ${tripImageHtml}
-              ${showTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${titleColor}; ${itemStyle}">${titleVal}</h3>` : ''}
-              ${avatarHtml}
-              ${showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${nameColor}; ${itemStyle}">${nameVal}</h2>` : ''}
-              ${showCustom ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${customColor}; ${customStyle}">${customHtml}</div>` : ''}
-              <div id="${cardId}"></div>
+              ${churchHeaderHtml}
+              ${tripInfoGroupHtml}
+              ${studentInfoGroupHtml}
+              <div id="${cardId}" style="background: ${textReadability === 'rect' ? 'rgba(255,255,255,0.92)' : 'transparent'}; border: ${textReadability === 'rect' ? `1px solid ${strokeColor}` : 'none'}; padding: ${textReadability === 'rect' ? `${4 * scale}px` : '0px'}; border-radius: ${textReadability === 'rect' ? `${8 * scale}px` : '0px'}; box-shadow: ${textReadability === 'rect' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'}; display:flex; justify-content:center; align-items:center;"></div>
           </div>
       </div>
       `;
-    }
-
     function updatePrintPreview() {
       const tripId = document.getElementById('printTripId').value;
       if (!tripId) return;
@@ -5702,6 +5735,9 @@
       const tripImgOverlayOpacity = parseFloat(document.getElementById('printTripImgOverlayOpacity')?.value || '50') / 100;
       const tripImgRounded = document.getElementById('printTripImgRounded')?.checked || false;
       const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+
+      const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+      const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
 
       // Use the first registration as a sample
       const r = regs[0];
@@ -5733,7 +5769,8 @@
       previewWrapper.innerHTML = generateCardMarkup({
         trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
         showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId: 'prev_qrcode_sample',
-        tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability
+        tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
+        fontColor, strokeColor
       });
 
       // Generate a mock QR code in the preview
@@ -5815,6 +5852,9 @@
       const tripImgRounded = document.getElementById('printTripImgRounded')?.checked || false;
       const textReadability = document.getElementById('printTextReadability')?.value || 'none';
 
+      const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+      const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
       printArea.style.gap = gap;
@@ -5852,7 +5892,8 @@
         html += generateCardMarkup({
           trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
           showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
-          tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability
+          tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
+          fontColor, strokeColor
         });
         
         qrTasks.push({ id: cardId, text: link });
@@ -6317,6 +6358,18 @@
               <input type="checkbox" id="printShowCustom" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
               <span>البيانات الإضافية</span>
             </label>
+          </div>
+
+          <!-- Text Colors Selection -->
+          <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label class="form-label" style="font-weight:700;">لون الخط الموحد</label>
+              <input type="color" id="printFontColor" value="#000000" style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;" onchange="updatePrintPreview()">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight:700;">لون إطار النصوص (Stroke)</label>
+              <input type="color" id="printStrokeColor" value="#dddddd" style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;" onchange="updatePrintPreview()">
+            </div>
           </div>
 
           <!-- Text Readability Selection -->
