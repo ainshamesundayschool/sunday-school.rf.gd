@@ -7630,28 +7630,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="siblingLinkModal" class="modal-overlay" style="z-index:1000007">
         <div class="modal" style="max-width:620px">
             <div class="modal-header">
-                <h3><i class="fas fa-link"></i> ربط أخ / أخت</h3>
+                <h3 id="siblingLinkModalTitle"><i class="fas fa-link"></i> إضافة أخت أو أخ</h3>
                 <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
             </div>
             <div class="mbody">
-                <div class="form-group">
-                    <label class="form-label">سبب الربط</label>
-                    <div class="input-icon-wrap"><i class="fas fa-tag input-icon"></i><select id="siblingLinkBasis" class="form-input">
-                            <option value="manual">ربط يدوي من بطاقة الطفل</option>
-                            <option value="shared_phone">رقم تليفون مشترك</option>
-                            <option value="shared_address">عنوان مشترك</option>
-                            <option value="shared_guardian">اسم الأب / ولي الأمر مشترك</option>
-                            <option value="shared_info">معلومات إضافية متطابقة</option>
-                            <option value="other">سبب آخر</option>
-                        </select></div>
-                    <div class="sibling-link-note">هذا السبب سيظهر في بطاقة الأسرة حتى تعرفوا لماذا تم الربط.</div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">ملاحظة</label>
-                    <div class="input-icon-wrap"><i class="fas fa-pen input-icon"></i><input type="text" id="siblingLinkNote" class="form-input" placeholder="اختياري"></div>
-                </div>
+                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.</div>
                 <div class="form-group sibling-link-search">
-                    <label class="form-label">ابحث عن أخ أو أخت</label>
+                    <label class="form-label" id="siblingLinkSearchLabel">ابحث عن أخت أو أخ</label>
                     <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text" id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
                 </div>
                 <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
@@ -10451,7 +10436,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         }
 
         function getStudentGender(s) {
-            return (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
+            return (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
         }
 
         function getStudentDbId(student) {
@@ -10479,6 +10464,46 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
         function getStudentClassName(student) {
             return (student && (student['الفصل'] || student.class)) || '---';
+        }
+
+        function getSiblingWordForms(student) {
+            const female = getStudentGender(student) === 'female';
+            return {
+                singular: female ? 'أخت' : 'أخ',
+                plural: female ? 'الأخوات' : 'الإخوة',
+                panelLabel: female ? 'الأخوات المرتبطات' : 'الإخوة المرتبطون',
+                actionLabel: 'إضافة أخت أو أخ',
+                searchLabel: 'ابحث عن أخت أو أخ',
+                modalTitle: 'إضافة أخت أو أخ',
+                successLabel: 'تمت الإضافة بنجاح',
+            };
+        }
+
+        function getSiblingSuggestion(current, target) {
+            const currentInfo = parseStudentCustomInfo(current);
+            const targetInfo = parseStudentCustomInfo(target);
+            const currentValues = {
+                phone: String(current?.['رقم التليفون'] || current?.phone || '').trim(),
+                address: String(current?.['العنوان'] || current?.address || '').trim(),
+                guardian: String(currentInfo.guardian_name || currentInfo.father_name || currentInfo.parent_name || currentInfo.mother_name || '').trim(),
+            };
+            const targetValues = {
+                phone: String(target?.['رقم التليفون'] || target?.phone || '').trim(),
+                address: String(target?.['العنوان'] || target?.address || '').trim(),
+                guardian: String(targetInfo.guardian_name || targetInfo.father_name || targetInfo.parent_name || targetInfo.mother_name || '').trim(),
+            };
+            const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
+            const checks = [
+                { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
+                { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
+                { basis: 'shared_guardian', label: 'اسم الأب / ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian) },
+            ].filter(x => x.ok);
+            if (!checks.length) return null;
+            return {
+                basis: checks[0].basis,
+                label: checks.map(x => x.label).join('، '),
+                detail: checks.map(x => x.detail).join('، '),
+            };
         }
 
         function getSiblingGroupInfo(student) {
@@ -10546,34 +10571,11 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
         function buildSiblingPanel(student) {
             const studentId = getStudentDbId(student);
+            const words = getSiblingWordForms(student);
             const custom = parseStudentCustomInfo(student);
             const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
             const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
             const visibleMembers = members.slice(0, 6);
-            const reason = group?.reason || inferSiblingBasis(student, members);
-            const basis = group?.basis || (reason === 'ربط يدوي' ? 'manual' : '');
-            const basisLabels = {
-                manual: 'يدوي',
-                shared_phone: 'رقم تليفون مشترك',
-                shared_address: 'عنوان مشترك',
-                shared_guardian: 'اسم الأب / ولي الأمر مشترك',
-                shared_info: 'معلومات إضافية متطابقة',
-                other: 'سبب آخر',
-            };
-            const basisLabel = basisLabels[basis] || basis;
-            const linkedBy = group?.linked_by || '';
-            const linkedAt = group?.linked_at || group?.updated_at || '';
-            const label = group?.label || 'الإخوة المرتبطون';
-            const status = group?.status || 'approved';
-            const statusLabel = status === 'approved' ? 'معتمد' : status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
-            const chips = [];
-            chips.push(`<span class="sibling-chip"><i class="fas fa-link"></i> ${escHtml(label)}</span>`);
-            if (group?.id) chips.push(`<span class="sibling-chip gray">${members.length + 1} طفل مرتبط</span>`);
-            chips.push(`<span class="sibling-chip gray">${statusLabel}</span>`);
-            if (reason) chips.push(`<span class="sibling-chip gray">السبب: ${escHtml(reason)}</span>`);
-            if (basisLabel && basisLabel !== reason) chips.push(`<span class="sibling-chip gray">الأساس: ${escHtml(basisLabel)}</span>`);
-            if (linkedBy) chips.push(`<span class="sibling-chip gray">بواسطة: ${escHtml(linkedBy)}</span>`);
-            if (linkedAt) chips.push(`<span class="sibling-chip gray">آخر ربط: ${escHtml(formatSiblingDate(linkedAt))}</span>`);
 
             const membersHtml = group && group.id
                 ? (visibleMembers.length
@@ -10589,23 +10591,19 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                             <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i> فتح</button>
                         </div>`;
                     }).join('')
-                    : '<div class="sibling-empty">تم حفظ مجموعة الإخوة، لكن لا توجد بيانات أخرى مرتبطة بها بعد.</div>')
-                : '<div class="sibling-empty">لا يوجد إخوة مرتبطون بهذا الطفل بعد. يمكنك ربط أخ أو أخت من نفس البطاقة، وسيتم حفظ الربط على الطرفين مع السبب الذي تختاره.</div>';
+                    : `<div class="sibling-empty">المجموعة محفوظة، لكن لا توجد روابط أخرى بعد.</div>`)
+                : `<div class="sibling-empty">لا توجد روابط لهذا الطفل بعد. استخدم زر إضافة أخت أو أخ.</div>`;
 
-            const studentName = escHtml(getStudentDisplayName(student));
             const studentIdJs = JSON.stringify(studentId || 0);
             return `
                 <div class="sibling-panel">
                     <div class="sibling-panel-head">
                         <div>
-                            <div class="sibling-panel-title">الإخوة المرتبطون</div>
-                            <div class="sibling-panel-sub">هذا القسم يوضح لماذا تم الربط، ومن قام به، وأي إخوة آخرين داخل نفس المجموعة.</div>
+                            <div class="sibling-panel-title">${escHtml(words.panelLabel)}</div>
                         </div>
-                        <button type="button" class="btn btn-g sibling-link-btn" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ربط أخ</button>
+                        <button type="button" class="btn btn-g sibling-link-btn" title="يفتح الاقتراحات ثم يضيف الأخت أو الأخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ${escHtml(words.actionLabel)}</button>
                     </div>
-                    <div class="sibling-badge-row">${chips.join('')}</div>
                     <div class="sibling-list">${membersHtml}</div>
-                    <div class="sibling-link-note" style="margin-top:8px">الربط يدوي ومتماثل: إذا أضفت أخًا من هنا، ستُحفظ العلاقة للطرفين معًا.</div>
                 </div>
             `;
         }
@@ -10634,12 +10632,16 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 return;
             }
             _siblingLinkStudentId = sid;
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === sid) || currentStudentForEdit;
+            const words = getSiblingWordForms(current);
             const modal = document.getElementById('siblingLinkModal');
+            const title = document.getElementById('siblingLinkModalTitle');
+            const suggestion = document.getElementById('siblingLinkSuggestion');
+            const searchLabel = document.getElementById('siblingLinkSearchLabel');
             const search = document.getElementById('siblingLinkSearch');
-            const basis = document.getElementById('siblingLinkBasis');
-            const note = document.getElementById('siblingLinkNote');
-            if (basis) basis.value = 'manual';
-            if (note) note.value = '';
+            if (title) title.textContent = words.modalTitle;
+            if (suggestion) suggestion.textContent = 'الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.';
+            if (searchLabel) searchLabel.textContent = words.searchLabel;
             if (search) search.value = '';
             renderSiblingLinkCandidates();
             modal.classList.add('active');
@@ -10654,9 +10656,11 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         function renderSiblingLinkCandidates() {
             const list = document.getElementById('siblingLinkCandidates');
             const summary = document.getElementById('siblingLinkSummary');
+            const suggestionBox = document.getElementById('siblingLinkSuggestion');
             if (!list || !_siblingLinkStudentId) return;
 
             const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
+            const words = getSiblingWordForms(current);
             if (!current) {
                 list.innerHTML = '<div class="sibling-empty">تعذر تحميل بيانات الطفل الحالي.</div>';
                 return;
@@ -10675,8 +10679,21 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
             if (summary) {
                 summary.innerHTML = currentGroup?.id
-                    ? `الطفل الحالي لديه بالفعل <strong>${currentMembers.length + 1}</strong> طفل داخل المجموعة. يمكنك إضافة أخ جديد وسيتم ربط الطرفين معًا.`
-                    : 'اختر طفلًا واحدًا لربطه بهذا الطفل. سيتم حفظ الربط للطرفين معًا.';
+                    ? `المجموعة الحالية فيها <strong>${currentMembers.length + 1}</strong> ${words.plural}.`
+                    : 'اختر طفلًا للربط بهذا الطفل.';
+            }
+
+            const preview = data
+                .map(s => {
+                    const suggestion = getSiblingSuggestion(current, s);
+                    return suggestion ? `- ${escHtml(getStudentDisplayName(s))}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}` : '';
+                })
+                .filter(Boolean)
+                .slice(0, 4);
+            if (suggestionBox) {
+                suggestionBox.innerHTML = preview.length
+                    ? `<strong>اقتراحات الربط</strong><br>${preview.join('<br>')}`
+                    : 'لا توجد اقتراحات واضحة الآن. يمكنك الربط يدويًا من القائمة.';
             }
 
             if (!data.length) {
@@ -10690,6 +10707,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 const guardian = info.guardian_name || info.father_name || info.parent_name || info.mother_name || '';
                 const targetGroup = getSiblingGroupInfo(s);
                 const alreadyLinked = currentGroup?.id && targetGroup?.id && currentGroup.id === targetGroup.id;
+                const suggestion = getSiblingSuggestion(current, s);
                 const linkedLabel = alreadyLinked ? 'مرتبط بالفعل' : targetGroup?.id ? 'مرتبط مع مجموعة أخرى' : 'غير مرتبط';
                 return `
                     <div class="sibling-candidate ${alreadyLinked ? 'selected' : ''}">
@@ -10701,10 +10719,11 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                                 ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
                                 ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
                             </div>
+                            ${suggestion ? `<div class="sibling-candidate-meta" style="margin-top:4px;color:var(--brand)"><i class="fas fa-lightbulb"></i> اقتراح: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
-                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="linkSiblingToCurrent(${id})"><i class="fas fa-link"></i> ربط</button>
+                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="linkSiblingToCurrent(${id})"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
                     </div>`;
             }).join('');
@@ -10714,9 +10733,11 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
             const target = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === parseInt(targetStudentId, 10));
             if (!current || !target) {
-                showToast('تعذر تحديد الطفل أو الأخ المراد ربطه', 'error');
+                showToast('تعذر تحديد الطفل أو الأخ/الأخت المراد ربطه', 'error');
                 return;
             }
+
+            const words = getSiblingWordForms(current);
 
             const currentId = getStudentDbId(current);
             const targetId = getStudentDbId(target);
@@ -10731,22 +10752,12 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const targetIds = targetGroup?.id ? getSiblingMembersByGroupId(targetGroup.id, targetId).map(s => getStudentDbId(s)) : [];
             const allIds = [...new Set([currentId, targetId, ...currentIds, ...targetIds].filter(Boolean))];
             const groupId = currentGroup?.id || targetGroup?.id || `family_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-            const basis = document.getElementById('siblingLinkBasis')?.value || 'manual';
-            const note = document.getElementById('siblingLinkNote')?.value.trim() || '';
-            const reasonMap = {
-                manual: 'ربط يدوي من بطاقة الطفل',
-                shared_phone: 'رقم تليفون مشترك',
-                shared_address: 'عنوان مشترك',
-                shared_guardian: 'اسم الأب / ولي الأمر مشترك',
-                shared_info: 'معلومات إضافية متطابقة',
-                other: note || 'سبب آخر'
-            };
-            const reason = note ? `${reasonMap[basis] || 'ربط يدوي'}: ${note}` : (reasonMap[basis] || 'ربط يدوي من بطاقة الطفل');
             const merged = currentGroup?.id && targetGroup?.id && currentGroup.id !== targetGroup.id;
             if (merged && !confirm('سيتم دمج مجموعتين مرتبطتين لأن الطفلين كانا داخل رابطين مختلفين. هل تريد المتابعة؟')) {
                 return;
             }
-            if (!confirm(`هل تريد ربط "${getStudentDisplayName(target)}" مع "${getStudentDisplayName(current)}" الآن؟`)) {
+            const confirmText = `هل تريد إضافة "${getStudentDisplayName(target)}" كـ ${words.singular} لـ "${getStudentDisplayName(current)}"؟`;
+            if (!confirm(confirmText)) {
                 return;
             }
 
@@ -10754,10 +10765,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             fd.append('action', 'saveSiblingGroup');
             fd.append('student_ids', JSON.stringify(allIds));
             fd.append('group_id', groupId);
-            fd.append('label', 'إخوة');
             fd.append('status', 'approved');
-            fd.append('basis', basis);
-            fd.append('reason', reason);
             fd.append('linked_by', localStorage.getItem('uncleName') || '');
 
             const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
@@ -10765,7 +10773,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 .catch(() => ({ success: false }));
 
             if (d.success) {
-                showToast('تم ربط الإخوة بنجاح', 'success');
+                showToast(words.successLabel, 'success');
                 closeSiblingLinkModal();
                 await new Promise(resolve => setTimeout(resolve, 200));
                 loadData();
@@ -12943,15 +12951,12 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             on('cancelSiblingLinkBtn', 'click', closeSiblingLinkModal);
             on('clearSiblingLinkBtn', 'click', () => {
                 const search = document.getElementById('siblingLinkSearch');
-                const note = document.getElementById('siblingLinkNote');
-                const basis = document.getElementById('siblingLinkBasis');
+                const suggestion = document.getElementById('siblingLinkSuggestion');
                 if (search) search.value = '';
-                if (note) note.value = '';
-                if (basis) basis.value = 'manual';
+                if (suggestion) suggestion.textContent = 'الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.';
                 renderSiblingLinkCandidates();
             });
             on('siblingLinkSearch', 'input', renderSiblingLinkCandidates);
-            on('siblingLinkBasis', 'change', renderSiblingLinkCandidates);
             on('imageModalClose', 'click', hideImageModal);
             on('cropClose', 'click', closeCropModal);
             on('cropCancel', 'click', closeCropModal);
