@@ -5936,11 +5936,11 @@
                         <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
                             <div class="form-group">
                                 <label class="form-label">الاسم الكامل</label>
-                                <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول" disabled>
+                                <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">اسم المستخدم</label>
-                                <input type="text" id="adminProfileUsername" class="form-input" placeholder="username" disabled>
+                                <input type="text" id="adminProfileUsername" class="form-input" placeholder="username"
                                     oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
                             </div>
                             <div class="settings-section-divider">تغيير كلمة المرور</div>
@@ -5974,14 +5974,6 @@
                             <button class="btn btn-primary" onclick="saveAdminProfile()"
                                 style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ</button>
                         </div>
-<script>
-function enableAdminEdit(){
-  document.getElementById('adminProfileName').disabled = false;
-  document.getElementById('adminProfileUsername').disabled = false;
-  document.getElementById('adminEditBtn').style.display = 'none';
-  document.getElementById('adminSaveBtn').style.display = 'inline-block';
-}
-</script>
                     </div>
                 </div>
 
