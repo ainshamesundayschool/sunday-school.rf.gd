@@ -2895,6 +2895,86 @@
       }
     }
 
+    /* Print Card Base Styles (Shared on screen preview and print) */
+    .print-card {
+      border: 2px dashed #000;
+      padding: 15px;
+      text-align: center;
+      border-radius: 10px;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      width: 260px;
+      height: 360px;
+      margin: 0 auto;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .print-card img.avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin: 0;
+      object-fit: cover;
+      display: block !important;
+    }
+
+    .print-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0;
+      color: #000 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    .print-card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0;
+      color: #000 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    .print-card .custom-info {
+      font-size: 11px;
+      font-weight: bold;
+      color: #000 !important;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .print-card div[id^="qrcode_"], .print-card div[id^="prev_qrcode_"] {
+      width: 130px;
+      height: 130px;
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+    }
+
+    .print-card div[id^="qrcode_"] canvas, .print-card div[id^="prev_qrcode_"] canvas {
+      display: none !important;
+    }
+
+    .print-card div[id^="qrcode_"] img, .print-card div[id^="prev_qrcode_"] img {
+      width: 130px !important;
+      height: 130px !important;
+      display: block !important;
+      margin: 0 auto;
+    }
+
     @media print {
       body>*:not(#printArea) {
         display: none !important;
@@ -2910,84 +2990,38 @@
       }
 
       .print-card {
-        border: 2px dashed #000;
-        padding: 15px;
-        text-align: center;
-        border-radius: 10px;
         break-inside: avoid;
         page-break-inside: avoid;
-        display: flex !important;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        width: 260px;
-        height: 360px;
-        margin: 0 auto;
-        box-sizing: border-box;
-        background: #fff;
       }
+    }
 
-      .print-card img.avatar {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        margin: 0;
-        object-fit: cover;
-        display: block !important;
+    /* Modal expansion for printing options & preview */
+    #printSettingsModal.modal-expanded .modal-box {
+      max-width: 900px !important;
+      width: 95vw !important;
+    }
+    #printSettingsModal.modal-expanded #printPreviewWrapper {
+      min-height: 480px !important;
+    }
+    @media (max-width: 768px) {
+      #printSettingsModal .modal-box {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        height: 100% !important;
+        max-height: 100vh !important;
+        overflow-y: auto;
       }
-
-      .print-card h3 {
-        font-size: 13px;
-        font-weight: 700;
-        margin: 0;
-        color: #000 !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 100%;
+      #printSettingsModal .modal-body {
+        flex-direction: column !important;
       }
-
-      .print-card h2 {
-        font-size: 18px;
-        font-weight: 800;
-        margin: 0;
-        color: #000 !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 100%;
-      }
-
-      .print-card .custom-info {
-        font-size: 11px;
-        font-weight: bold;
-        color: #000 !important;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px;
-        width: 100%;
-      }
-
-      .print-card div[id^="qrcode_"] {
-        width: 130px;
-        height: 130px;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        margin: 0 auto;
-      }
-
-      .print-card div[id^="qrcode_"] canvas {
-        display: none !important;
-      }
-
-      .print-card div[id^="qrcode_"] img {
-        width: 130px !important;
-        height: 130px !important;
-        display: block !important;
-        margin: 0 auto;
+      #printSettingsModal #printPreviewPanel {
+        border-right: none !important;
+        border-top: 1px solid var(--border) !important;
+        padding-right: 0 !important;
+        padding-top: 20px !important;
+        margin-top: 10px !important;
       }
     }
   </style>
@@ -5539,9 +5573,136 @@
       }
     }
 
-    function printQRCards(tripId) {
+    function toggleExpandPrintPreview() {
+      const modal = document.getElementById('printSettingsModal');
+      const btn = document.getElementById('expandPreviewBtn');
+      modal.classList.toggle('modal-expanded');
+      if (modal.classList.contains('modal-expanded')) {
+        btn.innerHTML = '<i class="fas fa-compress-alt"></i> تصغير المعاينة';
+      } else {
+        btn.innerHTML = '<i class="fas fa-expand-alt"></i> تكبير المعاينة';
+      }
+    }
+
+    function updatePrintPreview() {
+      const tripId = document.getElementById('printTripId').value;
+      if (!tripId) return;
+
+      let regs = tripRegistrationsCache[tripId] || [];
+      let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      
+      const previewWrapper = document.getElementById('printPreviewContent');
+      if (!trip || regs.length === 0) {
+        previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
+        return;
+      }
+
+      // Get settings
+      const scale = parseFloat(document.getElementById('printScale').value) / 100;
+      const padding = document.getElementById('printPadding').value + 'px';
+      const showChurch = document.getElementById('printShowChurch').checked;
+      const showTripImage = document.getElementById('printShowTripImage').checked;
+      const showTripTitle = document.getElementById('printShowTripTitle').checked;
+      const showStudentImg = document.getElementById('printShowStudentImg').checked;
+      const showStudentName = document.getElementById('printShowStudentName').checked;
+      const showCustom = document.getElementById('printShowCustom').checked;
+
+      // Use the first registration as a sample
+      const r = regs[0];
+      const name = r.student_name || 'اسم الطفل التجريبي';
+      const imgUrl = r.student_image || '';
+      const hasImage = imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
+      
+      let customHtml = '';
+      if (showCustom && r.custom_data) {
+        try {
+          const cd = JSON.parse(r.custom_data);
+          const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
+          customHtml = Object.entries(cd).map(([key, value]) => {
+            if (key.includes('__sf__')) {
+              const [parentName, sfName] = key.split('__sf__');
+              const parentMeta = cfIcons[parentName] || {};
+              const subFields = (parentMeta.sub_fields && parentMeta.sub_fields[cd[parentName]]) ? parentMeta.sub_fields[cd[parentName]] : [];
+              const sfMeta = subFields.find(sf => sf.name === sfName) || {};
+              const iconClass = sfMeta.icon || 'fas fa-tag';
+              return `<i class="${iconClass}"></i> ${sfName}: <strong>${value}</strong>`;
+            }
+            const meta = cfIcons[key];
+            const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
+            return `<i class="${iconClass}"></i> ${value}`;
+          }).join(' | ');
+        } catch (e) { }
+      }
+
+      // Scale variables
+      const scaledWidth = 260 * scale;
+      const scaledHeight = 360 * scale;
+      const fH3 = 13 * scale;
+      const fH2 = 18 * scale;
+      const fCustom = 11 * scale;
+      const fChurch = 11 * scale;
+      const sLogo = 20 * scale;
+      const sAvatar = 70 * scale;
+      const sTripImg = 60 * scale;
+
+      const avatarHtml = (showStudentImg && hasImage) 
+          ? `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">` 
+          : '';
+
+      const tripImageHtml = (showTripImage && trip.image_url) 
+          ? `<img src="${trip.image_url}" style="width:100%;height:${sTripImg}px;object-fit:contain;margin-bottom:6px;" onerror="this.style.display='none'">` 
+          : '';
+
+      const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+
+      previewWrapper.innerHTML = `
+      <div class="print-card" style="width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; border:2px dashed #000; border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff;">
+          ${showChurch ? `<div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+              <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+              <span style="font-size:${fChurch}px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+          </div>` : ''}
+          ${tripImageHtml}
+          ${showTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; margin:0; color:#000; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${trip.title}</h3>` : ''}
+          ${avatarHtml}
+          ${showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; margin:0; color:#000; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</h2>` : ''}
+          ${showCustom ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:#000; display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : ''}
+          <div id="prev_qrcode_sample"></div>
+      </div>
+      `;
+
+      // Generate a mock QR code in the preview
+      const qrSize = Math.max(80, 130 * scale);
+      new QRCode(document.getElementById('prev_qrcode_sample'), {
+        text: "https://sunday-school.rf.gd/",
+        width: qrSize,
+        height: qrSize,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    async function printQRCards(tripId) {
       document.getElementById('printTripId').value = tripId;
       openModal('printSettingsModal');
+      document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
+      
+      let regs = tripRegistrationsCache[tripId] || [];
+      let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      if (!trip || regs.length === 0) {
+        try {
+          const fd = mkFd('getTripDetails'); fd.append('trip_id', tripId);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res && res.success && res.trip) {
+            trip = res.trip; regs = res.trip.registrations || [];
+            tripRegistrationsCache[tripId] = regs;
+            const idx = allTripsCache.findIndex(t => t.id == tripId);
+            if (idx > -1) allTripsCache[idx] = res.trip;
+            else allTripsCache.push(res.trip);
+          }
+        } catch (e) { }
+      }
+      updatePrintPreview();
     }
 
     async function executePrintQRCards() {
@@ -6013,60 +6174,77 @@
 
   <!-- Print Settings Modal -->
   <div id="printSettingsModal" class="modal">
-    <div class="modal-box" style="max-width:400px;">
+    <div class="modal-box wide" style="max-width:850px;">
       <div class="modal-head">
-        <h2><i class="fas fa-print"></i> خيارات الطباعة</h2>
+        <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
         <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="modal-body" style="display:flex; gap:20px;">
         <input type="hidden" id="printTripId">
         
-        <div class="form-group">
-          <label class="form-label">حجم البطاقة (٪)</label>
-          <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;" oninput="document.getElementById('printScaleVal').textContent = this.value + '%'">
-          <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
-        </div>
-
-        <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div>
-            <label class="form-label">المسافة بين البطاقات</label>
-            <input type="number" id="printGap" class="form-input" value="15" min="0" max="100">
+        <!-- Settings Panel -->
+        <div id="printSettingsFormPanel" style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">حجم البطاقة (٪)</label>
+            <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;" oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
+            <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
           </div>
-          <div>
-            <label class="form-label">المسافات الداخلية</label>
-            <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50">
+
+          <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label class="form-label">المسافة بين البطاقات</label>
+              <input type="number" id="printGap" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+            </div>
+            <div>
+              <label class="form-label">المسافات الداخلية</label>
+              <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+            </div>
+          </div>
+
+          <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1);">
+            <label class="form-label" style="margin-bottom:8px;">محتويات البطاقة</label>
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowChurch" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>اسم الكنيسة والشعار</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowTripImage" style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>صورة الرحلة (إن وجدت)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowTripTitle" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>عنوان الرحلة</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>صورة الطفل</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowStudentName" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>اسم الطفل</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="printShowCustom" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <span>البيانات الإضافية</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
+        </div>
+
+        <!-- Preview Panel -->
+        <div id="printPreviewPanel" style="flex:1.2; min-width:280px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--border); padding-right:20px; justify-content:flex-start; align-items:center;">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text);"><i class="fas fa-eye" style="color:var(--primary);"></i> معاينة حية (عينة لأول طفل)</h3>
+            <button type="button" class="btn btn-outline btn-xs" onclick="toggleExpandPrintPreview()" id="expandPreviewBtn" style="padding:4px 8px;font-size:0.75rem;">
+              <i class="fas fa-expand-alt"></i> تكبير المعاينة
+            </button>
+          </div>
+          <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden; transition:all 0.3s ease;">
+            <div id="printPreviewContent"></div>
           </div>
         </div>
 
-        <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1);">
-          <label class="form-label" style="margin-bottom:8px;">محتويات البطاقة</label>
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowChurch" checked style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>اسم الكنيسة والشعار</span>
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowTripImage" style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>صورة الرحلة (إن وجدت)</span>
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowTripTitle" checked style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>عنوان الرحلة</span>
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>صورة الطفل</span>
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowStudentName" checked style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>اسم الطفل</span>
-          </label>
-          <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-            <input type="checkbox" id="printShowCustom" checked style="accent-color:var(--primary); width:16px; height:16px;">
-            <span>البيانات الإضافية</span>
-          </label>
-        </div>
-
-        <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
       </div>
     </div>
   </div>
