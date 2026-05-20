@@ -1660,6 +1660,139 @@
             border-color: rgba(99, 102, 241, 0.4);
         }
 
+        .trip-card.trip-card-compact {
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            height: auto;
+            min-height: 0;
+            justify-content: flex-start;
+            overflow: visible;
+            color: var(--text);
+        }
+
+        .trip-card.trip-card-compact:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-2);
+        }
+
+        .trip-card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 14px 10px;
+        }
+
+        .trip-mini-thumb {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--primary-bg), var(--surface-2));
+        }
+
+        .trip-mini-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .trip-mini-thumb i {
+            font-size: 1.35rem;
+            opacity: .9;
+        }
+
+        .trip-top-meta {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .trip-top-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .trip-top-title h3 {
+            margin: 0;
+            font-size: .95rem;
+            line-height: 1.45;
+            color: var(--text);
+        }
+
+        .trip-status-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .72rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            width: fit-content;
+        }
+
+        .trip-quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            padding: 0 14px 10px;
+        }
+
+        .trip-quick-actions .act-btn {
+            width: 100%;
+            min-width: 0;
+            height: 36px;
+            border-radius: 12px;
+        }
+
+        .trip-card-main {
+            padding: 0 14px 14px;
+        }
+
+        .trip-card-main .trip-meta-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .trip-card-main .trip-meta-row span {
+            color: var(--text-2);
+            font-size: .77rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trip-card-main .trip-price-row {
+            margin-bottom: 8px;
+        }
+
+        .trip-card-main .trip-stats-row {
+            margin-top: 10px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .trip-card-main .trip-stat-item {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 6px;
+        }
+
         .trip-img {
             position: absolute;
             inset: 0;
@@ -7596,6 +7729,49 @@
         let activeTabName = 'overview';
         const loadedTabs = new Set();
         const inFlightLoads = {};
+        let _offlineSessionMode = false;
+        let _offlineToastShown = false;
+        const LOCAL_CACHE_KEYS = {
+            stats: 'church_stats_cache',
+            todayAttendance: 'church_today_att_cache',
+            students: 'church_students_cache',
+            uncles: 'church_uncles_cache',
+            trips: 'church_trips_cache',
+            pending: 'church_pending_cache',
+            settings: 'church_settings_cache'
+        };
+
+        function _cacheScope() {
+            const churchPart = getChurchId() || localStorage.getItem('churchCode') || localStorage.getItem('churchId') || 'default';
+            const devPart = isDeveloper ? (devViewChurchId || 'home') : 'self';
+            return `${churchPart}_${devPart}`;
+        }
+
+        function _cacheKey(name) {
+            return `${LOCAL_CACHE_KEYS[name] || name}_${_cacheScope()}`;
+        }
+
+        function _saveLocalCache(name, payload) {
+            try {
+                localStorage.setItem(_cacheKey(name), JSON.stringify({ ts: Date.now(), payload }));
+            } catch (e) { }
+        }
+
+        function _readLocalCache(name) {
+            try {
+                const raw = localStorage.getItem(_cacheKey(name));
+                if (!raw) return null;
+                return JSON.parse(raw)?.payload || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function _showOfflineCacheToast() {
+            if (_offlineToastShown) return;
+            _offlineToastShown = true;
+            showToast('يتم عرض آخر بيانات محفوظة بدون إنترنت', 'info');
+        }
 
         // ── Dark Mode ────────────────────────────────────────────
         function toggleDarkMode() {
@@ -7775,12 +7951,23 @@
             }
         })();
 
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js?v=9').catch(() => { });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             // 1. Get authoritative session from server
             const sess = await initSession();
+            const hasLocalSession =
+                localStorage.getItem('loggedIn') === 'true' ||
+                localStorage.getItem('uncleLoggedIn') === 'true' ||
+                !!localStorage.getItem('churchId') ||
+                !!localStorage.getItem('churchCode');
 
             // 2. Silent restoration
-            if (!sess.ok && localStorage.getItem('loggedIn')) {
+            if (!sess.ok && hasLocalSession) {
                 if (navigator.onLine) {
                     const restored = await restoreSessionAndReload();
                     if (restored) return;
@@ -7790,6 +7977,9 @@
                 window.location.href = '/login/?redirect=' + dest;
                 return;
             }
+
+            _offlineSessionMode = !sess.ok;
+            if (_offlineSessionMode) _showOfflineCacheToast();
 
             // 3. Role & ID
             const userRole = (sess.role || localStorage.getItem('uncleRole') || '').toLowerCase().trim();
@@ -8083,10 +8273,39 @@
         }
 
         // ── Statistics ────────────────────────────────────────────────
+        function _applyStatisticsPayload(d) {
+            const s = d.stats || {};
+            document.getElementById('totalStudents').textContent = s.totalStudents || 0;
+            document.getElementById('totalClasses').textContent = s.totalClasses || 0;
+            document.getElementById('totalUncles').textContent = s.totalUncles || 0;
+            document.getElementById('pendingRequests').textContent = s.pendingRequests || 0;
+            const pendingCount = s.pendingRequests || 0;
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('pendingCount').dataset.count = pendingCount;
+
+            const trips = d.trips || allTripsCache || [];
+            const activeTrips = trips.filter(t => t.status === 'active').length;
+            document.getElementById('activeTrips').textContent = activeTrips;
+
+            const cachedTodayAttendance = _readLocalCache('todayAttendance');
+            if (cachedTodayAttendance?.text) {
+                document.getElementById('todayAttendance').textContent = cachedTodayAttendance.text;
+            }
+
+            renderRecentActivity(s.recentActivity || []);
+            renderClassesOverview(s.classDistribution || []);
+        }
+
+        function _restoreStatisticsFromCache() {
+            const cached = _readLocalCache('stats');
+            if (!cached) return false;
+            _applyStatisticsPayload(cached);
+            return true;
+        }
+
         function loadStatistics() {
             const fd = mkFd('getChurchStatistics');
 
-            // Debug info
             console.log('Loading statistics with:', {
                 isDeveloper,
                 devViewChurchId,
@@ -8101,37 +8320,24 @@
 
                     if (!d.success) {
                         console.error('Statistics error:', d.message);
+                        if (_restoreStatisticsFromCache()) {
+                            if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                            return;
+                        }
                         showToast('خطأ في تحميل الإحصائيات', 'error');
                         return;
                     }
 
-                    const s = d.stats || {};
-
-                    // Update stats cards
-                    document.getElementById('totalStudents').textContent = s.totalStudents || 0;
-                    document.getElementById('totalClasses').textContent = s.totalClasses || 0;
-                    document.getElementById('totalUncles').textContent = s.totalUncles || 0;
-                    document.getElementById('pendingRequests').textContent = s.pendingRequests || 0;
-                    const _pc = s.pendingRequests || 0;
-                    document.getElementById('pendingCount').textContent = _pc;
-                    document.getElementById('pendingCount').dataset.count = _pc;
-
-                    // Update additional stats
-                    const trips = d.trips || allTripsCache || [];
-                    const activeTrips = trips.filter(t => t.status === 'active').length;
-                    document.getElementById('activeTrips').textContent = activeTrips;
-
-                    // Calculate today's attendance
+                    _saveLocalCache('stats', d);
+                    _applyStatisticsPayload(d);
                     calculateTodayAttendance();
-
-                    // Render recent activity
-                    renderRecentActivity(s.recentActivity || []);
-
-                    // Render classes overview
-                    renderClassesOverview(s.classDistribution || []);
                 })
                 .catch(err => {
                     console.error('Error loading statistics:', err);
+                    if (_restoreStatisticsFromCache()) {
+                        if (_offlineSessionMode) _showOfflineCacheToast();
+                        return;
+                    }
                     showToast('خطأ في تحميل الإحصائيات', 'error');
                 });
         }
@@ -8161,12 +8367,18 @@
                     const present = attendance.filter(a => a.status === 'present').length;
 
                     const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-                    document.getElementById('todayAttendance').textContent = percentage + '%';
+                    const text = percentage + '%';
+                    document.getElementById('todayAttendance').textContent = text;
+                    _saveLocalCache('todayAttendance', { text });
 
                     // Also update total coupons
                     calculateTotalCoupons();
                 })
-                .catch(err => console.error('Error calculating attendance:', err));
+                .catch(err => {
+                    console.error('Error calculating attendance:', err);
+                    const cached = _readLocalCache('todayAttendance');
+                    if (cached?.text) document.getElementById('todayAttendance').textContent = cached.text;
+                });
         }
 
         function calculateTotalCoupons() {
@@ -8419,9 +8631,34 @@
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     allStudents = d.data || []; classes = d.classes || [];
+                    _saveLocalCache('students', { data: allStudents, classes });
                     renderStudentsTable(allStudents); populateClassFilters(); calculateTotalCoupons();
+                } else {
+                    const cached = _readLocalCache('students');
+                    if (cached?.data) {
+                        allStudents = cached.data || [];
+                        classes = cached.classes || [];
+                        renderStudentsTable(allStudents);
+                        populateClassFilters();
+                        calculateTotalCoupons();
+                        if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                        return;
+                    }
+                    showToast('خطأ في تحميل الأطفال', 'error');
                 }
-            }).catch(() => showToast('خطأ في تحميل الأطفال', 'error'));
+            }).catch(() => {
+                const cached = _readLocalCache('students');
+                if (cached?.data) {
+                    allStudents = cached.data || [];
+                    classes = cached.classes || [];
+                    renderStudentsTable(allStudents);
+                    populateClassFilters();
+                    calculateTotalCoupons();
+                    if (_offlineSessionMode) _showOfflineCacheToast();
+                    return;
+                }
+                showToast('خطأ في تحميل الأطفال', 'error');
+            });
         }
 
         function renderStudentsTable(students) {
@@ -8919,8 +9156,19 @@
 
                 const fd = mkFd('getChurchSettings');
                 const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-                if (!d.success) { renderCustomFieldsList(); return; }
-                const s = d.settings || {};
+                let s = d.settings || null;
+                if (!d.success || !s) {
+                    const cached = _readLocalCache('settings');
+                    if (!cached?.settings) { renderCustomFieldsList(); return; }
+                    s = cached.settings;
+                    _availableClassNames = cached.availableClassNames || _availableClassNames;
+                    if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                } else {
+                    _saveLocalCache('settings', {
+                        settings: s,
+                        availableClassNames: _availableClassNames
+                    });
+                }
 
                 const dayEl = document.getElementById('settingAttendanceDay');
                 if (dayEl && s.attendance_day) dayEl.value = String(s.attendance_day);
@@ -9132,10 +9380,35 @@
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     allTripsCache = d.trips || []; currentTrips = allTripsCache; filterTrips();
+                    _saveLocalCache('trips', { trips: allTripsCache });
                     const _tc = allTripsCache.length;
                     document.getElementById('tripsCount').textContent = _tc;
                     document.getElementById('tripsCount').dataset.count = _tc;
                     document.getElementById('activeTrips').textContent = allTripsCache.filter(t => t.status === 'active').length;
+                } else {
+                    const cached = _readLocalCache('trips');
+                    if (cached?.trips) {
+                        allTripsCache = cached.trips || [];
+                        currentTrips = allTripsCache;
+                        filterTrips();
+                        const _tc = allTripsCache.length;
+                        document.getElementById('tripsCount').textContent = _tc;
+                        document.getElementById('tripsCount').dataset.count = _tc;
+                        document.getElementById('activeTrips').textContent = allTripsCache.filter(t => t.status === 'active').length;
+                        if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                    }
+                }
+            }).catch(() => {
+                const cached = _readLocalCache('trips');
+                if (cached?.trips) {
+                    allTripsCache = cached.trips || [];
+                    currentTrips = allTripsCache;
+                    filterTrips();
+                    const _tc = allTripsCache.length;
+                    document.getElementById('tripsCount').textContent = _tc;
+                    document.getElementById('tripsCount').dataset.count = _tc;
+                    document.getElementById('activeTrips').textContent = allTripsCache.filter(t => t.status === 'active').length;
+                    if (_offlineSessionMode) _showOfflineCacheToast();
                 }
             });
         }
@@ -9175,20 +9448,27 @@
                 const totalPerKid = finalPrice + expPerKid;
                 const pct = t.max_participants > 0 ? Math.min(100, Math.round((t.registered_count || 0) / t.max_participants * 100)) : null;
                 const isOwner = t.is_owner === undefined || Number(t.is_owner) === 1;
-                return `<div class="trip-card" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
-            <div class="trip-img" style="${t.image_url ? '' : 'background:linear-gradient(135deg,' + col + '22,' + col + '11);'}">
-                ${t.image_url ? `<img src="${t.image_url}" loading="lazy">` : `<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
-                <span class="trip-status-pill ${sc}">${st}</span>
-                <div class="trip-actions-overlay" onclick="event.stopPropagation()">
-                    ${isOwner ? `<button class="act-btn" style="background:var(--primary);" onclick="openEditTrip(${t.id})" title="إعدادات الرحلة"><i class="fas fa-cog"></i></button>` : ''}
-                    <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
-                    <button class="act-btn" style="background:#4f46e5;" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
-                    <button class="act-btn act-edit" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'" title="تعديل"><i class="fas fa-edit"></i></button>
-                    ${isOwner ? `<button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
+                return `<div class="trip-card trip-card-compact" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
+            <div class="trip-card-top">
+                <div class="trip-mini-thumb" style="${t.image_url ? '' : 'background:linear-gradient(135deg,' + col + '18,' + col + '08);color:' + col + ';'}">
+                    ${t.image_url ? `<img src="${t.image_url}" loading="lazy" alt="${escHtml(t.title || '')}">` : `<i class="fas fa-bus"></i>`}
+                </div>
+                <div class="trip-top-meta">
+                    <div class="trip-top-title">
+                        <h3>${t.title}</h3>
+                        ${!isOwner ? `<span style="font-size:0.68rem;font-weight:800;color:#0ea5e9;background:#e0f2fe;padding:2px 8px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}
+                    </div>
+                    <span class="trip-status-inline" style="color:${col};border-color:${col}22;background:${col}10;">${st}</span>
                 </div>
             </div>
-            <div class="trip-body">
-                <h3>${t.title} ${!isOwner ? `<span style="font-size:0.7rem;font-weight:normal;color:#0ea5e9;background:#e0f2fe;padding:2px 8px;border-radius:12px;margin-right:6px;display:inline-block;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}</h3>
+            <div class="trip-quick-actions" onclick="event.stopPropagation()">
+                ${isOwner ? `<button class="act-btn" style="background:var(--primary);" onclick="openEditTrip(${t.id})" title="إعدادات الرحلة"><i class="fas fa-cog"></i></button>` : ''}
+                <button class="act-btn" style="background:#2563eb;" onclick="exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
+                <button class="act-btn" style="background:#4f46e5;" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
+                <button class="act-btn act-edit" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'" title="فتح"><i class="fas fa-eye"></i></button>
+                ${isOwner ? `<button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
+            </div>
+            <div class="trip-card-main">
                 <div class="trip-meta-row">
                     <span><i class="fas fa-calendar"></i>${t.start_date_formatted || t.start_date || '—'}</span>
                     <span><i class="fas fa-clock"></i>${t.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}</span>
@@ -10465,7 +10745,25 @@
             const cls = document.getElementById('pendingClassFilter')?.value || '';
             const fd = mkFd('getPendingRegistrations'); fd.append('class', cls);
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) { pendingRegistrations = d.data || []; renderPendingTable(pendingRegistrations); }
+                if (d.success) {
+                    pendingRegistrations = d.data || [];
+                    _saveLocalCache('pending', { data: pendingRegistrations });
+                    renderPendingTable(pendingRegistrations);
+                } else {
+                    const cached = _readLocalCache('pending');
+                    if (cached?.data) {
+                        pendingRegistrations = cached.data || [];
+                        renderPendingTable(pendingRegistrations);
+                        if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                    }
+                }
+            }).catch(() => {
+                const cached = _readLocalCache('pending');
+                if (cached?.data) {
+                    pendingRegistrations = cached.data || [];
+                    renderPendingTable(pendingRegistrations);
+                    if (_offlineSessionMode) _showOfflineCacheToast();
+                }
             });
         }
         function renderPendingTable(regs) {
@@ -12374,14 +12672,31 @@
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     allUncles = d.uncles || [];
+                    _saveLocalCache('uncles', { uncles: allUncles });
                     displayUncles(allUncles);
                     // Load classes for checkboxes (now in same section)
                     loadUncleClassCheckboxes();
                     loadClassesForUncleDropdown('uncleClass');
                 } else {
+                    const cached = _readLocalCache('uncles');
+                    if (cached?.uncles) {
+                        allUncles = cached.uncles;
+                        displayUncles(allUncles);
+                        if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                        return;
+                    }
                     showToast('خطأ في تحميل بيانات الخُدام', 'error');
                 }
-            }).catch(() => showToast('خطأ في تحميل بيانات الخُدام', 'error'));
+            }).catch(() => {
+                const cached = _readLocalCache('uncles');
+                if (cached?.uncles) {
+                    allUncles = cached.uncles;
+                    displayUncles(allUncles);
+                    if (_offlineSessionMode) _showOfflineCacheToast();
+                    return;
+                }
+                showToast('خطأ في تحميل بيانات الخُدام', 'error');
+            });
         }
         function addSaveImageButtonsToAllCards() {
             const cardTitleMap = [

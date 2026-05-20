@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v8                      ║
+// ║  Sunday School PWA — Service Worker v9                      ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v8';
+const CACHE_NAME        = 'sunday-school-v9';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -12,6 +12,11 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
     '/manifest.json','/manifest.webmanifest',
+    '/uncle/church/','/uncle/church/index.html',
+    '/uncle/church/trips/','/uncle/church/trips/index.html',
+    '/uncle/trip/','/uncle/trip/index.html',
+    '/uncle/trip/filter/','/uncle/trip/filter/index.html',
+    '/uncle/trip/points/','/uncle/trip/points/index.html',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -43,6 +48,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
     const isSameOrigin = url.origin === self.location.origin;
+    const isOfflineShellFriendly =
+        isSameOrigin && (
+            url.pathname.startsWith('/uncle/church') ||
+            url.pathname.startsWith('/uncle/trip')
+        );
     const isSessionSensitive =
         isSameOrigin && (
             url.pathname === '/' ||
@@ -106,9 +116,17 @@ self.addEventListener('fetch', e => {
     // switching churches can show the previous church's rendered dashboard.
     if (e.request.mode === 'navigate') {
         e.respondWith(
-            fetch(e.request, { cache: isSessionSensitive ? 'no-store' : 'default' }).catch(async () => {
+            fetch(e.request, {
+                cache: (isSessionSensitive && !isOfflineShellFriendly) ? 'no-store' : 'default'
+            }).then(r => {
+                if (r && r.ok && isOfflineShellFriendly) {
+                    const copy = r.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
+                }
+                return r;
+            }).catch(async () => {
                 const cached = await caches.match(e.request);
-                if (cached && !isSessionSensitive) return cached;
+                if (cached && (isOfflineShellFriendly || !isSessionSensitive)) return cached;
                 return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
                     status: 503,
                     headers: { 'Content-Type': 'text/html; charset=utf-8' }
@@ -119,7 +137,7 @@ self.addEventListener('fetch', e => {
     }
 
     // Never cache session-sensitive GETs either.
-    if (isSessionSensitive) {
+    if (isSessionSensitive && !isOfflineShellFriendly) {
         e.respondWith(fetch(e.request, { cache: 'no-store' }).catch(() => new Response('Offline', { status: 503 })));
         return;
     }
