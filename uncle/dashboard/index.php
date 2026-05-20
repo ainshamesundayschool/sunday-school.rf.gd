@@ -7110,6 +7110,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     class="fas fa-undo"></i> إعادة تعيين الكوبونات</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="action-strip-row-2">
                     <button class="action-strip-btn action-strip-standalone" onclick="showResetModal()"
                         title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
@@ -7159,10 +7162,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-hand-pointer swipe-hand-icon"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">سحب</span></span>
                             </button>
-                            <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="محفوظ"
+                            <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()">
                                 <i class="fas fa-check-circle"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">محفوظ</span></span>
+                                <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
                             </button>
                             <button class="save-btn save-btn-attendance" id="submitAttendance" disabled
                                 title="حفظ الحضور">
@@ -9602,10 +9605,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Status / unsaved indicator
             un.disabled = tot === 0;
             if (tot > 0) {
-                un.innerHTML = btn('fas fa-exclamation-circle', 'احفظ الكل', tot);
+                un.innerHTML = btn('fas fa-exclamation-circle', 'التغييرات', tot);
                 un.title = `${tot} تغيير غير محفوظ — انقر للتفاصيل`;
             } else {
-                un.innerHTML = btn('fas fa-check-circle', 'محفوظ', 0);
+                un.innerHTML = btn('fas fa-check-circle', 'التغييرات', 0);
                 un.title = 'جميع التغييرات محفوظة';
             }
         }
