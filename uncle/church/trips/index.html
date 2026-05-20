@@ -3003,28 +3003,11 @@
     }
 
     /* ── PRINT MODAL ────────────────────────────────────────────────── */
-    /* Always give it room on desktop */
     #printSettingsModal .modal-box {
       max-width: 1000px !important;
     }
 
-    /* Collapsible preview panel */
-    #printPreviewPanel {
-      transition: all 0.35s var(--ease);
-      overflow: hidden;
-    }
-    #printPreviewPanel.preview-collapsed {
-      flex: 0 !important;
-      min-width: 0 !important;
-      width: 0 !important;
-      padding: 0 !important;
-      border: none !important;
-      margin: 0 !important;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Collapse toggle button */
+    /* Preview toggle button — always visible */
     #togglePreviewBtn {
       display: flex;
       align-items: center;
@@ -3047,7 +3030,29 @@
       background: var(--primary-light);
     }
 
-    /* Mobile: stack vertically, full-screen */
+    /* Preview wrapper collapses, button stays */
+    #printPreviewWrapper {
+      transition: all 0.3s var(--ease);
+    }
+    #printPreviewPanel.preview-collapsed #printPreviewWrapper {
+      display: none !important;
+    }
+
+    /* ── Desktop: side-by-side ───────────────────────────────── */
+    @media (min-width: 769px) {
+      #printSettingsModal .modal-body {
+        display: flex;
+        gap: 20px;
+      }
+      #printPreviewPanel {
+        flex: 1.2;
+        min-width: 280px;
+        border-right: 1px solid var(--border);
+        padding-right: 20px;
+      }
+    }
+
+    /* ── Mobile: stacked — settings first, preview below ────── */
     @media (max-width: 768px) {
       #printSettingsModal .modal-box {
         max-width: 100% !important;
@@ -3056,50 +3061,36 @@
         border-radius: 0 !important;
         height: 100% !important;
         max-height: 100vh !important;
-        overflow-y: auto;
       }
       #printSettingsModal .modal-body {
         flex-direction: column !important;
         gap: 0 !important;
-      }
-      #printSettingsModal #printPreviewPanel {
-        border-right: none !important;
-        border-top: 1px solid var(--border) !important;
-        padding-right: 0 !important;
-        padding-top: 16px !important;
-        margin-top: 12px !important;
-        min-width: unset !important;
-        flex: unset !important;
-        width: 100% !important;
-      }
-      #printSettingsModal #printPreviewPanel.preview-collapsed {
-        width: 0 !important;
-        height: 0 !important;
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-        border: none !important;
+        padding: 16px !important;
       }
       #printSettingsModal #printSettingsFormPanel {
         min-width: unset !important;
         max-height: none !important;
         overflow-y: visible !important;
+        width: 100% !important;
       }
-      #printSettingsModal .modal-body > div {
-        width: 100%;
+      #printSettingsModal #printPreviewPanel {
+        width: 100% !important;
+        min-width: unset !important;
+        border-right: none !important;
+        border-top: 1px solid var(--border) !important;
+        padding-right: 0 !important;
+        padding-top: 16px !important;
+        margin-top: 16px !important;
       }
-      /* Tighten spacing on small screens */
-      #printSettingsModal .form-group {
-        gap: 4px;
+      #printSettingsModal #printPreviewWrapper {
+        min-height: 320px !important;
+        padding: 12px !important;
       }
     }
 
     @media (max-width: 480px) {
-      #printSettingsModal .modal-body {
-        padding: 14px !important;
-      }
       #printSettingsModal #printPreviewWrapper {
-        min-height: 280px !important;
-        padding: 12px !important;
+        min-height: 260px !important;
       }
     }
   </style>
@@ -5657,8 +5648,14 @@
       const collapsed = panel.classList.toggle('preview-collapsed');
       if (collapsed) {
         btn.innerHTML = '<i class="fas fa-eye"></i> إظهار المعاينة';
+        btn.style.borderColor = 'var(--primary)';
+        btn.style.color = 'var(--primary)';
+        btn.style.background = 'var(--primary-light)';
       } else {
         btn.innerHTML = '<i class="fas fa-eye-slash"></i> إخفاء المعاينة';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.style.background = '';
       }
     }
 
@@ -6416,7 +6413,7 @@
         <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
         <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" style="display:flex; gap:20px;">
+      <div class="modal-body">
         <input type="hidden" id="printTripId">
         
         <!-- Settings Panel -->
@@ -6550,14 +6547,14 @@
         </div>
 
         <!-- Preview Panel -->
-        <div id="printPreviewPanel" style="flex:1.2; min-width:280px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--border); padding-right:20px; justify-content:flex-start; align-items:center;">
-          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:10px;">
+        <div id="printPreviewPanel" style="display:flex; flex-direction:column; gap:10px; justify-content:flex-start; align-items:center;">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
             <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text);"><i class="fas fa-eye" style="color:var(--primary);"></i> معاينة حية (عينة لأول طفل)</h3>
             <button type="button" id="togglePreviewBtn" onclick="togglePrintPreview()">
               <i class="fas fa-eye-slash"></i> إخفاء المعاينة
             </button>
           </div>
-          <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden; transition:all 0.3s ease;">
+          <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden;">
             <div id="printPreviewContent" style="display:flex; align-items:center; justify-content:center;"></div>
           </div>
         </div>
