@@ -1454,13 +1454,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .action-strip-standalone {
-            border: 2px solid var(--border-solid) !important;
+            border: 1.5px solid var(--border-solid) !important;
             background: var(--surface) !important;
             color: var(--text-2) !important;
             flex-shrink: 0 !important;
             flex: 0 0 auto !important;
             width: auto !important;
-            padding: 10px 10px !important
+            padding: 6px 12px !important;
+            display: inline-flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 3px !important;
+            border-radius: var(--r-lg) !important;
         }
 
         .action-strip-standalone:hover {
@@ -1478,6 +1484,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--success) !important;
             background: var(--success-bg) !important;
             color: var(--success) !important
+        }
+
+        .strip-btn-label {
+            font-size: 0.65rem !important;
+            font-weight: 800 !important;
+            display: block;
+            white-space: nowrap;
+            line-height: 1;
+            margin-top: 1px;
         }
 
         .action-strip-btn {
@@ -7090,17 +7105,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button class="action-strip-btn action-strip-standalone" onclick="showResetModal()"
                         title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
+                        <span class="strip-btn-label">تراجع</span>
                     </button>
                     <button class="action-strip-btn action-strip-standalone" id="tasksClassBtn"
                         onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass)"
                         title="مهام الفصل"
                         style="background:linear-gradient(135deg,#5b6cf5,#4154e8);color:#fff;border:none;position:relative;">
                         <i class="fas fa-tasks"></i>
-                        <span class="tasks-notif-dot" id="tasksSubmissionDot" style="display:none;"></span>
+                        <span class="tasks-notif-dot" id="tasksSubmissionDot" style="display:none; top: 4px; left: 4px;"></span>
+                        <span class="strip-btn-label" style="color: #fff !important;">المهام</span>
                     </button>
                     <button class="action-strip-btn action-strip-standalone action-strip-add"
                         onclick="showAddPersonModal()" title="إضافة طفل جديد">
                         <i class="fas fa-user-plus"></i>
+                        <span class="strip-btn-label">إضافة</span>
                     </button>
                 </div>
 
