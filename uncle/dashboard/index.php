@@ -3100,6 +3100,72 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: 1px solid var(--border-solid);
         }
 
+        .sibling-item-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .sibling-mini-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface-3);
+        }
+
+        .sibling-mini-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .sibling-item-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .sibling-mini-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface-3);
+        }
+
+        .sibling-mini-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
         .sibling-item strong {
             display: block;
             color: var(--text);
@@ -3229,6 +3295,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .7rem;
             color: var(--text-2);
             line-height: 1.45;
+        }
+
+        .sibling-suggestion-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .sibling-suggestion-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 2px;
         }
 
         .sibling-suggestion-inline {
@@ -10800,7 +10882,6 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     const id = getStudentDbId(s);
                     const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
                     return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">
-                        <span class="sibling-suggestion-tag"><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> ذكاء</span>
                         <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
                         <span class="sibling-suggestion-tag">${tag}</span>
                         <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
@@ -10827,17 +10908,27 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 const alreadyLinked = currentGroup?.id && targetGroup?.id && currentGroup.id === targetGroup.id;
                 const suggestion = getSiblingSuggestion(current, s);
                 const linkedLabel = alreadyLinked ? 'مرتبط بالفعل' : targetGroup?.id ? 'مرتبط مع مجموعة أخرى' : 'غير مرتبط';
+                const phone = s['رقم التليفون'] || s.phone || '';
+                const address = s['العنوان'] || s.address || '';
+                const gender = getStudentGender(s);
+                const avatar = s['صورة']
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                    : '';
+                const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 return `
                     <div class="sibling-candidate ${alreadyLinked ? 'selected' : ''}">
-                        <div style="min-width:0;">
-                            <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(s))}</div>
-                            <div class="sibling-candidate-meta">
-                                ${escHtml(getStudentClassName(s))}
-                                ${guardian ? ` · ${escHtml(guardian)}` : ''}
-                                ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
-                                ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
+                        <div class="sibling-item-main">
+                            ${avatar}${avatarFallback}
+                            <div style="min-width:0;flex:1;">
+                                <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(s))}</div>
+                                <div class="sibling-candidate-meta">
+                                    <span>${escHtml(getStudentClassName(s))}</span>
+                                    ${guardian ? `<span>ولي الأمر: ${escHtml(guardian)}</span>` : ''}
+                                    ${phone ? `<span>هاتف: ${escHtml(phone)}</span>` : ''}
+                                    ${address ? `<span>العنوان: ${escHtml(address)}</span>` : ''}
+                                </div>
+                                ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
                             </div>
-                            ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة"><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
