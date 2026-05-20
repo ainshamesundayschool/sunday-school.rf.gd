@@ -12961,7 +12961,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── Register service worker ───────────────────────────────────
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=10')
+                navigator.serviceWorker.register('/sw.js?v=11')
                     .then(reg => {
                         _initPushSubscription(reg);
                         // ── Re-subscribe whenever SW becomes active after an update ──

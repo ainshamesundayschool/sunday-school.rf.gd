@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v10                     ║
+// ║  Sunday School PWA — Service Worker v11                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v10';
+const CACHE_NAME        = 'sunday-school-v11';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -12,8 +12,10 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
     '/manifest.json','/manifest.webmanifest',
+    '/uncle/dashboard','/uncle/dashboard/','/uncle/dashboard/index.php',
     '/uncle/church',
     '/uncle/church/','/uncle/church/index.html',
+    '/uncle/church/dashboard','/uncle/church/dashboard/',
     '/uncle/church/trips',
     '/uncle/church/trips/','/uncle/church/trips/index.html',
     '/uncle/trip',
@@ -55,6 +57,7 @@ self.addEventListener('fetch', e => {
     const isSameOrigin = url.origin === self.location.origin;
     const isOfflineShellFriendly =
         isSameOrigin && (
+            url.pathname.startsWith('/uncle/dashboard') ||
             url.pathname.startsWith('/uncle/church') ||
             url.pathname.startsWith('/uncle/trip')
         );
@@ -168,7 +171,11 @@ async function _matchOfflineShell(request, url) {
     const sameOriginPath = url && url.origin === self.location.origin ? url.pathname : '';
     const fallbackCandidates = [];
 
-    if (sameOriginPath.startsWith('/uncle/church/trips')) {
+    if (sameOriginPath.startsWith('/uncle/church/dashboard')) {
+        fallbackCandidates.push('/uncle/church/', '/uncle/church/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/dashboard')) {
+        fallbackCandidates.push('/uncle/dashboard/', '/uncle/dashboard/index.php', '/uncle/church/', '/uncle/church/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/church/trips')) {
         fallbackCandidates.push('/uncle/church/trips/', '/uncle/church/trips/index.html');
     } else if (sameOriginPath.startsWith('/uncle/church')) {
         fallbackCandidates.push('/uncle/church/', '/uncle/church/index.html');
