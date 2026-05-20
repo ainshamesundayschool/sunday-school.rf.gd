@@ -1745,16 +1745,21 @@
 
         .trip-quick-actions {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 6px;
             padding: 0 14px 10px;
         }
 
         .trip-quick-actions .act-btn {
             width: 100%;
             min-width: 0;
-            height: 36px;
-            border-radius: 12px;
+            height: 32px;
+            padding: 0;
+            border-radius: 10px;
+        }
+
+        .trip-quick-actions .act-btn i {
+            font-size: .82rem;
         }
 
         .trip-card-main {
@@ -1781,7 +1786,10 @@
         }
 
         .trip-card-main .trip-stats-row {
+            display: grid;
             margin-top: 10px;
+            padding-top: 0;
+            border-top: none;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
         }
@@ -1791,6 +1799,18 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 10px 6px;
+            text-align: center;
+        }
+
+        .trip-card-main .trip-stat-item .n {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text) !important;
+        }
+
+        .trip-card-main .trip-stat-item .l {
+            font-size: .68rem;
+            color: var(--muted) !important;
         }
 
         .trip-img {
