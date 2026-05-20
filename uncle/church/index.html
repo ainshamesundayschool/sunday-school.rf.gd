@@ -10312,6 +10312,49 @@
             btn.innerHTML = '<i class="fas fa-save"></i> حفظ'; btn.disabled = false;
         }
 
+        // ── Dev Church Switcher ───────────────────────────────────────
+        function buildDevChurchSwitcher() {
+            if (document.getElementById('devChurchBar')) return;
+            const container = document.querySelector('.page-header-actions');
+            if (!container) return;
+
+            const bar = document.createElement('div');
+            bar.id = 'devChurchBar';
+            bar.className = 'pill';
+            bar.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 14px; background:white; border:1px solid var(--border); border-radius:30px; cursor:pointer;';
+            
+            bar.innerHTML = `
+                <i class="fas fa-church" style="color:var(--primary); font-size:0.9rem;"></i>
+                <select id="devChurchSelect" style="border:none; outline:none; font-size:0.85rem; font-weight:700; color:var(--text); cursor:pointer; background:transparent;" onchange="devSwitchChurch(this.value)">
+                    <option value="">كنيستي الافتراضية</option>
+                    <option value="ALL">جميع الكنائس</option>
+                </select>
+            `;
+            container.insertBefore(bar, container.firstChild);
+            _devPopulateChurchSelect();
+        }
+
+        async function _devPopulateChurchSelect() {
+            await loadAllChurches();
+            const sel = document.getElementById('devChurchSelect');
+            if (!sel) return;
+            while (sel.options.length > 2) sel.remove(2);
+            if (!allChurchesCache.length) return;
+            const sep = document.createElement('option');
+            sep.disabled = true; sep.textContent = '──────────────────';
+            sel.appendChild(sep);
+            allChurchesCache.forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.id;
+                const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
+                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code})`;
+                if (c.id == devOrigChurchId) o.style.fontWeight = '700';
+                sel.appendChild(o);
+            });
+            if (devViewChurchId > 0) sel.value = devViewChurchId;
+            else if (devViewChurchId === -1) sel.value = 'ALL';
+        }
+
         // ── Developer: Custom Field Templates ─────────────────────────
         let _devTemplatesCache = [];
 
