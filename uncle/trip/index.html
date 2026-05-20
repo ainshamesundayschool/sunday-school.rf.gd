@@ -2,6 +2,46 @@
 <html lang="ar" dir="rtl" data-theme="light">
 
 <head>
+    <!-- Instant Theme Bootstrap -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('app_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+
+            var phpType = localStorage.getItem('churchType') || 'kids';
+            if (phpType === 'youth') {
+                var s = document.createElement('style');
+                s.id = 'youth-theme-boot';
+                s.textContent = ':root{--brand:#7c3aed!important;--brand-dark:#5b21b6!important;--brand-light:#c4b5fd!important;--brand-bg:#ede9fe!important;--brand-glow:rgba(124,58,237,.18)!important;}';
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+
+    <!-- Font Ready Guard -->
+    <style id="font-guard">
+        body {
+            visibility: hidden
+        }
+    </style>
+    <script>
+        (function () {
+            var show = function () {
+                var g = document.getElementById('font-guard');
+                if (g) g.remove();
+            };
+            if (document.fonts && document.fonts.ready) {
+                var timer = setTimeout(show, 300);
+                document.fonts.ready.then(function () {
+                    clearTimeout(timer);
+                    show();
+                });
+            } else {
+                setTimeout(show, 50);
+            }
+        })();
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>إدارة مسابقة الرحلات</title>
@@ -11,37 +51,80 @@
     <style>
         /* Essential tokens from dashboard */
         :root {
+            /* Brand */
             --brand: #5b6cf5;
             --brand-dark: #4354e8;
             --brand-light: #a5b0ff;
             --brand-bg: #eef0ff;
+            --brand-glow: rgba(91, 108, 245, .18);
+
+            /* Semantic */
             --success: #10b981;
             --success-dark: #059669;
             --success-bg: #d1fae5;
             --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --warning-bg: #fef3c7;
+
+            /* Surface */
             --bg: #f3f4f9;
             --surface: #ffffff;
+            --surface-2: #f7f8fc;
+            --surface-3: #eef0f8;
+            --border: rgba(91, 108, 245, .12);
+            --border-solid: #e4e6f0;
             --text: #1a1d2e;
             --text-2: #4b5068;
             --text-3: #8b90a8;
-            --border: rgba(91, 108, 245, .12);
-            --border-solid: #e4e6f0;
             --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .07);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .10);
             --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
+
+            /* Radius */
+            --r-xs: 6px;
+            --r-sm: 10px;
             --r-md: 14px;
             --r-lg: 18px;
             --r-xl: 24px;
+            --r-2xl: 32px;
             --r-full: 9999px;
+
+            /* Motion */
             --t: .22s;
             --ease: cubic-bezier(.4, 0, .2, 1);
             --spring: cubic-bezier(.16, 1, .3, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f1117;
+            --surface: #181b26;
+            --surface-2: #1e2132;
+            --surface-3: #252840;
+            --border: rgba(91, 108, 245, .18);
+            --border-solid: #2a2d42;
+            --text: #e8eaf6;
+            --text-2: #9299be;
+            --text-3: #565c7a;
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .4);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .5);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .6);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .7);
+            --brand-bg: rgba(91, 108, 245, .15);
+            --success-bg: rgba(16, 185, 129, .15);
+            --danger-bg: rgba(239, 68, 68, .15);
+            --warning-bg: rgba(245, 158, 11, .15);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, 'Arabic Typesetting', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -49,20 +132,44 @@
             color: var(--text);
             min-height: 100vh;
             padding-bottom: 20px;
+            transition: background var(--t) var(--ease), color var(--t) var(--ease);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        [data-theme="dark"] body::before {
+            background:
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .08) 0%, transparent 60%);
         }
 
         .topbar {
             position: sticky;
             top: 0;
             z-index: 300;
-            background: var(--surface);
+            background: var(--bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 0 16px;
             height: 58px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: var(--shadow-sm);
             gap: 12px;
+            transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
         }
 
         .topbar-brand {
@@ -249,14 +356,14 @@
             background: var(--surface);
             border-radius: var(--r-xl);
             padding: 20px;
-            border: 1.5px solid var(--border);
+            border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
             transition: all var(--t) var(--spring);
         }
 
         .field-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: var(--shadow-md);
             border-color: var(--brand);
         }
 
