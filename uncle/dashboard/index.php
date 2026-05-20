@@ -10479,20 +10479,28 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             };
         }
 
+        function getStudentTextValue(student, info, keys) {
+            for (const key of keys) {
+                const value = String((student && student[key]) || (info && info[key]) || '').trim();
+                if (value) return value;
+            }
+            return '';
+        }
+
         function getSiblingSuggestion(current, target) {
             const currentInfo = parseStudentCustomInfo(current);
             const targetInfo = parseStudentCustomInfo(target);
             const currentValues = {
-                phone: String(current?.['رقم التليفون'] || current?.phone || '').trim(),
-                address: String(current?.['العنوان'] || current?.address || '').trim(),
-                guardian: String(currentInfo.guardian_name || currentInfo.parent_name || currentInfo.mother_name || '').trim(),
-                father: String(currentInfo.father_name || '').trim(),
+                phone: getStudentTextValue(current, currentInfo, ['رقم التليفون', 'phone', 'تليفون', 'mobile']),
+                address: getStudentTextValue(current, currentInfo, ['العنوان', 'address']),
+                guardian: getStudentTextValue(current, currentInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
+                father: getStudentTextValue(current, currentInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
             };
             const targetValues = {
-                phone: String(target?.['رقم التليفون'] || target?.phone || '').trim(),
-                address: String(target?.['العنوان'] || target?.address || '').trim(),
-                guardian: String(targetInfo.guardian_name || targetInfo.parent_name || targetInfo.mother_name || '').trim(),
-                father: String(targetInfo.father_name || '').trim(),
+                phone: getStudentTextValue(target, targetInfo, ['رقم التليفون', 'phone', 'تليفون', 'mobile']),
+                address: getStudentTextValue(target, targetInfo, ['العنوان', 'address']),
+                guardian: getStudentTextValue(target, targetInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
+                father: getStudentTextValue(target, targetInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
             };
             const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
             const checks = [
