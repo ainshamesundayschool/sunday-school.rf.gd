@@ -864,7 +864,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 800;
             color: var(--text-2);
             text-transform: uppercase;
-            letter-spacing: .08em
+            letter-spacing: normal;
         }
 
         /* Classes grid */
@@ -1861,16 +1861,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @media(max-width:780px) {
+            #mobileExportToggleBtn {
+                display: flex !important;
+                align-items: center;
+                gap: 4px;
+            }
             .export-builder {
-                grid-template-columns: 1fr
+                grid-template-columns: 1fr !important;
             }
-
-            .export-controls {
-                max-height: 38vh
+            .export-builder:not(.show-preview-mobile) .export-preview-wrap {
+                display: none !important;
             }
-
-            .export-preview-wrap {
-                min-height: 42vh
+            .export-builder:not(.show-preview-mobile) .export-controls {
+                max-height: none !important;
+                display: flex !important;
+            }
+            .export-builder.show-preview-mobile .export-controls {
+                display: none !important;
+            }
+            .export-builder.show-preview-mobile .export-preview-wrap {
+                display: block !important;
+                min-height: 65vh !important;
+                height: auto !important;
             }
         }
 
@@ -1918,13 +1930,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             gap: 4px;
             padding: 6px 10px;
-            background: var(--brand-bg);
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
             border-radius: var(--r-full);
             font-size: .72rem;
             font-weight: 700;
-            color: var(--brand);
+            color: var(--text-2);
             white-space: nowrap;
             flex-shrink: 0;
+            transition: all var(--t) var(--ease);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
         .toolbar-stat .stat-lbl {
@@ -1934,17 +1949,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .toolbar-stat.s {
-            background: var(--success-bg);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: var(--success);
+        }
+
+        .toolbar-stat.s i {
             color: var(--success);
         }
 
         .toolbar-stat.a {
-            background: var(--danger-bg);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: var(--danger);
+        }
+
+        .toolbar-stat.a i {
             color: var(--danger);
         }
 
         .toolbar-stat.c {
-            background: var(--coupon-bg);
+            border-color: rgba(245, 158, 11, 0.25);
+            color: var(--coupon);
+        }
+
+        .toolbar-stat.c i {
             color: var(--coupon);
         }
 
@@ -1963,12 +1990,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             gap: 2px;
             padding: 6px 10px;
-            border: none;
+            border: 1.5px solid var(--border-solid);
             border-radius: var(--r-md);
             font-family: 'Cairo', sans-serif;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             min-width: 52px;
+            background: var(--surface-2);
+            color: var(--text-2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
         .save-btn i {
@@ -1995,38 +2025,75 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn .save-count {
             font-size: .52rem;
             font-weight: 800;
-            background: rgba(255, 255, 255, .38);
-            padding: 0 3px;
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            padding: 0 4px;
             border-radius: 20px;
-            line-height: 1.6;
+            line-height: 1.5;
             white-space: nowrap;
         }
 
         .save-btn:disabled {
-            opacity: .35;
+            opacity: .4;
             cursor: not-allowed !important;
             transform: none !important;
             box-shadow: none !important;
+            border-color: var(--border-solid) !important;
+            background: var(--surface-2) !important;
+            color: var(--text-3) !important;
+        }
+
+        .save-btn:disabled i {
+            color: var(--text-3) !important;
         }
 
         .save-btn-attendance {
-            background: linear-gradient(135deg, var(--success), var(--success-dark));
-            color: #fff;
+            border-color: rgba(16, 185, 129, 0.25);
+            color: var(--success);
+        }
+
+        .save-btn-attendance i {
+            color: var(--success);
+        }
+
+        .save-btn-attendance:not(:disabled):hover {
+            background: var(--success-bg);
+            border-color: var(--success);
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -1px rgba(16, 185, 129, 0.06);
         }
 
         .save-btn-coupons {
-            background: var(--coupon-grad);
-            color: #fff;
+            border-color: rgba(217, 119, 6, 0.25);
+            color: var(--coupon);
+        }
+
+        .save-btn-coupons i {
+            color: var(--coupon);
+        }
+
+        .save-btn-coupons:not(:disabled):hover {
+            background: var(--coupon-bg);
+            border-color: var(--coupon);
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.1), 0 2px 4px -1px rgba(217, 119, 6, 0.06);
         }
 
         .save-btn-unsaved {
-            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
-            color: #fff;
+            border-color: rgba(245, 158, 11, 0.25);
+            color: var(--warning);
+        }
+
+        .save-btn-unsaved i {
+            color: var(--warning);
+        }
+
+        .save-btn-unsaved:not(:disabled):hover {
+            background: var(--warning-bg);
+            border-color: var(--warning);
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06);
         }
 
         .save-btn:not(:disabled):hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
         }
 
         /* ── Mobile (<520px): two rows, stats centered ────────────── */
@@ -3193,12 +3260,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
         }
 
+        .trips-horizontal-scroll.expanded {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            overflow-x: visible;
+            gap: 16px;
+            padding: 4px 0 14px;
+        }
+
         .trip-slim-card {
             flex: 0 0 auto;
             width: 240px;
-            background: var(--surface);
+            background: var(--surface-2);
             border-radius: var(--r-lg);
-            border: 1.5px solid var(--border);
+            border: 1.5px solid var(--border-solid);
             padding: 10px;
             display: flex;
             align-items: center;
@@ -3207,6 +3282,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
             box-shadow: var(--shadow-sm);
             text-decoration: none;
+            letter-spacing: normal;
         }
 
         .trip-slim-card:hover {
@@ -3215,12 +3291,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand);
         }
 
+        .trips-horizontal-scroll.expanded .trip-slim-card {
+            width: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border-radius: var(--r-lg);
+            background: var(--surface-2);
+        }
+
         .trip-slim-img {
             width: 48px;
             height: 48px;
             border-radius: var(--r-sm);
             object-fit: cover;
             background: var(--brand-bg);
+            transition: all var(--t) var(--ease);
+        }
+
+        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-img {
+            width: 100%;
+            height: 140px;
+            border-radius: var(--r-md);
         }
 
         .trip-skeleton {
@@ -3249,6 +3342,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trip-slim-info {
             flex: 1;
             min-width: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .trip-slim-name {
@@ -3259,6 +3356,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
             text-overflow: ellipsis;
             margin-bottom: 2px;
+            letter-spacing: normal;
+        }
+
+        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-name {
+            font-size: 0.95rem;
+            white-space: normal;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trip-slim-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .trip-slim-date {
@@ -3267,7 +3385,66 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             gap: 4px;
+            white-space: nowrap;
+            letter-spacing: normal;
         }
+
+        .trip-slim-kids-count {
+            font-size: 0.7rem;
+            color: var(--brand);
+            background: var(--brand-bg);
+            padding: 2px 8px;
+            border-radius: var(--r-full);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            letter-spacing: normal;
+        }
+
+        /* ── CUSTOM DROPDOWN ── */
+        .custom-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            z-index: 500;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-md);
+            min-width: 160px;
+            display: none;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            padding: 4px 0;
+            animation: dropdownFadeIn 0.15s ease-out;
+        }
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .custom-dropdown-item {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            letter-spacing: normal;
+        }
+        .custom-dropdown-item:hover {
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+        .custom-dropdown-item.active {
+            background: var(--brand-bg);
+            color: var(--brand);
+            font-weight: 800;
+        }
+
 
         .data-table tr:last-child td {
             border-bottom: none;
@@ -5003,41 +5180,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Swipe trigger button in toolbar */
         .swipe-toolbar-btn {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
-            color: #fff !important;
-            border: none !important;
-            box-shadow:
-                0 0 0 0 rgba(139, 92, 246, 0),
-                0 2px 8px rgba(124, 58, 237, .4);
+            background: var(--surface-2) !important;
+            color: var(--brand) !important;
+            border: 1.5px solid rgba(139, 92, 246, 0.25) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(124, 58, 237, 0.1) !important;
             animation: swipeBtnGlow 5.5s ease-in-out infinite;
             position: relative;
             overflow: visible !important;
         }
 
-        @keyframes swipeBtnGlow {
+        .swipe-toolbar-btn i.swipe-hand-icon {
+            color: var(--brand) !important;
+        }
 
+        @keyframes swipeBtnGlow {
             0%,
             60%,
             100% {
-                box-shadow: 0 2px 8px rgba(124, 58, 237, .35);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(124, 58, 237, 0.06);
             }
 
             70% {
-                box-shadow: 0 0 0 5px rgba(139, 92, 246, .22), 0 2px 16px rgba(124, 58, 237, .6);
+                box-shadow: 0 0 0 5px rgba(139, 92, 246, .12), 0 2px 16px rgba(124, 58, 237, .2);
             }
 
             80% {
-                box-shadow: 0 0 0 9px rgba(139, 92, 246, .08), 0 2px 22px rgba(124, 58, 237, .5);
+                box-shadow: 0 0 0 9px rgba(139, 92, 246, .05), 0 2px 22px rgba(124, 58, 237, .15);
             }
 
             90% {
-                box-shadow: 0 0 0 3px rgba(139, 92, 246, .15), 0 2px 12px rgba(124, 58, 237, .45);
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, .08), 0 2px 12px rgba(124, 58, 237, .1);
             }
         }
 
         .swipe-toolbar-btn:hover {
-            opacity: .92;
-            transform: translateY(-1px) scale(1.04);
+            background: var(--brand-bg) !important;
+            border-color: var(--brand) !important;
+            transform: translateY(-2px) !important;
         }
 
         /* Swipe hand icon — animate then rest */
@@ -6955,8 +7134,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none;">
+                <div class="section-head" id="tripsSectionHead" style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()" style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                        <i class="fas fa-th-large"></i>
+                        <span>عرض شبكي</span>
+                    </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
@@ -7011,10 +7194,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Sort -->
-                    <div style="flex-shrink: 0; margin-right: auto;">
-                        <select class="search-input" id="classSortSelect" onchange="renderAttendanceList(currentClass)"
-                            title="ترتيب القائمة"
-                            style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.85rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2);">
+                    <div style="flex-shrink: 0; margin-right: auto; position: relative;">
+                        <!-- Hidden select to preserve event listeners and system integrations -->
+                        <select id="classSortSelect" style="display: none;">
                             <option value="name_az">الاسم أ-ي</option>
                             <option value="name_za">الاسم ي-أ</option>
                             <option value="age_asc">الأصغر سناً</option>
@@ -7024,6 +7206,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <option value="attendance_desc">الأكثر حضوراً</option>
                             <option value="top_desc">الأوائل</option>
                         </select>
+                        
+                        <!-- Custom styled dropdown trigger -->
+                        <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
+                                style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.82rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2); border: 1.5px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; transition: all var(--t) var(--ease); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                <span id="customSortDropdownLabel">الاسم أ-ي</span>
+                                <i class="fas fa-chevron-down" style="font-size: 0.72rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
+                            </button>
+                            <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
+                                <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                                <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                                <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
+                                <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
+                                <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -7472,6 +7673,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="gap:8px;flex-wrap:wrap">
                 <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                    <button class="btn btn-sm btn-outline" id="mobileExportToggleBtn" onclick="toggleMobileExportView()" style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border-solid); height:30px;"><i class="fas fa-eye"></i> <span>معاينة الجدول</span></button>
                     <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
                             style="color:var(--success)"></i></button>
                     <button class="header-btn" id="customExportPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf"
@@ -9194,17 +9396,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (se('averageCoupons')) se('averageCoupons').textContent = avgC;
         }
 
+        let isFetchingTrips = false;
         async function loadDashboardTrips() {
             const container = document.getElementById('tripsContainer');
             const head = document.getElementById('tripsSectionHead');
             if (!container || !head) return;
 
-            // Show skeleton if empty
+            // Load from cache first
+            const cachedTrips = localStorage.getItem('lastTripsData');
+            if (cachedTrips) {
+                try {
+                    const trips = JSON.parse(cachedTrips);
+                    renderDashboardTripsHtml(trips);
+                } catch (e) {}
+            }
+
+            // Show skeleton if empty and no cache
             if (!container.innerHTML.trim()) {
                 head.style.display = 'flex';
                 container.style.display = 'flex';
                 container.innerHTML = '<div class="trip-skeleton"></div><div class="trip-skeleton"></div><div class="trip-skeleton"></div>';
             }
+
+            if (isFetchingTrips) return;
+            isFetchingTrips = true;
 
             try {
                 const fd = new FormData();
@@ -9212,40 +9427,137 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {
-                    container.style.display = 'none';
-                    head.style.display = 'none';
+                    if (!localStorage.getItem('lastTripsData')) {
+                        container.style.display = 'none';
+                        head.style.display = 'none';
+                    }
+                    isFetchingTrips = false;
                     return;
                 }
 
                 const activeTrips = d.trips.filter(t => t.status === 'active' || t.status === 'planned');
                 if (!activeTrips.length) {
-                    container.style.display = 'none';
-                    head.style.display = 'none';
+                    if (!localStorage.getItem('lastTripsData')) {
+                        container.style.display = 'none';
+                        head.style.display = 'none';
+                    }
+                    isFetchingTrips = false;
                     return;
                 }
 
-                head.style.display = 'flex';
-                container.style.display = 'flex';
-
-                container.innerHTML = activeTrips.map(t => {
-                    const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
-                    const img = t.image_url || '';
-                    const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\'trip-slim-img\' style=\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\'><i class=\'fas fa-map-marked-alt\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
-                    return `
-                <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
-                    ${imgHtml}
-                    <div class="trip-slim-info">
-                        <div class="trip-slim-name">${t.title}</div>
-                        <div class="trip-slim-date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
-                    </div>
-                </a>
-            `;
-                }).join('');
+                localStorage.setItem('lastTripsData', JSON.stringify(activeTrips));
+                renderDashboardTripsHtml(activeTrips);
             } catch (e) {
-                container.style.display = 'none';
-                head.style.display = 'none';
+                if (!localStorage.getItem('lastTripsData')) {
+                    container.style.display = 'none';
+                    head.style.display = 'none';
+                }
+            } finally {
+                isFetchingTrips = false;
             }
         }
+
+        function renderDashboardTripsHtml(activeTrips) {
+            const container = document.getElementById('tripsContainer');
+            const head = document.getElementById('tripsSectionHead');
+            if (!container || !head) return;
+
+            head.style.display = 'flex';
+            container.style.display = 'flex';
+
+            const isExpanded = localStorage.getItem('tripsViewExpanded') === 'true';
+            if (isExpanded) {
+                container.classList.add('expanded');
+                const btn = document.getElementById('toggleTripsViewBtn');
+                if (btn) btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+            } else {
+                container.classList.remove('expanded');
+                const btn = document.getElementById('toggleTripsViewBtn');
+                if (btn) btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+            }
+
+            container.innerHTML = activeTrips.map(t => {
+                const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
+                const img = t.image_url || '';
+                const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\'trip-slim-img\' style=\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\'><i class=\'fas fa-map-marked-alt\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
+                const registeredCount = t.registered_count || 0;
+                const kidsCountHtml = `<span class="trip-slim-kids-count"><i class="fas fa-users"></i> ${registeredCount} طفل</span>`;
+                return `
+                    <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
+                        ${imgHtml}
+                        <div class="trip-slim-info">
+                            <div class="trip-slim-name">${t.title}</div>
+                            <div class="trip-slim-meta-row">
+                                <div class="trip-slim-date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                                ${kidsCountHtml}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function toggleTripsView() {
+            const container = document.getElementById('tripsContainer');
+            const btn = document.getElementById('toggleTripsViewBtn');
+            if (!container || !btn) return;
+            
+            const isExpanded = container.classList.toggle('expanded');
+            localStorage.setItem('tripsViewExpanded', isExpanded ? 'true' : 'false');
+            
+            if (isExpanded) {
+                btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+            } else {
+                btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+            }
+        }
+
+        function toggleCustomSortDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('customSortDropdownMenu');
+            if (!menu) return;
+            const isVisible = menu.style.display === 'block';
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.style.display = 'none');
+            menu.style.display = isVisible ? 'none' : 'block';
+            
+            // Toggle icon rotate
+            const btn = document.getElementById('customSortDropdownBtn');
+            const icon = btn?.querySelector('.fa-chevron-down');
+            if (icon) {
+                icon.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        }
+
+        function selectCustomSortOption(el, value, label) {
+            const labelEl = document.getElementById('customSortDropdownLabel');
+            if (labelEl) labelEl.innerText = label;
+            
+            const menu = document.getElementById('customSortDropdownMenu');
+            if (menu) {
+                menu.style.display = 'none';
+                menu.querySelectorAll('.custom-dropdown-item').forEach(item => item.classList.remove('active'));
+            }
+            el.classList.add('active');
+            
+            const btn = document.getElementById('customSortDropdownBtn');
+            const icon = btn?.querySelector('.fa-chevron-down');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+            
+            const select = document.getElementById('classSortSelect');
+            if (select) {
+                select.value = value;
+                select.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            const menu = document.getElementById('customSortDropdownMenu');
+            if (menu) menu.style.display = 'none';
+            const btn = document.getElementById('customSortDropdownBtn');
+            const icon = btn?.querySelector('.fa-chevron-down');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        });
 
         // ── CLASS STATS ───────────────────────────────────────────────
         function updateClassStats() {
@@ -11351,10 +11663,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </tbody>
         </table>`;
         }
+        function toggleMobileExportView() {
+            const builder = document.querySelector('#customExportModal .export-builder');
+            const btn = document.getElementById('mobileExportToggleBtn');
+            if (!builder || !btn) return;
+            builder.classList.toggle('show-preview-mobile');
+            const isPreview = builder.classList.contains('show-preview-mobile');
+            if (isPreview) {
+                btn.innerHTML = '<i class="fas fa-sliders-h"></i> <span>الخيارات</span>';
+            } else {
+                btn.innerHTML = '<i class="fas fa-eye"></i> <span>معاينة الجدول</span>';
+            }
+        }
         function showCustomExportModal() {
             initCustomExportFields();
             const title = document.getElementById('customExportTitle');
             if (title && !title.value) title.value = 'تقرير ' + getActiveViewLabel();
+            
+            const builder = document.querySelector('#customExportModal .export-builder');
+            if (builder) builder.classList.remove('show-preview-mobile');
+            const btn = document.getElementById('mobileExportToggleBtn');
+            if (btn) btn.innerHTML = '<i class="fas fa-eye"></i> <span>معاينة الجدول</span>';
+            
             document.getElementById('customExportModal').classList.add('active');
             renderCustomExportPreview();
             stopAutoRefresh();
