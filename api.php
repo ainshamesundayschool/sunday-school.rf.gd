@@ -11205,9 +11205,10 @@ function updateStudentFull()
         }
 
         // Custom info
+        $hasCustomInfo = array_key_exists('custom_info', $_POST);
         $customInfoRaw = $_POST['custom_info'] ?? null;
         $customInfoJson = null;
-        if ($customInfoRaw !== null) {
+        if ($hasCustomInfo) {
             if (trim($customInfoRaw) === '') {
                 $customInfoJson = null;
             } else {
@@ -11289,6 +11290,78 @@ function updateStudentFull()
     }
 }
 
+function saveSiblingGroup()
+{
+    try {
+        checkAuth();
+        $studentIds = json_decode($_POST['student_ids'] ?? '[]', true);
+        $status = sanitize($_POST['status'] ?? 'approved');
+        if (!in_array($status, ['approved', 'rejected', 'pending'], true)) {
+            $status = 'approved';
+        }
+        $label = sanitize($_POST['label'] ?? '');
+        $groupId = sanitize($_POST['group_id'] ?? '');
+        if ($groupId === '') {
+            $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
+        }
+
+        if (!is_array($studentIds) || empty($studentIds)) {
+            sendJSON(['success' => false, 'message' => 'معرفات الطلاب مطلوبة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $selectStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? LIMIT 1");
+        $updateStmt = $conn->prepare("UPDATE students SET custom_info = ? WHERE id = ?");
+        $errors = [];
+
+        foreach ($studentIds as $rawId) {
+            $studentId = intval($rawId);
+            if ($studentId <= 0) {
+                continue;
+            }
+
+            $selectStmt->bind_param('i', $studentId);
+            $selectStmt->execute();
+            $result = $selectStmt->get_result();
+            $row = $result->fetch_assoc();
+
+            $customInfo = [];
+            if (!empty($row['custom_info'])) {
+                $decoded = json_decode($row['custom_info'], true);
+                if (is_array($decoded)) {
+                    $customInfo = $decoded;
+                }
+            }
+
+            if (!isset($customInfo['sibling_group']) || !is_array($customInfo['sibling_group'])) {
+                $customInfo['sibling_group'] = [];
+            }
+            $customInfo['sibling_group']['id'] = $groupId;
+            if ($label !== '') {
+                $customInfo['sibling_group']['label'] = $label;
+            }
+            $customInfo['sibling_group']['status'] = $status;
+            $customInfo['sibling_group']['updated_at'] = date('c');
+
+            $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+            $updateStmt->bind_param('si', $customJson, $studentId);
+            if (!$updateStmt->execute()) {
+                $errors[] = "ID $studentId: " . $updateStmt->error;
+            }
+        }
+
+        if (!empty($errors)) {
+            sendJSON(['success' => false, 'message' => 'بعض التحديثات فشلت: ' . implode('; ', $errors)]);
+            return;
+        }
+
+        sendJSON(['success' => true, 'message' => 'تم حفظ بيانات العائلة بنجاح']);
+    } catch (Exception $e) {
+        error_log("saveSiblingGroup error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حفظ بيانات الأسرة']);
+    }
+}
 
 function getClassSettings()
 {
@@ -11907,6 +11980,10 @@ try {
         case 'getKidsData':
             checkAuth();
             getKidsData();
+            break;
+
+        case 'saveSiblingGroup':
+            saveSiblingGroup();
             break;
 
         case 'kidLogin':

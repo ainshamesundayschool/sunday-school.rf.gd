@@ -5865,6 +5865,17 @@
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
                         </button>
 
+                        <button class="settings-hub-card" onclick="openSettingsPage('familyReview')">
+                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">تدقيق الأسرة والإخوة</div>
+                                <div class="settings-hub-desc">اكتشف وأكد أو رفض مجموعات الإخوة داخل الكنيسة</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
+
                         <button class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
                             <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
                                 <i class="fas fa-user-check"></i>
@@ -6073,6 +6084,30 @@
                             <div id="customFieldsList" style="margin-bottom:10px;"></div>
                             <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:10px;"><i
                                     class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Family Review -->
+                <div id="settingsPage_familyReview" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">تدقيق الأسرة والإخوة</span>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-users"></i> تدقيق الأسرة والإخوة</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+                            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:6px;">اعرض مجموعات الأطفال الذين يبدو أنهم من نفس العائلة في هذه الكنيسة. يمكنك الموافقة على المجموعة، رفضها، أو تعديل اسم المجموعة.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                                <button class="btn btn-primary" onclick="renderFamilyReviewPage()"><i class="fas fa-sync-alt"></i> تحديث الاقتراحات</button>
+                                <button class="btn btn-outline" onclick="closeSettingsPage()"><i class="fas fa-arrow-left"></i> رجوع</button>
+                            </div>
+                            <div id="familyReviewSummary" style="font-size:0.88rem;color:var(--text);font-weight:600;"></div>
+                            <div id="familyReviewList"></div>
                         </div>
                     </div>
                 </div>
@@ -9010,6 +9045,9 @@
             document.getElementById('settingsHub').style.display = 'none';
             const el = document.getElementById('settingsPage_' + page);
             if (el) { el.style.display = ''; el.style.removeProperty('display'); }
+            if (page === 'familyReview') {
+                renderFamilyReviewPage();
+            }
             // Scroll to top of content
             const panel = document.getElementById('churchSettings');
             if (panel) panel.scrollTop = 0;
@@ -9019,6 +9057,131 @@
             // Hide all sub-pages, show hub
             document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
             document.getElementById('settingsHub').style.display = '';
+        }
+
+        function parseJSON(raw) {
+            if (!raw && raw !== 0) return null;
+            if (typeof raw !== 'string') return raw;
+            try { return JSON.parse(raw); } catch (e) { return null; }
+        }
+
+        function normalizeFamilyString(value) {
+            return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+        }
+
+        function makeFamilyGroupId(key) {
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) { hash = ((hash << 5) - hash) + key.charCodeAt(i); hash |= 0; }
+            return 'family_' + Math.abs(hash);
+        }
+
+        function buildFamilyGroupCard(group, idx) {
+            const groupLabel = group[0].sibling_group?.label || `مجموعة إخوة ${idx + 1}`;
+            const groupStatus = group[0].sibling_group?.status || 'pending';
+            const count = group.length;
+            const studentsHtml = group.map(s => {
+                const guardian = s.custom_info_parsed?.guardian_name || s.custom_info_parsed?.father_name || s.custom_info_parsed?.parent_name || s.custom_info_parsed?.mother_name || 'غير محدد';
+                return `<div class="family-review-card-item">
+                    <div><strong>${escHtml(s['الاسم'] || s.name || '')}</strong></div>
+                    <div style="font-size:0.82rem;color:var(--muted);">${escHtml(s['الفصل'] || s.class || s['class'] || '')} · ${escHtml(guardian)}</div>
+                </div>`;
+            }).join('');
+
+            return `
+                <div class="family-review-card" style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px;margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+                        <div>
+                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(groupLabel)}</div>
+                            <div style="font-size:0.82rem;color:var(--muted);">${count} طفل${count === 1 ? '' : 'ان'} من نفس العائلة</div>
+                        </div>
+                        <div>
+                            <span class="badge ${groupStatus === 'approved' ? 'badge-success' : groupStatus === 'rejected' ? 'badge-danger' : 'badge-primary'}" style="font-size:0.78rem;">${groupStatus === 'approved' ? 'معتمد' : groupStatus === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</span>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">${studentsHtml}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','approved')"><i class="fas fa-check"></i> موافق</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','rejected')"><i class="fas fa-times"></i> رفض</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="editFamilyGroupLabel('${encodeURIComponent(group[0].familyKey)}')"><i class="fas fa-edit"></i> تعديل الاسم</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function findFamilyCandidateGroups(students) {
+            const parsed = students.map(s => {
+                const custom = parseJSON(s.custom_info || s['custom_info'] || '') || {};
+                const guardian = custom.guardian_name || custom.father_name || custom.parent_name || custom.mother_name || '';
+                const address = s.address || s['العنوان'] || '';
+                const lastName = (s.name || s['الاسم'] || '').split(' ').slice(-1)[0] || '';
+                const groupKey = normalizeFamilyString(`${guardian}|${address}|${lastName}`);
+                return { ...s, custom_info_parsed: custom, sibling_group: custom.sibling_group || {}, familyKey: groupKey };
+            });
+            const groups = {};
+            parsed.forEach(s => {
+                if (!s.familyKey) return;
+                groups[s.familyKey] = groups[s.familyKey] || [];
+                groups[s.familyKey].push(s);
+            });
+            return Object.values(groups).filter(g => g.length > 1);
+        }
+
+        async function saveFamilyGroupStatus(encodedFamilyKey, status) {
+            const groupKey = decodeURIComponent(encodedFamilyKey);
+            const groups = findFamilyCandidateGroups(allStudents || []);
+            const group = groups.find(g => g[0].familyKey === groupKey);
+            if (!group) { showToast('لم يتم العثور على مجموعة الأسرة', 'warning'); return; }
+            const label = group[0].sibling_group?.label || `مجموعة إخوة ${groups.indexOf(group) + 1}`;
+            const groupId = group[0].sibling_group?.id || makeFamilyGroupId(groupKey);
+            const ids = group.map(s => s._studentId || s.id).filter(Boolean);
+            if (!ids.length) { showToast('لا توجد طلاب محفوظين لهذه المجموعة', 'warning'); return; }
+            const fd = mkFd('saveSiblingGroup');
+            fd.append('student_ids', JSON.stringify(ids));
+            fd.append('status', status);
+            fd.append('label', label);
+            fd.append('group_id', groupId);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم تحديث حالة مجموعة الأسرة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            else showToast(d.message || 'فشل في تحديث المجموعة', 'error');
+        }
+
+        async function editFamilyGroupLabel(encodedFamilyKey) {
+            const groupKey = decodeURIComponent(encodedFamilyKey);
+            const groups = findFamilyCandidateGroups(allStudents || []);
+            const group = groups.find(g => g[0].familyKey === groupKey);
+            if (!group) { showToast('لم يتم العثور على مجموعة الأسرة', 'warning'); return; }
+            const currentLabel = group[0].sibling_group?.label || `مجموعة إخوة ${groups.indexOf(group) + 1}`;
+            const newLabel = prompt('اكتب اسم المجموعة الجديد:', currentLabel);
+            if (!newLabel) return;
+            const groupId = group[0].sibling_group?.id || makeFamilyGroupId(groupKey);
+            const ids = group.map(s => s._studentId || s.id).filter(Boolean);
+            const fd = mkFd('saveSiblingGroup');
+            fd.append('student_ids', JSON.stringify(ids));
+            fd.append('status', group[0].sibling_group?.status || 'pending');
+            fd.append('label', newLabel.trim());
+            fd.append('group_id', groupId);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم تحديث اسم المجموعة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            else showToast(d.message || 'فشل في تحديث الاسم', 'error');
+        }
+
+        async function renderFamilyReviewPage() {
+            const summary = document.getElementById('familyReviewSummary');
+            const list = document.getElementById('familyReviewList');
+            const loader = `<div class="empty-state" style="padding:30px;font-size:0.95rem;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:10px;"></i><div>جاري تحليل البيانات...</div></div>`;
+            if (summary) summary.textContent = 'جارٍ تحميل بيانات الأسرة...';
+            if (list) list.innerHTML = loader;
+            if (!allStudents?.length) {
+                await loadStudents();
+            }
+            const candidates = findFamilyCandidateGroups(allStudents || []);
+            if (summary) summary.textContent = `تم العثور على ${candidates.length} مجموعة${candidates.length === 1 ? '' : 'ات'} محتملة.`;
+            if (!list) return;
+            if (!candidates.length) {
+                list.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i><h3>لم يتم العثور على مجموعات إخوة واضحة</h3><p>تأكد من أن البيانات تتضمن اسم الأب أو ولي الأمر والعنوان.</p></div>`;
+                return;
+            }
+            list.innerHTML = candidates.map((group, idx) => buildFamilyGroupCard(group, idx)).join('');
         }
 
         async function loadChurchSettingsTab() {
@@ -11101,6 +11264,9 @@
                         <div class="form-group"><label class="form-label">هاتف الطوارئ</label><input type="tel" id="editStudentEmergencyPhone" class="form-input" value="${escHtml(s.emergency_phone || '')}"></div>
                         <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editStudentBirthday" class="form-input" value="${escHtml(s.birthday || '')}" placeholder="DD/MM/YYYY"></div>
                         <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="editStudentAddress" class="form-input" value="${escHtml(s.address || '')}"></div>
+                        <div class="form-group"><label class="form-label">اسم الأب / ولي الأمر</label><input type="text" id="editStudentGuardianName" class="form-input" value=""></div>
+                        <div class="form-group"><label class="form-label">حالة الأسرة</label><input type="text" id="editStudentFamilyStatus" class="form-input" readonly value="" style="background:var(--surface);color:var(--text);"></div>
+                        <input type="hidden" id="editStudentCustomInfo" value="${escHtml(typeof s.custom_info === 'string' ? s.custom_info : JSON.stringify(s.custom_info || {}))}">
                         <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ملاحظات طبية</label><textarea id="editStudentMedicalNotes" class="form-textarea">${escHtml(s.medical_notes || s.medical_note || '')}</textarea></div>
                         <div class="form-group" style="grid-column:1/-1;"><label class="form-label">صورة الطفل</label><input type="file" id="editStudentImage" accept="image/*" class="form-input"></div>
                     </div>
@@ -11114,6 +11280,10 @@
     </div>`;
             document.body.appendChild(wrap);
             loadClassesForDropdown('editStudentClass', s.class_id);
+            const editCustomInfo = parseJSON(s.custom_info || '') || {};
+            document.getElementById('editStudentGuardianName').value = editCustomInfo.guardian_name || editCustomInfo.father_name || editCustomInfo.parent_name || editCustomInfo.mother_name || '';
+            document.getElementById('editStudentFamilyStatus').value = editCustomInfo.sibling_group ? `${editCustomInfo.sibling_group.label || 'مجموعة أخوة'} (${editCustomInfo.sibling_group.status || 'قيد المراجعة'})` : '';
+            document.getElementById('editStudentCustomInfo').value = s.custom_info || '';
             document.getElementById('editStudentModal').addEventListener('click', e => { if (e.target === document.getElementById('editStudentModal')) document.getElementById('editStudentModal').remove(); });
         }
 
@@ -11138,6 +11308,11 @@
             fd.append('emergency_phone', document.getElementById('editStudentEmergencyPhone').value);
             fd.append('birthday', document.getElementById('editStudentBirthday').value);
             fd.append('address', document.getElementById('editStudentAddress').value);
+            const rawCustomInfo = document.getElementById('editStudentCustomInfo')?.value || '';
+            const customInfo = parseJSON(rawCustomInfo) || {};
+            const guardianName = document.getElementById('editStudentGuardianName')?.value.trim();
+            if (guardianName) customInfo.guardian_name = guardianName;
+            fd.append('custom_info', JSON.stringify(customInfo));
             fd.append('medical_notes', document.getElementById('editStudentMedicalNotes').value);
             const img = document.getElementById('editStudentImage').files[0];
             if (img) fd.append('student_image', img);
