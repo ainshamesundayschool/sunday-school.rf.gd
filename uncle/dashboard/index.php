@@ -3079,18 +3079,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 7px 9px;
-            border-radius: var(--r-sm);
-            background: var(--surface);
+            padding: 8px 12px;
+            border-radius: var(--r-md);
+            background: var(--surface-2);
             border: 1px solid var(--border-solid);
             cursor: pointer;
-            transition: var(--fast);
+            transition: all var(--t) var(--ease);
+            position: relative;
+            overflow: hidden;
         }
 
         .sibling-item:hover {
-            border-color: var(--brand-l);
+            border-color: var(--brand);
             background: var(--brand-bg);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--brand-glow);
+        }
+
+        .sibling-item::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: radial-gradient(circle at top right, var(--brand-glow), transparent 70%);
+            opacity: 0;
+            transition: opacity var(--t) var(--ease);
+            pointer-events: none;
+        }
+
+        .sibling-item:hover::after {
+            opacity: 1;
         }
 
         .sibling-item-main {
@@ -11239,7 +11256,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         </div>`).join('');
             const gender = getStudentGender(s);
             const avatar = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`
+                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${escStr(s['الاسم'] || '')}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
             document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml;
         }
@@ -11247,7 +11264,10 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const siblingHtml = buildSiblingPanel(full);
-            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
+            const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
+            const img = full.image_url 
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>` 
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
