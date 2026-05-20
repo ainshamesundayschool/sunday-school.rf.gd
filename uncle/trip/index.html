@@ -454,11 +454,15 @@
                 margin: 0 auto;
             }
 
-            .print-card div[id^="qrcode_"] img,
             .print-card div[id^="qrcode_"] canvas {
+                display: none !important;
+            }
+
+            .print-card div[id^="qrcode_"] img {
                 width: 130px !important;
                 height: 130px !important;
                 display: block !important;
+                margin: 0 auto;
             }
         }
         .breadcrumb-item { cursor:pointer; color:var(--primary); font-weight:700; transition:opacity 0.2s; }
@@ -937,9 +941,9 @@
 
                     printArea.innerHTML += `
         <div class="print-card">
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%;">
-                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain;" onerror="this.style.display='none'">
-                <span style="font-size:11px; font-weight:800; color:#000;">${churchName}</span>
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
+                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
             </div>
             <h3>${currentTrip.title}</h3>
             ${avatarHtml}

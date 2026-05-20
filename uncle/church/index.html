@@ -13610,23 +13610,23 @@
 
                 printArea.innerHTML += `
         <div class="print-card">
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:8px; border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px;">
-                <img src="/logo.png" style="height:24px; width:auto; object-fit:contain;" onerror="this.style.display='none'">
-                <span style="font-size:12px; font-weight:800; color:#000;">${churchName}</span>
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
+                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
             </div>
             <h3>${trip.title}</h3>
             ${avatarHtml}
             <h2>${name}</h2>
-            <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
-            <div id="${cardId}" style="display:flex;justify-content:center;"></div>
+            <div class="custom-info">${customHtml}</div>
+            <div id="${cardId}"></div>
         </div>
         `;
 
                 setTimeout(() => {
                     new QRCode(document.getElementById(cardId), {
                         text: link,
-                        width: 150,
-                        height: 150,
+                        width: 130,
+                        height: 130,
                         colorDark: "#000000",
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.H
