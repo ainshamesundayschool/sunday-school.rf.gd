@@ -3239,39 +3239,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: background var(--t) var(--ease);
         }
 
-        /* ── HORIZONTAL TRIPS ── */
+        /* ── TRIPS GRID ── */
         .trips-horizontal-scroll {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            padding: 4px 2px 14px;
-            margin-bottom: 10px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .trips-horizontal-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .trips-horizontal-scroll.expanded {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            overflow-x: visible;
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
             padding: 4px 0 14px;
+            margin-bottom: 10px;
         }
 
         .trip-slim-card {
-            flex: 0 0 auto;
-            width: 240px;
+            width: 100%;
             background: var(--surface-2);
             border-radius: var(--r-lg);
             border: 1.5px solid var(--border-solid);
-            padding: 10px;
+            padding: 12px;
             display: flex;
-            align-items: center;
-            gap: 12px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             box-shadow: var(--shadow-sm);
@@ -3285,35 +3271,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand);
         }
 
-        .trips-horizontal-scroll.expanded .trip-slim-card {
-            width: 100%;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
-            border-radius: var(--r-lg);
-            background: var(--surface-2);
-        }
-
         .trip-slim-img {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--r-sm);
+            width: 100%;
+            height: 130px;
+            border-radius: var(--r-md);
             object-fit: cover;
             background: var(--brand-bg);
             transition: all var(--t) var(--ease);
         }
 
-        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-img {
-            width: 100%;
-            height: 140px;
-            border-radius: var(--r-md);
-        }
-
         .trip-skeleton {
-            flex: 0 0 auto;
-            width: 240px;
-            height: 70px;
+            width: 100%;
+            height: 190px;
             background: var(--surface-3);
             border-radius: var(--r-lg);
             animation: skeleton-pulse 1.5s infinite;
@@ -3343,18 +3312,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-name {
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             font-weight: 800;
             color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 2px;
-            letter-spacing: normal;
-        }
-
-        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-name {
-            font-size: 0.95rem;
             white-space: normal;
             word-break: break-word;
             display: -webkit-box;
@@ -3362,6 +3322,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-bottom: 2px;
+            letter-spacing: normal;
         }
 
         .trip-slim-meta-row {
@@ -7128,12 +7090,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="section-head" id="tripsSectionHead" style="display:none;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()" style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
-                        <i class="fas fa-th-large"></i>
-                        <span>عرض شبكي</span>
-                    </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
@@ -9371,7 +9329,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Show skeleton if empty and no cache
             if (!container.innerHTML.trim()) {
                 head.style.display = 'flex';
-                container.style.display = 'flex';
+                container.style.display = '';
                 container.innerHTML = '<div class="trip-skeleton"></div><div class="trip-skeleton"></div><div class="trip-skeleton"></div>';
             }
 
@@ -9420,18 +9378,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!container || !head) return;
 
             head.style.display = 'flex';
-            container.style.display = 'flex';
-
-            const isExpanded = localStorage.getItem('tripsViewExpanded') === 'true';
-            if (isExpanded) {
-                container.classList.add('expanded');
-                const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
-            } else {
-                container.classList.remove('expanded');
-                const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
-            }
+            container.style.display = '';
 
             container.innerHTML = activeTrips.map(t => {
                 const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
@@ -9454,20 +9401,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).join('');
         }
 
-        function toggleTripsView() {
-            const container = document.getElementById('tripsContainer');
-            const btn = document.getElementById('toggleTripsViewBtn');
-            if (!container || !btn) return;
-            
-            const isExpanded = container.classList.toggle('expanded');
-            localStorage.setItem('tripsViewExpanded', isExpanded ? 'true' : 'false');
-            
-            if (isExpanded) {
-                btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
-            } else {
-                btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
-            }
-        }
+
 
         function toggleCustomSortDropdown(e) {
             e.stopPropagation();
