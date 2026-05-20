@@ -502,8 +502,11 @@
                 title="طباعة الكروت">
                 <i class="fas fa-print"></i>
             </button>
-            <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR">
-                <i class="fas fa-qrcode"></i>
+            <button class="topbar-btn" id="scanBtn" onclick="startScanner()" title="مسح QR" style="padding: 4px;">
+                <span class="fa-stack" style="font-size: 0.85rem; width: 1.5em; height: 1.5em; line-height: 1.5em; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-expand fa-stack-2x" style="font-size: 1.3rem;"></i>
+                    <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.75rem;"></i>
+                </span>
             </button>
         </div>
     </div>
@@ -716,14 +719,14 @@
                         try {
                             parsedUrl = new URL(decodedText);
                         } catch (e) {
-                            alert('الكود الممسوح غير صحيح');
+                            await customAlert('الكود الممسوح غير صحيح');
                             return;
                         }
                         const scannedTripId = parsedUrl.searchParams.get('trip_id');
                         const scannedStudentId = parsedUrl.searchParams.get('student_id');
                         
                         if (!scannedTripId || !scannedStudentId) {
-                            alert('الكود الممسوح غير صحيح');
+                            await customAlert('الكود الممسوح غير صحيح');
                             return;
                         }
 
@@ -743,21 +746,21 @@
                             const currentChurchId = currentTrip ? currentTrip.church_id : null;
                             if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
                                 // Same church, different trip -> Ask to redirect
-                                if (confirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`)) {
+                                if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
                                     window.location.href = decodedText;
                                 }
                             } else {
                                 // Different church or unauthorized -> Block and alert
-                                alert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
                             }
                         } catch (err) {
-                            alert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                            await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
                         }
                     });
                 },
                 () => { }
-            ).catch(err => {
-                alert('حدث خطأ في الوصول للكاميرا: ' + err);
+            ).catch(async (err) => {
+                await customAlert('حدث خطأ في الوصول للكاميرا: ' + err);
                 stopScanner();
             });
         }
@@ -834,6 +837,131 @@
                 window.print();
                 setTimeout(() => { printArea.innerHTML = ''; }, 1500);
             }, 1500);
+        }
+
+        function customAlert(message) {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style = `
+                    position: fixed;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(4px);
+                    z-index: 100000;
+                    display: flex; align-items: center; justify-content: center;
+                    opacity: 0; transition: opacity 0.2s ease-out;
+                    direction: rtl;
+                `;
+                const box = document.createElement('div');
+                box.style = `
+                    background: var(--surface, #ffffff);
+                    border-radius: 16px;
+                    padding: 24px;
+                    width: 90%; max-width: 400px;
+                    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+                    transform: scale(0.9); transition: transform 0.2s ease-out;
+                    text-align: center;
+                    border: 1px solid var(--border, #e5e7eb);
+                `;
+                box.innerHTML = `
+                    <div style="font-size: 2.5rem; color: var(--danger, #ef4444); margin-bottom: 12px;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text, #1f2937); margin-bottom: 16px; line-height: 1.5; text-align: center;">${message}</h3>
+                    <button id="customAlertBtn" style="
+                        background: var(--brand, #4f46e5); color: white;
+                        border: none; padding: 10px 24px; border-radius: 8px;
+                        font-weight: 700; font-size: 1rem; cursor: pointer;
+                        transition: background 0.15s; width: 100%;
+                    ">موافق</button>
+                `;
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                    box.style.transform = 'scale(1)';
+                }, 10);
+
+                const btn = box.querySelector('#customAlertBtn');
+                btn.addEventListener('click', () => {
+                    overlay.style.opacity = '0';
+                    box.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                        resolve();
+                    }, 200);
+                });
+            });
+        }
+
+        function customConfirm(message, yesLabel = 'نعم', noLabel = 'إلغاء') {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.style = `
+                    position: fixed;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(4px);
+                    z-index: 100000;
+                    display: flex; align-items: center; justify-content: center;
+                    opacity: 0; transition: opacity 0.2s ease-out;
+                    direction: rtl;
+                `;
+                const box = document.createElement('div');
+                box.style = `
+                    background: var(--surface, #ffffff);
+                    border-radius: 16px;
+                    padding: 24px;
+                    width: 90%; max-width: 400px;
+                    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+                    transform: scale(0.9); transition: transform 0.2s ease-out;
+                    text-align: center;
+                    border: 1px solid var(--border, #e5e7eb);
+                `;
+                box.innerHTML = `
+                    <div style="font-size: 2.5rem; color: var(--brand, #4f46e5); margin-bottom: 12px;">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text, #1f2937); margin-bottom: 20px; line-height: 1.5; text-align: center;">${message}</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <button id="customConfirmYes" style="
+                            background: var(--brand, #4f46e5); color: white;
+                            border: none; padding: 10px 16px; border-radius: 8px;
+                            font-weight: 700; font-size: 1rem; cursor: pointer;
+                            transition: background 0.15s;
+                        ">${yesLabel}</button>
+                        <button id="customConfirmNo" style="
+                            background: var(--bg, #f3f4f6); color: var(--text-2, #4b5563);
+                            border: 1px solid var(--border, #e5e7eb); padding: 10px 16px; border-radius: 8px;
+                            font-weight: 700; font-size: 1rem; cursor: pointer;
+                            transition: background 0.15s;
+                        ">${noLabel}</button>
+                    </div>
+                `;
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                    box.style.transform = 'scale(1)';
+                }, 10);
+
+                const yesBtn = box.querySelector('#customConfirmYes');
+                const noBtn = box.querySelector('#customConfirmNo');
+
+                const close = (result) => {
+                    overlay.style.opacity = '0';
+                    box.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                        resolve(result);
+                    }, 200);
+                };
+
+                yesBtn.addEventListener('click', () => close(true));
+                noBtn.addEventListener('click', () => close(false));
+            });
         }
     </script>
 </body>
