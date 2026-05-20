@@ -8645,14 +8645,15 @@ function getTrips()
         $sql = "SELECT 
                     t.*,
                     u.name as created_by_name,
+                    (t.church_id = ?) as is_owner,
                     (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0) as registered_count,
                     (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0 AND payment_status = 'paid') as paid_count
                 FROM trips t
                 LEFT JOIN uncles u ON t.created_by = u.id
-                WHERE t.church_id = ?";
+                WHERE (t.church_id = ? OR (t.collaborating_churches IS NOT NULL AND JSON_CONTAINS(t.collaborating_churches, JSON_ARRAY(?))))";
 
-        $params = [$churchId];
-        $types = "i";
+        $params = [$churchId, $churchId, $churchId];
+        $types = "iii";
 
         if (!empty($status) && $status !== 'all') {
             $sql .= " AND t.status = ?";

@@ -5309,6 +5309,16 @@
 
             <!-- ── TRIPS ── -->
             <div id="trips" class="tab-panel">
+                <!-- Trip Collaboration Invites Card -->
+                <div id="tripCollaborationInvitesCard" class="card" style="margin-bottom:20px; display:none; border:1px solid #0ea5e9;">
+                    <div class="card-header" style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe;">
+                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات الواردة</div>
+                    </div>
+                    <div class="card-body" id="tripCollaborationInvitesList" style="padding:14px; display:flex; flex-direction:column; gap:10px;">
+                        <!-- Requests will load here -->
+                    </div>
+                </div>
+
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-route"></i> الرحلات</div>
@@ -7081,6 +7091,90 @@
             openModal('bulkCustomDataModal');
         }
 
+        async function loadCollaborationRequests() {
+            const container = document.getElementById('tripCollaborationInvitesCard');
+            const listEl = document.getElementById('tripCollaborationInvitesList');
+            if (!container || !listEl) return;
+
+            const fd = new FormData();
+            fd.append('action', 'getCollaborationRequests');
+            
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success && res.incoming && res.incoming.length > 0) {
+                    container.style.display = 'block';
+                    listEl.innerHTML = res.incoming.map(req => {
+                        const tripTitle = req.trip_title || '';
+                        const fromName = req.from_church_name || '';
+                        return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px; gap:10px; flex-wrap:wrap;">
+                                <div>
+                                    <strong>كنيسة: ${fromName}</strong> تدعوك للمشاركة في رحلة: <strong>${tripTitle}</strong>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn btn-success btn-sm" onclick="respondToCollab(${req.id}, 'accepted')"><i class="fas fa-check"></i> قبول</button>
+                                    <button class="btn btn-danger btn-sm" onclick="respondToCollab(${req.id}, 'rejected')"><i class="fas fa-times"></i> رفض</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.style.display = 'none';
+                }
+            } catch (e) {
+                console.error("Error loading collab requests", e);
+            }
+        }
+
+        async function respondToCollab(requestId, status) {
+            if (status === 'rejected' && !confirm('هل أنت متأكد من رفض هذه الدعوة؟')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'respondToCollaborationRequest');
+            fd.append('request_id', requestId);
+            fd.append('status', status);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    await loadCollaborationRequests();
+                    await loadTrips();
+                } else {
+                    showToast(res.message || 'فشل معالجة الطلب', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        async function sendCollabRequest(tripId) {
+            const input = document.getElementById('collabChurchCodeInput');
+            const code = input ? input.value.trim() : '';
+            if (!code) {
+                showToast('يرجى إدخال كود الكنيسة', 'warning');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'sendCollaborationRequest');
+            fd.append('trip_id', tripId);
+            fd.append('to_church_code', code);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    if (input) input.value = '';
+                    closeModal('tripCollaborationModal');
+                } else {
+                    showToast(res.message || 'فشل إرسال الدعوة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
         function showTripCollaborationModal(tripId) {
             const trip = allTripsCache.find(t => t.id == tripId);
             if (!trip) {
@@ -7106,10 +7200,18 @@
         </div>
         
         <div style="margin-bottom:20px;">
-            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط الدعوة</h4>
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط الدعوة السريع</h4>
             <div style="display:flex;gap:8px;">
                 <input type="text" value="${collaborationLink}" readonly style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);">
                 <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${collaborationLink}'); showToast('تم نسخ الرابط', 'success');"><i class="fas fa-copy"></i> نسخ</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-paper-plane"></i> إرسال دعوة مباشرة بكود الكنيسة</h4>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="collabChurchCodeInput" placeholder="أدخل كود الكنيسة (مثال: CH-XXXX)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg); color:var(--text);">
+                <button class="btn btn-success" onclick="sendCollabRequest(${tripId})"><i class="fas fa-paper-plane"></i> إرسال</button>
             </div>
         </div>
         
@@ -8771,6 +8873,7 @@
 
         function loadTrips() {
             document.getElementById('tripsList').innerHTML = `<div class="trips-grid">${[1, 2, 3].map(() => `<div class="trip-card-skel skel"></div>`).join('')}</div>`;
+            try { loadCollaborationRequests(); } catch(e) {}
             const fd = mkFd('getTrips'); fd.append('status', 'all'); fd.append('type', 'all');
             return fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
@@ -8817,20 +8920,21 @@
                 const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
                 const totalPerKid = finalPrice + expPerKid;
                 const pct = t.max_participants > 0 ? Math.min(100, Math.round((t.registered_count || 0) / t.max_participants * 100)) : null;
+                const isOwner = t.is_owner === undefined || Number(t.is_owner) === 1;
                 return `<div class="trip-card" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
             <div class="trip-img" style="${t.image_url ? '' : 'background:linear-gradient(135deg,' + col + '22,' + col + '11);'}">
                 ${t.image_url ? `<img src="${t.image_url}" loading="lazy">` : `<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
                 <span class="trip-status-pill ${sc}">${st}</span>
                 <div class="trip-actions-overlay" onclick="event.stopPropagation()">
-                    <button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>
+                    ${isOwner ? `<button class="act-btn act-edit" onclick="openEditTrip(${t.id})" title="تعديل"><i class="fas fa-edit"></i></button>` : ''}
                     <button class="act-btn" style="background:#2563eb;" onclick="event.stopPropagation(); exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
                     <button class="act-btn" style="background:#4f46e5;" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
                     <button class="act-btn" style="background:var(--primary);" onclick="event.stopPropagation(); window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'" title="إعدادات الرحلة"><i class="fas fa-cog"></i></button>
-                    <button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>
+                    ${isOwner ? `<button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
                 </div>
             </div>
             <div class="trip-body">
-                <h3>${t.title}</h3>
+                <h3>${t.title} ${!isOwner ? `<span style="font-size:0.7rem;font-weight:normal;color:#0ea5e9;background:#e0f2fe;padding:2px 8px;border-radius:12px;margin-right:6px;display:inline-block;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}</h3>
                 <div class="trip-meta-row">
                     <span><i class="fas fa-calendar"></i>${t.start_date_formatted || t.start_date || '—'}</span>
                     <span><i class="fas fa-clock"></i>${t.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}</span>
