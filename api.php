@@ -234,6 +234,106 @@ session_start();
 require_once 'config.php';
 require_once 'audit.php';
 
+// ── Auto-Gender Detection & Migration ─────────────────────────────
+function detectGenderFromName($name) {
+    $name = trim($name);
+    if (empty($name)) {
+        return 'male';
+    }
+    
+    // Normalize Arabic letters
+    $normalized = str_replace(
+        ['أ', 'إ', 'آ', 'ى', 'ة'],
+        ['ا', 'ا', 'ا', 'ي', 'ه'],
+        $name
+    );
+    
+    $parts = explode(' ', $normalized);
+    $first = $parts[0];
+    
+    // Check compound name prefixes
+    if (($first === 'عبد' || $first === 'ابو') && count($parts) > 1) {
+        $first = $first . ' ' . $parts[1];
+    }
+    
+    // Exact male list
+    $maleList = [
+        'مينا', 'بولا', 'توما', 'شنوده', 'بيشوي', 'كيرلس', 'جرجس', 'ابانوب', 'فادي', 'وسيم', 'رامي', 'شادي',
+        'اندرو', 'مايكل', 'مارك', 'توني', 'جون', 'بول', 'بيتر', 'يوسف', 'ديفيد', 'ديڤيد', 'جورج', 'سامح', 'سامي',
+        'عماد', 'ايهاب', 'هاني', 'ماريو', 'امجد', 'انطون', 'انطوني', 'بطرس', 'يوحنا', 'سليمان', 'ايليا', 'موسى',
+        'عيسى', 'يحيى', 'زكريا', 'رضا', 'علاء', 'بهاء', 'كاراس', 'كراس', 'تامر', 'اشرف', 'شريف', 'عادل', 'مدحت',
+        'رافت', 'نبيل', 'ايمن', 'صفوت', 'ثروت', 'مجدي', 'رمزي', 'وجدي', 'مكرم', 'حسني', 'نعيم', 'ميلاد', 'بخيت',
+        'شحاته', 'refq', 'refqa', 'رفيق', 'رافي', 'ناجي', 'ناجح', 'ماهر', 'منير', 'نبيه', 'نشات', 'سعيد', 'سمير',
+        'رائف', 'عريان', 'فرنسيس', 'نادر', 'ياسر', 'هشام', 'سامر', 'حنا', 'بشير', 'فاروق', 'كرم', 'امير', 'وسام',
+        'باسم', 'باسل', 'ياسين', 'ابراهيم', 'اسحق', 'يعقوب', 'داود', 'دانيال', 'داني', 'غالي', 'ميشيل', 'فؤاد',
+        'فريد', 'وليد', 'وجيه', 'شفيق', 'رائد', 'حازم', 'طارق', 'خالد', 'ادهم', 'مصطفى', 'وليم', 'انس', 'عمر',
+        'عمرو', 'علي', 'على', 'احمد', 'محمد', 'محمود', 'كريم', 'خليل', 'ادم', 'الفريد', 'البير', 'بيير', 'فرانك',
+        'جاك', 'چاك', 'باتريك', 'باترك', 'توماس', 'چوزيف', 'جوزيف', 'ستيفن', 'ستيفين', 'ستيڤن', 'كيفين', 'كيفن',
+        'كيڤن', 'ماثيو', 'فلوباتير', 'مارسيل', 'ماركو', 'مارسيلينو', 'مارشيلينو', 'بافلي', 'سلوانس', 'سدرا',
+        'ارساني', 'كوزمان', 'دميان', 'مكسيموس', 'ابرام', 'تادرس', 'ملاخي', 'صموئيل', 'فالنتينو', 'روماني',
+        'ساروفيم', 'اسطفانوس', 'تيموثاوس', 'باسيليوس', 'اثناسيوس', 'مقار', 'باخوميوس', 'شنودة', 'صليب',
+        'قزمان', 'ارميا', 'سوريال', 'ميخائيل', 'غبريال', 'رافائيل', 'روفائيل', 'اباكير', 'متى', 'مرقس',
+        'لوقا', 'صفين', 'ابوسيفين', 'كوبرا', 'بولس', 'انطونيوس', 'توم', 'أوليفر', 'اوليفير', 'إيفان',
+        'ايفان', 'إيمانويل', 'إيهاب', 'افرايم', 'اكيلا', 'الفريد', 'اليكس', 'ايساف', 'تيمي', 'جاستن',
+        'جاستين', 'جاك', 'جو', 'جورج', 'جوزبيانو', 'جوستاف', 'جوفاني', 'جوليان', 'جوناثان', 'جوني',
+        'جونير', 'جونيير', 'جيانو', 'جيسون', 'جيوفاني', 'راجي', 'راندو', 'روجيه', 'روفانيو', 'رونل',
+        'روني', 'ريتشي', 'سام', 'سبيرجن', 'ستيفن', 'ستيفين', 'ستيڤن', 'عطية', 'عمانوئيل', 'فاليريو',
+        'فان', 'فريد', 'فيلاديمير', 'كرستيانو', 'كريس', 'لوئيس', 'ماثيو', 'مارتن', 'مانويل', 'ماير',
+        'مفدي', 'ميخائيل', 'ميرانو', 'ميلكر', 'نوفير', 'يوثام', 'يوليوس', 'چاكوب', 'چوثام', 'چوني', 'ڤيلي',
+        'Amir', 'Arthur', 'Bahaa', 'Baher', 'Dan', 'Daniel', 'David', 'Ehab', 'Elie', 'Filimon', 'Jason', 'Jeff',
+        'Jensen', 'Jimmy', 'Johnny', 'Jonathan', 'Justin', 'Kareem', 'Kevin', 'Manuel', 'Marvin', 'Peter',
+        'Rafeek', 'Rafy', 'Ramy', 'Robin', 'Saher', 'Samuel', 'Sherif', 'Wassim', 'Youssef'
+    ];
+    
+    if (strpos($first, 'عبد') === 0 || strpos($first, 'ابو') === 0 || strpos($first, 'امجد') === 0 || in_array($first, $maleList)) {
+        return 'male';
+    }
+    
+    // Exact female list
+    $femaleList = [
+        'مريم', 'ماري', 'ماريان', 'إيريني', 'ايريني', 'إيلاريا', 'aellaris', 'ايلارية', 'دميانا', 'دميانة',
+        'سارة', 'ساره', 'فريدة', 'كارما', 'كرمة', 'جاكلين', 'جاكلين', 'نهى', 'رنا', 'سوزان', 'فيبي', 'فيرينا',
+        'هالة', 'هاله', 'هنا', 'منار', 'روجينا', 'نورا', 'مونيكا', 'هيلين', 'ميرنا', 'سيلفيا', 'سلفيا', 'بيرلا',
+        'بتول', 'رفقة', 'راحيل', 'تريفينا', 'إيفا', 'ايفا', 'استر', 'إستر', 'ليزا', 'تيا', 'روز', 'ساندرا',
+        'جاسمين', 'جوليا', 'كلارا', 'هايدي', 'كارول', 'جوي', 'ريتا', 'جيسيكا', 'إيفون', 'فيفيان', 'جانيت',
+        'هيلانة', 'جوليت', 'لوسيندا', 'ناردين', 'بارثينيا', 'شيرين', 'دينا', 'رانيا', 'ياسمين', 'فريده',
+        'سيلينا', 'رونزا', 'كرمه', 'دانيلا', 'كلاريس', 'باتريسيا', 'أميرة', 'أليس', 'أنجلينا', 'أنجيلينا',
+        'أنسطاسيا', 'أيتن', 'أوليفيا', 'انسي', 'أوجانيا', 'برستيرا', 'برسيس', 'بريتني', 'بريتى', 'بريتي',
+        'بريسكلا', 'بريسكيلا', 'بيري', 'بيلا', 'ترنيم', 'جاسمين', 'جاندرك', 'جريس', 'جريسي', 'جلوري',
+        'جلوريا', 'جنى', 'جوسيان', 'جوسيانا', 'جولي', 'جوليت', 'جوليسيا', 'جومانا', 'جومانة', 'جونستا',
+        'جوى', 'جويس', 'جويسي', 'جيسكيا', 'جيسى', 'جيسي', 'جيسيكا', 'جيني', 'جينيفير', 'راندا', 'راندو',
+        'rose', 'روز', 'روفانية', 'روفينا', 'ريما', 'ريناتا', 'سما', 'سوسنة', 'سيلفيا', 'سيلينا', 'سيمون', 'صوفي',
+        'صوفيا', 'عزة', 'عزيزه', 'فرح', 'فريدة', 'فيبي', 'فيرينا', 'فيلومينا', 'كارمن', 'كارن', 'كارول',
+        'كارولين', 'كارين', 'كاندي', 'كلارا', 'كلاريس', 'كوين', 'كيريا', 'لارن', 'لارين', 'لافينا', 'لورين',
+        'لوسيندا', 'ليديا', 'ليلي', 'ليليان', 'لينور', 'مارسندا', 'مارفي', 'مارلي', 'مارلين', 'ماروسكا',
+        'مارولين', 'ماري', 'ماريان', 'ماريتشيا', 'مارينا', 'مارڤي', 'مافي', 'مايا', 'مايفين', 'مايلي',
+        'مريم', 'مهرائيل', 'مولي', 'ميرا', 'ميرال', 'ميراي', 'ميرنا', 'ميرولا', 'ميلا', 'مينورا', 'ناتالي',
+        'نانسي', 'نتالي', 'نسمة', 'هولى', 'هولي', 'هيفن', 'هيفين', 'هيڤن', 'هيڤين', 'يؤانا', 'يوأنا',
+        'يوانا', 'يوستينا', 'چوي', 'چويس', 'چيسى', 'چيسي', 'چيسيكا',
+        'Amany', 'Amy', 'Ann', 'Asnat', 'Carol', 'Christeen', 'Christina', 'Dalia', 'Doreen', 'Eman', 'Emma',
+        'Fadia', 'Grace', 'Heidi', 'Helen', 'Jakleen', 'Jasmin', 'Joy', 'Joyce', 'Julie', 'Karine', 'Liberty',
+        'Lily', 'Lucy', 'Lydia', 'Madonna', 'Malika', 'Mariam', 'Marlin', 'Marly', 'Merolla', 'Nancy', 'Nardeen',
+        'Nesreen', 'Nora', 'Perin', 'Priscilla', 'Remona', 'Remonda', 'Rosette', 'Sally', 'Sandra', 'Sara',
+        'Sarah', 'Selena', 'Sherry', 'Sofia', 'Sylvia', 'Tant', 'Tia', 'Tota', 'Vicky'
+    ];
+    
+    if (in_array($first, $femaleList)) {
+        return 'female';
+    }
+    
+    // Heuristic suffixes (Arabic letters normalized)
+    $last_chars_3 = mb_substr($first, -3);
+    $last_chars_2 = mb_substr($first, -2);
+    $last_char = mb_substr($first, -1);
+    
+    if ($last_chars_3 === 'ينا' || $last_chars_2 === 'ين' || $last_char === 'ه' || $last_char === 'ة') {
+        return 'female';
+    }
+    
+    return 'male';
+}
+
+
 // Custom error handler
 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     $error = "PHP Error [$errno]: $errstr in $errfile on line $errline";
@@ -1905,7 +2005,7 @@ function getData()
             s.id, s.name, s.phone, s.birthday, s.coupons,
             s.attendance_coupons, s.commitment_coupons, s.task_coupons,
             s.emergency_phone, s.medical_notes, s.custom_info,
-            s.image_url, s.class_id,
+            s.image_url, s.class_id, s.gender,
             COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
             COALESCE(cc.code, gc.code) as class_code,
             c.church_name, c.id as church_id_val
@@ -1937,6 +2037,7 @@ function getData()
                     'معلومات إضافية' => $row['custom_info'] ?? '',
                     'صورة' => $row['image_url'] ?? '',
                     '_studentId' => intval($row['id']),
+                    'النوع' => $row['gender'] ?? 'male',
                     '_allAttendance' => [],
                 ];
                 $students[] = $studentData;
@@ -2034,6 +2135,7 @@ function getData()
                 s.class_id,
                 s.custom_info,
                 s.church_id,
+                s.gender,
                 c.church_name,
                 COALESCE(cc.id, gc.id) as class_id,
                 COALESCE(cc.code, gc.code) as class_code, 
@@ -2111,6 +2213,7 @@ function getData()
                 'معلومات إضافية' => $row['custom_info'] ?? '',
                 'صورة' => $row['image_url'] ?? '',
                 '_studentId' => intval($row['id']),
+                'النوع' => $row['gender'] ?? 'male',
                 '_customInfo' => !empty($row['custom_info'])
                     ? json_decode($row['custom_info'], true)
                     : null,
@@ -2781,16 +2884,21 @@ function addStudent()
                 : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
         }
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         // Insert student — phone stored as VARCHAR string, leading zero preserved
         if ($formattedBirthday === null) {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isisssiiss",
+                "isisssiissss",
                 $churchId,
                 $name,
                 $classId,
@@ -2800,17 +2908,18 @@ function addStudent()
                 $coupons,
                 $totalCoupons,
                 $photoUrl,
-                $customInfoJson
+                $customInfoJson,
+                $gender
             );
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, birthday, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isissssiiss",
+                "isissssiissss",
                 $churchId,
                 $name,
                 $classId,
@@ -2821,7 +2930,8 @@ function addStudent()
                 $coupons,
                 $totalCoupons,
                 $photoUrl,
-                $customInfoJson
+                $customInfoJson,
+                $gender
             );
         }
 
@@ -3065,11 +3175,38 @@ function updateStudent()
             }
         }
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         if ($customInfoRaw !== null) {
             $updateStmt = $conn->prepare("
                 UPDATE students 
                 SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, birthday = ?, 
-                    commitment_coupons = ?, coupons = ?, custom_info = ?, updated_at = NOW()
+                    commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, updated_at = NOW()
+                WHERE id = ? AND church_id = ?
+            ");
+            $updateStmt->bind_param(
+                "sissssiisssii",
+                $name,
+                $classId,
+                $className,
+                $address,
+                $cleanPhone,
+                $formattedBirthday,
+                $coupons,
+                $totalCoupons,
+                $customInfoJson,
+                $gender,
+                $studentId,
+                $churchId
+            );
+        } else {
+            $updateStmt = $conn->prepare("
+                UPDATE students 
+                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, birthday = ?, 
+                    commitment_coupons = ?, coupons = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
@@ -3082,27 +3219,7 @@ function updateStudent()
                 $formattedBirthday,
                 $coupons,
                 $totalCoupons,
-                $customInfoJson,
-                $studentId,
-                $churchId
-            );
-        } else {
-            $updateStmt = $conn->prepare("
-                UPDATE students 
-                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, birthday = ?, 
-                    commitment_coupons = ?, coupons = ?, updated_at = NOW()
-                WHERE id = ? AND church_id = ?
-            ");
-            $updateStmt->bind_param(
-                "sissssiiii",
-                $name,
-                $classId,
-                $className,
-                $address,
-                $cleanPhone,
-                $formattedBirthday,
-                $coupons,
-                $totalCoupons,
+                $gender,
                 $studentId,
                 $churchId
             );
@@ -3174,18 +3291,24 @@ function updateStudentInfo()
             }
         }
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         // Update student information
         $stmt = $conn->prepare("
             UPDATE students 
-            SET name = ?, address = ?, phone = ?, birthday = ?, updated_at = NOW()
+            SET name = ?, address = ?, phone = ?, birthday = ?, gender = ?, updated_at = NOW()
             WHERE id = ?
         ");
         $stmt->bind_param(
-            "ssssi",
+            "sssssi",
             $name,
             $address,
             $phone,
             $formattedBirthday,
+            $gender,
             $studentId
         );
 
@@ -4061,16 +4184,21 @@ function approveRegistration()
 
         error_log("البيانات النهائية: Class=$finalClassName, ID=$classId");
 
+        $gender = $regData['gender'] ?? '';
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         // ── Insert student ────────────────────────────────────────
         $insertStmt = $conn->prepare("
             INSERT INTO students
             (church_id, name, class_id, class, address, phone, birthday,
-             image_url, password_hash, custom_info,
+             image_url, password_hash, custom_info, gender,
              commitment_coupons, coupons, attendance_coupons, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW())
         ");
         $insertStmt->bind_param(
-            "isssssssss",
+            "issssssssss",
             $churchId,
             $name,
             $classId,
@@ -4080,7 +4208,8 @@ function approveRegistration()
             $birthday,
             $imageUrl,
             $passwordHash,
-            $customInfo
+            $customInfo,
+            $gender
         );
 
         if (!$insertStmt->execute()) {
@@ -5245,6 +5374,11 @@ function submitRegistrationRequest()
             return;
         }
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         $conn = getDBConnection();
 
         // التحقق من صحة الفصل — يدعم الفصول المخصصة والافتراضية
@@ -5385,12 +5519,12 @@ function submitRegistrationRequest()
             $ins = $conn->prepare("
                 INSERT INTO students
                 (church_id, name, class_id, class, address, phone, email, birthday,
-                 image_url, password_hash, custom_info,
+                 image_url, password_hash, custom_info, gender,
                  commitment_coupons, coupons, attendance_coupons, created_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW())
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW())
             ");
             $ins->bind_param(
-                "isissssssss",
+                "isisssssssss",
                 $churchId,
                 $name,
                 $classId,
@@ -5401,7 +5535,8 @@ function submitRegistrationRequest()
                 $formattedBirthday,
                 $imageUrl,
                 $passwordHash,
-                $customInfo
+                $customInfo,
+                $gender
             );
             if (!$ins->execute()) {
                 $conn->rollback();
@@ -5413,11 +5548,11 @@ function submitRegistrationRequest()
             // Also record in pending_registrations as approved for audit
             $pendStmt = $conn->prepare("
                 INSERT INTO pending_registrations
-                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,approved_at,created_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,'approved',NOW(),NOW())
+                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,gender,approved_at,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,'approved',?,NOW(),NOW())
             ");
             $pendStmt->bind_param(
-                "issssssssss",
+                "isssssssssss",
                 $churchId,
                 $name,
                 $class,
@@ -5428,7 +5563,8 @@ function submitRegistrationRequest()
                 $extraDataJson,
                 $username,
                 $passwordHash,
-                $imageUrl
+                $imageUrl,
+                $gender
             );
             $pendStmt->execute();
             $registrationId = $conn->insert_id;
@@ -5461,11 +5597,11 @@ function submitRegistrationRequest()
             // ── NORMAL: Insert into pending_registrations ──────────
             $stmt = $conn->prepare("
                 INSERT INTO pending_registrations
-                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,created_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,'pending',NOW())
+                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,gender,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,'pending',?,NOW())
             ");
             $stmt->bind_param(
-                "issssssssss",
+                "isssssssssss",
                 $churchId,
                 $name,
                 $class,
@@ -5476,7 +5612,8 @@ function submitRegistrationRequest()
                 $extraDataJson,
                 $username,
                 $passwordHash,
-                $imageUrl
+                $imageUrl,
+                $gender
             );
 
             if ($stmt->execute()) {
@@ -6007,12 +6144,17 @@ function addUncle()
 
         $passwordHash = hash('sha256', $password);
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         // Insert uncle
         $stmt = $conn->prepare("
-            INSERT INTO uncles (church_id, name, username, password_hash, role)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO uncles (church_id, name, username, password_hash, role, gender)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("issss", $churchId, $name, $username, $passwordHash, $uncleRole);
+        $stmt->bind_param("isssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender);
 
         if ($stmt->execute()) {
             $newUncleId = $conn->insert_id;
@@ -7415,7 +7557,7 @@ function getStudentProfile()
                 s.id, s.name, s.address, s.phone, s.birthday, s.email,
                 s.coupons, s.attendance_coupons, s.commitment_coupons,
                 s.task_coupons, s.image_url, s.church_id, s.class_id,
-                s.custom_info,
+                s.custom_info, s.gender,
                 c.church_name,
                 COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
             FROM students s
@@ -9381,6 +9523,7 @@ function getTripDetails()
                 s.phone as student_phone,
                 s.image_url as student_image,
                 s.trip_points as student_trip_points,
+                s.gender as student_gender,
                 u.name as registered_by_name,
                 COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
                 COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
@@ -10498,6 +10641,7 @@ function exportTripData()
                 s.phone as student_phone,
                 s.emergency_phone,
                 s.medical_notes,
+                s.gender as student_gender,
                 tr.id as reg_id,
                 tr.registration_date,
                 tr.notes,
@@ -10656,6 +10800,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     $headerRow = [
         '#',
         'اسم الطفل',
+        'النوع',
         'الكنيسة',
         'الفصل',
         'رقم الهاتف',
@@ -10680,9 +10825,11 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
             if (is_array($parsed))
                 $customData = $parsed;
         }
+        $genderText = ($reg['student_gender'] ?? '') === 'female' ? 'أنثى' : 'ذكر';
         $row = [
             $index + 1,
             $reg['student_name'],
+            $genderText,
             $reg['student_church'] ?? '',
             $reg['student_class'],
             $reg['student_phone'] ?? '',
@@ -11071,13 +11218,42 @@ function updateStudentFull()
             }
         }
 
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
         // بناء استعلام التحديث
         if ($imageUrl) {
             $stmt = $conn->prepare("
                 UPDATE students 
                 SET name = ?, class_id = ?, class = ?, address = ?, 
                     phone = ?, emergency_phone = ?, medical_notes = ?, 
-                    birthday = ?, image_url = ?, custom_info = ?, updated_at = NOW()
+                    birthday = ?, image_url = ?, custom_info = ?, gender = ?, updated_at = NOW()
+                WHERE id = ? AND church_id = ?
+            ");
+            $stmt->bind_param(
+                "sissssssssssii",
+                $name,
+                $classId,
+                $className,
+                $address,
+                $phone,
+                $emergencyPhone,
+                $medicalNotes,
+                $dbBirthday,
+                $imageUrl,
+                $customInfoJson,
+                $gender,
+                $studentId,
+                $churchId
+            );
+        } else {
+            $stmt = $conn->prepare("
+                UPDATE students 
+                SET name = ?, class_id = ?, class = ?, address = ?, 
+                    phone = ?, emergency_phone = ?, medical_notes = ?, 
+                    birthday = ?, custom_info = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             $stmt->bind_param(
@@ -11090,30 +11266,8 @@ function updateStudentFull()
                 $emergencyPhone,
                 $medicalNotes,
                 $dbBirthday,
-                $imageUrl,
                 $customInfoJson,
-                $studentId,
-                $churchId
-            );
-        } else {
-            $stmt = $conn->prepare("
-                UPDATE students 
-                SET name = ?, class_id = ?, class = ?, address = ?, 
-                    phone = ?, emergency_phone = ?, medical_notes = ?, 
-                    birthday = ?, custom_info = ?, updated_at = NOW()
-                WHERE id = ? AND church_id = ?
-            ");
-            $stmt->bind_param(
-                "sisssssssii",
-                $name,
-                $classId,
-                $className,
-                $address,
-                $phone,
-                $emergencyPhone,
-                $medicalNotes,
-                $dbBirthday,
-                $customInfoJson,
+                $gender,
                 $studentId,
                 $churchId
             );

@@ -329,6 +329,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
             <input type="text" id="kidName" placeholder="اسم الطفل كاملاً" autocomplete="off" data-placeholder-kids="اسم الطفل كاملاً" data-placeholder-youth="اسم الشاب كاملاً" />
           </div>
         </div>
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-venus-mars"></i> النوع <span class="req">*</span></label>
+            <select id="kidGender">
+              <option value="male">ذكر</option>
+              <option value="female">أنثى</option>
+            </select>
+          </div>
+        </div>
         <div class="fr full" style="margin-bottom:0">
           <div class="ff">
             <label><i class="fas fa-graduation-cap"></i> الفصل <span class="req">*</span></label>
@@ -480,6 +489,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <span class="rv-val"><img id="rv-avatar-img" src="" alt="صورة" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border-solid);"></span>
         </div>
         <div class="rv-row"><span class="rv-lbl">الاسم الكامل</span><span class="rv-val" id="rv-name">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">النوع</span><span class="rv-val" id="rv-gender">—</span></div>
         <div class="rv-row"><span class="rv-lbl">الفصل</span><span class="rv-val" id="rv-class">—</span></div>
         <div class="rv-row"><span class="rv-lbl">تاريخ الميلاد</span><span class="rv-val" id="rv-bday">—</span></div>
         <div class="rv-row"><span class="rv-lbl">رقم التليفون</span><span class="rv-val" id="rv-phone">—</span></div>
@@ -1003,6 +1013,7 @@ function startFresh() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  if (document.getElementById('kidGender')) document.getElementById('kidGender').value = 'male';
   removeAvatar();
   customFields.forEach(field => {
     const el = document.getElementById('cf_' + field.key);
@@ -1058,6 +1069,7 @@ document.getElementById('kidBirthday').addEventListener('input', function() {
 /* ════════════════ VALIDATION ════════════════ */
 function v1() {
   if (!val('kidName'))  { showErr(1, isYouth ? 'الرجاء إدخال اسم الشاب' : 'الرجاء إدخال اسم الطفل'); focusErr('kidName'); return false; }
+  if (!val('kidGender')) { showErr(1, 'الرجاء اختيار النوع'); focusErr('kidGender'); return false; }
   if (!val('kidClass')) { showErr(1,'الرجاء اختيار الفصل');    focusErr('kidClass'); return false; }
   return true;
 }
@@ -1103,6 +1115,7 @@ function v4() {
 function fillReview() {
   document.getElementById('rv-church').textContent  = churchName || '—';
   document.getElementById('rv-name').textContent    = val('kidName')    || '—';
+  document.getElementById('rv-gender').textContent  = val('kidGender') === 'female' ? 'أنثى' : 'ذكر';
   document.getElementById('rv-class').textContent   = val('kidClass')   || '—';
   document.getElementById('rv-bday').textContent    = val('kidBirthday')|| '—';
   document.getElementById('rv-phone').textContent   = val('kidPhone')   || '—';
@@ -1189,6 +1202,7 @@ async function submitForm() {
     fd.append('action',     'submitRegistrationRequest');
     fd.append('churchId',   churchId);
     fd.append('name',       name);
+    fd.append('gender',     val('kidGender'));
     fd.append('class',      klass);
     fd.append('birthday',   bday);
     fd.append('phone',      phone);

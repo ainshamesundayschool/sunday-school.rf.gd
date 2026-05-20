@@ -5009,6 +5009,13 @@
                                                     class="fas fa-eye" id="unclePasswordEye"></i></button>
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <label class="form-label">النوع *</label>
+                                        <select id="uncleGender" class="form-select" style="width:100%;" required>
+                                            <option value="male">ذكر</option>
+                                            <option value="female">أنثى</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="form-group" style="margin-bottom:18px;">
                                     <label class="form-label">الفصول المسؤول عنها</label>
@@ -6153,6 +6160,11 @@
                             id="editUncleRole" class="form-select" style="width:100%;">
                             <option value="uncle">خادم</option>
                             <option value="admin">مسؤول</option>
+                        </select></div>
+                    <div class="form-group" style="margin-bottom:20px;"><label class="form-label">النوع</label><select
+                            id="editUncleGender" class="form-select" style="width:100%;">
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
                         </select></div>
                     <div class="form-group" style="margin-bottom:20px;">
                         <label class="form-label">الفصل (يمكن اختيار أكثر من فصل)</label>
@@ -8148,7 +8160,7 @@
             <td><span class="badge ${roleCls}">${roleText}</span></td><td style="color:var(--text-3);font-size:0.8rem;">${date}</td>
             <td><div class="actions">
                 <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
-                <button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}')"><i class="fas fa-edit"></i></button>
+                <button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}','${u.gender || 'male'}')"><i class="fas fa-edit"></i></button>
                 <button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>
             </div></td></tr>`;
             }).join('');
@@ -8177,18 +8189,20 @@
             fd.append('name', document.getElementById('uncleName').value);
             fd.append('username', document.getElementById('uncleUsername').value);
             fd.append('password', document.getElementById('unclePassword').value);
-            fd.append('role', document.getElementById('uncleRole').value);
+            fd.append('role', document.getElementById('uncleRole')?.value || 'uncle');
+            fd.append('gender', document.getElementById('uncleGender').value);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم إضافة الخادم بنجاح', 'success'); e.target.reset(); loadUncles(); }
             else showToast(d.message || 'فشل في إضافة الخادم', 'error');
             btn.innerHTML = '<i class="fas fa-plus"></i> إضافة خادم'; btn.disabled = false;
         }
 
-        function editUncle(id, name, username, role, imgUrl) {
+        function editUncle(id, name, username, role, imgUrl, gender = 'male') {
             document.getElementById('editUncleId').value = id;
             document.getElementById('editUncleName').value = name;
             document.getElementById('editUncleUsername').value = username;
             document.getElementById('editUncleRole').value = role;
+            document.getElementById('editUncleGender').value = gender || 'male';
             document.getElementById('editUnclePassword').value = '';
             const av = document.getElementById('editUncleAvatar');
             if (imgUrl) { av.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
@@ -8223,6 +8237,7 @@
             fd.append('name', document.getElementById('editUncleName').value);
             fd.append('username', document.getElementById('editUncleUsername').value);
             fd.append('role', document.getElementById('editUncleRole').value);
+            fd.append('gender', document.getElementById('editUncleGender').value);
             const pw = document.getElementById('editUnclePassword').value;
             if (pw) fd.append('new_password', pw);
             const imgFile = document.getElementById('editUncleImageFile').files[0];

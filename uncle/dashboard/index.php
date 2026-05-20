@@ -7234,6 +7234,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             id="editStudentName" class="form-input" required></div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">النوع *</label>
+                    <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select
+                            id="editStudentGender" class="form-input" required>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select></div>
+                </div>
+                <div class="form-group">
                     <label class="form-label">الفصل *</label>
                     <div class="input-icon-wrap"><i class="fas fa-chalkboard-teacher input-icon"></i><select
                             id="editStudentClass" class="form-input" required>
@@ -7295,6 +7303,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">الاسم *</label>
                     <div class="input-icon-wrap"><i class="fas fa-id-card input-icon"></i><input type="text"
                             id="studentName" class="form-input" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">النوع *</label>
+                    <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select
+                            id="studentGender" class="form-input" required>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">الفصل *</label>
@@ -9832,6 +9848,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
+                ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher'],
                 ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt'],
                 ['رقم التليفون', full.phone || '---', 'green', 'fa-phone'],
@@ -9893,6 +9910,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cs.innerHTML = '<option value="">اختر الفصل</option>';
             classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
             document.getElementById('editStudentName').value = s['الاسم'] || '';
+            if (document.getElementById('editStudentGender')) {
+                document.getElementById('editStudentGender').value = s['النوع'] === 'female' || s['gender'] === 'female' ? 'female' : 'male';
+            }
             // Match student's class by arabic_name or code against الفصل
             const studentClass = s['الفصل'] || '';
             const matchedOption = Array.from(cs.options).find(o =>
@@ -9956,6 +9976,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showLoading('جاري التحديث...');
             makeApiCall({
                 action: 'updateStudent', studentId: id, name, classId: cls,
+                gender: document.getElementById('editStudentGender').value,
                 address: document.getElementById('editStudentAddress').value.trim(),
                 phone: document.getElementById('editStudentPhone').value.trim(),
                 birthday: document.getElementById('editStudentBirthday').value.trim(),
@@ -9972,6 +9993,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showLoading('جاري الإضافة...');
             const fd = new FormData();
             fd.append('action', 'addStudent'); fd.append('name', name); fd.append('classId', cls);
+            fd.append('gender', document.getElementById('studentGender').value);
             fd.append('address', document.getElementById('studentAddress').value.trim() || '');
             fd.append('phone', document.getElementById('studentPhone').value.trim() || '');
             fd.append('birthday', document.getElementById('studentBirthday').value.trim() || '');
