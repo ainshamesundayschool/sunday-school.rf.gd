@@ -5720,7 +5720,7 @@
       trip, r, scale, padding, showChurch, showTripImage, showTripTitle, 
       showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
       tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-      fontColor, strokeColor, outlineStyle, dashLength, dashGap
+      fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
     }) {
       const scaledWidth = 260 * scale;
       const scaledHeight = 360 * scale;
@@ -5734,9 +5734,22 @@
       const qrSize = Math.max(80, 130 * scale);
 
       const hasStudentImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
-      const avatarHtml = (showStudentImg && hasStudentImg) 
-          ? `<img src="${r.student_image}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">` 
-          : '';
+      // showAvatarFallback: show avatar even if no photo (with a default icon avatar)
+      const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+      let avatarHtml = '';
+      if (showStudentImg) {
+        if (hasStudentImg) {
+          avatarHtml = `<img src="${r.student_image}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">`;
+        } else if (showAvatarFallback) {
+          // Render a default SVG avatar for kids without photos
+          avatarHtml = `<div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px">
+              <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
+              <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
+            </svg>
+          </div>`;
+        }
+      }
 
       // Inline small trip image rounding & dimensions
       const inlineRadius = tripImgRounded ? `${8 * scale}px` : '0px';
@@ -5796,7 +5809,9 @@
       let tripInfoGroupHtml = '';
       if (showTripImage || showTripTitle) {
         const titleTag = showTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${trip.title}</h3>` : '';
-        if (textReadability === 'rect') {
+        const hasTripImgContent = showTripImage && !tripImgAsBg && trip.image_url;
+        const hasAnyTripContent = hasTripImgContent || showTripTitle;
+        if (textReadability === 'rect' && hasAnyTripContent) {
           tripInfoGroupHtml = `
             <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px ${10 * scale}px; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 ${tripImageHtml}
@@ -5817,7 +5832,13 @@
         const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${r.student_name || '؟'}</h2>` : '';
         const customTag = showCustom ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
         
-        if (textReadability === 'rect') {
+        // Check if there's any actual content to show
+        const hasAvatarContent = !!avatarHtml;
+        const hasNameContent = showStudentName;
+        const hasCustomContent = showCustom && customHtml;
+        const hasAnyStudentContent = hasAvatarContent || hasNameContent || hasCustomContent;
+
+        if (textReadability === 'rect' && hasAnyStudentContent) {
           studentInfoGroupHtml = `
             <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${8 * scale}px ${10 * scale}px; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 ${avatarHtml}
@@ -5843,7 +5864,7 @@
               ${churchHeaderHtml}
               ${tripInfoGroupHtml}
               ${studentInfoGroupHtml}
-              <div id="${cardId}" style="background: ${textReadability === 'rect' ? 'rgba(255,255,255,0.92)' : 'transparent'}; border: ${textReadability === 'rect' ? `1px solid ${strokeColor}` : 'none'}; padding: ${textReadability === 'rect' ? `${4 * scale}px` : '0px'}; border-radius: ${textReadability === 'rect' ? `${8 * scale}px` : '0px'}; box-shadow: ${textReadability === 'rect' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'}; display:flex; justify-content:center; align-items:center;"></div>
+              <div style="background: ${textReadability === 'rect' ? 'rgba(255,255,255,0.92)' : 'transparent'}; border: ${textReadability === 'rect' ? `1px solid ${strokeColor}` : 'none'}; padding: ${textReadability === 'rect' ? `${6 * scale}px` : '0px'}; border-radius: ${textReadability === 'rect' ? `${10 * scale}px` : '0px'}; box-shadow: ${textReadability === 'rect' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'}; display:flex; justify-content:center; align-items:center; overflow:hidden;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; border-radius:${6 * scale}px; overflow:hidden;"></div></div>
           </div>
       </div>
       `;
@@ -5882,10 +5903,16 @@
       const fontColor = document.getElementById('printFontColor')?.value || '#000000';
       const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
       const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+      const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
 
-      // Use the first registration as a sample
-      const r = regs[0];
-      const name = r.student_name || 'اسم الطفل التجريبي';
+      // Use a mock/demo registration for preview (not a real kid)
+      const r = {
+        id: 'preview_demo',
+        student_id: 'demo',
+        student_name: 'اسم الطفل',
+        student_image: '',   // intentionally blank so avatar fallback is demonstrated
+        custom_data: regs[0]?.custom_data || null
+      };
       
       let customHtml = '';
       if (showCustom && r.custom_data) {
@@ -5914,7 +5941,7 @@
         trip, r, scale: previewScale, padding, showChurch, showTripImage, showTripTitle,
         showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId: 'prev_qrcode_sample',
         tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-        fontColor, strokeColor, outlineStyle, dashLength, dashGap
+        fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
       });
 
       // Generate a mock QR code in the preview
@@ -6000,6 +6027,7 @@
       const fontColor = document.getElementById('printFontColor')?.value || '#000000';
       const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
       const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+      const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
 
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
@@ -6039,7 +6067,7 @@
           trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
           showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
           tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-          fontColor, strokeColor, outlineStyle, dashLength, dashGap
+          fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
         });
         
         qrTasks.push({ id: cardId, text: link });
@@ -6511,9 +6539,17 @@
             </label>
             
             <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-              <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+              <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
               <span>صورة الطفل</span>
             </label>
+            
+            <!-- Avatar Fallback Sub-option (visible when student image is checked) -->
+            <div id="printAvatarFallbackRow" style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:rgba(255,255,255,0.4); border-radius:4px;">
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer;">
+                <input type="checkbox" id="printShowAvatarFallback" checked style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
+              </label>
+            </div>
             
             <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
               <input type="checkbox" id="printShowStudentName" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
