@@ -7,7 +7,8 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
     $parent = dirname($rootPath);
-    if ($parent === $rootPath) break;
+    if ($parent === $rootPath)
+        break;
     $rootPath = $parent;
 }
 $sessionPath = $rootPath . '/.sessions';
@@ -6830,27 +6831,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div class="hero-actions">
                         <div class="action-dropdown">
-                            <button class="topbar-btn" style="font-family: inherit;" onclick="toggleDropdown('heroActionsMenu')">
+                            <button class="topbar-btn" style="font-family: inherit;"
+                                onclick="toggleDropdown('heroActionsMenu')">
                                 <i class="fas fa-ellipsis-v"></i> إجراءات
                             </button>
                             <div class="dropdown-menu" id="heroActionsMenu" style="left:0; right:auto;">
-                                <button class="dropdown-item" onclick="openIntelligentSearchModal(); closeAllDropdowns()"><i class="fas fa-search"></i> بحث ذكي</button>
-                                <button class="dropdown-item" id="showAllStudentsModalBtn" onclick="closeAllDropdowns()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                                <a href="/uncle/dashboard/withdraw/" class="dropdown-item"><i class="fas fa-star"></i> سحب كوبونات</a>
-                                
+                                <button class="dropdown-item"
+                                    onclick="openIntelligentSearchModal(); closeAllDropdowns()"><i
+                                        class="fas fa-search"></i> بحث ذكي</button>
+                                <button class="dropdown-item" id="showAllStudentsModalBtn"
+                                    onclick="closeAllDropdowns()"><i class="fas fa-list"></i> جميع الأطفال</button>
+                                <a href="/uncle/dashboard/withdraw/" class="dropdown-item"><i class="fas fa-star"></i>
+                                    سحب كوبونات</a>
+
                                 <div class="dropdown-divider"></div>
                                 <div class="dropdown-group-label">أدوات إضافية</div>
-                                <button class="dropdown-item" id="showBirthdayModalBtn" onclick="closeAllDropdowns()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                                <button class="dropdown-item" id="manageAnnouncementsBtn" onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                                <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn" style="position:relative; display:flex; justify-content:space-between; align-items:center;">
+                                <button class="dropdown-item" id="showBirthdayModalBtn" onclick="closeAllDropdowns()"><i
+                                        class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                                <button class="dropdown-item" id="manageAnnouncementsBtn"
+                                    onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                                <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
+                                    style="position:relative; display:flex; justify-content:space-between; align-items:center;">
                                     <span><i class="fas fa-tasks"></i> المهام</span>
-                                    <span id="globalTasksBadge" style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;"></span>
+                                    <span id="globalTasksBadge"
+                                        style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;"></span>
                                 </a>
-                                
+
                                 <div class="dropdown-divider"></div>
                                 <div class="dropdown-group-label">إضافات وتصدير</div>
-                                <button class="dropdown-item" onclick="showAllKidsCustomExport(); closeAllDropdowns()"><i class="fas fa-file-export"></i> تصدير مخصص</button>
-                                <button class="dropdown-item" id="bulkAddKidsBtn" onclick="showBulkAddModal(); closeAllDropdowns()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                                <button class="dropdown-item"
+                                    onclick="showAllKidsCustomExport(); closeAllDropdowns()"><i
+                                        class="fas fa-file-export"></i> تصدير مخصص</button>
+                                <button class="dropdown-item" id="bulkAddKidsBtn"
+                                    onclick="showBulkAddModal(); closeAllDropdowns()"><i class="fas fa-upload"></i>
+                                    إضافة مجموعة</button>
                             </div>
                         </div>
                     </div>
@@ -6953,16 +6967,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Uncles & Sort Bar -->
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
                     <!-- Uncles bar -->
                     <div class="uncles-bar" id="unclesBar" style="display:none">
                         <span class="uncles-bar-label"><i class="fas fa-users"></i> الخدام:</span>
                         <div class="uncles-list" id="unclesList"></div>
                     </div>
-                    
+
                     <!-- Sort -->
                     <div style="flex-shrink: 0; margin-right: auto;">
-                        <select class="search-input" id="classSortSelect" onchange="renderAttendanceList(currentClass)" title="ترتيب القائمة" style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.85rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2);">
+                        <select class="search-input" id="classSortSelect" onchange="renderAttendanceList(currentClass)"
+                            title="ترتيب القائمة"
+                            style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.85rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2);">
                             <option value="name_az">الاسم أ-ي</option>
                             <option value="name_za">الاسم ي-أ</option>
                             <option value="age_asc">الأصغر سناً</option>
@@ -7033,7 +7050,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="action-dropdown">
                         <button class="action-strip-btn" id="couponsStripBtn">
                             <i class="fas fa-layer-group"></i>
-                            <span class="strip-label">جماعي</span>
+                            <span class="strip-label">الجميع</span>
                             <i class="fas fa-chevron-down chevron"></i>
                         </button>
                         <div class="dropdown-menu" id="couponsDropdownMenu">
@@ -7306,8 +7323,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="form-group">
                     <label class="form-label">النوع *</label>
-                    <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select
-                            id="studentGender" class="form-input" required>
+                    <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select id="studentGender"
+                            class="form-input" required>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
                         </select></div>
@@ -7363,17 +7380,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <input type="text" class="form-input" id="sheetToDate" placeholder="إلى DD/MM/YYYY"
                         style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric"
                         oninput="autoFormatCustomDate(this)">
-                    <button class="header-btn" id="applySheetDateRangeBtn" title="تصفية"><i class="fas fa-filter" style="color:var(--brand)"></i></button>
-                    <button class="header-btn" id="clearSheetDateRangeBtn" title="مسح التصفية"><i class="fas fa-eraser" style="color:var(--text-3)"></i></button>
+                    <button class="header-btn" id="applySheetDateRangeBtn" title="تصفية"><i class="fas fa-filter"
+                            style="color:var(--brand)"></i></button>
+                    <button class="header-btn" id="clearSheetDateRangeBtn" title="مسح التصفية"><i class="fas fa-eraser"
+                            style="color:var(--text-3)"></i></button>
                     <div class="zoom-controls" id="sheetZoomControls">
-                        <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i class="fas fa-minus"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i
+                                class="fas fa-minus"></i></button>
                         <span class="zoom-level" id="sheetZoomLevel">100%</span>
-                        <button class="zoom-btn" onclick="sheetZoom(1)" title="تكبير"><i class="fas fa-plus"></i></button>
-                        <button class="zoom-btn" onclick="sheetZoomReset()" title="إعادة ضبط"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoom(1)" title="تكبير"><i
+                                class="fas fa-plus"></i></button>
+                        <button class="zoom-btn" onclick="sheetZoomReset()" title="إعادة ضبط"><i
+                                class="fas fa-compress-arrows-alt"></i></button>
                     </div>
-                    <button class="header-btn" id="saveSheetAsPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf" style="color:var(--danger)"></i></button>
-                    <button class="header-btn" id="saveSheetAsImageBtn" title="تصدير صورة"><i class="fas fa-image" style="color:var(--info)"></i></button>
-                    <button class="header-btn" id="saveSheetAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--success)"></i></button>
+                    <button class="header-btn" id="saveSheetAsPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf"
+                            style="color:var(--danger)"></i></button>
+                    <button class="header-btn" id="saveSheetAsImageBtn" title="تصدير صورة"><i class="fas fa-image"
+                            style="color:var(--info)"></i></button>
+                    <button class="header-btn" id="saveSheetAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
+                            style="color:var(--success)"></i></button>
                     <button class="close-btn" id="closeSheetModal">&times;</button>
                 </div>
             </div>
@@ -7406,9 +7431,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="gap:8px;flex-wrap:wrap">
                 <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                    <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--success)"></i></button>
-                    <button class="header-btn" id="customExportPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf" style="color:var(--danger)"></i></button>
-                    <button class="header-btn" id="customExportImageBtn" title="تصدير صورة"><i class="fas fa-image" style="color:var(--info)"></i></button>
+                    <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
+                            style="color:var(--success)"></i></button>
+                    <button class="header-btn" id="customExportPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf"
+                            style="color:var(--danger)"></i></button>
+                    <button class="header-btn" id="customExportImageBtn" title="تصدير صورة"><i class="fas fa-image"
+                            style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeCustomExportModal">&times;</button>
                 </div>
             </div>
@@ -7421,7 +7449,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="export-panel">
                         <div class="export-panel-title"><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</div>
                         <div style="display:flex;gap:6px">
-                            <select class="form-input" id="customExportSortBy" style="flex:1.5" onchange="renderCustomExportPreview()">
+                            <select class="form-input" id="customExportSortBy" style="flex:1.5"
+                                onchange="renderCustomExportPreview()">
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
                                 <option value="كوبونات">إجمالي الكوبونات</option>
@@ -7433,7 +7462,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="عيد الميلاد">عيد الميلاد</option>
                                 <option value="العنوان">العنوان</option>
                             </select>
-                            <select class="form-input" id="customExportSortOrder" style="flex:1" onchange="renderCustomExportPreview()">
+                            <select class="form-input" id="customExportSortOrder" style="flex:1"
+                                onchange="renderCustomExportPreview()">
                                 <option value="asc">تصاعدي</option>
                                 <option value="desc">تنازلي</option>
                             </select>
@@ -7577,9 +7607,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div style="padding: 16px;">
                 <div class="search-wrap" style="width: 100%; margin-bottom: 16px; position: relative;">
-                    <input type="text" class="search-input" id="intelligentSearchInput" placeholder="اسم الطفل، الفصل، التليفون..." oninput="performIntelligentSearch()" style="width:100%">
+                    <input type="text" class="search-input" id="intelligentSearchInput"
+                        placeholder="اسم الطفل، الفصل، التليفون..." oninput="performIntelligentSearch()"
+                        style="width:100%">
                 </div>
-                <div id="intelligentSearchResults" class="kid-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-bottom: 10px;">
+                <div id="intelligentSearchResults" class="kid-list"
+                    style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-bottom: 10px;">
                     <div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem">اكتب للبحث...</div>
                 </div>
             </div>
@@ -7630,9 +7663,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header">
                 <h3><i class="fas fa-user-check" style="color:var(--success)"></i> الأطفال الحاضرين</h3>
                 <div style="display:flex;gap:6px;align-items:center">
-                    <button class="header-btn" id="copyAttendedModalBtn" title="نسخ"><i class="fas fa-copy" style="color:var(--success)"></i></button>
-                    <button class="header-btn" onclick="shareAttendedToWhatsApp()" title="واتساب"><i class="fab fa-whatsapp" style="color:#25d366"></i></button>
-                    <button class="header-btn" id="saveAttendedAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--info)"></i></button>
+                    <button class="header-btn" id="copyAttendedModalBtn" title="نسخ"><i class="fas fa-copy"
+                            style="color:var(--success)"></i></button>
+                    <button class="header-btn" onclick="shareAttendedToWhatsApp()" title="واتساب"><i
+                            class="fab fa-whatsapp" style="color:#25d366"></i></button>
+                    <button class="header-btn" id="saveAttendedAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
+                            style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeAttendedModal">&times;</button>
                 </div>
             </div>
@@ -7668,7 +7704,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div style="display:flex;gap:6px;align-items:center">
                     <!-- Copy Dropdown -->
                     <div class="action-dropdown" style="flex:none">
-                        <button class="header-btn" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')" title="نسخ">
+                        <button class="header-btn" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')"
+                            title="نسخ">
                             <i class="fas fa-copy" style="color:var(--success)"></i>
                         </button>
                         <div class="dropdown-menu" id="absentCopyMenu" style="left:0;right:auto">
@@ -7694,7 +7731,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
                     </div>
-                    <button class="header-btn" id="saveAbsentAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv" style="color:var(--info)"></i></button>
+                    <button class="header-btn" id="saveAbsentAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
+                            style="color:var(--info)"></i></button>
                     <button class="close-btn" id="closeAbsentModal">&times;</button>
                 </div>
             </div>
@@ -8579,7 +8617,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function toggleDropdown(id, btn) {
             const menu = document.getElementById(id);
             if (!menu) return;
-            
+
             let btnEl = null;
             if (typeof btn === 'string') {
                 btnEl = document.getElementById(btn);
@@ -8590,24 +8628,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             if (activeDropdown && activeDropdown !== id) {
-                const prev = document.getElementById(activeDropdown); 
+                const prev = document.getElementById(activeDropdown);
                 if (prev) prev.classList.remove('open');
-                const prevBtn = document.querySelector(`[data-menu="${activeDropdown}"]`) || document.getElementById(activeDropdown + 'Btn'); 
+                const prevBtn = document.querySelector(`[data-menu="${activeDropdown}"]`) || document.getElementById(activeDropdown + 'Btn');
                 if (prevBtn) prevBtn.classList.remove('open');
                 document.querySelectorAll('.action-strip-btn.open, .topbar-btn.open').forEach(b => b.classList.remove('open'));
             }
-            
+
             const isOpen = menu.classList.toggle('open');
             if (btnEl) btnEl.classList.toggle('open', isOpen);
             activeDropdown = isOpen ? id : null;
-            
+
             if (isOpen) {
                 // Dynamically ensure it is visible and does not overflow the screen bounds
                 menu.style.left = '';
                 menu.style.right = '';
-                
+
                 const rect = menu.getBoundingClientRect();
-                
+
                 // If it overflows the left edge of the screen
                 if (rect.left < 10) {
                     menu.style.left = '10px';
@@ -13631,7 +13669,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
-            
+
             let maxScore = 0;
             const fields = [
                 { val: student['الاسم'], weight: 1.0 },
@@ -13677,7 +13715,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function performIntelligentSearch() {
             const q = document.getElementById('intelligentSearchInput').value.trim();
             const container = document.getElementById('intelligentSearchResults');
-            
+
             if (!q) {
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:0.9rem"><i class="fas fa-search" style="font-size:2rem;opacity:0.2;margin-bottom:10px;display:block"></i>اكتب للبحث...</div>';
                 return;
@@ -13703,10 +13741,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '---';
                 const id = s['_studentId'] || s['id'] || s['معرف'] || s['id_student'] || 0;
-                const photo = s['صورة'] 
+                const photo = s['صورة']
                     ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
                     : `<div style="width:36px;height:36px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>`;
-                
+
                 return `
                 <div style="background:var(--surface-2); padding:10px 14px; border-radius:10px; border:1px solid var(--border-solid); display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-3)'" onmouseout="this.style.background='var(--surface-2)'" onclick="selectStudentFromIntelligentSearch(${id})">
                     ${photo}
@@ -13723,13 +13761,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const searchData = allStudentsData.length ? allStudentsData : students;
             const s = searchData.find(x => x['_studentId'] == studentId || x['id'] == studentId || x['معرف'] == studentId || x['id_student'] == studentId);
             if (!s) return;
-            
+
             closeIntelligentSearchModal();
-            
+
             // Go to his class
             if (s['الفصل']) {
                 showClassView(s['الفصل']);
-                
+
                 // Wait for render, then scroll to row and highlight
                 setTimeout(() => {
                     const rowId = `ai-${s['الفصل']}_${s['الاسم']}`;
@@ -13743,7 +13781,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         setTimeout(() => {
                             row.style.background = originalBg;
                         }, 2000);
-                        
+
                         // Open his menu
                         setTimeout(() => {
                             showStudentDetails(s['الاسم']);
