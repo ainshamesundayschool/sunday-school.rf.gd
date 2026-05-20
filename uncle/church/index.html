@@ -4702,56 +4702,90 @@
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 20px;
-                padding: 20px;
+                padding: 10px;
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
+                justify-items: center;
+                align-items: center;
             }
 
             .print-card {
                 border: 2px dashed #000;
-                padding: 20px;
+                padding: 15px;
                 text-align: center;
                 border-radius: 10px;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                display: block !important;
-            }
-
-            .print-card img.qr {
-                width: 150px;
-                height: 150px;
-                margin: 10px auto;
-                display: block !important;
+                display: flex !important;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+                width: 260px;
+                height: 360px;
+                margin: 0 auto;
+                box-sizing: border-box;
+                background: #fff;
             }
 
             .print-card img.avatar {
-                width: 80px;
-                height: 80px;
+                width: 70px;
+                height: 70px;
                 border-radius: 50%;
-                margin: 0 auto 10px;
+                margin: 0;
                 object-fit: cover;
                 display: block !important;
             }
 
             .print-card h3 {
-                font-size: 16px;
-                margin-bottom: 4px;
+                font-size: 13px;
+                font-weight: 700;
+                margin: 0;
                 color: #000 !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 100%;
             }
 
             .print-card h2 {
-                font-size: 20px;
-                margin-bottom: 8px;
+                font-size: 18px;
+                font-weight: 800;
+                margin: 0;
                 color: #000 !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 100%;
             }
 
             .print-card .custom-info {
-                font-size: 14px;
+                font-size: 11px;
                 font-weight: bold;
                 color: #000 !important;
-                margin-bottom: 10px;
+                margin: 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+                width: 100%;
+            }
+
+            .print-card div[id^="qrcode_"] {
+                width: 130px;
+                height: 130px;
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto;
+            }
+
+            .print-card div[id^="qrcode_"] img,
+            .print-card div[id^="qrcode_"] canvas {
+                width: 130px !important;
+                height: 130px !important;
+                display: block !important;
             }
         }
     </style>
