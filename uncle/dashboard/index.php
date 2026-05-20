@@ -2346,6 +2346,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-sm);
             border: 2.5px solid var(--surface);
             flex-shrink: 0;
+            position: relative;
         }
 
         .student-avatar:hover {
@@ -2366,6 +2367,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .student-avatar.female i,
         .student-avatar.male i {
             font-size: 1.05rem;
+        }
+
+        .student-avatar.male::before,
+        .student-avatar.female::before,
+        .detail-avatar-fallback.male::before,
+        .detail-avatar-fallback.female::before {
+            content: '';
+            position: absolute;
+            top: 18%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.94);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+        }
+
+        .student-avatar.male::after,
+        .student-avatar.female::after,
+        .detail-avatar-fallback.male::after,
+        .detail-avatar-fallback.female::after {
+            content: '';
+            position: absolute;
+            bottom: 14%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 22px;
+            border-radius: 10px 10px 12px 12px;
+            background: rgba(255,255,255,0.92);
         }
 
         .student-gender-badge {
@@ -8816,7 +8848,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas ${gender === 'female' ? 'fa-venus' : 'fa-mars'}"></i></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
@@ -8829,7 +8861,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                    <div>${classBadge}${genderBadge}</div>
+                            <div>${genderBadge}</div>
                     <div class="status-indicator">${badges}</div>
                 </div>
             </div>
@@ -9760,7 +9792,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const img = s['صورة']
                     ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas ${gender === 'female' ? 'fa-venus' : 'fa-mars'}"></i></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
@@ -10322,13 +10354,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = getStudentGender(s);
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas ${gender === 'female' ? 'fa-venus' : 'fa-mars'}"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
             document.getElementById('studentDetails').innerHTML = avatar + rows;
         }
 
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
-            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas ${gender === 'female' ? 'fa-venus' : 'fa-mars'}"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
+            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],

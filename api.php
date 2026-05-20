@@ -3188,7 +3188,7 @@ function updateStudent()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sissssiisssii",
+                "sissssiissii",
                 $name,
                 $classId,
                 $className,
@@ -3242,12 +3242,68 @@ function updateStudent()
             error_log("❌ Update failed: " . $conn->error);
             sendJSON(['success' => false, 'message' => 'فشل في تحديث الطفل: ' . $conn->error]);
         }
-
     } catch (Exception $e) {
         error_log("updateStudent error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في تحديث الطفل: ' . $e->getMessage()]);
     }
 }
+
+function reviewStudentGender()
+{
+        try {
+            $churchId = getChurchId();
+            $studentId = intval($_POST['student_id'] ?? 0);
+            $action = sanitize($_POST['action'] ?? '');
+            $suggestedGender = sanitize($_POST['suggested_gender'] ?? '');
+
+            if ($studentId === 0 || !in_array($action, ['approve', 'reject'], true)) {
+                sendJSON(['success' => false, 'message' => 'بيانات المراجعة غير صحيحة']);
+                return;
+            }
+
+            $conn = getDBConnection();
+            $checkStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+            $checkStmt->bind_param('ii', $studentId, $churchId);
+            $checkStmt->execute();
+            $result = $checkStmt->get_result();
+            if ($result->num_rows === 0) {
+                sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل']);
+                return;
+            }
+
+            $row = $result->fetch_assoc();
+            $customInfo = json_decode($row['custom_info'] ?? 'null', true);
+            if (!is_array($customInfo)) {
+                $customInfo = [];
+            }
+
+            if ($action === 'approve') {
+                if ($suggestedGender !== 'male' && $suggestedGender !== 'female') {
+                    sendJSON(['success' => false, 'message' => 'النوع المقترح غير صالح']);
+                    return;
+                }
+                $customInfo['gender_review_status'] = 'approved';
+                $customInfo['gender_suggestion'] = $suggestedGender;
+                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt = $conn->prepare("UPDATE students SET gender = ?, custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                $updateStmt->bind_param('ssii', $suggestedGender, $customInfoJson, $studentId, $churchId);
+            } else {
+                $customInfo['gender_review_status'] = 'rejected';
+                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                $updateStmt->bind_param('sii', $customInfoJson, $studentId, $churchId);
+            }
+
+            if ($updateStmt->execute()) {
+                sendJSON(['success' => true, 'message' => 'تم تحديث مراجعة النوع بنجاح']);
+            } else {
+                error_log("❌ reviewStudentGender failed: " . $conn->error);
+                sendJSON(['success' => false, 'message' => 'فشل في حفظ مراجعة النوع']);
+            }
+        } catch (Exception $e) {
+            sendJSON(['success' => false, 'message' => 'خطأ في الخادم']);
+        }
+    }
 function updateStudentInfo()
 {
     try {
@@ -11819,6 +11875,11 @@ try {
             checkAuth();
             updateStudent();
             break; // Added missing break
+
+        case 'reviewStudentGender':
+            checkAuth();
+            reviewStudentGender();
+            break;
 
         case 'uncleLogin':
             handleUncleLogin();

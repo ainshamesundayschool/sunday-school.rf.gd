@@ -6108,6 +6108,13 @@
                             </div>
                             <div id="familyReviewSummary" style="font-size:0.88rem;color:var(--text);font-weight:600;"></div>
                             <div id="familyReviewList"></div>
+                            <div id="genderReviewSection" style="margin-top:20px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
+                                    <div style="font-weight:700;font-size:0.95rem;color:var(--text);">تدقيق النوع والمراجعة</div>
+                                </div>
+                                <div id="genderReviewSummary" style="font-size:0.88rem;color:var(--muted);font-weight:600;"></div>
+                                <div id="genderReviewList"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -9126,6 +9133,97 @@
             return Object.values(groups).filter(g => g.length > 1);
         }
 
+        function normalizeGenderValue(value) {
+            const raw = String(value || '').trim().toLowerCase();
+            if (!raw) return null;
+            if (['female', 'f', 'أنثى', 'fem', 'femaleً', 'femaleً'].includes(raw)) return 'female';
+            if (['male', 'm', 'ذكر', 'mal', 'maleً'].includes(raw)) return 'male';
+            return null;
+        }
+
+        function detectGenderByName(name) {
+            const text = String(name || '').trim().toLowerCase();
+            if (!text) return null;
+            const femaleEndings = ['ة', 'ه', 'اء', 'يا', 'ية', 'ا', 'ah', 'a', 'elle', 'ine', 'ette', 'ana', 'na'];
+            const maleIndicators = ['عبد', 'محمد', 'احمد', 'علي', 'خالد', 'سعيد', 'يوسف', 'محمود', 'مصطفى', 'سامي', 'رامي', 'ايمن'];
+            if (femaleEndings.some(e => text.endsWith(e))) return 'female';
+            if (maleIndicators.some(i => text.includes(i))) return 'male';
+            const maleEndings = ['ي', 'ى', 'ان', 'ون', 'يم', 'س', 'د', 'ر', 'ص', 'ح', 'خ', 'م', 'ق'];
+            if (maleEndings.some(e => text.endsWith(e))) return 'male';
+            return null;
+        }
+
+        function findGenderReviewCandidates(students) {
+            return students.map(s => {
+                const custom = parseJSON(s.custom_info || s['custom_info'] || '') || {};
+                const declaredGender = normalizeGenderValue(s['النوع'] || s.gender || custom.gender || '');
+                const suggestedGender = detectGenderByName(s['الاسم'] || s.name || '');
+                return {
+                    ...s,
+                    custom_info_parsed: custom,
+                    declaredGender,
+                    suggestedGender,
+                    genderReviewStatus: custom.gender_review_status || ''
+                };
+            }).filter(s => {
+                if (s.genderReviewStatus === 'rejected') return false;
+                if (!s.declaredGender) return true;
+                if (s.suggestedGender && s.declaredGender !== s.suggestedGender) return true;
+                return false;
+            });
+        }
+
+        function buildGenderReviewCard(student, idx) {
+            const id = student._studentId || student.id || student.studentId || 0;
+            const currentGenderLabel = student.declaredGender === 'female' ? 'أنثى' : student.declaredGender === 'male' ? 'ذكر' : 'غير محدد';
+            const suggestedLabel = student.suggestedGender === 'female' ? 'أنثى' : student.suggestedGender === 'male' ? 'ذكر' : 'لا يوجد اقتراح';
+            const statusText = !student.declaredGender ? 'جنس غير مسجل' : student.suggestedGender && student.declaredGender !== student.suggestedGender ? 'النوع المحتمل يختلف عن المسجل' : 'النوع مسجل بشكل غير واضح';
+            const statusBadge = student.genderReviewStatus === 'approved' ? 'badge-success' : student.genderReviewStatus === 'rejected' ? 'badge-danger' : 'badge-primary';
+            const statusLabel = student.genderReviewStatus === 'approved' ? 'معتمد مسبقاً' : student.genderReviewStatus === 'rejected' ? 'مرفوض مسبقاً' : statusText;
+            const actions = [];
+            if (student.suggestedGender) {
+                actions.push(`<button type="button" class="btn btn-primary btn-sm" onclick="reviewStudentGender(${id},'approve','${student.suggestedGender}')"><i class="fas fa-check"></i> اعتماد ${suggestedLabel}</button>`);
+            }
+            actions.push(`<button type="button" class="btn btn-danger btn-sm" onclick="reviewStudentGender(${id},'reject')"><i class="fas fa-times"></i> رفض</button>`);
+            return `
+                <div class="family-review-card" style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px;margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+                        <div>
+                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(student['الاسم'] || student.name || '')}</div>
+                            <div style="font-size:0.82rem;color:var(--muted);">${escHtml(student['الفصل'] || student.class || student['class'] || '')} · ${currentGenderLabel} → ${suggestedLabel}</div>
+                        </div>
+                        <div>
+                            <span class="badge ${statusBadge}" style="font-size:0.78rem;">${statusLabel}</span>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">
+                        <div style="font-size:0.85rem;color:var(--text);line-height:1.4;">${escHtml(statusText)}</div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">${actions.join('')}</div>
+                </div>
+            `;
+        }
+
+        async function reviewStudentGender(studentId, action, suggestedGender) {
+            const id = parseInt(studentId, 10);
+            if (!id || !['approve', 'reject'].includes(action)) {
+                showToast('بيانات المراجعة غير صحيحة', 'error');
+                return;
+            }
+            const fd = mkFd('reviewStudentGender');
+            fd.append('student_id', id);
+            fd.append('action', action);
+            if (suggestedGender) fd.append('suggested_gender', suggestedGender);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast('تم تحديث حالة المراجعة', 'success');
+                await loadStudents();
+                renderFamilyReviewPage();
+            } else {
+                showToast(d.message || 'فشل في حفظ المراجعة', 'error');
+            }
+        }
+
         async function saveFamilyGroupStatus(encodedFamilyKey, status) {
             const groupKey = decodeURIComponent(encodedFamilyKey);
             const groups = findFamilyCandidateGroups(allStudents || []);
@@ -9175,13 +9273,25 @@
                 await loadStudents();
             }
             const candidates = findFamilyCandidateGroups(allStudents || []);
+            const genderCandidates = findGenderReviewCandidates(allStudents || []);
             if (summary) summary.textContent = `تم العثور على ${candidates.length} مجموعة${candidates.length === 1 ? '' : 'ات'} محتملة.`;
             if (!list) return;
-            if (!candidates.length) {
-                list.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i><h3>لم يتم العثور على مجموعات إخوة واضحة</h3><p>تأكد من أن البيانات تتضمن اسم الأب أو ولي الأمر والعنوان.</p></div>`;
-                return;
-            }
-            list.innerHTML = candidates.map((group, idx) => buildFamilyGroupCard(group, idx)).join('');
+            const familyHtml = candidates.length
+                ? candidates.map((group, idx) => buildFamilyGroupCard(group, idx)).join('')
+                : `<div class="empty-state"><i class="fas fa-users"></i><h3>لم يتم العثور على مجموعات إخوة واضحة</h3><p>تأكد من أن البيانات تتضمن اسم الأب أو ولي الأمر والعنوان.</p></div>`;
+            const genderHtml = genderCandidates.length
+                ? genderCandidates.map((student, idx) => buildGenderReviewCard(student, idx)).join('')
+                : `<div class="empty-state"><i class="fas fa-venus-mars"></i><h3>لا توجد اقتراحات جنس جديدة</h3><p>إذا كان هناك أطفال بدون جنس أو بجنس مكتوب بشكل غير صحيح، فستظهر هنا.</p></div>`;
+            list.innerHTML = `
+                <div style="margin-bottom:22px;">
+                    <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;">مجموعات الأسرة المحتملة</div>
+                    ${familyHtml}
+                </div>
+                <div>
+                    <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;">اقتراحات جنس الطالب</div>
+                    ${genderHtml}
+                </div>
+            `;
         }
 
         async function loadChurchSettingsTab() {
