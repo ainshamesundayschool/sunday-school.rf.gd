@@ -3274,6 +3274,8 @@
 
     function renderTripDetailsFull(trip) {
       window.currentTripObj = trip;
+      const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+      const isOwner = trip.church_id == cid || trip.is_owner == 1;
       const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
       const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
       const regs = trip.registrations || [];
@@ -3288,7 +3290,10 @@
       const totalRemaining = Math.max(0, totalExpected - totalCollected);
 
       document.getElementById('tdModalTitle').textContent = trip.title;
-      document.getElementById('tdStatusBadge').innerHTML = `<span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>`;
+      document.getElementById('tdStatusBadge').innerHTML = `
+        <span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>
+        ${!isOwner ? `<span class="badge" style="font-size:0.72rem;background:#e0f2fe;color:#0ea5e9;border:1px solid #0ea5e9;margin-right:6px;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}
+      `;
       document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}`;
       document.getElementById('tdRegsCount').textContent = regs.length || '';
       document.getElementById('tdExpCount').textContent = exps.length || '';
@@ -3326,6 +3331,21 @@
             <div class="info-box"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:800;">${totalCollected} ج</div></div>
             <div class="info-box"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
         </div>
+
+        ${(() => {
+          let collabHtml = '';
+          try {
+            const collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+            if (collaborators.length > 0) {
+              collabHtml = `<div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:12px;margin-bottom:16px;">
+                <div style="font-size:0.85rem;font-weight:700;color:#0ea5e9;margin-bottom:6px;"><i class="fas fa-handshake"></i> التعاون مع الكنائس الأخرى</div>
+                <div style="font-size:0.75rem;color:#0369a1;">${collaborators.length} كنيسة أخرى تشارك في هذه الرحلة</div>
+              </div>`;
+            }
+          } catch (e) { }
+          return collabHtml;
+        })()}
+
         ${trip.description ? `<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>` : ''}
         <div class="trip-actions-grid">
           <button class="trip-action-btn primary" onclick="showRegisterStudentModal?.(${trip.id})">
@@ -3343,13 +3363,18 @@
           <button class="trip-action-btn" onclick="copyTripLink(${trip.id})">
             <i class="fas fa-link"></i>نسخ الرابط
           </button>
+          <button class="trip-action-btn" onclick="showTripCollaborationModal(${trip.id})">
+            <i class="fas fa-handshake"></i>التعاون والمشاركة
+          </button>
+          ${isOwner ? `
           <button class="trip-action-btn" onclick="openCustomFieldEditor(${trip.id})">
             <i class="fas fa-sliders-h"></i>الحقول الإضافية
           </button>
           <button class="trip-action-btn" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'">
             <i class="fas fa-edit"></i>تعديل الرحلة
           </button>
-          ${(trip.custom_fields && trip.custom_fields.trim()) ? `
+          ` : ''}
+          ${(isOwner && trip.custom_fields && trip.custom_fields.trim()) ? `
           <button class="trip-action-btn" onclick="openBulkCustomDataModal(${trip.id})">
             <i class="fas fa-table"></i>تعديل البيانات الإضافية
           </button>` : ''}
@@ -5360,6 +5385,108 @@
       });
       setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1000); }, 1200);
     }
+
+    async function sendCollabRequest(tripId) {
+      const input = document.getElementById('collabChurchCodeInput');
+      const code = input ? input.value.trim() : '';
+      if (!code) {
+        showToast('يرجى إدخل كود الكنيسة', 'warning');
+        return;
+      }
+
+      const fd = mkFd('sendCollaborationRequest');
+      fd.append('trip_id', tripId);
+      fd.append('to_church_code', code);
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+          showToast(res.message, 'success');
+          if (input) input.value = '';
+          closeModal('tripCollaborationModal');
+          await showTripDetails(tripId, { keepTab: true });
+        } else {
+          showToast(res.message || 'فشل إرسال الدعوة', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال', 'error');
+      }
+    }
+
+    function showTripCollaborationModal(tripId) {
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      if (!trip) {
+        showToast('الرحلة غير موجودة', 'error');
+        return;
+      }
+
+      let collaborators = [];
+      try {
+        collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+      } catch (e) {
+        collaborators = [];
+      }
+
+      const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}`;
+      const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+      const isOwner = trip.church_id == cid;
+
+      document.getElementById('collaborationContent').innerHTML = `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-info-circle"></i> معلومات التعاون</h4>
+            <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.85rem;color:var(--muted);line-height:1.6;">
+                يمكنك دعوة كنائس أخرى للمشاركة في هذه الرحلة. ستتمكن الكنائس المشاركة من مسح كروت QR للأطفال من جميع الكنائس المشاركة وإدارة نقاط المسابقة.
+            </div>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط الدعوة السريع</h4>
+            <div style="display:flex;gap:8px;">
+                <input type="text" value="${collaborationLink}" readonly style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);">
+                <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${collaborationLink}'); showToast('تم نسخ الرابط', 'success');"><i class="fas fa-copy"></i> نسخ</button>
+            </div>
+        </div>
+
+        ${isOwner ? `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-paper-plane"></i> إرسال دعوة مباشرة بكود الكنيسة</h4>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="collabChurchCodeInput" placeholder="أدخل كود الكنيسة (مثال: CH-XXXX)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg); color:var(--text);">
+                <button class="btn btn-success" onclick="sendCollabRequest(${tripId})"><i class="fas fa-paper-plane"></i> إرسال</button>
+            </div>
+        </div>
+        ` : `
+        <div style="margin-bottom:20px; background:#fffbeb; border:1px solid #f59e0b; border-radius:10px; padding:12px; color:#b45309; font-size:0.85rem;">
+            <i class="fas fa-exclamation-triangle"></i> فقط مالك الرحلة الأصلي يمكنه إرسال دعوات مشاركة جديدة لكنائس أخرى.
+        </div>
+        `}
+        
+        ${collaborators.length > 0 ? `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة (${collaborators.length})</h4>
+            <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:14px;">
+                <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
+                <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
+                    ${collaborators.map(id => `كنيسة رقم ${id}`).join('، ')}
+                </div>
+            </div>
+        </div>
+        ` : `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة</h4>
+            <div style="background:#fef3c7;border:1px solid #d97706;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:0.85rem;color:#92400e;">لا توجد كنائس أخرى تشارك في هذه الرحلة حالياً</div>
+            </div>
+        </div>
+        `}
+        
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('tripCollaborationModal')">إغلاق</button>
+        </div>
+      `;
+
+      openModal('tripCollaborationModal');
+    }
   </script>
 
   <!-- Bulk Custom Data Update -->
@@ -5426,6 +5553,23 @@
           <button type="button" class="btn btn-primary" onclick="cfeSave()" id="cfeSaveBtn"><i class="fas fa-save"></i>
             حفظ التغييرات</button>
           <button type="button" class="btn btn-outline" onclick="closeModal('customFieldEditorModal')">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trip Collaboration -->
+  <div id="tripCollaborationModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2><i class="fas fa-handshake"></i> التعاون في الرحلة</h2><button class="modal-close"
+          onclick="closeModal('tripCollaborationModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="collaborationContent">
+          <div style="text-align:center;padding:40px;color:var(--text-3);">
+            <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>جاري التحميل...
+          </div>
         </div>
       </div>
     </div>

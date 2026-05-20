@@ -21,8 +21,10 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /htdocs/
           exclude: |
-            **/.git/**
-            **/.github/**
+            **/.git*
+            **/.git*/**
+            **/.github*
+            **/.github*/**
             **/uploads/**
             **/config.php
             **/php_errors.log
