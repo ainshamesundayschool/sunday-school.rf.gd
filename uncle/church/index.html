@@ -10312,49 +10312,6 @@
             btn.innerHTML = '<i class="fas fa-save"></i> حفظ'; btn.disabled = false;
         }
 
-        // ── Dev Church Switcher ───────────────────────────────────────
-        function buildDevChurchSwitcher() {
-            if (document.getElementById('devChurchBar')) return;
-            const container = document.querySelector('.page-header-actions');
-            if (!container) return;
-
-            const bar = document.createElement('div');
-            bar.id = 'devChurchBar';
-            bar.className = 'pill';
-            bar.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 14px; background:white; border:1px solid var(--border); border-radius:30px; cursor:pointer;';
-            
-            bar.innerHTML = `
-                <i class="fas fa-church" style="color:var(--primary); font-size:0.9rem;"></i>
-                <select id="devChurchSelect" style="border:none; outline:none; font-size:0.85rem; font-weight:700; color:var(--text); cursor:pointer; background:transparent;" onchange="devSwitchChurch(this.value)">
-                    <option value="">كنيستي الافتراضية</option>
-                    <option value="ALL">جميع الكنائس</option>
-                </select>
-            `;
-            container.insertBefore(bar, container.firstChild);
-            _devPopulateChurchSelect();
-        }
-
-        async function _devPopulateChurchSelect() {
-            await loadAllChurches();
-            const sel = document.getElementById('devChurchSelect');
-            if (!sel) return;
-            while (sel.options.length > 2) sel.remove(2);
-            if (!allChurchesCache.length) return;
-            const sep = document.createElement('option');
-            sep.disabled = true; sep.textContent = '──────────────────';
-            sel.appendChild(sep);
-            allChurchesCache.forEach(c => {
-                const o = document.createElement('option');
-                o.value = c.id;
-                const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
-                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code})`;
-                if (c.id == devOrigChurchId) o.style.fontWeight = '700';
-                sel.appendChild(o);
-            });
-            if (devViewChurchId > 0) sel.value = devViewChurchId;
-            else if (devViewChurchId === -1) sel.value = 'ALL';
-        }
-
         // ── Developer: Custom Field Templates ─────────────────────────
         let _devTemplatesCache = [];
 
@@ -10734,46 +10691,40 @@
         // ── Dev Church Switcher ───────────────────────────────────────
         function buildDevChurchSwitcher() {
             if (document.getElementById('devChurchBar')) return;
+            const container = document.querySelector('.page-header-actions');
+            if (!container) return;
+
             const bar = document.createElement('div');
             bar.id = 'devChurchBar';
             bar.style.cssText = [
-                'background:linear-gradient(135deg,#1e1b4b,#312e81)',
-                'color:white', 'padding:0 20px', 'height:48px',
-                'display:flex', 'align-items:center', 'gap:14px',
-                'font-family:Cairo,sans-serif', 'font-size:0.82rem', 'font-weight:600',
-                'flex-shrink:0', 'border-bottom:1px solid rgba(255,255,255,0.08)',
-                'width:100%', 'position:sticky', 'top:56px', 'z-index:99',
-                'box-shadow:0 2px 12px rgba(0,0,0,0.25)',
+                'display:flex', 'align-items:center', 'gap:8px',
+                'background:rgba(124, 58, 237, 0.08)',
+                'border:1px solid rgba(124, 58, 237, 0.2)',
+                'padding:4px 12px 4px 6px',
+                'border-radius:20px',
+                'margin-left: 8px',
+                'transition: all 0.2s ease'
             ].join(';');
+            
+            // Add hover effect
+            bar.onmouseover = () => bar.style.background = 'rgba(124, 58, 237, 0.12)';
+            bar.onmouseout = () => bar.style.background = 'rgba(124, 58, 237, 0.08)';
+
             bar.innerHTML = `
-        <div style="position:relative;flex:1;max-width:380px;">
-            <select id="devChurchSelect"
-                style="width:100%;padding:7px 36px 7px 12px;border-radius:8px;
-                    border:1.5px solid rgba(167,139,250,0.35);
-                    background:rgba(255,255,255,0.08);color:white;
-                    font-family:Cairo,sans-serif;font-size:0.82rem;cursor:pointer;
-                    appearance:none;-webkit-appearance:none;outline:none;"
-                onchange="devSwitchChurch(this.value)">
-                <option value="">كنيستي الافتراضية</option>
-                <option value="ALL"> جميع الكنائس</option>
-            </select>
-            <i class="fas fa-chevron-down" style="position:absolute;left:10px;top:50%;
-                transform:translateY(-50%);font-size:0.65rem;color:rgba(255,255,255,0.4);pointer-events:none;"></i>
-        </div>
-                <div id="devCurrentChurchPill" style="display:none;align-items:center;gap:7px;
-            background:rgba(139,92,246,0.25);border:1px solid rgba(167,139,250,0.3);
-            padding:4px 12px;border-radius:20px;font-size:0.78rem;flex-shrink:0;">
-            <span id="devCurrentChurchLabel" style="color:#e0d9ff;"></span>
-            <span id="devChurchStudentCount" style="color:rgba(255,255,255,0.5);font-size:0.72rem;"></span>
-        </div>
-        <button id="devRefreshBtn" onclick="devRefreshCurrent()"
-            style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;
-                border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);
-                color:rgba(255,255,255,0.65);font-family:Cairo,sans-serif;font-size:0.75rem;cursor:pointer;flex-shrink:0;">
-            <i class="fas fa-sync-alt" style="font-size:0.7rem;"></i> تحديث
-        </button>`;
-            const mc = document.querySelector('.main-content');
-            mc.parentNode.insertBefore(bar, mc);
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div style="position:relative;display:flex;align-items:center;">
+                    <select id="devChurchSelect"
+                        style="background:transparent;border:none;outline:none;font-family:Cairo,sans-serif;font-size:0.8rem;font-weight:800;color:var(--brand);cursor:pointer;padding-left:14px;appearance:none;-webkit-appearance:none;max-width:200px;text-overflow:ellipsis;"
+                        onchange="devSwitchChurch(this.value)">
+                        <option value="">كنيستي الافتراضية</option>
+                        <option value="ALL">جميع الكنائس</option>
+                    </select>
+                    <i class="fas fa-chevron-down" style="position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:0.6rem;color:var(--brand);pointer-events:none;"></i>
+                </div>
+            `;
+            container.insertBefore(bar, container.firstChild);
             _devPopulateChurchSelect();
         }
 
@@ -10790,22 +10741,12 @@
                 const o = document.createElement('option');
                 o.value = c.id;
                 const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
-                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code}) — ${c.student_count || 0} ${c.church_type === 'youth' ? 'شاب' : 'طفل'}`;
-                if (c.id == devOrigChurchId) o.style.fontWeight = '700';
+                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code}) — ${c.student_count || 0}`;
+                if (c.id == devOrigChurchId) o.style.fontWeight = '800';
                 sel.appendChild(o);
             });
             if (devViewChurchId > 0) sel.value = devViewChurchId;
             else if (devViewChurchId === -1) sel.value = 'ALL';
-        }
-
-        function devRefreshCurrent() {
-            const btn = document.getElementById('devRefreshBtn');
-            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:0.7rem;"></i> ...';
-            Promise.all([loadStatistics(), loadStudents(), loadUncles(), loadTrips(), loadPendingRegistrations()])
-                .then(() => {
-                    showToast('تم التحديث', 'success');
-                    if (btn) btn.innerHTML = '<i class="fas fa-sync-alt" style="font-size:0.7rem;"></i> تحديث';
-                });
         }
 
         async function devSwitchChurch(churchId) {
