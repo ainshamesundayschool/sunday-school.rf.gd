@@ -393,6 +393,251 @@ function joinTrip()
     }
 }
 
+// ── Collaboration Helpers ──────────────────────────────────
+function verifyTripParticipant($conn, $tripId, $churchId)
+{
+    $stmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    if (!$res) return false;
+    $participants = [intval($res['church_id'])];
+    $collabRaw = $res['collaborating_churches'] ?? '';
+    if (!empty($collabRaw)) {
+        $collab = json_decode($collabRaw, true);
+        if (is_array($collab)) {
+            $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+        }
+    }
+    return in_array(intval($churchId), $participants);
+}
+
+function verifyRegistrationParticipant($conn, $registrationId, $churchId)
+{
+    $stmt = $conn->prepare("
+        SELECT t.church_id, t.collaborating_churches
+        FROM trip_registrations tr
+        JOIN trips t ON tr.trip_id = t.id
+        WHERE tr.id = ?
+    ");
+    $stmt->bind_param("i", $registrationId);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    if (!$res) return false;
+    $participants = [intval($res['church_id'])];
+    $collabRaw = $res['collaborating_churches'] ?? '';
+    if (!empty($collabRaw)) {
+        $collab = json_decode($collabRaw, true);
+        if (is_array($collab)) {
+            $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+        }
+    }
+    return in_array(intval($churchId), $participants);
+}
+
+function ensureTripCollaborationRequestsTable($conn)
+{
+    $sql = "CREATE TABLE IF NOT EXISTS `trip_collaboration_requests` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `trip_id` int(11) NOT NULL,
+        `from_church_id` int(11) NOT NULL,
+        `to_church_id` int(11) NOT NULL,
+        `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+        PRIMARY KEY (`id`),
+        KEY `trip_id` (`trip_id`),
+        KEY `from_church_id` (`from_church_id`),
+        KEY `to_church_id` (`to_church_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    $conn->query($sql);
+}
+
+function sendCollaborationRequest()
+{
+    try {
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $toChurchCode = sanitize($_POST['to_church_code'] ?? '');
+
+        if ($tripId <= 0 || empty($toChurchCode)) {
+            sendJSON(['success' => false, 'message' => 'جميع الحقول مطلوبة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureTripCollaborationRequestsTable($conn);
+
+        // 1. Verify trip exists and user is owner
+        $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
+        $tStmt->bind_param("i", $tripId);
+        $tStmt->execute();
+        $trip = $tStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+        if (intval($trip['church_id']) !== $churchId) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بإرسال طلب مشاركة لهذه الرحلة']);
+            return;
+        }
+
+        // 2. Lookup recipient church
+        $cStmt = $conn->prepare("SELECT id, church_name FROM churches WHERE church_code = ? LIMIT 1");
+        $cStmt->bind_param("s", $toChurchCode);
+        $cStmt->execute();
+        $toChurch = $cStmt->get_result()->fetch_assoc();
+        if (!$toChurch) {
+            sendJSON(['success' => false, 'message' => 'رمز الكنيسة غير صحيح أو الكنيسة غير موجودة']);
+            return;
+        }
+        $toChurchId = intval($toChurch['id']);
+
+        if ($toChurchId === $churchId) {
+            sendJSON(['success' => false, 'message' => 'لا يمكنك إرسال طلب مشاركة لكنيستك']);
+            return;
+        }
+
+        // 3. Check if already a collaborator
+        $collab = [];
+        if (!empty($trip['collaborating_churches'])) {
+            $collab = json_decode($trip['collaborating_churches'], true);
+            if (!is_array($collab)) $collab = [];
+        }
+        if (in_array($toChurchId, $collab)) {
+            sendJSON(['success' => false, 'message' => 'هذه الكنيسة تشارك بالفعل في الرحلة']);
+            return;
+        }
+
+        // 4. Check for existing pending request
+        $chk = $conn->prepare("SELECT id FROM trip_collaboration_requests WHERE trip_id = ? AND to_church_id = ? AND status = 'pending'");
+        $chk->bind_param("ii", $tripId, $toChurchId);
+        $chk->execute();
+        if ($chk->get_result()->num_rows > 0) {
+            sendJSON(['success' => false, 'message' => 'يوجد طلب معلق مرسل بالفعل لهذه الكنيسة']);
+            return;
+        }
+
+        // 5. Insert request
+        $ins = $conn->prepare("INSERT INTO trip_collaboration_requests (trip_id, from_church_id, to_church_id, status) VALUES (?, ?, ?, 'pending')");
+        $ins->bind_param("iii", $tripId, $churchId, $toChurchId);
+        if ($ins->execute()) {
+            sendJSON(['success' => true, 'message' => 'تم إرسال طلب المشاركة بنجاح إلى ' . $toChurch['church_name']]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل إرسال الطلب: ' . $ins->error]);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+function getCollaborationRequests()
+{
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureTripCollaborationRequestsTable($conn);
+
+        // Incoming requests (to this church)
+        $inStmt = $conn->prepare("
+            SELECT r.*, t.title as trip_title, c.church_name as from_church_name 
+            FROM trip_collaboration_requests r 
+            JOIN trips t ON r.trip_id = t.id 
+            JOIN churches c ON r.from_church_id = c.id 
+            WHERE r.to_church_id = ? AND r.status = 'pending'
+            ORDER BY r.created_at DESC
+        ");
+        $inStmt->bind_param("i", $churchId);
+        $inStmt->execute();
+        $incoming = $inStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        // Outgoing requests (from this church)
+        $outStmt = $conn->prepare("
+            SELECT r.*, t.title as trip_title, c.church_name as to_church_name 
+            FROM trip_collaboration_requests r 
+            JOIN trips t ON r.trip_id = t.id 
+            JOIN churches c ON r.to_church_id = c.id 
+            WHERE r.from_church_id = ?
+            ORDER BY r.created_at DESC
+        ");
+        $outStmt->bind_param("i", $churchId);
+        $outStmt->execute();
+        $outgoing = $outStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        sendJSON(['success' => true, 'incoming' => $incoming, 'outgoing' => $outgoing]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+function respondToCollaborationRequest()
+{
+    try {
+        $churchId = getChurchId();
+        $requestId = intval($_POST['request_id'] ?? 0);
+        $status = sanitize($_POST['status'] ?? ''); // 'accepted' or 'rejected'
+
+        if ($requestId <= 0 || !in_array($status, ['accepted', 'rejected'])) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureTripCollaborationRequestsTable($conn);
+
+        // Verify request belongs to the logged-in church
+        $rStmt = $conn->prepare("SELECT * FROM trip_collaboration_requests WHERE id = ? AND to_church_id = ? AND status = 'pending' LIMIT 1");
+        $rStmt->bind_param("ii", $requestId, $churchId);
+        $rStmt->execute();
+        $request = $rStmt->get_result()->fetch_assoc();
+        if (!$request) {
+            sendJSON(['success' => false, 'message' => 'الطلب غير موجود أو تمت معالجته بالفعل']);
+            return;
+        }
+
+        $tripId = intval($request['trip_id']);
+
+        if ($status === 'accepted') {
+            // Get trip to update collaborating churches
+            $tStmt = $conn->prepare("SELECT collaborating_churches FROM trips WHERE id = ?");
+            $tStmt->bind_param("i", $tripId);
+            $tStmt->execute();
+            $trip = $tStmt->get_result()->fetch_assoc();
+            if (!$trip) {
+                sendJSON(['success' => false, 'message' => 'الرحلة المرتبطة بالطلب لم تعد موجودة']);
+                return;
+            }
+
+            $collab = [];
+            if (!empty($trip['collaborating_churches'])) {
+                $collab = json_decode($trip['collaborating_churches'], true);
+                if (!is_array($collab)) $collab = [];
+            }
+            $collab[] = $churchId;
+            $collab = array_values(array_unique(array_map('intval', $collab)));
+            $collabJson = json_encode($collab, JSON_UNESCAPED_UNICODE);
+
+            $upTrip = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
+            $upTrip->bind_param("si", $collabJson, $tripId);
+            if (!$upTrip->execute()) {
+                sendJSON(['success' => false, 'message' => 'فشل تحديث بيانات الرحلة']);
+                return;
+            }
+        }
+
+        // Update request status
+        $upReq = $conn->prepare("UPDATE trip_collaboration_requests SET status = ? WHERE id = ?");
+        $upReq->bind_param("si", $status, $requestId);
+        if ($upReq->execute()) {
+            sendJSON(['success' => true, 'message' => $status === 'accepted' ? 'تم قبول طلب المشاركة بنجاح' : 'تم رفض الطلب']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل تحديث الطلب']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
 // ── Get Trip Students (for QR export) ──────────────────────────
 function getTripStudents()
 {
@@ -403,6 +648,12 @@ function getTripStudents()
             return;
         }
         $conn = getDBConnection();
+
+        $churchId = getChurchId();
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بعرض طلاب هذه الرحلة']);
+            return;
+        }
 
         // Get trip info
         $tStmt = $conn->prepare("SELECT id, title, church_id, points_config FROM trips WHERE id = ? LIMIT 1");
@@ -1006,6 +1257,19 @@ try {
         case 'restoreTripPayment':
             restoreTripPayment();
             break;
+        case 'sendCollaborationRequest':
+            checkAuth();
+            sendCollaborationRequest();
+            break;
+        case 'getCollaborationRequests':
+            checkAuth();
+            getCollaborationRequests();
+            break;
+        case 'respondToCollaborationRequest':
+            checkAuth();
+            respondToCollaborationRequest();
+            break;
+
 
         // دوال تحسين الحضور
         case 'getFridaysInMonth':
@@ -1421,6 +1685,22 @@ try {
             checkAuth();
             deleteTrip();
             break;
+
+        case 'sendCollaborationRequest':
+            checkAuth();
+            sendCollaborationRequest();
+            break;
+
+        case 'getCollaborationRequests':
+            checkAuth();
+            getCollaborationRequests();
+            break;
+
+        case 'respondToCollaborationRequest':
+            checkAuth();
+            respondToCollaborationRequest();
+            break;
+
 
         case 'registerStudentForTrip':
             registerStudentForTrip();
@@ -9137,11 +9417,7 @@ function bulkUpdateCustomData()
         }
 
         $conn = getDBConnection();
-        $checkStmt = $conn->prepare("SELECT id FROM trips WHERE id = ? AND church_id = ?");
-        $checkStmt->bind_param('ii', $tripId, $churchId);
-        $checkStmt->execute();
-        $tripResult = $checkStmt->get_result();
-        if ($tripResult->num_rows === 0) {
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح بها']);
             return;
         }
@@ -9361,9 +9637,14 @@ function rebalanceTripWaitlist()
         $conn = getDBConnection();
         ensureWaitlistTable($conn);
 
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بموازنتها']);
+            return;
+        }
+
         // Get trip max
-        $tripStmt = $conn->prepare("SELECT max_participants FROM trips WHERE id = ? AND church_id = ?");
-        $tripStmt->bind_param("ii", $tripId, $churchId);
+        $tripStmt = $conn->prepare("SELECT max_participants FROM trips WHERE id = ?");
+        $tripStmt->bind_param("i", $tripId);
         $tripStmt->execute();
         $trip = $tripStmt->get_result()->fetch_assoc();
         if (!$trip) {
@@ -9502,8 +9783,13 @@ function registerStudentForTrip()
         }
 
         // تحقق من الحد الأقصى للمشاركين
-        $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ? AND church_id = ?");
-        $tripStmt->bind_param("ii", $tripId, $churchId);
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بالتسجيل بها']);
+            return;
+        }
+
+        $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ?");
+        $tripStmt->bind_param("i", $tripId);
         $tripStmt->execute();
         $trip = $tripStmt->get_result()->fetch_assoc();
         if (!$trip) {
@@ -9647,14 +9933,19 @@ function addTripPayment()
 
         $conn = getDBConnection();
 
+        if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'التسجيل غير موجود أو غير مصرح لك بإضافة دفعة له']);
+            return;
+        }
+
         // التحقق من صحة التسجيل
         $checkStmt = $conn->prepare("
             SELECT tr.*, t.price, t.discount, t.discount_type
             FROM trip_registrations tr
             JOIN trips t ON tr.trip_id = t.id
-            WHERE tr.id = ? AND t.church_id = ?
+            WHERE tr.id = ?
         ");
-        $checkStmt->bind_param("ii", $registrationId, $churchId);
+        $checkStmt->bind_param("i", $registrationId);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
 
@@ -9790,13 +10081,17 @@ function cancelTripRegistration()
         $regInfo = $infoStmt->get_result()->fetch_assoc();
         $tripId = $regInfo ? (int) $regInfo['trip_id'] : 0;
 
+        if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'التسجيل غير موجود أو غير مصرح لك بإلغائه']);
+            return;
+        }
+
         $stmt = $conn->prepare("
             UPDATE trip_registrations tr
-            JOIN trips t ON tr.trip_id = t.id
             SET tr.cancelled = 1, tr.cancelled_at = NOW(), tr.cancelled_by = ?
-            WHERE tr.id = ? AND t.church_id = ?
+            WHERE tr.id = ?
         ");
-        $stmt->bind_param("iii", $uncleId, $registrationId, $churchId);
+        $stmt->bind_param("ii", $uncleId, $registrationId);
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
             // ► AUDIT
@@ -9851,19 +10146,26 @@ function deleteTripPayment()
 
         $conn = getDBConnection();
 
-        // Verify the payment belongs to the church
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح بحذفها']);
+            return;
+        }
+
+        // Verify the payment belongs to the registration
         $checkStmt = $conn->prepare("
-            SELECT tp.*, tr.trip_id, t.church_id, t.price, t.discount, t.discount_type
+            SELECT tp.*, tr.trip_id, t.price, t.discount, t.discount_type
             FROM trip_payments tp
             JOIN trip_registrations tr ON tp.registration_id = tr.id
             JOIN trips t ON tr.trip_id = t.id
-            WHERE tp.id = ? AND tr.id = ? AND t.church_id = ?
+            WHERE tp.id = ? AND tr.id = ?
         ");
-        $checkStmt->bind_param("iii", $paymentId, $registrationId, $churchId);
+        $checkStmt->bind_param("ii", $paymentId, $registrationId);
         $checkStmt->execute();
         $res = $checkStmt->get_result();
         if ($res->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح بحذفها']);
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة']);
             return;
         }
         $paymentInfo = $res->fetch_assoc();
@@ -9953,19 +10255,24 @@ function restoreTripPayment()
 
         $conn = getDBConnection();
 
-        // Verify payment belongs to this church
+        if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح باستعادتها']);
+            return;
+        }
+
+        // Verify payment belongs to this registration
         $checkStmt = $conn->prepare("
-            SELECT tp.*, tr.trip_id, t.church_id, t.price, t.discount, t.discount_type
+            SELECT tp.*, tr.trip_id, t.price, t.discount, t.discount_type
             FROM trip_payments tp
             JOIN trip_registrations tr ON tp.registration_id = tr.id
             JOIN trips t ON tr.trip_id = t.id
-            WHERE tp.id = ? AND tr.id = ? AND t.church_id = ?
+            WHERE tp.id = ? AND tr.id = ?
         ");
-        $checkStmt->bind_param("iii", $paymentId, $registrationId, $churchId);
+        $checkStmt->bind_param("ii", $paymentId, $registrationId);
         $checkStmt->execute();
         $res = $checkStmt->get_result();
         if ($res->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة أو غير مصرح باستعادتها']);
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة']);
             return;
         }
         $paymentInfo = $res->fetch_assoc();
@@ -10041,14 +10348,19 @@ function exportTripData()
 
         $conn = getDBConnection();
 
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بتصدير بياناتها']);
+            return;
+        }
+
         // معلومات الرحلة
         $tripStmt = $conn->prepare("
             SELECT t.*, u.name as created_by_name
             FROM trips t
             LEFT JOIN uncles u ON t.created_by = u.id
-            WHERE t.id = ? AND t.church_id = ?
+            WHERE t.id = ?
         ");
-        $tripStmt->bind_param("ii", $tripId, $churchId);
+        $tripStmt->bind_param("i", $tripId);
         $tripStmt->execute();
         $tripResult = $tripStmt->get_result();
 
@@ -10083,10 +10395,12 @@ function exportTripData()
                 tr.custom_data,
                 COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
                 COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
-                u.name as registered_by_name
+                u.name as registered_by_name,
+                c.church_name as student_church
             FROM trip_registrations tr
             JOIN students s ON tr.student_id = s.id
             LEFT JOIN uncles u ON tr.registered_by = u.id
+            LEFT JOIN churches c ON s.church_id = c.id
             WHERE tr.trip_id = ? AND tr.cancelled = 0
             ORDER BY tr.registration_date
         ");
@@ -10229,7 +10543,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     // ─── قسم المسجلون ─────────────────────────────────────────────────────────
     fputcsv($output, ['قائمة المسجلين (' . count($registrations) . ')']);
     $headerRow = [
-        '#', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية',
+        '#', 'اسم الطفل', 'الكنيسة', 'الفصل', 'رقم الهاتف', 'هاتف الطوارئ', 'ملاحظات طبية',
         'تاريخ التسجيل', 'المدفوع', 'التبرع', 'المتبقي', 'الحالة', 'ملاحظات'
     ];
     foreach ($customColumns as $col) {
@@ -10246,6 +10560,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
         $row = [
             $index + 1,
             $reg['student_name'],
+            $reg['student_church'] ?? '',
             $reg['student_class'],
             $reg['student_phone'] ?? '',
             $reg['emergency_phone'] ?? '',
@@ -10782,6 +11097,10 @@ function getTripExpenses()
         }
 
         $conn = getDBConnection();
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بعرض مصروفات هذه الرحلة']);
+            return;
+        }
 
         // Ensure table exists
         $conn->query("CREATE TABLE IF NOT EXISTS `trip_expenses` (
@@ -10842,13 +11161,10 @@ function saveTripExpense()
             return;
         }
 
-        // Verify trip belongs to this church
+        // Verify trip belongs to this church or is collaborated
         $conn = getDBConnection();
-        $checkTrip = $conn->prepare("SELECT id FROM trips WHERE id = ? AND church_id = ?");
-        $checkTrip->bind_param("ii", $tripId, $churchId);
-        $checkTrip->execute();
-        if ($checkTrip->get_result()->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بإضافة مصروفات لها']);
             return;
         }
 
@@ -11449,6 +11765,22 @@ try {
         case 'deleteTrip':
             deleteTrip();
             break;
+
+        case 'sendCollaborationRequest':
+            checkAuth();
+            sendCollaborationRequest();
+            break;
+
+        case 'getCollaborationRequests':
+            checkAuth();
+            getCollaborationRequests();
+            break;
+
+        case 'respondToCollaborationRequest':
+            checkAuth();
+            respondToCollaborationRequest();
+            break;
+
 
         case 'getCustomFieldTemplates':
             checkAuth();

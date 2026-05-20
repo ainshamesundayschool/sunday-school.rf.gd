@@ -6793,20 +6793,71 @@
     <!-- ══════════════════ SCRIPT ══════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        function _getAllSubFieldColumns(fields, icons) {
+            const allColumns = [];
+            fields.forEach(field => {
+                const meta = icons[field] || {};
+                // Always add the parent field itself
+                allColumns.push({ field, label: field, meta, isGroup: false });
+
+                if (meta.type === 'sub_group' && meta.sub_fields) {
+                    let subFieldsObj = meta.sub_fields;
+                    if (typeof subFieldsObj === 'string') {
+                        try { subFieldsObj = JSON.parse(subFieldsObj); } catch(e){}
+                    }
+                    if (typeof subFieldsObj === 'object' && subFieldsObj !== null) {
+                        // Choice-based sub-fields: collect unique sub-fields across all choices
+                        const subFieldNames = new Set();
+                        Object.values(subFieldsObj).forEach(choiceSubs => {
+                            let subs = choiceSubs;
+                            if (typeof subs === 'string') {
+                                try { subs = JSON.parse(subs); } catch(e){}
+                            }
+                            if (Array.isArray(subs)) {
+                                subs.forEach(sf => {
+                                    if (!subFieldNames.has(sf.name)) {
+                                        subFieldNames.add(sf.name);
+                                        allColumns.push({ 
+                                            field: field + '__sf__' + sf.name, 
+                                            label: field + ' → ' + sf.name, 
+                                            meta: sf, 
+                                            isGroup: true 
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+            return allColumns;
+        }
+
         function downloadCustomDataCSV(tripId) {
             const regs = tripRegistrationsCache[tripId] || [];
             const trip = allTripsCache.find(t => t.id == tripId);
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;
 
-            let csv = '\uFEFF' + 'Registration ID,Student Name,' + fields.join(',') + '\n';
+            // Parse icons safely
+            let icons = {};
+            if (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons !== null) {
+                icons = trip.custom_field_icons;
+            } else if (typeof trip.custom_field_icons === 'string') {
+                try { icons = JSON.parse(trip.custom_field_icons); } catch(e){}
+            }
+
+            const allColumns = _getAllSubFieldColumns(fields, icons);
+            const allKeys = allColumns.map(c => c.field);
+
+            let csv = '\uFEFF' + 'Registration ID,Student Name,' + allColumns.map(c => c.label).join(',') + '\n';
             regs.forEach(r => {
                 let row = [r.id, `"${r.student_name}"`];
                 let cd = {};
                 if (r.custom_data) {
                     try { cd = JSON.parse(r.custom_data); } catch (e) { }
                 }
-                fields.forEach(f => {
+                allKeys.forEach(f => {
                     row.push(`"${cd[f] || ''}"`);
                 });
                 csv += row.join(',') + '\n';
@@ -6828,6 +6879,17 @@
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;
 
+            // Parse icons safely
+            let icons = {};
+            if (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons !== null) {
+                icons = trip.custom_field_icons;
+            } else if (typeof trip.custom_field_icons === 'string') {
+                try { icons = JSON.parse(trip.custom_field_icons); } catch(e){}
+            }
+
+            const allColumns = _getAllSubFieldColumns(fields, icons);
+            const allKeys = allColumns.map(c => c.field);
+
             const reader = new FileReader();
             reader.onload = async function (ev) {
                 const text = ev.target.result;
@@ -6842,9 +6904,9 @@
                     const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const regId = cols[0];
                     const cd = {};
-                    fields.forEach(f => {
+                    allKeys.forEach(f => {
                         const idx = headers.indexOf(f);
-                        if (idx !== -1 && cols[idx]) {
+                        if (idx !== -1 && cols[idx] !== undefined) {
                             cd[f] = cols[idx];
                         }
                     });
