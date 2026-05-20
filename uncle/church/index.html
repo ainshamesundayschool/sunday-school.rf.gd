@@ -3869,7 +3869,7 @@
 ═══════════════════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
             html {
-                font-size: 12px;
+                font-size: 14px;
             }
 
             body,
@@ -4310,6 +4310,10 @@
    RESPONSIVE — XSMALL 360px
 ═══════════════════════════════════════════════════════════════════ */
         @media (max-width: 360px) {
+            html {
+                font-size: 13px;
+            }
+
             .topbar-right .topbar-btn:not(:last-child) {
                 display: none;
             }
@@ -7953,7 +7957,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=9').catch(() => { });
+                navigator.serviceWorker.register('/sw.js?v=10').catch(() => { });
             });
         }
 

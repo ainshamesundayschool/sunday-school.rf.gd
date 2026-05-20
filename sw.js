@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v9                      ║
+// ║  Sunday School PWA — Service Worker v10                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v9';
+const CACHE_NAME        = 'sunday-school-v10';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -12,10 +12,15 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
     '/manifest.json','/manifest.webmanifest',
+    '/uncle/church',
     '/uncle/church/','/uncle/church/index.html',
+    '/uncle/church/trips',
     '/uncle/church/trips/','/uncle/church/trips/index.html',
+    '/uncle/trip',
     '/uncle/trip/','/uncle/trip/index.html',
+    '/uncle/trip/filter',
     '/uncle/trip/filter/','/uncle/trip/filter/index.html',
+    '/uncle/trip/points',
     '/uncle/trip/points/','/uncle/trip/points/index.html',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -125,7 +130,7 @@ self.addEventListener('fetch', e => {
                 }
                 return r;
             }).catch(async () => {
-                const cached = await caches.match(e.request);
+                const cached = await _matchOfflineShell(e.request, url);
                 if (cached && (isOfflineShellFriendly || !isSessionSensitive)) return cached;
                 return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
                     status: 503,
@@ -155,6 +160,33 @@ self.addEventListener('fetch', e => {
         })
     );
 });
+
+async function _matchOfflineShell(request, url) {
+    const direct = await caches.match(request, { ignoreSearch: true });
+    if (direct) return direct;
+
+    const sameOriginPath = url && url.origin === self.location.origin ? url.pathname : '';
+    const fallbackCandidates = [];
+
+    if (sameOriginPath.startsWith('/uncle/church/trips')) {
+        fallbackCandidates.push('/uncle/church/trips/', '/uncle/church/trips/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/church')) {
+        fallbackCandidates.push('/uncle/church/', '/uncle/church/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/trip/filter')) {
+        fallbackCandidates.push('/uncle/trip/filter/', '/uncle/trip/filter/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/trip/points')) {
+        fallbackCandidates.push('/uncle/trip/points/', '/uncle/trip/points/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/trip')) {
+        fallbackCandidates.push('/uncle/trip/', '/uncle/trip/index.html');
+    }
+
+    for (const candidate of fallbackCandidates) {
+        const cached = await caches.match(candidate);
+        if (cached) return cached;
+    }
+
+    return null;
+}
 
 // ── BACKGROUND SYNC ───────────────────────────────────────────
 self.addEventListener('sync', e => {
