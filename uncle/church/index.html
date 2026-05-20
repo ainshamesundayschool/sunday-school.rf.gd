@@ -7148,11 +7148,74 @@
             }
         }
 
+        let systemChurches = [];
+
+        async function loadSystemChurches() {
+            if (systemChurches.length > 0) return;
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getAllChurches');
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (d.success) {
+                    systemChurches = d.churches || [];
+                }
+            } catch (e) {
+                console.error("Error loading system churches", e);
+            }
+        }
+
+        function searchCollabChurches(query, tripId) {
+            const resultsDiv = document.getElementById('collabChurchSearchResults');
+            if (!resultsDiv) return;
+
+            if (!query.trim()) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const trip = allTripsCache.find(t => t.id == tripId);
+            let collaborators = [];
+            try {
+                collaborators = trip && trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+            } catch (e) {}
+
+            const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+
+            const filtered = systemChurches.filter(c => {
+                if (c.id == cid || (trip && c.id == trip.church_id)) return false;
+                if (collaborators.includes(c.id) || collaborators.includes(String(c.id))) return false;
+                return c.name.toLowerCase().includes(query.toLowerCase());
+            });
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = `<div style="padding:10px;color:var(--muted);font-size:0.8rem;text-align:center;">لا توجد كنائس متطابقة</div>`;
+            } else {
+                resultsDiv.innerHTML = filtered.map(c => `
+                    <div onclick="selectCollabChurch('${c.name.replace(/'/g, "\\'")}', '${c.code}')" style="padding:10px;cursor:pointer;font-size:0.85rem;border-bottom:1px solid var(--border);color:var(--text); direction:rtl; text-align:right;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='none'">
+                        ${c.name} (${c.code})
+                    </div>
+                `).join('');
+            }
+            resultsDiv.style.display = 'block';
+        }
+
+        function selectCollabChurch(name, code) {
+            document.getElementById('collabChurchSearchInput').value = name;
+            document.getElementById('collabSelectedChurchCode').value = code;
+            document.getElementById('collabSelectedChurchName').textContent = `كنيسة مختارة: ${name}`;
+            document.getElementById('collabChurchSearchResults').style.display = 'none';
+            const btn = document.getElementById('collabSendInviteBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
         async function sendCollabRequest(tripId) {
-            const input = document.getElementById('collabChurchCodeInput');
-            const code = input ? input.value.trim() : '';
+            const codeInput = document.getElementById('collabSelectedChurchCode');
+            const code = codeInput ? codeInput.value.trim() : '';
             if (!code) {
-                showToast('يرجى إدخال كود الكنيسة', 'warning');
+                showToast('يرجى اختيار كنيسة من البحث', 'warning');
                 return;
             }
 
@@ -7165,8 +7228,8 @@
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 if (res.success) {
                     showToast(res.message, 'success');
-                    if (input) input.value = '';
                     closeModal('tripCollaborationModal');
+                    await loadTrips();
                 } else {
                     showToast(res.message || 'فشل إرسال الدعوة', 'error');
                 }
@@ -7175,12 +7238,14 @@
             }
         }
 
-        function showTripCollaborationModal(tripId) {
+        async function showTripCollaborationModal(tripId) {
             const trip = allTripsCache.find(t => t.id == tripId);
             if (!trip) {
                 showToast('الرحلة غير موجودة', 'error');
                 return;
             }
+
+            await loadSystemChurches();
 
             let collaborators = [];
             try {
@@ -7207,11 +7272,18 @@
             </div>
         </div>
 
-        <div style="margin-bottom:20px;">
-            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-paper-plane"></i> إرسال دعوة مباشرة بكود الكنيسة</h4>
-            <div style="display:flex;gap:8px;">
-                <input type="text" id="collabChurchCodeInput" placeholder="أدخل كود الكنيسة (مثال: CH-XXXX)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg); color:var(--text);">
-                <button class="btn btn-success" onclick="sendCollabRequest(${tripId})"><i class="fas fa-paper-plane"></i> إرسال</button>
+        <div style="margin-bottom:20px; position:relative;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-paper-plane"></i> إرسال دعوة مشاركة مباشرة</h4>
+            <div style="position:relative;">
+                <input type="text" id="collabChurchSearchInput" placeholder="ابحث باسم الكنيسة للتعاون..." oninput="searchCollabChurches(this.value, ${tripId})" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg); color:var(--text);" autocomplete="off">
+                <input type="hidden" id="collabSelectedChurchCode" value="">
+                <div id="collabChurchSearchResults" style="position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:5px;display:none;background:var(--modal-bg, var(--bg));z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15); padding:4px;">
+                  <!-- Matches will load here dynamically -->
+                </div>
+            </div>
+            <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span id="collabSelectedChurchName" style="font-size:0.85rem; font-weight:700; color:var(--primary);"></span>
+                <button class="btn btn-success" id="collabSendInviteBtn" onclick="sendCollabRequest(${tripId})" disabled style="opacity:0.5;"><i class="fas fa-paper-plane"></i> إرسال الدعوة</button>
             </div>
         </div>
         
