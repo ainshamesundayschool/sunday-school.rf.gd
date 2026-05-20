@@ -1483,6 +1483,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--brand-bg) !important
         }
 
+        .action-strip-tasks {
+            background: linear-gradient(135deg, #5b6cf5, #4154e8) !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+
+        .action-strip-tasks:hover {
+            background: linear-gradient(135deg, #4154e8, #3244cc) !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+
         .action-strip-add {
             border-color: rgba(16, 185, 129, .35) !important;
             color: var(--success) !important
@@ -7118,13 +7130,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-rotate-left"></i>
                         <span class="strip-btn-label">تراجع</span>
                     </button>
-                    <button class="action-strip-btn action-strip-standalone" id="tasksClassBtn"
+                    <button class="action-strip-btn action-strip-standalone action-strip-tasks" id="tasksClassBtn"
                         onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass)"
                         title="مهام الفصل"
-                        style="background:linear-gradient(135deg,#5b6cf5,#4154e8);color:#fff;border:none;position:relative;">
+                        style="position:relative;">
                         <i class="fas fa-tasks"></i>
                         <span class="tasks-notif-dot" id="tasksSubmissionDot" style="display:none; top: 4px; left: 4px;"></span>
-                        <span class="strip-btn-label" style="color: #fff !important;">المهام</span>
+                        <span class="strip-btn-label">المهام</span>
                     </button>
                     <button class="action-strip-btn action-strip-standalone action-strip-add"
                         onclick="showAddPersonModal()" title="إضافة طفل جديد">
