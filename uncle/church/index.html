@@ -4244,39 +4244,62 @@
             color: var(--muted);
         }
 
-        /* Minimal Reg Link */
+        /* Minimal Reg Link (Premium glassmorphic redesign) */
         .reg-link-minimal {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            background: var(--primary-light);
-            border: 1px solid var(--border-2);
-            border-radius: var(--radius-sm);
-            margin-bottom: 12px;
+            gap: 16px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, rgba(91, 108, 245, 0.06) 0%, rgba(91, 108, 245, 0.01) 100%);
+            border: 1px solid rgba(91, 108, 245, 0.12);
+            border-radius: 14px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
+            box-shadow: 0 4px 24px rgba(91, 108, 245, 0.03);
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .reg-link-minimal:hover {
+            border-color: rgba(91, 108, 245, 0.25);
+            box-shadow: 0 6px 30px rgba(91, 108, 245, 0.06);
         }
 
         .rlm-label {
-            font-size: 0.75rem;
+            font-size: 0.82rem;
             font-weight: 800;
-            color: var(--primary);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .rlm-url {
             flex: 1;
-            font-size: 0.75rem;
-            font-family: monospace;
-            color: var(--text-2);
+            font-size: 0.8rem;
+            font-family: 'Cairo', sans-serif !important;
+            color: var(--brand);
+            background: rgba(91, 108, 245, 0.05);
+            border: 1px solid rgba(91, 108, 245, 0.1);
+            padding: 8px 14px;
+            border-radius: 10px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             direction: ltr;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .rlm-url:hover {
+            background: rgba(91, 108, 245, 0.08);
+            border-color: rgba(91, 108, 245, 0.2);
         }
 
         .rlm-actions {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
 
         .overview-kicker {
@@ -5061,7 +5084,7 @@
                             الأمور لتسجيل الأطفال مباشرة في كنيستك.</p>
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                             <div id="studentsKidRegUrl"
-                                style="flex:1;min-width:200px;font-size:0.82rem;color:var(--primary);font-family:monospace;background:#eef0ff;padding:10px 14px;border-radius:8px;word-break:break-all;cursor:text;user-select:all;border:1px solid rgba(91,108,245,.2);">
+                                style="flex:1;min-width:200px;font-size:0.8rem;color:var(--brand);font-family:'Cairo', sans-serif !important;background:rgba(91, 108, 245, 0.05);padding:10px 14px;border-radius:10px;word-break:break-all;cursor:text;user-select:all;border:1px solid rgba(91, 108, 245, 0.1);font-weight:600;direction:ltr;text-align:left;">
                             </div>
                             <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
                                 <button class="btn btn-primary btn-sm"
@@ -11678,7 +11701,7 @@
                 + '<button id="_rkd_close" style="width:32px;height:32px;border:none;background:none;border-radius:8px;cursor:pointer;color:#6b7280;font-size:1rem;"><i class="fas fa-times"></i></button>'
                 + '</div>'
                 + '<p style="font-size:0.82rem;color:#6b7280;margin-bottom:12px;">شارك هذا الرابط مع الكنيسة لإتمام التسجيل — صالح مرة واحدة فقط</p>'
-                + '<div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:12px 14px;margin-bottom:18px;word-break:break-all;font-size:0.78rem;font-family:monospace;color:#5b21b6;user-select:all;cursor:text;">' + escHtml(url) + '</div>'
+                + '<div style="background:rgba(124, 58, 237, 0.05);border:1px solid rgba(124, 58, 237, 0.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;word-break:break-all;font-size:0.8rem;font-family:\'Cairo\', sans-serif !important;color:#7c3aed;user-select:all;cursor:text;font-weight:600;direction:ltr;text-align:left;">' + escHtml(url) + '</div>'
                 + '<div style="display:flex;gap:10px;flex-wrap:wrap;">'
                 + '<button id="_rkd_copy" style="flex:1;padding:11px;border-radius:10px;background:#5b21b6;color:white;border:none;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.88rem;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-copy"></i> نسخ الرابط</button>'
                 + '<button id="_rkd_open" style="padding:11px 16px;border-radius:10px;background:white;color:#5b21b6;border:2px solid #c4b5fd;font-family:inherit;font-weight:700;cursor:pointer;font-size:0.88rem;display:flex;align-items:center;gap:8px;"><i class="fas fa-external-link-alt"></i> فتح</button>'
