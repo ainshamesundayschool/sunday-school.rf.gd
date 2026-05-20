@@ -3030,6 +3030,149 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-inline: -8px
         }
 
+        .sibling-panel {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border-solid);
+            background: linear-gradient(180deg, var(--surface-2), var(--surface));
+        }
+
+        .sibling-panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .sibling-panel-title {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .9rem;
+        }
+
+        .sibling-panel-sub {
+            font-size: .72rem;
+            color: var(--text-3);
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        .sibling-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .sibling-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            font-size: .72rem;
+            font-weight: 700;
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .sibling-chip.gray {
+            background: var(--surface-3);
+            color: var(--text-2);
+        }
+
+        .sibling-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .sibling-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: var(--r-md);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+        }
+
+        .sibling-item strong {
+            display: block;
+            color: var(--text);
+            font-size: .86rem;
+        }
+
+        .sibling-item small {
+            display: block;
+            color: var(--text-3);
+            font-size: .68rem;
+            margin-top: 1px;
+        }
+
+        .sibling-empty {
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            background: rgba(148, 163, 184, .08);
+            color: var(--text-3);
+            font-size: .76rem;
+            line-height: 1.6;
+        }
+
+        .sibling-link-btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .sibling-link-modal-list {
+            max-height: 360px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .sibling-candidate {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            transition: var(--fast);
+        }
+
+        .sibling-candidate:hover {
+            border-color: var(--brand-l);
+            background: var(--brand-bg);
+        }
+
+        .sibling-candidate.selected {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+        }
+
+        .sibling-candidate-meta {
+            font-size: .7rem;
+            color: var(--text-3);
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+
+        .sibling-link-search {
+            margin-bottom: 10px;
+        }
+
+        .sibling-link-note {
+            font-size: .72rem;
+            color: var(--text-3);
+            margin-top: 4px;
+        }
+
         .detail-icon {
             width: 32px;
             height: 32px;
@@ -7484,6 +7627,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <div id="siblingLinkModal" class="modal-overlay" style="z-index:1000007">
+        <div class="modal" style="max-width:620px">
+            <div class="modal-header">
+                <h3><i class="fas fa-link"></i> ربط أخ / أخت</h3>
+                <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="form-group">
+                    <label class="form-label">سبب الربط</label>
+                    <div class="input-icon-wrap"><i class="fas fa-tag input-icon"></i><select id="siblingLinkBasis" class="form-input">
+                            <option value="manual">ربط يدوي من بطاقة الطفل</option>
+                            <option value="shared_phone">رقم تليفون مشترك</option>
+                            <option value="shared_address">عنوان مشترك</option>
+                            <option value="shared_guardian">اسم الأب / ولي الأمر مشترك</option>
+                            <option value="shared_info">معلومات إضافية متطابقة</option>
+                            <option value="other">سبب آخر</option>
+                        </select></div>
+                    <div class="sibling-link-note">هذا السبب سيظهر في بطاقة الأسرة حتى تعرفوا لماذا تم الربط.</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظة</label>
+                    <div class="input-icon-wrap"><i class="fas fa-pen input-icon"></i><input type="text" id="siblingLinkNote" class="form-input" placeholder="اختياري"></div>
+                </div>
+                <div class="form-group sibling-link-search">
+                    <label class="form-label">ابحث عن أخ أو أخت</label>
+                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text" id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
+                </div>
+                <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between">
+                <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
+                <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Student Modal -->
     <div id="editStudentForm" class="modal-overlay" style="z-index:1000006">
         <div class="modal">
@@ -10274,8 +10454,332 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             return (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
         }
 
+        function getStudentDbId(student) {
+            if (!student) return 0;
+            return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || 0) || 0;
+        }
+
+        function parseStudentCustomInfo(student) {
+            if (!student) return {};
+            if (student._customInfo && typeof student._customInfo === 'object') return student._customInfo;
+            const raw = student['معلومات إضافية'] ?? student.custom_info ?? student['custom_info'] ?? '';
+            if (!raw) return {};
+            if (typeof raw === 'object') return raw;
+            try {
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function getStudentDisplayName(student) {
+            return (student && (student['الاسم'] || student.name)) || '---';
+        }
+
+        function getStudentClassName(student) {
+            return (student && (student['الفصل'] || student.class)) || '---';
+        }
+
+        function getSiblingGroupInfo(student) {
+            const info = parseStudentCustomInfo(student);
+            return info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
+        }
+
+        function getStudentsForSiblingLookup() {
+            return (allStudentsData && allStudentsData.length) ? allStudentsData : students;
+        }
+
+        function getSiblingMembersByGroupId(groupId, excludeId = 0) {
+            if (!groupId) return [];
+            const sid = parseInt(excludeId, 10) || 0;
+            return getStudentsForSiblingLookup().filter(s => {
+                const id = getStudentDbId(s);
+                if (!id || id === sid) return false;
+                const group = getSiblingGroupInfo(s);
+                return group && group.id === groupId;
+            });
+        }
+
+        function formatSiblingDate(value) {
+            if (!value) return '';
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return String(value);
+            try {
+                return d.toLocaleString('ar-EG', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return d.toLocaleString();
+            }
+        }
+
+        function inferSiblingBasis(student, members) {
+            const all = [student, ...(members || [])].filter(Boolean);
+            if (all.length < 2) return 'manual';
+            const pick = (keys) => {
+                const vals = all.map(s => {
+                    const info = parseStudentCustomInfo(s);
+                    for (const key of keys) {
+                        const v = (s[key] || info[key] || '').toString().trim();
+                        if (v) return v;
+                    }
+                    return '';
+                }).filter(Boolean);
+                if (!vals.length) return '';
+                const first = vals[0].toLowerCase();
+                return vals.every(v => v.toLowerCase() === first) ? vals[0] : '';
+            };
+            const reasons = [];
+            if (pick(['رقم التليفون', 'phone', 'emergency_phone'])) reasons.push('رقم تليفون مشترك');
+            if (pick(['العنوان', 'address'])) reasons.push('عنوان مشترك');
+            if (pick(['guardian_name', 'father_name', 'parent_name', 'mother_name'])) reasons.push('اسم ولي الأمر مشترك');
+            if (pick(['معلومات إضافية', 'custom_info'])) reasons.push('معلومات إضافية متطابقة');
+            const className = pick(['الفصل', 'class']);
+            if (className && reasons.length === 0) reasons.push('نفس الفصل');
+            return reasons.length ? reasons.join('، ') : 'ربط يدوي';
+        }
+
+        function buildSiblingPanel(student) {
+            const studentId = getStudentDbId(student);
+            const custom = parseStudentCustomInfo(student);
+            const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
+            const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
+            const visibleMembers = members.slice(0, 6);
+            const reason = group?.reason || inferSiblingBasis(student, members);
+            const basis = group?.basis || (reason === 'ربط يدوي' ? 'manual' : '');
+            const basisLabels = {
+                manual: 'يدوي',
+                shared_phone: 'رقم تليفون مشترك',
+                shared_address: 'عنوان مشترك',
+                shared_guardian: 'اسم الأب / ولي الأمر مشترك',
+                shared_info: 'معلومات إضافية متطابقة',
+                other: 'سبب آخر',
+            };
+            const basisLabel = basisLabels[basis] || basis;
+            const linkedBy = group?.linked_by || '';
+            const linkedAt = group?.linked_at || group?.updated_at || '';
+            const label = group?.label || 'الإخوة المرتبطون';
+            const status = group?.status || 'approved';
+            const statusLabel = status === 'approved' ? 'معتمد' : status === 'rejected' ? 'مرفوض' : 'قيد المراجعة';
+            const chips = [];
+            chips.push(`<span class="sibling-chip"><i class="fas fa-link"></i> ${escHtml(label)}</span>`);
+            if (group?.id) chips.push(`<span class="sibling-chip gray">${members.length + 1} طفل مرتبط</span>`);
+            chips.push(`<span class="sibling-chip gray">${statusLabel}</span>`);
+            if (reason) chips.push(`<span class="sibling-chip gray">السبب: ${escHtml(reason)}</span>`);
+            if (basisLabel && basisLabel !== reason) chips.push(`<span class="sibling-chip gray">الأساس: ${escHtml(basisLabel)}</span>`);
+            if (linkedBy) chips.push(`<span class="sibling-chip gray">بواسطة: ${escHtml(linkedBy)}</span>`);
+            if (linkedAt) chips.push(`<span class="sibling-chip gray">آخر ربط: ${escHtml(formatSiblingDate(linkedAt))}</span>`);
+
+            const membersHtml = group && group.id
+                ? (visibleMembers.length
+                    ? visibleMembers.map(m => {
+                        const mid = getStudentDbId(m);
+                        const mInfo = parseStudentCustomInfo(m);
+                        const guardian = mInfo.guardian_name || mInfo.father_name || mInfo.parent_name || mInfo.mother_name || '';
+                        return `<div class="sibling-item">
+                            <div>
+                                <strong>${escHtml(getStudentDisplayName(m))}</strong>
+                                <small>${escHtml(getStudentClassName(m))}${guardian ? ` · ${escHtml(guardian)}` : ''}</small>
+                            </div>
+                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i> فتح</button>
+                        </div>`;
+                    }).join('')
+                    : '<div class="sibling-empty">تم حفظ مجموعة الإخوة، لكن لا توجد بيانات أخرى مرتبطة بها بعد.</div>')
+                : '<div class="sibling-empty">لا يوجد إخوة مرتبطون بهذا الطفل بعد. يمكنك ربط أخ أو أخت من نفس البطاقة، وسيتم حفظ الربط على الطرفين مع السبب الذي تختاره.</div>';
+
+            const studentName = escHtml(getStudentDisplayName(student));
+            const studentIdJs = JSON.stringify(studentId || 0);
+            return `
+                <div class="sibling-panel">
+                    <div class="sibling-panel-head">
+                        <div>
+                            <div class="sibling-panel-title">الإخوة المرتبطون</div>
+                            <div class="sibling-panel-sub">هذا القسم يوضح لماذا تم الربط، ومن قام به، وأي إخوة آخرين داخل نفس المجموعة.</div>
+                        </div>
+                        <button type="button" class="btn btn-g sibling-link-btn" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ربط أخ</button>
+                    </div>
+                    <div class="sibling-badge-row">${chips.join('')}</div>
+                    <div class="sibling-list">${membersHtml}</div>
+                    <div class="sibling-link-note" style="margin-top:8px">الربط يدوي ومتماثل: إذا أضفت أخًا من هنا، ستُحفظ العلاقة للطرفين معًا.</div>
+                </div>
+            `;
+        }
+
+        let _siblingLinkStudentId = 0;
+
+        function getSiblingSearchText(student) {
+            const info = parseStudentCustomInfo(student);
+            return [
+                getStudentDisplayName(student),
+                getStudentClassName(student),
+                student['رقم التليفون'] || student.phone || '',
+                student['العنوان'] || student.address || '',
+                info.guardian_name || '',
+                info.father_name || '',
+                info.parent_name || '',
+                info.mother_name || '',
+                JSON.stringify(info || {})
+            ].join(' ').toLowerCase();
+        }
+
+        function openSiblingLinkModal(studentId = 0) {
+            const sid = parseInt(studentId, 10) || getStudentDbId(currentStudentForEdit);
+            if (!sid) {
+                showToast('خطأ في بيانات الطفل', 'error');
+                return;
+            }
+            _siblingLinkStudentId = sid;
+            const modal = document.getElementById('siblingLinkModal');
+            const search = document.getElementById('siblingLinkSearch');
+            const basis = document.getElementById('siblingLinkBasis');
+            const note = document.getElementById('siblingLinkNote');
+            if (basis) basis.value = 'manual';
+            if (note) note.value = '';
+            if (search) search.value = '';
+            renderSiblingLinkCandidates();
+            modal.classList.add('active');
+            setTimeout(() => search?.focus(), 50);
+        }
+
+        function closeSiblingLinkModal() {
+            document.getElementById('siblingLinkModal')?.classList.remove('active');
+            _siblingLinkStudentId = 0;
+        }
+
+        function renderSiblingLinkCandidates() {
+            const list = document.getElementById('siblingLinkCandidates');
+            const summary = document.getElementById('siblingLinkSummary');
+            if (!list || !_siblingLinkStudentId) return;
+
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
+            if (!current) {
+                list.innerHTML = '<div class="sibling-empty">تعذر تحميل بيانات الطفل الحالي.</div>';
+                return;
+            }
+
+            const currentGroup = getSiblingGroupInfo(current);
+            const currentMembers = currentGroup?.id ? getSiblingMembersByGroupId(currentGroup.id, _siblingLinkStudentId) : [];
+            const q = (document.getElementById('siblingLinkSearch')?.value || '').trim().toLowerCase();
+            const data = getStudentsForSiblingLookup()
+                .filter(s => getStudentDbId(s) !== _siblingLinkStudentId)
+                .filter(s => {
+                    if (!q) return true;
+                    return getSiblingSearchText(s).includes(q);
+                })
+                .sort((a, b) => getStudentDisplayName(a).localeCompare(getStudentDisplayName(b), 'ar'));
+
+            if (summary) {
+                summary.innerHTML = currentGroup?.id
+                    ? `الطفل الحالي لديه بالفعل <strong>${currentMembers.length + 1}</strong> طفل داخل المجموعة. يمكنك إضافة أخ جديد وسيتم ربط الطرفين معًا.`
+                    : 'اختر طفلًا واحدًا لربطه بهذا الطفل. سيتم حفظ الربط للطرفين معًا.';
+            }
+
+            if (!data.length) {
+                list.innerHTML = '<div class="sibling-empty">لا توجد نتائج مطابقة للبحث الحالي.</div>';
+                return;
+            }
+
+            list.innerHTML = data.map(s => {
+                const id = getStudentDbId(s);
+                const info = parseStudentCustomInfo(s);
+                const guardian = info.guardian_name || info.father_name || info.parent_name || info.mother_name || '';
+                const targetGroup = getSiblingGroupInfo(s);
+                const alreadyLinked = currentGroup?.id && targetGroup?.id && currentGroup.id === targetGroup.id;
+                const linkedLabel = alreadyLinked ? 'مرتبط بالفعل' : targetGroup?.id ? 'مرتبط مع مجموعة أخرى' : 'غير مرتبط';
+                return `
+                    <div class="sibling-candidate ${alreadyLinked ? 'selected' : ''}">
+                        <div style="min-width:0;">
+                            <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(s))}</div>
+                            <div class="sibling-candidate-meta">
+                                ${escHtml(getStudentClassName(s))}
+                                ${guardian ? ` · ${escHtml(guardian)}` : ''}
+                                ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
+                                ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                            <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
+                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="linkSiblingToCurrent(${id})"><i class="fas fa-link"></i> ربط</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function linkSiblingToCurrent(targetStudentId) {
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
+            const target = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === parseInt(targetStudentId, 10));
+            if (!current || !target) {
+                showToast('تعذر تحديد الطفل أو الأخ المراد ربطه', 'error');
+                return;
+            }
+
+            const currentId = getStudentDbId(current);
+            const targetId = getStudentDbId(target);
+            if (!currentId || !targetId) {
+                showToast('معرفات الطلاب غير مكتملة', 'error');
+                return;
+            }
+
+            const currentGroup = getSiblingGroupInfo(current);
+            const targetGroup = getSiblingGroupInfo(target);
+            const currentIds = currentGroup?.id ? getSiblingMembersByGroupId(currentGroup.id, currentId).map(s => getStudentDbId(s)) : [];
+            const targetIds = targetGroup?.id ? getSiblingMembersByGroupId(targetGroup.id, targetId).map(s => getStudentDbId(s)) : [];
+            const allIds = [...new Set([currentId, targetId, ...currentIds, ...targetIds].filter(Boolean))];
+            const groupId = currentGroup?.id || targetGroup?.id || `family_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const basis = document.getElementById('siblingLinkBasis')?.value || 'manual';
+            const note = document.getElementById('siblingLinkNote')?.value.trim() || '';
+            const reasonMap = {
+                manual: 'ربط يدوي من بطاقة الطفل',
+                shared_phone: 'رقم تليفون مشترك',
+                shared_address: 'عنوان مشترك',
+                shared_guardian: 'اسم الأب / ولي الأمر مشترك',
+                shared_info: 'معلومات إضافية متطابقة',
+                other: note || 'سبب آخر'
+            };
+            const reason = note ? `${reasonMap[basis] || 'ربط يدوي'}: ${note}` : (reasonMap[basis] || 'ربط يدوي من بطاقة الطفل');
+            const merged = currentGroup?.id && targetGroup?.id && currentGroup.id !== targetGroup.id;
+            if (merged && !confirm('سيتم دمج مجموعتين مرتبطتين لأن الطفلين كانا داخل رابطين مختلفين. هل تريد المتابعة؟')) {
+                return;
+            }
+            if (!confirm(`هل تريد ربط "${getStudentDisplayName(target)}" مع "${getStudentDisplayName(current)}" الآن؟`)) {
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'saveSiblingGroup');
+            fd.append('student_ids', JSON.stringify(allIds));
+            fd.append('group_id', groupId);
+            fd.append('label', 'إخوة');
+            fd.append('status', 'approved');
+            fd.append('basis', basis);
+            fd.append('reason', reason);
+            fd.append('linked_by', localStorage.getItem('uncleName') || '');
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .catch(() => ({ success: false }));
+
+            if (d.success) {
+                showToast('تم ربط الإخوة بنجاح', 'success');
+                closeSiblingLinkModal();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                loadData();
+                setTimeout(() => {
+                    if (currentStudentForEdit) showStudentDetails(getStudentDisplayName(currentStudentForEdit));
+                }, 500);
+            } else {
+                showToast(d.message || 'فشل في حفظ الربط', 'error');
+            }
+        }
+
         function buildStudentDetailsFromCache(s) {
             const genderLabel = getStudentGender(s) === 'female' ? 'أنثى' : 'ذكر';
+            const siblingHtml = buildSiblingPanel(s);
             const rows = [
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars'],
@@ -10294,11 +10798,12 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
-            document.getElementById('studentDetails').innerHTML = avatar + rows;
+            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml;
         }
 
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
+            const siblingHtml = buildSiblingPanel(full);
             const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
@@ -10324,7 +10829,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             else tpHtml += tpKeys.map(k => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id || full.id})">تعديل</button></div></div>`).join('');
             tpHtml += '</div></div>';
 
-            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml;
+            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml;
         }
 
         // Open a small prompt to update points for a given trip and student
@@ -12434,6 +12939,19 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             on('closeAbsentModal', 'click', hideAbsentModal);
             on('closeDeleteStudentModal', 'click', hideDeleteStudentModal);
             on('cancelDeleteStudentBtn', 'click', hideDeleteStudentModal);
+            on('closeSiblingLinkModal', 'click', closeSiblingLinkModal);
+            on('cancelSiblingLinkBtn', 'click', closeSiblingLinkModal);
+            on('clearSiblingLinkBtn', 'click', () => {
+                const search = document.getElementById('siblingLinkSearch');
+                const note = document.getElementById('siblingLinkNote');
+                const basis = document.getElementById('siblingLinkBasis');
+                if (search) search.value = '';
+                if (note) note.value = '';
+                if (basis) basis.value = 'manual';
+                renderSiblingLinkCandidates();
+            });
+            on('siblingLinkSearch', 'input', renderSiblingLinkCandidates);
+            on('siblingLinkBasis', 'change', renderSiblingLinkCandidates);
             on('imageModalClose', 'click', hideImageModal);
             on('cropClose', 'click', closeCropModal);
             on('cropCancel', 'click', closeCropModal);

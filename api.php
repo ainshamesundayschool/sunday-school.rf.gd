@@ -11358,6 +11358,10 @@ function saveSiblingGroup()
         $label = sanitize($_POST['label'] ?? '');
         $groupId = sanitize($_POST['group_id'] ?? '');
         $op = sanitize($_POST['op'] ?? 'assign');
+        $reason = sanitize($_POST['reason'] ?? '');
+        $basis = sanitize($_POST['basis'] ?? '');
+        $linkedBy = sanitize($_POST['linked_by'] ?? ($_SESSION['uncle_name'] ?? ''));
+        $linkedById = intval($_SESSION['uncle_id'] ?? 0);
         if ($groupId === '') {
             $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
         }
@@ -11406,6 +11410,19 @@ function saveSiblingGroup()
                 }
                 $customInfo['sibling_group']['status'] = $status;
                 $customInfo['sibling_group']['updated_at'] = date('c');
+                if ($reason !== '') {
+                    $customInfo['sibling_group']['reason'] = $reason;
+                }
+                if ($basis !== '') {
+                    $customInfo['sibling_group']['basis'] = $basis;
+                }
+                if ($linkedBy !== '') {
+                    $customInfo['sibling_group']['linked_by'] = $linkedBy;
+                }
+                if ($linkedById > 0) {
+                    $customInfo['sibling_group']['linked_by_id'] = $linkedById;
+                }
+                $customInfo['sibling_group']['linked_at'] = date('c');
 
                 $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
                 $updateStmt->bind_param('si', $customJson, $studentId);
@@ -11418,6 +11435,11 @@ function saveSiblingGroup()
         if (!empty($errors)) {
             sendJSON(['success' => false, 'message' => 'بعض التحديثات فشلت: ' . implode('; ', $errors)]);
             return;
+        }
+
+        if ($op !== 'clear' && function_exists('logActivity')) {
+            $details = "group:$groupId;student_ids:" . implode(',', array_map('intval', $studentIds)) . ";basis:" . ($basis ?: 'manual') . ";reason:" . ($reason ?: 'manual_link');
+            logActivity(getChurchId(), $linkedById ?: null, 'sibling_group', $details);
         }
 
         sendJSON(['success' => true, 'message' => 'تم حفظ بيانات العائلة بنجاح']);
