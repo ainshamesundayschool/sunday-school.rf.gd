@@ -11,7 +11,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#5b6cf5">
     <title>لوحة تحكم مدارس الأحد</title>
+    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -4965,7 +4968,7 @@
                                 onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i
                                     class="fas fa-copy"></i></button>
                             <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
-                                onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i
+                                onclick="window.location.href=document.getElementById('overviewKidRegUrl').textContent"><i
                                     class="fas fa-external-link-alt"></i></button>
                         </div>
                     </div>
@@ -5105,7 +5108,7 @@
                             onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i
                                 class="fab fa-whatsapp"></i></button>
                         <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
-                            onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i
+                            onclick="window.location.href=document.getElementById('uncleDirectRegUrl').textContent"><i
                                 class="fas fa-external-link-alt"></i></button>
                     </div>
                 </div>
@@ -5244,7 +5247,7 @@
                                     <i class="fab fa-whatsapp"></i> واتساب
                                 </button>
                                 <button class="btn btn-outline btn-sm"
-                                    onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')">
+                                    onclick="window.location.href=document.getElementById('studentsKidRegUrl').textContent">
                                     <i class="fas fa-external-link-alt"></i> فتح
                                 </button>
                             </div>
@@ -9581,7 +9584,7 @@
             <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
-            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>` : ''}
+            ${trip.has_points_game == 1 ? `<a href="/uncle/trip/?trip_id=${trip.id}" class="btn btn-outline btn-sm" style="background:#5b6cf5;color:white;border-color:#5b6cf5;"><i class="fas fa-qrcode"></i> إدارة المسابقة</a>` : ''}
         </div>`;
 
             // Render custom fields breakdown (clickable chips that open filter view)
@@ -9611,7 +9614,7 @@
                         btn.onclick = function (e) {
                             const f = this.dataset.field || '';
                             const v = this.dataset.value || '';
-                            window.open(`/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(f)}&value=${encodeURIComponent(v)}`, '_blank');
+                            window.location.href = `/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(f)}&value=${encodeURIComponent(v)}`;
                         };
                     });
                 }, 10);
@@ -9640,7 +9643,7 @@
                     if (r.custom_data) {
                         try {
                             const cData = JSON.parse(r.custom_data);
-                            customDataHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${Object.entries(cData).map(([k, v]) => `<button class="field-chip" style="font-size:0.65rem;background:var(--primary-light);color:var(--primary);padding:4px 8px;border-radius:14px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;" onclick="window.open('/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(k)}&value=${encodeURIComponent(v)}','_blank')"><i class=\"fas fa-tag\"></i> ${escHtml(v)}</button>`).join('')}</div>`;
+                            customDataHtml = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">${Object.entries(cData).map(([k, v]) => `<button class="field-chip" style="font-size:0.65rem;background:var(--primary-light);color:var(--primary);padding:4px 8px;border-radius:14px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;" onclick="window.location.href='/uncle/trip/filter/?trip_id=${trip.id}&field=${encodeURIComponent(k)}&value=${encodeURIComponent(v)}'"><i class=\"fas fa-tag\"></i> ${escHtml(v)}</button>`).join('')}</div>`;
                         } catch (e) { }
                     }
                     return `<div class="reg-row">
@@ -11072,7 +11075,7 @@
                         onclick="shareWhatsApp('${kidSafe}','رابط تسجيل أطفال ${nameEsc}')" title="واتساب">
                         <i class="fab fa-whatsapp"></i>
                     </button>
-                    <button class="kr-btn kr-btn-open" onclick="window.open('${kidSafe}','_blank')" title="فتح">
+                    <button class="kr-btn kr-btn-open" onclick="window.location.href='${kidSafe}'" title="فتح">
                         <i class="fas fa-external-link-alt"></i>
                     </button>
                 </div>
@@ -11090,7 +11093,7 @@
                         <i class="fab fa-whatsapp"></i>
                     </button>
                     <button class="kr-btn" style="background:#d1fae5;color:#059669;border:1px solid rgba(16,185,129,.25);"
-                        onclick="window.open('${uncleSafe}','_blank')">
+                        onclick="window.location.href='${uncleSafe}'">
                         <i class="fas fa-external-link-alt"></i>
                     </button>
                 </div>
@@ -12487,7 +12490,7 @@
             <div class="reg-key-actions">
                 ${isAvail ? `
                     <button class="act-btn act-view" onclick="copyRegLink('${safeUrl}','${safeLbl}')" title="نسخ الرابط"><i class="fas fa-copy"></i></button>
-                    <button class="act-btn" style="color:#4354e8;background:#eef0ff;" onclick="window.open('${safeUrl}','_blank')" title="فتح"><i class="fas fa-external-link-alt"></i></button>
+                    <button class="act-btn" style="color:#4354e8;background:#eef0ff;" onclick="window.location.href='${safeUrl}'" title="فتح"><i class="fas fa-external-link-alt"></i></button>
                     <button class="act-btn act-delete" onclick="revokeRegKey('${safeKey}',1)" title="إلغاء الرابط"><i class="fas fa-ban"></i></button>
                 ` : isRevoked ? `
                     <button class="act-btn act-pay" onclick="revokeRegKey('${safeKey}',0)" title="استعادة الرابط"><i class="fas fa-rotate-left"></i></button>
@@ -12549,7 +12552,7 @@
                     .then(() => showToast('تم نسخ الرابط ✅', 'success'))
                     .catch(() => prompt('انسخ الرابط يدوياً:', url));
             });
-            box.querySelector('#_rkd_open').addEventListener('click', () => window.open(url, '_blank'));
+            box.querySelector('#_rkd_open').addEventListener('click', () => { window.location.href = url; });
             box.querySelector('#_rkd_wa').addEventListener('click', () => shareWhatsApp(url, 'رابط تسجيل كنيسة جديدة - ' + label));
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
         }

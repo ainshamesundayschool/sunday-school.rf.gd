@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#5b6cf5">
   <title>لوحة تحكم مدارس الأحد</title>
+  <link rel="apple-touch-icon" href="/logo.png">
+  <link rel="manifest" href="/manifest.webmanifest">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -3468,7 +3471,7 @@
             <i class="fas fa-table"></i>تعديل البيانات الإضافية
           </button>` : ''}
           ${trip.has_points_game == 1 ? `
-          <a href="/uncle/trip/?trip_id=${trip.id}" target="_blank" class="trip-action-btn" style="background:linear-gradient(135deg,#5b6cf5,#818cf8);color:white;border-color:#5b6cf5;">
+          <a href="/uncle/trip/?trip_id=${trip.id}" class="trip-action-btn" style="background:linear-gradient(135deg,#5b6cf5,#818cf8);color:white;border-color:#5b6cf5;">
             <i class="fas fa-qrcode" style="background:rgba(255,255,255,0.2);color:white;"></i>إدارة المسابقة
           </a>
           <button class="trip-action-btn success" onclick="printQRCards(${trip.id})">

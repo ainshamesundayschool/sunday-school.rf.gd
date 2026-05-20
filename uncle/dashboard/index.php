@@ -8292,7 +8292,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
             fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
-                .then(d => { if (d.success) { if (ok) ok(d); } else { const m = d.message || 'فشل'; if (err) err(m); else showToast(m, 'error'); } })
+                .then(d => {
+                    if (d.success || d.offline) {
+                        if (ok) ok(d);
+                    } else {
+                        const m = d.message || 'فشل';
+                        if (err) err(m);
+                        else showToast(m, 'error');
+                    }
+                })
                 .catch(e => { const m = 'خطأ في الاتصال'; if (err) err(m); else showToast(m, 'error'); });
         }
 
@@ -9876,10 +9884,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function submitCoupons() {
             if (!currentClass || changedCouponStudents.size === 0) { showToast('لا توجد تغييرات', 'info'); return; }
-            if (!(await _isActuallyOnline(true))) {
-                showToast('أنت غير متصل — الكوبونات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
-                return;
-            }
             const btn = document.getElementById('submitCoupons');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             const sourceList = isCombinedView ? combinedStudents : students;
@@ -9888,17 +9892,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const s = sourceList.find(s => getStudentId(s) === id);
                 if (s) records.push({ studentName: s['الاسم'].trim(), coupons: (parseInt(s['كوبونات الالتزام'] || 0)) + (parseInt(couponData[id] || 0)) });
             });
-            const fd = new FormData(); fd.append('action', 'updateCoupons'); fd.append('className', currentClass); fd.append('couponData', JSON.stringify(records));
-            fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) {
+            makeApiCall({ action: 'updateCoupons', className: currentClass, couponData: JSON.stringify(records) }, d => {
+                if (d.offline) {
+                    showToast(d.message || 'الكوبونات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                } else {
                     showToast(`تم حفظ كوبونات ${records.length} طفل`, 'success', { dur: 7000, refresh: true });
                     changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
                     changedCouponStudents.clear(); couponData = {};
                     saveCouponDataForClass(currentClass); renderAttendanceList(currentClass); updateSaveBtns();
                     _sendSyncCompletePush(records.length, 'coupons');
                     setTimeout(loadData, 1200);
-                } else showToast('فشل: ' + d.message, 'error');
-            }).catch(() => showToast('خطأ في الاتصال', 'error')).finally(() => { btn.disabled = false; updateSaveBtns(); });
+                }
+            }, e => showToast('فشل: ' + e, 'error'));
+            btn.disabled = false; updateSaveBtns();
         }
         function showUnsavedModal() {
             // Gather ALL locally-stored pending changes across ALL dates for current class
@@ -10074,10 +10080,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── SUBMIT ────────────────────────────────────────────────────
         async function submitAttendance() {
             if (!currentClass || changedStudents.size === 0) { showToast('لا توجد تغييرات للحفظ', 'info'); return; }
-            if (!(await _isActuallyOnline(true))) {
-                showToast('أنت غير متصل — التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
-                return;
-            }
             const btn = document.getElementById('submitAttendance');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
@@ -10101,6 +10103,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 classNames.forEach(cn => {
                     const records = byClass[cn];
                     makeApiCall({ action: 'submitAttendance', className: cn, attendanceData: JSON.stringify(records), date }, r => {
+                        if (r.offline) {
+                            done++;
+                            if (done === classNames.length) {
+                                showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                                btn.disabled = false;
+                                updateSaveBtns();
+                            }
+                            return;
+                        }
                         totalSaved += r.savedCount || 0;
                         done++;
                         if (done === classNames.length) {
@@ -10128,6 +10139,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!records.length) { btn.disabled = false; updateSaveBtns(); return; }
 
             makeApiCall({ action: 'submitAttendance', className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
+                if (r.offline) {
+                    showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                    btn.disabled = false;
+                    updateSaveBtns();
+                    return;
+                }
                 showToast(`تم حفظ ${records.length} طفل`, 'success', { dur: 7000, refresh: true });
                 changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
                 changedStudents.clear();
@@ -12944,7 +12961,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── Register service worker ───────────────────────────────────
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=7')
+                navigator.serviceWorker.register('/sw.js?v=8')
                     .then(reg => {
                         _initPushSubscription(reg);
                         // ── Re-subscribe whenever SW becomes active after an update ──
@@ -12963,6 +12980,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     const reg = await navigator.serviceWorker.ready;
                     _doSubscribe(reg); // silently re-subscribe in case it lapsed
+                    if (reg.active) reg.active.postMessage({ type: 'FLUSH_QUEUE' });
                 } catch (e) { }
                 setTimeout(() => { if (navigator.onLine) loadData(); }, 1000);
             });
@@ -13265,16 +13283,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const now = Date.now();
             if (!force && (now - _connectivityState.ts) < 15000) return _connectivityState.ok;
 
-            if (navigator.onLine) {
-                _connectivityState = { ok: true, ts: now };
-                return true;
-            }
-
             try {
                 const ctrl = new AbortController();
                 const timer = setTimeout(() => ctrl.abort(), 3500);
-                const res = await fetch(`/manifest.webmanifest?_probe=${now}`, {
-                    method: 'GET',
+                const fd = new FormData();
+                fd.append('action', '__connectivityProbe');
+                const res = await fetch(API_URL + `?_probe=${now}`, {
+                    method: 'POST',
+                    body: fd,
                     cache: 'no-store',
                     credentials: 'same-origin',
                     signal: ctrl.signal

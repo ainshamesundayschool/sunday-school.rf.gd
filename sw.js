@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v7                      ║
+// ║  Sunday School PWA — Service Worker v8                      ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v7';
+const CACHE_NAME        = 'sunday-school-v8';
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -191,6 +191,9 @@ self.addEventListener('notificationclick', e => {
 // ── MESSAGE from page ─────────────────────────────────────────
 self.addEventListener('message', e => {
     if (e.data?.type === 'SET_UNCLE_META') _idbSetMeta(e.data.meta).catch(() => {});
+    if (e.data?.type === 'FLUSH_QUEUE') {
+        _flushQueue().catch(() => {});
+    }
 });
 
 // ── SELECTIVE QUEUE ──────────────────────────────────────────
