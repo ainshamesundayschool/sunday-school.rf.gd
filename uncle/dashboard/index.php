@@ -3167,6 +3167,53 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 10px;
         }
 
+        .sibling-suggestion-row,
+        .sibling-suggestion-inline {
+            cursor: pointer;
+        }
+
+        .sibling-suggestion-row {
+            display: grid;
+            gap: 2px;
+            padding: 8px 10px;
+            margin-top: 6px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text);
+            transition: var(--fast);
+        }
+
+        .sibling-suggestion-row:hover,
+        .sibling-suggestion-inline:hover {
+            border-color: var(--brand-l);
+            background: var(--brand-bg);
+        }
+
+        .sibling-suggestion-name {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .82rem;
+        }
+
+        .sibling-suggestion-tag {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--r-full);
+            background: var(--brand-bg);
+            color: var(--brand);
+            font-size: .66rem;
+            font-weight: 800;
+        }
+
+        .sibling-suggestion-text {
+            font-size: .7rem;
+            color: var(--text-2);
+            line-height: 1.45;
+        }
+
         .sibling-link-note {
             font-size: .72rem;
             color: var(--text-3);
@@ -10699,14 +10746,19 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 .map(s => {
                     const suggestion = getSiblingSuggestion(current, s);
                     if (!suggestion) return '';
+                    const id = getStudentDbId(s);
                     const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
-                    return `- ${escHtml(getStudentDisplayName(s))}: ${tag} - ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}`;
+                    return `<div class="sibling-suggestion-row" onclick="linkSiblingToCurrent(${id})" role="button" tabindex="0" title="اضغط للإضافة">
+                        <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
+                        <span class="sibling-suggestion-tag">${tag}</span>
+                        <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
+                    </div>`;
                 })
                 .filter(Boolean)
                 .slice(0, 4);
             if (suggestionBox) {
                 suggestionBox.innerHTML = preview.length
-                    ? `<strong>اقتراحات الربط</strong><br>${preview.join('<br>')}`
+                    ? `<strong>اقتراحات الربط</strong>${preview.join('')}`
                     : 'لا توجد اقتراحات واضحة الآن. يمكنك الربط يدويًا من القائمة.';
             }
 
@@ -10733,7 +10785,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                                 ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
                                 ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
                             </div>
-                            ${suggestion ? `<div class="sibling-candidate-meta" style="margin-top:4px;color:${suggestion.strength === 'weak' ? 'var(--text-3)' : 'var(--brand)'}"><i class="fas fa-lightbulb"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
+                            ${suggestion ? `<div class="sibling-candidate-meta sibling-suggestion-inline" style="margin-top:4px;color:var(--brand)" onclick="linkSiblingToCurrent(${id})" role="button" tabindex="0" title="اضغط للإضافة"><i class="fas fa-lightbulb"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
