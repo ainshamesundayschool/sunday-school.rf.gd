@@ -3083,6 +3083,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-sm);
             background: var(--surface);
             border: 1px solid var(--border-solid);
+            cursor: pointer;
+            transition: var(--fast);
+        }
+
+        .sibling-item:hover {
+            border-color: var(--brand-l);
+            background: var(--brand-bg);
+            transform: translateY(-1px);
         }
 
         .sibling-item-main {
@@ -3344,6 +3352,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-md);
             border: 1px solid var(--border-solid);
             background: var(--surface);
+            cursor: pointer;
+            transition: var(--fast);
+        }
+
+        .sibling-review-card:hover {
+            border-color: var(--brand-l);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sibling-review-avatars {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .sibling-review-avatars .sibling-mini-avatar,
+        .sibling-review-avatars .sibling-mini-avatar-fallback {
+            width: 34px;
+            height: 34px;
+            margin-inline-start: -8px;
+            border: 2px solid var(--surface);
         }
 
         .sibling-review-card.strong {
@@ -7388,9 +7418,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
-                <button class="topbar-btn" id="siblingSuggestionsBtn" onclick="openSiblingSuggestionsView()" title="اقتراحات الإخوة">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
                     style="display:none;position:relative">
@@ -7447,6 +7474,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                                 <button class="dropdown-item" id="manageAnnouncementsBtn"
                                     onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                                <button class="dropdown-item" onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
+                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوة</button>
                                 <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
                                     style="position:relative; display:flex; justify-content:space-between; align-items:center;">
                                     <span><i class="fas fa-tasks"></i> المهام</span>
@@ -10741,6 +10770,16 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             return getSecondNamePart(getStudentDisplayName(student));
         }
 
+        function buildSiblingMiniAvatar(student) {
+            const gender = getStudentGender(student);
+            const photo = (student && (student['صورة'] || student.photo || student.photo_url)) || '';
+            const photoSrc = photo && window.photoUrl ? window.photoUrl(photo) : photo;
+            const avatar = photoSrc
+                ? `<img src="${escHtml(photoSrc)}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                : '';
+            return avatar + `<div class="sibling-mini-avatar-fallback ${gender}" ${photoSrc ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+        }
+
         function getSiblingSuggestion(current, target) {
             const currentInfo = parseStudentCustomInfo(current);
             const targetInfo = parseStudentCustomInfo(target);
@@ -10860,22 +10899,14 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
             const membersHtml = visibleMembers.length
                 ? visibleMembers.map(m => {
-                    const gender = getStudentGender(m);
-                    const photo = m['صورة'] || m.photo || m.photo_url || '';
-                    const photoSrc = photo && window.photoUrl ? window.photoUrl(photo) : photo;
-                    const avatar = photoSrc
-                        ? `<img src="${escHtml(photoSrc)}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
-                        : '';
-                    const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${photoSrc ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
-                    return `<div class="sibling-item" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')" style="cursor:pointer">
+                    return `<div class="sibling-item" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')">
                         <div class="sibling-item-main">
-                            ${avatar}${avatarFallback}
+                            ${buildSiblingMiniAvatar(m)}
                             <div style="min-width:0">
                                 <strong>${escHtml(getStudentDisplayName(m))}</strong>
                                 <small>${escHtml(getStudentClassName(m))}</small>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-g" style="padding:4px 9px;font-size:.68rem" onclick="event.stopPropagation();showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i></button>
                     </div>`;
                 }).join('')
                 : '';
@@ -11058,12 +11089,16 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const bId = getStudentDbId(item.b);
             const strength = item.suggestion.strength === 'weak' ? 'weak' : 'strong';
             const tag = strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح قوي';
-            return `<div class="sibling-review-card ${strength}">
+            return `<div class="sibling-review-card ${strength}" onclick="linkSiblingPair(${aId}, ${bId})" title="اضغط للإضافة">
+                <div class="sibling-review-avatars">
+                    ${buildSiblingMiniAvatar(item.a)}
+                    ${buildSiblingMiniAvatar(item.b)}
+                </div>
                 <div style="min-width:0;flex:1">
                     <div class="sibling-review-names">${escHtml(getStudentDisplayName(item.a))} + ${escHtml(getStudentDisplayName(item.b))}</div>
                     <div class="sibling-review-meta">${escHtml(getStudentClassName(item.a))} / ${escHtml(getStudentClassName(item.b))} · ${escHtml(item.suggestion.label)} · ${escHtml(item.suggestion.detail)}</div>
                 </div>
-                <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
+                <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="event.stopPropagation();linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
                 <span class="sibling-chip gray" style="font-size:.66rem">${tag}</span>
             </div>`;
         }
