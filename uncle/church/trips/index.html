@@ -4964,10 +4964,182 @@
     let _cfeState = { tripId: null, fields: [] };
     const CFE_ICONS = ['fas fa-bed', 'fas fa-home', 'fas fa-users', 'fas fa-tag', 'fas fa-star', 'fas fa-heart', 'fas fa-flag', 'fas fa-map-marker-alt', 'fas fa-building', 'fas fa-school', 'fas fa-bus', 'fas fa-church', 'fas fa-cross', 'fas fa-book', 'fas fa-pray', 'fas fa-music', 'fas fa-microphone', 'fas fa-paint-brush', 'fas fa-futbol', 'fas fa-bicycle', 'fas fa-utensils', 'fas fa-laptop', 'fas fa-mobile-alt', 'fas fa-camera', 'fas fa-crown', 'fas fa-gem', 'fas fa-fire', 'fas fa-leaf', 'fas fa-sun', 'fas fa-moon', 'fas fa-cloud', 'fas fa-snowflake'];
 
+    let _cfeTemplatesList = [];
+
+    async function cfeLoadTemplatesList() {
+      try {
+        const fd = mkFd('getCustomFieldTemplates');
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+          _cfeTemplatesList = res.templates || [];
+          const select = document.getElementById('cfeTemplateSelect');
+          if (select) {
+            select.innerHTML = '<option value="">— اختر قالباً للتحميل —</option>' + 
+              _cfeTemplatesList.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+          }
+        }
+      } catch (e) {
+        console.error("Error loading templates list", e);
+      }
+    }
+
+    function cfeLoadTemplate(templateId) {
+      if (!templateId) {
+        document.getElementById('cfeDeleteTemplateBtn').style.display = 'none';
+        return;
+      }
+      const t = _cfeTemplatesList.find(x => x.id == templateId);
+      if (!t) return;
+
+      const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+      if (isDev) {
+        document.getElementById('cfeDeleteTemplateBtn').style.display = 'inline-block';
+      } else {
+        document.getElementById('cfeDeleteTemplateBtn').style.display = 'none';
+      }
+
+      const fieldNames = parseCustomFieldsString(t.custom_fields);
+      const iconsRaw = t.custom_field_icons || {};
+
+      _cfeState.fields = fieldNames.map((name, i) => {
+        const meta = iconsRaw[name] || {};
+        let type = meta.type || 'choices';
+        let choices = Array.isArray(meta.choices) ? [...meta.choices] : [];
+        let subFieldsMap = {};
+
+        if (type === 'sub_group') {
+          const raw = meta.sub_fields;
+          if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            Object.entries(raw).forEach(([choiceVal, subData]) => {
+              let subArr = [];
+              if (Array.isArray(subData)) {
+                subArr = subData.map((sf, si) => ({
+                  _id: 'sf' + Date.now() + i + choiceVal + si,
+                  name: String(sf.name || '').trim(),
+                  icon: String(sf.icon || 'fas fa-tag'),
+                  choices: (Array.isArray(sf.choices) ? sf.choices : []).map(c => String(c))
+                }));
+              }
+              subFieldsMap[choiceVal] = subArr;
+              if (!choices.includes(choiceVal)) choices.push(choiceVal);
+            });
+          }
+        }
+
+        return {
+          _id: 'f' + Date.now() + i,
+          name,
+          icon: String(meta.icon || 'fas fa-tag'),
+          type,
+          choices,
+          sub_fields_map: subFieldsMap
+        };
+      });
+
+      renderCfeFields();
+      showToast('تم تحميل القالب بنجاح!', 'success');
+    }
+
+    async function cfeSaveAsTemplate() {
+      const name = prompt('أدخل اسماً للقالب الجديد:');
+      if (!name || !name.trim()) return;
+
+      const fieldNames = [];
+      const icons = {};
+
+      _cfeState.fields.forEach(f => {
+        const fName = f.name.trim();
+        if (!fName) return;
+        fieldNames.push(fName);
+
+        const meta = {
+          name: fName,
+          icon: f.icon || 'fas fa-tag',
+          type: f.type
+        };
+
+        if (f.type === 'choices') {
+          meta.choices = f.choices.map(c => c.trim()).filter(Boolean);
+        } else if (f.type === 'sub_group') {
+          meta.choices = f.choices.map(c => c.trim()).filter(Boolean);
+          meta.sub_fields = {};
+          f.choices.forEach(c => {
+            const subs = f.sub_fields_map[c] || [];
+            meta.sub_fields[c] = subs.map(sf => ({
+              name: sf.name.trim(),
+              icon: sf.icon || 'fas fa-tag',
+              type: 'choices',
+              choices: sf.choices.map(sc => sc.trim()).filter(Boolean)
+            })).filter(sf => sf.name);
+          });
+        }
+
+        icons[fName] = meta;
+      });
+
+      if (!fieldNames.length) {
+        showToast('لا يمكن حفظ قالب فارغ', 'error');
+        return;
+      }
+
+      const fd = mkFd('addCustomFieldTemplate');
+      fd.append('name', name.trim());
+      fd.append('custom_fields', fieldNames.join(', '));
+      fd.append('custom_field_icons', JSON.stringify(icons));
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+          showToast(res.message, 'success');
+          await cfeLoadTemplatesList();
+          const select = document.getElementById('cfeTemplateSelect');
+          if (select) select.value = res.id;
+          cfeLoadTemplate(res.id);
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الشبكة', 'error');
+      }
+    }
+
+    async function cfeDeleteTemplate() {
+      const select = document.getElementById('cfeTemplateSelect');
+      const templateId = select ? select.value : '';
+      if (!templateId) return;
+
+      if (!confirm('هل أنت متأكد من رغبتك في حذف هذا القالب نهائياً؟')) return;
+
+      const fd = mkFd('deleteCustomFieldTemplate');
+      fd.append('id', templateId);
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+          showToast(res.message, 'success');
+          await cfeLoadTemplatesList();
+          document.getElementById('cfeDeleteTemplateBtn').style.display = 'none';
+        } else {
+          showToast(res.message, 'error');
+        }
+      } catch (e) {
+        showToast('خطأ في الشبكة', 'error');
+      }
+    }
+
     function openCustomFieldEditor(tripId) {
       const trip = allTripsCache.find(t => t.id == tripId);
       if (!trip) return;
       _cfeState.tripId = tripId;
+
+      cfeLoadTemplatesList();
+      const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+      const saveBtn = document.getElementById('cfeSaveAsTemplateBtn');
+      if (saveBtn) {
+        saveBtn.style.display = isDev ? 'inline-block' : 'none';
+      }
+      document.getElementById('cfeDeleteTemplateBtn').style.display = 'none';
+
       const fieldNames = parseCustomFieldsString(trip.custom_fields);
       const iconsRaw = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
       _cfeState.fields = fieldNames.map((name, i) => {
@@ -5320,6 +5492,14 @@
           <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0;"></i>
           <div>يمكنك تعديل أسماء الحقول وأيقوناتها وخياراتها. كل حقل يمكن أن يحتوي على <strong>حقول فرعية</strong> تظهر
             عند اختيار خيار معين (مثلاً: عند اختيار مبنى معين، تظهر خيارات الغرف الخاصة به).</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border);flex-wrap:wrap;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--muted);white-space:nowrap;"><i class="fas fa-magic" style="color:var(--primary);"></i> قوالب جاهزة:</span>
+          <select id="cfeTemplateSelect" class="form-input" style="padding:4px 8px;font-size:0.8rem;width:auto;min-width:180px;" onchange="cfeLoadTemplate(this.value)">
+            <option value="">— اختر قالباً للتحميل —</option>
+          </select>
+          <button type="button" id="cfeSaveAsTemplateBtn" class="btn btn-outline btn-xs" onclick="cfeSaveAsTemplate()" style="font-size:0.7rem;padding:4px 8px;display:none;"><i class="fas fa-save"></i> حفظ كقالب جديد</button>
+          <button type="button" id="cfeDeleteTemplateBtn" class="btn btn-outline btn-xs btn-danger" onclick="cfeDeleteTemplate()" style="font-size:0.7rem;padding:4px 8px;display:none;color:var(--danger);border-color:var(--danger);"><i class="fas fa-trash"></i> حذف القالب</button>
         </div>
         <div id="cfeFieldsList"
           style="display:flex;flex-direction:column;gap:12px;max-height:55vh;overflow-y:auto;padding:2px 4px;"></div>

@@ -973,6 +973,18 @@ try {
         case 'deleteTrip':
             deleteTrip();
             break;
+        case 'getCustomFieldTemplates':
+            checkAuth();
+            getCustomFieldTemplates();
+            break;
+        case 'addCustomFieldTemplate':
+            checkAuth();
+            addCustomFieldTemplate();
+            break;
+        case 'deleteCustomFieldTemplate':
+            checkAuth();
+            deleteCustomFieldTemplate();
+            break;
         case 'getTripDetails':
             getTripDetails();
             break;
@@ -11438,6 +11450,19 @@ try {
             deleteTrip();
             break;
 
+        case 'getCustomFieldTemplates':
+            checkAuth();
+            getCustomFieldTemplates();
+            break;
+        case 'addCustomFieldTemplate':
+            checkAuth();
+            addCustomFieldTemplate();
+            break;
+        case 'deleteCustomFieldTemplate':
+            checkAuth();
+            deleteCustomFieldTemplate();
+            break;
+
         case 'getTripDetails':
             getTripDetails();
             break;
@@ -15017,5 +15042,154 @@ function deleteUncleAttendance()
         sendJSON(['success' => true]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function getCustomFieldTemplates()
+{
+    try {
+        $conn = getDBConnection();
+        $conn->query("CREATE TABLE IF NOT EXISTS `custom_field_templates` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `name` VARCHAR(255) NOT NULL,
+            `custom_fields` TEXT NOT NULL,
+            `custom_field_icons` TEXT NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $check = $conn->query("SELECT COUNT(*) as count FROM `custom_field_templates`")->fetch_assoc();
+        if (intval($check['count']) === 0) {
+            $defaultName = "بيت الاخوه بالسويس";
+            $defaultFields = "السكن";
+            $defaultIcons = json_encode([
+                "السكن" => [
+                    "name" => "السكن",
+                    "icon" => "fas fa-home",
+                    "type" => "sub_group",
+                    "choices" => ["المبنى", "فيلا", "فيلا الفرح"],
+                    "sub_fields" => [
+                        "المبنى" => [
+                            [
+                                "name" => "الغرفه",
+                                "icon" => "fas fa-door-closed",
+                                "type" => "choices",
+                                "choices" => ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+                            ]
+                        ],
+                        "فيلا" => [
+                            [
+                                "name" => "الغرفه",
+                                "icon" => "fas fa-door-closed",
+                                "type" => "choices",
+                                "choices" => ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+                            ]
+                        ],
+                        "فيلا الفرح" => [
+                            [
+                                "name" => "الغرفه",
+                                "icon" => "fas fa-door-closed",
+                                "type" => "choices",
+                                "choices" => ["1", "2", "3", "4", "5"]
+                            ]
+                        ]
+                    ]
+                ]
+            ], JSON_UNESCAPED_UNICODE);
+
+            $seedStmt = $conn->prepare("INSERT INTO `custom_field_templates` (name, custom_fields, custom_field_icons) VALUES (?, ?, ?)");
+            $seedStmt->bind_param("sss", $defaultName, $defaultFields, $defaultIcons);
+            $seedStmt->execute();
+        }
+
+        $res = $conn->query("SELECT * FROM `custom_field_templates` ORDER BY id DESC");
+        $templates = [];
+        while ($row = $res->fetch_assoc()) {
+            $templates[] = [
+                'id' => intval($row['id']),
+                'name' => $row['name'],
+                'custom_fields' => $row['custom_fields'],
+                'custom_field_icons' => json_decode($row['custom_field_icons'], true)
+            ];
+        }
+
+        sendJSON(['success' => true, 'templates' => $templates]);
+    } catch (Exception $e) {
+        error_log("getCustomFieldTemplates error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب القوالب: ' . $e->getMessage()]);
+    }
+}
+
+function addCustomFieldTemplate()
+{
+    try {
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        if ($role !== 'developer') {
+            sendJSON(['success' => false, 'message' => 'غير مصرح للمطورين فقط']);
+            return;
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        $fields = trim($_POST['custom_fields'] ?? '');
+        $iconsRaw = $_POST['custom_field_icons'] ?? '';
+
+        if (empty($name)) {
+            sendJSON(['success' => false, 'message' => 'اسم القالب مطلوب']);
+            return;
+        }
+
+        $iconsDecoded = json_decode($iconsRaw, true);
+        if (!is_array($iconsDecoded)) {
+            sendJSON(['success' => false, 'message' => 'تنسيق الايقونات غير صالح']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $conn->query("CREATE TABLE IF NOT EXISTS `custom_field_templates` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `name` VARCHAR(255) NOT NULL,
+            `custom_fields` TEXT NOT NULL,
+            `custom_field_icons` TEXT NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $stmt = $conn->prepare("INSERT INTO `custom_field_templates` (name, custom_fields, custom_field_icons) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $fields, $iconsRaw);
+        if ($stmt->execute()) {
+            sendJSON(['success' => true, 'message' => 'تم حفظ القالب بنجاح', 'id' => $conn->insert_id]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل حفظ القالب: ' . $stmt->error]);
+        }
+    } catch (Exception $e) {
+        error_log("addCustomFieldTemplate error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في إضافة القالب: ' . $e->getMessage()]);
+    }
+}
+
+function deleteCustomFieldTemplate()
+{
+    try {
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        if ($role !== 'developer') {
+            sendJSON(['success' => false, 'message' => 'غير مصرح للمطورين فقط']);
+            return;
+        }
+
+        $id = intval($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            sendJSON(['success' => false, 'message' => 'معرف القالب غير صالح']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("DELETE FROM `custom_field_templates` WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            sendJSON(['success' => true, 'message' => 'تم حذف القالب بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل حذف القالب: ' . $stmt->error]);
+        }
+    } catch (Exception $e) {
+        error_log("deleteCustomFieldTemplate error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف القالب: ' . $e->getMessage()]);
     }
 }
