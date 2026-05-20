@@ -4596,6 +4596,60 @@
       reader.readAsText(file);
     }
 
+    function renderTableSubFields(regId, parentField, parentVal, allValues = null) {
+      const container = document.getElementById(`table_subs_${regId}_${parentField}`);
+      if (!container) return;
+      container.innerHTML = '';
+      if (!parentVal) return;
+
+      const tripId = document.getElementById('bulkCustomDataTripId').value;
+      const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+      const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
+      const meta = icons[parentField] || {};
+      if (meta.type !== 'sub_group') return;
+
+      let subFields = meta.sub_fields && meta.sub_fields[parentVal] ? meta.sub_fields[parentVal] : [];
+      if (subFields && typeof subFields === 'object' && !Array.isArray(subFields)) {
+        subFields = Object.entries(subFields).map(([n, m]) => ({ name: n, ...m }));
+      }
+      if (!Array.isArray(subFields) || !subFields.length) return;
+
+      if (!allValues) {
+        allValues = {};
+        const tr = container.closest('tr');
+        if (tr) {
+          tr.querySelectorAll('.bulk-custom-data-input').forEach(input => {
+            const key = input.dataset.field;
+            if (key) allValues[key] = input.value;
+          });
+        }
+      }
+
+      container.innerHTML = subFields.map(sf => {
+        const sfKey = parentField + '__sf__' + sf.name;
+        const sfChoices = Array.isArray(sf.choices) ? sf.choices : [];
+        const currentVal = allValues[sfKey] || '';
+        const style = `min-width:130px;font-size:0.82rem;`;
+
+        const sfInput = sfChoices.length
+          ? `<select class="form-input bulk-custom-data-input" data-field="${escHtml(sfKey)}" style="${style}">
+              <option value="">— اختر —</option>
+              ${sfChoices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
+            </select>`
+          : `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(sfKey)}" value="${escHtml(currentVal)}" placeholder="${escHtml(sf.name)}" style="${style}">`;
+
+        return `<div class="sub-field-row" style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+          <span style="font-size:0.7rem;color:var(--muted);white-space:nowrap;"><i class="${sf.icon || 'fas fa-tag'}"></i> ${escHtml(sf.name)}:</span>
+          ${sfInput}
+        </div>`;
+      }).join('');
+    }
+
+    function onTableParentFieldChange(selectEl, parentField, regId) {
+      const parentVal = selectEl.value;
+      renderTableSubFields(regId, parentField, parentVal);
+    }
+
     function openBulkCustomDataModal(tripId) {
       const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
       const regs = tripRegistrationsCache[tripId] || [];
@@ -4608,6 +4662,22 @@
 
       document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
 
+      // Populate dynamic sub-fields
+      const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
+      regs.forEach(r => {
+        let values = {};
+        if (r.custom_data) {
+          try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
+        }
+        fields.forEach(field => {
+          const meta = icons[field] || {};
+          if (meta.type === 'sub_group') {
+            const currentParentVal = values[field] || '';
+            renderTableSubFields(r.id, field, currentParentVal, values);
+          }
+        });
+      });
+
       openModal('bulkCustomDataModal');
     }
 
@@ -4616,20 +4686,39 @@
         return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
       }
       const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
-      const allColumns = _getAllSubFieldColumns(fields, icons);
+      
+      const tableColumns = [];
+      fields.forEach(field => {
+        const meta = icons[field] || {};
+        tableColumns.push({ field, label: field, meta, isSubContainer: false });
+        if (meta.type === 'sub_group') {
+          tableColumns.push({ field, label: field + ' → الفرعي', meta, isSubContainer: true });
+        }
+      });
 
-      function buildCell(col, currentVal) {
-        const { field, meta } = col;
+      function buildCell(col, currentVal, regId) {
+        const { field, meta, isSubContainer } = col;
+        if (isSubContainer) {
+          return `<div class="sub-fields-container" id="table_subs_${regId}_${escHtml(field)}"></div>`;
+        }
+
         const choices = Array.isArray(meta.choices) ? meta.choices : [];
         const style = `min-width:130px;font-size:0.82rem;`;
-        if (choices.length > 0) {
+        
+        if (meta.type === 'sub_group') {
+          return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}" onchange="onTableParentFieldChange(this, '${escHtml(field)}', '${regId}')">
+                <option value="">— اختر —</option>
+                ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
+            </select>`;
+        } else if (choices.length > 0) {
           return `<select class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" style="${style}">
                 <option value="">— اختر —</option>
                 ${choices.map(c => `<option value="${escHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escHtml(c)}</option>`).join('')}
             </select>`;
         }
-        return `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(currentVal || '')}" placeholder="${escHtml(col.label || field)}" style="${style}">`;
+        return `<input type="text" class="form-input bulk-custom-data-input" data-field="${escHtml(field)}" value="${escHtml(currentVal || '')}" placeholder="${escHtml(field)}" style="${style}">`;
       }
+
       const rows = regs.map(r => {
         let values = {};
         if (r.custom_data) {
@@ -4638,17 +4727,17 @@
         return `<tr data-reg-id="${r.id}">
             <td style="padding:10px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap;">${r.id}</td>
             <td style="padding:10px;border-bottom:1px solid var(--border);min-width:180px;">${escHtml(r.student_name || '---')}</td>
-            ${allColumns.map(col => {
-          const currentVal = values[col.field] || '';
-          return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal)}</td>`;
-        }).join('')}
+            ${tableColumns.map(col => {
+              const currentVal = values[col.field] || '';
+              return `<td style="padding:10px;border-bottom:1px solid var(--border);min-width:160px;">${buildCell(col, currentVal, r.id)}</td>`;
+            }).join('')}
         </tr>`;
       }).join('');
       const thStyle = `text-align:right;padding:10px;border-bottom:2px solid var(--border);white-space:nowrap;`;
       return `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;direction:rtl;"><thead><tr>
         <th style="${thStyle}">ID</th>
         <th style="${thStyle}">الطفل</th>
-        ${allColumns.map(col => `<th style="${thStyle}">${escHtml(col.label || col.field)}</th>`).join('')}
+        ${tableColumns.map(col => `<th style="${thStyle}">${escHtml(col.label || col.field)}</th>`).join('')}
     </tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
