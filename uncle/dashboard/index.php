@@ -10485,24 +10485,28 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const currentValues = {
                 phone: String(current?.['رقم التليفون'] || current?.phone || '').trim(),
                 address: String(current?.['العنوان'] || current?.address || '').trim(),
-                guardian: String(currentInfo.guardian_name || currentInfo.father_name || currentInfo.parent_name || currentInfo.mother_name || '').trim(),
+                guardian: String(currentInfo.guardian_name || currentInfo.parent_name || currentInfo.mother_name || '').trim(),
+                father: String(currentInfo.father_name || '').trim(),
             };
             const targetValues = {
                 phone: String(target?.['رقم التليفون'] || target?.phone || '').trim(),
                 address: String(target?.['العنوان'] || target?.address || '').trim(),
-                guardian: String(targetInfo.guardian_name || targetInfo.father_name || targetInfo.parent_name || targetInfo.mother_name || '').trim(),
+                guardian: String(targetInfo.guardian_name || targetInfo.parent_name || targetInfo.mother_name || '').trim(),
+                father: String(targetInfo.father_name || '').trim(),
             };
             const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
             const checks = [
                 { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
                 { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
-                { basis: 'shared_guardian', label: 'اسم الأب / ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian) },
+                { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
+                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب قد يتكرر بين أكثر من طفل', ok: currentValues.father && targetValues.father && norm(currentValues.father) === norm(targetValues.father), strength: 'weak' },
             ].filter(x => x.ok);
             if (!checks.length) return null;
             return {
                 basis: checks[0].basis,
                 label: checks.map(x => x.label).join('، '),
                 detail: checks.map(x => x.detail).join('، '),
+                strength: checks.some(x => x.strength === 'weak' && checks.length === 1) ? 'weak' : 'strong',
             };
         }
 
@@ -10686,7 +10690,9 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const preview = data
                 .map(s => {
                     const suggestion = getSiblingSuggestion(current, s);
-                    return suggestion ? `- ${escHtml(getStudentDisplayName(s))}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}` : '';
+                    if (!suggestion) return '';
+                    const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
+                    return `- ${escHtml(getStudentDisplayName(s))}: ${tag} - ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}`;
                 })
                 .filter(Boolean)
                 .slice(0, 4);
@@ -10719,7 +10725,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                                 ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
                                 ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
                             </div>
-                            ${suggestion ? `<div class="sibling-candidate-meta" style="margin-top:4px;color:var(--brand)"><i class="fas fa-lightbulb"></i> اقتراح: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
+                            ${suggestion ? `<div class="sibling-candidate-meta" style="margin-top:4px;color:${suggestion.strength === 'weak' ? 'var(--text-3)' : 'var(--brand)'}"><i class="fas fa-lightbulb"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
