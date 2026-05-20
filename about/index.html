@@ -71,19 +71,12 @@
     color:#fff; font-size:1rem;
     box-shadow:0 4px 12px rgba(91,108,245,.3); flex-shrink:0;
     overflow:hidden;
+    text-decoration:none;
+    cursor:pointer;
   }
   .topbar-logo img { width:100%; height:100%; object-fit:cover; }
   .topbar-title  { font-size:1rem; font-weight:800; color:var(--t1); }
   .topbar-sub    { font-size:.7rem; color:var(--t3); margin-top:-1px; }
-  .topbar-back {
-    margin-right:auto;
-    display:flex; align-items:center; gap:6px;
-    padding:7px 14px; border-radius:var(--r-full);
-    background:var(--brand-bg); color:var(--brand);
-    font-size:.82rem; font-weight:700; text-decoration:none;
-    border:1.5px solid rgba(91,108,245,.2); transition:all .18s;
-  }
-  .topbar-back:hover { background:var(--brand); color:#fff; }
 
   /* ── PAGE ── */
   .page { max-width:820px; margin:0 auto; padding:32px 20px 64px; position:relative; z-index:1; }
@@ -311,12 +304,11 @@
 
 <!-- TOPBAR -->
 <nav class="topbar">
-  <div class="topbar-logo"><img src="/logo.png" alt="Logo"></div>
+  <a href="/" class="topbar-logo"><img src="/logo.png" alt="Logo"></a>
   <div>
     <div class="topbar-title">نظام مدارس الأحد</div>
     <div class="topbar-sub">حول التطبيق</div>
   </div>
-  <a href="/" class="topbar-back"><i class="fas fa-arrow-right"></i> الرئيسية</a>
 </nav>
 
 <main class="page">
@@ -326,7 +318,7 @@
     <div class="hero-verse">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ</div>
     <div class="hero-app-icon"><img src="/logo.png" alt="Logo"></div>
     <h1>نظام <span>مدارس الأحد</span></h1>
-    <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات الذكية والسحب، النماذج الديناميكية للرحلات، المهام والاختبارات في تطبيق واحد.</p>
+    <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات الذكية والسحب، نظام البيانات الإضافية للرحلات، المهام والاختبارات في تطبيق واحد.</p>
     <div class="hero-badges">
       <div class="hero-badge"><i class="fas fa-shield-alt"></i> مجاني</div>
       <div class="hero-badge"><i class="fas fa-wifi"></i> يعمل أوفلاين</div>
