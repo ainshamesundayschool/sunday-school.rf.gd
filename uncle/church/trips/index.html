@@ -5475,7 +5475,16 @@
       } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
     }
 
-    async function printQRCards(tripId) {
+    function printQRCards(tripId) {
+      document.getElementById('printTripId').value = tripId;
+      openModal('printSettingsModal');
+    }
+
+    async function executePrintQRCards() {
+      const tripId = document.getElementById('printTripId').value;
+      if (!tripId) return;
+      closeModal('printSettingsModal');
+      
       let regs = tripRegistrationsCache[tripId] || [];
       let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
       if (!trip || regs.length === 0) {
@@ -5490,8 +5499,33 @@
       }
       if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
 
+      // Get settings
+      const scale = parseFloat(document.getElementById('printScale').value) / 100;
+      const gap = document.getElementById('printGap').value + 'px';
+      const padding = document.getElementById('printPadding').value + 'px';
+      const showChurch = document.getElementById('printShowChurch').checked;
+      const showTripImage = document.getElementById('printShowTripImage').checked;
+      const showTripTitle = document.getElementById('printShowTripTitle').checked;
+      const showStudentImg = document.getElementById('printShowStudentImg').checked;
+      const showStudentName = document.getElementById('printShowStudentName').checked;
+      const showCustom = document.getElementById('printShowCustom').checked;
+
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
+      
+      // Scale variables
+      const scaledWidth = 260 * scale;
+      const scaledHeight = 360 * scale;
+      const fH3 = 13 * scale;
+      const fH2 = 18 * scale;
+      const fCustom = 11 * scale;
+      const fChurch = 11 * scale;
+      const sLogo = 20 * scale;
+      const sAvatar = 70 * scale;
+      const sTripImg = 60 * scale;
+      
+      printArea.style.gap = gap;
+      
       let html = '';
       const qrTasks = [];
 
@@ -5502,7 +5536,7 @@
         const imgUrl = r.student_image || '';
         const hasImage = imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
         let customHtml = '';
-        if (r.custom_data) {
+        if (showCustom && r.custom_data) {
           try {
             const cd = JSON.parse(r.custom_data);
             const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
@@ -5524,30 +5558,37 @@
         const cardId = 'qrcode_' + r.id;
         const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
 
-        const avatarHtml = hasImage 
-            ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">` 
+        const avatarHtml = (showStudentImg && hasImage) 
+            ? `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px;" onerror="this.style.display='none'">` 
+            : '';
+
+        const tripImageHtml = (showTripImage && trip.image_url) 
+            ? `<img src="${trip.image_url}" style="width:100%;height:${sTripImg}px;object-fit:contain;margin-bottom:6px;" onerror="this.style.display='none'">` 
             : '';
 
         html += `
-        <div class="print-card">
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
-                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
-            </div>
-            <h3>${trip.title}</h3>
+        <div class="print-card" style="width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding};">
+            ${showChurch ? `<div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:${fChurch}px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+            </div>` : ''}
+            ${tripImageHtml}
+            ${showTripTitle ? `<h3 style="font-size:${fH3}px;">${trip.title}</h3>` : ''}
             ${avatarHtml}
-            <h2>${name}</h2>
-            <div class="custom-info">${customHtml}</div>
+            ${showStudentName ? `<h2 style="font-size:${fH2}px;">${name}</h2>` : ''}
+            ${showCustom ? `<div class="custom-info" style="font-size:${fCustom}px;">${customHtml}</div>` : ''}
             <div id="${cardId}"></div>
         </div>
         `;
         qrTasks.push({ id: cardId, text: link });
       });
       printArea.innerHTML = html;
+      
+      const qrSize = Math.max(80, 130 * scale);
       qrTasks.forEach(task => {
-        new QRCode(document.getElementById(task.id), { text: task.text, width: 130, height: 130, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+        new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
       });
-      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; }, 1000); }, 1200);
+      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.gap = ''; }, 1000); }, 1200);
     }
 
     let systemChurches = [];
@@ -5813,6 +5854,66 @@
             <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>جاري التحميل...
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Settings Modal -->
+  <div id="printSettingsModal" class="modal">
+    <div class="modal-box" style="max-width:400px;">
+      <div class="modal-head">
+        <h2><i class="fas fa-print"></i> خيارات الطباعة</h2>
+        <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <input type="hidden" id="printTripId">
+        
+        <div class="form-group">
+          <label class="form-label">حجم البطاقة (٪)</label>
+          <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;" oninput="document.getElementById('printScaleVal').textContent = this.value + '%'">
+          <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
+        </div>
+
+        <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <label class="form-label">المسافة بين البطاقات</label>
+            <input type="number" id="printGap" class="form-input" value="15" min="0" max="100">
+          </div>
+          <div>
+            <label class="form-label">المسافات الداخلية</label>
+            <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50">
+          </div>
+        </div>
+
+        <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1);">
+          <label class="form-label" style="margin-bottom:8px;">محتويات البطاقة</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowChurch" checked style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>اسم الكنيسة والشعار</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowTripImage" style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>صورة الرحلة (إن وجدت)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowTripTitle" checked style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>عنوان الرحلة</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>صورة الطفل</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowStudentName" checked style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>اسم الطفل</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="printShowCustom" checked style="accent-color:var(--primary); width:16px; height:16px;">
+            <span>البيانات الإضافية</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
       </div>
     </div>
   </div>
