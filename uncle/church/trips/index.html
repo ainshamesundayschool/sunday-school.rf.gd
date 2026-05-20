@@ -5538,7 +5538,10 @@
             <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:14px;">
                 <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
                 <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
-                    ${collaborators.map(id => `كنيسة رقم ${id}`).join('، ')}
+                    ${collaborators.map(id => {
+                        const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
+                        return ch ? ch.name : `كنيسة رقم ${id}`;
+                    }).join('، ')}
                 </div>
             </div>
         </div>

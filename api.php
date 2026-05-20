@@ -358,7 +358,7 @@ function joinTrip()
             return;
         }
         $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $tripId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -367,6 +367,10 @@ function joinTrip()
             return;
         }
         $row = $res->fetch_assoc();
+        if (intval($row['church_id']) === $churchId) {
+            sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة بالفعل ولا يمكن تسجيلها كشريك']);
+            return;
+        }
         $raw = $row['collaborating_churches'] ?? '';
         $arr = [];
         if (!empty($raw)) {
@@ -599,12 +603,17 @@ function respondToCollaborationRequest()
 
         if ($status === 'accepted') {
             // Get trip to update collaborating churches
-            $tStmt = $conn->prepare("SELECT collaborating_churches FROM trips WHERE id = ?");
+            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
             $tStmt->bind_param("i", $tripId);
             $tStmt->execute();
             $trip = $tStmt->get_result()->fetch_assoc();
             if (!$trip) {
                 sendJSON(['success' => false, 'message' => 'الرحلة المرتبطة بالطلب لم تعد موجودة']);
+                return;
+            }
+
+            if (intval($trip['church_id']) === $churchId) {
+                sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة بالفعل ولا يمكن تسجيلها كشريك']);
                 return;
             }
 
