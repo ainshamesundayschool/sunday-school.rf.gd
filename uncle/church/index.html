@@ -5011,6 +5011,33 @@
 
     <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
+    <!-- Move Student Modal -->
+    <div id="moveModal" class="move-modal" style="display:none;">
+        <div class="move-modal-backdrop" onclick="closeMoveModal()"></div>
+        <div class="move-modal-content">
+            <button class="move-modal-close" onclick="closeMoveModal()">✕</button>
+            <h3>نقل الطفل إلى مجموعة أخوة</h3>
+            <div id="moveModalList" class="move-modal-list"></div>
+            <div class="move-modal-actions">
+                <button class="btn btn-sm" onclick="executeMoveSelection()">نقل</button>
+                <button class="btn btn-sm btn-outline" onclick="createNewGroupForModal()">إنشاء مجموعة جديدة</button>
+                <button class="btn btn-sm btn-danger" onclick="removeStudentFromGroupFromModal()">إزالة من المجموعة</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .move-modal { position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; }
+        .move-modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.4); }
+        .move-modal-content { position:relative; background:#fff; padding:16px; width:420px; max-width:95%; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.2); }
+        .move-modal-close { position:absolute; right:8px; top:8px; border:0; background:transparent; font-size:16px; }
+        .move-modal-list { max-height:320px; overflow:auto; margin:8px 0 12px 0; }
+        .move-modal-item { padding:8px; border:1px solid #eee; margin-bottom:6px; border-radius:6px; cursor:pointer; }
+        .move-modal-item.selected { border-color:#2b6cb0; background:#eef6ff; }
+        .move-modal-item .meta { font-size:12px; color:#666; }
+        .move-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+    </style>
+
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <button class="sidebar-toggle" onclick="toggleSidebar()" title="طي القائمة"><i
@@ -9261,34 +9288,74 @@
             else showToast(d.message || 'فشل في تحديث المجموعة', 'error');
         }
 
-        async function promptMoveStudentToGroup(studentId, fromFamilyKey) {
-            // Build list of existing groups
+        function promptMoveStudentToGroup(studentId, fromFamilyKey) {
+            // open modal-based picker
+            showMoveModal(studentId, fromFamilyKey);
+        }
+
+        function showMoveModal(studentId, fromFamilyKey) {
+            const modal = document.getElementById('moveModal');
+            const list = document.getElementById('moveModalList');
+            modal.dataset.studentId = studentId;
+            modal.dataset.fromFamily = fromFamilyKey || '';
+            list.innerHTML = '';
             const groups = findFamilyCandidateGroups(allStudents || []);
-            const options = groups.map((g, i) => `${i + 1}: ${g.length} طفل`).join('\n');
-            const choice = prompt(`اختر مجموعة للانتقال إليها (أدخل رقم) أو اكتب "new" لإنشاء مجموعة جديدة:\n${options}\nأو اترك فارغاً لإزالة من المجموعة`);
-            if (choice === null) return;
-            const trimmed = String(choice).trim().toLowerCase();
-            if (trimmed === '') {
-                // clear
-                await removeStudentFromGroup(studentId);
-                return;
+            if (!groups.length) {
+                const el = document.createElement('div'); el.className = 'move-modal-item'; el.textContent = 'لا توجد مجموعات موجودة'; list.appendChild(el);
             }
-            if (trimmed === 'new') {
-                // create new group with this student
+            groups.forEach((g, idx) => {
+                const id = g[0].sibling_group?.id || makeFamilyGroupId(g[0].familyKey);
+                const label = g[0].sibling_group?.label || `أشقاء / إخوة — ${g.length} طفل`;
+                const item = document.createElement('div'); item.className = 'move-modal-item'; item.dataset.groupId = id; item.dataset.index = idx;
+                const title = document.createElement('div'); title.textContent = label; item.appendChild(title);
+                const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = g.slice(0,4).map(s => (s.name||s['الاسم']||s.name_en||'')).filter(Boolean).join(' • ');
+                item.appendChild(meta);
+                item.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); item.classList.add('selected'); };
+                list.appendChild(item);
+            });
+            // add a 'new group' item
+            const newItem = document.createElement('div'); newItem.className = 'move-modal-item'; newItem.dataset.groupId = 'new'; newItem.textContent = 'إنشاء مجموعة جديدة'; newItem.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); newItem.classList.add('selected'); };
+            list.appendChild(newItem);
+            // add a 'remove' item
+            const rem = document.createElement('div'); rem.className = 'move-modal-item'; rem.dataset.groupId = 'remove'; rem.textContent = 'إزالة من المجموعة (لا توجد مجموعة)'; rem.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); rem.classList.add('selected'); };
+            list.appendChild(rem);
+            modal.style.display = 'flex';
+        }
+
+        function closeMoveModal() { const modal = document.getElementById('moveModal'); modal.style.display = 'none'; modal.dataset.studentId = ''; modal.dataset.fromFamily = ''; }
+
+        async function executeMoveSelection() {
+            const modal = document.getElementById('moveModal');
+            const studentId = modal.dataset.studentId;
+            const selected = document.querySelector('.move-modal-item.selected');
+            if (!selected) { showToast('اختر مجموعة أو إنشاء جديدة أو إزالة', 'warning'); return; }
+            const gid = selected.dataset.groupId;
+            if (gid === 'remove') { await removeStudentFromGroup(studentId); closeMoveModal(); return; }
+            if (gid === 'new') {
                 const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId]));
                 const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-                if (d.success) { showToast('تم نقل الطالب لمجموعة جديدة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+                if (d.success) { showToast('تم إنشاء مجموعة ونقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
                 else showToast(d.message || 'فشل النقل', 'error');
                 return;
             }
-            const idx = parseInt(trimmed, 10) - 1;
-            if (isNaN(idx) || idx < 0 || idx >= groups.length) { showToast('خيار غير صالح', 'warning'); return; }
-            const targetGroupId = groups[idx][0].sibling_group?.id || makeFamilyGroupId(groups[idx][0].familyKey);
-            // Assign student to target group
-            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('group_id', targetGroupId); fd.append('label', ''); fd.append('status', groups[idx][0].sibling_group?.status || 'pending');
+            // assign to existing group id
+            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('group_id', gid); fd.append('label', '');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم نقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); }
+            if (d.success) { showToast('تم نقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
             else showToast(d.message || 'فشل النقل', 'error');
+        }
+
+        async function createNewGroupForModal() {
+            const modal = document.getElementById('moveModal'); const studentId = modal.dataset.studentId;
+            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId]));
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم إنشاء مجموعة جديدة', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
+            else showToast(d.message || 'فشل الإنشاء', 'error');
+        }
+
+        async function removeStudentFromGroupFromModal() {
+            const modal = document.getElementById('moveModal'); const studentId = modal.dataset.studentId;
+            await removeStudentFromGroup(studentId); closeMoveModal();
         }
 
         async function removeStudentFromGroup(studentId) {
