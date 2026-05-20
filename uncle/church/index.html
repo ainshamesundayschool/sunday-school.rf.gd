@@ -6170,15 +6170,18 @@
                     <input type="text" id="devTemplateName" class="form-input" placeholder="مثال: بيت الاخوه بالسويس" style="font-weight:700;">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="font-weight:700;">الحقول الإضافية (مفصولة بفواصل) *</label>
-                    <input type="text" id="devTemplateFields" class="form-input" placeholder="مثال: السكن" style="font-weight:700;">
+                    <label class="form-label" style="font-weight:700;">اسم الحقل الرئيسي *</label>
+                    <input type="text" id="devTemplateFieldName" class="form-input" value="السكن" placeholder="مثال: السكن" style="font-weight:700;">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="font-weight:700;">هيكل الحقول وتفاصيل الخيارات (JSON) *</label>
-                    <div style="background:var(--bg);padding:8px 12px;border-radius:6px;font-size:0.75rem;color:var(--muted);border:1px dashed var(--border);margin-bottom:8px;">
-                        <i class="fas fa-info-circle"></i> يمكنك تعديل الهيكل التالي الذي يمثل خيارات السكن والغرف (يمكنك نسخه والتعديل عليه مباشرة).
+                    <label class="form-label" style="font-weight:700;">خيارات الحقل الرئيسي (مفصولة بفواصل) *</label>
+                    <input type="text" id="devTemplateMainChoices" class="form-input" value="المبنى, فيلا, فيلا الفرح" placeholder="مثال: المبنى, فيلا, فيلا الفرح" style="font-weight:700;" oninput="renderDevTemplateSubfieldsUI()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;color:var(--primary);"><i class="fas fa-sliders-h"></i> تكوين الغرف والحقول الفرعية لكل خيار:</label>
+                    <div id="devTemplateSubfieldsArea" style="display:flex;flex-direction:column;gap:10px;background:var(--bg);padding:14px;border-radius:10px;border:1px solid var(--border);">
+                        <!-- Will be dynamically populated by renderDevTemplateSubfieldsUI() -->
                     </div>
-                    <textarea id="devTemplateIcons" class="form-input" style="font-family:monospace;font-size:0.8rem;height:240px;direction:ltr;text-align:left;"></textarea>
                 </div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border-solid);padding-top:14px;margin-top:4px;">
                     <button type="button" class="btn btn-dev" onclick="devTemplateSave()"><i class="fas fa-plus"></i> إضافة القالب</button>
@@ -10358,73 +10361,125 @@
             }
         }
 
+        function renderDevTemplateSubfieldsUI() {
+            const area = document.getElementById('devTemplateSubfieldsArea');
+            if (!area) return;
+
+            const mainChoicesRaw = document.getElementById('devTemplateMainChoices').value;
+            const choices = mainChoicesRaw.split(',')
+                .map(c => c.trim())
+                .filter(Boolean);
+
+            if (choices.length === 0) {
+                area.innerHTML = `<span style="color:var(--muted);font-size:0.78rem;">يرجى إدخال خيارات في الحقل الرئيسي أولاً...</span>`;
+                return;
+            }
+
+            const defaultSubfieldChoices = {
+                "المبنى": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+                "فيلا": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+                "فيلا الفرح": "1,2,3,4,5"
+            };
+
+            area.innerHTML = choices.map((choice, index) => {
+                const defaultVal = defaultSubfieldChoices[choice] || "1,2,3,4,5";
+                const safeChoiceId = `devSubfield_choice_${index}`;
+                return `
+                    <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--text);"><i class="fas fa-arrow-left" style="color:var(--primary); font-size:0.7rem;"></i> خيار: <strong>"${escHtml(choice)}"</strong></span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:0.75rem; color:var(--muted); min-width:80px;">اسم الحقل الفرعي:</span>
+                            <input type="text" id="${safeChoiceId}_subname" class="form-input" value="الغرفه" placeholder="مثال: الغرفه" style="font-size:0.8rem; padding:4px 8px; width:120px;">
+                            <span style="font-size:0.75rem; color:var(--muted); margin-right:8px;">خياراته (مفصولة بفواصل):</span>
+                            <input type="text" id="${safeChoiceId}_subchoices" class="form-input" value="${escHtml(defaultVal)}" placeholder="مثال: 1,2,3,4,5" style="font-size:0.8rem; padding:4px 8px; flex:1;" data-choice-val="${escHtml(choice)}">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function openDevAddTemplateModal() {
             document.getElementById('devTemplateName').value = '';
-            document.getElementById('devTemplateFields').value = 'السكن';
+            document.getElementById('devTemplateFieldName').value = 'السكن';
+            document.getElementById('devTemplateMainChoices').value = 'المبنى, فيلا, فيلا الفرح';
             
-            const defaultStructure = {
-                "السكن": {
-                    "name": "السكن",
-                    "icon": "fas fa-home",
-                    "type": "sub_group",
-                    "choices": ["المبنى", "فيلا", "فيلا الفرح"],
-                    "sub_fields": {
-                        "المبنى": [
-                            {
-                                "name": "الغرفه",
-                                "icon": "fas fa-door-closed",
-                                "type": "choices",
-                                "choices": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
-                            }
-                        ],
-                        "فيلا": [
-                            {
-                                "name": "الغرفه",
-                                "icon": "fas fa-door-closed",
-                                "type": "choices",
-                                "choices": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
-                            }
-                        ],
-                        "فيلا الفرح": [
-                            {
-                                "name": "الغرفه",
-                                "icon": "fas fa-door-closed",
-                                "type": "choices",
-                                "choices": ["1", "2", "3", "4", "5"]
-                            }
-                        ]
-                    }
-                }
-            };
-            document.getElementById('devTemplateIcons').value = JSON.stringify(defaultStructure, null, 4);
+            renderDevTemplateSubfieldsUI();
             openModal('devAddTemplateModal');
         }
 
         async function devTemplateSave() {
             const name = document.getElementById('devTemplateName').value.trim();
-            const fields = document.getElementById('devTemplateFields').value.trim();
-            const iconsRaw = document.getElementById('devTemplateIcons').value.trim();
+            const mainFieldName = document.getElementById('devTemplateFieldName').value.trim();
+            const mainChoicesRaw = document.getElementById('devTemplateMainChoices').value.trim();
 
             if (!name) {
                 showToast('اسم القالب مطلوب', 'error');
                 return;
             }
-            if (!fields) {
-                showToast('اسم الحقل مطلوب', 'error');
+            if (!mainFieldName) {
+                showToast('اسم الحقل الرئيسي مطلوب', 'error');
+                return;
+            }
+            if (!mainChoicesRaw) {
+                showToast('خيارات الحقل الرئيسي مطلوبة', 'error');
                 return;
             }
 
-            try {
-                JSON.parse(iconsRaw);
-            } catch (e) {
-                showToast('تنسيق الـ JSON غير صالح. الرجاء التحقق من كتابته بشكل صحيح.', 'error');
-                return;
-            }
+            const mainChoices = mainChoicesRaw.split(',')
+                .map(c => c.trim())
+                .filter(Boolean);
+
+            const subfieldsMap = {};
+            let hasError = false;
+
+            mainChoices.forEach((choice, index) => {
+                const subnameEl = document.getElementById(`devSubfield_choice_${index}_subname`);
+                const subchoicesEl = document.getElementById(`devSubfield_choice_${index}_subchoices`);
+                
+                if (!subnameEl || !subchoicesEl) return;
+
+                const subfieldName = subnameEl.value.trim();
+                const subchoices = subchoicesEl.value.split(',')
+                    .map(c => c.trim())
+                    .filter(Boolean);
+
+                if (!subfieldName) {
+                    showToast(`الرجاء إدخال اسم الحقل الفرعي لـ "${choice}"`, 'error');
+                    hasError = true;
+                    return;
+                }
+
+                if (subchoices.length === 0) {
+                    showToast(`الرجاء إدخال خيارات الحقل الفرعي لـ "${choice}"`, 'error');
+                    hasError = true;
+                    return;
+                }
+
+                subfieldsMap[choice] = [
+                    {
+                        "name": subfieldName,
+                        "icon": "fas fa-door-closed",
+                        "type": "choices",
+                        "choices": subchoices
+                    }
+                ];
+            });
+
+            if (hasError) return;
+
+            const finalStructure = {};
+            finalStructure[mainFieldName] = {
+                "name": mainFieldName,
+                "icon": "fas fa-home",
+                "type": "sub_group",
+                "choices": mainChoices,
+                "sub_fields": subfieldsMap
+            };
 
             const fd = mkFd('addCustomFieldTemplate');
             fd.append('name', name);
-            fd.append('custom_fields', fields);
-            fd.append('custom_field_icons', iconsRaw);
+            fd.append('custom_fields', mainFieldName);
+            fd.append('custom_field_icons', JSON.stringify(finalStructure));
 
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
