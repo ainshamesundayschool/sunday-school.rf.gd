@@ -866,11 +866,52 @@
                 html5QrcodeScanner.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText, decodedResult) => {
+                    async (decodedText, decodedResult) => {
                         // Success
-                        html5QrcodeScanner.stop().then(() => {
+                        html5QrcodeScanner.stop().then(async () => {
                             document.getElementById('scannerModal').style.display = 'none';
-                            window.location.href = decodedText; // Redirect to the points page
+                            
+                            let parsedUrl;
+                            try {
+                                parsedUrl = new URL(decodedText);
+                            } catch (e) {
+                                alert('الكود الممسوح غير صحيح');
+                                return;
+                            }
+                            const scannedTripId = parsedUrl.searchParams.get('trip_id');
+                            const scannedStudentId = parsedUrl.searchParams.get('student_id');
+                            
+                            if (!scannedTripId || !scannedStudentId) {
+                                alert('الكود الممسوح غير صحيح');
+                                return;
+                            }
+
+                            if (currentTrip && String(scannedTripId) === String(currentTrip.id)) {
+                                // Same trip - navigate directly
+                                window.location.href = decodedText;
+                                return;
+                            }
+
+                            // Different trip - check church
+                            const fd = new FormData();
+                            fd.append('action', 'getTripDetails');
+                            fd.append('trip_id', scannedTripId);
+                            
+                            try {
+                                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                                const currentChurchId = currentTrip ? currentTrip.church_id : null;
+                                if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
+                                    // Same church, different trip -> Ask to redirect
+                                    if (confirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`)) {
+                                        window.location.href = decodedText;
+                                    }
+                                } else {
+                                    // Different church or unauthorized -> Block and alert
+                                    alert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                                }
+                            } catch (err) {
+                                alert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                            }
                         });
                     },
                     (errorMessage) => {
