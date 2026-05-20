@@ -1325,7 +1325,7 @@ try {
             checkAuth(); // يتطلب تسجيل دخول
             getChurchClassesWithStats();
             break;
-        // دوال الرحلات
+        // دوال الرحلات / المؤتمرات
         case 'getTrips':
             getTrips();
             break;
@@ -8927,7 +8927,7 @@ function getTrips()
 
     } catch (Exception $e) {
         error_log("getTrips error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في جلب الرحلات: ' . $e->getMessage()]);
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب الرحلات / المؤتمرات: ' . $e->getMessage()]);
     }
 }
 
@@ -10748,7 +10748,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     fputcsv($output, ['معلومات الرحلة']);
     fputcsv($output, ['العنوان', $trip['title']]);
     fputcsv($output, ['الوصف', $trip['description'] ?? '']);
-    fputcsv($output, ['النوع', $trip['type'] === 'one_day' ? 'يوم واحد' : 'عدة أيام']);
+    fputcsv($output, ['النوع', $trip['type'] === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)']);
     fputcsv($output, ['تاريخ البدء', date('d/m/Y', strtotime($trip['start_date']))]);
     if (!empty($trip['end_date'])) {
         fputcsv($output, ['تاريخ الانتهاء', date('d/m/Y', strtotime($trip['end_date']))]);
@@ -12026,7 +12026,7 @@ try {
             getChurchClassesWithStats();
             break;
 
-        // دوال الرحلات
+        // دوال الرحلات / المؤتمرات
         case 'getTrips':
             getTrips();
             break;

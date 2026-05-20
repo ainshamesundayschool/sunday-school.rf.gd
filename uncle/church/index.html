@@ -4831,8 +4831,8 @@
             <button class="nav-item" onclick="switchTab('uncleAttendance', this)" data-tooltip="حضور الخُدام">
                 <i class="fas fa-user-tie"></i><span class="label">حضور الخُدام</span>
             </button>
-            <button class="nav-item" onclick="switchTab('trips', this)" data-tooltip="الرحلات">
-                <i class="fas fa-bus"></i><span class="label">الرحلات</span>
+            <button class="nav-item" onclick="switchTab('trips', this)" data-tooltip="الرحلات / المؤتمرات">
+                <i class="fas fa-bus"></i><span class="label">الرحلات / المؤتمرات</span>
                 <span class="nav-badge" id="tripsCount" data-count="0">0</span>
             </button>
             <div class="nav-section-label">الإعدادات</div>
@@ -4972,7 +4972,7 @@
                         <div class="stat-card">
                             <div class="stat-icon purple"><i class="fas fa-bus"></i></div>
                             <div class="stat-info">
-                                <p>الرحلات النشطة</p>
+                                <p>الرحلات / المؤتمرات النشطة</p>
                                 <h3 id="activeTrips">0</h3>
                             </div>
                         </div>
@@ -5418,7 +5418,7 @@
                     style="margin-bottom:20px; display:none; border:1px solid #0ea5e9;">
                     <div class="card-header"
                         style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe;">
-                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات
+                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات / المؤتمرات
                             الواردة</div>
                     </div>
                     <div class="card-body" id="tripCollaborationInvitesList"
@@ -5429,7 +5429,7 @@
 
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-route"></i> الرحلات</div>
+                        <div class="card-title"><i class="fas fa-route"></i> الرحلات / المؤتمرات</div>
                         <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddTripForm()">
                             <i class="fas fa-plus" id="addTripChevron"></i> <span id="addTripToggleLbl">رحلة
                                 جديدة</span>
@@ -5444,8 +5444,8 @@
                                     <div class="form-group"><label class="form-label">نوع الرحلة</label><select
                                             id="tripType" class="form-select" style="width:100%;"
                                             onchange="toggleTripDates()">
-                                            <option value="one_day">يوم واحد</option>
-                                            <option value="multiple_days">عدة أيام</option>
+                                            <option value="one_day">رحلة (يوم واحد)</option>
+                                            <option value="multiple_days">مؤتمر (عدة أيام)</option>
                                         </select></div>
                                     <div class="form-group"><label class="form-label">تاريخ البدء *</label><input
                                             type="date" id="tripStartDate" class="form-input" required></div>
@@ -5532,7 +5532,7 @@
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-list"></i> قائمة الرحلات</div>
+                        <div class="card-title"><i class="fas fa-list"></i> قائمة الرحلات / المؤتمرات</div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                             <div class="search-wrap" style="min-width:180px;"><i class="fas fa-search"></i><input
                                     type="text" id="tripSearch" placeholder="بحث عن رحلة..." oninput="filterTrips()">
@@ -5545,8 +5545,8 @@
                             </select>
                             <select id="tripTypeFilter" class="form-select" onchange="filterTrips()">
                                 <option value="all">جميع الأنواع</option>
-                                <option value="one_day">يوم واحد</option>
-                                <option value="multiple_days">عدة أيام</option>
+                                <option value="one_day">رحلة (يوم واحد)</option>
+                                <option value="multiple_days">مؤتمر (عدة أيام)</option>
                             </select>
                         </div>
                     </div>
@@ -6475,8 +6475,8 @@
                                 id="editTripTitle" class="form-input" required></div>
                         <div class="form-group"><label class="form-label">النوع</label><select id="editTripType"
                                 class="form-select" style="width:100%;" onchange="toggleEditTripDates()">
-                                <option value="one_day">يوم واحد</option>
-                                <option value="multiple_days">عدة أيام</option>
+                                <option value="one_day">رحلة (يوم واحد)</option>
+                                <option value="multiple_days">مؤتمر (عدة أيام)</option>
                             </select></div>
                         <div class="form-group"><label class="form-label">تاريخ البدء</label><input type="date"
                                 id="editTripStartDate" class="form-input" required></div>
@@ -7875,7 +7875,7 @@
             students: ['الأطفال', 'إدارة الأطفال'],
             attendance: ['الحضور', 'سجل الحضور'],
             uncleAttendance: ['حضور الخُدام', 'سجل حضور الخُدام'],
-            trips: ['الرحلات', 'إدارة الرحلات'],
+            trips: ['الرحلات / المؤتمرات', 'إدارة الرحلات / المؤتمرات'],
             classes: ['الفصول', 'إدارة الفصول'],
             pending: ['الطلبات المعلقة', 'مراجعة الطلبات'],
             devChurches: ['إدارة الكنائس', 'لوحة المطور'],
@@ -9144,7 +9144,7 @@
                 <h3>${t.title} ${!isOwner ? `<span style="font-size:0.7rem;font-weight:normal;color:#0ea5e9;background:#e0f2fe;padding:2px 8px;border-radius:12px;margin-right:6px;display:inline-block;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}</h3>
                 <div class="trip-meta-row">
                     <span><i class="fas fa-calendar"></i>${t.start_date_formatted || t.start_date || '—'}</span>
-                    <span><i class="fas fa-clock"></i>${t.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}</span>
+                    <span><i class="fas fa-clock"></i>${t.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}</span>
                 </div>
                 <div class="trip-price-row">
                     <span class="curr">${finalPrice} جنيه</span>
@@ -9475,7 +9475,7 @@
             // Update header
             document.getElementById('tdModalTitle').textContent = trip.title;
             document.getElementById('tdStatusBadge').innerHTML = `<span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>`;
-            document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}`;
+            document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}`;
             document.getElementById('tdRegsCount').textContent = regs.length || '';
             document.getElementById('tdExpCount').textContent = exps.length || '';
             document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';

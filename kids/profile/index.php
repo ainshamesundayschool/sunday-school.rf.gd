@@ -1280,7 +1280,7 @@ body::before{
   <div class="sc" id="scTrips" style="display:none">
     <div class="sc-head">
       <div class="sc-ico" style="background:var(--trip-bg);color:var(--trip-l);"><i class="fas fa-bus"></i></div>
-      <div class="sc-label"><div class="sc-title">الرحلات</div><div class="sc-sub" id="tripSub"></div></div>
+      <div class="sc-label"><div class="sc-title">الرحلات / المؤتمرات</div><div class="sc-sub" id="tripSub"></div></div>
     </div>
     <div class="sc-body"><div id="tripList"></div></div>
   </div>

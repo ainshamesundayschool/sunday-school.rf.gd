@@ -170,7 +170,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     $ogTitle = ($churchType === 'youth') ? 'خدمة الشباب' : 'نظام مدارس الأحد';
     $ogDescription = ($churchType === 'youth')
         ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
-        : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات والمزيد';
+        : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
     $ogImage = 'https://sunday-school.rf.gd/imgs/Thumbnail-300x.png';
     $ogUrl = 'https://sunday-school.rf.gd/';
     ?>
@@ -6956,7 +6956,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="section-head" id="tripsSectionHead" style="display:none;">
-                    <span class="section-title">الرحلات المتاحة</span>
+                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
@@ -9996,7 +9996,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let tp = {};
             try { tp = typeof full.trip_points === 'string' ? JSON.parse(full.trip_points || '{}') : (full.trip_points || {}); } catch (e) { tp = {}; }
             const tpKeys = Object.keys(tp || {});
-            let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات</div><div class="detail-val">';
+            let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات / المؤتمرات</div><div class="detail-val">';
             if (!tpKeys.length) tpHtml += 'لا توجد نقاط مسجّلة';
             else tpHtml += tpKeys.map(k => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id || full.id})">تعديل</button></div></div>`).join('');
             tpHtml += '</div></div>';

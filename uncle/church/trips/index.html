@@ -3079,7 +3079,7 @@
           <div id="expPriceBanner"
             style="display:none;background:linear-gradient(135deg,var(--primary),#6366f1);border-radius:14px;padding:16px 20px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:16px;">
             <div>
-              <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (رحلة + مصروفات)</div>
+              <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (الرحلة + مصروفات)</div>
               <div id="expTotalPerKidVal" style="font-size:1.8rem;font-weight:900;">0 ج</div>
               <div id="expPriceBreakdown" style="font-size:0.7rem;opacity:.7;margin-top:2px;"></div>
             </div>
@@ -3213,6 +3213,13 @@
       // But for now, just closing is fine as the close button handles redirect.
     }
 
+    function openRegisterModal() {
+      if (!window.currentTripObj) return;
+      document.getElementById('regModalTitle').innerHTML = `<i class="fas fa-user-plus"></i> تسجيل طفل في ${window.currentTripObj.type === 'one_day' ? 'الرحلة' : 'المؤتمر'}`;
+      document.getElementById('regStudentSearch').value = '';
+      openModal('registerStudentModal');
+    }
+
     function switchTripTab(tab, updateUrl = true) {
       currentTripTab = tab;
       ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
@@ -3295,7 +3302,7 @@
               <h3>${escHtml(trip.title)}</h3>
               <div class="trip-meta-row">
                 <span><i class="fas fa-calendar"></i>${trip.start_date_formatted || trip.start_date || '—'}</span>
-                <span><i class="fas fa-clock"></i>${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}</span>
+                <span><i class="fas fa-clock"></i>${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}</span>
               </div>
               <div class="trip-price-row"><span class="curr">${finalPrice} جنيه</span></div>
               <div class="trip-stats-row">
@@ -3310,7 +3317,17 @@
     function escHtml(s = '') { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
 
     function renderTripDetailsFull(trip) {
+      
       window.currentTripObj = trip;
+      
+      const tripWord = trip.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
+      const tripWordDef = trip.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
+      
+      // Dynamic DOM updates
+      document.querySelector('.topbar-title').textContent = 'إدارة ' + tripWordDef;
+      document.querySelector('.topbar-breadcrumb span').textContent = 'تفاصيل ' + tripWordDef;
+      document.getElementById('tdModalTitle').textContent = 'تفاصيل ' + tripWordDef;
+
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
       const isOwner = trip.church_id == cid || trip.is_owner == 1;
       const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
@@ -3331,7 +3348,7 @@
         <span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>
         ${!isOwner ? `<span class="badge" style="font-size:0.72rem;background:#e0f2fe;color:#0ea5e9;border:1px solid #0ea5e9;margin-right:6px;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}
       `;
-      document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'يوم واحد' : 'عدة أيام'}`;
+      document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}`;
       document.getElementById('tdRegsCount').textContent = regs.length || '';
       document.getElementById('tdExpCount').textContent = exps.length || '';
       // Load waitlist count async
@@ -3343,7 +3360,7 @@
         if (badge) badge.textContent = wCount || '';
       })();
       document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
-      document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر الرحلة`;
+      document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر ${tripWordDef}`;
       if (trip.image_url) { document.getElementById('tdCoverBg').style.backgroundImage = `url('${trip.image_url}')`; document.getElementById('tdCoverThumb').innerHTML = `<img src="${trip.image_url}" style="width:100%;height:100%;object-fit:cover;">`; }
       else { document.getElementById('tdCoverThumb').innerHTML = `<i class="fas fa-bus" style="color:rgba(255,255,255,0.5);font-size:1.8rem;"></i>`; }
 
@@ -3362,7 +3379,7 @@
       document.getElementById('tripInfoContent').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
             <div class="info-box"><small>تاريخ البدء</small><div style="font-weight:700;">${trip.start_date_formatted || trip.start_date || '—'}</div></div>
-            <div class="info-box"><small>سعر الرحلة الأساسي</small><div style="color:var(--primary);font-weight:800;">${basePrice} ج</div></div>
+            <div class="info-box"><small>سعر ${tripWordDef} الأساسي</small><div style="color:var(--primary);font-weight:800;">${basePrice} ج</div></div>
             ${expPerKid > 0 ? `<div class="info-box" style="border:1.5px solid var(--warning);background:#fffbeb;"><small>مصروفات على الطفل</small><div style="color:var(--warning);font-weight:800;">+${expPerKid} ج</div></div>` : ''}
             <div class="info-box" style="border:2px solid var(--primary);background:var(--primary-light);"><small>الإجمالي / طفل</small><div style="color:var(--primary);font-weight:900;font-size:1.2rem;">${totalPerKid} ج</div></div>
             <div class="info-box"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:800;">${totalCollected} ج</div></div>
@@ -3376,7 +3393,7 @@
             if (collaborators.length > 0) {
               collabHtml = `<div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:12px;margin-bottom:16px;">
                 <div style="font-size:0.85rem;font-weight:700;color:#0ea5e9;margin-bottom:6px;"><i class="fas fa-handshake"></i> التعاون مع الكنائس الأخرى</div>
-                <div style="font-size:0.75rem;color:#0369a1;">${collaborators.length} كنيسة أخرى تشارك في هذه الرحلة</div>
+                <div style="font-size:0.75rem;color:#0369a1;">${collaborators.length} كنيسة أخرى تشارك في هذا ال${tripWordDef}</div>
               </div>`;
             }
           } catch (e) { }
@@ -3408,7 +3425,7 @@
             <i class="fas fa-sliders-h"></i>البيانات الإضافية
           </button>
           <button class="trip-action-btn" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'">
-            <i class="fas fa-edit"></i>تعديل الرحلة
+            <i class="fas fa-edit"></i>تعديل ${tripWordDef}
           </button>
           ` : ''}
           ${(isOwner && trip.custom_fields && trip.custom_fields.trim()) ? `
@@ -3487,7 +3504,7 @@
       if (banner && totalPerKid > 0 && basePrice > 0) {
         banner.style.display = 'flex';
         document.getElementById('expTotalPerKidVal').textContent = (basePrice + Math.round(totalPerKid)) + ' ج';
-        document.getElementById('expPriceBreakdown').textContent = `سعر الرحلة ${basePrice} ج + مصروفات ${Math.round(totalPerKid)} ج`;
+        document.getElementById('expPriceBreakdown').textContent = `سعر ${tripWordDef} ${basePrice} ج + مصروفات ${Math.round(totalPerKid)} ج`;
       } else if (banner) { banner.style.display = 'none'; }
       if (!exps.length) { document.getElementById('expensesList').innerHTML = `<div class="empty-state" style="padding:30px;"><i class="fas fa-receipt"></i><h3>لا توجد مصروفات بعد</h3></div>`; return; }
       const typeIcons = { bus: 'fas fa-bus', food: 'fas fa-utensils', entry: 'fas fa-ticket-alt', other: 'fas fa-receipt' };
@@ -3680,7 +3697,7 @@
   <div id="registerStudentModal" class="modal">
     <div class="modal-box" style="max-width:620px;">
       <div class="modal-head">
-        <h2><i class="fas fa-user-plus"></i> تسجيل طفل في الرحلة</h2><button class="modal-close"
+        <h2 id="regModalTitle"><i class="fas fa-user-plus"></i> تسجيل طفل</h2><button class="modal-close"
           onclick="closeModal('registerStudentModal')"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
