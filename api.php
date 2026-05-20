@@ -8718,6 +8718,24 @@ function getTrips()
 
         $trips = [];
         while ($row = $result->fetch_assoc()) {
+            // Clean up self-collaboration on the fly:
+            if (!empty($row['collaborating_churches'])) {
+                $collabArr = json_decode($row['collaborating_churches'], true);
+                if (is_array($collabArr)) {
+                    $ownerChurchId = intval($row['church_id']);
+                    $cleanedCollab = array_values(array_filter(array_map('intval', $collabArr), function($id) use ($ownerChurchId) {
+                        return $id !== $ownerChurchId;
+                    }));
+                    if ($cleanedCollab !== $collabArr) {
+                        $newCollabJson = json_encode($cleanedCollab, JSON_UNESCAPED_UNICODE);
+                        $u = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
+                        $u->bind_param('si', $newCollabJson, $row['id']);
+                        $u->execute();
+                        $row['collaborating_churches'] = $newCollabJson;
+                    }
+                }
+            }
+
             // حساب السعر بعد الخصم
             $finalPrice = $row['price'];
             if ($row['discount'] > 0) {
@@ -9282,6 +9300,24 @@ function getTripDetails()
         }
 
         $trip = $tripResult->fetch_assoc();
+
+        // Clean up self-collaboration on the fly:
+        if (!empty($trip['collaborating_churches'])) {
+            $collabArr = json_decode($trip['collaborating_churches'], true);
+            if (is_array($collabArr)) {
+                $ownerChurchId = intval($trip['church_id']);
+                $cleanedCollab = array_values(array_filter(array_map('intval', $collabArr), function($id) use ($ownerChurchId) {
+                    return $id !== $ownerChurchId;
+                }));
+                if ($cleanedCollab !== $collabArr) {
+                    $newCollabJson = json_encode($cleanedCollab, JSON_UNESCAPED_UNICODE);
+                    $u = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
+                    $u->bind_param('si', $newCollabJson, $trip['id']);
+                    $u->execute();
+                    $trip['collaborating_churches'] = $newCollabJson;
+                }
+            }
+        }
 
         // Verify caller is the trip owner OR a collaborating church
         $participants = [$trip['church_id']];

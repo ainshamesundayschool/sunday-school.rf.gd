@@ -5580,6 +5580,7 @@
       } catch (e) {
         collaborators = [];
       }
+      collaborators = collaborators.map(id => parseInt(id)).filter(id => id && id != trip.church_id);
 
       const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}`;
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
