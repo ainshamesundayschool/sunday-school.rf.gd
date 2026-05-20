@@ -4974,7 +4974,7 @@
           _cfeTemplatesList = res.templates || [];
           const select = document.getElementById('cfeTemplateSelect');
           if (select) {
-            select.innerHTML = '<option value="">— اختر قالباً للتحميل —</option>' + 
+            select.innerHTML = '<option value="">— اختر قالباً لإضافته —</option>' + 
               _cfeTemplatesList.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
           }
         }
@@ -5001,7 +5001,7 @@
       const fieldNames = parseCustomFieldsString(t.custom_fields);
       const iconsRaw = t.custom_field_icons || {};
 
-      _cfeState.fields = fieldNames.map((name, i) => {
+      const templateFields = fieldNames.map((name, i) => {
         const meta = iconsRaw[name] || {};
         let type = meta.type || 'choices';
         let choices = Array.isArray(meta.choices) ? [...meta.choices] : [];
@@ -5036,8 +5036,18 @@
         };
       });
 
+      // Append/Merge logic: replace matching field names, append new ones
+      templateFields.forEach(tf => {
+        const duplicateIndex = _cfeState.fields.findIndex(f => f.name.trim().toLowerCase() === tf.name.trim().toLowerCase());
+        if (duplicateIndex !== -1) {
+          _cfeState.fields[duplicateIndex] = tf;
+        } else {
+          _cfeState.fields.push(tf);
+        }
+      });
+
       renderCfeFields();
-      showToast('تم تحميل القالب بنجاح!', 'success');
+      showToast('تم إضافة القالب بنجاح!', 'success');
     }
 
     async function cfeSaveAsTemplate() {
@@ -5494,9 +5504,9 @@
             عند اختيار خيار معين (مثلاً: عند اختيار مبنى معين، تظهر خيارات الغرف الخاصة به).</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border);flex-wrap:wrap;">
-          <span style="font-size:0.8rem;font-weight:700;color:var(--muted);white-space:nowrap;"><i class="fas fa-magic" style="color:var(--primary);"></i> قوالب جاهزة:</span>
+          <span style="font-size:0.8rem;font-weight:700;color:var(--muted);white-space:nowrap;"><i class="fas fa-magic" style="color:var(--primary);"></i> + إضافة قالب:</span>
           <select id="cfeTemplateSelect" class="form-input" style="padding:4px 8px;font-size:0.8rem;width:auto;min-width:180px;" onchange="cfeLoadTemplate(this.value)">
-            <option value="">— اختر قالباً للتحميل —</option>
+            <option value="">— اختر قالباً لإضافته —</option>
           </select>
           <button type="button" id="cfeSaveAsTemplateBtn" class="btn btn-outline btn-xs" onclick="cfeSaveAsTemplate()" style="font-size:0.7rem;padding:4px 8px;display:none;"><i class="fas fa-save"></i> حفظ كقالب جديد</button>
           <button type="button" id="cfeDeleteTemplateBtn" class="btn btn-outline btn-xs btn-danger" onclick="cfeDeleteTemplate()" style="font-size:0.7rem;padding:4px 8px;display:none;color:var(--danger);border-color:var(--danger);"><i class="fas fa-trash"></i> حذف القالب</button>
