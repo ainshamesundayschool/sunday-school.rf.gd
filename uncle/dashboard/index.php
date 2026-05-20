@@ -2364,61 +2364,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: 0 0 0 1px rgba(219, 39, 119, .14), var(--shadow-sm);
         }
 
-        .student-avatar.male::before,
-        .student-avatar.female::before,
-        .detail-avatar-fallback.male::before,
-        .detail-avatar-fallback.female::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, .96);
-        }
-
-        .student-avatar.male::before,
-        .student-avatar.female::before {
-            top: 16%;
-            width: 38%;
-            height: 38%;
-            border-radius: 50%;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
-        }
-
-        .student-avatar.male::after,
-        .detail-avatar-fallback.male::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 10%;
-            transform: translateX(-50%);
-            width: 50%;
-            height: 42%;
-            border-radius: 12px 12px 16px 16px;
-            background: rgba(255, 255, 255, .94);
-        }
-
-        .student-avatar.female::after,
-        .detail-avatar-fallback.female::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 8%;
-            transform: translateX(-50%);
-            width: 54%;
-            height: 44%;
-            background: rgba(255, 255, 255, .94);
-            clip-path: polygon(50% 100%, 0 0, 100% 0);
-        }
-
-        .detail-avatar-fallback.male::before,
-        .detail-avatar-fallback.female::before {
-            top: 15%;
-            width: 36%;
-            height: 36%;
-            border-radius: 50%;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
-        }
-
         .detail-avatar-fallback.male,
         .detail-avatar-fallback.female {
             min-width: 76px;
@@ -2428,8 +2373,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             border-radius: 50%;
             color: #fff;
-            position: relative;
-            overflow: hidden;
             background: linear-gradient(135deg, #60a5fa, #2563eb);
         }
 
