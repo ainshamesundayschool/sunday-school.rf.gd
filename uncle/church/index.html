@@ -5961,6 +5961,20 @@
                             style="display:none;text-align:center;padding:24px;color:var(--muted);"><i
                                 class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
                         <div id="regKeysList"></div>
+                <!-- ── CUSTOM FIELD TEMPLATES (DEV ONLY) ── -->
+                <div class="card dev-only" style="margin-top:20px;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-magic dev-icon"></i>
+                            قوالب الحقول الإضافية للمطور
+                        </div>
+                        <button class="btn btn-dev btn-sm" onclick="openDevAddTemplateModal()">
+                            <i class="fas fa-plus"></i> قالب جديد
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="devTemplatesLoading" style="display:none;text-align:center;padding:24px;color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                        <div id="devTemplatesList" style="display:flex;flex-direction:column;gap:12px;"></div>
                     </div>
                 </div>
             </div>
@@ -6148,6 +6162,37 @@
                             onclick="closeModal('editUncleModal')">إلغاء</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Add Template Modal -->
+    <div id="devAddTemplateModal" class="modal">
+        <div class="modal-box wide" style="max-width:720px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-magic"></i> إضافة قالب حقول إضافية جديد</h2>
+                <button class="modal-close" onclick="closeModal('devAddTemplateModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;">اسم القالب *</label>
+                    <input type="text" id="devTemplateName" class="form-input" placeholder="مثال: بيت الاخوه بالسويس" style="font-weight:700;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;">الحقول الإضافية (مفصولة بفواصل) *</label>
+                    <input type="text" id="devTemplateFields" class="form-input" placeholder="مثال: السكن" style="font-weight:700;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;">هيكل الحقول وتفاصيل الخيارات (JSON) *</label>
+                    <div style="background:var(--bg);padding:8px 12px;border-radius:6px;font-size:0.75rem;color:var(--muted);border:1px dashed var(--border);margin-bottom:8px;">
+                        <i class="fas fa-info-circle"></i> يمكنك تعديل الهيكل التالي الذي يمثل خيارات السكن والغرف (يمكنك نسخه والتعديل عليه مباشرة).
+                    </div>
+                    <textarea id="devTemplateIcons" class="form-input" style="font-family:monospace;font-size:0.8rem;height:240px;direction:ltr;text-align:left;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border-solid);padding-top:14px;margin-top:4px;">
+                    <button type="button" class="btn btn-dev" onclick="devTemplateSave()"><i class="fas fa-plus"></i> إضافة القالب</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('devAddTemplateModal')">إلغاء</button>
+                </div>
             </div>
         </div>
     </div>
@@ -7529,7 +7574,7 @@
                 classes: () => loadClassSettings(),
                 pending: () => runDataLoad('pending', loadPendingRegistrations),
                 history: () => loadAuditLogs(),
-                devChurches: async () => { await loadAllChurches(); await loadRegKeys(); },
+                devChurches: async () => { await loadAllChurches(); await loadRegKeys(); await loadDevTemplates(); },
                 devMessages: () => loadDevMessages(),
                 churchSettings: async () => { await loadChurchSettingsTab(); await loadAdminProfile(); }
             };
@@ -10274,6 +10319,156 @@
             if (d.success) { showToast('تم التحديث', 'success'); document.getElementById('editStudentModal')?.remove(); loadStudents(); }
             else showToast(d.message || 'فشل', 'error');
             btn.innerHTML = '<i class="fas fa-save"></i> حفظ'; btn.disabled = false;
+        }
+
+        // ── Developer: Custom Field Templates ─────────────────────────
+        let _devTemplatesCache = [];
+
+        async function loadDevTemplates() {
+            if (!isDeveloper) return;
+            const loading = document.getElementById('devTemplatesLoading');
+            const list = document.getElementById('devTemplatesList');
+            if (loading) loading.style.display = 'block';
+            if (list) list.innerHTML = '';
+
+            try {
+                const fd = mkFd('getCustomFieldTemplates');
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    _devTemplatesCache = res.templates || [];
+                    if (list) {
+                        if (!_devTemplatesCache.length) {
+                            list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;"><i class="fas fa-magic" style="font-size:1.8rem;opacity:0.25;display:block;margin-bottom:6px;"></i>لا توجد قوالب مضافة بعد.</div>`;
+                        } else {
+                            list.innerHTML = _devTemplatesCache.map(t => {
+                                return `
+                                    <div class="church-card" style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <div class="church-icon" style="background:var(--primary-light); color:var(--primary); width:32px; height:32px; font-size:0.9rem;"><i class="fas fa-magic"></i></div>
+                                                <h4 style="font-weight:800; font-size:0.92rem; color:var(--text);">${escHtml(t.name)}</h4>
+                                            </div>
+                                            <button class="act-btn act-delete" onclick="devTemplateDelete(${t.id})" style="width:28px; height:28px;" title="حذف"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--muted);">
+                                            <strong>الحقول:</strong> ${escHtml(t.custom_fields)}
+                                        </div>
+                                        <div style="font-size:0.7rem; color:var(--muted); font-family:monospace; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border); max-height:80px; overflow-y:auto; direction:ltr; text-align:left;">
+                                            ${escHtml(JSON.stringify(t.custom_field_icons, null, 2))}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading dev templates", e);
+                showToast('خطأ في تحميل القوالب', 'error');
+            } finally {
+                if (loading) loading.style.display = 'none';
+            }
+        }
+
+        function openDevAddTemplateModal() {
+            document.getElementById('devTemplateName').value = '';
+            document.getElementById('devTemplateFields').value = 'السكن';
+            
+            const defaultStructure = {
+                "السكن": {
+                    "name": "السكن",
+                    "icon": "fas fa-home",
+                    "type": "sub_group",
+                    "choices": ["المبنى", "فيلا", "فيلا الفرح"],
+                    "sub_fields": {
+                        "المبنى": [
+                            {
+                                "name": "الغرفه",
+                                "icon": "fas fa-door-closed",
+                                "type": "choices",
+                                "choices": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]
+                            }
+                        ],
+                        "فيلا": [
+                            {
+                                "name": "الغرفه",
+                                "icon": "fas fa-door-closed",
+                                "type": "choices",
+                                "choices": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+                            }
+                        ],
+                        "فيلا الفرح": [
+                            {
+                                "name": "الغرفه",
+                                "icon": "fas fa-door-closed",
+                                "type": "choices",
+                                "choices": ["1", "2", "3", "4", "5"]
+                            }
+                        ]
+                    }
+                }
+            };
+            document.getElementById('devTemplateIcons').value = JSON.stringify(defaultStructure, null, 4);
+            openModal('devAddTemplateModal');
+        }
+
+        async function devTemplateSave() {
+            const name = document.getElementById('devTemplateName').value.trim();
+            const fields = document.getElementById('devTemplateFields').value.trim();
+            const iconsRaw = document.getElementById('devTemplateIcons').value.trim();
+
+            if (!name) {
+                showToast('اسم القالب مطلوب', 'error');
+                return;
+            }
+            if (!fields) {
+                showToast('اسم الحقل مطلوب', 'error');
+                return;
+            }
+
+            try {
+                JSON.parse(iconsRaw);
+            } catch (e) {
+                showToast('تنسيق الـ JSON غير صالح. الرجاء التحقق من كتابته بشكل صحيح.', 'error');
+                return;
+            }
+
+            const fd = mkFd('addCustomFieldTemplate');
+            fd.append('name', name);
+            fd.append('custom_fields', fields);
+            fd.append('custom_field_icons', iconsRaw);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    closeModal('devAddTemplateModal');
+                    loadDevTemplates();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الشبكة', 'error');
+            }
+        }
+
+        async function devTemplateDelete(id) {
+            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا القالب نهائياً؟')) return;
+
+            const fd = mkFd('deleteCustomFieldTemplate');
+            fd.append('id', id);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    loadDevTemplates();
+                } else {
+                    showToast(res.message, 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الشبكة', 'error');
+            }
         }
 
         // ── Developer: Churches ────────────────────────────────────────
