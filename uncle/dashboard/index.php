@@ -3257,16 +3257,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: inherit;
         }
 
-                .sibling-suggestion-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 10px;
-            background: var(--card-bg);
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .sibling-suggestion-row:hover { background: var(--card-hover); }
+        .sibling-suggestion-row {
             display: grid;
             gap: 3px;
             padding: 10px 12px;
@@ -7501,7 +7492,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <button class="dropdown-item" id="manageAnnouncementsBtn"
                                     onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
                                 <button class="dropdown-item" onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
-                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الاخوات</button>
+                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوة</button>
                                 <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
                                     style="position:relative; display:flex; justify-content:space-between; align-items:center;">
                                     <span><i class="fas fa-tasks"></i> المهام</span>
@@ -7927,7 +7918,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
         <div class="modal" style="max-width:720px">
             <div class="modal-header">
-                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الاخوات</h3>
+                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوة</h3>
                 <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
             </div>
             <div class="mbody">
@@ -10736,6 +10727,18 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             })();
         }
 
+        function getStudentGender(s) {
+            return (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
+        }
+
+        function getStudentDbId(student) {
+            if (!student) return 0;
+            return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || 0) || 0;
+        }
+
+        function parseStudentCustomInfo(student) {
+            if (!student) return {};
+            if (student._customInfo && typeof student._customInfo === 'object') return student._customInfo;
             const raw = student['معلومات إضافية'] ?? student.custom_info ?? student['custom_info'] ?? '';
             if (!raw) return {};
             if (typeof raw === 'object') return raw;
@@ -11023,8 +11026,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     if (!suggestion) return '';
                     const id = getStudentDbId(s);
                     const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
-                const unlinkBtn = `<button class="btn btn-g unlink-sibling-btn" style="color:var(--danger);margin-left:auto;" onclick="event.stopPropagation(); unlinkSibling(${id}, getStudentDisplayName(s));"><i class="fas fa-unlink"></i></button>`;
-                return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة"><span class="sibling-avatar">${buildSiblingMiniAvatar(s)}</span><span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span><span class="sibling-suggestion-tag">${tag}</span><span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>${unlinkBtn}</button>`;>
+                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">
                         <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
                         <span class="sibling-suggestion-tag">${tag}</span>
                         <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
@@ -11183,19 +11185,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             renderAllSiblingSuggestionsView();
         }
 
-        async function unlinkSibling(studentId, studentName) {
-            if (!confirm(`هل تريد إلغاء ربط ${studentName} كأخ/أخت؟`)) return;
-            const fd = mkFd('saveSiblingGroup');
-            fd.append('op', 'clear');
-            fd.append('student_ids', JSON.stringify([studentId]));
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-            if (d.success) {
-                showToast('تم إلغاء الرابط بنجاح', 'success');
-                loadStudents();
-            } else {
-                showToast(d.message || 'خطأ في إلغاء الرابط', 'error');
-            }
-        }
+        async function linkSiblingToCurrent(targetStudentId) {
             const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
             const target = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === parseInt(targetStudentId, 10));
             if (!current || !target) {
