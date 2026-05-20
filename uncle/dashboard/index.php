@@ -9606,10 +9606,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             un.disabled = tot === 0;
             if (tot > 0) {
                 un.innerHTML = btn('fas fa-exclamation-circle', 'التغييرات', tot);
-                un.title = `${tot} تغيير غير محفوظ — انقر للتفاصيل`;
+                un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
             } else {
                 un.innerHTML = btn('fas fa-check-circle', 'التغييرات', 0);
-                un.title = 'جميع التغييرات محفوظة';
+                un.title = 'التغييرات: لا توجد تعديلات معلقة';
             }
         }
 
