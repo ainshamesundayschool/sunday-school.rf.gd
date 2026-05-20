@@ -8350,7 +8350,7 @@
                 ? '<i class="fas fa-check-circle" style="color:var(--primary);margin-left:5px;"></i> القبول التلقائي مفعّل'
                 : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> القبول التلقائي معطّل';
             if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
-            if (wrap) wrap.style.background = on ? 'var(--primary-light,#eef0ff)' : '';
+            if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
         }
 
         // Highlight the active checkbox labels
@@ -8359,8 +8359,8 @@
             const showAll = document.getElementById('settingViewAll')?.checked;
             const lClasses = document.getElementById('viewModeClassesLabel');
             const lAll = document.getElementById('viewModeAllLabel');
-            if (lClasses) { lClasses.style.borderColor = showClasses ? 'var(--primary)' : 'var(--border)'; lClasses.style.background = showClasses ? 'var(--primary-light)' : ''; }
-            if (lAll) { lAll.style.borderColor = showAll ? 'var(--primary)' : 'var(--border)'; lAll.style.background = showAll ? 'var(--primary-light)' : ''; }
+            if (lClasses) { lClasses.style.borderColor = showClasses ? 'var(--primary)' : 'var(--border)'; lClasses.style.background = showClasses ? 'var(--brand-bg)' : ''; }
+            if (lAll) { lAll.style.borderColor = showAll ? 'var(--primary)' : 'var(--border)'; lAll.style.background = showAll ? 'var(--brand-bg)' : ''; }
             const warn = document.getElementById('viewModeWarning');
             if (warn) warn.style.display = (!showClasses && !showAll) ? 'block' : 'none';
         }
@@ -11403,7 +11403,7 @@
             const youthLabel = document.getElementById(`${prefix === 'new' ? 'type' : 'editType'}YouthLabel`);
             if (!kidsRadio || !youthRadio) return;
             const isYouth = youthRadio.checked;
-            if (kidsLabel) { kidsLabel.style.borderColor = isYouth ? 'var(--border)' : 'var(--primary)'; kidsLabel.style.background = isYouth ? '' : 'var(--primary-light)'; }
+            if (kidsLabel) { kidsLabel.style.borderColor = isYouth ? 'var(--border)' : 'var(--primary)'; kidsLabel.style.background = isYouth ? '' : 'var(--brand-bg)'; }
             if (youthLabel) { youthLabel.style.borderColor = isYouth ? '#8b5cf6' : 'var(--border)'; youthLabel.style.background = isYouth ? '#ede9fe' : ''; }
         }
         document.addEventListener('DOMContentLoaded', () => {
@@ -11683,7 +11683,7 @@
                     const inp = div.querySelector('input');
                     inp.addEventListener('change', function () {
                         div.style.borderColor = this.checked ? 'var(--primary)' : 'var(--border)';
-                        div.style.background = this.checked ? 'var(--primary-light)' : 'var(--bg)';
+                        div.style.background = this.checked ? 'var(--brand-bg)' : 'var(--bg)';
                         // sync hidden select
                         Array.from(hidSel.options).forEach(o => { if (o.value === this.value) o.selected = this.checked; });
                     });
