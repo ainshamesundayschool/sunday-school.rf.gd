@@ -1634,9 +1634,11 @@
    TRIP CARDS
 ═══════════════════════════════════════════════════════════════════ */
         .trips-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 16px;
         }
 
         .trip-card {
@@ -1669,6 +1671,9 @@
             justify-content: flex-start;
             overflow: visible;
             color: var(--text);
+            flex: 0 1 280px;
+            width: min(280px, 100%);
+            max-width: 100%;
         }
 
         .trip-card.trip-card-compact:hover {
@@ -3865,7 +3870,7 @@
             }
 
             .trips-grid {
-                grid-template-columns: 1fr 1fr;
+                gap: 14px;
             }
 
             .churches-grid {
@@ -3988,7 +3993,7 @@
 
             /* Grids */
             .trips-grid {
-                grid-template-columns: 1fr;
+                gap: 10px;
             }
 
             .churches-grid {
@@ -4176,6 +4181,13 @@
             .kid-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 min-height: 300px;
+            }
+
+            .trip-card.trip-card-compact,
+            .trip-card-skel {
+                flex: 1 1 calc(50% - 5px);
+                width: auto;
+                min-width: 0;
             }
 
             .register-sticky-footer .register-fields {
