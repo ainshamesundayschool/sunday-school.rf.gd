@@ -3031,39 +3031,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-panel {
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: var(--r-lg);
+            margin-top: 8px;
+            padding: 8px 10px;
+            border-radius: var(--r-md);
             border: 1px solid var(--border-solid);
-            background: linear-gradient(180deg, var(--surface-2), var(--surface));
+            background: var(--surface);
         }
 
         .sibling-panel-head {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
         }
 
         .sibling-panel-title {
             font-weight: 800;
             color: var(--text);
-            font-size: .9rem;
-        }
-
-        .sibling-panel-sub {
-            font-size: .72rem;
-            color: var(--text-3);
-            margin-top: 2px;
-            line-height: 1.5;
-        }
-
-        .sibling-badge-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 10px;
+            font-size: .82rem;
         }
 
         .sibling-chip {
@@ -3085,17 +3070,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .sibling-list {
             display: grid;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 8px;
         }
 
         .sibling-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            padding: 9px 11px;
-            border-radius: var(--r-md);
+            gap: 8px;
+            padding: 7px 9px;
+            border-radius: var(--r-sm);
             background: var(--surface);
             border: 1px solid var(--border-solid);
         }
@@ -3191,6 +3176,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-link-btn {
             white-space: nowrap;
             flex-shrink: 0;
+            padding: 5px 10px;
+            font-size: .72rem;
         }
 
         .sibling-link-modal-list {
@@ -3223,6 +3210,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-candidate-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 8px;
             font-size: .7rem;
             color: var(--text-3);
             line-height: 1.45;
@@ -3331,6 +3322,66 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-suggestion-ai {
             color: #a855f7;
             filter: drop-shadow(0 0 8px rgba(168, 85, 247, .45));
+        }
+
+        .sibling-review-section {
+            margin-top: 10px;
+        }
+
+        .sibling-review-grid {
+            display: grid;
+            gap: 8px;
+            max-height: 360px;
+            overflow: auto;
+        }
+
+        .sibling-review-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+        }
+
+        .sibling-review-card.strong {
+            border-color: rgba(124, 58, 237, .28);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .16), transparent 55%),
+                var(--surface);
+        }
+
+        .sibling-review-card.weak {
+            background: var(--surface-2);
+        }
+
+        .sibling-review-names {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .84rem;
+        }
+
+        .sibling-review-meta {
+            margin-top: 2px;
+            color: var(--text-3);
+            font-size: .7rem;
+            line-height: 1.45;
+        }
+
+        .sibling-review-collapse {
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 8px 10px;
+            background: var(--surface-2);
+        }
+
+        .sibling-review-collapse summary {
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--text);
+            font-size: .82rem;
         }
 
         .sibling-link-note {
@@ -7337,6 +7388,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
+                <button class="topbar-btn" id="siblingSuggestionsBtn" onclick="openSiblingSuggestionsView()" title="اقتراحات الإخوة">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
                     style="display:none;position:relative">
@@ -7811,6 +7865,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="mfooter" style="justify-content:space-between">
                 <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
                 <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
+        <div class="modal" style="max-width:720px">
+            <div class="modal-header">
+                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوة</h3>
+                <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingSuggestionsSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div class="sibling-review-section">
+                    <div class="sibling-panel-title" style="margin-bottom:8px">اقتراحات قوية</div>
+                    <div id="strongSiblingSuggestions" class="sibling-review-grid"></div>
+                </div>
+                <details class="sibling-review-collapse sibling-review-section">
+                    <summary>اقتراحات ضعيفة</summary>
+                    <div id="weakSiblingSuggestions" class="sibling-review-grid" style="margin-top:8px"></div>
+                </details>
+            </div>
+            <div class="mfooter">
+                <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i> إغلاق</button>
             </div>
         </div>
     </div>
@@ -10660,6 +10737,10 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             return parts.length >= 2 ? parts[1] : parts[0] || '';
         }
 
+        function getNameFamilyPart(student) {
+            return getSecondNamePart(getStudentDisplayName(student));
+        }
+
         function getSiblingSuggestion(current, target) {
             const currentInfo = parseStudentCustomInfo(current);
             const targetInfo = parseStudentCustomInfo(target);
@@ -10668,25 +10749,33 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 address: getStudentTextValue(current, currentInfo, ['العنوان', 'address']),
                 guardian: getStudentTextValue(current, currentInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
                 father: getStudentTextValue(current, currentInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
+                nameFamilyPart: getNameFamilyPart(current),
             };
             const targetValues = {
                 phone: getStudentTextValue(target, targetInfo, ['رقم التليفون', 'phone', 'تليفون', 'mobile']),
                 address: getStudentTextValue(target, targetInfo, ['العنوان', 'address']),
                 guardian: getStudentTextValue(target, targetInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
                 father: getStudentTextValue(target, targetInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
+                nameFamilyPart: getNameFamilyPart(target),
             };
             const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
             const checks = [
                 { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
                 { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
                 { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
-                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب قد يتكرر بين أكثر من طفل', ok: currentValues.father && targetValues.father && (
-                    norm(currentValues.father) === norm(targetValues.father) ||
-                    (
-                        getSecondNamePart(currentValues.father) &&
-                        getSecondNamePart(targetValues.father) &&
-                        norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب أو الجزء الثاني من الاسم قد يتكرر', ok: (
+                    currentValues.father && targetValues.father && (
+                        norm(currentValues.father) === norm(targetValues.father) ||
+                        (
+                            getSecondNamePart(currentValues.father) &&
+                            getSecondNamePart(targetValues.father) &&
+                            norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                        )
                     )
+                ) || (
+                    currentValues.nameFamilyPart &&
+                    targetValues.nameFamilyPart &&
+                    norm(currentValues.nameFamilyPart) === norm(targetValues.nameFamilyPart)
                 ), strength: 'weak' },
             ].filter(x => x.ok);
             if (!checks.length) return null;
@@ -10769,22 +10858,19 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
             const visibleMembers = members.slice(0, 6);
 
-            const membersHtml = group && group.id
-                ? (visibleMembers.length
-                    ? visibleMembers.map(m => {
-                        const mid = getStudentDbId(m);
-                        const mInfo = parseStudentCustomInfo(m);
-                        const guardian = mInfo.guardian_name || mInfo.father_name || mInfo.parent_name || mInfo.mother_name || '';
-                        return `<div class="sibling-item">
-                            <div>
-                                <strong>${escHtml(getStudentDisplayName(m))}</strong>
-                                <small>${escHtml(getStudentClassName(m))}${guardian ? ` · ${escHtml(guardian)}` : ''}</small>
-                            </div>
-                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i> فتح</button>
-                        </div>`;
-                    }).join('')
-                    : `<div class="sibling-empty">المجموعة محفوظة، لكن لا توجد روابط أخرى بعد.</div>`)
-                : `<div class="sibling-empty">لا توجد روابط لهذا الطفل بعد. استخدم زر إضافة أخت أو أخ.</div>`;
+            const membersHtml = visibleMembers.length
+                ? visibleMembers.map(m => {
+                    const mInfo = parseStudentCustomInfo(m);
+                    const guardian = mInfo.guardian_name || mInfo.father_name || mInfo.parent_name || mInfo.mother_name || '';
+                    return `<div class="sibling-item">
+                        <div>
+                            <strong>${escHtml(getStudentDisplayName(m))}</strong>
+                            <small>${escHtml(getStudentClassName(m))}${guardian ? ` · ${escHtml(guardian)}` : ''}</small>
+                        </div>
+                        <button type="button" class="btn btn-g" style="padding:4px 9px;font-size:.68rem" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i></button>
+                    </div>`;
+                }).join('')
+                : '';
 
             const studentIdJs = JSON.stringify(studentId || 0);
             return `
@@ -10795,7 +10881,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                         </div>
                         <button type="button" class="btn btn-g sibling-link-btn" title="يفتح الاقتراحات ثم يضيف الأخت أو الأخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ${escHtml(words.actionLabel)}</button>
                     </div>
-                    <div class="sibling-list">${membersHtml}</div>
+                    ${membersHtml ? `<div class="sibling-list">${membersHtml}</div>` : ''}
                 </div>
             `;
         }
@@ -10936,6 +11022,76 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                         </div>
                     </div>`;
             }).join('');
+        }
+
+        function getAllSiblingSuggestions() {
+            const list = getStudentsForSiblingLookup().filter(s => getStudentDbId(s));
+            const suggestions = [];
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    const a = list[i];
+                    const b = list[j];
+                    const aGroup = getSiblingGroupInfo(a);
+                    const bGroup = getSiblingGroupInfo(b);
+                    if (aGroup?.id && bGroup?.id && aGroup.id === bGroup.id) continue;
+                    const suggestion = getSiblingSuggestion(a, b);
+                    if (!suggestion) continue;
+                    suggestions.push({ a, b, suggestion });
+                }
+            }
+            return suggestions.sort((x, y) => {
+                if (x.suggestion.strength !== y.suggestion.strength) return x.suggestion.strength === 'strong' ? -1 : 1;
+                return getStudentDisplayName(x.a).localeCompare(getStudentDisplayName(y.a), 'ar');
+            });
+        }
+
+        function renderSiblingSuggestionPair(item) {
+            const aId = getStudentDbId(item.a);
+            const bId = getStudentDbId(item.b);
+            const strength = item.suggestion.strength === 'weak' ? 'weak' : 'strong';
+            const tag = strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح قوي';
+            return `<div class="sibling-review-card ${strength}">
+                <div style="min-width:0;flex:1">
+                    <div class="sibling-review-names">${escHtml(getStudentDisplayName(item.a))} + ${escHtml(getStudentDisplayName(item.b))}</div>
+                    <div class="sibling-review-meta">${escHtml(getStudentClassName(item.a))} / ${escHtml(getStudentClassName(item.b))} · ${escHtml(item.suggestion.label)} · ${escHtml(item.suggestion.detail)}</div>
+                </div>
+                <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
+                <span class="sibling-chip gray" style="font-size:.66rem">${tag}</span>
+            </div>`;
+        }
+
+        function renderAllSiblingSuggestionsView() {
+            const summary = document.getElementById('siblingSuggestionsSummary');
+            const strongBox = document.getElementById('strongSiblingSuggestions');
+            const weakBox = document.getElementById('weakSiblingSuggestions');
+            if (!strongBox || !weakBox) return;
+            const all = getAllSiblingSuggestions();
+            const strong = all.filter(x => x.suggestion.strength !== 'weak');
+            const weak = all.filter(x => x.suggestion.strength === 'weak');
+            if (summary) {
+                summary.innerHTML = `<strong>${strong.length}</strong> اقتراح قوي · <strong>${weak.length}</strong> اقتراح ضعيف`;
+            }
+            strongBox.innerHTML = strong.length
+                ? strong.map(renderSiblingSuggestionPair).join('')
+                : '<div class="sibling-empty">لا توجد اقتراحات قوية الآن.</div>';
+            weakBox.innerHTML = weak.length
+                ? weak.map(renderSiblingSuggestionPair).join('')
+                : '<div class="sibling-empty">لا توجد اقتراحات ضعيفة الآن.</div>';
+        }
+
+        function openSiblingSuggestionsView() {
+            renderAllSiblingSuggestionsView();
+            document.getElementById('siblingSuggestionsModal')?.classList.add('active');
+        }
+
+        function closeSiblingSuggestionsView() {
+            document.getElementById('siblingSuggestionsModal')?.classList.remove('active');
+        }
+
+        async function linkSiblingPair(currentStudentId, targetStudentId) {
+            _siblingLinkStudentId = parseInt(currentStudentId, 10) || 0;
+            await linkSiblingToCurrent(targetStudentId);
+            renderAllSiblingSuggestionsView();
         }
 
         async function linkSiblingToCurrent(targetStudentId) {
@@ -13154,6 +13310,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             on('cancelDeleteStudentBtn', 'click', hideDeleteStudentModal);
             on('closeSiblingLinkModal', 'click', closeSiblingLinkModal);
             on('cancelSiblingLinkBtn', 'click', closeSiblingLinkModal);
+            on('closeSiblingSuggestionsModal', 'click', closeSiblingSuggestionsView);
+            on('cancelSiblingSuggestionsBtn', 'click', closeSiblingSuggestionsView);
             on('clearSiblingLinkBtn', 'click', () => {
                 const search = document.getElementById('siblingLinkSearch');
                 const suggestion = document.getElementById('siblingLinkSuggestion');
