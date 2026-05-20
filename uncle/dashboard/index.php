@@ -3170,24 +3170,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-suggestion-row,
         .sibling-suggestion-inline {
             cursor: pointer;
+            border: none;
+            text-align: right;
+            font-family: inherit;
         }
 
         .sibling-suggestion-row {
             display: grid;
-            gap: 2px;
-            padding: 8px 10px;
-            margin-top: 6px;
-            border-radius: var(--r-md);
-            border: 1px solid var(--border-solid);
-            background: var(--surface);
+            gap: 3px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            border-radius: var(--r-lg);
+            border: 1px solid rgba(124, 58, 237, .28);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .22), transparent 55%),
+                linear-gradient(135deg, rgba(124, 58, 237, .12), rgba(91, 108, 245, .08));
             color: var(--text);
             transition: var(--fast);
+            box-shadow:
+                0 0 0 1px rgba(124, 58, 237, .08) inset,
+                0 10px 28px rgba(124, 58, 237, .12),
+                0 0 18px rgba(168, 85, 247, .14);
+            position: relative;
+            overflow: hidden;
         }
 
         .sibling-suggestion-row:hover,
         .sibling-suggestion-inline:hover {
-            border-color: var(--brand-l);
-            background: var(--brand-bg);
+            border-color: rgba(124, 58, 237, .5);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .3), transparent 55%),
+                linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(91, 108, 245, .12));
+            box-shadow:
+                0 0 0 1px rgba(124, 58, 237, .16) inset,
+                0 12px 34px rgba(124, 58, 237, .2),
+                0 0 24px rgba(168, 85, 247, .22);
         }
 
         .sibling-suggestion-name {
@@ -3202,8 +3219,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             padding: 2px 8px;
             border-radius: var(--r-full);
-            background: var(--brand-bg);
-            color: var(--brand);
+            background: linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(91, 108, 245, .14));
+            color: #7c3aed;
             font-size: .66rem;
             font-weight: 800;
         }
@@ -3212,6 +3229,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .7rem;
             color: var(--text-2);
             line-height: 1.45;
+        }
+
+        .sibling-suggestion-inline {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: 100%;
+            padding: 6px 10px;
+            margin-top: 4px;
+            border-radius: var(--r-md);
+            border: 1px solid rgba(124, 58, 237, .24);
+            background: linear-gradient(135deg, rgba(124, 58, 237, .12), rgba(91, 108, 245, .09));
+            color: var(--text);
+            box-shadow: 0 0 0 1px rgba(124, 58, 237, .08) inset, 0 8px 20px rgba(124, 58, 237, .11);
+        }
+
+        .sibling-suggestion-ai {
+            color: #a855f7;
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, .45));
         }
 
         .sibling-link-note {
@@ -10534,6 +10571,13 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             return '';
         }
 
+        function getSecondNamePart(value) {
+            const text = String(value || '').trim();
+            if (!text) return '';
+            const parts = text.split(/\s+/).filter(Boolean);
+            return parts.length >= 2 ? parts[1] : parts[0] || '';
+        }
+
         function getSiblingSuggestion(current, target) {
             const currentInfo = parseStudentCustomInfo(current);
             const targetInfo = parseStudentCustomInfo(target);
@@ -10554,7 +10598,14 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
                 { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
                 { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
-                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب قد يتكرر بين أكثر من طفل', ok: currentValues.father && targetValues.father && norm(currentValues.father) === norm(targetValues.father), strength: 'weak' },
+                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب قد يتكرر بين أكثر من طفل', ok: currentValues.father && targetValues.father && (
+                    norm(currentValues.father) === norm(targetValues.father) ||
+                    (
+                        getSecondNamePart(currentValues.father) &&
+                        getSecondNamePart(targetValues.father) &&
+                        norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                    )
+                ), strength: 'weak' },
             ].filter(x => x.ok);
             if (!checks.length) return null;
             return {
@@ -10748,17 +10799,18 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     if (!suggestion) return '';
                     const id = getStudentDbId(s);
                     const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
-                    return `<div class="sibling-suggestion-row" onclick="linkSiblingToCurrent(${id})" role="button" tabindex="0" title="اضغط للإضافة">
+                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">
+                        <span class="sibling-suggestion-tag"><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> ذكاء</span>
                         <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
                         <span class="sibling-suggestion-tag">${tag}</span>
                         <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
-                    </div>`;
+                    </button>`;
                 })
                 .filter(Boolean)
                 .slice(0, 4);
             if (suggestionBox) {
                 suggestionBox.innerHTML = preview.length
-                    ? `<strong>اقتراحات الربط</strong>${preview.join('')}`
+                    ? `<strong><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الربط</strong>${preview.join('')}`
                     : 'لا توجد اقتراحات واضحة الآن. يمكنك الربط يدويًا من القائمة.';
             }
 
@@ -10785,7 +10837,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                                 ${s['رقم التليفون'] ? ` · ${escHtml(s['رقم التليفون'])}` : ''}
                                 ${s['العنوان'] ? ` · ${escHtml(s['العنوان'])}` : ''}
                             </div>
-                            ${suggestion ? `<div class="sibling-candidate-meta sibling-suggestion-inline" style="margin-top:4px;color:var(--brand)" onclick="linkSiblingToCurrent(${id})" role="button" tabindex="0" title="اضغط للإضافة"><i class="fas fa-lightbulb"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
+                            ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة"><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> ${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
@@ -10819,12 +10871,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const allIds = [...new Set([currentId, targetId, ...currentIds, ...targetIds].filter(Boolean))];
             const groupId = currentGroup?.id || targetGroup?.id || `family_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
             const merged = currentGroup?.id && targetGroup?.id && currentGroup.id !== targetGroup.id;
-            if (merged && !confirm('سيتم دمج مجموعتين مرتبطتين لأن الطفلين كانا داخل رابطين مختلفين. هل تريد المتابعة؟')) {
-                return;
-            }
-            const confirmText = `هل تريد إضافة "${getStudentDisplayName(target)}" كـ ${words.singular} لـ "${getStudentDisplayName(current)}"؟`;
-            if (!confirm(confirmText)) {
-                return;
+            if (merged) {
+                showToast('سيتم دمج الروابط المرتبطة تلقائيًا', 'info');
             }
 
             const fd = new FormData();
