@@ -8792,7 +8792,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
+const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
@@ -9733,7 +9733,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const img = s['صورة']
                     ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
+const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
@@ -10245,7 +10245,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Basic avatar + header (kept from local cache)
             const img = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
 
             // Show a loading stub while we fetch full profile (to get trip_points)
             document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
@@ -10293,13 +10293,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = getStudentGender(s);
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
             document.getElementById('studentDetails').innerHTML = avatar + rows;
         }
 
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
-            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
+            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
