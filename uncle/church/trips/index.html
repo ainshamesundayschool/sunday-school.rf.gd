@@ -5591,11 +5591,54 @@
       }
     }
 
+    function togglePrintDashControls() {
+      const style = document.getElementById('printCardOutlineStyle')?.value || 'dashed';
+      const wrap = document.getElementById('printDashControls');
+      if (wrap) wrap.style.display = style === 'dashed' ? 'grid' : 'none';
+    }
+
+    function getPrintBorderSettings() {
+      return {
+        outlineStyle: document.getElementById('printCardOutlineStyle')?.value === 'solid' ? 'solid' : 'dashed',
+        dashLength: Math.max(2, parseInt(document.getElementById('printCardDashLength')?.value || '12', 10) || 12),
+        dashGap: Math.max(0, parseInt(document.getElementById('printCardDashGap')?.value || '8', 10) || 8)
+      };
+    }
+
+    function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap) {
+      const borderColor = '#000000';
+      const borderRadius = 10;
+      const strokeWidth = 2;
+      const solidStrokeWidth = Math.max(1.5, 2 * scale);
+      const baseWidth = 260;
+      const baseHeight = 360;
+
+      if (outlineStyle === 'solid') {
+        return {
+          cardBorderStyle: `border:${solidStrokeWidth}px solid ${borderColor};`,
+          outlineOverlayHtml: ''
+        };
+      }
+
+      const rectInset = strokeWidth / 2;
+      const dashArray = `${Math.max(2, dashLength)} ${Math.max(0, dashGap)}`;
+      const svgMarkup = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${baseWidth} ${baseHeight}" preserveAspectRatio="none">
+          <rect x="${rectInset}" y="${rectInset}" width="${baseWidth - (rectInset * 2)}" height="${baseHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
+        </svg>
+      `.trim();
+
+      return {
+        cardBorderStyle: 'border:none;',
+        outlineOverlayHtml: `<div aria-hidden="true" style="position:absolute; inset:0; pointer-events:none; z-index:4; border-radius:${borderRadius}px; overflow:hidden;"><img src="data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgMarkup)}" alt="" style="width:100%; height:100%; display:block;"></div>`
+      };
+    }
+
     function generateCardMarkup({
       trip, r, scale, padding, showChurch, showTripImage, showTripTitle, 
       showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
       tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-      fontColor, strokeColor
+      fontColor, strokeColor, outlineStyle, dashLength, dashGap
     }) {
       const scaledWidth = 260 * scale;
       const scaledHeight = 360 * scale;
@@ -5634,8 +5677,10 @@
         `.replace(/\s+/g, ' ').trim();
       }
 
+      const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap);
+
       // Card Background & Image Overlay HTML
-      let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; border:2px dashed #000; border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+      let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
       let bgHtml = '';
 
       if (showTripImage && tripImgAsBg && trip.image_url) {
@@ -5710,8 +5755,9 @@
       return `
       <div class="print-card" style="${bgStyles}">
           ${bgHtml}
+          ${outlineOverlayHtml}
           <!-- Card Content Wrapper (renders above BG image and overlay) -->
-          <div style="position:relative; z-index:3; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
+          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
               ${churchHeaderHtml}
               ${tripInfoGroupHtml}
               ${studentInfoGroupHtml}
@@ -5752,6 +5798,7 @@
 
       const fontColor = document.getElementById('printFontColor')?.value || '#000000';
       const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+      const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
 
       // Use the first registration as a sample
       const r = regs[0];
@@ -5784,7 +5831,7 @@
         trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
         showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId: 'prev_qrcode_sample',
         tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-        fontColor, strokeColor
+        fontColor, strokeColor, outlineStyle, dashLength, dashGap
       });
 
       // Generate a mock QR code in the preview
@@ -5826,6 +5873,7 @@
       const tripImgAsBgChecked = document.getElementById('printTripImgAsBg').checked;
       document.getElementById('printImgBgOptions').style.display = tripImgAsBgChecked ? 'flex' : 'none';
       document.getElementById('printImgInlineOptions').style.display = tripImgAsBgChecked ? 'none' : 'block';
+      togglePrintDashControls();
 
       updatePrintPreview();
     }
@@ -5868,6 +5916,7 @@
 
       const fontColor = document.getElementById('printFontColor')?.value || '#000000';
       const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+      const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
 
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
@@ -5907,7 +5956,7 @@
           trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
           showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
           tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-          fontColor, strokeColor
+          fontColor, strokeColor, outlineStyle, dashLength, dashGap
         });
         
         qrTasks.push({ id: cardId, text: link });
@@ -6305,6 +6354,26 @@
             <div>
               <label class="form-label">المسافات الداخلية</label>
               <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+            </div>
+          </div>
+
+          <div class="form-group" style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label class="form-label">شكل إطار الكارت</label>
+              <select id="printCardOutlineStyle" class="form-select" style="width:100%;" onchange="togglePrintDashControls(); updatePrintPreview()">
+                <option value="dashed">متقطع</option>
+                <option value="solid">مصمت</option>
+              </select>
+            </div>
+            <div id="printDashControls" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div>
+                <label class="form-label">طول الشرطة</label>
+                <input type="number" id="printCardDashLength" class="form-input" value="12" min="2" max="60" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              </div>
+              <div>
+                <label class="form-label">المسافة بين الشرطات</label>
+                <input type="number" id="printCardDashGap" class="form-input" value="8" min="0" max="60" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              </div>
             </div>
           </div>
 

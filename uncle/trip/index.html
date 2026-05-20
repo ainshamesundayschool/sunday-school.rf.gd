@@ -1056,82 +1056,12 @@
             }
 
             function printQRCards() {
-                const printArea = document.getElementById('printArea');
-                printArea.innerHTML = '';
-
-                let filtered = regsList;
-                if (currentFilter && currentFilter.key) {
-                    filtered = regsList.filter(r => {
-                        if (!r.custom_data) return false;
-                        try {
-                            const cd = JSON.parse(r.custom_data);
-                            return cd[currentFilter.key] === currentFilter.val;
-                        } catch (e) { return false; }
-                    });
-                }
-
-                if (filtered.length === 0) {
-                    alert('لا يوجد أطفال لطباعة كروت لهم');
+                if (!currentTrip || !currentTrip.id) {
+                    alert('لم يتم تحميل بيانات الرحلة بعد');
                     return;
                 }
 
-                const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
-
-                filtered.forEach(r => {
-                    const name = r.student_name || '؟';
-                    const imgUrl = r.student_image || '';
-                    const hasImage = imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
-                    let customHtml = '';
-                    if (r.custom_data) {
-                        try {
-                            const cd = JSON.parse(r.custom_data);
-                            const icons = currentTrip?.custom_field_icons || {};
-                            customHtml = Object.entries(cd).map(([k, v]) => {
-                                const ic = icons[k] ? `<i class="${icons[k]}" style="margin-left:4px;"></i>` : '';
-                                return `<span>${ic}${k}: ${v}</span>`;
-                            }).join(' | ');
-                        } catch (e) { }
-                    }
-
-                    const cardId = 'qrcode_' + r.id;
-                    const link = `${window.location.origin}/uncle/trip/points/?trip_id=${currentTrip.id}&student_id=${r.student_id}`;
-
-                    const avatarHtml = hasImage 
-                        ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">` 
-                        : '';
-
-                    printArea.innerHTML += `
-        <div class="print-card">
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
-                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
-            </div>
-            <h3>${currentTrip.title}</h3>
-            ${avatarHtml}
-            <h2>${name}</h2>
-            <div class="custom-info">${customHtml}</div>
-            <div id="${cardId}"></div>
-        </div>
-        `;
-
-                    setTimeout(() => {
-                        new QRCode(document.getElementById(cardId), {
-                            text: link,
-                            width: 130,
-                            height: 130,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
-                    }, 100);
-                });
-
-                // give QR library a bit more time to finish rendering before opening print dialog
-                setTimeout(() => {
-                    window.print();
-                    // clear print area after print
-                    setTimeout(() => { printArea.innerHTML = ''; }, 1500);
-                }, 1500);
+                window.location.href = `/uncle/church/trips/#trips?trip_id=${encodeURIComponent(currentTrip.id)}&action=print`;
             }
 
             function customAlert(message) {
