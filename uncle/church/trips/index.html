@@ -3408,9 +3408,6 @@
           <button class="trip-action-btn" onclick="switchTripTab('regs')">
             <i class="fas fa-users"></i>المسجلون<br><span style="font-weight:800;font-size:0.9rem;">${regs.length}</span>
           </button>
-          <button class="trip-action-btn" onclick="switchTripTab('exp')">
-            <i class="fas fa-receipt"></i>المصروفات
-          </button>
           <button class="trip-action-btn" onclick="exportTripData(${trip.id},'csv')">
             <i class="fas fa-file-csv"></i>تصدير CSV
           </button>
@@ -3418,13 +3415,13 @@
             <i class="fas fa-link"></i>نسخ الرابط
           </button>
           <button class="trip-action-btn" onclick="showTripCollaborationModal(${trip.id})">
-            <i class="fas fa-handshake"></i>التعاون والمشاركة
+            <i class="fas fa-handshake"></i>دعوة كنيسة أخرى
           </button>
           ${isOwner ? `
           <button class="trip-action-btn" onclick="openCustomFieldEditor(${trip.id})">
             <i class="fas fa-sliders-h"></i>البيانات الإضافية
           </button>
-          <button class="trip-action-btn" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'">
+          <button class="trip-action-btn" onclick="openEditTrip(${trip.id})">
             <i class="fas fa-edit"></i>تعديل ${tripWordDef}
           </button>
           ` : ''}
@@ -5475,6 +5472,73 @@
       } else { showToast(res.message || 'فشل في حفظ التحديثات', 'error'); }
     }
 
+    function toggleEditTripDates() {
+      const type = document.getElementById('editTripType').value;
+      document.getElementById('editEndDateGroup').style.display = type === 'multiple_days' ? 'block' : 'none';
+    }
+
+    function recalcEditTripPrice() {
+      const price = parseFloat(document.getElementById('editTripPrice').value) || 0;
+      const discount = parseFloat(document.getElementById('editTripDiscount').value) || 0;
+      const dtype = document.getElementById('editTripDiscountType').value;
+      const final = dtype === 'percentage' ? Math.round(price - (price * discount / 100)) : Math.round(Math.max(0, price - discount));
+      document.getElementById('editTripFinalDisplay').value = final + ' جنيه';
+    }
+
+    function openEditTrip(id) {
+      const t = allTripsCache.find(x => x.id == id) || window.currentTripObj;
+      if (!t) return;
+      document.getElementById('editTripId').value = t.id;
+      document.getElementById('editTripTitle').value = t.title;
+      document.getElementById('editTripType').value = t.type;
+      document.getElementById('editTripStartDate').value = t.start_date?.split('T')[0] || t.start_date || '';
+      document.getElementById('editTripEndDate').value = t.end_date?.split('T')[0] || t.end_date || '';
+      document.getElementById('editTripPrice').value = Math.round(t.price);
+      document.getElementById('editTripDiscount').value = Math.round(t.discount || 0);
+      document.getElementById('editTripDiscountType').value = t.discount_type || 'percentage';
+      document.getElementById('editTripMaxParticipants').value = t.max_participants || '';
+      document.getElementById('editTripStatus').value = t.status;
+      document.getElementById('editTripDescription').value = t.description || '';
+      document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
+      document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
+      
+      toggleEditTripDates();
+      recalcEditTripPrice();
+      openModal('editTripModal');
+    }
+
+    async function updateTrip(e) {
+      e.preventDefault();
+      const fd = new FormData();
+      fd.append('action', 'updateTrip');
+      fd.append('trip_id', document.getElementById('editTripId').value);
+      fd.append('title', document.getElementById('editTripTitle').value);
+      fd.append('type', document.getElementById('editTripType').value);
+      fd.append('start_date', document.getElementById('editTripStartDate').value);
+      fd.append('end_date', document.getElementById('editTripEndDate').value);
+      fd.append('price', Math.round(parseFloat(document.getElementById('editTripPrice').value) || 0));
+      fd.append('discount', Math.round(parseFloat(document.getElementById('editTripDiscount').value) || 0));
+      fd.append('discount_type', document.getElementById('editTripDiscountType').value);
+      fd.append('max_participants', document.getElementById('editTripMaxParticipants').value || 0);
+      fd.append('status', document.getElementById('editTripStatus').value);
+      fd.append('description', document.getElementById('editTripDescription').value);
+      fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
+      fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
+      
+      const t = allTripsCache.find(x => x.id == document.getElementById('editTripId').value) || window.currentTripObj;
+      fd.append('custom_fields', t ? (t.custom_fields || '') : '');
+      fd.append('custom_field_icons', t ? (typeof t.custom_field_icons === 'object' ? JSON.stringify(t.custom_field_icons) : (t.custom_field_icons || '{}')) : '{}');
+
+      const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      if (d.success) {
+        showToast('تم تحديث الرحلة بنجاح', 'success');
+        closeModal('editTripModal');
+        window.location.reload();
+      } else {
+        showToast(d.message || 'فشل التحديث', 'error');
+      }
+    }
+
     function printQRCards(tripId) {
       document.getElementById('printTripId').value = tripId;
       openModal('printSettingsModal');
@@ -5837,6 +5901,95 @@
             حفظ التغييرات</button>
           <button type="button" class="btn btn-outline" onclick="closeModal('customFieldEditorModal')">إلغاء</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Trip Modal -->
+  <div id="editTripModal" class="modal">
+    <div class="modal-box wide">
+      <div class="modal-head">
+        <h2><i class="fas fa-edit"></i> تعديل الرحلة</h2>
+        <button class="modal-close" onclick="closeModal('editTripModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTripForm" onsubmit="updateTrip(event)">
+          <input type="hidden" id="editTripId">
+          <div class="form-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+            <div class="form-group">
+              <label class="form-label">العنوان *</label>
+              <input type="text" id="editTripTitle" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">النوع</label>
+              <select id="editTripType" class="form-select" style="width:100%;" onchange="toggleEditTripDates()">
+                <option value="one_day">رحلة (يوم واحد)</option>
+                <option value="multiple_days">مؤتمر (عدة أيام)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">تاريخ البدء</label>
+              <input type="date" id="editTripStartDate" class="form-input" required>
+            </div>
+            <div class="form-group" id="editEndDateGroup" style="display:none;">
+              <label class="form-label">تاريخ الانتهاء</label>
+              <input type="date" id="editTripEndDate" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">السعر (جنيه)</label>
+              <input type="number" id="editTripPrice" class="form-input" step="1" min="0" oninput="recalcEditTripPrice()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">الخصم</label>
+              <div style="display:flex;gap:6px;">
+                <input type="number" id="editTripDiscount" class="form-input" step="1" min="0" oninput="recalcEditTripPrice()">
+                <select id="editTripDiscountType" class="form-select" style="width:80px;" onchange="recalcEditTripPrice()">
+                  <option value="percentage">%</option>
+                  <option value="fixed">ج</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">السعر النهائي</label>
+              <input type="text" id="editTripFinalDisplay" class="form-input" disabled style="font-weight:700;color:var(--primary);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">الحد الأقصى</label>
+              <input type="number" id="editTripMaxParticipants" class="form-input" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">الحالة</label>
+              <select id="editTripStatus" class="form-select" style="width:100%;">
+                <option value="planned">مخطط لها</option>
+                <option value="active">نشطة</option>
+                <option value="completed">منتهية</option>
+                <option value="cancelled">ملغية</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">الوصف</label>
+              <textarea id="editTripDescription" class="form-textarea" rows="2"></textarea>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">ظهور المسجلين في بروفايل الطفل</label>
+              <select id="editTripShowRegisteredKids" class="form-select" style="width:100%;">
+                <option value="1">يظهر للأطفال من سجل في الرحلة</option>
+                <option value="0">لا يظهر إلا بيانات الطفل نفسه</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label>
+              <select id="editTripHasPointsGame" class="form-select" style="width:100%;">
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ التعديلات</button>
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('editTripModal')">إلغاء</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
