@@ -8848,9 +8848,11 @@ function addTrip()
                                         'type' => strip_tags(trim((string) ($sf['type'] ?? 'choices'))),
                                         'choices' => array_values(array_filter(
                                             array_map(function ($c) {
-                                                return strip_tags(trim((string) $c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
+                                                return strip_tags(trim((string) $c));
+                                            }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
                                             function ($c) {
-                                                return $c !== ''; }
+                                                return $c !== '';
+                                            }
                                         ))
                                     ];
                                 }
@@ -8866,9 +8868,11 @@ function addTrip()
                                         'type' => strip_tags(trim($subMeta['type'] ?? 'choices')),
                                         'choices' => array_values(array_filter(
                                             array_map(function ($c) {
-                                                return strip_tags(trim((string) $c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
+                                                return strip_tags(trim((string) $c));
+                                            }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
                                             function ($c) {
-                                                return $c !== ''; }
+                                                return $c !== '';
+                                            }
                                         )),
                                     ];
                                 }
@@ -9082,9 +9086,11 @@ function updateTrip()
                                         'type' => strip_tags(trim((string) ($sf['type'] ?? 'choices'))),
                                         'choices' => array_values(array_filter(
                                             array_map(function ($c) {
-                                                return strip_tags(trim((string) $c)); }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
+                                                return strip_tags(trim((string) $c));
+                                            }, is_array($sf['choices'] ?? null) ? $sf['choices'] : []),
                                             function ($c) {
-                                                return $c !== ''; }
+                                                return $c !== '';
+                                            }
                                         ))
                                     ];
                                 }
@@ -9100,9 +9106,11 @@ function updateTrip()
                                         'type' => strip_tags(trim($subMeta['type'] ?? 'choices')),
                                         'choices' => array_values(array_filter(
                                             array_map(function ($c) {
-                                                return strip_tags(trim((string) $c)); }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
+                                                return strip_tags(trim((string) $c));
+                                            }, is_array($subMeta['choices'] ?? null) ? $subMeta['choices'] : []),
                                             function ($c) {
-                                                return $c !== ''; }
+                                                return $c !== '';
+                                            }
                                         )),
                                     ];
                                 }
@@ -9430,11 +9438,14 @@ function getTripDetails()
         $trip['stats'] = [
             'registered' => count($registrations),
             'paid_count' => count(array_filter($registrations, function ($r) {
-                return $r['payment_status'] === 'paid'; })),
+                return $r['payment_status'] === 'paid';
+            })),
             'partial_count' => count(array_filter($registrations, function ($r) {
-                return $r['payment_status'] === 'partial'; })),
+                return $r['payment_status'] === 'partial';
+            })),
             'pending_count' => count(array_filter($registrations, function ($r) {
-                return $r['payment_status'] === 'pending'; })),
+                return $r['payment_status'] === 'pending';
+            })),
             'total_collected' => $totalPaid,
             'total_donations' => $totalDonations,
             'pending_amount' => $pendingAmount
