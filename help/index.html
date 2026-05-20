@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>المساعدة — نظام مدارس الأحد</title>
+<script>
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -29,20 +33,18 @@
     --sh-lg: 0 16px 48px -8px rgba(91,108,245,.18);
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --brand-bg: rgba(91, 108, 245, .15);
-      --ok-bg: rgba(16, 185, 129, .15);
-      --cou-bg: rgba(139, 92, 246, .15);
-      --t1: #e8eaf6;
-      --t2: #9299be;
-      --t3: #565c7a;
-      --bg: #0f1117;
-      --surf: #181b26;
-      --bdr: #2a2d42;
-      --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
-      --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
-    }
+  [data-theme="dark"] {
+    --brand-bg: rgba(91, 108, 245, .15);
+    --ok-bg: rgba(16, 185, 129, .15);
+    --cou-bg: rgba(139, 92, 246, .15);
+    --t1: #e8eaf6;
+    --t2: #9299be;
+    --t3: #565c7a;
+    --bg: #0f1117;
+    --surf: #181b26;
+    --bdr: #2a2d42;
+    --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
+    --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -75,7 +77,9 @@
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:1rem; box-shadow: 0 4px 12px rgba(91,108,245,.3);
     flex-shrink:0;
+    overflow:hidden;
   }
+  .topbar-logo img { width:100%; height:100%; object-fit:cover; }
   .topbar-title { font-size:1rem; font-weight:800; color:var(--t1); }
   .topbar-sub { font-size:.7rem; color:var(--t3); margin-top:-1px; }
   .topbar-back {
@@ -111,13 +115,15 @@
     pointer-events:none;
   }
   .hero-icon {
-    width:72px; height:72px; border-radius:50%;
-    background:rgba(255,255,255,.2);
+    width:76px; height:76px; border-radius:20px;
+    background:rgba(255,255,255,.12);
     display:flex; align-items:center; justify-content:center;
     margin:0 auto 18px;
     font-size:2rem;
-    box-shadow: 0 0 0 12px rgba(255,255,255,.08);
+    box-shadow: 0 0 0 10px rgba(255,255,255,.08);
+    overflow:hidden;
   }
+  .hero-icon img { width:100%; height:100%; object-fit:cover; }
   .hero h1 { font-size:1.8rem; font-weight:900; margin-bottom:8px; }
   .hero p { font-size:.92rem; opacity:.88; max-width:480px; margin:0 auto 28px; line-height:1.65; }
   .join-btn {
@@ -269,7 +275,7 @@
 
 <!-- TOPBAR -->
 <nav class="topbar">
-  <div class="topbar-logo"><i class="fas fa-church"></i></div>
+  <div class="topbar-logo"><img src="/logo.png" alt="Logo"></div>
   <div>
     <div class="topbar-title">نظام مدارس الأحد</div>
     <div class="topbar-sub">المساعدة والدعم</div>
@@ -281,7 +287,7 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hero-icon"><i class="fas fa-headset"></i></div>
+    <div class="hero-icon"><img src="/logo.png" alt="Logo"></div>
     <h1>كيف نقدر نساعدك؟</h1>
     <p>نظام مدارس الأحد هو منصة متكاملة لإدارة الحضور والكوبونات والرحلات والمهام لمدارس الأحد. إذا كنت تريد إضافة كنيستك للنظام أرسل لنا رسالة.</p>
     <a href="https://api.whatsapp.com/send?phone=201037011355&text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A5%D8%B6%D8%A7%D9%81%D8%A9%20%D9%83%D9%86%D9%8A%D8%B3%D8%AA%D9%8A%20%D9%84%D9%86%D8%B8%D8%A7%D9%85%20%D9%85%D8%AF%D8%A7%D8%B1%D8%B3%20%D8%A7%D9%84%D8%A3%D8%AD%D8%AF"
@@ -316,7 +322,7 @@
     <div class="feat-card">
       <div class="feat-icon" style="background:#fce7f3;color:#db2777"><i class="fas fa-bus"></i></div>
       <h3>الرحلات والتسجيل</h3>
-      <p>أدِر الرحلات وسجّل الأطفال بنماذج تفاعلية ذكية وحقول ديناميكية، وتابع المدفوعات.</p>
+      <p>أدِر الرحلات وسجّل الأطفال بنماذج تفاعلية ذكية وبيانات ديناميكية، وتابع المدفوعات.</p>
     </div>
     <div class="feat-card">
       <div class="feat-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-bullhorn"></i></div>

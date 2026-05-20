@@ -4446,7 +4446,7 @@
         }
 
         .custom-fields-container:empty::after {
-            content: 'لا توجد حقول إضافية مضافة بعد';
+            content: 'لا توجد بيانات إضافية مضافة بعد';
             font-size: 0.85rem;
             color: var(--muted);
             width: 100%;
@@ -5492,7 +5492,7 @@
                                             <option value="1">نعم</option>
                                         </select></div>
                                     <div class="form-group" style="grid-column:1/-1;">
-                                        <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق،
+                                        <label class="form-label">بيانات إضافية للمسجلين (مثل الغرفة، الفريق،
                                             الحافلة)</label>
                                         <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
                                             <div style="position:relative;flex-shrink:0;">
@@ -5632,7 +5632,7 @@
                                 <i class="fas fa-tags"></i>
                             </div>
                             <div class="settings-hub-body">
-                                <div class="settings-hub-title">حقول مخصصة</div>
+                                <div class="settings-hub-title">بيانات إضافية</div>
                                 <div class="settings-hub-desc">أضف معلومات إضافية لكل طفل</div>
                             </div>
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
@@ -5843,11 +5843,11 @@
                         <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
                             الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">حقول مخصصة</span>
+                        <span class="settings-bc-item active">بيانات إضافية</span>
                     </div>
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title"><i class="fas fa-tags"></i> حقول مخصصة للأطفال</div>
+                            <div class="card-title"><i class="fas fa-tags"></i> بيانات إضافية للأطفال</div>
                             <button class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i
                                     class="fas fa-plus"></i> إضافة حقل</button>
                         </div>
@@ -6086,7 +6086,7 @@
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-magic dev-icon"></i>
-                            قوالب الحقول الإضافية للمطور
+                            قوالب البيانات الإضافية للمطور
                         </div>
                         <button class="btn btn-dev btn-sm" onclick="openDevAddTemplateModal()">
                             <i class="fas fa-plus"></i> قالب جديد
@@ -6286,7 +6286,7 @@
     <div id="devAddTemplateModal" class="modal">
         <div class="modal-box wide" style="max-width:720px;">
             <div class="modal-head">
-                <h2><i class="fas fa-magic"></i> إضافة قالب حقول إضافية جديد</h2>
+                <h2><i class="fas fa-magic"></i> إضافة قالب بيانات إضافية جديد</h2>
                 <button class="modal-close" onclick="closeModal('devAddTemplateModal')"><i
                         class="fas fa-times"></i></button>
             </div>
@@ -6309,7 +6309,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight:700;color:var(--primary);"><i
-                            class="fas fa-sliders-h"></i> تكوين الغرف والحقول الفرعية لكل خيار:</label>
+                            class="fas fa-sliders-h"></i> تكوين الغرف والبيانات الفرعية لكل خيار:</label>
                     <div id="devTemplateSubfieldsArea"
                         style="display:flex;flex-direction:column;gap:10px;background:var(--bg);padding:14px;border-radius:10px;border:1px solid var(--border);">
                         <!-- Will be dynamically populated by renderDevTemplateSubfieldsUI() -->
@@ -6523,7 +6523,7 @@
                                 <option value="1">نعم</option>
                             </select></div>
                         <div class="form-group" style="grid-column:1/-1;">
-                            <label class="form-label">حقول إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
+                            <label class="form-label">بيانات إضافية للمسجلين (مثل الغرفة، الفريق، الحافلة)</label>
                             <div class="add-field-row" style="display:flex;gap:8px;flex-wrap:wrap;">
                                 <div style="position:relative;flex-shrink:0;">
                                     <button type="button" id="editNewFieldIconBtn"
@@ -6621,7 +6621,7 @@
     <div id="bulkCustomDataModal" class="modal">
         <div class="modal-box wide">
             <div class="modal-head">
-                <h2><i class="fas fa-table"></i> تحديث بيانات الحقول الإضافية</h2><button class="modal-close"
+                <h2><i class="fas fa-table"></i> تحديث البيانات الإضافية</h2><button class="modal-close"
                     onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
@@ -6639,7 +6639,7 @@
                 </div>
                 <div id="bulkCustomDataTable"
                     style="overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:12px;padding:12px;">
-                    <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة تحتوي على حقول إضافية لعرض جدول التحديث.
+                    <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة تحتوي على بيانات إضافية لعرض جدول التحديث.
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
@@ -7129,7 +7129,7 @@
 
         function buildBulkCustomDataTable(trip, regs, fields) {
             if (!regs.length) {
-                return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
+                return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث البيانات الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
             }
             const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
 
@@ -7195,8 +7195,8 @@
             if (!trip || !fields.length) return;
 
             document.getElementById('bulkCustomDataTripId').value = tripId;
-            document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
-            document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+            document.getElementById('bulkCustomDataHeader').textContent = `تحديث البيانات الإضافية: ${trip.title}`;
+            document.getElementById('bulkCustomDataFieldsInfo').textContent = `البيانات المتاحة: ${fields.join('، ')}`;
 
             document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
 
@@ -8767,7 +8767,7 @@
         function renderCustomFieldsList() {
             const list = document.getElementById('customFieldsList'); if (!list) return;
             if (!_currentCustomFields.length) {
-                list.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:6px 0;">لا توجد حقول — اضغط "إضافة حقل جديد"</p>';
+                list.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:6px 0;">لا توجد بيانات — اضغط "إضافة بيان جديد"</p>';
                 return;
             }
             list.innerHTML = _currentCustomFields.map((cf, i) => {
@@ -9533,7 +9533,7 @@
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
             <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
-            ${customFieldList.length ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث حقول إضافية</button>
+            ${customFieldList.length ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث بيانات إضافية</button>
             <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>
             <button class="btn btn-outline btn-sm" onclick="document.getElementById('uploadCustomDataCsv').click()"><i class="fas fa-file-import"></i> رفع CSV</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="copyTripLink(${trip.id})"><i class="fas fa-link"></i> نسخ الرابط</button>
@@ -10597,7 +10597,7 @@
             });
             let p = '<div class="table-wrap"><table><thead><tr>';
             p += '<th>الفصل</th><th>العدد</th><th>أمثلة</th>';
-            if (customCols.length) p += '<th>الحقول الإضافية</th>';
+            if (customCols.length) p += '<th>البيانات الإضافية</th>';
             p += '</tr></thead><tbody>';
             Object.entries(byClass).forEach(([cls, kids]) => {
                 const examples = kids.slice(0, 3).map(k => escHtml(k.name)).join('، ');
@@ -10798,7 +10798,7 @@
                                             <button class="act-btn act-delete" onclick="devTemplateDelete(${t.id})" style="width:28px; height:28px;" title="حذف"><i class="fas fa-trash"></i></button>
                                         </div>
                                         <div style="font-size:0.75rem; color:var(--muted);">
-                                            <strong>الحقول:</strong> ${escHtml(t.custom_fields)}
+                                            <strong>البيانات الإضافية:</strong> ${escHtml(t.custom_fields)}
                                         </div>
                                         <div style="font-size:0.7rem; color:var(--muted); font-family:monospace; background:var(--bg); padding:6px 10px; border-radius:6px; border:1px solid var(--border); max-height:80px; overflow-y:auto; direction:ltr; text-align:left;">
                                             ${escHtml(JSON.stringify(t.custom_field_icons, null, 2))}

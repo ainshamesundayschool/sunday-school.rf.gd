@@ -3405,7 +3405,7 @@
           </button>
           ${isOwner ? `
           <button class="trip-action-btn" onclick="openCustomFieldEditor(${trip.id})">
-            <i class="fas fa-sliders-h"></i>الحقول الإضافية
+            <i class="fas fa-sliders-h"></i>البيانات الإضافية
           </button>
           <button class="trip-action-btn" onclick="window.location.href='/uncle/church/#trips?trip_id=${trip.id}'">
             <i class="fas fa-edit"></i>تعديل الرحلة
@@ -3711,7 +3711,7 @@
             style="display:none; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--bg);">
             <summary
               style="font-weight:700; cursor:pointer; color:var(--primary); font-size:0.85rem; outline:none; display:flex; align-items:center; gap:8px;">
-              <i class="fas fa-tags"></i> حقول إضافية للرحلة (اختياري)
+              <i class="fas fa-tags"></i> بيانات إضافية للرحلة (اختياري)
             </summary>
             <div id="registerCustomFieldsSection"
               style="margin-top:12px; max-height:160px; overflow-y:auto; padding-right:4px;"></div>
@@ -4809,8 +4809,8 @@
       if (!trip || !fields.length) return;
 
       document.getElementById('bulkCustomDataTripId').value = tripId;
-      document.getElementById('bulkCustomDataHeader').textContent = `تحديث الحقول الإضافية: ${trip.title}`;
-      document.getElementById('bulkCustomDataFieldsInfo').textContent = `الحقول المتاحة: ${fields.join('، ')}`;
+      document.getElementById('bulkCustomDataHeader').textContent = `تحديث البيانات الإضافية: ${trip.title}`;
+      document.getElementById('bulkCustomDataFieldsInfo').textContent = `البيانات المتاحة: ${fields.join('، ')}`;
 
       document.getElementById('bulkCustomDataTable').innerHTML = buildBulkCustomDataTable(trip, regs, fields);
 
@@ -4835,7 +4835,7 @@
 
     function buildBulkCustomDataTable(trip, regs, fields) {
       if (!regs.length) {
-        return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث الحقول الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
+        return `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><p>لا يمكن تحديث البيانات الإضافية لأن هذه الرحلة لا تحتوي على تسجيلات.</p></div>`;
       }
       const icons = (typeof trip.custom_field_icons === 'object' && trip.custom_field_icons) ? trip.custom_field_icons : {};
 
@@ -4986,7 +4986,7 @@
         if (isGroup) {
           const subCount = (f.sub_fields_map[c] || []).length;
           subBtn = `<button type="button" class="btn btn-outline btn-xs" onclick="cfeOpenSubConfig('${f._id}', ${ci})" style="margin-right:5px; font-size:0.65rem; padding:2px 6px;">
-            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة حقول فرعية'}
+            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة بيانات فرعية'}
           </button>`;
         }
         return `<div class="cfe-choice-tag" style="display:flex; align-items:center;">
@@ -5007,7 +5007,7 @@
           <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
         </div>
         <div style="margin-top:8px;">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة حقول فرعية تظهر عند اختياره)' : ''}:</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة بيانات فرعية تظهر عند اختياره)' : ''}:</div>
           <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
           <div class="cfe-add-choice" style="margin-top:8px;">
             <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
@@ -5028,7 +5028,7 @@
       modal.innerHTML = `
         <div class="modal-box" style="max-width:500px;">
           <div class="modal-head">
-            <h2><i class="fas fa-sitemap"></i> حقول فرعية لـ: ${choice}</h2>
+            <h2><i class="fas fa-sitemap"></i> بيانات فرعية لـ: ${choice}</h2>
             <button class="modal-close" onclick="this.closest('.modal').remove()"><i class="fas fa-times"></i></button>
           </div>
           <div class="modal-body">
@@ -5253,14 +5253,14 @@
           sub_fields_map: subFieldsMap
         };
       });
-      document.getElementById('cfeModalTitle').textContent = `تعديل الحقول الإضافية: ${trip.title}`;
+      document.getElementById('cfeModalTitle').textContent = `تعديل البيانات الإضافية: ${trip.title}`;
       renderCfeFields();
       openModal('customFieldEditorModal');
     }
 
     function renderCfeFields() {
       const c = document.getElementById('cfeFieldsList');
-      if (!_cfeState.fields.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد حقول بعد.</div>`; return; }
+      if (!_cfeState.fields.length) { c.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.88rem;"><i class="fas fa-info-circle" style="display:block;font-size:2rem;opacity:.2;margin-bottom:8px;"></i>لا توجد بيانات إضافية بعد.</div>`; return; }
       c.innerHTML = _cfeState.fields.map(f => renderCfeFieldCard(f)).join('');
     }
 
@@ -5271,7 +5271,7 @@
         if (isGroup) {
           const subCount = (f.sub_fields_map[c] || []).length;
           subBtn = `<button type="button" class="btn btn-outline btn-xs" onclick="cfeOpenSubConfig('${f._id}', ${ci})" style="margin-right:5px; font-size:0.65rem; padding:2px 6px;">
-            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة حقول فرعية'}
+            <i class="fas fa-sitemap"></i> ${subCount > 0 ? `تعديل (${subCount})` : 'إضافة بيانات فرعية'}
           </button>`;
         }
         return `<div class="cfe-choice-tag" style="display:flex; align-items:center;">
@@ -5292,7 +5292,7 @@
           <button type="button" class="act-btn act-delete" style="width:32px;height:32px;" onclick="cfeRemoveField('${f._id}')"><i class="fas fa-trash"></i></button>
         </div>
         <div style="margin-top:8px;">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة حقول فرعية تظهر عند اختياره)' : ''}:</div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">الخيارات${isGroup ? ' (لكل خيار يمكنك إضافة بيانات فرعية تظهر عند اختياره)' : ''}:</div>
           <div class="cfe-choices-list">${choiceTagsHtml || '<span style="color:var(--muted);font-size:0.75rem;">لا يوجد خيارات (سيكون حقل نصي حر)</span>'}</div>
           <div class="cfe-add-choice" style="margin-top:8px;">
             <input type="text" class="form-input" id="cfe_newChoice_${f._id}" placeholder="أضف خياراً..." onkeydown="if(event.key==='Enter'){event.preventDefault();cfeAddChoice('${f._id}');}">
@@ -5421,7 +5421,7 @@
           window.currentTripObj.custom_fields = customFields;
           window.currentTripObj.custom_field_icons = customFieldIcons;
         }
-        showToast('تم حفظ الحقول الإضافية ✅', 'success');
+        showToast('تم حفظ البيانات الإضافية ✅', 'success');
         closeModal('customFieldEditorModal');
         await showTripDetails(tripId);
       } else {
@@ -5715,7 +5715,7 @@
   <div id="bulkCustomDataModal" class="modal">
     <div class="modal-box wide">
       <div class="modal-head">
-        <h2><i class="fas fa-table"></i> تحديث بيانات الحقول الإضافية</h2><button class="modal-close"
+        <h2><i class="fas fa-table"></i> تحديث البيانات الإضافية</h2><button class="modal-close"
           onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
@@ -5749,14 +5749,14 @@
   <div id="customFieldEditorModal" class="modal">
     <div class="modal-box wide" style="max-width:720px;">
       <div class="modal-head">
-        <h2><i class="fas fa-sliders-h"></i> <span id="cfeModalTitle">تعديل الحقول الإضافية</span></h2>
+        <h2><i class="fas fa-sliders-h"></i> <span id="cfeModalTitle">تعديل البيانات الإضافية</span></h2>
         <button class="modal-close" onclick="closeModal('customFieldEditorModal')"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
         <div
           style="background:var(--primary-light);border-radius:10px;padding:12px 14px;font-size:0.82rem;color:var(--primary);display:flex;align-items:flex-start;gap:8px;">
           <i class="fas fa-info-circle" style="margin-top:2px;flex-shrink:0;"></i>
-          <div>يمكنك تعديل أسماء الحقول وأيقوناتها وخياراتها. كل حقل يمكن أن يحتوي على <strong>حقول فرعية</strong> تظهر
+          <div>يمكنك تعديل أسماء البيانات وأيقوناتها وخياراتها. كل بيان يمكن أن يحتوي على <strong>بيانات فرعية</strong> تظهر
             عند اختيار خيار معين (مثلاً: عند اختيار مبنى معين، تظهر خيارات الغرف الخاصة به).</div>
         </div>
         <div
@@ -5771,7 +5771,7 @@
         <div id="cfeFieldsList"
           style="display:flex;flex-direction:column;gap:12px;max-height:55vh;overflow-y:auto;padding:2px 4px;"></div>
         <button type="button" class="btn btn-outline btn-sm" onclick="cfeAddField()" style="align-self:flex-start;">
-          <i class="fas fa-plus"></i> إضافة حقل جديد
+          <i class="fas fa-plus"></i> إضافة بيان جديد
         </button>
         <div
           style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">

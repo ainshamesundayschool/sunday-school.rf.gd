@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>حول النظام — مدارس الأحد</title>
+<script>
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -25,18 +29,16 @@
     --sh-lg: 0 16px 48px -8px rgba(91,108,245,.2);
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --brand-bg: rgba(91, 108, 245, .15);
-      --t1: #e8eaf6;
-      --t2: #9299be;
-      --t3: #565c7a;
-      --bg: #0f1117;
-      --surf: #181b26;
-      --bdr: #2a2d42;
-      --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
-      --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
-    }
+  [data-theme="dark"] {
+    --brand-bg: rgba(91, 108, 245, .15);
+    --t1: #e8eaf6;
+    --t2: #9299be;
+    --t3: #565c7a;
+    --bg: #0f1117;
+    --surf: #181b26;
+    --bdr: #2a2d42;
+    --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
+    --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; }
@@ -68,7 +70,9 @@
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:1rem;
     box-shadow:0 4px 12px rgba(91,108,245,.3); flex-shrink:0;
+    overflow:hidden;
   }
+  .topbar-logo img { width:100%; height:100%; object-fit:cover; }
   .topbar-title  { font-size:1rem; font-weight:800; color:var(--t1); }
   .topbar-sub    { font-size:.7rem; color:var(--t3); margin-top:-1px; }
   .topbar-back {
@@ -111,7 +115,9 @@
     display:flex; align-items:center; justify-content:center;
     margin:0 auto 18px; font-size:2.2rem;
     box-shadow:0 0 0 10px rgba(255,255,255,.06), var(--sh-lg);
+    overflow:hidden;
   }
+  .hero-app-icon img { width:100%; height:100%; object-fit:cover; }
   .hero h1 { font-size:2rem; font-weight:900; margin-bottom:8px; line-height:1.2; }
   .hero h1 span { color:var(--brand-l); }
   .hero p  { font-size:.9rem; opacity:.82; max-width:520px; margin:0 auto 30px; line-height:1.7; }
@@ -305,7 +311,7 @@
 
 <!-- TOPBAR -->
 <nav class="topbar">
-  <div class="topbar-logo"><i class="fas fa-church"></i></div>
+  <div class="topbar-logo"><img src="/logo.png" alt="Logo"></div>
   <div>
     <div class="topbar-title">نظام مدارس الأحد</div>
     <div class="topbar-sub">حول التطبيق</div>
@@ -318,7 +324,7 @@
   <!-- HERO -->
   <div class="hero">
     <div class="hero-verse">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ</div>
-    <div class="hero-app-icon"><i class="fas fa-church"></i></div>
+    <div class="hero-app-icon"><img src="/logo.png" alt="Logo"></div>
     <h1>نظام <span>مدارس الأحد</span></h1>
     <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات الذكية والسحب، النماذج الديناميكية للرحلات، المهام والاختبارات في تطبيق واحد.</p>
     <div class="hero-badges">

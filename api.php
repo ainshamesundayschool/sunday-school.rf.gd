@@ -10763,7 +10763,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     fputcsv($output, ['الحالة', $trip['status']]);
     fputcsv($output, ['']);
 
-    // ─── بناء أعمدة الحقول الإضافية ─────────────────────────────────────────
+    // ─── بناء أعمدة البيانات الإضافية ─────────────────────────────────────────
     $customColumns = [];
     $fieldIconsMeta = [];
     if (!empty($trip['custom_field_icons'])) {

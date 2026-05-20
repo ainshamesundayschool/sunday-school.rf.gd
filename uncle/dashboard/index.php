@@ -10311,7 +10311,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 byClass[k].push(r);
             });
             let p = '<div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border-solid);margin-bottom:10px"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><thead><tr style="background:var(--surface-3)"><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">الفصل</th><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">العدد</th><th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">أمثلة</th>';
-            if (customCols.length) p += '<th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">الحقول الإضافية</th>';
+            if (customCols.length) p += '<th style="padding:10px;text-align:right;border-bottom:1px solid var(--border-solid)">البيانات الإضافية</th>';
             p += '</tr></thead><tbody>';
             Object.entries(byClass).forEach(([cls, kids]) => {
                 const examples = kids.slice(0, 3).map(k => k.name).join('، ');
