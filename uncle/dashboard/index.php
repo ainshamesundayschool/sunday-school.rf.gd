@@ -1453,13 +1453,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             min-width: 0
         }
 
+        .action-strip-row-2 {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            align-items: stretch;
+        }
+
         .action-strip-standalone {
             border: 1.5px solid var(--border-solid) !important;
             background: var(--surface) !important;
             color: var(--text-2) !important;
             flex-shrink: 0 !important;
-            flex: 0 0 auto !important;
-            width: auto !important;
+            flex: 1 1 0px !important;
+            width: 100% !important;
             padding: 6px 12px !important;
             display: inline-flex !important;
             flex-direction: column !important;
@@ -1467,6 +1474,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center !important;
             gap: 3px !important;
             border-radius: var(--r-lg) !important;
+            min-width: 0 !important;
         }
 
         .action-strip-standalone:hover {
