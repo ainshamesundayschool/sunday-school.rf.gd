@@ -8577,18 +8577,52 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── DROPDOWNS ─────────────────────────────────────────────────
         function toggleDropdown(id, btn) {
-            const menu = document.getElementById(id), btnEl = document.getElementById(btn);
-            if (activeDropdown && activeDropdown !== id) {
-                const prev = document.getElementById(activeDropdown); if (prev) prev.classList.remove('open');
-                const prevBtn = document.querySelector(`[data-menu="${activeDropdown}"]`); if (prevBtn) prevBtn.classList.remove('open');
+            const menu = document.getElementById(id);
+            if (!menu) return;
+            
+            let btnEl = null;
+            if (typeof btn === 'string') {
+                btnEl = document.getElementById(btn);
+            } else if (btn) {
+                btnEl = btn;
+            } else {
+                btnEl = event?.currentTarget || event?.target?.closest('button') || document.querySelector(`[onclick*="${id}"]`);
             }
+
+            if (activeDropdown && activeDropdown !== id) {
+                const prev = document.getElementById(activeDropdown); 
+                if (prev) prev.classList.remove('open');
+                const prevBtn = document.querySelector(`[data-menu="${activeDropdown}"]`) || document.getElementById(activeDropdown + 'Btn'); 
+                if (prevBtn) prevBtn.classList.remove('open');
+                document.querySelectorAll('.action-strip-btn.open, .topbar-btn.open').forEach(b => b.classList.remove('open'));
+            }
+            
             const isOpen = menu.classList.toggle('open');
-            btnEl.classList.toggle('open', isOpen);
+            if (btnEl) btnEl.classList.toggle('open', isOpen);
             activeDropdown = isOpen ? id : null;
+            
+            if (isOpen) {
+                // Dynamically ensure it is visible and does not overflow the screen bounds
+                menu.style.left = '';
+                menu.style.right = '';
+                
+                const rect = menu.getBoundingClientRect();
+                
+                // If it overflows the left edge of the screen
+                if (rect.left < 10) {
+                    menu.style.left = '10px';
+                    menu.style.right = 'auto';
+                }
+                // If it overflows the right edge of the screen
+                else if (rect.right > window.innerWidth - 10) {
+                    menu.style.left = 'auto';
+                    menu.style.right = '10px';
+                }
+            }
         }
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
-            document.querySelectorAll('.action-strip-btn.open').forEach(b => b.classList.remove('open'));
+            document.querySelectorAll('.action-strip-btn.open, .topbar-btn.open').forEach(b => b.classList.remove('open'));
             activeDropdown = null;
         }
         document.addEventListener('click', e => { if (!e.target.closest('.action-dropdown')) closeAllDropdowns(); });
