@@ -8983,61 +8983,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             }
 
+            // Pre-render layout instantly from cache so the user doesn't see empty screens/skeletons
+            _loadDataFromCache(true);
+
             loadData();
             updateCurrentDateDisplay();
             setTimeout(() => { setupBirthdayInputListeners(); setupLiveSearch(); setupAllStudentsSearch(); }, 800);
-
-            // If navigating to a class, show it immediately from cache if available
-            if (window._pendingHashRestore && window._pendingHashRestore.type === 'class') {
-                const className = window._pendingHashRestore.value;
-                const cachedRaw = localStorage.getItem('lastStudentsData');
-                if (cachedRaw) {
-                    try {
-                        const d = JSON.parse(cachedRaw);
-                        students = d.students || d.allStudents || [];
-                        allStudentsData = d.allStudents || d.students || students;
-                        if (d.classes && d.classes.length) classes = d.classes;
-
-                        // Show class view shell
-                        document.getElementById('classesView').style.display = 'none';
-                        document.getElementById('classView').classList.add('active');
-                        const cn = document.getElementById('className');
-                        if (cn) cn.textContent = 'الفصل: ' + className;
-                        currentClass = className;
-
-                        // Render real content straight from cache — no skeleton needed
-                        loadAttendanceDataForClass(className);
-                        renderAttendanceList(className);
-                        updateClassStats();
-                        updateCurrentDateDisplay();
-                        loadClassUncles(className);
-                        loadPendingRegistrationsForClass(className);
-                        window._pendingHashRestore = null; // handled
-                    } catch (e) {
-                        // Cache parse failed — fall back to skeleton while online fetch loads
-                        document.getElementById('classesView').style.display = 'none';
-                        document.getElementById('classView').classList.add('active');
-                        currentClass = className;
-                        const list = document.getElementById('attendanceList');
-                        if (list) list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(6).fill('<div class="skeleton-row"></div>').join('') + '</div>';
-                    }
-                } else if (navigator.onLine) {
-                    // No cache at all — show skeleton while waiting for API
-                    document.getElementById('classesView').style.display = 'none';
-                    document.getElementById('classView').classList.add('active');
-                    const cn = document.getElementById('className');
-                    if (cn) cn.textContent = 'الفصل: ' + className;
-                    currentClass = className;
-                    const list = document.getElementById('attendanceList');
-                    if (list) list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(6).fill('<div class="skeleton-row"></div>').join('') + '</div>';
-                }
-            }
-
-            // Only show skeleton on classes grid if no cache and going online to fetch
-            if (!currentClass && !localStorage.getItem('lastStudentsData') && navigator.onLine) {
-                const grid = document.getElementById('classesGrid');
-                if (grid) grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
-            }
 
             // Remove the pre-boot style hide tag to restore normal render flexibility
             const preBoot = document.getElementById('pre-boot-hide');
@@ -9065,9 +9016,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             const grid = document.getElementById('classesGrid');
-            if (grid && !currentClass) grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
+            if (grid && !currentClass && (!students || !students.length)) {
+                grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
+            }
             const list = document.getElementById('attendanceList');
-            if (list && currentClass) list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(5).fill('<div class="skeleton-row"></div>').join('') + '</div>';
+            if (list && currentClass && (!students || !students.length)) {
+                list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(5).fill('<div class="skeleton-row"></div>').join('') + '</div>';
+            }
 
             makeApiCall({ action: 'getData' }, r => {
                 if (r.data && Array.isArray(r.data)) students = r.data;
@@ -9116,7 +9071,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
         }
 
-        function _loadDataFromCache() {
+        function _loadDataFromCache(silent = false) {
             const cached = localStorage.getItem('lastStudentsData');
             if (cached) {
                 try {
@@ -9148,12 +9103,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             showCombinedClassView(value);
                         }
                     }
-                    showToast('تعمل بدون إنترنت — البيانات من الذاكرة المحلية', 'warning');
+                    if (!silent) showToast('تعمل بدون إنترنت — البيانات من الذاكرة المحلية', 'warning');
                 } catch (e) {
-                    showToast('لا يمكن تحميل البيانات بدون إنترنت', 'error');
+                    if (!silent) showToast('لا يمكن تحميل البيانات بدون إنترنت', 'error');
                 }
             } else {
-                showToast('لا يوجد بيانات محفوظة — يرجى الاتصال بالإنترنت', 'error');
+                if (!silent) showToast('لا يوجد بيانات محفوظة — يرجى الاتصال بالإنترنت', 'error');
             }
             setTimeout(updateSaveBtns, 300);
         }
