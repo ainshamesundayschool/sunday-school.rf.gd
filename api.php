@@ -12345,11 +12345,17 @@ function listChurchRegKeys()
     $conn = getDBConnection();
     ensureRegKeyTable($conn);
     $result = $conn->query("
-        SELECT k.*, c.name AS church_name
+        SELECT k.*, c.church_name AS church_name
         FROM church_reg_keys k
         LEFT JOIN churches c ON c.id = k.used_by_church
         ORDER BY k.created_at DESC
     ");
+    
+    if (!$result) {
+        sendJSON(['success' => false, 'message' => 'حدث خطأ في قاعدة البيانات: ' . $conn->error]);
+        return;
+    }
+
     $keys = [];
     $proto = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $base = $proto . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
