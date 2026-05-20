@@ -2610,7 +2610,7 @@
       background: white;
       border-radius: 20px 20px 0 0 !important;
       width: 100% !important;
-      max-width: 560px !important;
+      max-width: 700px !important;
       height: auto !important;
       max-height: 92vh !important;
       overflow: hidden;
@@ -2630,11 +2630,11 @@
     }
 
     .modal-box.wide {
-      max-width: 680px !important;
+      max-width: 860px !important;
     }
 
     .modal-box.xl {
-      max-width: 860px !important;
+      max-width: 1100px !important;
     }
 
     .modal-body {
@@ -3002,14 +3002,52 @@
       }
     }
 
-    /* Modal expansion for printing options & preview */
-    #printSettingsModal.modal-expanded .modal-box {
-      max-width: 900px !important;
-      width: 95vw !important;
+    /* ── PRINT MODAL ────────────────────────────────────────────────── */
+    /* Always give it room on desktop */
+    #printSettingsModal .modal-box {
+      max-width: 1000px !important;
     }
-    #printSettingsModal.modal-expanded #printPreviewWrapper {
-      min-height: 480px !important;
+
+    /* Collapsible preview panel */
+    #printPreviewPanel {
+      transition: all 0.35s var(--ease);
+      overflow: hidden;
     }
+    #printPreviewPanel.preview-collapsed {
+      flex: 0 !important;
+      min-width: 0 !important;
+      width: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Collapse toggle button */
+    #togglePreviewBtn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-2);
+      background: white;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: all var(--t-fast) var(--ease);
+      white-space: nowrap;
+    }
+    #togglePreviewBtn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* Mobile: stack vertically, full-screen */
     @media (max-width: 768px) {
       #printSettingsModal .modal-box {
         max-width: 100% !important;
@@ -3022,13 +3060,46 @@
       }
       #printSettingsModal .modal-body {
         flex-direction: column !important;
+        gap: 0 !important;
       }
       #printSettingsModal #printPreviewPanel {
         border-right: none !important;
         border-top: 1px solid var(--border) !important;
         padding-right: 0 !important;
-        padding-top: 20px !important;
-        margin-top: 10px !important;
+        padding-top: 16px !important;
+        margin-top: 12px !important;
+        min-width: unset !important;
+        flex: unset !important;
+        width: 100% !important;
+      }
+      #printSettingsModal #printPreviewPanel.preview-collapsed {
+        width: 0 !important;
+        height: 0 !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        border: none !important;
+      }
+      #printSettingsModal #printSettingsFormPanel {
+        min-width: unset !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+      }
+      #printSettingsModal .modal-body > div {
+        width: 100%;
+      }
+      /* Tighten spacing on small screens */
+      #printSettingsModal .form-group {
+        gap: 4px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #printSettingsModal .modal-body {
+        padding: 14px !important;
+      }
+      #printSettingsModal #printPreviewWrapper {
+        min-height: 280px !important;
+        padding: 12px !important;
       }
     }
   </style>
@@ -5580,16 +5651,19 @@
       }
     }
 
-    function toggleExpandPrintPreview() {
-      const modal = document.getElementById('printSettingsModal');
-      const btn = document.getElementById('expandPreviewBtn');
-      modal.classList.toggle('modal-expanded');
-      if (modal.classList.contains('modal-expanded')) {
-        btn.innerHTML = '<i class="fas fa-compress-alt"></i> تصغير المعاينة';
+    function togglePrintPreview() {
+      const panel = document.getElementById('printPreviewPanel');
+      const btn = document.getElementById('togglePreviewBtn');
+      const collapsed = panel.classList.toggle('preview-collapsed');
+      if (collapsed) {
+        btn.innerHTML = '<i class="fas fa-eye"></i> إظهار المعاينة';
       } else {
-        btn.innerHTML = '<i class="fas fa-expand-alt"></i> تكبير المعاينة';
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i> إخفاء المعاينة';
       }
     }
+
+    // Legacy alias (safe to keep)
+    function toggleExpandPrintPreview() { togglePrintPreview(); }
 
     function togglePrintDashControls() {
       const style = document.getElementById('printCardOutlineStyle')?.value || 'dashed';
@@ -6337,7 +6411,7 @@
 
   <!-- Print Settings Modal -->
   <div id="printSettingsModal" class="modal">
-    <div class="modal-box wide" style="max-width:850px;">
+    <div class="modal-box wide">
       <div class="modal-head">
         <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
         <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
@@ -6479,8 +6553,8 @@
         <div id="printPreviewPanel" style="flex:1.2; min-width:280px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--border); padding-right:20px; justify-content:flex-start; align-items:center;">
           <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-bottom:10px;">
             <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text);"><i class="fas fa-eye" style="color:var(--primary);"></i> معاينة حية (عينة لأول طفل)</h3>
-            <button type="button" class="btn btn-outline btn-xs" onclick="toggleExpandPrintPreview()" id="expandPreviewBtn" style="padding:4px 8px;font-size:0.75rem;">
-              <i class="fas fa-expand-alt"></i> تكبير المعاينة
+            <button type="button" id="togglePreviewBtn" onclick="togglePrintPreview()">
+              <i class="fas fa-eye-slash"></i> إخفاء المعاينة
             </button>
           </div>
           <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden; transition:all 0.3s ease;">
