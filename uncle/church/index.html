@@ -4691,6 +4691,69 @@
         #addUncleFormWrap {
             display: none;
         }
+
+        /* ── PRINT STYLES ── */
+        @media print {
+            body>*:not(#printArea) {
+                display: none !important;
+            }
+
+            #printArea {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                padding: 20px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .print-card {
+                border: 2px dashed #000;
+                padding: 20px;
+                text-align: center;
+                border-radius: 10px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                display: block !important;
+            }
+
+            .print-card img.qr {
+                width: 150px;
+                height: 150px;
+                margin: 10px auto;
+                display: block !important;
+            }
+
+            .print-card img.avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                margin: 0 auto 10px;
+                object-fit: cover;
+                display: block !important;
+            }
+
+            .print-card h3 {
+                font-size: 16px;
+                margin-bottom: 4px;
+                color: #000 !important;
+            }
+
+            .print-card h2 {
+                font-size: 20px;
+                margin-bottom: 8px;
+                color: #000 !important;
+            }
+
+            .print-card .custom-info {
+                font-size: 14px;
+                font-weight: bold;
+                color: #000 !important;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 
@@ -13480,9 +13543,12 @@
             const printArea = document.getElementById('printArea');
             printArea.innerHTML = '';
 
+            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+
             regs.forEach(r => {
                 const name = r.student_name || '؟';
-                const img = r.student_image || 'https://via.placeholder.com/80/e0e7ff/4f46e5?text=' + name.charAt(0);
+                const imgUrl = r.student_image || '';
+                const hasImage = imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
                 let customHtml = '';
                 if (r.custom_data) {
                     try {
@@ -13504,10 +13570,18 @@
                 const cardId = 'qrcode_' + r.id;
                 const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
 
+                const avatarHtml = hasImage 
+                    ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">` 
+                    : '';
+
                 printArea.innerHTML += `
         <div class="print-card">
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:8px; border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px;">
+                <img src="/logo.png" style="height:24px; width:auto; object-fit:contain;" onerror="this.style.display='none'">
+                <span style="font-size:12px; font-weight:800; color:#000;">${churchName}</span>
+            </div>
             <h3>${trip.title}</h3>
-            <img src="${img}" class="avatar" onerror="this.src='https://via.placeholder.com/80/e0e7ff/4f46e5?text=?'">
+            ${avatarHtml}
             <h2>${name}</h2>
             <div class="custom-info" style="margin-bottom:10px;">${customHtml}</div>
             <div id="${cardId}" style="display:flex;justify-content:center;"></div>
