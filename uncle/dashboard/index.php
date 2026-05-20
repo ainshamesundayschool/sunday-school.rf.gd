@@ -1931,7 +1931,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 4px;
             padding: 6px 10px;
             background: var(--surface-2);
-            border: 1.5px solid var(--border-solid);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-full);
             font-size: .72rem;
             font-weight: 700;
@@ -1949,7 +1949,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .toolbar-stat.s {
-            border-color: rgba(16, 185, 129, 0.25);
             color: var(--success);
         }
 
@@ -1958,7 +1957,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .toolbar-stat.a {
-            border-color: rgba(239, 68, 68, 0.25);
             color: var(--danger);
         }
 
@@ -1967,7 +1965,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .toolbar-stat.c {
-            border-color: rgba(245, 158, 11, 0.25);
             color: var(--coupon);
         }
 
@@ -1990,7 +1987,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             gap: 2px;
             padding: 6px 10px;
-            border: 1.5px solid var(--border-solid);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-md);
             font-family: 'Cairo', sans-serif;
             cursor: pointer;
@@ -2048,7 +2045,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .save-btn-attendance {
-            border-color: rgba(16, 185, 129, 0.25);
             color: var(--success);
         }
 
@@ -2063,7 +2059,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .save-btn-coupons {
-            border-color: rgba(217, 119, 6, 0.25);
             color: var(--coupon);
         }
 
@@ -2078,7 +2073,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .save-btn-unsaved {
-            border-color: rgba(245, 158, 11, 0.25);
             color: var(--warning);
         }
 
