@@ -10860,14 +10860,22 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
             const membersHtml = visibleMembers.length
                 ? visibleMembers.map(m => {
-                    const mInfo = parseStudentCustomInfo(m);
-                    const guardian = mInfo.guardian_name || mInfo.father_name || mInfo.parent_name || mInfo.mother_name || '';
-                    return `<div class="sibling-item">
-                        <div>
-                            <strong>${escHtml(getStudentDisplayName(m))}</strong>
-                            <small>${escHtml(getStudentClassName(m))}${guardian ? ` · ${escHtml(guardian)}` : ''}</small>
+                    const gender = getStudentGender(m);
+                    const photo = m['صورة'] || m.photo || m.photo_url || '';
+                    const photoSrc = photo && window.photoUrl ? window.photoUrl(photo) : photo;
+                    const avatar = photoSrc
+                        ? `<img src="${escHtml(photoSrc)}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                        : '';
+                    const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${photoSrc ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                    return `<div class="sibling-item" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')" style="cursor:pointer">
+                        <div class="sibling-item-main">
+                            ${avatar}${avatarFallback}
+                            <div style="min-width:0">
+                                <strong>${escHtml(getStudentDisplayName(m))}</strong>
+                                <small>${escHtml(getStudentClassName(m))}</small>
+                            </div>
                         </div>
-                        <button type="button" class="btn btn-g" style="padding:4px 9px;font-size:.68rem" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="btn btn-g" style="padding:4px 9px;font-size:.68rem" onclick="event.stopPropagation();showStudentDetails('${escJs(getStudentDisplayName(m))}')"><i class="fas fa-eye"></i></button>
                     </div>`;
                 }).join('')
                 : '';
