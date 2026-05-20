@@ -2365,56 +2365,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .student-avatar.female i,
-        .student-avatar.male i {
-            font-size: 1.05rem;
+        .student-avatar.male i,
+        .detail-avatar-fallback.male i,
+        .detail-avatar-fallback.female i {
+            position: relative;
+            z-index: 1;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .22);
         }
 
-        .student-avatar.male::before,
-        .student-avatar.female::before,
-        .detail-avatar-fallback.male::before,
-        .detail-avatar-fallback.female::before {
-            content: '';
-            position: absolute;
-            top: 18%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.94);
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-        }
-
-        .student-avatar.male::after,
-        .student-avatar.female::after,
-        .detail-avatar-fallback.male::after,
-        .detail-avatar-fallback.female::after {
-            content: '';
-            position: absolute;
-            bottom: 14%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 18px;
-            height: 22px;
-            border-radius: 10px 10px 12px 12px;
-            background: rgba(255,255,255,0.92);
-        }
-
-        .student-gender-badge {
-            display: inline-block;
-            margin-left: 4px;
-            padding: 1px 8px;
-            border-radius: 999px;
-            font-size: .65rem;
-            font-weight: 700;
-            color: var(--text-2);
-            background: rgba(148, 163, 184, .12);
-        }
-
-        .student-gender-badge::before {
-            content: '\2022';
-            margin-right: 4px;
-            color: rgba(148, 163, 184, .8);
+        .student-avatar.male i,
+        .student-avatar.female i {
+            font-size: 1.2rem;
         }
 
         .detail-avatar-fallback.male,
@@ -2426,7 +2388,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             border-radius: 50%;
             color: #fff;
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             background: linear-gradient(135deg, #60a5fa, #2563eb);
         }
 
@@ -8841,14 +8803,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 // Show real class name as a small tag
                 const classBadge = `<span style="font-size:.62rem;background:var(--brand-bg);color:var(--brand);padding:1px 6px;border-radius:10px;margin-right:4px">${s['الفصل']}</span>`;
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
-                const genderLabel = gender === 'female' ? 'أنثى' : 'ذكر';
-                const genderBadge = `<span class="student-gender-badge">${genderLabel}</span>`;
+                const genderIcon = gender === 'female' ? 'fa-venus' : 'fa-mars';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas ${genderIcon}" aria-hidden="true"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
@@ -8861,8 +8822,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                            <div>${genderBadge}</div>
-                    <div class="status-indicator">${badges}</div>
+                            <div class="status-indicator">${badges}</div>
                 </div>
             </div>
             <div class="attendance-actions">
@@ -9783,8 +9743,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 else if (isInChanged) badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
                 if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
-                const genderLabel = gender === 'female' ? 'أنثى' : 'ذكر';
-                const genderBadge = `<span class="student-gender-badge">${genderLabel}</span>`;
+                const genderIcon = gender === 'female' ? 'fa-venus' : 'fa-mars';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 const safeImg = (s['صورة'] || '').replace(/'/g, "\\'");
@@ -9792,7 +9751,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const img = s['صورة']
                     ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
-                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas ${genderIcon}" aria-hidden="true"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
@@ -9805,7 +9764,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                    <div>${genderBadge}</div>
                     <div class="status-indicator">${badges}</div>
                 </div>
             </div>
@@ -10337,6 +10295,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function buildStudentDetailsFromCache(s) {
             const genderLabel = getStudentGender(s) === 'female' ? 'أنثى' : 'ذكر';
+            const genderIcon = getStudentGender(s) === 'female' ? 'fa-venus' : 'fa-mars';
             const rows = [
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars'],
@@ -10354,13 +10313,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = getStudentGender(s);
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas ${genderIcon}" aria-hidden="true"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
             document.getElementById('studentDetails').innerHTML = avatar + rows;
         }
 
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
-            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
+            const genderIcon = gender === 'female' ? 'fa-venus' : 'fa-mars';
+            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas ${genderIcon}" aria-hidden="true"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
