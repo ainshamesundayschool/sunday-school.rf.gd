@@ -1013,7 +1013,8 @@ try {
         case 'checkRegistrationStatus':
             checkRegistrationStatus();
             break;
-            handleLogin();
+        case 'saveSiblingGroup':
+            saveSiblingGroup();
             break;
         case 'auto_login':  // أضف هذا
             handleAutoLogin();
