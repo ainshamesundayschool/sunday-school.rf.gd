@@ -28,6 +28,22 @@
     --sh: 0 4px 20px -4px rgba(91,108,245,.13);
     --sh-lg: 0 16px 48px -8px rgba(91,108,245,.18);
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-bg: rgba(91, 108, 245, .15);
+      --ok-bg: rgba(16, 185, 129, .15);
+      --cou-bg: rgba(139, 92, 246, .15);
+      --t1: #e8eaf6;
+      --t2: #9299be;
+      --t3: #565c7a;
+      --bg: #0f1117;
+      --surf: #181b26;
+      --bdr: #2a2d42;
+      --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
+      --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
+    }
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
     font-family: 'Cairo', sans-serif;
@@ -48,7 +64,7 @@
     position: sticky; top:0; z-index:100;
     display:flex; align-items:center; gap:14px;
     padding: 0 24px; height:62px;
-    background: rgba(255,255,255,.92);
+    background: var(--surf);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--bdr);
     box-shadow: 0 2px 12px -4px rgba(91,108,245,.1);
@@ -300,7 +316,7 @@
     <div class="feat-card">
       <div class="feat-icon" style="background:#fce7f3;color:#db2777"><i class="fas fa-bus"></i></div>
       <h3>الرحلات والتسجيل</h3>
-      <p>أدِر الرحلات وسجّل الأطفال وتابع المدفوعات ومتبقي كل طفل، مع إمكانية التصدير CSV.</p>
+      <p>أدِر الرحلات وسجّل الأطفال بنماذج تفاعلية ذكية وحقول ديناميكية، وتابع المدفوعات.</p>
     </div>
     <div class="feat-card">
       <div class="feat-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-bullhorn"></i></div>
@@ -326,6 +342,16 @@
       <div class="feat-icon" style="background:#fce7f3;color:#be185d"><i class="fas fa-birthday-cake"></i></div>
       <h3>أعياد الميلاد</h3>
       <p>يُنبّهك النظام تلقائياً بأعياد ميلاد الأطفال اليوم، مع إمكانية إرسال تهنئة WhatsApp مباشرة.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-exchange-alt"></i></div>
+      <h3>سحب الكوبونات</h3>
+      <p>واجهة مخصصة لسحب الكوبونات مع نظام بحث ذكي يتجاوز الأخطاء الإملائية لدعم المعارض والمكافآت.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#e0e7ff;color:#4f46e5"><i class="fas fa-moon"></i></div>
+      <h3>الوضع المظلم</h3>
+      <p>مظهر مظلم متكامل ومريح للعين، يعمل تلقائياً حسب إعدادات جهازك لتجربة استخدام أفضل.</p>
     </div>
   </div>
 

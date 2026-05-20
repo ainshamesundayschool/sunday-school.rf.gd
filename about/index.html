@@ -24,6 +24,20 @@
     --sh: 0 4px 20px -4px rgba(91,108,245,.13);
     --sh-lg: 0 16px 48px -8px rgba(91,108,245,.2);
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-bg: rgba(91, 108, 245, .15);
+      --t1: #e8eaf6;
+      --t2: #9299be;
+      --t3: #565c7a;
+      --bg: #0f1117;
+      --surf: #181b26;
+      --bdr: #2a2d42;
+      --sh: 0 4px 20px -4px rgba(0, 0, 0, .4);
+      --sh-lg: 0 16px 48px -8px rgba(0, 0, 0, .6);
+    }
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; }
   body {
@@ -43,7 +57,7 @@
     position:sticky; top:0; z-index:100;
     display:flex; align-items:center; gap:14px;
     padding:0 24px; height:62px;
-    background:rgba(255,255,255,.92);
+    background:var(--surf);
     backdrop-filter:blur(16px);
     border-bottom:1px solid var(--bdr);
     box-shadow:0 2px 12px -4px rgba(91,108,245,.1);
@@ -306,10 +320,11 @@
     <div class="hero-verse">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ</div>
     <div class="hero-app-icon"><i class="fas fa-church"></i></div>
     <h1>نظام <span>مدارس الأحد</span></h1>
-    <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات، الرحلات، المهام والاختبارات في تطبيق واحد.</p>
+    <p>منصة متكاملة لإدارة مدارس الأحد والخدمة — الحضور، الكوبونات الذكية والسحب، النماذج الديناميكية للرحلات، المهام والاختبارات في تطبيق واحد.</p>
     <div class="hero-badges">
       <div class="hero-badge"><i class="fas fa-shield-alt"></i> مجاني</div>
       <div class="hero-badge"><i class="fas fa-wifi"></i> يعمل أوفلاين</div>
+      <div class="hero-badge"><i class="fas fa-moon"></i> الوضع المظلم</div>
       <div class="hero-badge"><i class="fas fa-mobile-alt"></i> متوافق مع الهاتف</div>
       <div class="hero-badge"><i class="fas fa-language"></i> عربي بالكامل</div>
     </div>
