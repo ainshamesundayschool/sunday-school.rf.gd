@@ -8797,6 +8797,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         renderAttendanceList(className);
                         updateClassStats();
                         updateCurrentDateDisplay();
+                        loadClassUncles(className);
+                        loadPendingRegistrationsForClass(className);
                         window._pendingHashRestore = null; // handled
                     } catch (e) {
                         // Cache parse failed — fall back to skeleton while online fetch loads
@@ -8870,7 +8872,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (!currentClass) displayClasses(); // skip if class view already open
                 else renderTodayBirthdayBanner(); // always refresh birthday banner
                 _maybeSendBirthdayNotification(); // send push if today has birthdays
-                if (currentClass) { loadAttendanceDataForClass(currentClass); renderAttendanceList(currentClass); updateClassStats(); }
+                if (currentClass) {
+                    loadAttendanceDataForClass(currentClass);
+                    renderAttendanceList(currentClass);
+                    updateClassStats();
+                    loadClassUncles(currentClass);
+                    loadPendingRegistrationsForClass(currentClass);
+                }
                 // Restore hash-requested view now that real data is available
                 if (window._pendingHashRestore) {
                     const { type, value } = window._pendingHashRestore;
@@ -8908,7 +8916,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (!currentClass) displayClasses();
                     else renderTodayBirthdayBanner();
                     updateCurrentDateDisplay();
-                    if (currentClass) { loadAttendanceDataForClass(currentClass); renderAttendanceList(currentClass); updateClassStats(); }
+                    if (currentClass) {
+                        loadAttendanceDataForClass(currentClass);
+                        renderAttendanceList(currentClass);
+                        updateClassStats();
+                        loadClassUncles(currentClass);
+                        loadPendingRegistrationsForClass(currentClass);
+                    }
                     // Restore hash view
                     if (window._pendingHashRestore) {
                         const { type, value } = window._pendingHashRestore;
