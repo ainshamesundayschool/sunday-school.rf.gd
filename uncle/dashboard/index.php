@@ -7916,6 +7916,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </details>
             </div>
             <div class="mfooter">
+                <button class="btn btn-g" type="button" onclick="exportSiblingAllSuggestionsAsCSV()" style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
                 <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i> إغلاق</button>
             </div>
         </div>
@@ -8153,6 +8154,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onchange="renderCustomExportPreview()">
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
+                                <option value="النوع">النوع</option>
+                                <option value="الإخوة">الإخوة</option>
                                 <option value="كوبونات">إجمالي الكوبونات</option>
                                 <option value="كوبونات الحضور">كوبونات الحضور</option>
                                 <option value="كوبونات الالتزام">كوبونات الالتزام</option>
@@ -11084,6 +11087,34 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             });
         }
 
+        function exportSiblingAllSuggestionsAsCSV() {
+            const all = getAllSiblingSuggestions();
+            if (!all.length) { showToast('لا توجد اقتراحات لتصديرها', 'info'); return; }
+
+            const rows = [['الطفل الأول', 'فصل الأول', 'الطفل الثاني', 'فصل الثاني', 'قوة الاقتراح', 'سبب الربط', 'التفاصيل']];
+            all.forEach(item => {
+                rows.push([
+                    getStudentDisplayName(item.a),
+                    getStudentClassName(item.a),
+                    getStudentDisplayName(item.b),
+                    getStudentClassName(item.b),
+                    item.suggestion.strength === 'strong' ? 'قوي' : 'ضعيف',
+                    item.suggestion.label,
+                    item.suggestion.detail
+                ]);
+            });
+
+            const csvContent = "\uFEFF" + rows.map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(',')).join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `اقتراحات_الإخوة_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function renderSiblingSuggestionPair(item) {
             const aId = getStudentDbId(item.a);
             const bId = getStudentDbId(item.b);
@@ -12404,6 +12435,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
+                { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
+                { key: 'siblings', label: 'الإخوة', type: 'siblings', selected: false },
                 { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'تليفون الطوارئ', selected: false },
                 { key: 'address', label: 'العنوان', source: 'العنوان', selected: false },
@@ -12515,8 +12548,24 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     : '<div class="custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
             }
             if (field.type === 'age') return _calcAge(s['عيد الميلاد'] || '') || '';
+            if (field.type === 'gender') return (s['النوع'] === 'female' || s['gender'] === 'female') ? 'أنثى' : 'ذكر';
+            if (field.type === 'siblings') {
+                const studentId = getStudentDbId(s);
+                const info = parseStudentCustomInfo(s);
+                const group = info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
+                const members = (group && group.id) ? getSiblingMembersByGroupId(group.id, studentId) : [];
+                return members.map(m => getStudentDisplayName(m)).join(forCsv ? '، ' : ' - ');
+            }
             if (field.type === 'attendance_count') return getAttendanceCountForStudent(s);
             if (field.type === 'custom') return getCustomFieldValue(s, field.customIndex);
+            if (field.key === 'custom_info' || field.source === 'معلومات إضافية' || field.type === 'custom_info') {
+                const info = parseStudentCustomInfo(s);
+                const pairs = Object.entries(info)
+                    .filter(([k]) => !['sibling_group', 'value'].includes(k))
+                    .map(([k, v]) => `${k}: ${v}`);
+                if (info.value) pairs.unshift(String(info.value));
+                return pairs.join(forCsv ? ' ؛ ' : '\n');
+            }
             return s[field.source] || '';
         }
         function getAttendanceDisplayValue(s, date) {
@@ -12548,6 +12597,20 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     const pA = vA.split('/'), pB = vB.split('/');
                     if (pA.length === 3 && pB.length === 3) res = new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
                     else res = collator.compare(vA, vB);
+                } else if (cfg.sortBy === 'النوع') {
+                    const gA = (a['النوع'] === 'female' || a['gender'] === 'female') ? '2' : '1';
+                    const gB = (b['النوع'] === 'female' || b['gender'] === 'female') ? '2' : '1';
+                    res = collator.compare(gA, gB);
+                } else if (cfg.sortBy === 'الإخوة') {
+                    const studentIdA = getStudentDbId(a);
+                    const infoA = parseStudentCustomInfo(a);
+                    const groupA = infoA.sibling_group && typeof infoA.sibling_group === 'object' ? infoA.sibling_group : null;
+                    const membersA = (groupA && groupA.id) ? getSiblingMembersByGroupId(groupA.id, studentIdA) : [];
+                    const studentIdB = getStudentDbId(b);
+                    const infoB = parseStudentCustomInfo(b);
+                    const groupB = infoB.sibling_group && typeof infoB.sibling_group === 'object' ? infoB.sibling_group : null;
+                    const membersB = (groupB && groupB.id) ? getSiblingMembersByGroupId(groupB.id, studentIdB) : [];
+                    res = membersA.length - membersB.length;
                 } else {
                     res = collator.compare(vA, vB);
                 }
