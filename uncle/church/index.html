@@ -5068,6 +5068,9 @@
             <button class="nav-item" onclick="switchTab('students', this)" data-tooltip="الأطفال">
                 <i class="fas fa-child"></i><span class="label">الأطفال</span>
             </button>
+            <button class="nav-item" onclick="switchTab('graduates', this)" data-tooltip="خريجين">
+                <i class="fas fa-user-graduate"></i><span class="label">خريجين</span>
+            </button>
             <button class="nav-item" onclick="switchTab('attendance', this)" data-tooltip="الحضور">
                 <i class="fas fa-calendar-check"></i><span class="label">الحضور</span>
             </button>
@@ -5458,18 +5461,18 @@
 
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> ترقية الفصول</div>
+                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> نقل الفصول للسنة الدراسية الجديدة</div>
                     </div>
                     <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
                         <p style="font-size:0.82rem;color:var(--muted);margin:0;">
-                            يرقّي كل طفل إلى الفصل التالي حسب ترتيب الفصول (من الأصغر إلى الأكبر). الأطفال في أعلى فصل يبقون كما هم.
+                            ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يُنقل إلى قسم <strong>خريجين</strong>.
                         </p>
                         <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
                             <button class="btn btn-warning btn-sm" onclick="confirmGradeUpAllKids()">
-                                <i class="fas fa-level-up-alt"></i> ترقية الجميع للفصل التالي
+                                <i class="fas fa-level-up-alt"></i> نقل الجميع للسنة الجديدة
                             </button>
                             <button class="btn btn-outline btn-sm" onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');">
-                                <i class="fas fa-calendar-alt"></i> جدولة ترقية سنوية
+                                <i class="fas fa-calendar-alt"></i> موعد النقل السنوي
                             </button>
                         </div>
                     </div>
@@ -5509,6 +5512,39 @@
                                     </tr>
                                 </thead>
                                 <tbody id="studentsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── GRADUATES (خريجين) ── -->
+            <div id="graduates" class="tab-panel">
+                <div class="card" id="incomingTransfersCard" style="margin-bottom:20px;display:none;">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-inbox"></i> طلبات نقل واردة</div>
+                    </div>
+                    <div class="card-body" id="incomingTransfersList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-user-graduate"></i> خريجين</div>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size:0.82rem;color:var(--muted);margin:0 0 14px;">
+                            أطفال أنهوا أعلى فصل في الكنيسة. يمكنك حذف بياناتهم، تصديرها ثم الحذف، أو إرسالهم لكنيسة أخرى.
+                        </p>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الهاتف</th>
+                                        <th>الكوبونات</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="graduatesTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -5943,8 +5979,8 @@
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
                             <div class="settings-hub-body">
-                                <div class="settings-hub-title">ترقية الفصول</div>
-                                <div class="settings-hub-desc">ترقية جميع الأطفال فصلاً واحداً أو جدولة ترقية سنوية</div>
+                                <div class="settings-hub-title">نقل الفصول للسنة الدراسية الجديدة</div>
+                                <div class="settings-hub-desc">نقل جميع الأطفال أو تحديد موعد النقل السنوي</div>
                             </div>
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
                         </button>
@@ -6250,28 +6286,28 @@
                         <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
                             الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">ترقية الفصول</span>
+                        <span class="settings-bc-item active">نقل الفصول للسنة الدراسية الجديدة</span>
                     </div>
                     <div class="card" style="margin-bottom:16px;">
                         <div class="card-header">
-                            <div class="card-title"><i class="fas fa-level-up-alt"></i> ترقية يدوية</div>
+                            <div class="card-title"><i class="fas fa-level-up-alt"></i> نقل يدوي</div>
                         </div>
                         <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
                             <p style="font-size:0.84rem;color:var(--muted);margin:0;">
-                                ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.
+                                ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.
                             </p>
                             <button class="btn btn-warning" onclick="confirmGradeUpAllKids()">
-                                <i class="fas fa-graduation-cap"></i> ترقية جميع الأطفال الآن
+                                <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
                             </button>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title"><i class="fas fa-calendar-check"></i> ترقية سنوية تلقائية</div>
+                            <div class="card-title"><i class="fas fa-calendar-check"></i> موعد النقل السنوي</div>
                         </div>
                         <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
                             <p style="font-size:0.84rem;color:var(--muted);margin:0;">
-                                عند أول دخول لأي مستخدم بعد هذا التاريخ (مرة واحدة في السنة)، تُرقّى أطفال هذه الكنيسة تلقائياً.
+                                حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).
                             </p>
                             <div style="display:flex;flex-wrap:wrap;gap:14px;">
                                 <div class="form-group" style="margin:0;">
@@ -8405,6 +8441,7 @@
             overview: ['نظرة عامة', 'الرئيسية'],
             uncles: ['الخُدام', 'إدارة الخُدام'],
             students: ['الأطفال', 'إدارة الأطفال'],
+            graduates: ['خريجين', 'إدارة الخريجين وطلبات النقل'],
             attendance: ['الحضور', 'سجل الحضور'],
             uncleAttendance: ['حضور الخُدام', 'سجل حضور الخُدام'],
             trips: ['الرحلات / المؤتمرات', 'إدارة الرحلات / المؤتمرات'],
@@ -8460,6 +8497,7 @@
                 },
                 uncles: () => runDataLoad('uncles', loadUncles),
                 students: async () => { await runDataLoad('students', loadStudents); renderKidRegLinks(); },
+                graduates: () => runDataLoad('graduates', loadGraduates),
                 trips: () => runDataLoad('trips', loadTrips),
                 attendance: () => runDataLoad('attendance', initAttendance),
                 uncleAttendance: () => initUncleAttendanceTab(),
@@ -9992,10 +10030,10 @@
             if (dayEl) dayEl.value = d ? String(d) : '0';
             if (hint) {
                 if (m && d) {
-                    const last = s.last_auto_grade_year ? ` — آخر ترقية تلقائية: ${s.last_auto_grade_year}` : '';
+                    const last = s.last_auto_grade_year ? ` — آخر نقل تلقائي: ${s.last_auto_grade_year}` : '';
                     hint.textContent = `مفعّل: يوم ${d} من الشهر ${m}${last}`;
                 } else {
-                    hint.textContent = 'الترقية التلقائية معطّلة.';
+                    hint.textContent = 'النقل السنوي التلقائي معطّل.';
                 }
             }
         }
@@ -10006,8 +10044,8 @@
             if (!monthEl || !dayEl) return;
             const m = parseInt(monthEl.value, 10) || 0;
             const d = parseInt(dayEl.value, 10) || 0;
-            if (m && !d) { showToast('اختر يوماً للترقية السنوية', 'warning'); return; }
-            if (!m && d) { showToast('اختر شهراً للترقية السنوية', 'warning'); return; }
+            if (m && !d) { showToast('اختر يوماً لموعد النقل السنوي', 'warning'); return; }
+            if (!m && d) { showToast('اختر شهراً لموعد النقل السنوي', 'warning'); return; }
 
             const fd = mkFd('saveChurchSettings');
             fd.append('attendance_day', document.getElementById('settingAttendanceDay')?.value || '5');
@@ -10027,7 +10065,7 @@
 
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (res.success) {
-                showToast('تم حفظ جدولة الترقية', 'success');
+                showToast('تم حفظ موعد النقل السنوي', 'success');
                 loadAndApplyChurchSettings();
             } else {
                 showToast(res.message || 'فشل في الحفظ', 'error');
@@ -10035,15 +10073,135 @@
         }
 
         async function confirmGradeUpAllKids() {
-            if (!confirm('هل تريد ترقية جميع الأطفال إلى الفصل التالي؟\n\nالأطفال في أعلى فصل لن يتغير فصلهم.')) return;
+            if (!confirm('هل تريد نقل جميع الأطفال للسنة الدراسية الجديدة؟\n\nكل طفل ينتقل للفصل التالي، ومن كان في أعلى فصل يذهب إلى قسم الخريجين.')) return;
             const fd = mkFd('gradeUpAllKids');
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (res.success) {
-                showToast(res.message || 'تمت الترقية', 'success');
+                showToast(res.message || 'تم النقل', 'success');
                 if (typeof loadStudents === 'function') loadStudents();
+                if (typeof loadGraduates === 'function') loadGraduates();
                 if (typeof loadData === 'function') loadData();
             } else {
-                showToast(res.message || 'فشلت الترقية', 'error');
+                showToast(res.message || 'فشل النقل', 'error');
+            }
+        }
+
+        let _graduateClasses = [];
+        let _graduateDefaultClassId = 0;
+
+        async function loadGraduates() {
+            const fd = mkFd('getGraduates');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (!d.success) {
+                showToast(d.message || 'خطأ في تحميل الخريجين', 'error');
+                return;
+            }
+            _graduateClasses = d.classes || [];
+            _graduateDefaultClassId = d.default_class_id || (_graduateClasses[0]?.id ?? 0);
+            renderIncomingTransfers(d.incoming_transfers || [], _graduateClasses, _graduateDefaultClassId);
+            renderGraduatesTable(d.graduates || []);
+        }
+
+        function renderIncomingTransfers(incoming, classes, defaultClassId) {
+            const card = document.getElementById('incomingTransfersCard');
+            const el = document.getElementById('incomingTransfersList');
+            if (!card || !el) return;
+            if (!incoming.length) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = '';
+            el.innerHTML = incoming.map(r => {
+                const opts = (classes || []).map(c =>
+                    `<option value="${c.id}" ${parseInt(c.id, 10) === parseInt(defaultClassId, 10) ? 'selected' : ''}>${escHtml(c.arabic_name)}</option>`
+                ).join('');
+                return `<div style="padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--surface);">
+                    <div style="font-weight:700;margin-bottom:6px;">${escHtml(r.student_name || '')}</div>
+                    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">من: ${escHtml(r.from_church_name || '')}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                        <label style="font-size:0.82rem;">الفصل عند القبول:</label>
+                        <select class="form-select" id="transferClass_${r.id}" style="max-width:200px;">${opts}</select>
+                        <button class="btn btn-success btn-sm" onclick="respondTransfer(${r.id},'accept')"><i class="fas fa-check"></i> قبول</button>
+                        <button class="btn btn-outline btn-sm" onclick="respondTransfer(${r.id},'reject')"><i class="fas fa-times"></i> رفض</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function respondTransfer(requestId, decision) {
+            const classEl = document.getElementById('transferClass_' + requestId);
+            const fd = mkFd('respondGraduateTransfer');
+            fd.append('request_id', String(requestId));
+            fd.append('decision', decision);
+            if (decision === 'accept') {
+                fd.append('class_id', classEl ? classEl.value : String(_graduateDefaultClassId));
+            }
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast(res.message || 'تم', 'success');
+                loadGraduates();
+                if (decision === 'accept' && typeof loadStudents === 'function') loadStudents();
+            } else {
+                showToast(res.message || 'فشل', 'error');
+            }
+        }
+
+        function renderGraduatesTable(rows) {
+            const tb = document.getElementById('graduatesTable');
+            if (!tb) return;
+            if (!rows.length) {
+                tb.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-user-graduate"></i><h3>لا يوجد خريجون</h3><p style="color:var(--muted);font-size:0.82rem;">يظهرون هنا بعد نقل السنة الدراسية من أعلى فصل</p></div></td></tr>';
+                return;
+            }
+            tb.innerHTML = rows.map(g => `<tr>
+                <td><strong>${escHtml(g.name || '')}</strong></td>
+                <td style="color:var(--text-3);">${escHtml(g.phone || '—')}</td>
+                <td><strong style="color:var(--primary);">${g.coupons || 0}</strong></td>
+                <td><div class="actions" style="flex-wrap:wrap;gap:6px;">
+                    <button class="btn btn-outline btn-sm" onclick="exportGraduate(${g.id})" title="تصدير"><i class="fas fa-download"></i></button>
+                    <button class="btn btn-outline btn-sm" onclick="exportAndDeleteGraduate(${g.id})" title="تصدير وحذف"><i class="fas fa-file-export"></i> تصدير وحذف</button>
+                    <button class="btn btn-primary btn-sm" onclick="promptSendGraduate(${g.id}, '${escHtml(g.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-paper-plane"></i> إرسال لكنيسة</button>
+                    <button class="act-btn act-delete" onclick="deleteGraduate(${g.id}, '${escHtml(g.name || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                </div></td>
+            </tr>`).join('');
+        }
+
+        function exportGraduate(studentId) {
+            window.location.href = API_URL + '?action=exportGraduateStudent&studentId=' + encodeURIComponent(studentId);
+        }
+
+        async function exportAndDeleteGraduate(studentId) {
+            exportGraduate(studentId);
+            if (!confirm('بعد التحميل، هل تريد حذف بيانات هذا الخريج من الكنيسة؟')) return;
+            await deleteGraduate(studentId, '', true);
+        }
+
+        async function deleteGraduate(studentId, name, skipConfirm) {
+            if (!skipConfirm && !confirm('حذف بيانات ' + (name || 'هذا الخريج') + ' نهائياً؟')) return;
+            const fd = mkFd('deleteGraduateStudent');
+            fd.append('studentId', String(studentId));
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast(res.message || 'تم الحذف', 'success');
+                loadGraduates();
+            } else {
+                showToast(res.message || 'فشل الحذف', 'error');
+            }
+        }
+
+        async function promptSendGraduate(studentId, name) {
+            const code = prompt('رمز الكنيسة المستقبلة لإرسال ' + (name || 'الخريج') + ':');
+            if (!code || !code.trim()) return;
+            if (!confirm('سيتم حذف الخريج من قائمتك وإرسال طلب للكنيسة ' + code.trim() + '. متابعة؟')) return;
+            const fd = mkFd('sendGraduateToChurch');
+            fd.append('studentId', String(studentId));
+            fd.append('to_church_code', code.trim());
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast(res.message || 'تم الإرسال', 'success');
+                loadGraduates();
+            } else {
+                showToast(res.message || 'فشل الإرسال', 'error');
             }
         }
 

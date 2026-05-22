@@ -1764,6 +1764,30 @@ try {
             gradeUpAllKids();
             break;
 
+        case 'getGraduates':
+            checkAuth();
+            getGraduates();
+            break;
+
+        case 'deleteGraduateStudent':
+            deleteGraduateStudent();
+            break;
+
+        case 'exportGraduateStudent':
+            checkAuth();
+            exportGraduateStudent();
+            break;
+
+        case 'sendGraduateToChurch':
+            checkAuth();
+            sendGraduateToChurch();
+            break;
+
+        case 'respondGraduateTransfer':
+            checkAuth();
+            respondGraduateTransfer();
+            break;
+
         case 'getUncleClassView':
             checkUncleAuth();
             getUncleClassView();
@@ -2318,6 +2342,7 @@ function getData()
         LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id
         LEFT JOIN classes gc ON s.class_id = gc.id
         LEFT JOIN churches c ON s.church_id = c.id
+        WHERE COALESCE(s.enrollment_status, 'active') = 'active'
         ORDER BY c.church_name, s.name
     ");
             $stmt->execute();
@@ -2399,6 +2424,8 @@ function getData()
         $churchData = $churchResult->fetch_assoc();
         error_log("Church found: " . $churchData['church_name'] . " (ID: " . $churchData['id'] . ")");
 
+        ensureStudentGraduateSchema($conn);
+
         $tripId = intval($_POST['trip_id'] ?? 0);
         $allowedChurches = [$churchId];
         if ($tripId > 0) {
@@ -2462,6 +2489,7 @@ function getData()
             LEFT JOIN student_sibling_group_members ssgm ON ssgm.student_id = s.id
             LEFT JOIN student_sibling_groups ssg ON ssg.id = ssgm.group_id
             WHERE s.church_id IN ($inPlaceholder)
+              AND COALESCE(s.enrollment_status, 'active') = 'active'
             ORDER BY 
                 c.church_name,
                 CASE 
@@ -6985,6 +7013,7 @@ function exportKidsData()
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
             LEFT JOIN classes gc        ON gc.id = s.class_id
             WHERE s.church_id = ?
+              AND COALESCE(s.enrollment_status, 'active') = 'active'
             ORDER BY class_name, s.name
         ");
         $stmt->bind_param("i", $churchId);
@@ -13959,39 +13988,64 @@ function getOrderedClassListForChurch(int $churchId): array
 }
 
 /**
- * Promote every student to the next grade in sort order (top grade unchanged).
+ * Promote active students to next class; highest class → خريجين.
  */
 function gradeUpStudentsForChurch(int $churchId): array
 {
     $conn = getDBConnection();
+    ensureStudentGraduateSchema($conn);
     $ordered = getOrderedClassListForChurch($churchId);
-    if (count($ordered) < 2) {
+    if (count($ordered) < 1) {
         return [
             'promoted' => 0,
+            'graduated' => 0,
             'unchanged' => 0,
-            'message' => 'يجب وجود فصلين على الأقل لترقية الأطفال',
+            'message' => 'يجب وجود فصل واحد على الأقل',
         ];
     }
 
+    $topClassId = (int) $ordered[count($ordered) - 1]['id'];
     $nextById = [];
     for ($i = 0; $i < count($ordered) - 1; $i++) {
         $nextById[(int) $ordered[$i]['id']] = $ordered[$i + 1];
     }
 
-    $stmt = $conn->prepare("SELECT id, class_id FROM students WHERE church_id = ?");
+    $stmt = $conn->prepare("
+        SELECT id, class_id FROM students
+        WHERE church_id = ? AND COALESCE(enrollment_status, 'active') = 'active'
+    ");
     $stmt->bind_param("i", $churchId);
     $stmt->execute();
     $students = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     $upd = $conn->prepare("
-        UPDATE students SET class_id = ?, class = ?, updated_at = NOW() WHERE id = ? AND church_id = ?
+        UPDATE students
+        SET class_id = ?, class = ?, enrollment_status = 'active', updated_at = NOW()
+        WHERE id = ? AND church_id = ?
+    ");
+    $gradStmt = $conn->prepare("
+        UPDATE students
+        SET class_id = 0, class = 'خريجين', enrollment_status = 'graduate', updated_at = NOW()
+        WHERE id = ? AND church_id = ?
     ");
 
     $promoted = 0;
+    $graduated = 0;
     $unchanged = 0;
     foreach ($students as $s) {
         $sid = (int) $s['id'];
         $cid = (int) $s['class_id'];
+
+        if ($cid === $topClassId) {
+            $gradStmt->bind_param("ii", $sid, $churchId);
+            if ($gradStmt->execute() && $gradStmt->affected_rows > 0) {
+                $graduated++;
+            } else {
+                $unchanged++;
+            }
+            continue;
+        }
+
         if (!isset($nextById[$cid])) {
             $unchanged++;
             continue;
@@ -14009,6 +14063,7 @@ function gradeUpStudentsForChurch(int $churchId): array
 
     return [
         'promoted' => $promoted,
+        'graduated' => $graduated,
         'unchanged' => $unchanged,
         'top_class' => $ordered[count($ordered) - 1]['arabic_name'] ?? '',
     ];
@@ -14059,14 +14114,14 @@ function maybeRunScheduledGradeUps($conn): void
             }
 
             $result = gradeUpStudentsForChurch($churchId);
-            if ($result['promoted'] > 0 || $result['unchanged'] > 0) {
+            if (($result['promoted'] ?? 0) > 0 || ($result['graduated'] ?? 0) > 0 || ($result['unchanged'] ?? 0) > 0) {
                 $markStmt->bind_param("ii", $year, $churchId);
                 $markStmt->execute();
                 writeAuditLog(
                     'auto_grade_up',
                     'students',
                     $churchId,
-                    'ترقية سنوية تلقائية',
+                    'نقل سنوي تلقائي للفصول',
                     null,
                     null,
                     json_encode($result, JSON_UNESCAPED_UNICODE)
@@ -14112,23 +14167,455 @@ function gradeUpAllKids()
             'manual_grade_up',
             'students',
             $churchId,
-            'ترقية يدوية لجميع الأطفال',
+            'نقل يدوي للفصول — سنة دراسية جديدة',
             null,
             null,
             json_encode($result, JSON_UNESCAPED_UNICODE)
         );
 
+        $msg = "تم نقل {$result['promoted']} طفل إلى الفصل التالي";
+        if (!empty($result['graduated'])) {
+            $msg .= " — و{$result['graduated']} إلى قسم الخريجين";
+        }
+        if (!empty($result['unchanged'])) {
+            $msg .= " ({$result['unchanged']} بدون تغيير)";
+        }
+
         sendJSON([
             'success' => true,
-            'message' => "تم ترقية {$result['promoted']} طفل إلى الفصل التالي"
-                . ($result['unchanged'] ? " ({$result['unchanged']} بدون تغيير — أعلى فصل أو فصل غير معروف)" : ''),
+            'message' => $msg,
             'promoted' => $result['promoted'],
+            'graduated' => $result['graduated'] ?? 0,
             'unchanged' => $result['unchanged'],
             'top_class' => $result['top_class'] ?? '',
         ]);
     } catch (Exception $e) {
         error_log('gradeUpAllKids: ' . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في ترقية الأطفال']);
+        sendJSON(['success' => false, 'message' => 'خطأ في نقل الفصول']);
+    }
+}
+
+// ===== GRADUATES (خريجين) & CROSS-CHURCH TRANSFERS =====
+
+function ensureStudentGraduateSchema($conn): void
+{
+    $conn->query("ALTER TABLE students ADD COLUMN IF NOT EXISTS
+        `enrollment_status` VARCHAR(20) NOT NULL DEFAULT 'active'
+        COMMENT 'active | graduate'");
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS `student_transfer_requests` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `from_church_id` int(11) NOT NULL,
+            `to_church_id` int(11) NOT NULL,
+            `from_student_id` int(11) DEFAULT NULL,
+            `student_name` varchar(100) NOT NULL DEFAULT '',
+            `student_snapshot` longtext NOT NULL,
+            `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+            `target_class_id` int(11) DEFAULT NULL,
+            `accepted_student_id` int(11) DEFAULT NULL,
+            `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+            PRIMARY KEY (`id`),
+            KEY `idx_str_to_pending` (`to_church_id`,`status`),
+            KEY `idx_str_from` (`from_church_id`,`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
+function getFirstClassIdForChurch(int $churchId): int
+{
+    $ordered = getOrderedClassListForChurch($churchId);
+    return !empty($ordered[0]['id']) ? (int) $ordered[0]['id'] : 0;
+}
+
+function purgeStudentRelatedRows($conn, int $studentId): void
+{
+    $deleteAttendanceStmt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
+    $deleteAttendanceStmt->bind_param("i", $studentId);
+    $deleteAttendanceStmt->execute();
+
+    $tableCheck = $conn->query("SHOW TABLES LIKE 'coupon_logs'");
+    if ($tableCheck && $tableCheck->num_rows > 0) {
+        $deleteLogsStmt = $conn->prepare("DELETE FROM coupon_logs WHERE student_id = ?");
+        $deleteLogsStmt->bind_param("i", $studentId);
+        $deleteLogsStmt->execute();
+    }
+
+    if ($conn->query("SHOW TABLES LIKE 'student_sibling_group_members'")->num_rows > 0) {
+        $sg = $conn->prepare("DELETE FROM student_sibling_group_members WHERE student_id = ?");
+        $sg->bind_param("i", $studentId);
+        $sg->execute();
+    }
+}
+
+function removeStudentFromChurch($conn, int $studentId, int $churchId): bool
+{
+    purgeStudentRelatedRows($conn, $studentId);
+    $deleteStmt = $conn->prepare("DELETE FROM students WHERE id = ? AND church_id = ?");
+    $deleteStmt->bind_param("ii", $studentId, $churchId);
+    $deleteStmt->execute();
+    return $deleteStmt->affected_rows > 0;
+}
+
+function getGraduates()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        if (!$churchId) {
+            sendJSON(['success' => false, 'message' => 'معرف الكنيسة مطلوب']);
+            return;
+        }
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+
+        $stmt = $conn->prepare("
+            SELECT s.id, s.name, s.phone, s.birthday, s.coupons, s.custom_info, s.image_url,
+                   s.gender, s.address, s.emergency_phone, s.medical_notes, s.class_id,
+                   s.created_at, s.updated_at
+            FROM students s
+            WHERE s.church_id = ? AND s.enrollment_status = 'graduate'
+            ORDER BY s.name
+        ");
+        $stmt->bind_param("i", $churchId);
+        $stmt->execute();
+        $graduates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $inStmt = $conn->prepare("
+            SELECT r.id, r.student_name, r.status, r.created_at,
+                   fc.church_name AS from_church_name
+            FROM student_transfer_requests r
+            JOIN churches fc ON fc.id = r.from_church_id
+            WHERE r.to_church_id = ? AND r.status = 'pending'
+            ORDER BY r.created_at DESC
+        ");
+        $inStmt->bind_param("i", $churchId);
+        $inStmt->execute();
+        $incoming = $inStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $outStmt = $conn->prepare("
+            SELECT r.id, r.student_name, r.status, r.created_at,
+                   tc.church_name AS to_church_name
+            FROM student_transfer_requests r
+            JOIN churches tc ON tc.id = r.to_church_id
+            WHERE r.from_church_id = ? AND r.status = 'pending'
+            ORDER BY r.created_at DESC
+        ");
+        $outStmt->bind_param("i", $churchId);
+        $outStmt->execute();
+        $outgoing = $outStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $classes = getOrderedClassListForChurch($churchId);
+        $defaultClassId = getFirstClassIdForChurch($churchId);
+
+        sendJSON([
+            'success' => true,
+            'graduates' => $graduates,
+            'incoming_transfers' => $incoming,
+            'outgoing_transfers' => $outgoing,
+            'classes' => $classes,
+            'default_class_id' => $defaultClassId,
+        ]);
+    } catch (Exception $e) {
+        error_log('getGraduates: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في تحميل الخريجين']);
+    }
+}
+
+function deleteGraduateStudent()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        if (!$churchId || !$studentId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+        $chk = $conn->prepare("SELECT name FROM students WHERE id = ? AND church_id = ? AND enrollment_status = 'graduate' LIMIT 1");
+        $chk->bind_param("ii", $studentId, $churchId);
+        $chk->execute();
+        $row = $chk->get_result()->fetch_assoc();
+        if (!$row) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود في قسم الخريجين']);
+            return;
+        }
+
+        $conn->begin_transaction();
+        if (removeStudentFromChurch($conn, $studentId, $churchId)) {
+            $conn->commit();
+            writeAuditLog('delete_graduate', 'students', $studentId, $row['name']);
+            sendJSON(['success' => true, 'message' => 'تم حذف بيانات الخريج']);
+        } else {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل الحذف']);
+        }
+    } catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollback();
+        error_log('deleteGraduateStudent: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في الحذف']);
+    }
+}
+
+function exportGraduateStudent()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $studentId = intval($_REQUEST['studentId'] ?? $_POST['studentId'] ?? 0);
+        if (!$churchId || !$studentId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+        $stmt = $conn->prepare("SELECT * FROM students WHERE id = ? AND church_id = ? AND enrollment_status = 'graduate' LIMIT 1");
+        $stmt->bind_param("ii", $studentId, $churchId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if (!$row) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود في قسم الخريجين']);
+            return;
+        }
+        unset($row['password_hash']);
+
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename="graduate_' . $studentId . '_' . date('Y-m-d') . '.json"');
+        echo json_encode($row, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
+    } catch (Exception $e) {
+        error_log('exportGraduateStudent: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في التصدير']);
+    }
+}
+
+function sendGraduateToChurch()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        $toChurchCode = sanitize($_POST['to_church_code'] ?? '');
+
+        if (!$churchId || !$studentId || empty($toChurchCode)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+
+        $stmt = $conn->prepare("SELECT * FROM students WHERE id = ? AND church_id = ? AND enrollment_status = 'graduate' LIMIT 1");
+        $stmt->bind_param("ii", $studentId, $churchId);
+        $stmt->execute();
+        $student = $stmt->get_result()->fetch_assoc();
+        if (!$student) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود في قسم الخريجين']);
+            return;
+        }
+
+        $cStmt = $conn->prepare("SELECT id, church_name FROM churches WHERE church_code = ? LIMIT 1");
+        $cStmt->bind_param("s", $toChurchCode);
+        $cStmt->execute();
+        $toChurch = $cStmt->get_result()->fetch_assoc();
+        if (!$toChurch) {
+            sendJSON(['success' => false, 'message' => 'رمز الكنيسة غير صحيح']);
+            return;
+        }
+        $toChurchId = (int) $toChurch['id'];
+        if ($toChurchId === $churchId) {
+            sendJSON(['success' => false, 'message' => 'لا يمكن الإرسال لنفس الكنيسة']);
+            return;
+        }
+
+        $dup = $conn->prepare("
+            SELECT id FROM student_transfer_requests
+            WHERE from_student_id = ? AND to_church_id = ? AND status = 'pending' LIMIT 1
+        ");
+        $dup->bind_param("ii", $studentId, $toChurchId);
+        $dup->execute();
+        if ($dup->get_result()->num_rows > 0) {
+            sendJSON(['success' => false, 'message' => 'يوجد طلب معلق بالفعل لهذا الطفل']);
+            return;
+        }
+
+        unset($student['password_hash']);
+        $snapshotJson = json_encode($student, JSON_UNESCAPED_UNICODE);
+        $studentName = $student['name'] ?? '';
+
+        $conn->begin_transaction();
+        $ins = $conn->prepare("
+            INSERT INTO student_transfer_requests
+                (from_church_id, to_church_id, from_student_id, student_name, student_snapshot, status)
+            VALUES (?, ?, ?, ?, ?, 'pending')
+        ");
+        $ins->bind_param("iiiss", $churchId, $toChurchId, $studentId, $studentName, $snapshotJson);
+        if (!$ins->execute()) {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل إنشاء طلب النقل']);
+            return;
+        }
+
+        if (!removeStudentFromChurch($conn, $studentId, $churchId)) {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل إزالة سجل الخريج']);
+            return;
+        }
+
+        $conn->commit();
+        writeAuditLog('graduate_transfer_send', 'students', $studentId, $studentName, null, null, 'to:' . $toChurch['church_name']);
+        sendJSON([
+            'success' => true,
+            'message' => 'تم إرسال الطلب إلى ' . $toChurch['church_name'] . ' — بانتظار الموافقة',
+        ]);
+    } catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollback();
+        error_log('sendGraduateToChurch: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في إرسال الطلب']);
+    }
+}
+
+function respondGraduateTransfer()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $requestId = intval($_POST['request_id'] ?? 0);
+        $decision = sanitize($_POST['decision'] ?? '');
+        $classId = intval($_POST['class_id'] ?? 0);
+
+        if (!$churchId || !$requestId || !in_array($decision, ['accept', 'reject'], true)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+
+        $rStmt = $conn->prepare("
+            SELECT * FROM student_transfer_requests
+            WHERE id = ? AND to_church_id = ? AND status = 'pending' LIMIT 1
+        ");
+        $rStmt->bind_param("ii", $requestId, $churchId);
+        $rStmt->execute();
+        $req = $rStmt->get_result()->fetch_assoc();
+        if (!$req) {
+            sendJSON(['success' => false, 'message' => 'الطلب غير موجود أو تمت معالجته']);
+            return;
+        }
+
+        if ($decision === 'reject') {
+            $upd = $conn->prepare("UPDATE student_transfer_requests SET status = 'rejected', updated_at = NOW() WHERE id = ?");
+            $upd->bind_param("i", $requestId);
+            $upd->execute();
+            writeAuditLog('graduate_transfer_reject', 'students', $requestId, $req['student_name'] ?? '');
+            sendJSON(['success' => true, 'message' => 'تم رفض طلب النقل']);
+            return;
+        }
+
+        if ($classId <= 0) {
+            $classId = getFirstClassIdForChurch($churchId);
+        }
+        if ($classId <= 0) {
+            sendJSON(['success' => false, 'message' => 'لا توجد فصول في الكنيسة — أضف فصلاً أولاً']);
+            return;
+        }
+
+        $snapshot = json_decode($req['student_snapshot'], true);
+        if (!is_array($snapshot) || empty($snapshot['name'])) {
+            sendJSON(['success' => false, 'message' => 'بيانات الطفل غير صالحة']);
+            return;
+        }
+
+        $className = '';
+        $hasCustom = $conn->prepare("SELECT arabic_name FROM church_classes WHERE id = ? AND church_id = ? AND is_active = 1");
+        $hasCustom->bind_param("ii", $classId, $churchId);
+        $hasCustom->execute();
+        if ($cr = $hasCustom->get_result()->fetch_assoc()) {
+            $className = $cr['arabic_name'];
+        } else {
+            $g = $conn->prepare("SELECT arabic_name FROM classes WHERE id = ?");
+            $g->bind_param("i", $classId);
+            $g->execute();
+            if ($gr = $g->get_result()->fetch_assoc()) {
+                $className = $gr['arabic_name'];
+            }
+        }
+
+        $name = sanitize($snapshot['name']);
+        $gender = in_array($snapshot['gender'] ?? '', ['male', 'female'], true) ? $snapshot['gender'] : 'male';
+        $phone = sanitize($snapshot['phone'] ?? '');
+        $address = sanitize($snapshot['address'] ?? '');
+        $emergency = sanitize($snapshot['emergency_phone'] ?? '');
+        $medical = sanitize($snapshot['medical_notes'] ?? '');
+        $birthday = !empty($snapshot['birthday']) ? $snapshot['birthday'] : null;
+        $customInfo = !empty($snapshot['custom_info']) ? $snapshot['custom_info'] : null;
+        $imageUrl = $snapshot['image_url'] ?? null;
+        $coupons = intval($snapshot['coupons'] ?? 0);
+        $attC = intval($snapshot['attendance_coupons'] ?? 0);
+        $comC = intval($snapshot['commitment_coupons'] ?? 0);
+        $taskC = intval($snapshot['task_coupons'] ?? 0);
+
+        $conn->begin_transaction();
+        $ins = $conn->prepare("
+            INSERT INTO students
+                (church_id, name, gender, class_id, class, address, phone, emergency_phone,
+                 medical_notes, birthday, coupons, attendance_coupons, commitment_coupons,
+                 task_coupons, image_url, custom_info, enrollment_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+        ");
+        $ins->bind_param(
+            "ississssssiiiiss",
+            $churchId,
+            $name,
+            $gender,
+            $classId,
+            $className,
+            $address,
+            $phone,
+            $emergency,
+            $medical,
+            $birthday,
+            $coupons,
+            $attC,
+            $comC,
+            $taskC,
+            $imageUrl,
+            $customInfo
+        );
+        if (!$ins->execute()) {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل إضافة الطفل: ' . $ins->error]);
+            return;
+        }
+        $newStudentId = (int) $conn->insert_id;
+
+        $upd = $conn->prepare("
+            UPDATE student_transfer_requests
+            SET status = 'accepted', target_class_id = ?, accepted_student_id = ?, updated_at = NOW()
+            WHERE id = ?
+        ");
+        $upd->bind_param("iii", $classId, $newStudentId, $requestId);
+        $upd->execute();
+
+        $conn->commit();
+        writeAuditLog('graduate_transfer_accept', 'students', $newStudentId, $name, null, null, 'class:' . $className);
+        sendJSON([
+            'success' => true,
+            'message' => 'تم قبول الطفل وإضافته إلى ' . ($className ?: 'الفصل المحدد'),
+            'student_id' => $newStudentId,
+        ]);
+    } catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollback();
+        error_log('respondGraduateTransfer: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في معالجة الطلب']);
     }
 }
 

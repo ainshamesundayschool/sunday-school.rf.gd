@@ -24,3 +24,4 @@ uncle/.DS_Store
 migration_custom_field_templates.sql
 if0_40860329_sunday_school 2026.sql
 migrations/2026-05-22_student_sibling_groups.sql
+migrations/2026-05-22_students_graduates_and_transfers.sql
