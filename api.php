@@ -1788,6 +1788,11 @@ try {
             respondGraduateTransfer();
             break;
 
+        case 'getChurchesForTransfer':
+            checkAuth();
+            getChurchesForTransfer();
+            break;
+
         case 'getUncleClassView':
             checkUncleAuth();
             getUncleClassView();
@@ -14255,6 +14260,39 @@ function removeStudentFromChurch($conn, int $studentId, int $churchId): bool
     $deleteStmt->bind_param("ii", $studentId, $churchId);
     $deleteStmt->execute();
     return $deleteStmt->affected_rows > 0;
+}
+
+function getChurchesForTransfer()
+{
+    try {
+        $churchId = getChurchId();
+        if (!$churchId) {
+            sendJSON(['success' => false, 'message' => 'معرف الكنيسة مطلوب']);
+            return;
+        }
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("
+            SELECT id, church_name, church_code
+            FROM churches
+            WHERE id != ?
+            ORDER BY church_name ASC
+        ");
+        $stmt->bind_param("i", $churchId);
+        $stmt->execute();
+        $churches = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $churches[] = [
+                'id' => (int) $row['id'],
+                'name' => $row['church_name'],
+                'code' => $row['church_code'],
+            ];
+        }
+        sendJSON(['success' => true, 'churches' => $churches]);
+    } catch (Exception $e) {
+        error_log('getChurchesForTransfer: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب الكنائس']);
+    }
 }
 
 function getGraduates()
