@@ -3280,7 +3280,7 @@
       const parts = hash.substring(1).split('?');
       const params = new URLSearchParams(parts[1] || '');
       const tab = params.get('trip_tab') || 'info';
-      return ['info', 'regs', 'exp'].includes(tab) ? tab : 'info';
+      return ['info', 'regs', 'waitlist', 'exp'].includes(tab) ? tab : 'info';
     }
 
     function updateHashParam(key, value) {
@@ -3392,6 +3392,22 @@
       if (!discount) return Math.round(price);
       if (t?.discount_type === 'percentage') return Math.round(price - (price * discount / 100));
       return Math.round(Math.max(0, price - discount));
+    }
+
+    function getCurrentTripTotalPerKid() {
+      const trip = allTripsCache.find(t => t.id == window.currentTripId) || window.currentTripObj;
+      const basePrice = Math.round(calcFinalPrice?.(trip) || Math.round(trip?.price || 0));
+      const exps = tripExpensesCache[window.currentTripId] || [];
+      const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
+      return basePrice + expPerKid;
+    }
+
+    function getPaymentTargetMeta(meta = {}) {
+      return {
+        targetType: meta.targetType || 'registration',
+        tripId: parseInt(meta.tripId || window.currentTripId || 0),
+        studentId: parseInt(meta.studentId || 0)
+      };
     }
 
     function renderStandaloneTripSummary(trip) {
@@ -4388,15 +4404,25 @@
         resetRegisterKidPicker();
       } else showToast(d.message || 'فشل', 'error');
     }
-    function showAddPaymentModal(regId, name, price, paid) {
+    function showAddPaymentModal(regId, name, price, paid, meta = {}) {
+      const target = getPaymentTargetMeta(meta);
+      const formEl = document.getElementById('addPaymentForm');
+      formEl.dataset.targetType = target.targetType;
+      formEl.dataset.tripId = target.tripId || '';
+      formEl.dataset.studentId = target.studentId || '';
       document.getElementById('paymentRegistrationId').value = regId;
       document.getElementById('paymentAmount').value = '';
+      document.getElementById('paymentNotes').value = '';
       document.getElementById('paymentStudentInfo').innerHTML = `<div style="display:grid;gap:6px;font-size:0.88rem;"><div><strong>الطفل:</strong> ${name}</div><div><strong>سعر الرحلة:</strong> ${Math.round(price)} جنيه</div><div><strong>المدفوع:</strong> ${Math.round(paid)} جنيه</div><div><strong>المتبقي:</strong> <span style="color:var(--danger);font-weight:700;">${Math.round(price - paid)} جنيه</span></div></div>`;
 
       // Populate previous payments
       const regs = tripRegistrationsCache[window.currentTripId] || [];
-      const reg = regs.find(r => String(r.id) === String(regId));
-      const history = Array.isArray(reg?.payment_history) ? reg.payment_history : [];
+      const reg = target.targetType === 'waitlist'
+        ? (window.currentWaitlistCache || []).find(w => String(w.id) === String(regId) || String(w.student_id) === String(target.studentId))
+        : regs.find(r => String(r.id) === String(regId));
+      const history = Array.isArray(reg?.payment_history) ? reg.payment_history : (() => {
+        try { return JSON.parse(reg?.payment_history || '[]') || []; } catch (e) { return []; }
+      })();
       const payments = history.filter(h => parseFloat(h.amount) > 0);
 
       const listEl = document.getElementById('previousPaymentsList');
@@ -4471,62 +4497,99 @@
 
     async function deleteDonation(regId, paymentId, studentName) {
       if (!confirm(`هل أنت متأكد من حذف هذا السجل للطفل ${studentName}؟`)) return;
+      const paymentForm = document.getElementById('addPaymentForm');
+      const historyModal = document.getElementById('paymentHistoryModal');
+      const targetType = paymentForm?.dataset?.targetType || historyModal?.dataset?.targetType || 'registration';
+      const tripId = parseInt(paymentForm?.dataset?.tripId || historyModal?.dataset?.tripId || window.currentTripId || 0);
+      const studentId = parseInt(paymentForm?.dataset?.studentId || historyModal?.dataset?.studentId || 0);
       const fd = new FormData();
-      fd.append('action', 'deleteTripPayment');
+      fd.append('action', targetType === 'waitlist' ? 'deleteTripWaitlistPayment' : 'deleteTripPayment');
       fd.append('payment_id', paymentId);
-      fd.append('registration_id', regId);
+      if (targetType === 'waitlist') {
+        fd.append('trip_id', tripId);
+        fd.append('student_id', studentId);
+      } else {
+        fd.append('registration_id', regId);
+      }
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       if (d.success) {
         showToast('تم الحذف بنجاح', 'success');
         await showTripDetails(window.currentTripId);
+        if (targetType === 'waitlist') await loadWaitlist(window.currentTripId);
 
         // Refresh the lists in modals if they are open
         const regs = tripRegistrationsCache[window.currentTripId] || [];
-        const reg = regs.find(r => String(r.id) === String(regId));
+        const reg = targetType === 'waitlist'
+          ? (window.currentWaitlistCache || []).find(w => String(w.id) === String(regId) || String(w.student_id) === String(studentId))
+          : regs.find(r => String(r.id) === String(regId));
 
         if (document.getElementById('addDonationModal').style.display === 'block') {
           showAddDonationModal(regId, studentName);
         } else if (document.getElementById('addPaymentModal').style.display === 'block') {
-          const price = Math.round(calcFinalPrice?.({ price: reg.price, discount: reg.discount, discount_type: reg.discount_type }) || reg.price);
-          showAddPaymentModal(regId, studentName, price, reg.total_paid);
+          const price = getCurrentTripTotalPerKid();
+          const paid = parseFloat(reg?.total_paid ?? reg?.deposit) || 0;
+          showAddPaymentModal(regId, studentName, price, paid, { targetType, tripId, studentId });
         } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
-          showPaymentHistoryModal(regId, studentName);
+          showPaymentHistoryModal(regId, studentName, { targetType, tripId, studentId });
         }
       } else showToast(d.message || 'فشل الحذف', 'error');
     }
 
     async function restorePayment(regId, paymentId, studentName) {
       if (!confirm(`هل أنت متأكد من استعادة هذا السجل للطفل ${studentName}؟`)) return;
+      const paymentForm = document.getElementById('addPaymentForm');
+      const historyModal = document.getElementById('paymentHistoryModal');
+      const targetType = paymentForm?.dataset?.targetType || historyModal?.dataset?.targetType || 'registration';
+      const tripId = parseInt(paymentForm?.dataset?.tripId || historyModal?.dataset?.tripId || window.currentTripId || 0);
+      const studentId = parseInt(paymentForm?.dataset?.studentId || historyModal?.dataset?.studentId || 0);
       const fd = new FormData();
-      fd.append('action', 'restoreTripPayment');
+      fd.append('action', targetType === 'waitlist' ? 'restoreTripWaitlistPayment' : 'restoreTripPayment');
       fd.append('payment_id', paymentId);
-      fd.append('registration_id', regId);
+      if (targetType === 'waitlist') {
+        fd.append('trip_id', tripId);
+        fd.append('student_id', studentId);
+      } else {
+        fd.append('registration_id', regId);
+      }
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       if (d.success) {
         showToast('تمت الاستعادة بنجاح', 'success');
         await showTripDetails(window.currentTripId);
+        if (targetType === 'waitlist') await loadWaitlist(window.currentTripId);
 
         // Refresh the lists in modals if they are open
         const regs = tripRegistrationsCache[window.currentTripId] || [];
-        const reg = regs.find(r => String(r.id) === String(regId));
+        const reg = targetType === 'waitlist'
+          ? (window.currentWaitlistCache || []).find(w => String(w.id) === String(regId) || String(w.student_id) === String(studentId))
+          : regs.find(r => String(r.id) === String(regId));
 
         if (document.getElementById('addDonationModal').style.display === 'block') {
           showAddDonationModal(regId, studentName);
         } else if (document.getElementById('addPaymentModal').style.display === 'block') {
-          const price = Math.round(calcFinalPrice?.({ price: reg.price, discount: reg.discount, discount_type: reg.discount_type }) || reg.price);
-          showAddPaymentModal(regId, studentName, price, reg.total_paid);
+          const price = getCurrentTripTotalPerKid();
+          const paid = parseFloat(reg?.total_paid ?? reg?.deposit) || 0;
+          showAddPaymentModal(regId, studentName, price, paid, { targetType, tripId, studentId });
         } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
-          showPaymentHistoryModal(regId, studentName);
+          showPaymentHistoryModal(regId, studentName, { targetType, tripId, studentId });
         }
       } else showToast(d.message || 'فشل الاستعادة', 'error');
     }
 
 
 
-    function showPaymentHistoryModal(regId, studentName) {
+    function showPaymentHistoryModal(regId, studentName, meta = {}) {
+      const target = getPaymentTargetMeta(meta);
+      const modalEl = document.getElementById('paymentHistoryModal');
+      modalEl.dataset.targetType = target.targetType;
+      modalEl.dataset.tripId = target.tripId || '';
+      modalEl.dataset.studentId = target.studentId || '';
       const regs = tripRegistrationsCache[window.currentTripId] || [];
-      const reg = regs.find(r => String(r.id) === String(regId));
-      const history = Array.isArray(reg?.payment_history) ? reg.payment_history : [];
+      const reg = target.targetType === 'waitlist'
+        ? (window.currentWaitlistCache || []).find(w => String(w.id) === String(regId) || String(w.student_id) === String(target.studentId))
+        : regs.find(r => String(r.id) === String(regId));
+      const history = Array.isArray(reg?.payment_history) ? reg.payment_history : (() => {
+        try { return JSON.parse(reg?.payment_history || '[]') || []; } catch (e) { return []; }
+      })();
       document.getElementById('paymentHistoryTitle').innerHTML = `الطفل: <strong>${escHtml(studentName)}</strong> — سجّل ${history.length} مدخلاً`;
       const listEl = document.getElementById('paymentHistoryList');
       if (!history.length) {
@@ -4564,8 +4627,17 @@
       e.preventDefault();
       const amount = document.getElementById('paymentAmount').value;
       if (!amount || amount <= 0) { showToast('أدخل مبلغاً صحيحاً', 'warning'); return; }
-      const fd = new FormData(); fd.append('action', 'addTripPayment');
-      fd.append('registration_id', document.getElementById('paymentRegistrationId').value);
+      const formEl = document.getElementById('addPaymentForm');
+      const targetType = formEl?.dataset?.targetType || 'registration';
+      const tripId = formEl?.dataset?.tripId || window.currentTripId || 0;
+      const studentId = formEl?.dataset?.studentId || 0;
+      const fd = new FormData(); fd.append('action', targetType === 'waitlist' ? 'addTripWaitlistPayment' : 'addTripPayment');
+      if (targetType === 'waitlist') {
+        fd.append('trip_id', tripId);
+        fd.append('student_id', studentId);
+      } else {
+        fd.append('registration_id', document.getElementById('paymentRegistrationId').value);
+      }
       fd.append('amount', Math.round(parseFloat(amount)));
       fd.append('donation', 0);
       fd.append('payment_method', document.getElementById('paymentMethod').value);
@@ -4575,6 +4647,7 @@
         showToast('تمت إضافة الدفعة', 'success');
         closeModal('addPaymentModal');
         await showTripDetails(window.currentTripId || document.getElementById('expTripId').value);
+        if (targetType === 'waitlist') await loadWaitlist(window.currentTripId || tripId);
         loadTrips();
       } else showToast(d.message || 'فشل', 'error');
     }
@@ -4605,6 +4678,16 @@
       const fd = mkFd('getWaitlist'); fd.append('trip_id', tripId);
       const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
       const list = d.success ? (d.waitlist || []) : [];
+      window.currentWaitlistCache = list.map(w => {
+        let history = [];
+        try { history = Array.isArray(w.payment_history) ? w.payment_history : (JSON.parse(w.payment_history || '[]') || []); } catch (e) { history = []; }
+        return {
+          ...w,
+          payment_history: history,
+          total_paid: parseFloat(w.deposit) || 0,
+          total_donation: parseFloat(w.donation) || 0
+        };
+      });
       // Update badge
       const badge = document.getElementById('tdWaitlistCount');
       if (badge) badge.textContent = list.length || '';
@@ -4624,9 +4707,15 @@
           </button>
         </div>
         <div style="display:grid;gap:8px;">
-          ${list.map((w, idx) => {
+          ${window.currentWaitlistCache.map((w, idx) => {
         const initials = (w.student_name || '؟').charAt(0);
         const img = w.student_image || '';
+        const totalPerKid = getCurrentTripTotalPerKid();
+        const paid = parseFloat(w.deposit) || 0;
+        const remaining = Math.max(0, totalPerKid - paid);
+        const status = remaining < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending');
+        const col = { paid: 'var(--success)', partial: 'var(--warning)', pending: 'var(--danger)' }[status];
+        const lbl = { paid: 'مدفوع بالكامل', partial: 'جزئي', pending: 'غير مدفوع' }[status];
         return `<div class="reg-row" style="border-right:3px solid ${idx === 0 ? 'var(--warning)' : 'var(--border-2)'};">
               <div style="width:28px;height:28px;border-radius:50%;background:${idx === 0 ? 'var(--warning-light)' : 'var(--bg)'};color:${idx === 0 ? 'var(--warning)' : 'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;flex-shrink:0;">${w.position}</div>
               <div class="reg-ava" style="border-color:${idx === 0 ? 'var(--warning)' : 'var(--border)'}33;">
@@ -4635,9 +4724,20 @@
               <div class="reg-info" style="flex:1;">
                 <strong>${escHtml(w.student_name)}</strong>
                 <span>${escHtml(w.student_class || '—')}</span>
-                ${idx === 0 ? `<div style="font-size:0.68rem;color:var(--warning);font-weight:700;margin-top:2px;"><i class="fas fa-star"></i> التالي</div>` : ''}
+                <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:0.68rem;margin-top:4px;">
+                  ${idx === 0 ? `<span style="color:var(--warning);font-weight:700;"><i class="fas fa-star"></i> التالي</span>` : ''}
+                  <span style="color:var(--success);font-weight:700;">مدفوع: ${Math.round(paid)} ج</span>
+                  <span style="color:var(--danger);font-weight:700;">متبقي: ${Math.round(remaining)} ج</span>
+                  <span style="color:${col};font-weight:700;">${lbl}</span>
+                </div>
               </div>
-              <div style="font-size:0.72rem;color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
+              <div style="text-align:left;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                <div style="font-size:0.72rem;color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-success btn-sm" onclick="showAddPaymentModal(${w.id},'${escHtml(w.student_name)}',${totalPerKid},${paid},{ targetType: 'waitlist', tripId: ${tripId}, studentId: ${w.student_id} })"><i class="fas fa-money-bill"></i> دفعة</button>
+                  <button class="btn btn-outline btn-sm" onclick="showPaymentHistoryModal(${w.id},'${escHtml(w.student_name)}',{ targetType: 'waitlist', tripId: ${tripId}, studentId: ${w.student_id} })"><i class="fas fa-history"></i> السجل</button>
+                </div>
+              </div>
               <button class="act-btn act-delete" title="إزالة من قائمة الانتظار" onclick="removeFromWaitlist(${tripId},${w.student_id})"><i class="fas fa-times"></i></button>
             </div>`;
       }).join('')}

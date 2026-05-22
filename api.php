@@ -1848,6 +1848,18 @@ try {
             rebalanceTripWaitlist();
             break;
 
+        case 'addTripWaitlistPayment':
+            addTripWaitlistPayment();
+            break;
+
+        case 'deleteTripWaitlistPayment':
+            deleteTripWaitlistPayment();
+            break;
+
+        case 'restoreTripWaitlistPayment':
+            restoreTripWaitlistPayment();
+            break;
+
 
         case 'withdrawCoupons':
             checkUncleAuth();
@@ -9726,12 +9738,19 @@ function ensureWaitlistTable($conn)
             `deposit`     DECIMAL(10,2) DEFAULT 0,
             `donation`    DECIMAL(10,2) DEFAULT 0,
             `custom_data` TEXT DEFAULT NULL,
+            `payment_history` TEXT DEFAULT NULL,
             `added_at`    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY `uq_trip_student` (`trip_id`, `student_id`),
             KEY `idx_trip_pos` (`trip_id`, `position`),
             KEY `idx_church` (`church_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
+
+    // Add payment_history column if it does not exist
+    $check = $conn->query("SHOW COLUMNS FROM `trip_waitlist` LIKE 'payment_history'");
+    if ($check && $check->num_rows == 0) {
+        $conn->query("ALTER TABLE `trip_waitlist` ADD COLUMN `payment_history` TEXT DEFAULT NULL");
+    }
 }
 
 function getWaitlistNextPosition($conn, $tripId)
@@ -9764,6 +9783,7 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
     $customData = $waiting['custom_data'];
     $addedBy = $waiting['added_by'];
     $studentId = $waiting['student_id'];
+    $paymentHistoryJson = $waiting['payment_history'] ?? '[]';
 
     // Remove any old cancelled registration for this student on this trip
     $del = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 1");
@@ -9778,12 +9798,61 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
 
     $registrationId = $conn->insert_id;
 
-    // Record deposit payment if any
-    if ($deposit > 0) {
+    // Convert waitlist payments into trip_payments
+    $historyArray = json_decode($paymentHistoryJson, true) ?: [];
+    $newHistoryArray = [];
+
+    foreach ($historyArray as $p) {
+        if (intval($p['is_deleted'] ?? 0) === 1) continue;
+
+        $pAmt = floatval($p['amount'] ?? 0);
+        $pDon = floatval($p['donation'] ?? 0);
+        $pMethod = $p['payment_method'] ?? 'cash';
+        $pNotes = $p['notes'] ?? '';
+        $pDate = $p['timestamp'] ?? date('c');
+
+        $ps = $conn->prepare("INSERT INTO trip_payments (registration_id, amount, donation, payment_method, received_by, notes, payment_date) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $ps->bind_param("iddsiss", $registrationId, $pAmt, $pDon, $pMethod, $addedBy, $pNotes, $pDate);
+        $ps->execute();
+        $realPaymentId = $conn->insert_id;
+
+        $newHistoryArray[] = [
+            'id' => $realPaymentId,
+            'type' => $p['type'] ?? (($pAmt > 0) ? 'payment' : 'donation'),
+            'timestamp' => $pDate,
+            'amount' => $pAmt,
+            'donation' => $pDon,
+            'payment_method' => $pMethod,
+            'received_by' => $addedBy,
+            'notes' => $pNotes,
+            'is_deleted' => 0
+        ];
+    }
+
+    // Default fallback if deposit is positive but history was empty
+    if ($deposit > 0 && empty($newHistoryArray)) {
         $ps = $conn->prepare("INSERT INTO trip_payments (registration_id, amount, received_by, notes) VALUES (?, ?, ?, 'دفعة مقدمة - ترقية من قائمة الانتظار')");
         $ps->bind_param("idi", $registrationId, $deposit, $addedBy);
         $ps->execute();
+        $realPaymentId = $conn->insert_id;
+
+        $newHistoryArray[] = [
+            'id' => $realPaymentId,
+            'type' => 'deposit',
+            'timestamp' => date('c'),
+            'amount' => $deposit,
+            'donation' => 0,
+            'payment_method' => 'deposit',
+            'received_by' => $addedBy,
+            'notes' => 'دفعة مقدمة - ترقية من قائمة الانتظار',
+            'is_deleted' => 0
+        ];
     }
+
+    $updatedHistoryJson = json_encode($newHistoryArray, JSON_UNESCAPED_UNICODE);
+    $updHist = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
+    $updHist->bind_param("si", $updatedHistoryJson, $registrationId);
+    $updHist->execute();
 
     // Remove from waitlist
     $delW = $conn->prepare("DELETE FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
@@ -9866,6 +9935,366 @@ function removeFromWaitlist()
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+
+function addTripWaitlistPayment()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $studentId = intval($_POST['student_id'] ?? 0);
+        $amount = floatval($_POST['amount'] ?? 0);
+        $donation = floatval($_POST['donation'] ?? 0);
+        $paymentMethod = sanitize($_POST['payment_method'] ?? 'cash');
+        $notes = sanitize($_POST['notes'] ?? '');
+
+        if ($tripId === 0 || $studentId === 0 || ($amount <= 0 && $donation <= 0)) {
+            sendJSON(['success' => false, 'message' => 'بيانات الدفع أو التبرع غير صحيحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بإضافة دفعة']);
+            return;
+        }
+
+        // Fetch waitlist record
+        $stmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE trip_id = ? AND student_id = ? AND church_id = ?");
+        $stmt->bind_param("iii", $tripId, $studentId, $churchId);
+        $stmt->execute();
+        $waitRecord = $stmt->get_result()->fetch_assoc();
+        if (!$waitRecord) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير مسجل في قائمة الانتظار']);
+            return;
+        }
+
+        // Fetch trip price
+        $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
+        $tripStmt->bind_param("i", $tripId);
+        $tripStmt->execute();
+        $trip = $tripStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+
+        $finalPrice = floatval($trip['price']);
+        if (floatval($trip['discount']) > 0) {
+            if ($trip['discount_type'] === 'percentage') {
+                $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
+            } else {
+                $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
+            }
+        }
+
+        $historyArray = json_decode($waitRecord['payment_history'] ?? '[]', true) ?: [];
+
+        // Sum up total non-deleted payments
+        $totalPaid = 0;
+        foreach ($historyArray as $p) {
+            if (intval($p['is_deleted'] ?? 0) === 0 && ($p['type'] ?? '') !== 'donation') {
+                $totalPaid += floatval($p['amount'] ?? 0);
+            }
+        }
+
+        $remaining = $finalPrice - $totalPaid;
+        if ($amount > $remaining) {
+            sendJSON(['success' => false, 'message' => 'المبلغ أكبر من المتبقي']);
+            return;
+        }
+
+        // Add payment to history
+        $newPaymentId = time() . rand(100, 999);
+        $historyArray[] = [
+            'id' => $newPaymentId,
+            'type' => $amount > 0 ? 'payment' : 'donation',
+            'timestamp' => date('c'),
+            'amount' => round($amount, 2),
+            'donation' => round($donation, 2),
+            'payment_method' => $paymentMethod,
+            'received_by' => $uncleId,
+            'notes' => $notes,
+            'is_deleted' => 0
+        ];
+
+        // Recalculate totals
+        $newTotalPaid = 0;
+        $newTotalDonation = 0;
+        foreach ($historyArray as $p) {
+            if (intval($p['is_deleted'] ?? 0) === 0) {
+                if (($p['type'] ?? '') === 'donation') {
+                    $newTotalDonation += floatval($p['donation'] ?? 0);
+                } else {
+                    $newTotalPaid += floatval($p['amount'] ?? 0);
+                }
+            }
+        }
+
+        $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
+
+        // Update waitlist record
+        $upd = $conn->prepare("UPDATE trip_waitlist SET deposit = ?, donation = ?, payment_history = ? WHERE id = ?");
+        $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
+
+        if ($upd->execute()) {
+            $newRemaining = $finalPrice - $newTotalPaid;
+            if (abs($newRemaining) < 0.01) {
+                $newStatus = 'paid';
+            } elseif ($newTotalPaid > 0.01) {
+                $newStatus = 'partial';
+            } else {
+                $newStatus = 'pending';
+            }
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تم إضافة الدفعة لقائمة الانتظار بنجاح',
+                'payment_id' => $newPaymentId,
+                'new_status' => $newStatus,
+                'total_paid' => $newTotalPaid,
+                'remaining' => max(0, $newRemaining)
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في إضافة الدفعة لقائمة الانتظار']);
+        }
+
+    } catch (Exception $e) {
+        error_log("addTripWaitlistPayment error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في إضافة الدفعة لقائمة الانتظار: ' . $e->getMessage()]);
+    }
+}
+
+function deleteTripWaitlistPayment()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        $paymentId = $_POST['payment_id'] ?? '';
+        $studentId = intval($_POST['student_id'] ?? 0);
+        $tripId = intval($_POST['trip_id'] ?? 0);
+
+        if (!$paymentId || !$studentId || !$tripId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بحذف دفعة']);
+            return;
+        }
+
+        // Fetch waitlist record
+        $stmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE trip_id = ? AND student_id = ? AND church_id = ?");
+        $stmt->bind_param("iii", $tripId, $studentId, $churchId);
+        $stmt->execute();
+        $waitRecord = $stmt->get_result()->fetch_assoc();
+        if (!$waitRecord) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير مسجل في قائمة الانتظار']);
+            return;
+        }
+
+        $historyArray = json_decode($waitRecord['payment_history'] ?? '[]', true) ?: [];
+        $found = false;
+
+        foreach ($historyArray as &$p) {
+            if (isset($p['id']) && $p['id'] == $paymentId) {
+                $p['is_deleted'] = 1;
+                $p['deleted_at'] = date('c');
+                $p['deleted_by'] = $uncleId;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة في سجل قائمة الانتظار']);
+            return;
+        }
+
+        // Recalculate totals
+        $newTotalPaid = 0;
+        $newTotalDonation = 0;
+        foreach ($historyArray as $p) {
+            if (intval($p['is_deleted'] ?? 0) === 0) {
+                if (($p['type'] ?? '') === 'donation') {
+                    $newTotalDonation += floatval($p['donation'] ?? 0);
+                } else {
+                    $newTotalPaid += floatval($p['amount'] ?? 0);
+                }
+            }
+        }
+
+        $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
+
+        // Update waitlist record
+        $upd = $conn->prepare("UPDATE trip_waitlist SET deposit = ?, donation = ?, payment_history = ? WHERE id = ?");
+        $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
+
+        if ($upd->execute()) {
+            // Fetch trip price
+            $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
+            $tripStmt->bind_param("i", $tripId);
+            $tripStmt->execute();
+            $trip = $tripStmt->get_result()->fetch_assoc();
+            
+            $finalPrice = floatval($trip['price'] ?? 0);
+            if (floatval($trip['discount'] ?? 0) > 0) {
+                if ($trip['discount_type'] === 'percentage') {
+                    $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
+                } else {
+                    $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
+                }
+            }
+
+            $newRemaining = $finalPrice - $newTotalPaid;
+            if (abs($newRemaining) < 0.01) {
+                $newStatus = 'paid';
+            } elseif ($newTotalPaid > 0.01) {
+                $newStatus = 'partial';
+            } else {
+                $newStatus = 'pending';
+            }
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تم حذف الدفعة بنجاح',
+                'new_status' => $newStatus,
+                'total_paid' => $newTotalPaid,
+                'remaining' => max(0, $newRemaining)
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حذف الدفعة']);
+        }
+
+    } catch (Exception $e) {
+        error_log("deleteTripWaitlistPayment error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف الدفعة: ' . $e->getMessage()]);
+    }
+}
+
+function restoreTripWaitlistPayment()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        $paymentId = $_POST['payment_id'] ?? '';
+        $studentId = intval($_POST['student_id'] ?? 0);
+        $tripId = intval($_POST['trip_id'] ?? 0);
+
+        if (!$paymentId || !$studentId || !$tripId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureWaitlistTable($conn);
+
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك باستعادة دفعة']);
+            return;
+        }
+
+        // Fetch waitlist record
+        $stmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE trip_id = ? AND student_id = ? AND church_id = ?");
+        $stmt->bind_param("iii", $tripId, $studentId, $churchId);
+        $stmt->execute();
+        $waitRecord = $stmt->get_result()->fetch_assoc();
+        if (!$waitRecord) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير مسجل في قائمة الانتظار']);
+            return;
+        }
+
+        $historyArray = json_decode($waitRecord['payment_history'] ?? '[]', true) ?: [];
+        $found = false;
+
+        foreach ($historyArray as &$p) {
+            if (isset($p['id']) && $p['id'] == $paymentId) {
+                $p['is_deleted'] = 0;
+                unset($p['deleted_at']);
+                unset($p['deleted_by']);
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            sendJSON(['success' => false, 'message' => 'الدفعة غير موجودة في سجل قائمة الانتظار']);
+            return;
+        }
+
+        // Recalculate totals
+        $newTotalPaid = 0;
+        $newTotalDonation = 0;
+        foreach ($historyArray as $p) {
+            if (intval($p['is_deleted'] ?? 0) === 0) {
+                if (($p['type'] ?? '') === 'donation') {
+                    $newTotalDonation += floatval($p['donation'] ?? 0);
+                } else {
+                    $newTotalPaid += floatval($p['amount'] ?? 0);
+                }
+            }
+        }
+
+        $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
+
+        // Update waitlist record
+        $upd = $conn->prepare("UPDATE trip_waitlist SET deposit = ?, donation = ?, payment_history = ? WHERE id = ?");
+        $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
+
+        if ($upd->execute()) {
+            // Fetch trip price
+            $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
+            $tripStmt->bind_param("i", $tripId);
+            $tripStmt->execute();
+            $trip = $tripStmt->get_result()->fetch_assoc();
+            
+            $finalPrice = floatval($trip['price'] ?? 0);
+            if (floatval($trip['discount'] ?? 0) > 0) {
+                if ($trip['discount_type'] === 'percentage') {
+                    $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
+                } else {
+                    $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
+                }
+            }
+
+            $newRemaining = $finalPrice - $newTotalPaid;
+            if (abs($newRemaining) < 0.01) {
+                $newStatus = 'paid';
+            } elseif ($newTotalPaid > 0.01) {
+                $newStatus = 'partial';
+            } else {
+                $newStatus = 'pending';
+            }
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تم استعادة الدفعة بنجاح',
+                'new_status' => $newStatus,
+                'total_paid' => $newTotalPaid,
+                'remaining' => max(0, $newRemaining)
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في استعادة الدفعة']);
+        }
+
+    } catch (Exception $e) {
+        error_log("restoreTripWaitlistPayment error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في استعادة الدفعة: ' . $e->getMessage()]);
+    }
+}
+
 // ── END WAITLIST HELPERS ──────────────────────────────────────────────────────
 
 function rebalanceTripWaitlist()
@@ -9903,7 +10332,7 @@ function rebalanceTripWaitlist()
         }
 
         // Get all active registrations ordered by creation date (earliest first stay in)
-        $regStmt = $conn->prepare("SELECT id, student_id, deposit, notes, custom_data, created_at FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC");
+        $regStmt = $conn->prepare("SELECT id, student_id, deposit, notes, custom_data, created_at, payment_history FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC");
         $regStmt->bind_param("i", $tripId);
         $regStmt->execute();
         $regs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -9919,19 +10348,22 @@ function rebalanceTripWaitlist()
         foreach ($extra as $r) {
             $regId = $r['id'];
             $studentId = $r['student_id'];
+            $paymentHistoryJson = $r['payment_history'] ?? '[]';
 
-            // Calc total paid for this registration to preserve it in waitlist
-            $paidStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
+            // Calc total paid and donation for this registration to preserve it in waitlist
+            $paidStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid, COALESCE(SUM(donation), 0) as total_donation FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
             $paidStmt->bind_param("i", $regId);
             $paidStmt->execute();
-            $totalPaid = floatval($paidStmt->get_result()->fetch_assoc()['total']);
+            $paidRes = $paidStmt->get_result()->fetch_assoc();
+            $totalPaid = floatval($paidRes['total_paid'] ?? 0);
+            $totalDonation = floatval($paidRes['total_donation'] ?? 0);
 
             $totalFunds = floatval($r['deposit'] ?? 0) + $totalPaid;
 
             // Move to waitlist
             $pos = getWaitlistNextPosition($conn, $tripId);
-            $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, custom_data, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $ins->bind_param("iiiissss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $r['custom_data'], $r['created_at']);
+            $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, donation, custom_data, payment_history, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins->bind_param("iiiisddsss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $totalDonation, $r['custom_data'], $paymentHistoryJson, $r['created_at']);
 
             if ($ins->execute()) {
                 // Delete payments (they are consolidated in waitlist.deposit)
@@ -10060,8 +10492,37 @@ function registerStudentForTrip()
         // إذا الرحلة ممتلئة → أضفه لقائمة الانتظار
         if ($maxParticipants > 0 && $activeCount >= $maxParticipants) {
             $position = getWaitlistNextPosition($conn, $tripId);
-            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, added_by, position, notes, deposit, donation, custom_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $insW->bind_param("iiiiiidds", $tripId, $studentId, $churchId, $uncleId, $position, $notes, $deposit, $donation, $customData);
+            $historyArray = [];
+            if ($deposit > 0) {
+                $historyArray[] = [
+                    'id' => time() . '1',
+                    'type' => 'deposit',
+                    'timestamp' => date('c'),
+                    'amount' => round($deposit, 2),
+                    'donation' => 0,
+                    'payment_method' => 'deposit',
+                    'received_by' => $uncleId,
+                    'notes' => 'دفعة مقدمة للتسجيل',
+                    'is_deleted' => 0
+                ];
+            }
+            if ($donation > 0) {
+                $historyArray[] = [
+                    'id' => time() . '2',
+                    'type' => 'donation',
+                    'timestamp' => date('c'),
+                    'amount' => 0,
+                    'donation' => round($donation, 2),
+                    'payment_method' => 'donation',
+                    'received_by' => $uncleId,
+                    'notes' => 'تبرع عند التسجيل',
+                    'is_deleted' => 0
+                ];
+            }
+            $paymentHistoryJson = !empty($historyArray) ? json_encode($historyArray, JSON_UNESCAPED_UNICODE) : null;
+
+            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, added_by, position, notes, deposit, donation, custom_data, payment_history) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $insW->bind_param("iiiiisddss", $tripId, $studentId, $churchId, $uncleId, $position, $notes, $deposit, $donation, $customData, $paymentHistoryJson);
             if ($insW->execute()) {
                 sendJSON([
                     'success' => true,
@@ -12117,6 +12578,18 @@ try {
 
         case 'rebalanceTripWaitlist':
             rebalanceTripWaitlist();
+            break;
+
+        case 'addTripWaitlistPayment':
+            addTripWaitlistPayment();
+            break;
+
+        case 'deleteTripWaitlistPayment':
+            deleteTripWaitlistPayment();
+            break;
+
+        case 'restoreTripWaitlistPayment':
+            restoreTripWaitlistPayment();
             break;
 
 
