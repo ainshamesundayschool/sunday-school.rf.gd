@@ -15390,12 +15390,18 @@ function getStudentTrips()
                 t.max_participants, t.image_url,
                 COALESCE(t.show_registered_kids, 1) AS show_registered_kids
             FROM trips t
-            WHERE t.church_id = ?
+            WHERE (
+                    t.church_id = ?
+                    OR (
+                        t.collaborating_churches IS NOT NULL
+                        AND JSON_CONTAINS(t.collaborating_churches, JSON_ARRAY(?))
+                    )
+                )
               AND t.status IN ('planned','active','completed')
             ORDER BY FIELD(t.status,'active','planned','completed'), t.start_date DESC
             LIMIT 20
         ");
-        $stmt->bind_param('i', $churchId);
+        $stmt->bind_param('ii', $churchId, $churchId);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -15413,12 +15419,18 @@ function getStudentTrips()
             $row['start_date_formatted'] = $row['start_date'] ? date('d/m/Y', strtotime($row['start_date'])) : '';
             $row['end_date_formatted'] = $row['end_date'] ? date('d/m/Y', strtotime($row['end_date'])) : '';
 
-            $cStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
-            $cStmt->bind_param('i', $row['id']);
+            // Count / list only kids from this church (not every church on a shared trip).
+            $cStmt = $conn->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM trip_registrations tr
+                INNER JOIN students s ON s.id = tr.student_id AND s.church_id = ?
+                WHERE tr.trip_id = ? AND tr.cancelled = 0
+            ");
+            $cStmt->bind_param('ii', $churchId, $row['id']);
             $cStmt->execute();
             $row['registered_count'] = (int) ($cStmt->get_result()->fetch_assoc()['cnt'] ?? 0);
 
-            // Registered kids (name + photo only, no payments) can be hidden per trip.
+            // Registered kids (name + photo only, no payments) — same church only when enabled.
             $row['show_registered_kids'] = (int) ($row['show_registered_kids'] ?? 1);
             $row['registered_kids'] = [];
             if ($row['show_registered_kids'] === 1) {
@@ -15426,13 +15438,13 @@ function getStudentTrips()
                     SELECT s.id, s.name, s.image_url,
                            COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
                     FROM trip_registrations tr
-                    JOIN students s ON s.id = tr.student_id
+                    INNER JOIN students s ON s.id = tr.student_id AND s.church_id = ?
                     LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
                     LEFT JOIN classes cl ON cl.id = s.class_id
                     WHERE tr.trip_id = ? AND tr.cancelled = 0
                     ORDER BY s.name
                 ");
-                $rStmt->bind_param('i', $row['id']);
+                $rStmt->bind_param('ii', $churchId, $row['id']);
                 $rStmt->execute();
                 $row['registered_kids'] = $rStmt->get_result()->fetch_all(MYSQLI_ASSOC);
             }
