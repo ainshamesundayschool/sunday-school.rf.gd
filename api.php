@@ -10175,7 +10175,7 @@ function getWaitlistData($tripId, $conn)
     ensureWaitlistTable($conn);
     $totalPerKid = getTripTotalPerKid($conn, $tripId);
     $stmt = $conn->prepare("
-        SELECT tw.*, s.name AS student_name, s.image_url AS student_image,
+        SELECT tw.*, s.name AS student_name, s.phone AS student_phone, s.image_url AS student_image,
                COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS student_class
         FROM trip_waitlist tw
         JOIN students s ON s.id = tw.student_id
@@ -11392,26 +11392,21 @@ function exportTripData()
             $payments[] = $row;
         }
 
-        // قائمة الانتظار
+        // قائمة الانتظار (enriched totals + payment receivers for CSV)
         $waitlist = [];
         try {
             ensureWaitlistTable($conn);
-            $wStmt = $conn->prepare("
-                SELECT tw.position, tw.notes, tw.deposit, tw.added_at,
-                       s.name as student_name, s.class as student_class, s.phone as student_phone,
-                       u.name as added_by_name
-                FROM trip_waitlist tw
-                JOIN students s ON s.id = tw.student_id
-                LEFT JOIN uncles u ON u.id = tw.added_by
-                WHERE tw.trip_id = ?
-                ORDER BY tw.position ASC
-            ");
-            $wStmt->bind_param("i", $tripId);
-            $wStmt->execute();
-            $wResult = $wStmt->get_result();
-            while ($row = $wResult->fetch_assoc()) {
-                $waitlist[] = $row;
+            $waitlist = getWaitlistData($tripId, $conn);
+            foreach ($waitlist as &$wRow) {
+                $wRow['received_by_names'] = resolveWaitlistReceiversForCsv($conn, $wRow);
+                $statusMap = [
+                    'paid' => 'مدفوع بالكامل',
+                    'partial' => 'مدفوع جزئياً',
+                    'pending' => 'غير مدفوع',
+                ];
+                $wRow['payment_status_label'] = $statusMap[$wRow['payment_status'] ?? ''] ?? ($wRow['payment_status'] ?? '');
             }
+            unset($wRow);
         } catch (Exception $we) { /* ignore if waitlist table missing */
         }
 
@@ -11431,6 +11426,62 @@ function exportTripData()
 function csvNumericAmount($value)
 {
     return round(floatval($value), 2);
+}
+
+function resolveWaitlistReceiversForCsv($conn, array $waitlistRow)
+{
+    $history = parseWaitlistPaymentHistory($waitlistRow['payment_history'] ?? null);
+    $uncleIds = [];
+    $inlineNames = [];
+
+    foreach ($history as $p) {
+        if (intval($p['is_deleted'] ?? 0) === 1) {
+            continue;
+        }
+        $amount = floatval($p['amount'] ?? 0);
+        $donation = floatval($p['donation'] ?? 0);
+        if ($amount <= 0 && $donation <= 0) {
+            continue;
+        }
+        $receiver = $p['received_by'] ?? null;
+        if ($receiver === null || $receiver === '' || $receiver === '—') {
+            continue;
+        }
+        if (is_numeric($receiver)) {
+            $uncleIds[intval($receiver)] = true;
+        } else {
+            $inlineNames[] = trim((string) $receiver);
+        }
+    }
+
+    if (empty($uncleIds) && empty($inlineNames)) {
+        $fallbackId = intval($waitlistRow['added_by'] ?? 0);
+        if ($fallbackId > 0 && floatval($waitlistRow['deposit'] ?? $waitlistRow['total_paid'] ?? 0) > 0) {
+            $uncleIds[$fallbackId] = true;
+        }
+    }
+
+    $names = array_values(array_unique(array_filter($inlineNames)));
+
+    if (!empty($uncleIds)) {
+        $ids = array_keys($uncleIds);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $types = str_repeat('i', count($ids));
+        $stmt = $conn->prepare("SELECT name FROM uncles WHERE id IN ($placeholders) ORDER BY name ASC");
+        if ($stmt) {
+            $stmt->bind_param($types, ...$ids);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($u = $result->fetch_assoc()) {
+                if (!empty($u['name'])) {
+                    $names[] = $u['name'];
+                }
+            }
+        }
+    }
+
+    $names = array_values(array_unique(array_filter($names)));
+    return !empty($names) ? implode('، ', $names) : '';
 }
 
 function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $waitlist = [])
@@ -11591,16 +11642,19 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     if (!empty($waitlist)) {
         fputcsv($output, ['']);
         fputcsv($output, ['قائمة الانتظار (' . count($waitlist) . ')']);
-        fputcsv($output, ['الترتيب', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'دفعة مقدمة', 'تاريخ الإضافة', 'أضافه', 'ملاحظات']);
+        fputcsv($output, ['الترتيب', 'اسم الطفل', 'الفصل', 'رقم الهاتف', 'المدفوع', 'التبرع', 'المتبقي', 'الحالة', 'تاريخ الإضافة', 'المستلم', 'ملاحظات']);
         foreach ($waitlist as $w) {
             fputcsv($output, [
                 $w['position'],
                 $w['student_name'],
                 $w['student_class'] ?? '',
                 $w['student_phone'] ?? '',
-                csvNumericAmount($w['deposit'] ?? 0),
+                csvNumericAmount($w['total_paid'] ?? $w['deposit'] ?? 0),
+                csvNumericAmount($w['total_donation'] ?? $w['donation'] ?? 0),
+                csvNumericAmount($w['remaining'] ?? 0),
+                $w['payment_status_label'] ?? '',
                 !empty($w['added_at']) ? date('d/m/Y H:i', strtotime($w['added_at'])) : '',
-                $w['added_by_name'] ?? '',
+                $w['received_by_names'] ?? '',
                 $w['notes'] ?? ''
             ]);
         }
