@@ -3759,7 +3759,34 @@
     function exportTripData(id, fmt) { window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`; }
     function copyTripLink(id) { const url = window.location.origin + window.location.pathname + `#trips?trip_id=${id}`; navigator.clipboard?.writeText(url).then(() => showToast?.('تم نسخ رابط الرحلة', 'success')).catch(() => showToast?.('فشل في نسخ الرابط', 'error')); }
 
+    async function handleJoinTrip(tripId) {
+      if (!tripId || isNaN(tripId)) return;
+      const url = new URL(window.location);
+      url.searchParams.delete('joinTrip');
+      window.history.replaceState({}, '', url.pathname + url.search);
+
+      const joinFd = mkFd('joinTrip');
+      joinFd.append('trip_id', tripId);
+      try {
+        const joinRes = await fetch(API_URL, { method: 'POST', body: joinFd, credentials: 'include' }).then(r => r.json());
+        if (joinRes.success) {
+          showToast(joinRes.message || 'تم الانضمام بنجاح', joinRes.already_joined ? 'info' : 'success');
+          window.location.href = `${window.location.origin}/uncle/church/#trips`;
+        } else {
+          showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
+        }
+      } catch (e) {
+        showToast('حدث خطأ في الاتصال', 'error');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
+      const joinTripId = parseInt(new URLSearchParams(window.location.search).get('joinTrip') || '0');
+      if (joinTripId > 0) {
+        await handleJoinTrip(joinTripId);
+        return;
+      }
+
       const tripId = getSelectedTripId();
       if (tripId) {
         await showTripDetails(tripId);
@@ -6363,7 +6390,7 @@
       }
       collaborators = collaborators.map(id => parseInt(id)).filter(id => id && id != trip.church_id);
 
-      const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}`;
+      const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}#trips`;
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
       const isOwner = trip.church_id == cid;
 

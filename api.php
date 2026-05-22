@@ -452,49 +452,75 @@ function enhanceImage($imagePath, $targetWidth = 400, $targetHeight = 500)
 function joinTrip()
 {
     try {
+        checkUncleAuth();
         $churchId = getChurchId();
-        $tripId = intval($_POST['trip_id'] ?? 0);
-        if ($tripId <= 0) {
-            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+        if ($churchId <= 0) {
+            sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة للانضمام إلى الرحلة']);
             return;
         }
+
+        $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'معرف الرحلة مطلوب']);
+            return;
+        }
+
         $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT church_id, collaborating_churches, title FROM trips WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $tripId);
         $stmt->execute();
         $res = $stmt->get_result();
         if ($res->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
             return;
         }
+
         $row = $res->fetch_assoc();
+        $tripTitle = $row['title'] ?? '';
+
         if (intval($row['church_id']) === $churchId) {
-            sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة بالفعل ولا يمكن تسجيلها كشريك']);
+            sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة ولا تحتاج للانضمام', 'trip_id' => $tripId]);
             return;
         }
+
         $raw = $row['collaborating_churches'] ?? '';
         $arr = [];
         if (!empty($raw)) {
             $decoded = json_decode($raw, true);
-            if (is_array($decoded))
-                $arr = array_map('intval', $decoded);
+            if (is_array($decoded)) {
+                $arr = array_values(array_unique(array_map('intval', $decoded)));
+            }
         }
-        if (in_array($churchId, $arr)) {
-            sendJSON(['success' => true, 'message' => 'Already a collaborator', 'trip_id' => $tripId]);
+
+        if (in_array($churchId, $arr, true)) {
+            sendJSON([
+                'success' => true,
+                'message' => 'كنيستك تشارك بالفعل في هذه الرحلة',
+                'trip_id' => $tripId,
+                'trip_title' => $tripTitle,
+                'already_joined' => true,
+            ]);
             return;
         }
+
         $arr[] = intval($churchId);
         $newJson = json_encode(array_values(array_unique($arr)), JSON_UNESCAPED_UNICODE);
         $u = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
         $u->bind_param('si', $newJson, $tripId);
         if ($u->execute()) {
             logActivity($churchId, $_SESSION['uncle_id'] ?? null, 'join_trip', "trip:$tripId");
-            sendJSON(['success' => true, 'message' => 'Joined trip', 'trip_id' => $tripId, 'collaborators' => $arr]);
+            sendJSON([
+                'success' => true,
+                'message' => 'تم الانضمام بنجاح إلى رحلة: ' . $tripTitle,
+                'trip_id' => $tripId,
+                'trip_title' => $tripTitle,
+                'collaborators' => $arr,
+            ]);
         } else {
-            sendJSON(['success' => false, 'message' => 'Failed to join trip: ' . $u->error]);
+            sendJSON(['success' => false, 'message' => 'فشل الانضمام للرحلة: ' . $u->error]);
         }
     } catch (Exception $e) {
-        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        sendJSON(['success' => false, 'message' => 'خطأ في الانضمام: ' . $e->getMessage()]);
     }
 }
 
@@ -563,7 +589,13 @@ function ensureTripCollaborationRequestsTable($conn)
 function sendCollaborationRequest()
 {
     try {
+        checkUncleAuth();
         $churchId = getChurchId();
+        if ($churchId <= 0) {
+            sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة لإرسال دعوة المشاركة']);
+            return;
+        }
+
         $tripId = intval($_POST['trip_id'] ?? 0);
         $toChurchCode = sanitize($_POST['to_church_code'] ?? '');
 

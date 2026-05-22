@@ -7675,7 +7675,7 @@
             }
             collaborators = collaborators.map(id => parseInt(id)).filter(id => id && id != trip.church_id);
 
-            const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}`;
+            const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}#trips`;
 
             document.getElementById('collaborationContent').innerHTML = `
         <div style="margin-bottom:20px;">
@@ -7741,45 +7741,23 @@
         async function handleJoinTrip(tripId) {
             if (!tripId || isNaN(tripId)) return;
 
-            // Clean URL
             const url = new URL(window.location);
             url.searchParams.delete('joinTrip');
-            window.history.replaceState({}, '', url);
+            window.history.replaceState({}, '', url.pathname + url.search + '#trips');
 
-            // Check if already a collaborator
-            const fd = new FormData();
-            fd.append('action', 'getTripDetails');
-            fd.append('trip_id', tripId);
+            const joinFd = new FormData();
+            joinFd.append('action', 'joinTrip');
+            joinFd.append('trip_id', tripId);
 
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                if (res.success && res.trip) {
-                    const trip = res.trip;
-                    let collaborators = [];
-                    try {
-                        collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
-                    } catch (e) { }
-
-                    if (collaborators.includes(sessionChurchId)) {
-                        showToast('كنيستك مشاركة بالفعل في هذه الرحلة', 'info');
-                        return;
-                    }
-
-                    // Join the trip
-                    const joinFd = new FormData();
-                    joinFd.append('action', 'joinTrip');
-                    joinFd.append('trip_id', tripId);
-
-                    const joinRes = await fetch(API_URL, { method: 'POST', body: joinFd }).then(r => r.json());
-                    if (joinRes.success) {
-                        showToast(`تم الانضمام بنجاح إلى رحلة: ${trip.title}`, 'success');
-                        // Reload trips data
-                        await loadTrips();
-                    } else {
-                        showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
-                    }
+                const joinRes = await fetch(API_URL, { method: 'POST', body: joinFd, credentials: 'include' }).then(r => r.json());
+                if (joinRes.success) {
+                    showToast(joinRes.message || 'تم الانضمام بنجاح', joinRes.already_joined ? 'info' : 'success');
+                    const tripsBtn = document.querySelector(".nav-item[onclick*=\"'trips'\"]");
+                    if (tripsBtn) switchTab('trips', tripsBtn);
+                    await loadTrips();
                 } else {
-                    showToast('الرحلة غير موجودة', 'error');
+                    showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
                 }
             } catch (e) {
                 showToast('حدث خطأ في الاتصال', 'error');
