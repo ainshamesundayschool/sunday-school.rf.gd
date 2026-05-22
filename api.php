@@ -2206,10 +2206,11 @@ try {
             break;
 
         default:
-            sendJSON(['success' => false, 'message' => 'Invalid action: ' . $action]);
+            // Fall through — second switch below handles remaining actions
+            break;
     }
 } catch (Exception $e) {
-    error_log("API Error: " . $e->getMessage());
+    error_log("API Error (switch 1): " . $e->getMessage());
     sendJSON(['success' => false, 'message' => 'خطأ في السيرفر: ' . $e->getMessage()]);
 }
 
@@ -13664,6 +13665,31 @@ try {
             getAttendanceByDate();
             break;
 
+        case 'submitUncleAttendance':
+            checkUncleAuth();
+            submitUncleAttendance();
+            break;
+
+        case 'getUncleAttendanceByDate':
+            checkUncleAuth();
+            getUncleAttendanceByDate();
+            break;
+
+        case 'getUncleAttendanceReport':
+            checkUncleAuth();
+            getUncleAttendanceReport();
+            break;
+
+        case 'toggleUncleAttendance':
+            checkUncleAuth();
+            toggleUncleAttendance();
+            break;
+
+        case 'deleteUncleAttendance':
+            checkUncleAuth();
+            deleteUncleAttendance();
+            break;
+
         case 'getSessionInfo':
             getSessionInfo();
             break;
@@ -17946,16 +17972,31 @@ function getUncleAttendanceReport()
 {
     try {
         $churchId = getChurchId();
+        if (!$churchId) {
+            sendJSON(['success' => false, 'message' => 'معرف الكنيسة غير صالح — أعد تسجيل الدخول']);
+            return;
+        }
         $conn = getDBConnection();
         ensureUncleAttendanceTable($conn);
 
         $year = intval($_POST['year'] ?? date('Y'));
+        if ($year < 2000 || $year > 2100) {
+            $year = (int) date('Y');
+        }
 
-        // Get all uncles for this church
-        $uncleStmt = $conn->prepare("SELECT id, name, role, image_url FROM uncles WHERE church_id=? AND deleted=0 AND is_active=1 ORDER BY name");
+        // Get all uncles for this church (uncles table has deleted, not is_active)
+        $uncleStmt = $conn->prepare("
+            SELECT id, name, role, image_url
+            FROM uncles
+            WHERE church_id = ? AND (deleted IS NULL OR deleted = 0)
+            ORDER BY name
+        ");
         $uncleStmt->bind_param('i', $churchId);
-        $uncleStmt->execute();
-        $uncles = $uncleStmt->get_result()->fetchAll(MYSQLI_ASSOC);
+        if (!$uncleStmt->execute()) {
+            sendJSON(['success' => false, 'message' => 'خطأ في جلب الخُدام: ' . $uncleStmt->error]);
+            return;
+        }
+        $uncles = $uncleStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         // Get all uncle attendance for this year
         $attStmt = $conn->prepare("
@@ -17966,7 +18007,7 @@ function getUncleAttendanceReport()
         ");
         $attStmt->bind_param('ii', $churchId, $year);
         $attStmt->execute();
-        $allAtt = $attStmt->get_result()->fetchAll(MYSQLI_ASSOC);
+        $allAtt = $attStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         // Get distinct attendance dates (Fridays with records)
         $dateStmt = $conn->prepare("
@@ -17977,7 +18018,7 @@ function getUncleAttendanceReport()
         ");
         $dateStmt->bind_param('ii', $churchId, $year);
         $dateStmt->execute();
-        $dates = array_column($dateStmt->get_result()->fetchAll(MYSQLI_ASSOC), 'attendance_date');
+        $dates = array_column($dateStmt->get_result()->fetch_all(MYSQLI_ASSOC), 'attendance_date');
 
         // Build per-uncle stats
         $attMap = [];
@@ -18047,7 +18088,8 @@ function getUncleAttendanceReport()
             'total_uncles' => count($uncles),
         ]);
     } catch (Exception $e) {
-        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+        error_log('getUncleAttendanceReport error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في تقرير الخُدام: ' . $e->getMessage()]);
     }
 }
 

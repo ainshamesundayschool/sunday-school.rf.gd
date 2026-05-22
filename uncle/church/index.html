@@ -14839,6 +14839,8 @@
         // Called by switchTab loader
         async function initUncleAttendanceTab() {
             document.getElementById('uncleAttYearDisplay2').textContent = ua2Year;
+            const ry = document.getElementById('reportYearDisplay2');
+            if (ry) ry.textContent = ua2Report;
             renderUa2MonthTabs();
             await renderUa2FridayCards();
         }
@@ -15009,16 +15011,29 @@
 
         // Report
         async function loadUncleReport2() {
-            document.getElementById('uncleRankingList2').innerHTML =
-                '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
-            document.getElementById('dayRankingList2').innerHTML =
-                '<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
+            const rankEl = document.getElementById('uncleRankingList2');
+            const dayEl = document.getElementById('dayRankingList2');
+            const summaryEl = document.getElementById('reportSummaryBoxes2');
+            if (!rankEl || !dayEl) return;
+
+            rankEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
+            dayEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
+            if (summaryEl) summaryEl.innerHTML = '';
+
             const fd = mkFd('getUncleAttendanceReport');
-            fd.append('year', ua2Report);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (!d.success) {
-                document.getElementById('uncleRankingList2').innerHTML =
-                    '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>خطأ في التحميل</h3></div>';
+            fd.append('year', String(ua2Report));
+            let d;
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd });
+                d = await res.json();
+            } catch (e) {
+                d = { success: false, message: 'تعذّر الاتصال بالخادم' };
+            }
+            if (!d || !d.success) {
+                const msg = (d && d.message) ? escHtml(d.message) : 'خطأ في التحميل';
+                rankEl.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>خطأ في التحميل</h3><p style="color:var(--muted);font-size:0.82rem;">${msg}</p></div>`;
+                dayEl.innerHTML = '';
+                showToast(d?.message || 'خطأ في تقرير الخُدام', 'error');
                 return;
             }
             const report = d.uncle_report || [];
@@ -15033,8 +15048,8 @@
             <div class="sbox"><div class="sv" style="color:${avgPct >= 70 ? 'var(--success)' : 'var(--danger)'};">${avgPct}%</div><div class="sl">متوسط الحضور</div></div>
             <div class="sbox"><div class="sv" style="color:var(--primary);font-size:1rem;">${topUncle ? escHtml(topUncle.uncle_name.split(' ')[0]) : '—'}</div><div class="sl">🏆 الأكثر حضوراً</div></div>`;
 
-            document.getElementById('uncleRankingList2').innerHTML = !report.length
-                ? '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد بيانات لهذه السنة</h3></div>'
+            rankEl.innerHTML = !report.length
+                ? '<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد خُدام أو لا توجد سجلات حضور لهذه السنة</h3><p style="color:var(--muted);font-size:0.82rem;">سجّل حضور الخُدام من تبويب «سجل الحضور» ثم ارجع للتقرير</p></div>'
                 : report.map((r, i) => {
                     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'other';
                     const initials = (r.uncle_name || '').split(' ').map(w => w[0]).slice(0, 2).join('');
@@ -15063,7 +15078,7 @@
                 }).join('');
 
             const maxCount = dayRank[0]?.present_count || 1;
-            document.getElementById('dayRankingList2').innerHTML = !dayRank.length
+            dayEl.innerHTML = !dayRank.length
                 ? '<div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد أيام مُسجَّلة</h3></div>'
                 : dayRank.map((day, i) => {
                     const dateObj = new Date(day.date + 'T00:00:00');
