@@ -1414,6 +1414,16 @@
             background: #7c3aed;
         }
 
+        .act-restore {
+            background: var(--success);
+        }
+
+        .act-restore:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
         .grad-transfer-card {
             padding: 14px 16px;
             border: 1px solid var(--border);
@@ -5663,9 +5673,10 @@
                                 <thead>
                                     <tr>
                                         <th>الاسم</th>
+                                        <th>الفصل السابق</th>
                                         <th>الهاتف</th>
                                         <th>الكوبونات</th>
-                                        <th style="width:150px;text-align:center;">الإجراءات</th>
+                                        <th style="width:180px;text-align:center;">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="graduatesTable"></tbody>
@@ -10321,17 +10332,24 @@
             const tb = document.getElementById('graduatesTable');
             if (!tb) return;
             if (!rows.length) {
-                tb.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-user-graduate"></i><h3>لا يوجد خريجون</h3><p style="color:var(--muted);font-size:0.82rem;">يظهرون هنا بعد نقل السنة الدراسية من أعلى فصل</p></div></td></tr>';
+                tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-graduate"></i><h3>لا يوجد خريجون</h3><p style="color:var(--muted);font-size:0.82rem;">يظهرون هنا بعد نقل السنة الدراسية من أعلى فصل</p></div></td></tr>';
                 return;
             }
             tb.innerHTML = rows.map(g => {
                 const sid = parseInt(g.id, 10);
                 const safeName = escHtml(g.name || '');
-                return `<tr data-graduate-id="${sid}">
+                const prevClass = g.previous_class ? escHtml(g.previous_class) : '—';
+                const canRestore = !!g.can_restore;
+                const restoreBtn = canRestore
+                    ? `<button type="button" class="act-btn act-restore" title="إعادة للفصل السابق" onclick="restoreGraduate(${sid})"><i class="fas fa-undo"></i></button>`
+                    : `<button type="button" class="act-btn act-restore" title="الفصل السابق غير متاح" disabled><i class="fas fa-undo"></i></button>`;
+                return `<tr data-graduate-id="${sid}" data-can-restore="${canRestore ? '1' : '0'}" data-prev-class="${escHtml(g.previous_class || '')}">
                 <td><strong>${safeName}</strong></td>
+                <td><span class="badge badge-primary" style="font-size:0.72rem;">${prevClass}</span></td>
                 <td style="color:var(--text-3);">${escHtml(g.phone || '—')}</td>
                 <td><strong style="color:var(--primary);">${g.coupons || 0}</strong></td>
                 <td><div class="actions">
+                    ${restoreBtn}
                     <button type="button" class="act-btn act-view" title="تصدير البيانات" onclick="exportGraduate(${sid})"><i class="fas fa-download"></i></button>
                     <button type="button" class="act-btn act-export-del" title="تصدير ثم حذف" onclick="exportAndDeleteGraduate(${sid})"><i class="fas fa-file-export"></i></button>
                     <button type="button" class="act-btn act-transfer" title="إرسال لكنيسة" onclick="openSendGraduateModal(${sid})"><i class="fas fa-paper-plane"></i></button>
@@ -10339,6 +10357,27 @@
                 </div></td>
             </tr>`;
             }).join('');
+        }
+
+        async function restoreGraduate(studentId) {
+            const row = document.querySelector(`tr[data-graduate-id="${studentId}"]`);
+            const name = row?.querySelector('td strong')?.textContent?.trim() || 'هذا الخريج';
+            const prevClass = row?.dataset?.prevClass || 'فصله السابق';
+            if (row?.dataset?.canRestore !== '1') {
+                showToast('لا يمكن إعادة هذا الخريج — الفصل السابق غير متوفر', 'warning');
+                return;
+            }
+            if (!confirm('إعادة ' + name + ' إلى فصل «' + prevClass + '»؟')) return;
+            const fd = mkFd('restoreGraduateToClass');
+            fd.append('studentId', String(studentId));
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast(res.message || 'تمت الإعادة', 'success');
+                loadGraduates();
+                if (typeof loadStudents === 'function') loadStudents();
+            } else {
+                showToast(res.message || 'فشلت الإعادة', 'error');
+            }
         }
 
         function exportGraduate(studentId) {

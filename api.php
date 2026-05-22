@@ -1793,6 +1793,11 @@ try {
             getChurchesForTransfer();
             break;
 
+        case 'restoreGraduateToClass':
+            checkAuth();
+            restoreGraduateToClass();
+            break;
+
         case 'getUncleClassView':
             checkUncleAuth();
             getUncleClassView();
@@ -14028,10 +14033,16 @@ function gradeUpStudentsForChurch(int $churchId): array
         SET class_id = ?, class = ?, enrollment_status = 'active', updated_at = NOW()
         WHERE id = ? AND church_id = ?
     ");
+    $topClassName = $ordered[count($ordered) - 1]['arabic_name'] ?? '';
     $gradStmt = $conn->prepare("
         UPDATE students
-        SET class_id = 0, class = 'خريجين', enrollment_status = 'graduate', updated_at = NOW()
-        WHERE id = ? AND church_id = ?
+        SET graduate_from_class_id = class_id,
+            graduate_from_class = ?,
+            class_id = 0,
+            class = 'خريجين',
+            enrollment_status = 'graduate',
+            updated_at = NOW()
+        WHERE id = ? AND church_id = ? AND class_id = ?
     ");
 
     $promoted = 0;
@@ -14042,7 +14053,7 @@ function gradeUpStudentsForChurch(int $churchId): array
         $cid = (int) $s['class_id'];
 
         if ($cid === $topClassId) {
-            $gradStmt->bind_param("ii", $sid, $churchId);
+            $gradStmt->bind_param("siii", $topClassName, $sid, $churchId, $topClassId);
             if ($gradStmt->execute() && $gradStmt->affected_rows > 0) {
                 $graduated++;
             } else {
@@ -14207,6 +14218,12 @@ function ensureStudentGraduateSchema($conn): void
     $conn->query("ALTER TABLE students ADD COLUMN IF NOT EXISTS
         `enrollment_status` VARCHAR(20) NOT NULL DEFAULT 'active'
         COMMENT 'active | graduate'");
+    $conn->query("ALTER TABLE students ADD COLUMN IF NOT EXISTS
+        `graduate_from_class_id` INT NULL DEFAULT NULL
+        COMMENT 'Class id before graduating'");
+    $conn->query("ALTER TABLE students ADD COLUMN IF NOT EXISTS
+        `graduate_from_class` VARCHAR(100) NULL DEFAULT NULL
+        COMMENT 'Class name before graduating'");
     $conn->query("
         CREATE TABLE IF NOT EXISTS `student_transfer_requests` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -14262,6 +14279,127 @@ function removeStudentFromChurch($conn, int $studentId, int $churchId): bool
     return $deleteStmt->affected_rows > 0;
 }
 
+/**
+ * Resolve which class a graduate should return to (by saved id, then by saved name).
+ */
+function resolveGraduateRestoreClass($conn, int $churchId, int $classId, string $className): ?array
+{
+    if ($classId > 0) {
+        $cc = $conn->prepare("
+            SELECT id, arabic_name FROM church_classes
+            WHERE id = ? AND church_id = ? AND is_active = 1 LIMIT 1
+        ");
+        $cc->bind_param("ii", $classId, $churchId);
+        $cc->execute();
+        if ($row = $cc->get_result()->fetch_assoc()) {
+            return ['id' => (int) $row['id'], 'name' => $row['arabic_name']];
+        }
+        $gc = $conn->prepare("SELECT id, arabic_name FROM classes WHERE id = ? LIMIT 1");
+        $gc->bind_param("i", $classId);
+        $gc->execute();
+        if ($row = $gc->get_result()->fetch_assoc()) {
+            return ['id' => (int) $row['id'], 'name' => $row['arabic_name']];
+        }
+    }
+
+    $name = trim($className);
+    if ($name !== '' && $name !== 'خريجين') {
+        $byName = $conn->prepare("
+            SELECT id, arabic_name FROM church_classes
+            WHERE church_id = ? AND arabic_name = ? AND is_active = 1 LIMIT 1
+        ");
+        $byName->bind_param("is", $churchId, $name);
+        $byName->execute();
+        if ($row = $byName->get_result()->fetch_assoc()) {
+            return ['id' => (int) $row['id'], 'name' => $row['arabic_name']];
+        }
+        $gByName = $conn->prepare("SELECT id, arabic_name FROM classes WHERE arabic_name = ? LIMIT 1");
+        $gByName->bind_param("s", $name);
+        $gByName->execute();
+        if ($row = $gByName->get_result()->fetch_assoc()) {
+            return ['id' => (int) $row['id'], 'name' => $row['arabic_name']];
+        }
+    }
+
+    return null;
+}
+
+function restoreGraduateToClass()
+{
+    try {
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        if (!$churchId || !$studentId) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureStudentGraduateSchema($conn);
+
+        $stmt = $conn->prepare("
+            SELECT id, name, graduate_from_class_id, graduate_from_class
+            FROM students
+            WHERE id = ? AND church_id = ? AND enrollment_status = 'graduate'
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $studentId, $churchId);
+        $stmt->execute();
+        $student = $stmt->get_result()->fetch_assoc();
+        if (!$student) {
+            sendJSON(['success' => false, 'message' => 'الخريج غير موجود']);
+            return;
+        }
+
+        $fromId = (int) ($student['graduate_from_class_id'] ?? 0);
+        $fromName = trim($student['graduate_from_class'] ?? '');
+        $target = resolveGraduateRestoreClass($conn, $churchId, $fromId, $fromName);
+
+        if (!$target) {
+            sendJSON([
+                'success' => false,
+                'message' => 'لا يمكن تحديد الفصل السابق'
+                    . ($fromName ? ' («' . $fromName . '»)' : '')
+                    . ' — تأكد أن الفصل ما زال موجوداً',
+            ]);
+            return;
+        }
+
+        $upd = $conn->prepare("
+            UPDATE students
+            SET class_id = ?,
+                class = ?,
+                enrollment_status = 'active',
+                graduate_from_class_id = NULL,
+                graduate_from_class = NULL,
+                updated_at = NOW()
+            WHERE id = ? AND church_id = ?
+        ");
+        $upd->bind_param("isii", $target['id'], $target['name'], $studentId, $churchId);
+        if ($upd->execute() && $upd->affected_rows > 0) {
+            writeAuditLog(
+                'restore_graduate',
+                'students',
+                $studentId,
+                $student['name'],
+                null,
+                null,
+                'class:' . $target['name']
+            );
+            sendJSON([
+                'success' => true,
+                'message' => 'تمت إعادة ' . $student['name'] . ' إلى فصل «' . $target['name'] . '»',
+                'class_name' => $target['name'],
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في إعادة الطفل للفصل']);
+        }
+    } catch (Exception $e) {
+        error_log('restoreGraduateToClass: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في إعادة الطفل للفصل']);
+    }
+}
+
 function getChurchesForTransfer()
 {
     try {
@@ -14310,6 +14448,7 @@ function getGraduates()
         $stmt = $conn->prepare("
             SELECT s.id, s.name, s.phone, s.birthday, s.coupons, s.custom_info, s.image_url,
                    s.gender, s.address, s.emergency_phone, s.medical_notes, s.class_id,
+                   s.graduate_from_class_id, s.graduate_from_class,
                    s.created_at, s.updated_at
             FROM students s
             WHERE s.church_id = ? AND s.enrollment_status = 'graduate'
@@ -14317,7 +14456,16 @@ function getGraduates()
         ");
         $stmt->bind_param("i", $churchId);
         $stmt->execute();
-        $graduates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $graduates = [];
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $fromId = (int) ($row['graduate_from_class_id'] ?? 0);
+            $fromName = trim($row['graduate_from_class'] ?? '');
+            $canRestore = resolveGraduateRestoreClass($conn, $churchId, $fromId, $fromName) !== null;
+            $row['can_restore'] = $canRestore;
+            $row['previous_class'] = $fromName ?: null;
+            $graduates[] = $row;
+        }
 
         $inStmt = $conn->prepare("
             SELECT r.id, r.student_name, r.status, r.created_at,
