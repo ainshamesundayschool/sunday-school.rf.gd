@@ -2911,7 +2911,7 @@ function addStudent()
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isisssiissss",
+                "isisssiisss",
                 $churchId,
                 $name,
                 $classId,
@@ -2932,7 +2932,7 @@ function addStudent()
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isissssiissss",
+                "isissssiisss",
                 $churchId,
                 $name,
                 $classId,
