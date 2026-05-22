@@ -3367,6 +3367,7 @@
       tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
       if (tripResp.success) {
         allTripsCache = [tripResp.trip];
+        window.currentWaitlistCache = tripResp.trip.waitlist || [];
         renderTripDetailsFull(tripResp.trip);
         switchTripTab(targetTab, false);
         // Auto-print if action=print is in the URL hash
@@ -3396,10 +3397,33 @@
 
     function getCurrentTripTotalPerKid() {
       const trip = allTripsCache.find(t => t.id == window.currentTripId) || window.currentTripObj;
+      if (trip?.total_per_kid != null) {
+        return Math.round(Number(trip.total_per_kid));
+      }
       const basePrice = Math.round(calcFinalPrice?.(trip) || Math.round(trip?.price || 0));
       const exps = tripExpensesCache[window.currentTripId] || [];
       const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
       return basePrice + expPerKid;
+    }
+
+    function getTripWaitlistFromTrip(trip) {
+      return trip?.waitlist || window.currentWaitlistCache || [];
+    }
+
+    function calcTripFinancialTotals(trip, regs, waitlist) {
+      const totalPerKid = getCurrentTripTotalPerKid() || Number(trip?.total_per_kid || 0);
+      const wl = waitlist || [];
+      const stats = trip?.stats || {};
+      const regCollected = regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0);
+      const wlCollected = wl.reduce((s, w) => s + (parseFloat(w.total_paid ?? w.deposit) || 0), 0);
+      const regDonations = regs.reduce((s, r) => s + (parseFloat(r.total_donation) || 0), 0);
+      const wlDonations = wl.reduce((s, w) => s + (parseFloat(w.total_donation ?? w.donation) || 0), 0);
+      const participantCount = regs.length + wl.length;
+      const totalCollected = Math.round(stats.total_collected != null ? Number(stats.total_collected) : (regCollected + wlCollected));
+      const totalDonations = Math.round(stats.total_donations != null ? Number(stats.total_donations) : (regDonations + wlDonations));
+      const totalExpected = Math.round(stats.total_expected != null ? Number(stats.total_expected) : (totalPerKid * participantCount));
+      const totalRemaining = Math.round(stats.pending_amount != null ? Number(stats.pending_amount) : Math.max(0, totalExpected - totalCollected));
+      return { totalPerKid, totalCollected, totalDonations, totalExpected, totalRemaining, participantCount, waitlistCount: wl.length };
     }
 
     function getPaymentTargetMeta(meta = {}) {
@@ -3462,10 +3486,13 @@
       const exps = tripExpensesCache[trip.id] || [];
       const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
       const totalPerKid = basePrice + expPerKid;
-      const totalCollected = Math.round(regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0));
-      const totalDonations = Math.round(regs.reduce((s, r) => s + (parseFloat(r.total_donation) || 0), 0));
-      const totalExpected = totalPerKid * regs.length;
-      const totalRemaining = Math.max(0, totalExpected - totalCollected);
+      const waitlist = getTripWaitlistFromTrip(trip);
+      window.currentWaitlistCache = waitlist;
+      const fin = calcTripFinancialTotals(trip, regs, waitlist);
+      const totalCollected = fin.totalCollected;
+      const totalDonations = fin.totalDonations;
+      const totalExpected = fin.totalExpected;
+      const totalRemaining = fin.totalRemaining;
 
       document.getElementById('tdModalTitle').textContent = trip.title;
       document.getElementById('tdStatusBadge').innerHTML = `
@@ -3475,13 +3502,16 @@
       document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}`;
       document.getElementById('tdRegsCount').textContent = regs.length || '';
       document.getElementById('tdExpCount').textContent = exps.length || '';
-      // Load waitlist count async
+      // Waitlist badge (use trip.waitlist from getTripDetails; refresh async)
+      const badge = document.getElementById('tdWaitlistCount');
+      if (badge) badge.textContent = fin.waitlistCount || '';
       (async () => {
         const fd2 = mkFd('getWaitlist'); fd2.append('trip_id', trip.id);
         const wd = await fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).catch(() => ({ success: false }));
-        const wCount = wd.success ? (wd.waitlist || []).length : 0;
-        const badge = document.getElementById('tdWaitlistCount');
-        if (badge) badge.textContent = wCount || '';
+        if (wd.success) {
+          window.currentWaitlistCache = wd.waitlist || [];
+          if (badge) badge.textContent = (wd.waitlist || []).length || '';
+        }
       })();
       document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
       document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر ${tripWordDef}`;
@@ -3575,8 +3605,8 @@
             <div style="display:grid;gap:8px;">
               ${regs.map((r) => {
           const paid = parseFloat(r.total_paid) || 0;
-          const remaining = Math.max(0, totalPerKid - paid);
-          const status = Math.abs(remaining) < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending');
+          const remaining = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+          const status = r.payment_status || (Math.abs(remaining) < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending'));
           const [col, lbl] = pm[status] || ['var(--muted)', '—'];
           const pct = totalPerKid > 0 ? Math.min(100, Math.round(paid / totalPerKid * 100)) : 0;
           const initials = (r.student_name || '؟').charAt(0);
@@ -4681,11 +4711,18 @@
       window.currentWaitlistCache = list.map(w => {
         let history = [];
         try { history = Array.isArray(w.payment_history) ? w.payment_history : (JSON.parse(w.payment_history || '[]') || []); } catch (e) { history = []; }
+        const totalPaid = parseFloat(w.total_paid ?? w.deposit) || 0;
+        const totalDonation = parseFloat(w.total_donation ?? w.donation) || 0;
+        const totalPerKid = getCurrentTripTotalPerKid();
+        const remaining = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - totalPaid);
         return {
           ...w,
           payment_history: history,
-          total_paid: parseFloat(w.deposit) || 0,
-          total_donation: parseFloat(w.donation) || 0
+          total_paid: totalPaid,
+          total_donation: totalDonation,
+          deposit: totalPaid,
+          remaining,
+          payment_status: w.payment_status || (remaining < 0.01 ? 'paid' : (totalPaid > 0.01 ? 'partial' : 'pending'))
         };
       });
       // Update badge
@@ -4711,9 +4748,9 @@
         const initials = (w.student_name || '؟').charAt(0);
         const img = w.student_image || '';
         const totalPerKid = getCurrentTripTotalPerKid();
-        const paid = parseFloat(w.deposit) || 0;
-        const remaining = Math.max(0, totalPerKid - paid);
-        const status = remaining < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending');
+        const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
+        const remaining = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+        const status = w.payment_status || (remaining < 0.01 ? 'paid' : (paid > 0.01 ? 'partial' : 'pending'));
         const col = { paid: 'var(--success)', partial: 'var(--warning)', pending: 'var(--danger)' }[status];
         const lbl = { paid: 'مدفوع بالكامل', partial: 'جزئي', pending: 'غير مدفوع' }[status];
         return `<div class="reg-row" style="border-right:3px solid ${idx === 0 ? 'var(--warning)' : 'var(--border-2)'};">

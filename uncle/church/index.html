@@ -10068,6 +10068,32 @@
             return Math.round(Math.max(0, t.price - t.discount));
         }
 
+        function getCurrentTripTotalPerKid() {
+            const trip = allTripsCache.find(t => t.id == window.currentTripId) || window.currentTripObj;
+            if (trip?.total_per_kid != null) return Math.round(Number(trip.total_per_kid));
+            const basePrice = Math.round(calcFinalPrice(trip || {}));
+            const exps = tripExpensesCache[window.currentTripId] || [];
+            const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
+            return basePrice + expPerKid;
+        }
+
+        function getTripWaitlistFromTrip(trip) {
+            return trip?.waitlist || window.currentWaitlistCache || [];
+        }
+
+        function calcTripFinancialTotals(trip, regs, waitlist) {
+            const totalPerKid = getCurrentTripTotalPerKid() || Number(trip?.total_per_kid || 0);
+            const wl = waitlist || [];
+            const stats = trip?.stats || {};
+            const regCollected = regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0);
+            const wlCollected = wl.reduce((s, w) => s + (parseFloat(w.total_paid ?? w.deposit) || 0), 0);
+            const participantCount = regs.length + wl.length;
+            const totalCollected = Math.round(stats.total_collected != null ? Number(stats.total_collected) : (regCollected + wlCollected));
+            const totalExpected = Math.round(stats.total_expected != null ? Number(stats.total_expected) : (totalPerKid * participantCount));
+            const totalRemaining = Math.round(stats.pending_amount != null ? Number(stats.pending_amount) : Math.max(0, totalExpected - totalCollected));
+            return { totalPerKid, totalCollected, totalExpected, totalRemaining, participantCount, waitlistCount: wl.length };
+        }
+
         async function addTrip(e) {
             e.preventDefault();
             const title = document.getElementById('tripTitle').value;
@@ -10232,6 +10258,7 @@
             ]);
             tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
             if (tripResp.success) {
+                window.currentWaitlistCache = tripResp.trip.waitlist || [];
                 renderTripDetailsFull(tripResp.trip);
                 const tripTab = getHashData().params.get('trip_tab');
                 if (tripTab) switchTripTab(tripTab);
@@ -10250,9 +10277,12 @@
             const exps = tripExpensesCache[trip.id] || [];
             const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
             const totalPerKid = basePrice + expPerKid;
-            const totalCollected = Math.round(regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0));
-            const totalExpected = totalPerKid * regs.length;
-            const totalRemaining = Math.max(0, totalExpected - totalCollected);
+            const waitlist = getTripWaitlistFromTrip(trip);
+            window.currentWaitlistCache = waitlist;
+            const fin = calcTripFinancialTotals(trip, regs, waitlist);
+            const totalCollected = fin.totalCollected;
+            const totalExpected = fin.totalExpected;
+            const totalRemaining = fin.totalRemaining;
 
             // Update header
             document.getElementById('tdModalTitle').textContent = trip.title;
@@ -10290,8 +10320,8 @@
             <div class="info-box" style="border:2px solid var(--primary);background:var(--primary-light);"><small>الإجمالي / طفل</small><div style="color:var(--primary);font-weight:900;font-size:1.2rem;">${totalPerKid} ج</div></div>
             <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:800;">${totalCollected} ج</div></div>
             <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>نسبة الدفع</small><div style="color:var(--info);font-weight:800;">${totalPerKid * regs.length > 0 ? Math.round(totalCollected / (totalPerKid * regs.length) * 100) : 0}%</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>متوسط الدفع</small><div style="color:var(--warning);font-weight:800;">${regs.length > 0 ? Math.round(totalCollected / regs.length) : 0} ج</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>نسبة الدفع</small><div style="color:var(--info);font-weight:800;">${totalExpected > 0 ? Math.round(totalCollected / totalExpected * 100) : 0}%</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>متوسط الدفع</small><div style="color:var(--warning);font-weight:800;">${fin.participantCount > 0 ? Math.round(totalCollected / fin.participantCount) : 0} ج</div></div>
         </div>
         
         ${(() => {
@@ -10827,8 +10857,10 @@
             const exps = tripExpensesCache[tripId] || [];
             const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
             const totalPerKid = basePrice + expPerKid;
-            const totalCollected = Math.round(regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0));
-            const totalRemaining = Math.max(0, totalPerKid * regs.length - totalCollected);
+            window.currentWaitlistCache = trip.waitlist || window.currentWaitlistCache || [];
+            const fin = calcTripFinancialTotals(trip, regs, window.currentWaitlistCache);
+            const totalCollected = fin.totalCollected;
+            const totalRemaining = fin.totalRemaining;
 
             const pillEl = document.getElementById('tdTotalPricePill');
             const breakEl = document.getElementById('tdPriceBreakPill');

@@ -9560,6 +9560,9 @@ function getTripDetails()
             }
         }
         $trip['final_price'] = round($finalPrice, 2);
+        $totalPerKid = getTripTotalPerKid($conn, $tripId, $trip);
+        $trip['total_per_kid'] = $totalPerKid;
+        $trip['expenses_per_kid'] = round(getTripExpensesPerKid($conn, $tripId), 2);
         $trip['start_date_formatted'] = date('d/m/Y', strtotime($trip['start_date']));
         $trip['end_date_formatted'] = $trip['end_date'] ? date('d/m/Y', strtotime($trip['end_date'])) : '';
         // decode custom_field_icons JSON into array for JS
@@ -9669,14 +9672,9 @@ function getTripDetails()
             }
             $row['payment_history'] = $history;
 
-            $row['remaining'] = max(0, round($finalPrice - $row['total_paid'], 2));
-            if (abs($row['remaining']) < 0.01) {
-                $row['payment_status'] = 'paid';
-            } elseif ($row['total_paid'] > 0.01) {
-                $row['payment_status'] = 'partial';
-            } else {
-                $row['payment_status'] = 'pending';
-            }
+            $payStatus = tripPaymentStatusFromPaid($row['total_paid'], $totalPerKid);
+            $row['remaining'] = $payStatus['remaining'];
+            $row['payment_status'] = $payStatus['payment_status'];
 
             $totalPaid += $row['total_paid'];
             $totalDonations += $row['total_donation'];
@@ -9687,9 +9685,24 @@ function getTripDetails()
             $registrations[] = $row;
         }
 
+        ensureWaitlistTable($conn);
+        $waitlist = getWaitlistData($tripId, $conn);
+        $waitlistCollected = 0.0;
+        $waitlistDonations = 0.0;
+        $waitlistPending = 0.0;
+        foreach ($waitlist as $w) {
+            $waitlistCollected += floatval($w['total_paid'] ?? 0);
+            $waitlistDonations += floatval($w['total_donation'] ?? 0);
+            $waitlistPending += floatval($w['remaining'] ?? 0);
+        }
+
         $trip['registrations'] = $registrations;
+        $trip['waitlist'] = $waitlist;
+        $participantCount = count($registrations) + count($waitlist);
         $trip['stats'] = [
             'registered' => count($registrations),
+            'waitlist_count' => count($waitlist),
+            'participant_count' => $participantCount,
             'paid_count' => count(array_filter($registrations, function ($r) {
                 return $r['payment_status'] === 'paid';
             })),
@@ -9699,9 +9712,13 @@ function getTripDetails()
             'pending_count' => count(array_filter($registrations, function ($r) {
                 return $r['payment_status'] === 'pending';
             })),
-            'total_collected' => $totalPaid,
-            'total_donations' => $totalDonations,
-            'pending_amount' => $pendingAmount
+            'total_collected' => round($totalPaid + $waitlistCollected, 2),
+            'registration_collected' => round($totalPaid, 2),
+            'waitlist_collected' => round($waitlistCollected, 2),
+            'total_donations' => round($totalDonations + $waitlistDonations, 2),
+            'pending_amount' => round($pendingAmount + $waitlistPending, 2),
+            'total_expected' => round($totalPerKid * $participantCount, 2),
+            'total_per_kid' => $totalPerKid,
         ];
 
         sendJSON([
@@ -9815,6 +9832,185 @@ function ensureWaitlistTable($conn)
     }
 }
 
+function getTripDiscountedBasePrice($trip)
+{
+    $finalPrice = floatval($trip['price'] ?? 0);
+    if (floatval($trip['discount'] ?? 0) > 0) {
+        if (($trip['discount_type'] ?? '') === 'percentage') {
+            $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
+        } else {
+            $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
+        }
+    }
+    return round($finalPrice, 2);
+}
+
+function getTripExpensesPerKid($conn, $tripId)
+{
+    $tableCheck = @$conn->query("SHOW TABLES LIKE 'trip_expenses'");
+    if (!$tableCheck || $tableCheck->num_rows === 0) {
+        return 0.0;
+    }
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(per_kid), 0) AS exp_total FROM trip_expenses WHERE trip_id = ?");
+    if (!$stmt) {
+        return 0.0;
+    }
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return floatval($row['exp_total'] ?? 0);
+}
+
+function getTripTotalPerKid($conn, $tripId, $trip = null)
+{
+    if ($trip === null) {
+        $stmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ? LIMIT 1");
+        $stmt->bind_param("i", $tripId);
+        $stmt->execute();
+        $trip = $stmt->get_result()->fetch_assoc() ?: [];
+    }
+    return round(getTripDiscountedBasePrice($trip) + getTripExpensesPerKid($conn, $tripId), 2);
+}
+
+function parseWaitlistPaymentHistory($raw)
+{
+    if (is_array($raw)) {
+        return $raw;
+    }
+    if ($raw === null || $raw === '') {
+        return [];
+    }
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function computeWaitlistPaymentTotals(array $historyArray)
+{
+    $totalPaid = 0.0;
+    $totalDonation = 0.0;
+    foreach ($historyArray as $p) {
+        if (intval($p['is_deleted'] ?? 0) === 1) {
+            continue;
+        }
+        if (($p['type'] ?? '') === 'donation') {
+            $totalDonation += floatval($p['donation'] ?? 0);
+        } else {
+            $totalPaid += floatval($p['amount'] ?? 0);
+        }
+    }
+    return [
+        'total_paid' => round($totalPaid, 2),
+        'total_donation' => round($totalDonation, 2),
+    ];
+}
+
+function tripPaymentStatusFromPaid($totalPaid, $totalPerKid)
+{
+    $remaining = round(max(0, $totalPerKid - $totalPaid), 2);
+    if (abs($remaining) < 0.01) {
+        return ['payment_status' => 'paid', 'remaining' => 0.0];
+    }
+    if ($totalPaid > 0.01) {
+        return ['payment_status' => 'partial', 'remaining' => $remaining];
+    }
+    return ['payment_status' => 'pending', 'remaining' => $remaining];
+}
+
+function enrichWaitlistRow(array $row, $totalPerKid)
+{
+    $history = parseWaitlistPaymentHistory($row['payment_history'] ?? null);
+    $totals = computeWaitlistPaymentTotals($history);
+    $deposit = floatval($row['deposit'] ?? 0);
+    $donationField = floatval($row['donation'] ?? 0);
+
+    if (empty($history) && $deposit > 0) {
+        $totals['total_paid'] = $deposit;
+        $totals['total_donation'] = $donationField;
+    } elseif ($totals['total_paid'] < $deposit - 0.01) {
+        $totals['total_paid'] = $deposit;
+    }
+    if ($totals['total_donation'] < $donationField - 0.01) {
+        $totals['total_donation'] = $donationField;
+    }
+
+    $status = tripPaymentStatusFromPaid($totals['total_paid'], $totalPerKid);
+    $row['payment_history'] = $history;
+    $row['total_paid'] = $totals['total_paid'];
+    $row['total_donation'] = $totals['total_donation'];
+    $row['deposit'] = $totals['total_paid'];
+    $row['donation'] = $totals['total_donation'];
+    $row['remaining'] = $status['remaining'];
+    $row['payment_status'] = $status['payment_status'];
+    return $row;
+}
+
+function fetchRegistrationPaymentsAsHistory($conn, $registrationId)
+{
+    $history = [];
+    $stmt = $conn->prepare("
+        SELECT id, amount, donation, payment_method, received_by, notes, payment_date, is_deleted
+        FROM trip_payments
+        WHERE registration_id = ?
+        ORDER BY id ASC
+    ");
+    if (!$stmt) {
+        return $history;
+    }
+    $stmt->bind_param("i", $registrationId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($p = $result->fetch_assoc()) {
+        if (intval($p['is_deleted'] ?? 0) === 1) {
+            continue;
+        }
+        $amount = floatval($p['amount'] ?? 0);
+        $donation = floatval($p['donation'] ?? 0);
+        $type = 'payment';
+        if ($amount > 0 && strpos((string) ($p['notes'] ?? ''), 'دفعة مقدمة') !== false) {
+            $type = 'deposit';
+        } elseif ($amount <= 0 && $donation > 0) {
+            $type = 'donation';
+        }
+        $history[] = [
+            'id' => $p['id'],
+            'type' => $type,
+            'timestamp' => $p['payment_date'] ?? date('c'),
+            'amount' => $amount,
+            'donation' => $donation,
+            'payment_method' => $p['payment_method'] ?? 'cash',
+            'received_by' => $p['received_by'],
+            'notes' => $p['notes'] ?? '',
+            'is_deleted' => 0,
+        ];
+    }
+    return $history;
+}
+
+function normalizeTripPaymentDate($raw)
+{
+    if (empty($raw)) {
+        return date('Y-m-d H:i:s');
+    }
+    $ts = strtotime($raw);
+    if ($ts === false) {
+        return date('Y-m-d H:i:s');
+    }
+    return date('Y-m-d H:i:s', $ts);
+}
+
+function syncTripRegistrationPaymentStatus($conn, $registrationId, $totalPerKid)
+{
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) AS total_paid FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
+    $stmt->bind_param("i", $registrationId);
+    $stmt->execute();
+    $totalPaid = floatval($stmt->get_result()->fetch_assoc()['total_paid'] ?? 0);
+    $status = tripPaymentStatusFromPaid($totalPaid, $totalPerKid);
+    $sync = $conn->prepare("UPDATE trip_registrations SET payment_status = ? WHERE id = ?");
+    $sync->bind_param("si", $status['payment_status'], $registrationId);
+    $sync->execute();
+    return $status;
+}
+
 function getWaitlistNextPosition($conn, $tripId)
 {
     $stmt = $conn->prepare("SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM trip_waitlist WHERE trip_id = ?");
@@ -9837,44 +10033,95 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
     $stmt->bind_param("i", $tripId);
     $stmt->execute();
     $waiting = $stmt->get_result()->fetch_assoc();
-    if (!$waiting)
+    if (!$waiting) {
         return null;
+    }
 
-    $deposit = floatval($waiting['deposit'] ?? 0);
+    $totalPerKid = getTripTotalPerKid($conn, $tripId);
+    $waiting = enrichWaitlistRow($waiting, $totalPerKid);
+
+    $deposit = floatval($waiting['total_paid'] ?? $waiting['deposit'] ?? 0);
     $notes = $waiting['notes'] ?? '';
     $customData = $waiting['custom_data'];
     $addedBy = $waiting['added_by'];
-    $studentId = $waiting['student_id'];
-    $paymentHistoryJson = $waiting['payment_history'] ?? '[]';
+    $studentId = intval($waiting['student_id']);
+    $historyArray = parseWaitlistPaymentHistory($waiting['payment_history'] ?? null);
+    $paymentsToInsert = [];
+
+    foreach ($historyArray as $p) {
+        if (intval($p['is_deleted'] ?? 0) === 1) {
+            continue;
+        }
+        $paymentsToInsert[] = $p;
+    }
+
+    $historyPaid = 0.0;
+    foreach ($paymentsToInsert as $p) {
+        if (($p['type'] ?? '') !== 'donation') {
+            $historyPaid += floatval($p['amount'] ?? 0);
+        }
+    }
+
+    if ($deposit > $historyPaid + 0.01) {
+        $paymentsToInsert[] = [
+            'type' => 'deposit',
+            'timestamp' => date('c'),
+            'amount' => round($deposit - $historyPaid, 2),
+            'donation' => 0,
+            'payment_method' => 'cash',
+            'received_by' => $addedBy,
+            'notes' => 'دفعة مقدمة - ترقية من قائمة الانتظار',
+            'is_deleted' => 0,
+        ];
+    } elseif (empty($paymentsToInsert) && $deposit > 0.01) {
+        $paymentsToInsert[] = [
+            'type' => 'deposit',
+            'timestamp' => date('c'),
+            'amount' => $deposit,
+            'donation' => 0,
+            'payment_method' => 'cash',
+            'received_by' => $addedBy,
+            'notes' => 'دفعة مقدمة - ترقية من قائمة الانتظار',
+            'is_deleted' => 0,
+        ];
+    }
+
+    $paymentStatus = $waiting['payment_status'] ?? 'pending';
 
     // Remove any old cancelled registration for this student on this trip
     $del = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 1");
     $del->bind_param("ii", $tripId, $studentId);
     $del->execute();
 
-    // Insert a normal registration
-    $ins = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, deposit, notes, custom_data) VALUES (?, ?, ?, ?, ?, ?)");
-    $ins->bind_param("iiidss", $tripId, $studentId, $addedBy, $deposit, $notes, $customData);
-    if (!$ins->execute())
+    // Insert a normal registration (preserve deposit + payment status from waitlist)
+    $ins = $conn->prepare("
+        INSERT INTO trip_registrations (trip_id, student_id, registered_by, deposit, notes, custom_data, payment_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    $ins->bind_param("iiidsss", $tripId, $studentId, $addedBy, $deposit, $notes, $customData, $paymentStatus);
+    if (!$ins->execute()) {
         return null;
+    }
 
     $registrationId = $conn->insert_id;
-
-    // Convert waitlist payments into trip_payments
-    $historyArray = json_decode($paymentHistoryJson, true) ?: [];
     $newHistoryArray = [];
 
-    foreach ($historyArray as $p) {
-        if (intval($p['is_deleted'] ?? 0) === 1) continue;
-
+    foreach ($paymentsToInsert as $p) {
         $pAmt = floatval($p['amount'] ?? 0);
         $pDon = floatval($p['donation'] ?? 0);
         $pMethod = $p['payment_method'] ?? 'cash';
         $pNotes = $p['notes'] ?? '';
-        $pDate = $p['timestamp'] ?? date('c');
+        $pDate = normalizeTripPaymentDate($p['timestamp'] ?? null);
+        $receivedBy = intval($p['received_by'] ?? $addedBy ?? 0);
+        if ($receivedBy <= 0) {
+            $receivedBy = intval($addedBy ?? 0);
+        }
 
-        $ps = $conn->prepare("INSERT INTO trip_payments (registration_id, amount, donation, payment_method, received_by, notes, payment_date) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $ps->bind_param("iddsiss", $registrationId, $pAmt, $pDon, $pMethod, $addedBy, $pNotes, $pDate);
+        $ps = $conn->prepare("
+            INSERT INTO trip_payments (registration_id, amount, donation, payment_method, received_by, notes, payment_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $ps->bind_param("iddsiss", $registrationId, $pAmt, $pDon, $pMethod, $receivedBy, $pNotes, $pDate);
         $ps->execute();
         $realPaymentId = $conn->insert_id;
 
@@ -9885,29 +10132,9 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
             'amount' => $pAmt,
             'donation' => $pDon,
             'payment_method' => $pMethod,
-            'received_by' => $addedBy,
+            'received_by' => $receivedBy,
             'notes' => $pNotes,
-            'is_deleted' => 0
-        ];
-    }
-
-    // Default fallback if deposit is positive but history was empty
-    if ($deposit > 0 && empty($newHistoryArray)) {
-        $ps = $conn->prepare("INSERT INTO trip_payments (registration_id, amount, received_by, notes) VALUES (?, ?, ?, 'دفعة مقدمة - ترقية من قائمة الانتظار')");
-        $ps->bind_param("idi", $registrationId, $deposit, $addedBy);
-        $ps->execute();
-        $realPaymentId = $conn->insert_id;
-
-        $newHistoryArray[] = [
-            'id' => $realPaymentId,
-            'type' => 'deposit',
-            'timestamp' => date('c'),
-            'amount' => $deposit,
-            'donation' => 0,
-            'payment_method' => 'deposit',
-            'received_by' => $addedBy,
-            'notes' => 'دفعة مقدمة - ترقية من قائمة الانتظار',
-            'is_deleted' => 0
+            'is_deleted' => 0,
         ];
     }
 
@@ -9915,6 +10142,8 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
     $updHist = $conn->prepare("UPDATE trip_registrations SET payment_history = ? WHERE id = ?");
     $updHist->bind_param("si", $updatedHistoryJson, $registrationId);
     $updHist->execute();
+
+    syncTripRegistrationPaymentStatus($conn, $registrationId, $totalPerKid);
 
     // Remove from waitlist
     $delW = $conn->prepare("DELETE FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
@@ -9932,12 +10161,15 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
         'student_name' => $waiting['student_name'],
         'student_image' => $waiting['student_image'],
         'registration_id' => $registrationId,
+        'total_paid' => $deposit,
+        'payment_status' => $paymentStatus,
     ];
 }
 
 function getWaitlistData($tripId, $conn)
 {
     ensureWaitlistTable($conn);
+    $totalPerKid = getTripTotalPerKid($conn, $tripId);
     $stmt = $conn->prepare("
         SELECT tw.*, s.name AS student_name, s.image_url AS student_image,
                COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS student_class
@@ -9950,7 +10182,12 @@ function getWaitlistData($tripId, $conn)
     ");
     $stmt->bind_param("i", $tripId);
     $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $enriched = [];
+    foreach ($rows as $row) {
+        $enriched[] = enrichWaitlistRow($row, $totalPerKid);
+    }
+    return $enriched;
 }
 
 function getWaitlistAction()
@@ -10035,36 +10272,15 @@ function addTripWaitlistPayment()
             return;
         }
 
-        // Fetch trip price
-        $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
-        $tripStmt->bind_param("i", $tripId);
-        $tripStmt->execute();
-        $trip = $tripStmt->get_result()->fetch_assoc();
-        if (!$trip) {
-            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
-            return;
+        $totalPerKid = getTripTotalPerKid($conn, $tripId);
+        $historyArray = parseWaitlistPaymentHistory($waitRecord['payment_history'] ?? null);
+        $totals = computeWaitlistPaymentTotals($historyArray);
+        $totalPaid = $totals['total_paid'];
+        if ($totalPaid < floatval($waitRecord['deposit'] ?? 0) - 0.01) {
+            $totalPaid = floatval($waitRecord['deposit'] ?? 0);
         }
 
-        $finalPrice = floatval($trip['price']);
-        if (floatval($trip['discount']) > 0) {
-            if ($trip['discount_type'] === 'percentage') {
-                $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
-            } else {
-                $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
-            }
-        }
-
-        $historyArray = json_decode($waitRecord['payment_history'] ?? '[]', true) ?: [];
-
-        // Sum up total non-deleted payments
-        $totalPaid = 0;
-        foreach ($historyArray as $p) {
-            if (intval($p['is_deleted'] ?? 0) === 0 && ($p['type'] ?? '') !== 'donation') {
-                $totalPaid += floatval($p['amount'] ?? 0);
-            }
-        }
-
-        $remaining = $finalPrice - $totalPaid;
+        $remaining = $totalPerKid - $totalPaid;
         if ($amount > $remaining) {
             sendJSON(['success' => false, 'message' => 'المبلغ أكبر من المتبقي']);
             return;
@@ -10104,22 +10320,15 @@ function addTripWaitlistPayment()
         $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
 
         if ($upd->execute()) {
-            $newRemaining = $finalPrice - $newTotalPaid;
-            if (abs($newRemaining) < 0.01) {
-                $newStatus = 'paid';
-            } elseif ($newTotalPaid > 0.01) {
-                $newStatus = 'partial';
-            } else {
-                $newStatus = 'pending';
-            }
+            $status = tripPaymentStatusFromPaid($newTotalPaid, $totalPerKid);
 
             sendJSON([
                 'success' => true,
                 'message' => 'تم إضافة الدفعة لقائمة الانتظار بنجاح',
                 'payment_id' => $newPaymentId,
-                'new_status' => $newStatus,
+                'new_status' => $status['payment_status'],
                 'total_paid' => $newTotalPaid,
-                'remaining' => max(0, $newRemaining)
+                'remaining' => $status['remaining']
             ]);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في إضافة الدفعة لقائمة الانتظار']);
@@ -10203,36 +10412,15 @@ function deleteTripWaitlistPayment()
         $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
 
         if ($upd->execute()) {
-            // Fetch trip price
-            $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
-            $tripStmt->bind_param("i", $tripId);
-            $tripStmt->execute();
-            $trip = $tripStmt->get_result()->fetch_assoc();
-            
-            $finalPrice = floatval($trip['price'] ?? 0);
-            if (floatval($trip['discount'] ?? 0) > 0) {
-                if ($trip['discount_type'] === 'percentage') {
-                    $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
-                } else {
-                    $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
-                }
-            }
-
-            $newRemaining = $finalPrice - $newTotalPaid;
-            if (abs($newRemaining) < 0.01) {
-                $newStatus = 'paid';
-            } elseif ($newTotalPaid > 0.01) {
-                $newStatus = 'partial';
-            } else {
-                $newStatus = 'pending';
-            }
+            $totalPerKid = getTripTotalPerKid($conn, $tripId);
+            $status = tripPaymentStatusFromPaid($newTotalPaid, $totalPerKid);
 
             sendJSON([
                 'success' => true,
                 'message' => 'تم حذف الدفعة بنجاح',
-                'new_status' => $newStatus,
+                'new_status' => $status['payment_status'],
                 'total_paid' => $newTotalPaid,
-                'remaining' => max(0, $newRemaining)
+                'remaining' => $status['remaining']
             ]);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في حذف الدفعة']);
@@ -10316,36 +10504,15 @@ function restoreTripWaitlistPayment()
         $upd->bind_param("ddsi", $newTotalPaid, $newTotalDonation, $paymentHistoryJson, $waitRecord['id']);
 
         if ($upd->execute()) {
-            // Fetch trip price
-            $tripStmt = $conn->prepare("SELECT price, discount, discount_type FROM trips WHERE id = ?");
-            $tripStmt->bind_param("i", $tripId);
-            $tripStmt->execute();
-            $trip = $tripStmt->get_result()->fetch_assoc();
-            
-            $finalPrice = floatval($trip['price'] ?? 0);
-            if (floatval($trip['discount'] ?? 0) > 0) {
-                if ($trip['discount_type'] === 'percentage') {
-                    $finalPrice = $finalPrice - ($finalPrice * floatval($trip['discount']) / 100);
-                } else {
-                    $finalPrice = max(0, $finalPrice - floatval($trip['discount']));
-                }
-            }
-
-            $newRemaining = $finalPrice - $newTotalPaid;
-            if (abs($newRemaining) < 0.01) {
-                $newStatus = 'paid';
-            } elseif ($newTotalPaid > 0.01) {
-                $newStatus = 'partial';
-            } else {
-                $newStatus = 'pending';
-            }
+            $totalPerKid = getTripTotalPerKid($conn, $tripId);
+            $status = tripPaymentStatusFromPaid($newTotalPaid, $totalPerKid);
 
             sendJSON([
                 'success' => true,
                 'message' => 'تم استعادة الدفعة بنجاح',
-                'new_status' => $newStatus,
+                'new_status' => $status['payment_status'],
                 'total_paid' => $newTotalPaid,
-                'remaining' => max(0, $newRemaining)
+                'remaining' => $status['remaining']
             ]);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في استعادة الدفعة']);
@@ -10410,22 +10577,22 @@ function rebalanceTripWaitlist()
         foreach ($extra as $r) {
             $regId = $r['id'];
             $studentId = $r['student_id'];
-            $paymentHistoryJson = $r['payment_history'] ?? '[]';
-
-            // Calc total paid and donation for this registration to preserve it in waitlist
-            $paidStmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total_paid, COALESCE(SUM(donation), 0) as total_donation FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
-            $paidStmt->bind_param("i", $regId);
-            $paidStmt->execute();
-            $paidRes = $paidStmt->get_result()->fetch_assoc();
-            $totalPaid = floatval($paidRes['total_paid'] ?? 0);
-            $totalDonation = floatval($paidRes['total_donation'] ?? 0);
-
-            $totalFunds = floatval($r['deposit'] ?? 0) + $totalPaid;
+            $historyArray = parseWaitlistPaymentHistory($r['payment_history'] ?? null);
+            if (empty($historyArray)) {
+                $historyArray = fetchRegistrationPaymentsAsHistory($conn, $regId);
+            }
+            $totals = computeWaitlistPaymentTotals($historyArray);
+            $totalPaid = $totals['total_paid'];
+            $totalDonation = $totals['total_donation'];
+            if ($totalPaid < floatval($r['deposit'] ?? 0) - 0.01) {
+                $totalPaid = floatval($r['deposit'] ?? 0);
+            }
+            $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
 
             // Move to waitlist
             $pos = getWaitlistNextPosition($conn, $tripId);
             $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, donation, custom_data, payment_history, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $ins->bind_param("iiiisddsss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalFunds, $totalDonation, $r['custom_data'], $paymentHistoryJson, $r['created_at']);
+            $ins->bind_param("iiiisddsss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalPaid, $totalDonation, $r['custom_data'], $paymentHistoryJson, $r['created_at']);
 
             if ($ins->execute()) {
                 // Delete payments (they are consolidated in waitlist.deposit)
