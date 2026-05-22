@@ -9716,8 +9716,12 @@ function getTripDetails()
             'registration_collected' => round($totalPaid, 2),
             'waitlist_collected' => round($waitlistCollected, 2),
             'total_donations' => round($totalDonations + $waitlistDonations, 2),
+            'registration_pending' => round($pendingAmount, 2),
+            'waitlist_pending' => round($waitlistPending, 2),
             'pending_amount' => round($pendingAmount + $waitlistPending, 2),
             'total_expected' => round($totalPerKid * $participantCount, 2),
+            'registration_expected' => round($totalPerKid * count($registrations), 2),
+            'waitlist_expected' => round($totalPerKid * count($waitlist), 2),
             'total_per_kid' => $totalPerKid,
         ];
 

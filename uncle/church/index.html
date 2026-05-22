@@ -10081,6 +10081,22 @@
             return trip?.waitlist || window.currentWaitlistCache || [];
         }
 
+        function sumRegistrationRemaining(regs, totalPerKid) {
+            return Math.round(regs.reduce((s, r) => {
+                const paid = parseFloat(r.total_paid) || 0;
+                const rem = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+                return s + rem;
+            }, 0));
+        }
+
+        function sumWaitlistRemaining(wl, totalPerKid) {
+            return Math.round((wl || []).reduce((s, w) => {
+                const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
+                const rem = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+                return s + rem;
+            }, 0));
+        }
+
         function calcTripFinancialTotals(trip, regs, waitlist) {
             const totalPerKid = getCurrentTripTotalPerKid() || Number(trip?.total_per_kid || 0);
             const wl = waitlist || [];
@@ -10088,10 +10104,21 @@
             const regCollected = regs.reduce((s, r) => s + (parseFloat(r.total_paid) || 0), 0);
             const wlCollected = wl.reduce((s, w) => s + (parseFloat(w.total_paid ?? w.deposit) || 0), 0);
             const participantCount = regs.length + wl.length;
-            const totalCollected = Math.round(stats.total_collected != null ? Number(stats.total_collected) : (regCollected + wlCollected));
+            const registrationCollected = Math.round(stats.registration_collected != null ? Number(stats.registration_collected) : regCollected);
+            const waitlistCollected = Math.round(stats.waitlist_collected != null ? Number(stats.waitlist_collected) : wlCollected);
+            const registrationRemaining = Math.round(stats.registration_pending != null ? Number(stats.registration_pending) : sumRegistrationRemaining(regs, totalPerKid));
+            const waitlistRemaining = Math.round(stats.waitlist_pending != null ? Number(stats.waitlist_pending) : sumWaitlistRemaining(wl, totalPerKid));
+            const totalCollected = Math.round(stats.total_collected != null ? Number(stats.total_collected) : (registrationCollected + waitlistCollected));
             const totalExpected = Math.round(stats.total_expected != null ? Number(stats.total_expected) : (totalPerKid * participantCount));
-            const totalRemaining = Math.round(stats.pending_amount != null ? Number(stats.pending_amount) : Math.max(0, totalExpected - totalCollected));
-            return { totalPerKid, totalCollected, totalExpected, totalRemaining, participantCount, waitlistCount: wl.length };
+            const totalRemaining = Math.round(stats.pending_amount != null ? Number(stats.pending_amount) : (registrationRemaining + waitlistRemaining));
+            const registrationExpected = Math.round(stats.registration_expected != null ? Number(stats.registration_expected) : (totalPerKid * regs.length));
+            const waitlistExpected = Math.round(stats.waitlist_expected != null ? Number(stats.waitlist_expected) : (totalPerKid * wl.length));
+            return {
+                totalPerKid, totalCollected, totalExpected, totalRemaining,
+                registrationCollected, waitlistCollected, registrationRemaining, waitlistRemaining,
+                registrationExpected, waitlistExpected,
+                participantCount, waitlistCount: wl.length
+            };
         }
 
         async function addTrip(e) {
@@ -10280,9 +10307,13 @@
             const waitlist = getTripWaitlistFromTrip(trip);
             window.currentWaitlistCache = waitlist;
             const fin = calcTripFinancialTotals(trip, regs, waitlist);
+            const registrationCollected = fin.registrationCollected;
+            const waitlistCollected = fin.waitlistCollected;
+            const registrationRemaining = fin.registrationRemaining;
+            const waitlistRemaining = fin.waitlistRemaining;
             const totalCollected = fin.totalCollected;
-            const totalExpected = fin.totalExpected;
             const totalRemaining = fin.totalRemaining;
+            const totalExpected = fin.totalExpected;
 
             // Update header
             document.getElementById('tdModalTitle').textContent = trip.title;
@@ -10303,8 +10334,8 @@
         <div style="display:flex;gap:0;padding:12px 0 0;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px;width:100%;">
             ${[
                     { n: regs.length, l: 'مسجل', c: 'rgba(255,255,255,0.9)' },
-                    { n: totalCollected + ' ج', l: 'محصّل', c: '#6ee7b7' },
-                    { n: totalRemaining + ' ج', l: 'متبقي', c: '#fca5a5' },
+                    { n: totalCollected + ' ج', l: 'إجمالي محصّل', c: '#6ee7b7' },
+                    { n: totalRemaining + ' ج', l: 'إجمالي متبقي', c: '#fca5a5' },
                     { n: exps.length, l: 'مصروف', c: '#c4b5fd' },
                     { n: trip.max_participants || '∞', l: 'الحد الأقصى', c: 'rgba(255,255,255,0.6)' }
                 ].map(s => `<div style="flex:1;text-align:center;padding:8px 4px;"><div style="font-size:1rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
@@ -10318,10 +10349,10 @@
             <div class="info-box" style="border:1.5px solid var(--border);"><small>سعر الرحلة الأساسي</small><div style="color:var(--primary);font-weight:800;">${basePrice} ج</div></div>
             ${expPerKid > 0 ? `<div class="info-box" style="border:1.5px solid var(--warning);background:#fffbeb;"><small>مصروفات على الطفل</small><div style="color:var(--warning);font-weight:800;">+${expPerKid} ج</div></div>` : ''}
             <div class="info-box" style="border:2px solid var(--primary);background:var(--primary-light);"><small>الإجمالي / طفل</small><div style="color:var(--primary);font-weight:900;font-size:1.2rem;">${totalPerKid} ج</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:800;">${totalCollected} ج</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>نسبة الدفع</small><div style="color:var(--info);font-weight:800;">${totalExpected > 0 ? Math.round(totalCollected / totalExpected * 100) : 0}%</div></div>
-            <div class="info-box" style="border:1.5px solid var(--border);"><small>متوسط الدفع</small><div style="color:var(--warning);font-weight:800;">${fin.participantCount > 0 ? Math.round(totalCollected / fin.participantCount) : 0} ج</div></div>
+            <div class="info-box" style="border:2px solid var(--success);background:#ecfdf5;"><small>إجمالي محصّل</small><div style="color:var(--success);font-weight:900;font-size:1.2rem;">${totalCollected} ج</div><div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">مسجلون ${registrationCollected} + انتظار ${waitlistCollected}</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>إجمالي متبقي</small><div style="color:var(--danger);font-weight:800;">${totalRemaining} ج</div><div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">مسجلون ${registrationRemaining} + انتظار ${waitlistRemaining}</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>نسبة الدفع (مسجلون)</small><div style="color:var(--info);font-weight:800;">${fin.registrationExpected > 0 ? Math.round(registrationCollected / fin.registrationExpected * 100) : (totalExpected > 0 && regs.length ? Math.round(registrationCollected / (totalPerKid * regs.length) * 100) : 0)}%</div></div>
+            <div class="info-box" style="border:1.5px solid var(--border);"><small>متوسط الدفع (مسجل)</small><div style="color:var(--warning);font-weight:800;">${regs.length > 0 ? Math.round(registrationCollected / regs.length) : 0} ج</div></div>
         </div>
         
         ${(() => {
@@ -10392,8 +10423,8 @@
                 <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
                 <div style="display:flex;gap:16px;font-size:0.82rem;">
                     <span>المسجلون: <strong>${regs.length}</strong></span>
-                    <span style="color:var(--success);">محصّل: <strong>${totalCollected} ج</strong></span>
-                    <span style="color:var(--danger);">متبقي: <strong>${totalRemaining} ج</strong></span>
+                    <span style="color:var(--success);">محصّل: <strong>${registrationCollected} ج</strong></span>
+                    <span style="color:var(--danger);">متبقي: <strong>${registrationRemaining} ج</strong></span>
                 </div>
            </div>
            <div style="display:grid;gap:8px;">
@@ -10859,6 +10890,8 @@
             const totalPerKid = basePrice + expPerKid;
             window.currentWaitlistCache = trip.waitlist || window.currentWaitlistCache || [];
             const fin = calcTripFinancialTotals(trip, regs, window.currentWaitlistCache);
+            const registrationCollected = fin.registrationCollected;
+            const registrationRemaining = fin.registrationRemaining;
             const totalCollected = fin.totalCollected;
             const totalRemaining = fin.totalRemaining;
 
@@ -10871,8 +10904,8 @@
             if (qs) {
                 const items = [
                     { n: regs.length, l: 'مسجل', c: 'rgba(255,255,255,0.9)' },
-                    { n: totalCollected + ' ج', l: 'محصّل', c: '#6ee7b7' },
-                    { n: totalRemaining + ' ج', l: 'متبقي', c: '#fca5a5' },
+                    { n: totalCollected + ' ج', l: 'إجمالي محصّل', c: '#6ee7b7' },
+                    { n: totalRemaining + ' ج', l: 'إجمالي متبقي', c: '#fca5a5' },
                     { n: exps.length, l: 'مصروف', c: '#c4b5fd' },
                     { n: trip.max_participants || '∞', l: 'الحد', c: 'rgba(255,255,255,0.6)' }
                 ];
@@ -10902,8 +10935,8 @@
                 + '<i class="fas fa-user-plus"></i> تسجيل جديد</button>'
                 + '<div style="display:flex;gap:16px;font-size:0.82rem;">'
                 + '<span>المسجلون: <strong>' + regs.length + '</strong></span>'
-                + '<span style="color:var(--success);">محصّل: <strong>' + totalCollected + ' ج</strong></span>'
-                + '<span style="color:var(--danger);">متبقي: <strong>' + totalRemaining + ' ج</strong></span>'
+                + '<span style="color:var(--success);">محصّل: <strong>' + registrationCollected + ' ج</strong></span>'
+                + '<span style="color:var(--danger);">متبقي: <strong>' + registrationRemaining + ' ج</strong></span>'
                 + '</div></div>'
                 + '<div style="display:grid;gap:8px;">';
 
