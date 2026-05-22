@@ -13029,6 +13029,7 @@ function getAttendanceByDate()
                 a.attendance_date,
                 a.status,
                 s.name  AS student_name,
+                s.image_url AS student_image,
                 COALESCE(cc.arabic_name, c.arabic_name, s.class) AS class,
                 u.name  AS recorded_by
             FROM attendance a
@@ -13069,6 +13070,7 @@ function getAttendanceByDate()
                 'id' => $row['id'],
                 'student_id' => $row['student_id'],
                 'student_name' => $row['student_name'],
+                'student_image' => $row['student_image'] ?? '',
                 'class' => $row['class'] ?? '---',
                 'date' => $row['attendance_date'],
                 'display_date' => $displayDate,
@@ -13125,13 +13127,15 @@ function getSessionInfo()
         }
     }
 
-    // If we have church_id but missing name/code/type, fetch from DB
+    $adminEmail = '';
+
+    // If we have church_id but missing name/code/type/email, fetch from DB
     if ($churchId > 0 && (empty($churchName) || empty($churchType) || $churchType === 'kids')) {
         try {
             $conn = getDBConnection();
             // Ensure column exists
             $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
-            $stmt = $conn->prepare("SELECT church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ?");
+            $stmt = $conn->prepare("SELECT church_name, church_code, admin_email, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ?");
             $stmt->bind_param("i", $churchId);
             $stmt->execute();
             if ($row = $stmt->get_result()->fetch_assoc()) {
@@ -13140,6 +13144,7 @@ function getSessionInfo()
                 if (empty($churchCode))
                     $churchCode = $row['church_code'];
                 $churchType = $row['church_type'] ?? 'kids';
+                $adminEmail = $row['admin_email'] ?? '';
                 // Persist back to session
                 $_SESSION['church_name'] = $churchName;
                 $_SESSION['church_code'] = $churchCode;
@@ -13147,6 +13152,20 @@ function getSessionInfo()
             }
         } catch (Exception $e) {
             error_log("getSessionInfo DB error: " . $e->getMessage());
+        }
+    }
+
+    if ($churchId > 0 && empty($adminEmail)) {
+        try {
+            $conn = getDBConnection();
+            $stmt = $conn->prepare("SELECT admin_email FROM churches WHERE id = ?");
+            $stmt->bind_param("i", $churchId);
+            $stmt->execute();
+            if ($row = $stmt->get_result()->fetch_assoc()) {
+                $adminEmail = $row['admin_email'] ?? '';
+            }
+        } catch (Exception $e) {
+            error_log("getSessionInfo admin_email error: " . $e->getMessage());
         }
     }
 
@@ -13169,6 +13188,7 @@ function getSessionInfo()
         'church_name' => $churchName,
         'church_code' => $churchCode,
         'church_type' => $churchType,
+        'admin_email' => $adminEmail,
         'uncle_id' => $uncleId,
         'uncle_name' => $uncleName,
         // Return role under EVERY key JS might check

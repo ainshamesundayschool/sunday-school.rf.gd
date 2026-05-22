@@ -749,7 +749,7 @@
             border-color: var(--brand);
             color: var(--brand);
             background: var(--brand-bg);
-            box-shadow: 0 0 0 3px var(--brand-glow);
+            box-shadow: none;
             transform: translateY(-1px);
         }
 
@@ -1043,7 +1043,22 @@
             gap: 8px;
             margin-bottom: 16px;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: stretch;
+        }
+
+        .toolbar .form-select,
+        .toolbar > .btn,
+        .toolbar > button.btn {
+            height: 40px;
+            min-height: 40px;
+            align-self: stretch;
+        }
+
+        .toolbar-clear-btn {
+            width: 40px;
+            min-width: 40px;
+            padding: 0 !important;
+            flex-shrink: 0;
         }
 
         .search-wrap {
@@ -1082,7 +1097,7 @@
         .search-wrap input:focus {
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: none;
         }
 
         /* ═══════════════════════════════════════════════════════════════════
@@ -1114,58 +1129,61 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(91, 108, 245, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            box-shadow: none;
         }
 
         .btn-primary:hover {
             background: var(--primary-dark);
-            box-shadow: 0 4px 14px rgba(91, 108, 245, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            box-shadow: none;
             transform: translateY(-1px);
         }
 
         .btn-success {
             background: var(--success);
             color: white;
-            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+            box-shadow: none;
         }
 
         .btn-success:hover {
             background: #047857;
             transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
+            box-shadow: none;
         }
 
         .btn-danger {
             background: var(--danger);
             color: white;
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+            box-shadow: none;
         }
 
         .btn-danger:hover {
             background: #b91c1c;
             transform: translateY(-1px);
+            box-shadow: none;
         }
 
         .btn-warning {
             background: var(--warning);
             color: white;
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+            box-shadow: none;
         }
 
         .btn-warning:hover {
             background: #b45309;
             transform: translateY(-1px);
+            box-shadow: none;
         }
 
         .btn-dev {
             background: var(--dev);
             color: white;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+            box-shadow: none;
         }
 
         .btn-dev:hover {
             background: #6d28d9;
             transform: translateY(-1px);
+            box-shadow: none;
         }
 
         .btn-outline {
@@ -1240,7 +1258,7 @@
 
         select.form-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: none;
         }
 
         /* ═══════════════════════════════════════════════════════════════════
@@ -1287,6 +1305,14 @@
             transform: scale(0.995);
         }
 
+        .data-row:focus {
+            outline: none;
+        }
+
+        .data-row:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--primary-bg);
+        }
+
         .data-row-chevron {
             color: var(--text-3);
             font-size: 0.68rem;
@@ -1315,6 +1341,7 @@
         }
 
         .data-cols-uncles { grid-template-columns: 32px 1fr 96px 100px 18px; }
+        .data-cols-uncles.dev-church { grid-template-columns: 32px 1fr 88px 96px 100px 18px; }
         .data-cols-students { grid-template-columns: 1fr 88px 108px 64px 80px 18px; }
         .data-cols-students.dev { grid-template-columns: 1fr 88px 88px 108px 64px 80px 18px; }
         .data-cols-graduates { grid-template-columns: 1fr 96px 108px 64px 18px; }
@@ -1710,7 +1737,7 @@
             height: 38px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--primary-bg);
+            border: none;
             flex-shrink: 0;
         }
 
@@ -1727,8 +1754,8 @@
             justify-content: center;
             font-weight: 800;
             font-size: 0.88rem;
-            border: 2px solid white;
-            box-shadow: 0 0 0 1.5px var(--primary-bg);
+            border: none;
+            box-shadow: none;
             flex-shrink: 0;
             overflow: hidden;
         }
@@ -1788,7 +1815,7 @@
         .form-input:focus,
         .form-textarea:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: none;
         }
 
         .form-textarea {
@@ -2700,8 +2727,8 @@
 
         .friday-card {
             background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-lg);
             padding: 16px 14px;
             cursor: pointer;
             transition: all var(--t-base) var(--ease);
@@ -2992,7 +3019,7 @@
         .kid-picker-search input:focus {
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px var(--primary-glow);
+            box-shadow: none;
         }
 
         .kid-picker-filters {
@@ -3415,8 +3442,8 @@
 
         .month-tab {
             padding: 5px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius);
             cursor: pointer;
             font-size: 0.78rem;
             font-weight: 700;
@@ -3448,9 +3475,9 @@
 
         .sbox {
             background: white;
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             padding: 14px 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-solid);
             text-align: center;
             box-shadow: var(--shadow-xs);
         }
@@ -3740,7 +3767,7 @@
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            background: var(--primary-light);
+            background: var(--primary-bg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3748,7 +3775,7 @@
             color: var(--primary);
             font-size: .86rem;
             flex-shrink: 0;
-            border: 2px solid var(--primary-light);
+            border: none;
         }
 
         .uncle-att-ava img {
@@ -3863,11 +3890,33 @@
             align-items: center;
             gap: 10px;
             padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-lg);
             margin-bottom: 7px;
             transition: border-color var(--t-fast) var(--ease);
-            background: white;
+            background: var(--card);
+        }
+
+        .att-detail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .att-person-meta {
+            font-size: 0.72rem;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        .link-chip-center {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .link-chip-center .link-chip {
+            margin-bottom: 0;
         }
 
         .uncle-att-item .toggle-btns {
@@ -4882,10 +4931,30 @@
             transform: translateY(100%);
             transition: transform var(--t-slow) var(--ease-spring);
             box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-solid);
         }
 
         .action-sheet.open .action-sheet-panel {
             transform: translateY(0);
+        }
+
+        @media (min-width: 900px) {
+            .action-sheet {
+                align-items: center;
+                padding: 20px;
+            }
+
+            .action-sheet-panel {
+                border-radius: var(--radius-xl);
+                transform: scale(0.96);
+                opacity: 0;
+                padding-bottom: 14px;
+            }
+
+            .action-sheet.open .action-sheet-panel {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .action-sheet-title {
@@ -4903,33 +4972,56 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 13px 14px;
-            border: none;
-            background: transparent;
-            border-radius: var(--radius);
+            padding: 10px 12px;
+            border: 1px solid var(--border-solid);
+            background: #fff;
+            border-radius: var(--radius-lg);
             font-family: 'Cairo', sans-serif;
             font-size: 0.88rem;
             font-weight: 700;
             color: var(--text);
             cursor: pointer;
-            transition: background var(--t-fast) var(--ease);
+            transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+            margin-bottom: 6px;
+        }
+
+        [data-theme="dark"] .action-sheet-btn {
+            background: var(--card);
         }
 
         .action-sheet-btn:hover {
             background: var(--surface-2);
+            border-color: var(--border-2);
         }
 
-        .action-sheet-btn i {
-            width: 20px;
-            text-align: center;
-            color: var(--text-3);
+        .action-sheet-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
-        .action-sheet-btn.danger {
+        .action-sheet-icon.primary {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .action-sheet-icon.danger {
+            background: var(--danger-light);
             color: var(--danger);
         }
 
-        .action-sheet-btn.danger i {
+        .action-sheet-label {
+            flex: 1;
+            text-align: right;
+        }
+
+        .action-sheet-btn.danger .action-sheet-label {
             color: var(--danger);
         }
 
@@ -5636,8 +5728,8 @@
             <div class="footer-actions">
                 <button class="footer-btn" onclick="refreshData()"><i
                         class="fas fa-sync-alt"></i><span>تحديث</span></button>
-                <button class="footer-btn" onclick="window.location.href='/uncle/dashboard/'" title="لوحة الخادم"><i
-                        class="fas fa-arrow-left"></i><span>الخدام</span></button>
+                <button class="footer-btn" onclick="window.location.href='/'" title="الصفحة الرئيسية"><i
+                        class="fas fa-external-link-alt"></i><span>الصفحة الرئيسية</span></button>
                 <button class="footer-btn danger" onclick="logout()"><i
                         class="fas fa-sign-out-alt"></i><span>خروج</span></button>
             </div>
@@ -5821,6 +5913,7 @@
             <!-- ── UNCLES ── -->
             <div id="uncles" class="tab-panel">
                 <!-- ── UNCLE REG LINK MINIMAL ── -->
+                <div class="link-chip-center">
                 <div id="uncleRegLinkCard" class="link-chip">
                     <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الخدام</div>
                     <div class="link-chip-url" id="uncleDirectRegUrl">جاري التحميل...</div>
@@ -5829,6 +5922,7 @@
                         <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i class="fab fa-whatsapp"></i> واتساب</button>
                         <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
                     </div>
+                </div>
                 </div>
 
                 <!-- ── ADD UNCLE CARD ── -->
@@ -5924,7 +6018,7 @@
                                 <option value="admin">مسؤول</option>
                                 <option value="uncle">خادم</option>
                             </select>
-                            <button onclick="clearUncleFilters()" class="btn btn-outline btn-sm"><i
+                            <button type="button" onclick="clearUncleFilters()" class="btn btn-outline btn-sm toolbar-clear-btn" title="مسح الفلاتر"><i
                                     class="fas fa-times"></i></button>
                         </div>
                         <div class="data-list">
@@ -5940,7 +6034,8 @@
             <!-- ── STUDENTS ── -->
             <div id="students" class="tab-panel">
                 <!-- ── KID REG LINK ── -->
-                <div id="studentsKidRegCard" class="link-chip" style="display:none;">
+                <div class="link-chip-center" id="studentsKidRegCardWrap" style="display:none;">
+                <div id="studentsKidRegCard" class="link-chip">
                     <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
                     <p style="font-size:0.76rem;color:var(--text-3);margin:0;">شارك الرابط مع أولياء الأمور لتسجيل الأطفال مباشرة.</p>
                     <div class="link-chip-url" id="studentsKidRegUrl"></div>
@@ -5949,6 +6044,7 @@
                         <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i class="fab fa-whatsapp"></i> واتساب</button>
                         <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
                     </div>
+                </div>
                 </div>
 
                 <div class="card" style="margin-bottom:20px;">
@@ -6065,7 +6161,7 @@
                                 <h3 id="attDetailTitle" style="font-size:1rem;font-weight:700;"></h3>
                             </div>
                             <div class="summary-box" id="attSummaryBoxes"></div>
-                            <div class="att-record-grid" id="attendanceTable"></div>
+                            <div class="att-detail-list" id="attendanceTable"></div>
                         </div>
                     </div>
                 </div>
@@ -6113,12 +6209,7 @@
                                     <h3 id="uncleAttDetailTitle2" style="font-size:1rem;font-weight:700;"></h3>
                                 </div>
                                 <div class="summary-box" id="uncleAttSummaryBoxes2"></div>
-                                <div class="data-list">
-                                    <div class="data-list-head data-cols-uncle-att">
-                                        <span>#</span><span>الاسم</span><span>الدور</span><span>الحالة</span><span></span>
-                                    </div>
-                                    <div class="data-list-body" id="uncleAttendanceTable2"></div>
-                                </div>
+                                <div class="att-detail-list" id="uncleAttendanceTable2"></div>
                             </div>
                         </div>
 
@@ -8992,8 +9083,10 @@
             body.innerHTML = (actions || []).map(a => {
                 const id = ++_rowActionIdSeq;
                 window._rowActionHandlers[id] = a.handler;
+                const iconCls = a.danger ? 'danger' : 'primary';
                 return `<button type="button" class="action-sheet-btn ${a.danger ? 'danger' : ''}" onclick="runRowAction(${id})">
-                    <i class="fas ${a.icon || 'fa-circle'}"></i><span>${escHtml(a.label || '')}</span>
+                    <span class="action-sheet-icon ${iconCls}"><i class="fas ${a.icon || 'fa-circle'}"></i></span>
+                    <span class="action-sheet-label">${escHtml(a.label || '')}</span>
                 </button>`;
             }).join('');
             sheet.classList.add('open');
@@ -9339,7 +9432,6 @@
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '-';
                 const avatarHtml = u.image_url ? `<div class="avatar-text"><img src="${u.image_url}" alt=""></div>` : `<div class="avatar-text">${u.name.charAt(0)}</div>`;
                 const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(u.church_name || '')}</span>` : '';
-                const cols = showChurch ? '32px 1fr 88px 96px 100px 18px' : '';
                 const actions = [
                     { label: 'تعديل', icon: 'fa-edit', handler: () => editUncle(u.id, u.name, u.username, u.role, u.image_url || '', u.gender || 'male') },
                     { label: 'تغيير الصورة', icon: 'fa-camera', handler: () => saveUncleImage(u.id, u.name) },
@@ -9348,7 +9440,8 @@
                     actions.push({ label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteUncle(u.id) });
                 }
                 const actKey = stashRowActions(u.name, actions);
-                return `<div class="data-row" style="${cols ? 'grid-template-columns:' + cols : ''}" role="button" tabindex="0"
+                const rowCls = showChurch ? 'data-row data-cols-uncles dev-church' : 'data-row data-cols-uncles';
+                return `<div class="${rowCls}" role="button" tabindex="0"
                     onclick="openRowActionsByKey('${actKey}')"
                     onkeydown="if(event.key==='Enter')this.click()">
                     <span style="color:var(--text-3);font-size:0.78rem;">${i + 1}</span>
@@ -9816,6 +9909,8 @@
             if (page === 'kidsGradeUp') {
                 _populateAutoGradeDayOptions();
             }
+            if (page === 'adminProfile') loadAdminProfile();
+            if (page === 'churchInfo') loadChurchInfoSettings();
             // Scroll to top of content
             const panel = document.getElementById('churchSettings');
             if (panel) panel.scrollTop = 0;
@@ -11911,33 +12006,56 @@
             // Refresh the Friday cards
             renderFridayCards();
         }
+        function buildAttPersonAvatar(name, imageUrl) {
+            const initials = (name || '؟').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('');
+            const imgHtml = imageUrl
+                ? `<img src="${escHtml(imageUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')">`
+                : '';
+            return `<div class="uncle-att-ava">${imgHtml}<span${imageUrl ? ' style="display:none"' : ''}>${escHtml(initials)}</span></div>`;
+        }
+
         function renderAttendanceTable(att, date) {
             const grid = document.getElementById('attendanceTable');
             if (!att.length) {
-                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:28px;"><i class="fas fa-calendar-times"></i><h3>لا توجد سجلات حضور لهذا اليوم</h3></div>`;
+                grid.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-calendar-times"></i><h3>لا توجد سجلات حضور لهذا اليوم</h3></div>`;
                 return;
             }
 
             grid.innerHTML = att.map(a => {
-                const statusClass = a.status === 'present' ? 'present' : 'absent';
-                const statusText = a.status === 'present' ? 'حاضر' : 'غائب';
-                const actKey = stashRowActions(a.student_name, [
-                    { label: 'تبديل الحالة', icon: 'fa-exchange-alt', handler: () => toggleAttendanceStatus(a.id, a.status, date, true) },
-                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAttendanceRecord(a.id, date, true) },
-                ]);
-                return `<div class="att-record-card ${statusClass}" role="button" tabindex="0"
-                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
-                    <div class="att-record-info">
-                        <div class="att-record-name">${escHtml(a.student_name)}</div>
-                        <div class="att-record-meta">${escHtml(a.class || '—')} · ${escHtml(a.recorded_by || '—')}</div>
+                const student = allStudents.find(s => String(s['_studentId']) === String(a.student_id));
+                const imgUrl = a.student_image || student?.['صورة'] || student?.image_url || '';
+                const pCls = a.status === 'present' ? ' present' : '';
+                const aCls = a.status === 'absent' ? ' absent' : '';
+                return `<div class="uncle-att-item att-detail-item">
+                    ${buildAttPersonAvatar(a.student_name, imgUrl)}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;font-size:.88rem;">${escHtml(a.student_name)}</div>
+                        <div class="att-person-meta">${escHtml(a.class || '—')} · ${escHtml(a.recorded_by || '—')}</div>
                     </div>
-                    <div class="att-record-side">
-                        <span class="att-record-status">${statusText}</span>
-                        <i class="fas fa-chevron-left" style="font-size:0.65rem;color:var(--text-3);opacity:0.5;"></i>
+                    <div class="toggle-btns">
+                        <button type="button" class="att-toggle-btn${pCls}" onclick="setKidAttendanceStatus(${a.id},'present','${date}','${a.status}')"><i class="fas fa-check"></i> حاضر</button>
+                        <button type="button" class="att-toggle-btn${aCls}" onclick="setKidAttendanceStatus(${a.id},'absent','${date}','${a.status}')"><i class="fas fa-times"></i> غائب</button>
+                        <button type="button" class="btn btn-outline btn-sm toolbar-clear-btn" title="حذف" onclick="deleteAttendanceRecord(${a.id},'${date}',true)" style="color:var(--danger);border-color:rgba(220,38,38,.25);"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
             }).join('');
         }
+
+        async function setKidAttendanceStatus(id, status, date, current) {
+            if (current === status) return;
+            const fd = mkFd('updateSingleAttendance');
+            fd.append('attendance_id', id);
+            fd.append('status', status);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast('تم التحديث', 'success');
+                loadAttendanceForDate(date);
+                renderFridayCards();
+            } else {
+                showToast(d.message || 'فشل', 'error');
+            }
+        }
+        window.setKidAttendanceStatus = setKidAttendanceStatus;
         async function toggleAttendanceStatus(id, curr, date, skipConfirm) {
             const nxt = curr === 'present' ? 'absent' : 'present';
             if (!skipConfirm && !(await showConfirm({ message: `تغيير الحالة إلى ${nxt === 'present' ? 'حاضر' : 'غائب'}؟` }))) return;
@@ -14320,11 +14438,11 @@
                 banner.style.display = '';
             }
             // Students tab
-            const studCard = document.getElementById('studentsKidRegCard');
+            const studWrap = document.getElementById('studentsKidRegCardWrap');
             const studEl = document.getElementById('studentsKidRegUrl');
-            if (studCard && studEl) {
+            if (studWrap && studEl) {
                 studEl.textContent = url;
-                studCard.style.display = '';
+                studWrap.style.display = '';
             }
             // Uncle tab — plain permanent link
             const uncleUrlEl = document.getElementById('uncleDirectRegUrl');
@@ -14406,31 +14524,33 @@
         // ADMIN PROFILE (Church Settings Tab)
         // ══════════════════════════════════════════════════════
         async function loadAdminProfile() {
-            const fd = mkFd('getAdminProfile');
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) {
-                document.getElementById('adminProfileName').value = d.profile.name || '';
-                const userInp = document.getElementById('adminProfileUsername');
-                if (userInp) {
-                    userInp.value = isDeveloper ? '—' : (d.profile.username || '');
-                    userInp.closest('.form-group').style.display = isDeveloper ? 'none' : '';
-                }
-
-                // Hide password section for developers
-                const dividers = document.querySelectorAll('.settings-section-divider');
-                dividers.forEach(div => {
-                    if (div.textContent.includes('كلمة المرور')) {
-                        div.style.display = isDeveloper ? 'none' : '';
-                        let next = div.nextElementSibling;
-                        while (next && next.classList.contains('form-group')) {
-                            next.style.display = isDeveloper ? 'none' : '';
-                            next = next.nextElementSibling;
-                        }
-                    }
-                });
+            if (!allUncles.length) {
+                try { await loadUncles(); } catch (e) { /* ignore */ }
             }
-            // Also populate church info fields
-            loadChurchInfoSettings();
+            const admin = allUncles.find(u => u.role === 'admin')
+                || allUncles.find(u => u.role !== 'uncle' && u.role !== 'developer' && u.role !== 'dev');
+            const nameEl = document.getElementById('adminProfileName');
+            const userInp = document.getElementById('adminProfileUsername');
+            if (nameEl) nameEl.value = admin?.name || localStorage.getItem('uncleName') || document.getElementById('sidebarUserName')?.textContent?.trim() || '';
+            if (userInp) {
+                userInp.value = isDeveloper ? '—' : (admin?.username || '');
+                const box = userInp.closest('.settings-field-box');
+                if (box) box.style.display = isDeveloper ? 'none' : '';
+            }
+
+            document.getElementById('adminCurrentPassword') && (document.getElementById('adminCurrentPassword').value = '');
+            document.getElementById('adminNewPassword') && (document.getElementById('adminNewPassword').value = '');
+            document.getElementById('adminConfirmPassword') && (document.getElementById('adminConfirmPassword').value = '');
+
+            document.querySelectorAll('#settingsPage_adminProfile .settings-section-divider').forEach(div => {
+                if (!div.textContent.includes('كلمة المرور')) return;
+                div.style.display = isDeveloper ? 'none' : '';
+                let next = div.nextElementSibling;
+                while (next && next.classList.contains('settings-field-box')) {
+                    next.style.display = isDeveloper ? 'none' : '';
+                    next = next.nextElementSibling;
+                }
+            });
         }
 
         async function loadChurchInfoSettings() {
@@ -14441,6 +14561,8 @@
                 const emailEl = document.getElementById('churchEditEmail');
                 if (nameEl) nameEl.value = d.church_name || localStorage.getItem('churchName') || '';
                 if (emailEl) emailEl.value = d.admin_email || '';
+                document.getElementById('churchEditPassword') && (document.getElementById('churchEditPassword').value = '');
+                document.getElementById('churchEditPasswordConfirm') && (document.getElementById('churchEditPasswordConfirm').value = '');
             } catch (e) { }
         }
 
@@ -14909,25 +15031,35 @@
                 tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3></div>`;
                 return;
             }
-            tb.innerHTML = att.map((a, i) => {
-                const sb = a.status === 'present' ? 'badge-success' : 'badge-danger';
-                const roleBadge = a.role === 'admin'
-                    ? '<span class="badge badge-primary">مسؤول</span>'
-                    : '<span class="badge" style="background:var(--primary-bg);color:var(--primary);">خادم</span>';
-                const actKey = stashRowActions(a.uncle_name, [
-                    { label: 'تبديل الحالة', icon: 'fa-exchange-alt', handler: () => ua2Toggle(a.id, a.status, date) },
-                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => ua2Delete(a.id, date) },
-                ]);
-                return `<div class="data-row data-cols-uncle-att" role="button" tabindex="0"
-                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
-                    <span style="color:var(--text-3);">${i + 1}</span>
-                    <strong>${escHtml(a.uncle_name)}</strong>
-                    ${roleBadge}
-                    <span class="badge ${sb}">${a.status === 'present' ? 'حاضر' : 'غائب'}</span>
-                    <i class="fas fa-chevron-left data-row-chevron"></i>
+            tb.innerHTML = att.map(a => {
+                const roleText = a.role === 'admin' ? 'مسؤول' : 'خادم';
+                const pCls = a.status === 'present' ? ' present' : '';
+                const aCls = a.status === 'absent' ? ' absent' : '';
+                return `<div class="uncle-att-item att-detail-item">
+                    ${buildAttPersonAvatar(a.uncle_name, a.image_url || '')}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;font-size:.88rem;">${escHtml(a.uncle_name)}</div>
+                        <div class="att-person-meta">${roleText}${a.recorded_by_name ? ' · ' + escHtml(a.recorded_by_name) : ''}</div>
+                    </div>
+                    <div class="toggle-btns">
+                        <button type="button" class="att-toggle-btn${pCls}" onclick="setUa2AttendanceStatus(${a.id},'present','${date}','${a.status}')"><i class="fas fa-check"></i> حاضر</button>
+                        <button type="button" class="att-toggle-btn${aCls}" onclick="setUa2AttendanceStatus(${a.id},'absent','${date}','${a.status}')"><i class="fas fa-times"></i> غائب</button>
+                        <button type="button" class="btn btn-outline btn-sm toolbar-clear-btn" title="حذف" onclick="ua2Delete(${a.id},'${date}')" style="color:var(--danger);border-color:rgba(220,38,38,.25);"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>`;
             }).join('');
         }
+
+        async function setUa2AttendanceStatus(id, status, date, current) {
+            if (current === status) return;
+            const fd = mkFd('toggleUncleAttendance');
+            fd.append('id', id);
+            fd.append('status', status);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { showToast('تم التحديث', 'success'); ua2LoadDate(date); renderUa2FridayCards(); }
+            else showToast('فشل', 'error');
+        }
+        window.setUa2AttendanceStatus = setUa2AttendanceStatus;
 
         async function ua2Toggle(id, curr, date) {
             const nxt = curr === 'present' ? 'absent' : 'present';
