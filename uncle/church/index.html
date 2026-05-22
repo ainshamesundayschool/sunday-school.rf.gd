@@ -5019,6 +5019,59 @@
             background: var(--primary-bg);
         }
 
+        .settings-hint {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            background: var(--primary-bg);
+            border: 1px solid rgba(79, 70, 229, 0.12);
+            border-radius: var(--radius);
+            font-size: 0.84rem;
+            color: var(--text-2);
+            line-height: 1.6;
+        }
+
+        .settings-hint > i {
+            color: var(--primary);
+            font-size: 0.95rem;
+            margin-top: 3px;
+            flex-shrink: 0;
+            opacity: 0.85;
+        }
+
+        .settings-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            padding: 32px 20px;
+            border: 2px dashed var(--border-2);
+            border-radius: var(--radius-lg);
+            background: var(--bg);
+        }
+
+        .settings-empty > i {
+            font-size: 1.6rem;
+            color: var(--text-3);
+            opacity: 0.35;
+            margin-bottom: 4px;
+        }
+
+        .settings-empty p {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-2);
+        }
+
+        .settings-empty .settings-empty-action {
+            font-size: 0.78rem;
+            color: var(--text-3);
+        }
+
         .pwd-eye-btn {
             position: absolute;
             left: 10px;
@@ -5138,33 +5191,6 @@
 <body>
 
     <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
-
-    <!-- Move Student Modal -->
-    <div id="moveModal" class="move-modal" style="display:none;">
-        <div class="move-modal-backdrop" onclick="closeMoveModal()"></div>
-        <div class="move-modal-content">
-            <button class="move-modal-close" onclick="closeMoveModal()">✕</button>
-            <h3>نقل الطفل إلى مجموعة أخوة</h3>
-            <div id="moveModalList" class="move-modal-list"></div>
-            <div class="move-modal-actions">
-                <button class="btn btn-sm" onclick="executeMoveSelection()">نقل</button>
-                <button class="btn btn-sm btn-outline" onclick="createNewGroupForModal()">إنشاء مجموعة جديدة</button>
-                <button class="btn btn-sm btn-danger" onclick="removeStudentFromGroupFromModal()">إزالة من المجموعة</button>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .move-modal { position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center; }
-        .move-modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.4); }
-        .move-modal-content { position:relative; background:#fff; padding:16px; width:420px; max-width:95%; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.2); }
-        .move-modal-close { position:absolute; right:8px; top:8px; border:0; background:transparent; font-size:16px; }
-        .move-modal-list { max-height:320px; overflow:auto; margin:8px 0 12px 0; }
-        .move-modal-item { padding:8px; border:1px solid #eee; margin-bottom:6px; border-radius:6px; cursor:pointer; }
-        .move-modal-item.selected { border-color:#2b6cb0; background:#eef6ff; }
-        .move-modal-item .meta { font-size:12px; color:#666; }
-        .move-modal-actions { display:flex; gap:8px; justify-content:flex-end; }
-    </style>
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
@@ -6087,17 +6113,6 @@
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
                         </button>
 
-                        <button class="settings-hub-card" onclick="openSettingsPage('familyReview')">
-                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);">
-                                <i class="fas fa-venus-mars"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">تدقيق جنس الطلاب</div>
-                                <div class="settings-hub-desc">مراجعة وتعديل جنس الطلاب واقتراح النوع المناسب بناءً على الاسم</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
-                        </button>
-
                         <button class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
                             <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
                                 <i class="fas fa-user-check"></i>
@@ -6312,42 +6327,13 @@
                                     class="fas fa-plus"></i> إضافة حقل</button>
                         </div>
                         <div class="card-body">
-                            <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">أضف معلومات إضافية تظهر
-                                في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى</p>
+                            <div class="settings-hint">
+                                <i class="fas fa-circle-info"></i>
+                                <span>أضف معلومات إضافية تظهر في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى</span>
+                            </div>
                             <div id="customFieldsList" style="margin-bottom:10px;"></div>
                             <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:10px;"><i
                                     class="fas fa-save"></i> حفظ</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page: Family Review -->
-                <div id="settingsPage_familyReview" class="settings-page" style="display:none;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
-                            الإعدادات</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">تدقيق جنس الطلاب</span>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-venus-mars"></i> تدقيق جنس الطلاب</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
-                            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:6px;">مراجعة وتصحيح جنس الطلاب بناءً على أسماءهم والتأكد من صحتها.</p>
-                            <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                                <button class="btn btn-primary" onclick="renderFamilyReviewPage()"><i class="fas fa-sync-alt"></i> تحديث الاقتراحات</button>
-                                <button class="btn btn-outline" onclick="closeSettingsPage()"><i class="fas fa-arrow-left"></i> رجوع</button>
-                            </div>
-                            <div id="familyReviewSummary" style="font-size:0.88rem;color:var(--text);font-weight:600;display:none;"></div>
-                            <div id="familyReviewList"></div>
-                            <div id="genderReviewSection" style="margin-top:20px;">
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
-                                    <div style="font-weight:700;font-size:0.95rem;color:var(--text);">تدقيق النوع والمراجعة</div>
-                                </div>
-                                <div id="genderReviewSummary" style="font-size:0.88rem;color:var(--muted);font-weight:600;"></div>
-                                <div id="genderReviewList"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -6367,8 +6353,10 @@
                                     class="fas fa-plus"></i> مجموعة جديدة</button>
                         </div>
                         <div class="card-body">
-                            <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">ادمج عدة فصول في مجموعة
-                                تظهر كفصل واحد في لوحة الخادم</p>
+                            <div class="settings-hint">
+                                <i class="fas fa-circle-info"></i>
+                                <span>ادمج عدة فصول في مجموعة تظهر كفصل واحد في لوحة الخادم</span>
+                            </div>
                             <div id="combinedGroupsList" style="margin-bottom:14px;"></div>
                             <button class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i>
                                 حفظ</button>
@@ -6389,8 +6377,10 @@
                             <div class="card-title"><i class="fas fa-user-check"></i> القبول التلقائي للأطفال</div>
                         </div>
                         <div class="card-body">
-                            <p style="font-size:0.84rem;color:var(--muted);margin-bottom:20px;">عند التفعيل، يُضاف الطفل
-                                مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم الطلبات المعلقة.</p>
+                            <div class="settings-hint">
+                                <i class="fas fa-circle-info"></i>
+                                <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم الطلبات المعلقة.</span>
+                            </div>
                             <label class="settings-toggle-row" id="autoApprovalLabel" style="max-width:480px;">
                                 <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
                                     <input type="checkbox" id="settingAutoKidsApproval"
@@ -6428,9 +6418,10 @@
                             <div class="card-title"><i class="fas fa-level-up-alt"></i> نقل يدوي</div>
                         </div>
                         <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
-                            <p style="font-size:0.84rem;color:var(--muted);margin:0;">
-                                ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.
-                            </p>
+                            <div class="settings-hint" style="margin-bottom:0;">
+                                <i class="fas fa-circle-info"></i>
+                                <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
+                            </div>
                             <button class="btn btn-warning" onclick="confirmGradeUpAllKids()">
                                 <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
                             </button>
@@ -6441,9 +6432,10 @@
                             <div class="card-title"><i class="fas fa-calendar-check"></i> موعد النقل السنوي</div>
                         </div>
                         <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
-                            <p style="font-size:0.84rem;color:var(--muted);margin:0;">
-                                حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).
-                            </p>
+                            <div class="settings-hint" style="margin-bottom:0;">
+                                <i class="fas fa-circle-info"></i>
+                                <span>حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).</span>
+                            </div>
                             <div style="display:flex;flex-wrap:wrap;gap:14px;">
                                 <div class="form-group" style="margin:0;">
                                     <label class="form-label">الشهر</label>
@@ -9474,9 +9466,6 @@
             document.getElementById('settingsHub').style.display = 'none';
             const el = document.getElementById('settingsPage_' + page);
             if (el) { el.style.display = ''; el.style.removeProperty('display'); }
-            if (page === 'familyReview') {
-                renderFamilyReviewPage();
-            }
             if (page === 'kidsGradeUp') {
                 _populateAutoGradeDayOptions();
             }
@@ -9495,336 +9484,6 @@
             if (!raw && raw !== 0) return null;
             if (typeof raw !== 'string') return raw;
             try { return JSON.parse(raw); } catch (e) { return null; }
-        }
-
-        function normalizeFamilyString(value) {
-            return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
-        }
-
-        function makeFamilyGroupId(key) {
-            let hash = 0;
-            for (let i = 0; i < key.length; i++) { hash = ((hash << 5) - hash) + key.charCodeAt(i); hash |= 0; }
-            return 'family_' + Math.abs(hash);
-        }
-
-        function buildFamilyGroupCard(group, idx) {
-            const groupStatus = group[0].sibling_group?.status || 'pending';
-            const count = group.length;
-            // Show a neutral title (no auto-numbered label)
-            const title = count > 1 ? 'أشقاء / إخوة' : 'عائلة';
-
-            const studentsHtml = group.map(s => {
-                const guardian = s.custom_info_parsed?.guardian_name || s.custom_info_parsed?.father_name || s.custom_info_parsed?.parent_name || s.custom_info_parsed?.mother_name || 'غير محدد';
-                const sid = s._studentId || s.id || s.studentId || '';
-                return `<div class="family-review-card-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                    <div>
-                        <div><strong>${escHtml(s['الاسم'] || s.name || '')}</strong></div>
-                        <div style="font-size:0.82rem;color:var(--muted);">${escHtml(s['الفصل'] || s.class || s['class'] || '')} · ${escHtml(guardian)}</div>
-                    </div>
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="promptMoveStudentToGroup(${sid}, '${encodeURIComponent(group[0].familyKey)}')">نقل</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="removeStudentFromGroup(${sid})">إزالة</button>
-                    </div>
-                </div>`;
-            }).join('');
-
-            return `
-                <div class="family-review-card" style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px;margin-bottom:14px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-                        <div>
-                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(title)}</div>
-                            <div style="font-size:0.82rem;color:var(--muted);">${count} طفل${count === 1 ? '' : 'ان'}</div>
-                        </div>
-                        <div>
-                            <span class="badge ${groupStatus === 'approved' ? 'badge-success' : groupStatus === 'rejected' ? 'badge-danger' : 'badge-primary'}" style="font-size:0.78rem;">${groupStatus === 'approved' ? 'معتمد' : groupStatus === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</span>
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:14px;">${studentsHtml}</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','approved')"><i class="fas fa-check"></i> اعتماد
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="saveFamilyGroupStatus('${encodeURIComponent(group[0].familyKey)}','rejected')"><i class="fas fa-times"></i> رفض</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="mergeGroupPrompt('${encodeURIComponent(group[0].familyKey)}')"><i class="fas fa-compress-arrows-alt"></i> دمج</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function findFamilyCandidateGroups(students) {
-            const parsed = students.map(s => {
-                const custom = parseJSON(s.custom_info || s['custom_info'] || '') || {};
-                const guardian = custom.guardian_name || custom.father_name || custom.parent_name || custom.mother_name || '';
-                const address = (s.address || s['العنوان'] || '').trim();
-                // normalize phone (last 9 digits)
-                let phone = (s.phone || s['رقم التليفون'] || custom.phone || '') + '';
-                phone = phone.replace(/[^0-9]/g, '');
-                const phoneShort = phone.length > 9 ? phone.slice(-9) : phone;
-                const lastName = (s.name || s['الاسم'] || '').split(' ').slice(-1)[0] || '';
-                // include some custom_info keys signature
-                const customVals = Object.keys(custom).sort().map(k => String(custom[k]).trim().toLowerCase()).join('|');
-                const groupKey = normalizeFamilyString(`${guardian}|${address}|${phoneShort}|${lastName}|${customVals}`);
-                return { ...s, custom_info_parsed: custom, sibling_group: custom.sibling_group || {}, familyKey: groupKey };
-            });
-            const groups = {};
-            parsed.forEach(s => {
-                if (!s.familyKey) return;
-                groups[s.familyKey] = groups[s.familyKey] || [];
-                groups[s.familyKey].push(s);
-            });
-            // return groups with at least 2 members OR where explicit sibling_group exists
-            return Object.values(groups).filter(g => g.length > 1 || g[0].sibling_group?.id);
-        }
-
-        function normalizeGenderValue(value) {
-            const raw = String(value || '').trim().toLowerCase();
-            if (!raw) return null;
-            if (['female', 'f', 'أنثى', 'fem', 'femaleً', 'femaleً'].includes(raw)) return 'female';
-            if (['male', 'm', 'ذكر', 'mal', 'maleً'].includes(raw)) return 'male';
-            return null;
-        }
-
-        function detectGenderByName(name) {
-            const text = String(name || '').trim().toLowerCase();
-            if (!text) return null;
-            const femaleEndings = ['ة', 'ه', 'اء', 'يا', 'ية', 'ا', 'ah', 'a', 'elle', 'ine', 'ette', 'ana', 'na'];
-            const maleIndicators = ['عبد', 'محمد', 'احمد', 'علي', 'خالد', 'سعيد', 'يوسف', 'محمود', 'مصطفى', 'سامي', 'رامي', 'ايمن'];
-            if (femaleEndings.some(e => text.endsWith(e))) return 'female';
-            if (maleIndicators.some(i => text.includes(i))) return 'male';
-            const maleEndings = ['ي', 'ى', 'ان', 'ون', 'يم', 'س', 'د', 'ر', 'ص', 'ح', 'خ', 'م', 'ق'];
-            if (maleEndings.some(e => text.endsWith(e))) return 'male';
-            return null;
-        }
-
-        function findGenderReviewCandidates(students) {
-            return students.map(s => {
-                const custom = parseJSON(s.custom_info || s['custom_info'] || '') || {};
-                const declaredGender = normalizeGenderValue(s['النوع'] || s.gender || custom.gender || '');
-                const suggestedGender = detectGenderByName(s['الاسم'] || s.name || '');
-                return {
-                    ...s,
-                    custom_info_parsed: custom,
-                    declaredGender,
-                    suggestedGender,
-                    genderReviewStatus: custom.gender_review_status || ''
-                };
-            }).filter(s => {
-                if (s.genderReviewStatus === 'rejected') return false;
-                if (!s.declaredGender) return true;
-                if (s.suggestedGender && s.declaredGender !== s.suggestedGender) return true;
-                return false;
-            });
-        }
-
-        function buildGenderReviewCard(student, idx) {
-            const id = student._studentId || student.id || student.studentId || 0;
-            const currentGenderLabel = student.declaredGender === 'female' ? 'بنت' : student.declaredGender === 'male' ? 'ولد' : 'غير محدد';
-            const suggestedLabel = student.suggestedGender === 'female' ? 'بنت' : student.suggestedGender === 'male' ? 'ولد' : 'لا يوجد اقتراح';
-            const statusText = !student.declaredGender ? 'جنس غير مسجل' : student.suggestedGender && student.declaredGender !== student.suggestedGender ? 'النوع المحتمل يختلف عن المسجل' : 'النوع مسجل بشكل غير واضح';
-            const statusBadge = student.genderReviewStatus === 'approved' ? 'badge-success' : student.genderReviewStatus === 'rejected' ? 'badge-danger' : 'badge-primary';
-            const statusLabel = student.genderReviewStatus === 'approved' ? 'معتمد مسبقاً' : student.genderReviewStatus === 'rejected' ? 'مرفوض مسبقاً' : statusText;
-            const actions = [];
-            if (student.suggestedGender) {
-                actions.push(`<button type="button" class="btn btn-primary btn-sm" onclick="reviewStudentGender(${id},'approve','${student.suggestedGender}')"><i class="fas fa-check"></i> اعتماد ${suggestedLabel}</button>`);
-            }
-            actions.push(`<button type="button" class="btn btn-danger btn-sm" onclick="reviewStudentGender(${id},'reject')"><i class="fas fa-times"></i> رفض</button>`);
-            return `
-                <div class="family-review-card" style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px;margin-bottom:14px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-                        <div>
-                            <div style="font-weight:800;font-size:0.96rem;color:var(--text);">${escHtml(student['الاسم'] || student.name || '')}</div>
-                            <div style="font-size:0.82rem;color:var(--muted);">${escHtml(student['الفصل'] || student.class || student['class'] || '')} · ${currentGenderLabel} → ${suggestedLabel}</div>
-                        </div>
-                        <div>
-                            <span class="badge ${statusBadge}" style="font-size:0.78rem;">${statusLabel}</span>
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;">
-                        <div style="font-size:0.85rem;color:var(--text);line-height:1.4;">${escHtml(statusText)}</div>
-                    </div>
-                    <div style="display:flex;flex-wrap:wrap;gap:10px;">${actions.join('')}</div>
-                </div>
-            `;
-        }
-
-        async function reviewStudentGender(studentId, action, suggestedGender) {
-            const id = parseInt(studentId, 10);
-            if (!id || !['approve', 'reject'].includes(action)) {
-                showToast('بيانات المراجعة غير صحيحة', 'error');
-                return;
-            }
-            const fd = mkFd('reviewStudentGender');
-            fd.append('student_id', id);
-            fd.append('action', action);
-            if (suggestedGender) fd.append('suggested_gender', suggestedGender);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) {
-                showToast('تم تحديث حالة المراجعة', 'success');
-                await loadStudents();
-                renderFamilyReviewPage();
-            } else {
-                showToast(d.message || 'فشل في حفظ المراجعة', 'error');
-            }
-        }
-
-        async function saveFamilyGroupStatus(encodedFamilyKey, status) {
-            const groupKey = decodeURIComponent(encodedFamilyKey);
-            const groups = findFamilyCandidateGroups(allStudents || []);
-            const group = groups.find(g => g[0].familyKey === groupKey);
-            if (!group) { showToast('لم يتم العثور على مجموعة الأسرة', 'warning'); return; }
-            const label = group[0].sibling_group?.label || `مجموعة إخوة ${groups.indexOf(group) + 1}`;
-            const groupId = group[0].sibling_group?.id || makeFamilyGroupId(groupKey);
-            const ids = group.map(s => s._studentId || s.id).filter(Boolean);
-            if (!ids.length) { showToast('لا توجد طلاب محفوظين لهذه المجموعة', 'warning'); return; }
-            const fd = mkFd('saveSiblingGroup');
-            fd.append('student_ids', JSON.stringify(ids));
-            fd.append('status', status);
-            // no auto label
-            fd.append('label', '');
-            fd.append('group_id', groupId);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم تحديث حالة مجموعة الأسرة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
-            else showToast(d.message || 'فشل في تحديث المجموعة', 'error');
-        }
-
-        function promptMoveStudentToGroup(studentId, fromFamilyKey) {
-            // open modal-based picker
-            showMoveModal(studentId, fromFamilyKey);
-        }
-
-        function showMoveModal(studentId, fromFamilyKey) {
-            const modal = document.getElementById('moveModal');
-            const list = document.getElementById('moveModalList');
-            modal.dataset.studentId = studentId;
-            modal.dataset.fromFamily = fromFamilyKey || '';
-            list.innerHTML = '';
-            const groups = findFamilyCandidateGroups(allStudents || []);
-            if (!groups.length) {
-                const el = document.createElement('div'); el.className = 'move-modal-item'; el.textContent = 'لا توجد مجموعات موجودة'; list.appendChild(el);
-            }
-            groups.forEach((g, idx) => {
-                const id = g[0].sibling_group?.id || makeFamilyGroupId(g[0].familyKey);
-                const label = g[0].sibling_group?.label || `أشقاء / إخوة — ${g.length} طفل`;
-                const item = document.createElement('div'); item.className = 'move-modal-item'; item.dataset.groupId = id; item.dataset.index = idx;
-                const title = document.createElement('div'); title.textContent = label; item.appendChild(title);
-                const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = g.slice(0,4).map(s => (s.name||s['الاسم']||s.name_en||'')).filter(Boolean).join(' • ');
-                item.appendChild(meta);
-                item.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); item.classList.add('selected'); };
-                list.appendChild(item);
-            });
-            // add a 'new group' item
-            const newItem = document.createElement('div'); newItem.className = 'move-modal-item'; newItem.dataset.groupId = 'new'; newItem.textContent = 'إنشاء مجموعة جديدة'; newItem.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); newItem.classList.add('selected'); };
-            list.appendChild(newItem);
-            // add a 'remove' item
-            const rem = document.createElement('div'); rem.className = 'move-modal-item'; rem.dataset.groupId = 'remove'; rem.textContent = 'إزالة من المجموعة (لا توجد مجموعة)'; rem.onclick = () => { document.querySelectorAll('.move-modal-item').forEach(x => x.classList.remove('selected')); rem.classList.add('selected'); };
-            list.appendChild(rem);
-            modal.style.display = 'flex';
-        }
-
-        function closeMoveModal() { const modal = document.getElementById('moveModal'); modal.style.display = 'none'; modal.dataset.studentId = ''; modal.dataset.fromFamily = ''; }
-
-        async function executeMoveSelection() {
-            const modal = document.getElementById('moveModal');
-            const studentId = modal.dataset.studentId;
-            const selected = document.querySelector('.move-modal-item.selected');
-            if (!selected) { showToast('اختر مجموعة أو إنشاء جديدة أو إزالة', 'warning'); return; }
-            const gid = selected.dataset.groupId;
-            if (gid === 'remove') { await removeStudentFromGroup(studentId); closeMoveModal(); return; }
-            if (gid === 'new') {
-                const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId]));
-                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-                if (d.success) { showToast('تم إنشاء مجموعة ونقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
-                else showToast(d.message || 'فشل النقل', 'error');
-                return;
-            }
-            // assign to existing group id
-            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('group_id', gid); fd.append('label', '');
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم نقل الطالب', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
-            else showToast(d.message || 'فشل النقل', 'error');
-        }
-
-        async function createNewGroupForModal() {
-            const modal = document.getElementById('moveModal'); const studentId = modal.dataset.studentId;
-            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId]));
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم إنشاء مجموعة جديدة', 'success'); await loadStudents(); renderFamilyReviewPage(); closeMoveModal(); }
-            else showToast(d.message || 'فشل الإنشاء', 'error');
-        }
-
-        async function removeStudentFromGroupFromModal() {
-            const modal = document.getElementById('moveModal'); const studentId = modal.dataset.studentId;
-            await removeStudentFromGroup(studentId); closeMoveModal();
-        }
-
-        async function removeStudentFromGroup(studentId) {
-            if (!confirm('هل تريد إزالة الطفل من المجموعة؟')) return;
-            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify([studentId])); fd.append('op', 'clear');
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تمت الإزالة من المجموعة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
-            else showToast(d.message || 'فشل في الإزالة', 'error');
-        }
-
-        async function mergeGroupPrompt(encodedFamilyKey) {
-            const groupKey = decodeURIComponent(encodedFamilyKey);
-            const groups = findFamilyCandidateGroups(allStudents || []);
-            const group = groups.find(g => g[0].familyKey === groupKey);
-            if (!group) { showToast('مجموعة غير موجودة', 'warning'); return; }
-            const other = groups.filter(g => g[0].familyKey !== groupKey);
-            if (!other.length) { showToast('لا توجد مجموعات أخرى للدمج', 'warning'); return; }
-            const opts = other.map((g, i) => `${i + 1}: ${g.length} طفل`).join('\n');
-            const choice = prompt(`اختر مجموعة للدمج معها (أدخل رقم):\n${opts}`);
-            if (!choice) return;
-            const idx = parseInt(choice, 10) - 1;
-            if (isNaN(idx) || idx < 0 || idx >= other.length) { showToast('خيار غير صالح', 'warning'); return; }
-            const targetIds = other[idx].map(s => s._studentId || s.id).filter(Boolean);
-            const srcIds = group.map(s => s._studentId || s.id).filter(Boolean);
-            const allIds = [...new Set([...targetIds, ...srcIds])];
-            const fd = mkFd('saveSiblingGroup'); fd.append('student_ids', JSON.stringify(allIds)); fd.append('group_id', other[idx][0].sibling_group?.id || makeFamilyGroupId(other[idx][0].familyKey)); fd.append('label', '');
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم الدمج', 'success'); await loadStudents(); renderFamilyReviewPage(); }
-            else showToast(d.message || 'فشل في الدمج', 'error');
-        }
-
-        async function editFamilyGroupLabel(encodedFamilyKey) {
-            const groupKey = decodeURIComponent(encodedFamilyKey);
-            const groups = findFamilyCandidateGroups(allStudents || []);
-            const group = groups.find(g => g[0].familyKey === groupKey);
-            if (!group) { showToast('لم يتم العثور على مجموعة الأسرة', 'warning'); return; }
-            const currentLabel = group[0].sibling_group?.label || `مجموعة إخوة ${groups.indexOf(group) + 1}`;
-            const newLabel = prompt('اكتب اسم المجموعة الجديد:', currentLabel);
-            if (!newLabel) return;
-            const groupId = group[0].sibling_group?.id || makeFamilyGroupId(groupKey);
-            const ids = group.map(s => s._studentId || s.id).filter(Boolean);
-            const fd = mkFd('saveSiblingGroup');
-            fd.append('student_ids', JSON.stringify(ids));
-            fd.append('status', group[0].sibling_group?.status || 'pending');
-            fd.append('label', newLabel.trim());
-            fd.append('group_id', groupId);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم تحديث اسم المجموعة', 'success'); await loadStudents(); renderFamilyReviewPage(); }
-            else showToast(d.message || 'فشل في تحديث الاسم', 'error');
-        }
-
-        async function renderFamilyReviewPage() {
-            const summary = document.getElementById('familyReviewSummary');
-            const list = document.getElementById('familyReviewList');
-            const loader = `<div class="empty-state" style="padding:30px;font-size:0.95rem;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:10px;"></i><div>جاري تحليل البيانات...</div></div>`;
-            if (summary) { summary.style.display = 'none'; }
-            if (list) list.innerHTML = loader;
-            if (!allStudents?.length) {
-                await loadStudents();
-            }
-            const genderCandidates = findGenderReviewCandidates(allStudents || []);
-            if (!list) return;
-            const genderHtml = genderCandidates.length
-                ? genderCandidates.map((student, idx) => buildGenderReviewCard(student, idx)).join('')
-                : `<div class="empty-state"><i class="fas fa-venus-mars"></i><h3>لا توجد اقتراحات جنس جديدة</h3><p>إذا كان هناك أطفال بدون جنس أو بجنس مكتوب بشكل غير صحيح، فستظهر هنا.</p></div>`;
-            list.innerHTML = `
-                <div>
-                    <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;">اقتراحات جنس الطالب</div>
-                    ${genderHtml}
-                </div>
-            `;
         }
 
         async function loadChurchSettingsTab() {
@@ -9893,7 +9552,11 @@
         function renderCustomFieldsList() {
             const list = document.getElementById('customFieldsList'); if (!list) return;
             if (!_currentCustomFields.length) {
-                list.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:6px 0;">لا توجد بيانات — اضغط "إضافة بيان جديد"</p>';
+                list.innerHTML = `<div class="settings-empty">
+                    <i class="fas fa-tags"></i>
+                    <p>لا توجد حقول إضافية بعد</p>
+                    <span class="settings-empty-action">اضغط «إضافة حقل» أعلاه لإضافة أول حقل</span>
+                </div>`;
                 return;
             }
             list.innerHTML = _currentCustomFields.map((cf, i) => {
@@ -10056,7 +9719,11 @@
         function renderCombinedGroups() {
             const el = document.getElementById('combinedGroupsList'); if (!el) return;
             if (!_currentCombinedGroups.length) {
-                el.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:8px 0;">لا توجد مجموعات بعد — اضغط "إضافة مجموعة" لدمج فصلين أو أكثر</p>';
+                el.innerHTML = `<div class="settings-empty">
+                    <i class="fas fa-layer-group"></i>
+                    <p>لا توجد مجموعات بعد</p>
+                    <span class="settings-empty-action">اضغط «مجموعة جديدة» أعلاه لدمج فصلين أو أكثر</span>
+                </div>`;
                 return;
             }
             el.innerHTML = _currentCombinedGroups.map((g, i) => {
