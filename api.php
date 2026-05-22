@@ -1013,7 +1013,8 @@ try {
         case 'checkRegistrationStatus':
             checkRegistrationStatus();
             break;
-            handleLogin();
+        case 'saveSiblingGroup':
+            saveSiblingGroup();
             break;
         case 'auto_login':  // أضف هذا
             handleAutoLogin();
@@ -3200,7 +3201,7 @@ function updateStudent()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sissssiisssii",
+                "sissssiissii",
                 $name,
                 $classId,
                 $className,
@@ -3254,12 +3255,68 @@ function updateStudent()
             error_log("❌ Update failed: " . $conn->error);
             sendJSON(['success' => false, 'message' => 'فشل في تحديث الطفل: ' . $conn->error]);
         }
-
     } catch (Exception $e) {
         error_log("updateStudent error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في تحديث الطفل: ' . $e->getMessage()]);
     }
 }
+
+function reviewStudentGender()
+{
+        try {
+            $churchId = getChurchId();
+            $studentId = intval($_POST['student_id'] ?? 0);
+            $action = sanitize($_POST['action'] ?? '');
+            $suggestedGender = sanitize($_POST['suggested_gender'] ?? '');
+
+            if ($studentId === 0 || !in_array($action, ['approve', 'reject'], true)) {
+                sendJSON(['success' => false, 'message' => 'بيانات المراجعة غير صحيحة']);
+                return;
+            }
+
+            $conn = getDBConnection();
+            $checkStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+            $checkStmt->bind_param('ii', $studentId, $churchId);
+            $checkStmt->execute();
+            $result = $checkStmt->get_result();
+            if ($result->num_rows === 0) {
+                sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل']);
+                return;
+            }
+
+            $row = $result->fetch_assoc();
+            $customInfo = json_decode($row['custom_info'] ?? 'null', true);
+            if (!is_array($customInfo)) {
+                $customInfo = [];
+            }
+
+            if ($action === 'approve') {
+                if ($suggestedGender !== 'male' && $suggestedGender !== 'female') {
+                    sendJSON(['success' => false, 'message' => 'النوع المقترح غير صالح']);
+                    return;
+                }
+                $customInfo['gender_review_status'] = 'approved';
+                $customInfo['gender_suggestion'] = $suggestedGender;
+                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt = $conn->prepare("UPDATE students SET gender = ?, custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                $updateStmt->bind_param('ssii', $suggestedGender, $customInfoJson, $studentId, $churchId);
+            } else {
+                $customInfo['gender_review_status'] = 'rejected';
+                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                $updateStmt->bind_param('sii', $customInfoJson, $studentId, $churchId);
+            }
+
+            if ($updateStmt->execute()) {
+                sendJSON(['success' => true, 'message' => 'تم تحديث مراجعة النوع بنجاح']);
+            } else {
+                error_log("❌ reviewStudentGender failed: " . $conn->error);
+                sendJSON(['success' => false, 'message' => 'فشل في حفظ مراجعة النوع']);
+            }
+        } catch (Exception $e) {
+            sendJSON(['success' => false, 'message' => 'خطأ في الخادم']);
+        }
+    }
 function updateStudentInfo()
 {
     try {
@@ -6054,7 +6111,7 @@ function getAllUncles()
 
         if ($isAll) {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.created_at,
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
                        c.church_name
                 FROM uncles u
                 LEFT JOIN churches c ON u.church_id = c.id
@@ -6068,7 +6125,7 @@ function getAllUncles()
             ");
         } else {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.created_at
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
                 FROM uncles u
                 WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0)
                 ORDER BY 
@@ -6160,13 +6217,14 @@ function addUncle()
         if ($gender !== 'male' && $gender !== 'female') {
             $gender = detectGenderFromName($name);
         }
+        $phone = sanitize($_POST['phone'] ?? '');
 
         // Insert uncle
         $stmt = $conn->prepare("
-            INSERT INTO uncles (church_id, name, username, password_hash, role, gender)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO uncles (church_id, name, username, password_hash, role, gender, phone)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("isssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender);
+        $stmt->bind_param("issssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender, $phone);
 
         if ($stmt->execute()) {
             $newUncleId = $conn->insert_id;
@@ -6182,7 +6240,9 @@ function addUncle()
                 'username' => $username,
                 'role' => $uncleRole,
                 'church_id' => $churchId,
-                'classes' => $classes
+                'classes' => $classes,
+                'gender' => $gender,
+                'phone' => $phone
             ], 'إضافة خادم جديد');
 
             sendJSON(['success' => true, 'message' => 'تم إضافة الخادم بنجاح']);
@@ -6228,7 +6288,7 @@ function updateUncle()
 
         // Get old uncle data for audit
         $oldData = [];
-        $oldStmt = $conn->prepare("SELECT name, username, role FROM uncles WHERE id = ?");
+        $oldStmt = $conn->prepare("SELECT name, username, role, gender, phone FROM uncles WHERE id = ?");
         $oldStmt->bind_param("i", $uncleId);
         $oldStmt->execute();
         $oldResult = $oldStmt->get_result();
@@ -6247,22 +6307,24 @@ function updateUncle()
         }
 
         $passwordChanged = !empty($newPassword);
+        $gender = sanitize($_POST['gender'] ?? 'male');
+        $phone = sanitize($_POST['phone'] ?? '');
 
         if (!empty($newPassword)) {
             $passwordHash = hash('sha256', $newPassword);
             $stmt = $conn->prepare("
                 UPDATE uncles 
-                SET name = ?, username = ?, password_hash = ?, role = ?
+                SET name = ?, username = ?, password_hash = ?, role = ?, gender = ?, phone = ?
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param("ssssii", $name, $username, $passwordHash, $uncleRole, $uncleId, $churchId);
+            $stmt->bind_param("ssssssii", $name, $username, $passwordHash, $uncleRole, $gender, $phone, $uncleId, $churchId);
         } else {
             $stmt = $conn->prepare("
                 UPDATE uncles 
-                SET name = ?, username = ?, role = ?
+                SET name = ?, username = ?, role = ?, gender = ?, phone = ?
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param("sssii", $name, $username, $uncleRole, $uncleId, $churchId);
+            $stmt->bind_param("sssssii", $name, $username, $uncleRole, $gender, $phone, $uncleId, $churchId);
         }
 
         if ($stmt->execute()) {
@@ -6273,7 +6335,7 @@ function updateUncle()
             $uncleName = $name;
 
             // Audit log
-            $newData = ['name' => $name, 'username' => $username, 'role' => $uncleRole, 'classes' => $classes];
+            $newData = ['name' => $name, 'username' => $username, 'role' => $uncleRole, 'gender' => $gender, 'phone' => $phone, 'classes' => $classes];
             writeAuditLog('uncle_edit', 'uncle', $uncleId, $uncleName, $oldData, $newData, 'تعديل بيانات خادم');
 
             if ($passwordChanged) {
@@ -11666,9 +11728,10 @@ function updateStudentFull()
         }
 
         // Custom info
+        $hasCustomInfo = array_key_exists('custom_info', $_POST);
         $customInfoRaw = $_POST['custom_info'] ?? null;
         $customInfoJson = null;
-        if ($customInfoRaw !== null) {
+        if ($hasCustomInfo) {
             if (trim($customInfoRaw) === '') {
                 $customInfoJson = null;
             } else {
@@ -11750,6 +11813,108 @@ function updateStudentFull()
     }
 }
 
+function saveSiblingGroup()
+{
+    try {
+        checkAuth();
+        $studentIds = json_decode($_POST['student_ids'] ?? '[]', true);
+        $status = sanitize($_POST['status'] ?? 'approved');
+        if (!in_array($status, ['approved', 'rejected', 'pending'], true)) {
+            $status = 'approved';
+        }
+        $label = sanitize($_POST['label'] ?? '');
+        $groupId = sanitize($_POST['group_id'] ?? '');
+        $op = sanitize($_POST['op'] ?? 'assign');
+        $reason = sanitize($_POST['reason'] ?? '');
+        $basis = sanitize($_POST['basis'] ?? '');
+        $linkedBy = sanitize($_POST['linked_by'] ?? ($_SESSION['uncle_name'] ?? ''));
+        $linkedById = intval($_SESSION['uncle_id'] ?? 0);
+        if ($groupId === '') {
+            $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
+        }
+
+        if (!is_array($studentIds) || empty($studentIds)) {
+            sendJSON(['success' => false, 'message' => 'معرفات الطلاب مطلوبة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $selectStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? LIMIT 1");
+        $updateStmt = $conn->prepare("UPDATE students SET custom_info = ? WHERE id = ?");
+        $errors = [];
+
+        foreach ($studentIds as $rawId) {
+            $studentId = intval($rawId);
+            if ($studentId <= 0) {
+                continue;
+            }
+
+            $selectStmt->bind_param('i', $studentId);
+            $selectStmt->execute();
+            $result = $selectStmt->get_result();
+            $row = $result->fetch_assoc();
+
+            $customInfo = [];
+            if (!empty($row['custom_info'])) {
+                $decoded = json_decode($row['custom_info'], true);
+                if (is_array($decoded)) {
+                    $customInfo = $decoded;
+                }
+            }
+
+            if ($op === 'clear') {
+                // remove sibling_group entirely
+                if (isset($customInfo['sibling_group'])) unset($customInfo['sibling_group']);
+                $customJson = empty($customInfo) ? null : json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt->bind_param('si', $customJson, $studentId);
+            } else {
+                if (!isset($customInfo['sibling_group']) || !is_array($customInfo['sibling_group'])) {
+                    $customInfo['sibling_group'] = [];
+                }
+                $customInfo['sibling_group']['id'] = $groupId;
+                if ($label !== '') {
+                    $customInfo['sibling_group']['label'] = $label;
+                }
+                $customInfo['sibling_group']['status'] = $status;
+                $customInfo['sibling_group']['updated_at'] = date('c');
+                if ($reason !== '') {
+                    $customInfo['sibling_group']['reason'] = $reason;
+                }
+                if ($basis !== '') {
+                    $customInfo['sibling_group']['basis'] = $basis;
+                }
+                if ($linkedBy !== '') {
+                    $customInfo['sibling_group']['linked_by'] = $linkedBy;
+                }
+                if ($linkedById > 0) {
+                    $customInfo['sibling_group']['linked_by_id'] = $linkedById;
+                }
+                $customInfo['sibling_group']['linked_at'] = date('c');
+
+                $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                $updateStmt->bind_param('si', $customJson, $studentId);
+            }
+            if (!$updateStmt->execute()) {
+                $errors[] = "ID $studentId: " . $updateStmt->error;
+            }
+        }
+
+        if (!empty($errors)) {
+            sendJSON(['success' => false, 'message' => 'بعض التحديثات فشلت: ' . implode('; ', $errors)]);
+            return;
+        }
+
+        if ($op !== 'clear' && function_exists('logActivity')) {
+            $details = "group:$groupId;student_ids:" . implode(',', array_map('intval', $studentIds)) . ";basis:" . ($basis ?: 'manual') . ";reason:" . ($reason ?: 'manual_link');
+            logActivity(getChurchId(), $linkedById ?: null, 'sibling_group', $details);
+        }
+
+        sendJSON(['success' => true, 'message' => 'تم حفظ بيانات العائلة بنجاح']);
+    } catch (Exception $e) {
+        error_log("saveSiblingGroup error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حفظ بيانات الأسرة']);
+    }
+}
 
 function getClassSettings()
 {
@@ -12208,6 +12373,11 @@ try {
             updateStudent();
             break; // Added missing break
 
+        case 'reviewStudentGender':
+            checkAuth();
+            reviewStudentGender();
+            break;
+
         case 'uncleLogin':
             handleUncleLogin();
             break;
@@ -12368,6 +12538,10 @@ try {
         case 'getKidsData':
             checkAuth();
             getKidsData();
+            break;
+
+        case 'saveSiblingGroup':
+            saveSiblingGroup();
             break;
 
         case 'kidLogin':

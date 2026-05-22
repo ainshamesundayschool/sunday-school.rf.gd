@@ -2346,11 +2346,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-sm);
             border: 2.5px solid var(--surface);
             flex-shrink: 0;
+            position: relative;
         }
 
         .student-avatar:hover {
             transform: scale(1.12);
             box-shadow: var(--shadow-md)
+        }
+
+        .student-avatar.male {
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+            box-shadow: 0 0 0 1px rgba(37, 99, 235, .12), var(--shadow-sm);
+        }
+
+        .student-avatar.female {
+            background: linear-gradient(135deg, #f472b6, #db2777);
+            box-shadow: 0 0 0 1px rgba(219, 39, 119, .14), var(--shadow-sm);
+        }
+
+        .detail-avatar-fallback.male,
+        .detail-avatar-fallback.female {
+            min-width: 76px;
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #fff;
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+        }
+
+        .detail-avatar-fallback.female {
+            background: linear-gradient(135deg, #f472b6, #db2777);
         }
 
         .student-name {
@@ -3001,6 +3028,413 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-sm);
             padding-inline: 8px;
             margin-inline: -8px
+        }
+
+        .sibling-panel {
+            margin-top: 8px;
+            padding: 8px 10px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+        }
+
+        .sibling-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sibling-panel-title {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .82rem;
+        }
+
+        .sibling-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            font-size: .72rem;
+            font-weight: 700;
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .sibling-chip.gray {
+            background: var(--surface-3);
+            color: var(--text-2);
+        }
+
+        .sibling-list {
+            display: grid;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .sibling-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--r-md);
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sibling-item:hover {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--brand-glow);
+        }
+
+        .sibling-item::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: radial-gradient(circle at top right, var(--brand-glow), transparent 70%);
+            opacity: 0;
+            transition: opacity var(--t) var(--ease);
+            pointer-events: none;
+        }
+
+        .sibling-item:hover::after {
+            opacity: 1;
+        }
+
+        .sibling-item-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .sibling-mini-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface-3);
+        }
+
+        .sibling-mini-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .sibling-item-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .sibling-mini-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface-3);
+        }
+
+        .sibling-mini-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+
+        .sibling-item strong {
+            display: block;
+            color: var(--text);
+            font-size: .86rem;
+        }
+
+        .sibling-item small {
+            display: block;
+            color: var(--text-3);
+            font-size: .68rem;
+            margin-top: 1px;
+        }
+
+        .sibling-empty {
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            background: rgba(148, 163, 184, .08);
+            color: var(--text-3);
+            font-size: .76rem;
+            line-height: 1.6;
+        }
+
+        .sibling-link-btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding: 5px 10px;
+            font-size: .72rem;
+        }
+
+        .sibling-link-modal-list {
+            max-height: 360px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .sibling-candidate {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            transition: var(--fast);
+        }
+
+        .sibling-candidate:hover {
+            border-color: var(--brand-l);
+            background: var(--brand-bg);
+        }
+
+        .sibling-candidate.selected {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+        }
+
+        .sibling-candidate-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            font-size: .7rem;
+            color: var(--text-3);
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+
+        .sibling-link-search {
+            margin-bottom: 10px;
+        }
+
+        .sibling-suggestion-row,
+        .sibling-suggestion-inline {
+            cursor: pointer;
+            border: none;
+            text-align: right;
+            font-family: inherit;
+        }
+
+        .sibling-suggestion-row {
+            display: grid;
+            gap: 3px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            border-radius: var(--r-lg);
+            border: 1px solid rgba(124, 58, 237, .28);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .22), transparent 55%),
+                linear-gradient(135deg, rgba(124, 58, 237, .12), rgba(91, 108, 245, .08));
+            color: var(--text);
+            transition: var(--fast);
+            box-shadow:
+                0 0 0 1px rgba(124, 58, 237, .08) inset,
+                0 10px 28px rgba(124, 58, 237, .12),
+                0 0 18px rgba(168, 85, 247, .14);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sibling-suggestion-row:hover,
+        .sibling-suggestion-inline:hover {
+            border-color: rgba(124, 58, 237, .5);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .3), transparent 55%),
+                linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(91, 108, 245, .12));
+            box-shadow:
+                0 0 0 1px rgba(124, 58, 237, .16) inset,
+                0 12px 34px rgba(124, 58, 237, .2),
+                0 0 24px rgba(168, 85, 247, .22);
+        }
+
+        .sibling-suggestion-name {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .82rem;
+        }
+
+        .sibling-suggestion-tag {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--r-full);
+            background: linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(91, 108, 245, .14));
+            color: #7c3aed;
+            font-size: .66rem;
+            font-weight: 800;
+        }
+
+        .sibling-suggestion-text {
+            font-size: .7rem;
+            color: var(--text-2);
+            line-height: 1.45;
+        }
+
+        .sibling-suggestion-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .sibling-suggestion-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .sibling-suggestion-inline {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: 100%;
+            padding: 6px 10px;
+            margin-top: 4px;
+            border-radius: var(--r-md);
+            border: 1px solid rgba(124, 58, 237, .24);
+            background: linear-gradient(135deg, rgba(124, 58, 237, .12), rgba(91, 108, 245, .09));
+            color: var(--text);
+            box-shadow: 0 0 0 1px rgba(124, 58, 237, .08) inset, 0 8px 20px rgba(124, 58, 237, .11);
+        }
+
+        .sibling-suggestion-ai {
+            color: #a855f7;
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, .45));
+        }
+
+        .sibling-review-section {
+            margin-top: 10px;
+        }
+
+        .sibling-review-grid {
+            display: grid;
+            gap: 8px;
+            max-height: 360px;
+            overflow: auto;
+        }
+
+        .sibling-review-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            cursor: pointer;
+            transition: var(--fast);
+        }
+
+        .sibling-review-card:hover {
+            border-color: var(--brand-l);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sibling-review-avatars {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .sibling-review-avatars .sibling-mini-avatar,
+        .sibling-review-avatars .sibling-mini-avatar-fallback {
+            width: 34px;
+            height: 34px;
+            margin-inline-start: -8px;
+            border: 2px solid var(--surface);
+        }
+
+        .sibling-review-card.strong {
+            border-color: rgba(124, 58, 237, .28);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, .16), transparent 55%),
+                var(--surface);
+        }
+
+        .sibling-review-card.weak {
+            background: var(--surface-2);
+        }
+
+        .sibling-review-names {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .84rem;
+        }
+
+        .sibling-review-meta {
+            margin-top: 2px;
+            color: var(--text-3);
+            font-size: .7rem;
+            line-height: 1.45;
+        }
+
+        .sibling-review-collapse {
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 8px 10px;
+            background: var(--surface-2);
+        }
+
+        .sibling-review-collapse summary {
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--text);
+            font-size: .82rem;
+        }
+
+        .sibling-link-note {
+            font-size: .72rem;
+            color: var(--text-3);
+            margin-top: 4px;
         }
 
         .detail-icon {
@@ -7057,6 +7491,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                                 <button class="dropdown-item" id="manageAnnouncementsBtn"
                                     onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                                <button class="dropdown-item" onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
+                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوة</button>
                                 <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
                                     style="position:relative; display:flex; justify-content:space-between; align-items:center;">
                                     <span><i class="fas fa-tasks"></i> المهام</span>
@@ -7457,6 +7893,52 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <div id="siblingLinkModal" class="modal-overlay" style="z-index:1000007">
+        <div class="modal" style="max-width:620px">
+            <div class="modal-header">
+                <h3 id="siblingLinkModalTitle"><i class="fas fa-link"></i> إضافة أخت أو أخ</h3>
+                <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.</div>
+                <div class="form-group sibling-link-search">
+                    <label class="form-label" id="siblingLinkSearchLabel">ابحث عن أخت أو أخ</label>
+                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text" id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
+                </div>
+                <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between">
+                <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
+                <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
+        <div class="modal" style="max-width:720px">
+            <div class="modal-header">
+                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوة</h3>
+                <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingSuggestionsSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div class="sibling-review-section">
+                    <div class="sibling-panel-title" style="margin-bottom:8px">اقتراحات قوية</div>
+                    <div id="strongSiblingSuggestions" class="sibling-review-grid"></div>
+                </div>
+                <details class="sibling-review-collapse sibling-review-section">
+                    <summary>اقتراحات ضعيفة</summary>
+                    <div id="weakSiblingSuggestions" class="sibling-review-grid" style="margin-top:8px"></div>
+                </details>
+            </div>
+            <div class="mfooter">
+                <button class="btn btn-g" type="button" onclick="exportSiblingAllSuggestionsAsCSV()" style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
+                <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i> إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Student Modal -->
     <div id="editStudentForm" class="modal-overlay" style="z-index:1000006">
         <div class="modal">
@@ -7689,6 +8171,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onchange="renderCustomExportPreview()">
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
+                                <option value="النوع">النوع</option>
+                                <option value="الإخوة">الإخوة</option>
                                 <option value="كوبونات">إجمالي الكوبونات</option>
                                 <option value="كوبونات الحضور">كوبونات الحضور</option>
                                 <option value="كوبونات الالتزام">كوبونات الالتزام</option>
@@ -8759,12 +9243,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
                 // Show real class name as a small tag
                 const classBadge = `<span style="font-size:.62rem;background:var(--brand-bg);color:var(--brand);padding:1px 6px;border-radius:10px;margin-right:4px">${s['الفصل']}</span>`;
+                const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
-                const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
-                const fallback = `<div class="student-avatar" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
+const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
@@ -8777,8 +9262,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                    <div>${classBadge}</div>
-                    <div class="status-indicator">${badges}</div>
+                            <div class="status-indicator">${badges}</div>
                 </div>
             </div>
             <div class="attendance-actions">
@@ -9698,14 +10182,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 else if (isSynced) badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
                 else if (isInChanged) badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
                 if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
+                const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 const safeImg = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة']
-                    ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                    ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
-                const fallback = `<div class="student-avatar" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
@@ -10213,10 +10698,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!s) { showToast('لم يتم العثور على الطفل', 'error'); return; }
             currentStudentForEdit = s;
             document.getElementById('studentModalTitle').textContent = 'معلومات: ' + name;
+            const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const img = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
 
             // Show a loading stub while we fetch full profile (to get trip_points)
             document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
@@ -10241,9 +10727,522 @@ if ($hasUncleId && $uncleRole === 'uncle')
             })();
         }
 
+        function getStudentGender(s) {
+            return (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
+        }
+
+        function getStudentDbId(student) {
+            if (!student) return 0;
+            return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || 0) || 0;
+        }
+
+        function parseStudentCustomInfo(student) {
+            if (!student) return {};
+            if (student._customInfo && typeof student._customInfo === 'object') return student._customInfo;
+            const raw = student['معلومات إضافية'] ?? student.custom_info ?? student['custom_info'] ?? '';
+            if (!raw) return {};
+            if (typeof raw === 'object') return raw;
+            try {
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function getStudentDisplayName(student) {
+            return (student && (student['الاسم'] || student.name)) || '---';
+        }
+
+        function getStudentClassName(student) {
+            return (student && (student['الفصل'] || student.class)) || '---';
+        }
+
+        function getSiblingWordForms(student) {
+            const female = getStudentGender(student) === 'female';
+            return {
+                singular: female ? 'أخت' : 'أخ',
+                plural: female ? 'الأخوات' : 'الإخوة',
+                panelLabel: female ? 'الأخوات المرتبطات' : 'الإخوة المرتبطون',
+                actionLabel: 'إضافة أخت أو أخ',
+                searchLabel: 'ابحث عن أخت أو أخ',
+                modalTitle: 'إضافة أخت أو أخ',
+                successLabel: 'تمت الإضافة بنجاح',
+            };
+        }
+
+        function getStudentTextValue(student, info, keys) {
+            for (const key of keys) {
+                const value = String((student && student[key]) || (info && info[key]) || '').trim();
+                if (value) return value;
+            }
+            return '';
+        }
+
+        function getSecondNamePart(value) {
+            const text = String(value || '').trim();
+            if (!text) return '';
+            const parts = text.split(/\s+/).filter(Boolean);
+            return parts.length >= 2 ? parts[1] : parts[0] || '';
+        }
+
+        function getNameFamilyPart(student) {
+            return getSecondNamePart(getStudentDisplayName(student));
+        }
+
+        function buildSiblingMiniAvatar(student) {
+            const gender = getStudentGender(student);
+            const photo = (student && (student['صورة'] || student.photo || student.photo_url)) || '';
+            const photoSrc = photo && window.photoUrl ? window.photoUrl(photo) : photo;
+            const avatar = photoSrc
+                ? `<img src="${escHtml(photoSrc)}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                : '';
+            return avatar + `<div class="sibling-mini-avatar-fallback ${gender}" ${photoSrc ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+        }
+
+        function getSiblingSuggestion(current, target) {
+            const currentInfo = parseStudentCustomInfo(current);
+            const targetInfo = parseStudentCustomInfo(target);
+            const currentValues = {
+                phone: getStudentTextValue(current, currentInfo, ['رقم التليفون', 'phone', 'تليفون', 'mobile']),
+                address: getStudentTextValue(current, currentInfo, ['العنوان', 'address']),
+                guardian: getStudentTextValue(current, currentInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
+                father: getStudentTextValue(current, currentInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
+                nameFamilyPart: getNameFamilyPart(current),
+            };
+            const targetValues = {
+                phone: getStudentTextValue(target, targetInfo, ['رقم التليفون', 'phone', 'تليفون', 'mobile']),
+                address: getStudentTextValue(target, targetInfo, ['العنوان', 'address']),
+                guardian: getStudentTextValue(target, targetInfo, ['guardian_name', 'parent_name', 'mother_name', 'اسم ولي الأمر', 'ولي الأمر']),
+                father: getStudentTextValue(target, targetInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
+                nameFamilyPart: getNameFamilyPart(target),
+            };
+            const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
+            const checks = [
+                { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
+                { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
+                { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
+                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب أو الجزء الثاني من الاسم قد يتكرر', ok: (
+                    currentValues.father && targetValues.father && (
+                        norm(currentValues.father) === norm(targetValues.father) ||
+                        (
+                            getSecondNamePart(currentValues.father) &&
+                            getSecondNamePart(targetValues.father) &&
+                            norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                        )
+                    )
+                ) || (
+                    currentValues.nameFamilyPart &&
+                    targetValues.nameFamilyPart &&
+                    norm(currentValues.nameFamilyPart) === norm(targetValues.nameFamilyPart)
+                ), strength: 'weak' },
+            ].filter(x => x.ok);
+            if (!checks.length) return null;
+            return {
+                basis: checks[0].basis,
+                label: checks.map(x => x.label).join('، '),
+                detail: checks.map(x => x.detail).join('، '),
+                strength: checks.some(x => x.strength === 'weak' && checks.length === 1) ? 'weak' : 'strong',
+            };
+        }
+
+        function getSiblingGroupInfo(student) {
+            const info = parseStudentCustomInfo(student);
+            return info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
+        }
+
+        function getStudentsForSiblingLookup() {
+            return (allStudentsData && allStudentsData.length) ? allStudentsData : students;
+        }
+
+        function getSiblingMembersByGroupId(groupId, excludeId = 0) {
+            if (!groupId) return [];
+            const sid = parseInt(excludeId, 10) || 0;
+            return getStudentsForSiblingLookup().filter(s => {
+                const id = getStudentDbId(s);
+                if (!id || id === sid) return false;
+                const group = getSiblingGroupInfo(s);
+                return group && group.id === groupId;
+            });
+        }
+
+        function formatSiblingDate(value) {
+            if (!value) return '';
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return String(value);
+            try {
+                return d.toLocaleString('ar-EG', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return d.toLocaleString();
+            }
+        }
+
+        function inferSiblingBasis(student, members) {
+            const all = [student, ...(members || [])].filter(Boolean);
+            if (all.length < 2) return 'manual';
+            const pick = (keys) => {
+                const vals = all.map(s => {
+                    const info = parseStudentCustomInfo(s);
+                    for (const key of keys) {
+                        const v = (s[key] || info[key] || '').toString().trim();
+                        if (v) return v;
+                    }
+                    return '';
+                }).filter(Boolean);
+                if (!vals.length) return '';
+                const first = vals[0].toLowerCase();
+                return vals.every(v => v.toLowerCase() === first) ? vals[0] : '';
+            };
+            const reasons = [];
+            if (pick(['رقم التليفون', 'phone', 'emergency_phone'])) reasons.push('رقم تليفون مشترك');
+            if (pick(['العنوان', 'address'])) reasons.push('عنوان مشترك');
+            if (pick(['guardian_name', 'father_name', 'parent_name', 'mother_name'])) reasons.push('اسم ولي الأمر مشترك');
+            if (pick(['معلومات إضافية', 'custom_info'])) reasons.push('معلومات إضافية متطابقة');
+            const className = pick(['الفصل', 'class']);
+            if (className && reasons.length === 0) reasons.push('نفس الفصل');
+            return reasons.length ? reasons.join('، ') : 'ربط يدوي';
+        }
+
+        function buildSiblingPanel(student) {
+            const studentId = getStudentDbId(student);
+            const words = getSiblingWordForms(student);
+            const custom = parseStudentCustomInfo(student);
+            const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
+            const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
+            const visibleMembers = members.slice(0, 6);
+
+            const membersHtml = visibleMembers.length
+                ? visibleMembers.map(m => {
+                    return `<div class="sibling-item" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')">
+                        <div class="sibling-item-main">
+                            ${buildSiblingMiniAvatar(m)}
+                            <div style="min-width:0">
+                                <strong>${escHtml(getStudentDisplayName(m))}</strong>
+                                <small>${escHtml(getStudentClassName(m))}</small>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')
+                : '';
+
+            const studentIdJs = JSON.stringify(studentId || 0);
+            return `
+                <div class="sibling-panel">
+                    <div class="sibling-panel-head">
+                        <div>
+                            <div class="sibling-panel-title">${escHtml(words.panelLabel)}</div>
+                        </div>
+                        <button type="button" class="btn btn-g sibling-link-btn" title="يفتح الاقتراحات ثم يضيف الأخت أو الأخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ${escHtml(words.actionLabel)}</button>
+                    </div>
+                    ${membersHtml ? `<div class="sibling-list">${membersHtml}</div>` : ''}
+                </div>
+            `;
+        }
+
+        let _siblingLinkStudentId = 0;
+
+        function getSiblingSearchText(student) {
+            const info = parseStudentCustomInfo(student);
+            return [
+                getStudentDisplayName(student),
+                getStudentClassName(student),
+                student['رقم التليفون'] || student.phone || '',
+                student['العنوان'] || student.address || '',
+                info.guardian_name || '',
+                info.father_name || '',
+                info.parent_name || '',
+                info.mother_name || '',
+                JSON.stringify(info || {})
+            ].join(' ').toLowerCase();
+        }
+
+        function openSiblingLinkModal(studentId = 0) {
+            const sid = parseInt(studentId, 10) || getStudentDbId(currentStudentForEdit);
+            if (!sid) {
+                showToast('خطأ في بيانات الطفل', 'error');
+                return;
+            }
+            _siblingLinkStudentId = sid;
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === sid) || currentStudentForEdit;
+            const words = getSiblingWordForms(current);
+            const modal = document.getElementById('siblingLinkModal');
+            const title = document.getElementById('siblingLinkModalTitle');
+            const suggestion = document.getElementById('siblingLinkSuggestion');
+            const searchLabel = document.getElementById('siblingLinkSearchLabel');
+            const search = document.getElementById('siblingLinkSearch');
+            if (title) title.textContent = words.modalTitle;
+            if (suggestion) suggestion.textContent = 'الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.';
+            if (searchLabel) searchLabel.textContent = words.searchLabel;
+            if (search) search.value = '';
+            renderSiblingLinkCandidates();
+            modal.classList.add('active');
+            setTimeout(() => search?.focus(), 50);
+        }
+
+        function closeSiblingLinkModal() {
+            document.getElementById('siblingLinkModal')?.classList.remove('active');
+            _siblingLinkStudentId = 0;
+        }
+
+        function renderSiblingLinkCandidates() {
+            const list = document.getElementById('siblingLinkCandidates');
+            const summary = document.getElementById('siblingLinkSummary');
+            const suggestionBox = document.getElementById('siblingLinkSuggestion');
+            if (!list || !_siblingLinkStudentId) return;
+
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
+            const words = getSiblingWordForms(current);
+            if (!current) {
+                list.innerHTML = '<div class="sibling-empty">تعذر تحميل بيانات الطفل الحالي.</div>';
+                return;
+            }
+
+            const currentGroup = getSiblingGroupInfo(current);
+            const currentMembers = currentGroup?.id ? getSiblingMembersByGroupId(currentGroup.id, _siblingLinkStudentId) : [];
+            const q = (document.getElementById('siblingLinkSearch')?.value || '').trim().toLowerCase();
+            const data = getStudentsForSiblingLookup()
+                .filter(s => getStudentDbId(s) !== _siblingLinkStudentId)
+                .filter(s => {
+                    if (!q) return true;
+                    return getSiblingSearchText(s).includes(q);
+                })
+                .sort((a, b) => getStudentDisplayName(a).localeCompare(getStudentDisplayName(b), 'ar'));
+
+            if (summary) {
+                summary.innerHTML = currentGroup?.id
+                    ? `المجموعة الحالية فيها <strong>${currentMembers.length + 1}</strong> ${words.plural}.`
+                    : 'اختر طفلًا للربط بهذا الطفل.';
+            }
+
+            const preview = data
+                .map(s => {
+                    const suggestion = getSiblingSuggestion(current, s);
+                    if (!suggestion) return '';
+                    const id = getStudentDbId(s);
+                    const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
+                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">
+                        <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
+                        <span class="sibling-suggestion-tag">${tag}</span>
+                        <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
+                    </button>`;
+                })
+                .filter(Boolean)
+                .slice(0, 4);
+            if (suggestionBox) {
+                suggestionBox.innerHTML = preview.length
+                    ? `<strong><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الربط</strong>${preview.join('')}`
+                    : 'لا توجد اقتراحات واضحة الآن. يمكنك الربط يدويًا من القائمة.';
+            }
+
+            if (!data.length) {
+                list.innerHTML = '<div class="sibling-empty">لا توجد نتائج مطابقة للبحث الحالي.</div>';
+                return;
+            }
+
+            list.innerHTML = data.map(s => {
+                const id = getStudentDbId(s);
+                const info = parseStudentCustomInfo(s);
+                const guardian = info.guardian_name || info.father_name || info.parent_name || info.mother_name || '';
+                const targetGroup = getSiblingGroupInfo(s);
+                const alreadyLinked = currentGroup?.id && targetGroup?.id && currentGroup.id === targetGroup.id;
+                const suggestion = getSiblingSuggestion(current, s);
+                const linkedLabel = alreadyLinked ? 'مرتبط بالفعل' : targetGroup?.id ? 'مرتبط مع مجموعة أخرى' : 'غير مرتبط';
+                const phone = s['رقم التليفون'] || s.phone || '';
+                const address = s['العنوان'] || s.address || '';
+                const gender = getStudentGender(s);
+                const avatar = s['صورة']
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                    : '';
+                const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                return `
+                    <div class="sibling-candidate ${alreadyLinked ? 'selected' : ''}">
+                        <div class="sibling-item-main">
+                            ${avatar}${avatarFallback}
+                            <div style="min-width:0;flex:1;">
+                                <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(s))}</div>
+                                <div class="sibling-candidate-meta">
+                                    <span>${escHtml(getStudentClassName(s))}</span>
+                                    ${guardian ? `<span>ولي الأمر: ${escHtml(guardian)}</span>` : ''}
+                                    ${phone ? `<span>هاتف: ${escHtml(phone)}</span>` : ''}
+                                    ${address ? `<span>العنوان: ${escHtml(address)}</span>` : ''}
+                                </div>
+                                ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                            <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
+                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="linkSiblingToCurrent(${id})"><i class="fas fa-plus"></i> إضافة</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function getAllSiblingSuggestions() {
+            const list = getStudentsForSiblingLookup().filter(s => getStudentDbId(s));
+            const suggestions = [];
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                    const a = list[i];
+                    const b = list[j];
+                    const aGroup = getSiblingGroupInfo(a);
+                    const bGroup = getSiblingGroupInfo(b);
+                    if (aGroup?.id && bGroup?.id && aGroup.id === bGroup.id) continue;
+                    const suggestion = getSiblingSuggestion(a, b);
+                    if (!suggestion) continue;
+                    suggestions.push({ a, b, suggestion });
+                }
+            }
+            return suggestions.sort((x, y) => {
+                if (x.suggestion.strength !== y.suggestion.strength) return x.suggestion.strength === 'strong' ? -1 : 1;
+                return getStudentDisplayName(x.a).localeCompare(getStudentDisplayName(y.a), 'ar');
+            });
+        }
+
+        function exportSiblingAllSuggestionsAsCSV() {
+            const all = getAllSiblingSuggestions();
+            if (!all.length) { showToast('لا توجد اقتراحات لتصديرها', 'info'); return; }
+
+            const rows = [['الطفل الأول', 'فصل الأول', 'الطفل الثاني', 'فصل الثاني', 'قوة الاقتراح', 'سبب الربط', 'التفاصيل']];
+            all.forEach(item => {
+                rows.push([
+                    getStudentDisplayName(item.a),
+                    getStudentClassName(item.a),
+                    getStudentDisplayName(item.b),
+                    getStudentClassName(item.b),
+                    item.suggestion.strength === 'strong' ? 'قوي' : 'ضعيف',
+                    item.suggestion.label,
+                    item.suggestion.detail
+                ]);
+            });
+
+            const csvContent = "\uFEFF" + rows.map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(',')).join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `اقتراحات_الإخوة_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderSiblingSuggestionPair(item) {
+            const aId = getStudentDbId(item.a);
+            const bId = getStudentDbId(item.b);
+            const strength = item.suggestion.strength === 'weak' ? 'weak' : 'strong';
+            const tag = strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح قوي';
+            return `<div class="sibling-review-card ${strength}" onclick="linkSiblingPair(${aId}, ${bId})" title="اضغط للإضافة">
+                <div class="sibling-review-avatars">
+                    ${buildSiblingMiniAvatar(item.a)}
+                    ${buildSiblingMiniAvatar(item.b)}
+                </div>
+                <div style="min-width:0;flex:1">
+                    <div class="sibling-review-names">${escHtml(getStudentDisplayName(item.a))} + ${escHtml(getStudentDisplayName(item.b))}</div>
+                    <div class="sibling-review-meta">${escHtml(getStudentClassName(item.a))} / ${escHtml(getStudentClassName(item.b))} · ${escHtml(item.suggestion.label)} · ${escHtml(item.suggestion.detail)}</div>
+                </div>
+                <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="event.stopPropagation();linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
+                <span class="sibling-chip gray" style="font-size:.66rem">${tag}</span>
+            </div>`;
+        }
+
+        function renderAllSiblingSuggestionsView() {
+            const summary = document.getElementById('siblingSuggestionsSummary');
+            const strongBox = document.getElementById('strongSiblingSuggestions');
+            const weakBox = document.getElementById('weakSiblingSuggestions');
+            if (!strongBox || !weakBox) return;
+            const all = getAllSiblingSuggestions();
+            const strong = all.filter(x => x.suggestion.strength !== 'weak');
+            const weak = all.filter(x => x.suggestion.strength === 'weak');
+            if (summary) {
+                summary.innerHTML = `<strong>${strong.length}</strong> اقتراح قوي · <strong>${weak.length}</strong> اقتراح ضعيف`;
+            }
+            strongBox.innerHTML = strong.length
+                ? strong.map(renderSiblingSuggestionPair).join('')
+                : '<div class="sibling-empty">لا توجد اقتراحات قوية الآن.</div>';
+            weakBox.innerHTML = weak.length
+                ? weak.map(renderSiblingSuggestionPair).join('')
+                : '<div class="sibling-empty">لا توجد اقتراحات ضعيفة الآن.</div>';
+        }
+
+        function openSiblingSuggestionsView() {
+            renderAllSiblingSuggestionsView();
+            document.getElementById('siblingSuggestionsModal')?.classList.add('active');
+        }
+
+        function closeSiblingSuggestionsView() {
+            document.getElementById('siblingSuggestionsModal')?.classList.remove('active');
+        }
+
+        async function linkSiblingPair(currentStudentId, targetStudentId) {
+            _siblingLinkStudentId = parseInt(currentStudentId, 10) || 0;
+            await linkSiblingToCurrent(targetStudentId);
+            renderAllSiblingSuggestionsView();
+        }
+
+        async function linkSiblingToCurrent(targetStudentId) {
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === _siblingLinkStudentId) || currentStudentForEdit;
+            const target = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === parseInt(targetStudentId, 10));
+            if (!current || !target) {
+                showToast('تعذر تحديد الطفل أو الأخ/الأخت المراد ربطه', 'error');
+                return;
+            }
+
+            const words = getSiblingWordForms(current);
+
+            const currentId = getStudentDbId(current);
+            const targetId = getStudentDbId(target);
+            if (!currentId || !targetId) {
+                showToast('معرفات الطلاب غير مكتملة', 'error');
+                return;
+            }
+
+            const currentGroup = getSiblingGroupInfo(current);
+            const targetGroup = getSiblingGroupInfo(target);
+            const currentIds = currentGroup?.id ? getSiblingMembersByGroupId(currentGroup.id, currentId).map(s => getStudentDbId(s)) : [];
+            const targetIds = targetGroup?.id ? getSiblingMembersByGroupId(targetGroup.id, targetId).map(s => getStudentDbId(s)) : [];
+            const allIds = [...new Set([currentId, targetId, ...currentIds, ...targetIds].filter(Boolean))];
+            const groupId = currentGroup?.id || targetGroup?.id || `family_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const merged = currentGroup?.id && targetGroup?.id && currentGroup.id !== targetGroup.id;
+            if (merged) {
+                showToast('سيتم دمج الروابط المرتبطة تلقائيًا', 'info');
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'saveSiblingGroup');
+            fd.append('student_ids', JSON.stringify(allIds));
+            fd.append('group_id', groupId);
+            fd.append('status', 'approved');
+            fd.append('linked_by', localStorage.getItem('uncleName') || '');
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .catch(() => ({ success: false }));
+
+            if (d.success) {
+                showToast(words.successLabel, 'success');
+                closeSiblingLinkModal();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                loadData();
+                setTimeout(() => {
+                    if (currentStudentForEdit) showStudentDetails(getStudentDisplayName(currentStudentForEdit));
+                }, 500);
+            } else {
+                showToast(d.message || 'فشل في حفظ الربط', 'error');
+            }
+        }
+
         function buildStudentDetailsFromCache(s) {
+            const genderLabel = getStudentGender(s) === 'female' ? 'أنثى' : 'ذكر';
+            const siblingHtml = buildSiblingPanel(s);
             const rows = [
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
+                ['النوع', genderLabel, 'purple', 'fa-venus-mars'],
                 ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher'],
                 ['العنوان', s['العنوان'] || '---', 'orange', 'fa-map-marker-alt'],
                 ['رقم التليفون', s['رقم التليفون'] || '---', 'green', 'fa-phone'],
@@ -10255,11 +11254,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="detail-label">${l}</div>
             <div class="detail-val">${v}</div>
         </div>`).join('');
-            document.getElementById('studentDetails').innerHTML = (s['صورة'] ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${s['الاسم'] || ''}</div></div>` : '') + rows;
+            const gender = getStudentGender(s);
+            const avatar = s['صورة']
+                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${escStr(s['الاسم'] || '')}</div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
+            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml;
         }
 
         function buildStudentDetailsFromProfile(full) {
-            const img = full.image_url ? `<div class="detail-avatar-wrap"><img src="${full.image_url}" class="detail-avatar" onclick="showImageModal('${full.image_url}')"><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>` : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback"><i class="fas fa-user"></i></div><div class="detail-student-name">${full.name || ''}</div><div class="detail-student-class">${full.class || ''}</div></div>`;
+            const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
+            const siblingHtml = buildSiblingPanel(full);
+            const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
+            const img = full.image_url 
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>` 
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
@@ -10284,7 +11292,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             else tpHtml += tpKeys.map(k => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id || full.id})">تعديل</button></div></div>`).join('');
             tpHtml += '</div></div>';
 
-            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml;
+            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml;
         }
 
         // Open a small prompt to update points for a given trip and student
@@ -11447,6 +12455,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
+                { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
+                { key: 'siblings', label: 'الإخوة', type: 'siblings', selected: false },
                 { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'تليفون الطوارئ', selected: false },
                 { key: 'address', label: 'العنوان', source: 'العنوان', selected: false },
@@ -11558,8 +12568,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     : '<div class="custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
             }
             if (field.type === 'age') return _calcAge(s['عيد الميلاد'] || '') || '';
+            if (field.type === 'gender') return (s['النوع'] === 'female' || s['gender'] === 'female') ? 'أنثى' : 'ذكر';
+            if (field.type === 'siblings') {
+                const studentId = getStudentDbId(s);
+                const info = parseStudentCustomInfo(s);
+                const group = info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
+                const members = (group && group.id) ? getSiblingMembersByGroupId(group.id, studentId) : [];
+                return members.map(m => getStudentDisplayName(m)).join(forCsv ? '، ' : ' - ');
+            }
             if (field.type === 'attendance_count') return getAttendanceCountForStudent(s);
             if (field.type === 'custom') return getCustomFieldValue(s, field.customIndex);
+            if (field.key === 'custom_info' || field.source === 'معلومات إضافية' || field.type === 'custom_info') {
+                const info = parseStudentCustomInfo(s);
+                const pairs = Object.entries(info)
+                    .filter(([k]) => !['sibling_group', 'value'].includes(k))
+                    .map(([k, v]) => `${k}: ${v}`);
+                if (info.value) pairs.unshift(String(info.value));
+                return pairs.join(forCsv ? ' ؛ ' : '\n');
+            }
             return s[field.source] || '';
         }
         function getAttendanceDisplayValue(s, date) {
@@ -11591,6 +12617,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const pA = vA.split('/'), pB = vB.split('/');
                     if (pA.length === 3 && pB.length === 3) res = new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
                     else res = collator.compare(vA, vB);
+                } else if (cfg.sortBy === 'النوع') {
+                    const gA = (a['النوع'] === 'female' || a['gender'] === 'female') ? '2' : '1';
+                    const gB = (b['النوع'] === 'female' || b['gender'] === 'female') ? '2' : '1';
+                    res = collator.compare(gA, gB);
+                } else if (cfg.sortBy === 'الإخوة') {
+                    const studentIdA = getStudentDbId(a);
+                    const infoA = parseStudentCustomInfo(a);
+                    const groupA = infoA.sibling_group && typeof infoA.sibling_group === 'object' ? infoA.sibling_group : null;
+                    const membersA = (groupA && groupA.id) ? getSiblingMembersByGroupId(groupA.id, studentIdA) : [];
+                    const studentIdB = getStudentDbId(b);
+                    const infoB = parseStudentCustomInfo(b);
+                    const groupB = infoB.sibling_group && typeof infoB.sibling_group === 'object' ? infoB.sibling_group : null;
+                    const membersB = (groupB && groupB.id) ? getSiblingMembersByGroupId(groupB.id, studentIdB) : [];
+                    res = membersA.length - membersB.length;
                 } else {
                     res = collator.compare(vA, vB);
                 }
@@ -12394,6 +13434,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('closeAbsentModal', 'click', hideAbsentModal);
             on('closeDeleteStudentModal', 'click', hideDeleteStudentModal);
             on('cancelDeleteStudentBtn', 'click', hideDeleteStudentModal);
+            on('closeSiblingLinkModal', 'click', closeSiblingLinkModal);
+            on('cancelSiblingLinkBtn', 'click', closeSiblingLinkModal);
+            on('closeSiblingSuggestionsModal', 'click', closeSiblingSuggestionsView);
+            on('cancelSiblingSuggestionsBtn', 'click', closeSiblingSuggestionsView);
+            on('clearSiblingLinkBtn', 'click', () => {
+                const search = document.getElementById('siblingLinkSearch');
+                const suggestion = document.getElementById('siblingLinkSuggestion');
+                if (search) search.value = '';
+                if (suggestion) suggestion.textContent = 'الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.';
+                renderSiblingLinkCandidates();
+            });
+            on('siblingLinkSearch', 'input', renderSiblingLinkCandidates);
             on('imageModalClose', 'click', hideImageModal);
             on('cropClose', 'click', closeCropModal);
             on('cropCancel', 'click', closeCropModal);
