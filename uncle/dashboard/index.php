@@ -8725,8 +8725,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     [
                         'churchSettings', 'lastStudentsData', 'currentClass', 'selectedFriday',
-                        'combinedClassGroups', 'customAttendanceDates'
+                        'combinedClassGroups', 'customAttendanceDates', 'lastTripsData'
                     ].forEach(k => localStorage.removeItem(k));
+                    Object.keys(localStorage).forEach(k => {
+                        if (k.startsWith('lastTripsData_')) localStorage.removeItem(k);
+                    });
                     Object.keys(localStorage).forEach(k => {
                         if (
                             k.startsWith('attendanceData_') ||
@@ -9867,13 +9870,22 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         }
 
         let isFetchingTrips = false;
+        function getTripsCacheKey() {
+            const code = (localStorage.getItem('churchCode') || <?php echo json_encode($churchCode); ?> || '').trim();
+            const id = <?php echo intval($_SESSION['church_id'] ?? 0); ?>;
+            return code ? `lastTripsData_${code}` : (id ? `lastTripsData_id_${id}` : 'lastTripsData');
+        }
+
         async function loadDashboardTrips() {
             const container = document.getElementById('tripsContainer');
             const head = document.getElementById('tripsSectionHead');
             if (!container || !head) return;
 
-            // Load from cache first
-            const cachedTrips = localStorage.getItem('lastTripsData');
+            const tripsCacheKey = getTripsCacheKey();
+            try { localStorage.removeItem('lastTripsData'); } catch (e) { }
+
+            // Load from cache first (scoped to this church only)
+            const cachedTrips = localStorage.getItem(tripsCacheKey);
             if (cachedTrips) {
                 try {
                     const trips = JSON.parse(cachedTrips);
@@ -9894,10 +9906,11 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             try {
                 const fd = new FormData();
                 fd.append('action', 'getTrips');
+                fd.append('own_only', '1');
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {
-                    if (!localStorage.getItem('lastTripsData')) {
+                    if (!localStorage.getItem(tripsCacheKey)) {
                         container.style.display = 'none';
                         head.style.display = 'none';
                     }
@@ -9907,7 +9920,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
 
                 const activeTrips = d.trips.filter(t => t.status === 'active' || t.status === 'planned');
                 if (!activeTrips.length) {
-                    if (!localStorage.getItem('lastTripsData')) {
+                    if (!localStorage.getItem(tripsCacheKey)) {
                         container.style.display = 'none';
                         head.style.display = 'none';
                     }
@@ -9915,10 +9928,10 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     return;
                 }
 
-                localStorage.setItem('lastTripsData', JSON.stringify(activeTrips));
+                localStorage.setItem(tripsCacheKey, JSON.stringify(activeTrips));
                 renderDashboardTripsHtml(activeTrips);
             } catch (e) {
-                if (!localStorage.getItem('lastTripsData')) {
+                if (!localStorage.getItem(tripsCacheKey)) {
                     container.style.display = 'none';
                     head.style.display = 'none';
                 }
