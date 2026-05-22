@@ -11312,20 +11312,48 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         function buildStudentDetailsFromCache(s) {
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
-            const rows = [
+            let rowsList = [
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars'],
                 ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher'],
                 ['العنوان', s['العنوان'] || '---', 'orange', 'fa-map-marker-alt'],
                 ['رقم التليفون', s['رقم التليفون'] || '---', 'green', 'fa-phone'],
+            ];
+            if (s['تليفون الطوارئ']) {
+                rowsList.push(['تليفون الطوارئ', s['تليفون الطوارئ'], 'green', 'fa-phone-alt']);
+            }
+            if (s['ملاحظات طبية']) {
+                rowsList.push(['ملاحظات طبية', s['ملاحظات طبية'], 'red', 'fa-notes-medical']);
+            }
+            rowsList.push(
                 ['تاريخ الميلاد', s['عيد الميلاد'] || '---', 'pink', 'fa-birthday-cake'],
-                ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star'],
-            ].map(([l, v, color, icon]) => `
+                ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star']
+            );
+
+            let rows = rowsList.map(([l, v, color, icon]) => `
         <div class="detail-row">
             <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
             <div class="detail-label">${l}</div>
             <div class="detail-val">${v}</div>
         </div>`).join('');
+
+            // Append custom fields
+            const info = parseStudentCustomInfo(s);
+            if (churchCustomFields && churchCustomFields.length) {
+                churchCustomFields.forEach((cf, idx) => {
+                    const key = 'field_' + idx;
+                    const val = info[key] || info['field_' + idx] || (idx === 0 ? (info.value || '') : '');
+                    if (val) {
+                        rows += `
+        <div class="detail-row">
+            <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
+            <div class="detail-label">${cf.name}</div>
+            <div class="detail-val">${val}</div>
+        </div>`;
+                    }
+                });
+            }
+
             const gender = getStudentGender(s);
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${escStr(s['الاسم'] || '')}</div></div>`
@@ -11340,20 +11368,48 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const img = full.image_url 
                 ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>` 
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
-            const rows = [
+            
+            let rowsList = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars'],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher'],
                 ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt'],
                 ['رقم التليفون', full.phone || '---', 'green', 'fa-phone'],
+            ];
+            if (full.emergency_phone) {
+                rowsList.push(['تليفون الطوارئ', full.emergency_phone, 'green', 'fa-phone-alt']);
+            }
+            if (full.medical_notes) {
+                rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical']);
+            }
+            rowsList.push(
                 ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake'],
-                ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star'],
-            ].map(([l, v, color, icon]) => `
+                ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star']
+            );
+
+            let rows = rowsList.map(([l, v, color, icon]) => `
         <div class="detail-row">
             <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
             <div class="detail-label">${l}</div>
             <div class="detail-val">${v}</div>
         </div>`).join('');
+
+            // Append custom fields
+            const info = parseStudentCustomInfo(full);
+            if (churchCustomFields && churchCustomFields.length) {
+                churchCustomFields.forEach((cf, idx) => {
+                    const key = 'field_' + idx;
+                    const val = info[key] || info['field_' + idx] || (idx === 0 ? (info.value || '') : '');
+                    if (val) {
+                        rows += `
+        <div class="detail-row">
+            <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
+            <div class="detail-label">${cf.name}</div>
+            <div class="detail-val">${val}</div>
+        </div>`;
+                    }
+                });
+            }
 
             // Trip points summary
             let tp = {};

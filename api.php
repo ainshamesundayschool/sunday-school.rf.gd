@@ -7966,7 +7966,7 @@ function getStudentProfile()
                 s.id, s.name, s.address, s.phone, s.birthday, s.email,
                 s.coupons, s.attendance_coupons, s.commitment_coupons,
                 s.task_coupons, s.image_url, s.church_id, s.class_id,
-                s.custom_info, s.gender,
+                s.custom_info, s.gender, s.emergency_phone, s.medical_notes,
                 c.church_name,
                 COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
             FROM students s
