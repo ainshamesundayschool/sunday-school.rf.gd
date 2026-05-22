@@ -5456,6 +5456,25 @@
                     </div>
                 </div>
 
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> ترقية الفصول</div>
+                    </div>
+                    <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+                        <p style="font-size:0.82rem;color:var(--muted);margin:0;">
+                            يرقّي كل طفل إلى الفصل التالي حسب ترتيب الفصول (من الأصغر إلى الأكبر). الأطفال في أعلى فصل يبقون كما هم.
+                        </p>
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                            <button class="btn btn-warning btn-sm" onclick="confirmGradeUpAllKids()">
+                                <i class="fas fa-level-up-alt"></i> ترقية الجميع للفصل التالي
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');">
+                                <i class="fas fa-calendar-alt"></i> جدولة ترقية سنوية
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
@@ -5918,6 +5937,17 @@
                             </div>
                             <i class="fas fa-chevron-left settings-hub-arrow"></i>
                         </button>
+
+                        <button class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
+                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="settings-hub-body">
+                                <div class="settings-hub-title">ترقية الفصول</div>
+                                <div class="settings-hub-desc">ترقية جميع الأطفال فصلاً واحداً أو جدولة ترقية سنوية</div>
+                            </div>
+                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -6210,6 +6240,69 @@
                             </label>
                             <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:24px;"><i
                                     class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Kids grade-up (manual + annual schedule) -->
+                <div id="settingsPage_kidsGradeUp" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">ترقية الفصول</span>
+                    </div>
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-level-up-alt"></i> ترقية يدوية</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+                            <p style="font-size:0.84rem;color:var(--muted);margin:0;">
+                                ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.
+                            </p>
+                            <button class="btn btn-warning" onclick="confirmGradeUpAllKids()">
+                                <i class="fas fa-graduation-cap"></i> ترقية جميع الأطفال الآن
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-calendar-check"></i> ترقية سنوية تلقائية</div>
+                        </div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+                            <p style="font-size:0.84rem;color:var(--muted);margin:0;">
+                                عند أول دخول لأي مستخدم بعد هذا التاريخ (مرة واحدة في السنة)، تُرقّى أطفال هذه الكنيسة تلقائياً.
+                            </p>
+                            <div style="display:flex;flex-wrap:wrap;gap:14px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label class="form-label">الشهر</label>
+                                    <select id="settingAutoGradeMonth" class="form-select" style="min-width:160px;">
+                                        <option value="0">معطّل</option>
+                                        <option value="1">يناير</option>
+                                        <option value="2">فبراير</option>
+                                        <option value="3">مارس</option>
+                                        <option value="4">أبريل</option>
+                                        <option value="5">مايو</option>
+                                        <option value="6">يونيو</option>
+                                        <option value="7">يوليو</option>
+                                        <option value="8">أغسطس</option>
+                                        <option value="9">سبتمبر</option>
+                                        <option value="10">أكتوبر</option>
+                                        <option value="11">نوفمبر</option>
+                                        <option value="12">ديسمبر</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label class="form-label">اليوم</label>
+                                    <select id="settingAutoGradeDay" class="form-select" style="min-width:120px;">
+                                        <option value="0">—</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--muted);margin:0;"></p>
+                            <button class="btn btn-primary" onclick="saveKidsGradeSettings()" style="align-self:flex-start;">
+                                <i class="fas fa-save"></i> حفظ الجدولة
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -9183,6 +9276,9 @@
             if (page === 'familyReview') {
                 renderFamilyReviewPage();
             }
+            if (page === 'kidsGradeUp') {
+                _populateAutoGradeDayOptions();
+            }
             // Scroll to top of content
             const panel = document.getElementById('churchSettings');
             if (panel) panel.scrollTop = 0;
@@ -9738,6 +9834,8 @@
                     _updateAutoApprovalStyle();
                 }
 
+                _applyAutoGradeSettingsToForm(s);
+
                 // Load custom fields (supports array or single object)
                 const cf = s.custom_fields || s.custom_field;
                 if (Array.isArray(cf) && cf.length) {
@@ -9869,6 +9967,84 @@
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حفظ الإعدادات', 'success'); }
             else showToast(d.message || 'فشل في الحفظ', 'error');
+        }
+
+        function _populateAutoGradeDayOptions(selectedDay) {
+            const dayEl = document.getElementById('settingAutoGradeDay');
+            if (!dayEl) return;
+            const cur = selectedDay != null ? String(selectedDay) : dayEl.value;
+            dayEl.innerHTML = '<option value="0">—</option>';
+            for (let d = 1; d <= 31; d++) {
+                dayEl.innerHTML += `<option value="${d}">${d}</option>`;
+            }
+            if (cur && cur !== '0') dayEl.value = cur;
+        }
+
+        function _applyAutoGradeSettingsToForm(s) {
+            const monthEl = document.getElementById('settingAutoGradeMonth');
+            const dayEl = document.getElementById('settingAutoGradeDay');
+            const hint = document.getElementById('autoGradeStatusHint');
+            if (!monthEl) return;
+            const m = s?.auto_grade_month ? parseInt(s.auto_grade_month, 10) : 0;
+            const d = s?.auto_grade_day ? parseInt(s.auto_grade_day, 10) : 0;
+            monthEl.value = m ? String(m) : '0';
+            _populateAutoGradeDayOptions(d || 0);
+            if (dayEl) dayEl.value = d ? String(d) : '0';
+            if (hint) {
+                if (m && d) {
+                    const last = s.last_auto_grade_year ? ` — آخر ترقية تلقائية: ${s.last_auto_grade_year}` : '';
+                    hint.textContent = `مفعّل: يوم ${d} من الشهر ${m}${last}`;
+                } else {
+                    hint.textContent = 'الترقية التلقائية معطّلة.';
+                }
+            }
+        }
+
+        async function saveKidsGradeSettings() {
+            const monthEl = document.getElementById('settingAutoGradeMonth');
+            const dayEl = document.getElementById('settingAutoGradeDay');
+            if (!monthEl || !dayEl) return;
+            const m = parseInt(monthEl.value, 10) || 0;
+            const d = parseInt(dayEl.value, 10) || 0;
+            if (m && !d) { showToast('اختر يوماً للترقية السنوية', 'warning'); return; }
+            if (!m && d) { showToast('اختر شهراً للترقية السنوية', 'warning'); return; }
+
+            const fd = mkFd('saveChurchSettings');
+            fd.append('attendance_day', document.getElementById('settingAttendanceDay')?.value || '5');
+            fd.append('uncle_class_navigation', document.getElementById('settingUncleNav')?.value || 'all');
+            fd.append('combined_class_groups', JSON.stringify(_currentCombinedGroups || []));
+            const validFields = (_currentCustomFields || []).filter(f => f.name).map((f, i) => ({
+                name: f.name, icon: f.icon || 'fa-tag', key: 'field_' + i
+            }));
+            fd.append('custom_field', validFields.length ? JSON.stringify(validFields) : '');
+            const showClasses = document.getElementById('settingViewClasses')?.checked ?? true;
+            const showAll = document.getElementById('settingViewAll')?.checked ?? false;
+            const viewMode = (showClasses && showAll) ? 'both' : showClasses ? 'classes' : 'all';
+            fd.append('view_mode', viewMode);
+            fd.append('auto_kids_approval', document.getElementById('settingAutoKidsApproval')?.checked ? '1' : '0');
+            fd.append('auto_grade_month', m ? String(m) : '0');
+            fd.append('auto_grade_day', d ? String(d) : '0');
+
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast('تم حفظ جدولة الترقية', 'success');
+                loadAndApplyChurchSettings();
+            } else {
+                showToast(res.message || 'فشل في الحفظ', 'error');
+            }
+        }
+
+        async function confirmGradeUpAllKids() {
+            if (!confirm('هل تريد ترقية جميع الأطفال إلى الفصل التالي؟\n\nالأطفال في أعلى فصل لن يتغير فصلهم.')) return;
+            const fd = mkFd('gradeUpAllKids');
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (res.success) {
+                showToast(res.message || 'تمت الترقية', 'success');
+                if (typeof loadStudents === 'function') loadStudents();
+                if (typeof loadData === 'function') loadData();
+            } else {
+                showToast(res.message || 'فشلت الترقية', 'error');
+            }
         }
 
         function _updateAutoApprovalStyle() {

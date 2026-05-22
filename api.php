@@ -1760,6 +1760,10 @@ try {
             saveChurchSettings();
             break;
 
+        case 'gradeUpAllKids':
+            gradeUpAllKids();
+            break;
+
         case 'getUncleClassView':
             checkUncleAuth();
             getUncleClassView();
@@ -2204,6 +2208,7 @@ function handleLogin()
                 $_SESSION['login_type'] = 'church';
 
                 auditLogin('church', $row['id'], $row['church_name']);
+                runBackgroundGradeUpChecks();
 
                 sendJSON([
                     'success' => true,
@@ -4827,6 +4832,7 @@ function handleAutoLogin()
             $_SESSION['church_name'] = $row['church_name'];
             $_SESSION['church_code'] = $row['church_code'];
             $_SESSION['auto_logged_in'] = true;
+            runBackgroundGradeUpChecks();
 
             sendJSON([
                 'success' => true,
@@ -6221,6 +6227,7 @@ function handleUncleLogin()
                 $_SESSION['uncle_role'] = $row['role'];
 
                 auditLogin('uncle', $row['id'], $row['name']);
+                runBackgroundGradeUpChecks();
 
                 sendJSON([
                     'success' => true,
@@ -8689,17 +8696,19 @@ function updateCouponsWithReason()
 function getClassesForChurch(int $churchId): array
 {
     $conn = getDBConnection();
+    ensureChurchClassesOrderColumn($conn);
 
     // Check custom classes first
     $stmt = $conn->prepare("
         SELECT cc.id, cc.code, cc.arabic_name, cc.display_order,
+               COALESCE(NULLIF(cc.`order`, 0), cc.display_order) AS class_order,
                cc.color, cc.icon,
                COUNT(s.id) AS student_count
         FROM   church_classes cc
         LEFT JOIN students s ON s.class_id = cc.id AND s.church_id = ?
         WHERE  cc.church_id = ? AND cc.is_active = 1
         GROUP  BY cc.id
-        ORDER  BY cc.display_order, cc.arabic_name
+        ORDER  BY class_order, cc.arabic_name
     ");
     $stmt->bind_param("ii", $churchId, $churchId);
     $stmt->execute();
@@ -8874,11 +8883,14 @@ function saveChurchClasses()
         // ── Upsert each submitted class ───────────────────────────────
         // • Existing row (has id): UPDATE name/code/order/color/icon, re-activate.
         // • New row (no id):       INSERT — gets a fresh auto-increment id.
+        ensureChurchClassesOrderColumn($conn);
+
         $updateStmt = $conn->prepare("
             UPDATE church_classes
             SET    arabic_name   = ?,
                    code          = ?,
                    display_order = ?,
+                   `order`       = ?,
                    color         = ?,
                    icon          = ?,
                    is_active     = 1
@@ -8887,8 +8899,8 @@ function saveChurchClasses()
 
         $insertStmt = $conn->prepare("
             INSERT INTO church_classes
-                (church_id, code, arabic_name, display_order, color, icon, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, 1)
+                (church_id, code, arabic_name, display_order, `order`, color, icon, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         ");
 
         $order = 1;
@@ -8909,16 +8921,16 @@ function saveChurchClasses()
 
             if ($id !== null) {
                 // UPDATE existing row — id stays the same, students keep their class_id
-                $updateStmt->bind_param("ssissii", $name, $code, $order, $color, $icon, $id, $churchId);
+                $updateStmt->bind_param("ssiissii", $name, $code, $order, $order, $color, $icon, $id, $churchId);
                 $updateStmt->execute();
                 if ($updateStmt->affected_rows === 0) {
                     // Row didn't exist with that id+church — treat as new
-                    $insertStmt->bind_param("ississ", $churchId, $code, $name, $order, $color, $icon);
+                    $insertStmt->bind_param("issiiss", $churchId, $code, $name, $order, $order, $color, $icon);
                     $insertStmt->execute();
                 }
             } else {
                 // INSERT brand-new class
-                $insertStmt->bind_param("ississ", $churchId, $code, $name, $order, $color, $icon);
+                $insertStmt->bind_param("issiiss", $churchId, $code, $name, $order, $order, $color, $icon);
                 $insertStmt->execute();
             }
             $order++;
@@ -13041,6 +13053,7 @@ function getAttendanceByDate()
 }
 function getSessionInfo()
 {
+    runBackgroundGradeUpChecks();
     // Works for BOTH church logins and uncle logins
     $churchId = 0;
     $churchName = '';
@@ -13886,6 +13899,239 @@ function saveUncleClasses($uncleId, $churchId, $classes)
     return true;
 }
 
+// ===== CLASS GRADE ORDER & ANNUAL GRADE-UP =====
+
+function ensureChurchClassesOrderColumn($conn): void
+{
+    $conn->query("
+        ALTER TABLE church_classes
+        ADD COLUMN IF NOT EXISTS `order` INT NOT NULL DEFAULT 0
+        COMMENT 'Grade sequence (lowest = youngest)'
+        AFTER display_order
+    ");
+}
+
+function ensureChurchSettingsAutoGradeColumns($conn): void
+{
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+        `auto_grade_month` TINYINT UNSIGNED NULL DEFAULT NULL
+        COMMENT '1-12; month for annual grade-up'");
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+        `auto_grade_day` TINYINT UNSIGNED NULL DEFAULT NULL
+        COMMENT '1-31; day for annual grade-up'");
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+        `last_auto_grade_year` SMALLINT UNSIGNED NULL DEFAULT NULL
+        COMMENT 'Last year auto grade-up ran'");
+}
+
+/**
+ * Ordered class list for a church (youngest → oldest).
+ * Uses church_classes.`order` when custom; global classes use display_order.
+ */
+function getOrderedClassListForChurch(int $churchId): array
+{
+    $conn = getDBConnection();
+    ensureChurchClassesOrderColumn($conn);
+
+    $chk = $conn->prepare("SELECT COUNT(*) AS cnt FROM church_classes WHERE church_id = ? AND is_active = 1");
+    $chk->bind_param("i", $churchId);
+    $chk->execute();
+    $hasCustom = (int) $chk->get_result()->fetch_assoc()['cnt'] > 0;
+
+    if ($hasCustom) {
+        $stmt = $conn->prepare("
+            SELECT id, arabic_name, code,
+                   COALESCE(NULLIF(`order`, 0), display_order) AS sort_order
+            FROM church_classes
+            WHERE church_id = ? AND is_active = 1
+            ORDER BY sort_order ASC, arabic_name ASC
+        ");
+        $stmt->bind_param("i", $churchId);
+    } else {
+        $stmt = $conn->prepare("
+            SELECT id, arabic_name, code, display_order AS sort_order
+            FROM classes
+            ORDER BY display_order ASC, arabic_name ASC
+        ");
+    }
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+/**
+ * Promote every student to the next grade in sort order (top grade unchanged).
+ */
+function gradeUpStudentsForChurch(int $churchId): array
+{
+    $conn = getDBConnection();
+    $ordered = getOrderedClassListForChurch($churchId);
+    if (count($ordered) < 2) {
+        return [
+            'promoted' => 0,
+            'unchanged' => 0,
+            'message' => 'يجب وجود فصلين على الأقل لترقية الأطفال',
+        ];
+    }
+
+    $nextById = [];
+    for ($i = 0; $i < count($ordered) - 1; $i++) {
+        $nextById[(int) $ordered[$i]['id']] = $ordered[$i + 1];
+    }
+
+    $stmt = $conn->prepare("SELECT id, class_id FROM students WHERE church_id = ?");
+    $stmt->bind_param("i", $churchId);
+    $stmt->execute();
+    $students = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $upd = $conn->prepare("
+        UPDATE students SET class_id = ?, class = ?, updated_at = NOW() WHERE id = ? AND church_id = ?
+    ");
+
+    $promoted = 0;
+    $unchanged = 0;
+    foreach ($students as $s) {
+        $sid = (int) $s['id'];
+        $cid = (int) $s['class_id'];
+        if (!isset($nextById[$cid])) {
+            $unchanged++;
+            continue;
+        }
+        $next = $nextById[$cid];
+        $nextId = (int) $next['id'];
+        $nextName = $next['arabic_name'];
+        $upd->bind_param("isii", $nextId, $nextName, $sid, $churchId);
+        if ($upd->execute() && $upd->affected_rows > 0) {
+            $promoted++;
+        } else {
+            $unchanged++;
+        }
+    }
+
+    return [
+        'promoted' => $promoted,
+        'unchanged' => $unchanged,
+        'top_class' => $ordered[count($ordered) - 1]['arabic_name'] ?? '',
+    ];
+}
+
+/**
+ * Run scheduled grade-up for all churches whose date has passed this year.
+ * Safe to call on login / session restore (idempotent per calendar year).
+ */
+function maybeRunScheduledGradeUps($conn): void
+{
+    try {
+        ensureChurchSettingsTable($conn);
+        ensureChurchSettingsAutoGradeColumns($conn);
+
+        $now = new DateTime('today');
+        $year = (int) $now->format('Y');
+        $month = (int) $now->format('n');
+        $day = (int) $now->format('j');
+
+        $res = $conn->query("
+            SELECT church_id, auto_grade_month, auto_grade_day, last_auto_grade_year
+            FROM church_settings
+            WHERE auto_grade_month IS NOT NULL
+              AND auto_grade_day IS NOT NULL
+              AND auto_grade_month BETWEEN 1 AND 12
+              AND auto_grade_day BETWEEN 1 AND 31
+        ");
+        if (!$res) {
+            return;
+        }
+
+        $markStmt = $conn->prepare("
+            UPDATE church_settings SET last_auto_grade_year = ? WHERE church_id = ?
+        ");
+
+        while ($row = $res->fetch_assoc()) {
+            $churchId = (int) $row['church_id'];
+            $targetMonth = (int) $row['auto_grade_month'];
+            $targetDay = (int) $row['auto_grade_day'];
+            $lastYear = (int) ($row['last_auto_grade_year'] ?? 0);
+
+            if ($lastYear >= $year) {
+                continue;
+            }
+            if ($month < $targetMonth || ($month === $targetMonth && $day < $targetDay)) {
+                continue;
+            }
+
+            $result = gradeUpStudentsForChurch($churchId);
+            if ($result['promoted'] > 0 || $result['unchanged'] > 0) {
+                $markStmt->bind_param("ii", $year, $churchId);
+                $markStmt->execute();
+                writeAuditLog(
+                    'auto_grade_up',
+                    'students',
+                    $churchId,
+                    'ترقية سنوية تلقائية',
+                    null,
+                    null,
+                    json_encode($result, JSON_UNESCAPED_UNICODE)
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log('maybeRunScheduledGradeUps: ' . $e->getMessage());
+    }
+}
+
+function runBackgroundGradeUpChecks(): void
+{
+    if (!empty($_SESSION['_grade_up_scheduled_checked'])) {
+        return;
+    }
+    $_SESSION['_grade_up_scheduled_checked'] = true;
+    try {
+        $conn = getDBConnection();
+        maybeRunScheduledGradeUps($conn);
+    } catch (Exception $e) {
+        error_log('runBackgroundGradeUpChecks: ' . $e->getMessage());
+    }
+}
+
+function gradeUpAllKids()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        if (!$churchId) {
+            sendJSON(['success' => false, 'message' => 'معرف الكنيسة مطلوب']);
+            return;
+        }
+
+        $result = gradeUpStudentsForChurch($churchId);
+        if (isset($result['message'])) {
+            sendJSON(['success' => false, 'message' => $result['message']]);
+            return;
+        }
+
+        writeAuditLog(
+            'manual_grade_up',
+            'students',
+            $churchId,
+            'ترقية يدوية لجميع الأطفال',
+            null,
+            null,
+            json_encode($result, JSON_UNESCAPED_UNICODE)
+        );
+
+        sendJSON([
+            'success' => true,
+            'message' => "تم ترقية {$result['promoted']} طفل إلى الفصل التالي"
+                . ($result['unchanged'] ? " ({$result['unchanged']} بدون تغيير — أعلى فصل أو فصل غير معروف)" : ''),
+            'promoted' => $result['promoted'],
+            'unchanged' => $result['unchanged'],
+            'top_class' => $result['top_class'] ?? '',
+        ]);
+    } catch (Exception $e) {
+        error_log('gradeUpAllKids: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في ترقية الأطفال']);
+    }
+}
+
 // ===== CHURCH SETTINGS (attendance day + combined class + more) =====
 
 /**
@@ -13917,6 +14163,7 @@ function ensureChurchSettingsTable($conn)
     $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
         `view_mode` VARCHAR(10) NOT NULL DEFAULT 'classes'
         COMMENT 'classes | all | both'");
+    ensureChurchSettingsAutoGradeColumns($conn);
 }
 
 function getChurchSettings()
@@ -13964,6 +14211,9 @@ function getChurchSettings()
             'custom_fields' => $customFields, // alias for clarity
             'view_mode' => $row['view_mode'] ?? 'classes',
             'auto_kids_approval' => false, // will be overridden below
+            'auto_grade_month' => isset($row['auto_grade_month']) ? (int) $row['auto_grade_month'] : null,
+            'auto_grade_day' => isset($row['auto_grade_day']) ? (int) $row['auto_grade_day'] : null,
+            'last_auto_grade_year' => isset($row['last_auto_grade_year']) ? (int) $row['last_auto_grade_year'] : null,
         ];
 
         // Load auto_kids_approval from churches.settings JSON
@@ -13991,6 +14241,9 @@ function getDefaultChurchSettings(): array
         'combined_class_groups' => [],
         'custom_field' => null,
         'view_mode' => 'classes',
+        'auto_grade_month' => null,
+        'auto_grade_day' => null,
+        'last_auto_grade_year' => null,
     ];
 }
 
@@ -14011,6 +14264,18 @@ function saveChurchSettings()
         $customFieldRaw = $_POST['custom_field'] ?? '';
         $viewMode = sanitize($_POST['view_mode'] ?? 'classes');
         $autoKidsApproval = !empty($_POST['auto_kids_approval']) && $_POST['auto_kids_approval'] === '1';
+        $hasAutoGradeFields = array_key_exists('auto_grade_month', $_POST)
+            || array_key_exists('auto_grade_day', $_POST);
+        $autoGradeMonth = null;
+        $autoGradeDay = null;
+        if ($hasAutoGradeFields) {
+            $autoGradeMonthRaw = $_POST['auto_grade_month'] ?? '';
+            $autoGradeDayRaw = $_POST['auto_grade_day'] ?? '';
+            $autoGradeMonth = ($autoGradeMonthRaw === '' || $autoGradeMonthRaw === '0')
+                ? null : max(1, min(12, intval($autoGradeMonthRaw)));
+            $autoGradeDay = ($autoGradeDayRaw === '' || $autoGradeDayRaw === '0')
+                ? null : max(1, min(31, intval($autoGradeDayRaw)));
+        }
 
         // Validate
         if ($attendanceDay < 1 || $attendanceDay > 7)
@@ -14060,21 +14325,67 @@ function saveChurchSettings()
             }
         }
 
-        $stmt = $conn->prepare("
-            INSERT INTO church_settings
-                (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                attendance_day         = VALUES(attendance_day),
-                uncle_class_navigation = VALUES(uncle_class_navigation),
-                combined_class_groups  = VALUES(combined_class_groups),
-                custom_field           = VALUES(custom_field),
-                view_mode              = VALUES(view_mode),
-                updated_at             = NOW()
-        ");
-        $stmt->bind_param("iissss", $churchId, $attendanceDay, $uncleClassNav, $combinedGroupsJson, $customFieldJson, $viewMode);
+        if ($hasAutoGradeFields) {
+            $stmt = $conn->prepare("
+                INSERT INTO church_settings
+                    (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
+                     auto_grade_month, auto_grade_day)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    attendance_day         = VALUES(attendance_day),
+                    uncle_class_navigation = VALUES(uncle_class_navigation),
+                    combined_class_groups  = VALUES(combined_class_groups),
+                    custom_field           = VALUES(custom_field),
+                    view_mode              = VALUES(view_mode),
+                    auto_grade_month       = VALUES(auto_grade_month),
+                    auto_grade_day         = VALUES(auto_grade_day),
+                    updated_at             = NOW()
+            ");
+            $stmt->bind_param(
+                "iissssii",
+                $churchId,
+                $attendanceDay,
+                $uncleClassNav,
+                $combinedGroupsJson,
+                $customFieldJson,
+                $viewMode,
+                $autoGradeMonth,
+                $autoGradeDay
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO church_settings
+                    (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    attendance_day         = VALUES(attendance_day),
+                    uncle_class_navigation = VALUES(uncle_class_navigation),
+                    combined_class_groups  = VALUES(combined_class_groups),
+                    custom_field           = VALUES(custom_field),
+                    view_mode              = VALUES(view_mode),
+                    updated_at             = NOW()
+            ");
+            $stmt->bind_param(
+                "iissss",
+                $churchId,
+                $attendanceDay,
+                $uncleClassNav,
+                $combinedGroupsJson,
+                $customFieldJson,
+                $viewMode
+            );
+        }
 
         if ($stmt->execute()) {
+            if ($hasAutoGradeFields && ($autoGradeMonth === null || $autoGradeDay === null)) {
+                $clr = $conn->prepare("
+                    UPDATE church_settings
+                    SET auto_grade_month = NULL, auto_grade_day = NULL
+                    WHERE church_id = ?
+                ");
+                $clr->bind_param("i", $churchId);
+                $clr->execute();
+            }
             // Save auto_kids_approval in churches.settings JSON
             $csStmt2 = $conn->prepare("SELECT settings FROM churches WHERE id = ? LIMIT 1");
             $csStmt2->bind_param("i", $churchId);
