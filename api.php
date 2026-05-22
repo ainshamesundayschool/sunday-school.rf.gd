@@ -11428,6 +11428,11 @@ function exportTripData()
 }
 
 
+function csvNumericAmount($value)
+{
+    return round(floatval($value), 2);
+}
+
 function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $waitlist = [])
 {
     $filename = 'رحلة_' . str_replace(' ', '_', $trip['title']) . '_' . date('Y-m-d') . '.csv';
@@ -11530,9 +11535,9 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
             $reg['emergency_phone'] ?? '',
             $reg['medical_notes'] ?? '',
             date('d/m/Y H:i', strtotime($reg['registration_date'])),
-            round($reg['total_paid'], 2) . ' جنيه',
-            round($reg['total_donation'] ?? 0, 2) . ' جنيه',
-            round($reg['remaining'], 2) . ' جنيه',
+            csvNumericAmount($reg['total_paid']),
+            csvNumericAmount($reg['total_donation'] ?? 0),
+            csvNumericAmount($reg['remaining']),
             $reg['payment_status'],
             $reg['notes'] ?? ''
         ];
@@ -11557,10 +11562,10 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
     fputcsv($output, ['مدفوع بالكامل', $paidCount]);
     fputcsv($output, ['مدفوع جزئياً', $partialCount]);
     fputcsv($output, ['غير مدفوع', $pendingCount]);
-    fputcsv($output, ['إجمالي المحصّل', round($totalPaid, 2) . ' جنيه']);
-    fputcsv($output, ['إجمالي التبرعات', round($totalDonation, 2) . ' جنيه']);
-    fputcsv($output, ['إجمالي المتبقي', round($totalRemaining, 2) . ' جنيه']);
-    fputcsv($output, ['الإجمالي المتوقع', round($totalExpected, 2) . ' جنيه']);
+    fputcsv($output, ['إجمالي المحصّل', csvNumericAmount($totalPaid)]);
+    fputcsv($output, ['إجمالي التبرعات', csvNumericAmount($totalDonation)]);
+    fputcsv($output, ['إجمالي المتبقي', csvNumericAmount($totalRemaining)]);
+    fputcsv($output, ['الإجمالي المتوقع', csvNumericAmount($totalExpected)]);
 
     // ─── سجل الدفعات التفصيلي ───────────────────────────────────────────────
     if (!empty($payments)) {
@@ -11572,8 +11577,8 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
             fputcsv($output, [
                 $index + 1,
                 $pay['student_name'],
-                floatval($pay['amount']) . ' جنيه',
-                floatval($pay['donation']) > 0 ? floatval($pay['donation']) . ' جنيه' : '—',
+                csvNumericAmount($pay['amount']),
+                csvNumericAmount($pay['donation']),
                 $methodAr,
                 $pay['received_by_name'] ?? '',
                 date('d/m/Y H:i', strtotime($pay['payment_date'])),
@@ -11593,7 +11598,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
                 $w['student_name'],
                 $w['student_class'] ?? '',
                 $w['student_phone'] ?? '',
-                floatval($w['deposit'] ?? 0) > 0 ? floatval($w['deposit']) . ' جنيه' : '—',
+                csvNumericAmount($w['deposit'] ?? 0),
                 !empty($w['added_at']) ? date('d/m/Y H:i', strtotime($w['added_at'])) : '',
                 $w['added_by_name'] ?? '',
                 $w['notes'] ?? ''
