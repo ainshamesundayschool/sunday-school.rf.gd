@@ -3202,7 +3202,7 @@ function addStudent()
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isissssssiisss",
+                "isisssssiisss",
                 $churchId,
                 $name,
                 $classId,
@@ -3225,7 +3225,7 @@ function addStudent()
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isisssssssiisss",
+                "isissssssiisss",
                 $churchId,
                 $name,
                 $classId,
@@ -3513,7 +3513,7 @@ function updateStudent()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sisssssssiissii",
+                "sisssssiissii",
                 $name,
                 $classId,
                 $className,
@@ -3537,7 +3537,7 @@ function updateStudent()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sisssssssiisii",
+                "sisssssiisii",
                 $name,
                 $classId,
                 $className,
