@@ -10888,6 +10888,12 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         }
 
         function getSiblingGroupInfo(student) {
+            if (student._siblingGroup && typeof student._siblingGroup === 'object') {
+                return student._siblingGroup;
+            }
+            if (student._siblingGroupId) {
+                return { id: student._siblingGroupId, status: 'approved' };
+            }
             const info = parseStudentCustomInfo(student);
             return info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
         }
@@ -11425,27 +11431,35 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const id = currentStudentForEdit._studentId; if (!id) { showToast('خطأ في بيانات الطفل', 'error'); return; }
             const name = document.getElementById('editStudentName').value.trim(), cls = document.getElementById('editStudentClass').value;
             if (!name || !cls) { showToast('الاسم والفصل مطلوبان', 'error'); return; }
-            // Collect multiple custom fields
             const cfContainer = document.getElementById('editCustomFieldsContainer');
-            let customInfoPayload = '';
+            const existingInfo = (currentStudentForEdit && currentStudentForEdit._customInfo)
+                ? { ...currentStudentForEdit._customInfo } : {};
+            const siblingGroup = getSiblingGroupInfo(currentStudentForEdit);
+            if (siblingGroup) existingInfo.sibling_group = siblingGroup;
+
+            let customInfoPayload = null;
             if (cfContainer && churchCustomFields.length) {
-                const infoObj = {};
                 cfContainer.querySelectorAll('[data-cf-key]').forEach((inp, idx) => {
-                    const key = 'field_' + idx; // stable sequential key
-                    infoObj[key] = inp.value.trim();
+                    const key = inp.getAttribute('data-cf-key') || ('field_' + idx);
+                    existingInfo[key] = inp.value.trim();
                 });
-                customInfoPayload = JSON.stringify(infoObj);
+                customInfoPayload = JSON.stringify(existingInfo);
+            } else if (siblingGroup) {
+                customInfoPayload = JSON.stringify({ sibling_group: siblingGroup });
             }
-            showLoading('جاري التحديث...');
-            makeApiCall({
+
+            const updatePayload = {
                 action: 'updateStudent', studentId: id, name, classId: cls,
                 gender: document.getElementById('editStudentGender').value,
                 address: document.getElementById('editStudentAddress').value.trim(),
                 phone: document.getElementById('editStudentPhone').value.trim(),
                 birthday: document.getElementById('editStudentBirthday').value.trim(),
-                coupons: parseInt(document.getElementById('editStudentCommitmentCoupons').value) || 0,
-                custom_info: customInfoPayload
-            }, r => {
+                coupons: parseInt(document.getElementById('editStudentCommitmentCoupons').value) || 0
+            };
+            if (customInfoPayload !== null) updatePayload.custom_info = customInfoPayload;
+
+            showLoading('جاري التحديث...');
+            makeApiCall(updatePayload, r => {
                 showToast('تم التحديث بنجاح', 'success'); hideEditForm(); hideStudentModal(); setTimeout(loadData, 1000);
             }, e => showToast('فشل: ' + e, 'error'));
         }

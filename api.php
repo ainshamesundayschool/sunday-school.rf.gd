@@ -2272,6 +2272,7 @@ function getData()
 {
     try {
         $conn = getDBConnection();
+        ensureStudentSiblingGroupTables($conn);
         $churchId = getChurchId();
         $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
         if ($isAll) {
@@ -2414,7 +2415,14 @@ function getData()
                 c.church_name,
                 COALESCE(cc.id, gc.id) as class_id,
                 COALESCE(cc.code, gc.code) as class_code, 
-                COALESCE(cc.arabic_name, gc.arabic_name) as class
+                COALESCE(cc.arabic_name, gc.arabic_name) as class,
+                ssgm.group_id AS sibling_group_id,
+                ssg.label AS sibling_group_label,
+                ssg.status AS sibling_group_status,
+                ssg.linked_by_id AS sibling_group_linked_by_id,
+                ssg.linked_by_name AS sibling_group_linked_by_name,
+                ssg.updated_at AS sibling_group_updated_at,
+                ssgm.added_at AS sibling_member_added_at
             FROM students s
             LEFT JOIN church_classes cc 
                 ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
@@ -2422,6 +2430,8 @@ function getData()
                 ON gc.id = s.class_id
             LEFT JOIN churches c
                 ON s.church_id = c.id
+            LEFT JOIN student_sibling_group_members ssgm ON ssgm.student_id = s.id
+            LEFT JOIN student_sibling_groups ssg ON ssg.id = ssgm.group_id
             WHERE s.church_id IN ($inPlaceholder)
             ORDER BY 
                 c.church_name,
@@ -2493,6 +2503,7 @@ function getData()
                     ? json_decode($row['custom_info'], true)
                     : null,
             ];
+            appendSiblingGroupToStudentPayload($studentData, $row);
 
             // Get attendance records for this student
             $attendanceStmt = $conn->prepare("
@@ -3360,8 +3371,10 @@ function updateStudent()
         $conn = getDBConnection();
 
         // Check student exists in this church
+        ensureStudentSiblingGroupTables($conn);
+
         $checkStmt = $conn->prepare("
-            SELECT id, attendance_coupons 
+            SELECT id, attendance_coupons, custom_info 
             FROM students 
             WHERE id = ? AND church_id = ?
         ");
@@ -3376,6 +3389,7 @@ function updateStudent()
 
         $row = $result->fetch_assoc();
         $attendanceCoupons = intval($row['attendance_coupons']);
+        $existingCustomInfoRaw = $row['custom_info'] ?? null;
 
         // Check duplicate name in same class (exclude current student)
         $duplicateStmt = $conn->prepare("
@@ -3436,17 +3450,18 @@ function updateStudent()
 
         error_log("Coupons calculation: attendance=$attendanceCoupons + commitment=$coupons = total=$totalCoupons");
 
-        // Custom info
+        // Custom info — merge with existing; sibling links always come from DB table by student id
         $customInfoRaw = $_POST['custom_info'] ?? null;
         $customInfoJson = null;
         if ($customInfoRaw !== null) {
             if (trim($customInfoRaw) === '') {
-                $customInfoJson = null; // explicit clear
+                $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, []);
             } else {
                 $decoded = json_decode($customInfoRaw, true);
-                $customInfoJson = is_array($decoded)
-                    ? json_encode($decoded, JSON_UNESCAPED_UNICODE)
-                    : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
+                if (!is_array($decoded)) {
+                    $decoded = ['field_0' => sanitize($customInfoRaw)];
+                }
+                $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, $decoded);
             }
         }
 
@@ -12240,18 +12255,26 @@ function updateStudentFull()
             }
         }
 
-        // Custom info
+        ensureStudentSiblingGroupTables($conn);
+
+        $existingCustomStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+        $existingCustomStmt->bind_param('ii', $studentId, $churchId);
+        $existingCustomStmt->execute();
+        $existingCustomRow = $existingCustomStmt->get_result()->fetch_assoc();
+        $existingCustomInfoRaw = $existingCustomRow['custom_info'] ?? null;
+
         $hasCustomInfo = array_key_exists('custom_info', $_POST);
         $customInfoRaw = $_POST['custom_info'] ?? null;
         $customInfoJson = null;
         if ($hasCustomInfo) {
-            if (trim($customInfoRaw) === '') {
-                $customInfoJson = null;
+            if (trim((string) $customInfoRaw) === '') {
+                $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, []);
             } else {
                 $decoded = json_decode($customInfoRaw, true);
-                $customInfoJson = is_array($decoded)
-                    ? json_encode($decoded, JSON_UNESCAPED_UNICODE)
-                    : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
+                if (!is_array($decoded)) {
+                    $decoded = ['field_0' => sanitize($customInfoRaw)];
+                }
+                $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, $decoded);
             }
         }
 
@@ -12326,6 +12349,197 @@ function updateStudentFull()
     }
 }
 
+// ── Sibling groups (persisted by student id) ─────────────────
+function ensureStudentSiblingGroupTables($conn)
+{
+    $conn->query("CREATE TABLE IF NOT EXISTS `student_sibling_groups` (
+        `id` varchar(64) NOT NULL,
+        `church_id` int(11) NOT NULL,
+        `label` varchar(255) DEFAULT '',
+        `status` enum('approved','pending','rejected') NOT NULL DEFAULT 'approved',
+        `linked_by_id` int(11) DEFAULT NULL,
+        `linked_by_name` varchar(255) DEFAULT '',
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+        PRIMARY KEY (`id`),
+        KEY `church_id` (`church_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `student_sibling_group_members` (
+        `student_id` int(11) NOT NULL,
+        `group_id` varchar(64) NOT NULL,
+        `church_id` int(11) NOT NULL,
+        `added_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        PRIMARY KEY (`student_id`),
+        KEY `group_id` (`group_id`),
+        KEY `church_id` (`church_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    migrateSiblingGroupsFromCustomInfo($conn);
+}
+
+function migrateSiblingGroupsFromCustomInfo($conn)
+{
+    $res = $conn->query("SELECT id, church_id, custom_info FROM students WHERE custom_info IS NOT NULL AND custom_info LIKE '%sibling_group%'");
+    if (!$res) {
+        return;
+    }
+
+    $groupStmt = $conn->prepare("INSERT INTO student_sibling_groups (id, church_id, label, status, linked_by_id, linked_by_name)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            label = IF(VALUES(label) <> '', VALUES(label), label),
+            status = VALUES(status),
+            linked_by_id = COALESCE(VALUES(linked_by_id), linked_by_id),
+            linked_by_name = IF(VALUES(linked_by_name) <> '', VALUES(linked_by_name), linked_by_name)");
+    $memberStmt = $conn->prepare("INSERT IGNORE INTO student_sibling_group_members (student_id, group_id, church_id) VALUES (?, ?, ?)");
+
+    while ($row = $res->fetch_assoc()) {
+        $custom = json_decode($row['custom_info'] ?? '', true);
+        if (!is_array($custom) || empty($custom['sibling_group']['id'])) {
+            continue;
+        }
+        $sg = $custom['sibling_group'];
+        $groupId = sanitize($sg['id']);
+        if ($groupId === '') {
+            continue;
+        }
+        $churchId = intval($row['church_id']);
+        $studentId = intval($row['id']);
+        $label = sanitize($sg['label'] ?? '');
+        $status = sanitize($sg['status'] ?? 'approved');
+        if (!in_array($status, ['approved', 'pending', 'rejected'], true)) {
+            $status = 'approved';
+        }
+        $linkedById = intval($sg['linked_by_id'] ?? 0);
+        $linkedByName = sanitize($sg['linked_by'] ?? '');
+        $groupStmt->bind_param('sissis', $groupId, $churchId, $label, $status, $linkedById, $linkedByName);
+        $groupStmt->execute();
+        $memberStmt->bind_param('isi', $studentId, $groupId, $churchId);
+        $memberStmt->execute();
+    }
+}
+
+function getStudentSiblingGroupMeta($conn, $studentId)
+{
+    $stmt = $conn->prepare("
+        SELECT ssg.id, ssg.label, ssg.status, ssg.linked_by_id, ssg.linked_by_name,
+               ssg.updated_at, ssgm.added_at
+        FROM student_sibling_group_members ssgm
+        INNER JOIN student_sibling_groups ssg ON ssg.id = ssgm.group_id
+        WHERE ssgm.student_id = ?
+        LIMIT 1
+    ");
+    if (!$stmt) {
+        return null;
+    }
+    $stmt->bind_param('i', $studentId);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if (!$row) {
+        return null;
+    }
+    return [
+        'id' => $row['id'],
+        'label' => $row['label'] ?? '',
+        'status' => $row['status'] ?? 'approved',
+        'linked_by_id' => intval($row['linked_by_id'] ?? 0) ?: null,
+        'linked_by' => $row['linked_by_name'] ?? '',
+        'linked_at' => !empty($row['added_at']) ? date('c', strtotime($row['added_at'])) : date('c'),
+        'updated_at' => !empty($row['updated_at']) ? date('c', strtotime($row['updated_at'])) : date('c'),
+    ];
+}
+
+function syncSiblingGroupToStudentCustomInfo($conn, $studentId)
+{
+    $chk = $conn->prepare("SELECT custom_info FROM students WHERE id = ? LIMIT 1");
+    $chk->bind_param('i', $studentId);
+    $chk->execute();
+    $row = $chk->get_result()->fetch_assoc();
+    if (!$row) {
+        return;
+    }
+
+    $customInfo = [];
+    if (!empty($row['custom_info'])) {
+        $decoded = json_decode($row['custom_info'], true);
+        if (is_array($decoded)) {
+            $customInfo = $decoded;
+        }
+    }
+
+    $meta = getStudentSiblingGroupMeta($conn, $studentId);
+    if ($meta) {
+        $customInfo['sibling_group'] = $meta;
+    } else {
+        unset($customInfo['sibling_group']);
+    }
+
+    $customJson = empty($customInfo) ? null : json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+    $up = $conn->prepare("UPDATE students SET custom_info = ? WHERE id = ?");
+    $up->bind_param('si', $customJson, $studentId);
+    $up->execute();
+}
+
+function mergeStudentCustomInfoForUpdate($conn, $studentId, $existingRaw, $incomingDecoded)
+{
+    $existing = [];
+    if (!empty($existingRaw)) {
+        $decodedExisting = json_decode($existingRaw, true);
+        if (is_array($decodedExisting)) {
+            $existing = $decodedExisting;
+        }
+    }
+
+    $incoming = is_array($incomingDecoded) ? $incomingDecoded : [];
+
+    $merged = $incoming;
+    foreach ($existing as $key => $value) {
+        if ($key === 'sibling_group') {
+            continue;
+        }
+        if (!array_key_exists($key, $merged)) {
+            $merged[$key] = $value;
+        }
+    }
+
+    $siblingMeta = getStudentSiblingGroupMeta($conn, $studentId);
+    if ($siblingMeta) {
+        $merged['sibling_group'] = $siblingMeta;
+    } else {
+        unset($merged['sibling_group']);
+    }
+
+    return empty($merged) ? null : json_encode($merged, JSON_UNESCAPED_UNICODE);
+}
+
+function appendSiblingGroupToStudentPayload(&$studentData, $row)
+{
+    $groupId = $row['sibling_group_id'] ?? '';
+    if ($groupId === '' || $groupId === null) {
+        return;
+    }
+    $meta = [
+        'id' => $groupId,
+        'label' => $row['sibling_group_label'] ?? '',
+        'status' => $row['sibling_group_status'] ?? 'approved',
+        'linked_by_id' => intval($row['sibling_group_linked_by_id'] ?? 0) ?: null,
+        'linked_by' => $row['sibling_group_linked_by_name'] ?? '',
+        'linked_at' => !empty($row['sibling_member_added_at'])
+            ? date('c', strtotime($row['sibling_member_added_at']))
+            : date('c'),
+        'updated_at' => !empty($row['sibling_group_updated_at'])
+            ? date('c', strtotime($row['sibling_group_updated_at']))
+            : date('c'),
+    ];
+    $studentData['_siblingGroupId'] = $groupId;
+    $studentData['_siblingGroup'] = $meta;
+    if (!is_array($studentData['_customInfo'])) {
+        $studentData['_customInfo'] = [];
+    }
+    $studentData['_customInfo']['sibling_group'] = $meta;
+}
+
 function saveSiblingGroup()
 {
     try {
@@ -12352,63 +12566,72 @@ function saveSiblingGroup()
         }
 
         $conn = getDBConnection();
-        $selectStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? LIMIT 1");
-        $updateStmt = $conn->prepare("UPDATE students SET custom_info = ? WHERE id = ?");
+        ensureStudentSiblingGroupTables($conn);
+        $churchId = getChurchId();
         $errors = [];
 
-        foreach ($studentIds as $rawId) {
-            $studentId = intval($rawId);
-            if ($studentId <= 0) {
-                continue;
+        $validIds = array_values(array_unique(array_filter(array_map('intval', $studentIds), function ($id) {
+            return $id > 0;
+        })));
+
+        if ($op === 'clear') {
+            $delMember = $conn->prepare("DELETE FROM student_sibling_group_members WHERE student_id = ?");
+            foreach ($validIds as $studentId) {
+                $own = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+                $own->bind_param('ii', $studentId, $churchId);
+                $own->execute();
+                if ($own->get_result()->num_rows === 0) {
+                    continue;
+                }
+                $delMember->bind_param('i', $studentId);
+                if (!$delMember->execute()) {
+                    $errors[] = "ID $studentId: " . $delMember->error;
+                    continue;
+                }
+                syncSiblingGroupToStudentCustomInfo($conn, $studentId);
+            }
+        } else {
+            if (empty($validIds)) {
+                sendJSON(['success' => false, 'message' => 'معرفات الطلاب مطلوبة']);
+                return;
             }
 
-            $selectStmt->bind_param('i', $studentId);
-            $selectStmt->execute();
-            $result = $selectStmt->get_result();
-            $row = $result->fetch_assoc();
-
-            $customInfo = [];
-            if (!empty($row['custom_info'])) {
-                $decoded = json_decode($row['custom_info'], true);
-                if (is_array($decoded)) {
-                    $customInfo = $decoded;
-                }
+            $grpStmt = $conn->prepare("INSERT INTO student_sibling_groups (id, church_id, label, status, linked_by_id, linked_by_name)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    label = IF(VALUES(label) <> '', VALUES(label), label),
+                    status = VALUES(status),
+                    linked_by_id = COALESCE(VALUES(linked_by_id), linked_by_id),
+                    linked_by_name = IF(VALUES(linked_by_name) <> '', VALUES(linked_by_name), linked_by_name),
+                    updated_at = NOW()");
+            $grpStmt->bind_param('sissis', $groupId, $churchId, $label, $status, $linkedById, $linkedBy);
+            if (!$grpStmt->execute()) {
+                sendJSON(['success' => false, 'message' => 'فشل حفظ مجموعة الإخوة: ' . $grpStmt->error]);
+                return;
             }
 
-            if ($op === 'clear') {
-                // remove sibling_group entirely
-                if (isset($customInfo['sibling_group'])) unset($customInfo['sibling_group']);
-                $customJson = empty($customInfo) ? null : json_encode($customInfo, JSON_UNESCAPED_UNICODE);
-                $updateStmt->bind_param('si', $customJson, $studentId);
-            } else {
-                if (!isset($customInfo['sibling_group']) || !is_array($customInfo['sibling_group'])) {
-                    $customInfo['sibling_group'] = [];
-                }
-                $customInfo['sibling_group']['id'] = $groupId;
-                if ($label !== '') {
-                    $customInfo['sibling_group']['label'] = $label;
-                }
-                $customInfo['sibling_group']['status'] = $status;
-                $customInfo['sibling_group']['updated_at'] = date('c');
-                if ($reason !== '') {
-                    $customInfo['sibling_group']['reason'] = $reason;
-                }
-                if ($basis !== '') {
-                    $customInfo['sibling_group']['basis'] = $basis;
-                }
-                if ($linkedBy !== '') {
-                    $customInfo['sibling_group']['linked_by'] = $linkedBy;
-                }
-                if ($linkedById > 0) {
-                    $customInfo['sibling_group']['linked_by_id'] = $linkedById;
-                }
-                $customInfo['sibling_group']['linked_at'] = date('c');
+            $ownStmt = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+            $delMember = $conn->prepare("DELETE FROM student_sibling_group_members WHERE student_id = ?");
+            $insMember = $conn->prepare("INSERT INTO student_sibling_group_members (student_id, group_id, church_id) VALUES (?, ?, ?)");
 
-                $customJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
-                $updateStmt->bind_param('si', $customJson, $studentId);
-            }
-            if (!$updateStmt->execute()) {
-                $errors[] = "ID $studentId: " . $updateStmt->error;
+            foreach ($validIds as $studentId) {
+                $ownStmt->bind_param('ii', $studentId, $churchId);
+                $ownStmt->execute();
+                if ($ownStmt->get_result()->num_rows === 0) {
+                    $errors[] = "ID $studentId: غير موجود في الكنيسة";
+                    continue;
+                }
+                $delMember->bind_param('i', $studentId);
+                if (!$delMember->execute()) {
+                    $errors[] = "ID $studentId: " . $delMember->error;
+                    continue;
+                }
+                $insMember->bind_param('isi', $studentId, $groupId, $churchId);
+                if (!$insMember->execute()) {
+                    $errors[] = "ID $studentId: " . $insMember->error;
+                    continue;
+                }
+                syncSiblingGroupToStudentCustomInfo($conn, $studentId);
             }
         }
 
