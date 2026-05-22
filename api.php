@@ -20,6 +20,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
+
+/**
+ * Automatically binds parameters to a prepared statement by detecting their types,
+ * preventing manual type-string counting errors.
+ */
+function safeBindParam($stmt, ...$params) {
+    $types = '';
+    foreach ($params as $param) {
+        if (is_int($param)) {
+            $types .= 'i';
+        } elseif (is_float($param)) {
+            $types .= 'd';
+        } else {
+            $types .= 's';
+        }
+    }
+    $stmt->bind_param($types, ...$params);
+}
+
 // ── Game / QR processing for trips ─────────────────────────
 function processGameQRCode()
 {
@@ -3201,8 +3220,8 @@ function addStudent()
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
-            $stmt->bind_param(
-                "isisssssiisss",
+            safeBindParam(
+                $stmt,
                 $churchId,
                 $name,
                 $classId,
@@ -3224,8 +3243,8 @@ function addStudent()
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
-            $stmt->bind_param(
-                "isissssssiisss",
+            safeBindParam(
+                $stmt,
                 $churchId,
                 $name,
                 $classId,
@@ -3512,8 +3531,8 @@ function updateStudent()
                     commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
-            $updateStmt->bind_param(
-                "sisssssiissii",
+            safeBindParam(
+                $updateStmt,
                 $name,
                 $classId,
                 $className,
@@ -3536,8 +3555,8 @@ function updateStudent()
                     commitment_coupons = ?, coupons = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
-            $updateStmt->bind_param(
-                "sisssssiisii",
+            safeBindParam(
+                $updateStmt,
                 $name,
                 $classId,
                 $className,
@@ -12331,8 +12350,8 @@ function updateStudentFull()
                     birthday = ?, image_url = ?, custom_info = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param(
-                "sissssssssssii",
+            safeBindParam(
+                $stmt,
                 $name,
                 $classId,
                 $className,
@@ -12355,8 +12374,8 @@ function updateStudentFull()
                     birthday = ?, custom_info = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
-            $stmt->bind_param(
-                "sissssssssii",
+            safeBindParam(
+                $stmt,
                 $name,
                 $classId,
                 $className,
