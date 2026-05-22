@@ -9906,7 +9906,6 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             try {
                 const fd = new FormData();
                 fd.append('action', 'getTrips');
-                fd.append('own_only', '1');
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {

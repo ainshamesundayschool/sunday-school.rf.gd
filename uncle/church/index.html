@@ -7658,8 +7658,72 @@
             }
         }
 
+        function buildCollaboratorsListHtml(trip, isOwner) {
+            const list = Array.isArray(trip.collaborators_list) ? trip.collaborators_list : [];
+            if (!list.length) {
+                return `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة</h4>
+            <div style="background:#fef3c7;border:1px solid #d97706;border-radius:10px;padding:14px;text-align:center;">
+                <div style="font-size:0.85rem;color:#92400e;">لا توجد كنائس أخرى تشارك في هذه الرحلة حالياً</div>
+            </div>
+        </div>`;
+            }
+            return `
+        <div style="margin-bottom:20px;">
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة (${list.length})</h4>
+            <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:10px 14px;">
+                ${list.map(ch => `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(14,165,233,0.15);">
+                    <span style="font-size:0.85rem;color:#0369a1;"><strong>${escHtml(ch.name)}</strong> <small>(${escHtml(ch.code)})</small></span>
+                    ${isOwner ? `<button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;white-space:nowrap" onclick="removeTripCollaborator(${trip.id}, ${ch.id}, ${JSON.stringify(ch.name)})"><i class="fas fa-user-minus"></i> إزالة</button>` : ''}
+                </div>`).join('')}
+            </div>
+        </div>`;
+        }
+
+        async function removeTripCollaborator(tripId, churchId, churchName) {
+            if (!confirm(`إزالة "${churchName}" من مشاركة الرحلة؟`)) return;
+            const fd = new FormData();
+            fd.append('action', 'removeTripCollaborator');
+            fd.append('trip_id', tripId);
+            fd.append('collaborator_church_id', churchId);
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message || 'تمت الإزالة', 'success');
+                    const idx = allTripsCache.findIndex(t => t.id == tripId);
+                    if (idx >= 0 && res.collaborators_list) {
+                        allTripsCache[idx].collaborators_list = res.collaborators_list;
+                        try {
+                            const ids = res.collaborators_list.map(c => c.id);
+                            allTripsCache[idx].collaborating_churches = JSON.stringify(ids);
+                        } catch (e) {}
+                    }
+                    await showTripCollaborationModal(tripId);
+                    await loadTrips();
+                } else {
+                    showToast(res.message || 'فشل الإزالة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
         async function showTripCollaborationModal(tripId) {
-            const trip = allTripsCache.find(t => t.id == tripId);
+            let trip = allTripsCache.find(t => t.id == tripId);
+            try {
+                const detailFd = new FormData();
+                detailFd.append('action', 'getTripDetails');
+                detailFd.append('trip_id', tripId);
+                const detailRes = await fetch(API_URL, { method: 'POST', body: detailFd, credentials: 'include' }).then(r => r.json());
+                if (detailRes.success && detailRes.trip) {
+                    trip = detailRes.trip;
+                    const idx = allTripsCache.findIndex(t => t.id == tripId);
+                    if (idx >= 0) allTripsCache[idx] = trip;
+                }
+            } catch (e) {}
+
             if (!trip) {
                 showToast('الرحلة غير موجودة', 'error');
                 return;
@@ -7667,15 +7731,10 @@
 
             await loadSystemChurches();
 
-            let collaborators = [];
-            try {
-                collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
-            } catch (e) {
-                collaborators = [];
-            }
-            collaborators = collaborators.map(id => parseInt(id)).filter(id => id && id != trip.church_id);
-
             const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}#trips`;
+            const cid = (typeof getChurchId === 'function' ? getChurchId() : 0) ||
+                parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+            const isOwner = parseInt(trip.is_owner) === 1 || parseInt(trip.church_id) === cid;
 
             document.getElementById('collaborationContent').innerHTML = `
         <div style="margin-bottom:20px;">
@@ -7693,13 +7752,13 @@
             </div>
         </div>
 
+        ${isOwner ? `
         <div style="margin-bottom:20px; position:relative;">
             <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-paper-plane"></i> إرسال دعوة مشاركة مباشرة</h4>
             <div style="position:relative;">
                 <input type="text" id="collabChurchSearchInput" placeholder="ابحث باسم الكنيسة للتعاون..." oninput="searchCollabChurches(this.value, ${tripId})" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg); color:var(--text);" autocomplete="off">
                 <input type="hidden" id="collabSelectedChurchCode" value="">
                 <div id="collabChurchSearchResults" style="position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:5px;display:none;background:var(--modal-bg, var(--bg));z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15); padding:4px;">
-                  <!-- Matches will load here dynamically -->
                 </div>
             </div>
             <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -7707,28 +7766,13 @@
                 <button class="btn btn-success" id="collabSendInviteBtn" onclick="sendCollabRequest(${tripId})" disabled style="opacity:0.5;"><i class="fas fa-paper-plane"></i> إرسال الدعوة</button>
             </div>
         </div>
-        
-        ${collaborators.length > 0 ? `
-        <div style="margin-bottom:20px;">
-            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة (${collaborators.length})</h4>
-            <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:14px;">
-                <div style="font-size:0.85rem;color:#0369a1;">الكنائس التالية تشارك في هذه الرحلة:</div>
-                <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
-                    ${collaborators.map(id => {
-                const ch = systemChurches.find(c => c.id == id || String(c.id) === String(id));
-                return ch ? ch.name : `كنيسة رقم ${id}`;
-            }).join('، ')}
-                </div>
-            </div>
-        </div>
         ` : `
-        <div style="margin-bottom:20px;">
-            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة</h4>
-            <div style="background:#fef3c7;border:1px solid #d97706;border-radius:10px;padding:14px;text-align:center;">
-                <div style="font-size:0.85rem;color:#92400e;">لا توجد كنائس أخرى تشارك في هذه الرحلة حالياً</div>
-            </div>
+        <div style="margin-bottom:20px; background:#fffbeb; border:1px solid #f59e0b; border-radius:10px; padding:12px; color:#b45309; font-size:0.85rem;">
+            <i class="fas fa-exclamation-triangle"></i> فقط مالك الرحلة الأصلي يمكنه إرسال دعوات مشاركة جديدة لكنائس أخرى.
         </div>
         `}
+        
+        ${buildCollaboratorsListHtml(trip, isOwner)}
         
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button type="button" class="btn btn-outline" onclick="closeModal('tripCollaborationModal')">إغلاق</button>
