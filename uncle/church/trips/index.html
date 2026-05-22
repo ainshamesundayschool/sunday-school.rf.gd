@@ -3338,9 +3338,68 @@
       if (updateUrl && window.currentTripId) updateHashParam('trip_tab', tab);
     }
 
+    async function requestTripAccessFor(tripId) {
+      tripId = parseInt(tripId);
+      if (!tripId) return;
+      const fd = mkFd('requestTripAccess');
+      fd.append('trip_id', tripId);
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+        if (res.success) {
+          showToast(res.message || 'تم إرسال طلب المشاركة', res.already_joined ? 'info' : 'success');
+          await showTripDetails(tripId);
+        } else {
+          showToast(res.message || 'فشل إرسال الطلب', 'error');
+        }
+      } catch (e) {
+        showToast('حدث خطأ في الاتصال', 'error');
+      }
+    }
+
+    function renderTripAccessDenied(resp) {
+      const trip = resp.trip || {};
+      const pending = !!resp.pending_request;
+      const ownerName = escHtml(trip.owner_church_name || 'الكنيسة المالكة');
+      const title = escHtml(trip.title || 'رحلة');
+      document.getElementById('tdModalTitle').textContent = trip.title || 'رحلة';
+      document.getElementById('tdSubtitle').textContent = 'طلب مشاركة مطلوب';
+      document.getElementById('tdStatusBadge').innerHTML = '<span class="badge badge-warning" style="font-size:0.72rem;">بدون صلاحية</span>';
+      document.getElementById('tdQuickStats').innerHTML = '';
+      document.getElementById('tripRegsContent').innerHTML = '';
+      document.getElementById('tripInfoContent').innerHTML = `
+        <div class="empty-state" style="padding:28px 16px;text-align:center;">
+          <div style="font-size:2.5rem;color:var(--primary);margin-bottom:12px;"><i class="fas fa-lock"></i></div>
+          <h2 style="margin-bottom:8px;">${title}</h2>
+          <p style="color:var(--text-2);line-height:1.7;max-width:420px;margin:0 auto 18px;">
+            ليس لديك صلاحية لعرض هذه الرحلة. اطلب المشاركة من <strong>${ownerName}</strong> وسيتم إشعارهم للموافقة أو الرفض.
+          </p>
+          ${pending
+          ? `<div class="badge badge-info" style="display:inline-block;padding:10px 16px;font-size:0.9rem;"><i class="fas fa-hourglass-half"></i> طلبك قيد المراجعة</div>`
+          : `<button class="btn btn-primary" onclick="requestTripAccessFor(${parseInt(trip.id) || 0})" style="min-width:220px;">
+              <i class="fas fa-paper-plane"></i> طلب المشاركة من ${ownerName}
+            </button>`}
+        </div>`;
+      const sumDiv = document.getElementById('standaloneTripSummary');
+      if (sumDiv) {
+        sumDiv.innerHTML = `
+          <div class="trip-card" style="cursor:default;opacity:0.95;">
+            <div class="trip-body" style="text-align:center;padding:20px;">
+              <h3>${title}</h3>
+              <p style="color:var(--text-2);margin-top:8px;">${pending ? 'طلب المشاركة قيد المراجعة' : 'ليس لديك صلاحية — اطلب المشاركة من ' + ownerName}</p>
+            </div>
+          </div>`;
+      }
+      ['regs', 'waitlist', 'exp'].forEach(t => {
+        document.getElementById('tdtab-' + t)?.setAttribute('style', 'opacity:0.45;pointer-events:none;');
+      });
+    }
+
     async function showTripDetails(id, opts = {}) {
       id = parseInt(id);
       if (!id) return;
+      ['regs', 'waitlist', 'exp'].forEach(t => {
+        document.getElementById('tdtab-' + t)?.removeAttribute('style');
+      });
       const targetTab = opts.tab || getSelectedTripTab() || currentTripTab;
       document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
       document.getElementById('tripRegsContent').innerHTML = '';
@@ -3379,11 +3438,14 @@
           setTimeout(() => printQRCards(id), 800);
         }
       }
+      else if (tripResp.access_denied && tripResp.trip) {
+        renderTripAccessDenied(tripResp);
+      }
       else {
         const sumDiv = document.getElementById('standaloneTripSummary');
-        if (sumDiv) sumDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${tripResp.message || 'فشل في تحميل الرحلة'}</h3></div>`;
+        if (sumDiv) sumDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في تحميل الرحلة')}</h3></div>`;
         const infoDiv = document.getElementById('tripInfoContent');
-        if (infoDiv) infoDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+        if (infoDiv) infoDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في التحميل')}</h3></div>`;
       }
     }
 
@@ -3763,17 +3825,18 @@
       if (!tripId || isNaN(tripId)) return;
       const url = new URL(window.location);
       url.searchParams.delete('joinTrip');
-      window.history.replaceState({}, '', url.pathname + url.search);
+      window.history.replaceState({}, '', url.pathname + url.search + `#trips?trip_id=${tripId}`);
 
-      const joinFd = mkFd('joinTrip');
+      const joinFd = mkFd('requestTripAccess');
       joinFd.append('trip_id', tripId);
       try {
         const joinRes = await fetch(API_URL, { method: 'POST', body: joinFd, credentials: 'include' }).then(r => r.json());
         if (joinRes.success) {
-          showToast(joinRes.message || 'تم الانضمام بنجاح', joinRes.already_joined ? 'info' : 'success');
-          window.location.href = `${window.location.origin}/uncle/church/#trips`;
+          showToast(joinRes.message || 'تم إرسال طلب المشاركة', joinRes.already_joined ? 'info' : 'success');
+          await showTripDetails(tripId);
         } else {
-          showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
+          showToast(joinRes.message || 'فشل إرسال طلب المشاركة', 'error');
+          await showTripDetails(tripId);
         }
       } catch (e) {
         showToast('حدث خطأ في الاتصال', 'error');

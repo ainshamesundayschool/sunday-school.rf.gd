@@ -936,6 +936,17 @@
 
         async function loadStudentData() {
             const data = await apiCall('getTripDetails', { trip_id: tripId });
+            if (data.access_denied && data.trip) {
+                const ownerName = data.trip.owner_church_name || 'الكنيسة المالكة';
+                const pending = data.pending_request ? '<p style="margin-top:12px;color:var(--brand);font-weight:700;"><i class="fas fa-hourglass-half"></i> طلب المشاركة قيد المراجعة</p>' : '';
+                document.getElementById('loadingView').innerHTML = `
+                    <i class="fas fa-lock" style="color:var(--warning);font-size:2.5rem;"></i>
+                    <h2 style="margin-top:12px;">${data.trip.title || 'رحلة'}</h2>
+                    <p style="color:var(--text-2);margin-top:8px;max-width:360px;line-height:1.6;">
+                        ليس لديك صلاحية لعرض نقاط هذه الرحلة. اطلب المشاركة من <strong>${ownerName}</strong> من صفحة الرحلة في لوحة الكنيسة.
+                    </p>${pending}`;
+                return;
+            }
             if (data.success && data.trip && data.trip.registrations) {
                 tripData = data.trip;
                 allStudents = data.trip.registrations;

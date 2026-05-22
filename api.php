@@ -75,16 +75,13 @@ function processGameQRCode()
         }
         $participants = array_unique(array_merge($participants, $collab));
 
-        // Authorization: allow update when both the scanner's church and the student's church are participants,
-        // or when the scanner is the student's church (legacy behaviour)
+        if ($churchId <= 0 || !in_array($churchId, $participants, true)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح بتحديث نقاط هذه الرحلة']);
+            return;
+        }
         $studentChurchId = intval($student['church_id'] ?? 0);
-        $allowed = false;
-        if ($studentChurchId === $churchId)
-            $allowed = true;
-        if (in_array($studentChurchId, $participants) && in_array($churchId, $participants))
-            $allowed = true;
-        if (!$allowed) {
-            sendJSON(['success' => false, 'message' => 'Not authorized to update this student for this trip']);
+        if (!in_array($studentChurchId, $participants, true)) {
+            sendJSON(['success' => false, 'message' => 'هذا الطفل غير مسجل في رحلة مشتركة مع كنيستك']);
             return;
         }
         $points = json_decode($pointsJson, true);
@@ -448,14 +445,74 @@ function enhanceImage($imagePath, $targetWidth = 400, $targetHeight = 500)
     return $final;
 }
 
-// ── Join Trip (collaboration) ──────────────────────────────
-function joinTrip()
+// ── Trip access helpers ─────────────────────────────────────
+function getTripParticipantIds($tripRow)
+{
+    $participants = [intval($tripRow['church_id'] ?? 0)];
+    $collabRaw = $tripRow['collaborating_churches'] ?? '';
+    if (!empty($collabRaw)) {
+        $collab = json_decode($collabRaw, true);
+        if (is_array($collab)) {
+            $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+        }
+    }
+    return array_values(array_filter($participants, function ($id) {
+        return $id > 0;
+    }));
+}
+
+function isTripDeveloperViewer()
+{
+    $role = strtolower($_SESSION['uncle_role'] ?? '');
+    return in_array($role, ['developer', 'dev', 'admin', 'administrator'], true);
+}
+
+function churchHasPendingTripAccessRequest($conn, $tripId, $requesterChurchId, $ownerChurchId)
+{
+    ensureTripCollaborationRequestsTable($conn);
+    $chk = $conn->prepare("SELECT id FROM trip_collaboration_requests WHERE trip_id = ? AND from_church_id = ? AND to_church_id = ? AND status = 'pending' LIMIT 1");
+    $chk->bind_param('iii', $tripId, $requesterChurchId, $ownerChurchId);
+    $chk->execute();
+    return $chk->get_result()->num_rows > 0;
+}
+
+function buildTripAccessDeniedResponse($conn, $trip, $churchId)
+{
+    $ownerChurchId = intval($trip['church_id']);
+    $ownerName = '';
+    $cStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
+    if ($cStmt) {
+        $cStmt->bind_param('i', $ownerChurchId);
+        $cStmt->execute();
+        $crow = $cStmt->get_result()->fetch_assoc();
+        $ownerName = $crow['church_name'] ?? '';
+    }
+
+    $pending = ($churchId > 0) ? churchHasPendingTripAccessRequest($conn, intval($trip['id']), $churchId, $ownerChurchId) : false;
+
+    sendJSON([
+        'success' => false,
+        'access_denied' => true,
+        'message' => 'ليس لديك صلاحية لعرض هذه الرحلة',
+        'trip' => [
+            'id' => intval($trip['id']),
+            'title' => $trip['title'] ?? '',
+            'image_url' => $trip['image_url'] ?? '',
+            'owner_church_id' => $ownerChurchId,
+            'owner_church_name' => $ownerName,
+        ],
+        'pending_request' => $pending,
+    ]);
+}
+
+// ── Request trip access (replaces instant join) ─────────────
+function requestTripAccess()
 {
     try {
         checkUncleAuth();
         $churchId = getChurchId();
         if ($churchId <= 0) {
-            sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة للانضمام إلى الرحلة']);
+            sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة لطلب المشاركة في الرحلة']);
             return;
         }
 
@@ -466,7 +523,9 @@ function joinTrip()
         }
 
         $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT church_id, collaborating_churches, title FROM trips WHERE id = ? LIMIT 1");
+        ensureTripCollaborationRequestsTable($conn);
+
+        $stmt = $conn->prepare("SELECT id, church_id, collaborating_churches, title FROM trips WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $tripId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -477,22 +536,14 @@ function joinTrip()
 
         $row = $res->fetch_assoc();
         $tripTitle = $row['title'] ?? '';
+        $ownerChurchId = intval($row['church_id']);
 
-        if (intval($row['church_id']) === $churchId) {
-            sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة ولا تحتاج للانضمام', 'trip_id' => $tripId]);
+        if ($ownerChurchId === $churchId) {
+            sendJSON(['success' => true, 'message' => 'هذه الكنيسة هي مالكة الرحلة', 'trip_id' => $tripId, 'already_joined' => true]);
             return;
         }
 
-        $raw = $row['collaborating_churches'] ?? '';
-        $arr = [];
-        if (!empty($raw)) {
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded)) {
-                $arr = array_values(array_unique(array_map('intval', $decoded)));
-            }
-        }
-
-        if (in_array($churchId, $arr, true)) {
+        if (in_array($churchId, getTripParticipantIds($row), true)) {
             sendJSON([
                 'success' => true,
                 'message' => 'كنيستك تشارك بالفعل في هذه الرحلة',
@@ -503,25 +554,47 @@ function joinTrip()
             return;
         }
 
-        $arr[] = intval($churchId);
-        $newJson = json_encode(array_values(array_unique($arr)), JSON_UNESCAPED_UNICODE);
-        $u = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
-        $u->bind_param('si', $newJson, $tripId);
-        if ($u->execute()) {
-            logActivity($churchId, $_SESSION['uncle_id'] ?? null, 'join_trip', "trip:$tripId");
+        if (churchHasPendingTripAccessRequest($conn, $tripId, $churchId, $ownerChurchId)) {
             sendJSON([
                 'success' => true,
-                'message' => 'تم الانضمام بنجاح إلى رحلة: ' . $tripTitle,
+                'message' => 'تم إرسال طلب المشاركة مسبقاً وهو قيد المراجعة',
                 'trip_id' => $tripId,
                 'trip_title' => $tripTitle,
-                'collaborators' => $arr,
+                'pending_request' => true,
+            ]);
+            return;
+        }
+
+        $ins = $conn->prepare("INSERT INTO trip_collaboration_requests (trip_id, from_church_id, to_church_id, status) VALUES (?, ?, ?, 'pending')");
+        $ins->bind_param('iii', $tripId, $churchId, $ownerChurchId);
+        if ($ins->execute()) {
+            logActivity($churchId, $_SESSION['uncle_id'] ?? null, 'request_trip_access', "trip:$tripId");
+            $ownerName = '';
+            $cStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
+            if ($cStmt) {
+                $cStmt->bind_param('i', $ownerChurchId);
+                $cStmt->execute();
+                $crow = $cStmt->get_result()->fetch_assoc();
+                $ownerName = $crow['church_name'] ?? '';
+            }
+            sendJSON([
+                'success' => true,
+                'message' => 'تم إرسال طلب المشاركة إلى ' . ($ownerName ?: 'كنيسة مالكة الرحلة'),
+                'trip_id' => $tripId,
+                'trip_title' => $tripTitle,
+                'pending_request' => true,
             ]);
         } else {
-            sendJSON(['success' => false, 'message' => 'فشل الانضمام للرحلة: ' . $u->error]);
+            sendJSON(['success' => false, 'message' => 'فشل إرسال طلب المشاركة: ' . $ins->error]);
         }
     } catch (Exception $e) {
-        sendJSON(['success' => false, 'message' => 'خطأ في الانضمام: ' . $e->getMessage()]);
+        sendJSON(['success' => false, 'message' => 'خطأ في طلب المشاركة: ' . $e->getMessage()]);
     }
+}
+
+function joinTrip()
+{
+    requestTripAccess();
 }
 
 // ── Collaboration Helpers ──────────────────────────────────
@@ -804,7 +877,8 @@ function getCollaborationRequests()
 
         // Incoming requests (to this church)
         $inStmt = $conn->prepare("
-            SELECT r.*, t.title as trip_title, c.church_name as from_church_name 
+            SELECT r.*, t.title as trip_title, t.church_id as trip_owner_church_id,
+                   c.church_name as from_church_name 
             FROM trip_collaboration_requests r 
             JOIN trips t ON r.trip_id = t.id 
             JOIN churches c ON r.from_church_id = c.id 
@@ -814,6 +888,11 @@ function getCollaborationRequests()
         $inStmt->bind_param("i", $churchId);
         $inStmt->execute();
         $incoming = $inStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($incoming as &$row) {
+            $row['request_type'] = (intval($row['from_church_id']) === intval($row['trip_owner_church_id']))
+                ? 'invite' : 'access_request';
+        }
+        unset($row);
 
         // Outgoing requests (from this church)
         $outStmt = $conn->prepare("
@@ -862,7 +941,6 @@ function respondToCollaborationRequest()
         $tripId = intval($request['trip_id']);
 
         if ($status === 'accepted') {
-            // Get trip to update collaborating churches
             $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
             $tStmt->bind_param("i", $tripId);
             $tStmt->execute();
@@ -872,8 +950,14 @@ function respondToCollaborationRequest()
                 return;
             }
 
-            if (intval($trip['church_id']) === $churchId) {
-                sendJSON(['success' => false, 'message' => 'هذه الكنيسة هي مالكة الرحلة بالفعل ولا يمكن تسجيلها كشريك']);
+            $ownerChurchId = intval($trip['church_id']);
+            // Church joining the trip is the non-owner side of the request
+            $joinChurchId = (intval($request['from_church_id']) === $ownerChurchId)
+                ? intval($request['to_church_id'])
+                : intval($request['from_church_id']);
+
+            if ($joinChurchId <= 0 || $joinChurchId === $ownerChurchId) {
+                sendJSON(['success' => false, 'message' => 'بيانات الطلب غير صالحة']);
                 return;
             }
 
@@ -883,7 +967,9 @@ function respondToCollaborationRequest()
                 if (!is_array($collab))
                     $collab = [];
             }
-            $collab[] = $churchId;
+            if (!in_array($joinChurchId, array_map('intval', $collab), true)) {
+                $collab[] = $joinChurchId;
+            }
             $collab = array_values(array_unique(array_map('intval', $collab)));
             $collabJson = json_encode($collab, JSON_UNESCAPED_UNICODE);
 
@@ -1118,6 +1204,11 @@ try {
         case 'joinTrip':
             checkAuth();
             joinTrip();
+            break;
+
+        case 'requestTripAccess':
+            checkAuth();
+            requestTripAccess();
             break;
 
         case 'getTripStudents':
@@ -9715,19 +9806,16 @@ function getTripDetails()
             }
         }
 
-        // Verify caller is the trip owner OR a collaborating church
-        $participants = [$trip['church_id']];
-        $collabRaw = $trip['collaborating_churches'] ?? '';
-        if (!empty($collabRaw)) {
-            $collab = json_decode($collabRaw, true);
-            if (is_array($collab)) {
-                $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+        $participants = getTripParticipantIds($trip);
+        if (!isTripDeveloperViewer()) {
+            if ($churchId <= 0) {
+                sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة لعرض هذه الرحلة']);
+                return;
             }
-        }
-        // $churchId may be 0 when accessed by uncle with no church (edge case); allow trip owner's church
-        if ($churchId > 0 && !in_array($churchId, $participants)) {
-            sendJSON(['success' => false, 'message' => 'غير مصرح بعرض هذه الرحلة']);
-            return;
+            if (!in_array($churchId, $participants, true)) {
+                buildTripAccessDeniedResponse($conn, $trip, $churchId);
+                return;
+            }
         }
 
         // حساب السعر بعد الخصم

@@ -7526,11 +7526,13 @@
                     listEl.innerHTML = res.incoming.map(req => {
                         const tripTitle = req.trip_title || '';
                         const fromName = req.from_church_name || '';
+                        const isAccessRequest = req.request_type === 'access_request';
+                        const msg = isAccessRequest
+                            ? `<strong>كنيسة: ${fromName}</strong> تطلب المشاركة في رحلتك: <strong>${tripTitle}</strong>`
+                            : `<strong>كنيسة: ${fromName}</strong> تدعوك للمشاركة في رحلة: <strong>${tripTitle}</strong>`;
                         return `
                             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px; gap:10px; flex-wrap:wrap;">
-                                <div>
-                                    <strong>كنيسة: ${fromName}</strong> تدعوك للمشاركة في رحلة: <strong>${tripTitle}</strong>
-                                </div>
+                                <div>${msg}</div>
                                 <div style="display:flex; gap:8px;">
                                     <button class="btn btn-success btn-sm" onclick="respondToCollab(${req.id}, 'accepted')"><i class="fas fa-check"></i> قبول</button>
                                     <button class="btn btn-danger btn-sm" onclick="respondToCollab(${req.id}, 'rejected')"><i class="fas fa-times"></i> رفض</button>
@@ -7740,12 +7742,12 @@
         <div style="margin-bottom:20px;">
             <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-info-circle"></i> معلومات التعاون</h4>
             <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.85rem;color:var(--muted);line-height:1.6;">
-                يمكنك دعوة كنائس أخرى للمشاركة في هذه الرحلة. ستتمكن الكنائس المشاركة من مسح كروت QR للأطفال من جميع الكنائس المشاركة وإدارة نقاط المسابقة.
+                يمكنك دعوة كنائس أخرى للمشاركة في هذه الرحلة. عند فتح رابط الدعوة، ترسل الكنيسة طلب مشاركة وتحتاج موافقتك. بعد القبول يمكنها مسح QR وإدارة نقاط المسابقة.
             </div>
         </div>
         
         <div style="margin-bottom:20px;">
-            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط الدعوة السريع</h4>
+            <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-link"></i> رابط طلب المشاركة</h4>
             <div style="display:flex;gap:8px;">
                 <input type="text" value="${collaborationLink}" readonly style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);">
                 <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${collaborationLink}'); showToast('تم نسخ الرابط', 'success');"><i class="fas fa-copy"></i> نسخ</button>
@@ -7782,26 +7784,72 @@
             openModal('tripCollaborationModal');
         }
 
+        async function requestTripAccessFor(tripId) {
+            tripId = parseInt(tripId);
+            if (!tripId) return;
+            const fd = mkFd('requestTripAccess');
+            fd.append('trip_id', tripId);
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message || 'تم إرسال طلب المشاركة', res.already_joined ? 'info' : 'success');
+                    await showTripDetails(tripId);
+                } else {
+                    showToast(res.message || 'فشل إرسال الطلب', 'error');
+                }
+            } catch (e) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            }
+        }
+
+        function renderTripAccessDenied(resp) {
+            const trip = resp.trip || {};
+            const pending = !!resp.pending_request;
+            const ownerName = escHtml(trip.owner_church_name || 'الكنيسة المالكة');
+            const title = escHtml(trip.title || 'رحلة');
+            document.getElementById('tdModalTitle').textContent = trip.title || 'رحلة';
+            document.getElementById('tdSubtitle').textContent = 'طلب مشاركة مطلوب';
+            document.getElementById('tdStatusBadge').innerHTML = '<span class="badge badge-warning" style="font-size:0.72rem;">بدون صلاحية</span>';
+            document.getElementById('tdQuickStats').innerHTML = '';
+            document.getElementById('tripRegsContent').innerHTML = '';
+            document.getElementById('tripInfoContent').innerHTML = `
+                <div class="empty-state" style="padding:28px 16px;text-align:center;">
+                    <div style="font-size:2.5rem;color:var(--primary);margin-bottom:12px;"><i class="fas fa-lock"></i></div>
+                    <h2 style="margin-bottom:8px;">${title}</h2>
+                    <p style="color:var(--text-2);line-height:1.7;max-width:420px;margin:0 auto 18px;">
+                        ليس لديك صلاحية لعرض هذه الرحلة. اطلب المشاركة من <strong>${ownerName}</strong> وسيتم إشعارهم للموافقة أو الرفض.
+                    </p>
+                    ${pending
+                    ? `<div class="badge badge-info" style="display:inline-block;padding:10px 16px;font-size:0.9rem;"><i class="fas fa-hourglass-half"></i> طلبك قيد المراجعة</div>`
+                    : `<button class="btn btn-primary" onclick="requestTripAccessFor(${parseInt(trip.id) || 0})" style="min-width:220px;">
+                        <i class="fas fa-paper-plane"></i> طلب المشاركة من ${ownerName}
+                    </button>`}
+                </div>`;
+            ['regs', 'waitlist', 'exp'].forEach(t => {
+                document.getElementById('tdtab-' + t)?.setAttribute('style', 'opacity:0.45;pointer-events:none;');
+            });
+        }
+
         async function handleJoinTrip(tripId) {
             if (!tripId || isNaN(tripId)) return;
 
             const url = new URL(window.location);
             url.searchParams.delete('joinTrip');
-            window.history.replaceState({}, '', url.pathname + url.search + '#trips');
+            window.history.replaceState({}, '', url.pathname + url.search + `#trips?trip_id=${tripId}`);
 
-            const joinFd = new FormData();
-            joinFd.append('action', 'joinTrip');
+            const joinFd = mkFd('requestTripAccess');
             joinFd.append('trip_id', tripId);
 
             try {
                 const joinRes = await fetch(API_URL, { method: 'POST', body: joinFd, credentials: 'include' }).then(r => r.json());
                 if (joinRes.success) {
-                    showToast(joinRes.message || 'تم الانضمام بنجاح', joinRes.already_joined ? 'info' : 'success');
+                    showToast(joinRes.message || 'تم إرسال طلب المشاركة', joinRes.already_joined ? 'info' : 'success');
                     const tripsBtn = document.querySelector(".nav-item[onclick*=\"'trips'\"]");
                     if (tripsBtn) switchTab('trips', tripsBtn);
-                    await loadTrips();
+                    await showTripDetails(tripId);
                 } else {
-                    showToast(joinRes.message || 'فشل في الانضمام للرحلة', 'error');
+                    showToast(joinRes.message || 'فشل إرسال طلب المشاركة', 'error');
+                    await showTripDetails(tripId);
                 }
             } catch (e) {
                 showToast('حدث خطأ في الاتصال', 'error');
@@ -10281,6 +10329,9 @@
         }
 
         async function showTripDetails(id) {
+            ['regs', 'waitlist', 'exp'].forEach(t => {
+                document.getElementById('tdtab-' + t)?.removeAttribute('style');
+            });
             document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
             document.getElementById('tripRegsContent').innerHTML = '';
             document.getElementById('tdRegsCount').textContent = '';
@@ -10311,8 +10362,10 @@
                 renderTripDetailsFull(tripResp.trip);
                 const tripTab = getHashData().params.get('trip_tab');
                 if (tripTab) switchTripTab(tripTab);
+            } else if (tripResp.access_denied && tripResp.trip) {
+                renderTripAccessDenied(tripResp);
             } else {
-                document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>فشل في التحميل</h3></div>`;
+                document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في التحميل')}</h3></div>`;
             }
         }
 
