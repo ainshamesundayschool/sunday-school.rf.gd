@@ -5352,8 +5352,8 @@
                                     <div class="form-group">
                                         <label class="form-label">النوع *</label>
                                         <select id="uncleGender" class="form-select" style="width:100%;" required>
-                                            <option value="male">ذكر</option>
-                                            <option value="female">أنثى</option>
+                                            <option value="male">ولد</option>
+                                            <option value="female">بنت</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -6550,8 +6550,8 @@
                         </select></div>
                     <div class="form-group" style="margin-bottom:20px;"><label class="form-label">النوع</label><select
                             id="editUncleGender" class="form-select" style="width:100%;">
-                            <option value="male">ذكر</option>
-                            <option value="female">أنثى</option>
+                            <option value="male">ولد</option>
+                            <option value="female">بنت</option>
                         </select></div>
                     <div class="form-group" style="margin-bottom:20px;"><label class="form-label">رقم التليفون</label><input
                             type="text" id="editUnclePhone" class="form-input" placeholder="رقم تليفون الخادم"></div>
@@ -9320,8 +9320,8 @@
 
         function buildGenderReviewCard(student, idx) {
             const id = student._studentId || student.id || student.studentId || 0;
-            const currentGenderLabel = student.declaredGender === 'female' ? 'أنثى' : student.declaredGender === 'male' ? 'ذكر' : 'غير محدد';
-            const suggestedLabel = student.suggestedGender === 'female' ? 'أنثى' : student.suggestedGender === 'male' ? 'ذكر' : 'لا يوجد اقتراح';
+            const currentGenderLabel = student.declaredGender === 'female' ? 'بنت' : student.declaredGender === 'male' ? 'ولد' : 'غير محدد';
+            const suggestedLabel = student.suggestedGender === 'female' ? 'بنت' : student.suggestedGender === 'male' ? 'ولد' : 'لا يوجد اقتراح';
             const statusText = !student.declaredGender ? 'جنس غير مسجل' : student.suggestedGender && student.declaredGender !== student.suggestedGender ? 'النوع المحتمل يختلف عن المسجل' : 'النوع مسجل بشكل غير واضح';
             const statusBadge = student.genderReviewStatus === 'approved' ? 'badge-success' : student.genderReviewStatus === 'rejected' ? 'badge-danger' : 'badge-primary';
             const statusLabel = student.genderReviewStatus === 'approved' ? 'معتمد مسبقاً' : student.genderReviewStatus === 'rejected' ? 'مرفوض مسبقاً' : statusText;
@@ -11679,7 +11679,7 @@
                         <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" id="editStudentName" class="form-input" value="${escHtml(s.name || '')}" required></div>
                         <div class="form-group"><label class="form-label">الفصل *</label><select id="editStudentClass" class="form-select" style="width:100%;" required><option value="">اختر الفصل</option></select></div>
                         <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" id="editStudentPhone" class="form-input" value="${escHtml(s.phone || '')}"></div>
-                        <div class="form-group"><label class="form-label">هاتف الطوارئ</label><input type="tel" id="editStudentEmergencyPhone" class="form-input" value="${escHtml(s.emergency_phone || '')}"></div>
+                        <div class="form-group"><label class="form-label">تليفون الطوارئ</label><input type="tel" id="editStudentEmergencyPhone" class="form-input" value="${escHtml(s.emergency_phone || s['تليفون الطوارئ'] || '')}"></div>
                         <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editStudentBirthday" class="form-input" value="${escHtml(s.birthday || '')}" placeholder="DD/MM/YYYY"></div>
                         <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="editStudentAddress" class="form-input" value="${escHtml(s.address || '')}"></div>
                         <div class="form-group"><label class="form-label">اسم الأب / ولي الأمر</label><input type="text" id="editStudentGuardianName" class="form-input" value=""></div>

@@ -8001,8 +8001,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">النوع *</label>
                     <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select
                             id="editStudentGender" class="form-input" required>
-                            <option value="male">ذكر</option>
-                            <option value="female">أنثى</option>
+                            <option value="male">ولد</option>
+                            <option value="female">بنت</option>
                         </select></div>
                 </div>
                 <div class="form-group">
@@ -8021,6 +8021,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">رقم التليفون</label>
                     <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="tel"
                             id="editStudentPhone" class="form-input"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تليفون الطوارئ</label>
+                    <div class="input-icon-wrap"><i class="fas fa-phone-volume input-icon"></i><input type="tel"
+                            id="editStudentEmergencyPhone" class="form-input"></div>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label class="form-label">ملاحظات طبية</label>
+                    <textarea id="editStudentMedicalNotes" class="form-input" rows="2" style="min-height:72px;resize:vertical;"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
@@ -8072,8 +8081,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">النوع *</label>
                     <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i><select id="studentGender"
                             class="form-input" required>
-                            <option value="male">ذكر</option>
-                            <option value="female">أنثى</option>
+                            <option value="male">ولد</option>
+                            <option value="female">بنت</option>
                         </select></div>
                 </div>
                 <div class="form-group">
@@ -8092,6 +8101,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">رقم التليفون</label>
                     <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="tel"
                             id="studentPhone" class="form-input"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تليفون الطوارئ</label>
+                    <div class="input-icon-wrap"><i class="fas fa-phone-volume input-icon"></i><input type="tel"
+                            id="studentEmergencyPhone" class="form-input"></div>
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label class="form-label">ملاحظات طبية</label>
+                    <textarea id="studentMedicalNotes" class="form-input" rows="2" style="min-height:72px;resize:vertical;"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
@@ -10772,6 +10790,13 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             return (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
         }
 
+        function formatGenderLabel(genderOrStudent) {
+            const g = (typeof genderOrStudent === 'string')
+                ? genderOrStudent
+                : getStudentGender(genderOrStudent);
+            return (g === 'female' || g === 'أنثى') ? 'بنت' : 'ولد';
+        }
+
         function getStudentDbId(student) {
             if (!student) return 0;
             return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || 0) || 0;
@@ -11285,7 +11310,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         }
 
         function buildStudentDetailsFromCache(s) {
-            const genderLabel = getStudentGender(s) === 'female' ? 'أنثى' : 'ذكر';
+            const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
             const rows = [
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
@@ -11317,7 +11342,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
             const rows = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
-                ['النوع', (full.gender === 'female' ? 'أنثى' : 'ذكر'), 'purple', 'fa-venus-mars'],
+                ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars'],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher'],
                 ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt'],
                 ['رقم التليفون', full.phone || '---', 'green', 'fa-phone'],
@@ -11390,6 +11415,10 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             if (matchedOption) cs.value = matchedOption.value;
             document.getElementById('editStudentAddress').value = s['العنوان'] || '';
             document.getElementById('editStudentPhone').value = s['رقم التليفون'] || '';
+            const emergEl = document.getElementById('editStudentEmergencyPhone');
+            const medEl = document.getElementById('editStudentMedicalNotes');
+            if (emergEl) emergEl.value = s['تليفون الطوارئ'] || '';
+            if (medEl) medEl.value = s['ملاحظات طبية'] || '';
             const bd = s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
             document.getElementById('editStudentCommitmentCoupons').value = s['كوبونات الالتزام'] || '0';
@@ -11453,6 +11482,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 gender: document.getElementById('editStudentGender').value,
                 address: document.getElementById('editStudentAddress').value.trim(),
                 phone: document.getElementById('editStudentPhone').value.trim(),
+                emergency_phone: (document.getElementById('editStudentEmergencyPhone')?.value || '').trim(),
+                medical_notes: (document.getElementById('editStudentMedicalNotes')?.value || '').trim(),
                 birthday: document.getElementById('editStudentBirthday').value.trim(),
                 coupons: parseInt(document.getElementById('editStudentCommitmentCoupons').value) || 0
             };
@@ -11473,6 +11504,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             fd.append('gender', document.getElementById('studentGender').value);
             fd.append('address', document.getElementById('studentAddress').value.trim() || '');
             fd.append('phone', document.getElementById('studentPhone').value.trim() || '');
+            fd.append('emergency_phone', (document.getElementById('studentEmergencyPhone')?.value || '').trim());
+            fd.append('medical_notes', (document.getElementById('studentMedicalNotes')?.value || '').trim());
             fd.append('birthday', document.getElementById('studentBirthday').value.trim() || '');
             fd.append('coupons', parseInt(document.getElementById('studentCoupons').value) || 0);
             // Multiple custom fields
@@ -12522,7 +12555,6 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 { key: 'attendance_coupons', label: 'كوبونات الحضور', source: 'كوبونات الحضور', selected: false },
                 { key: 'commitment_coupons', label: 'كوبونات الالتزام', source: 'كوبونات الالتزام', selected: false },
                 { key: 'task_coupons', label: 'كوبونات المهام', source: 'كوبونات المهام', selected: false },
-                { key: 'custom_info', label: 'معلومات إضافية', source: 'معلومات إضافية', selected: false },
                 { key: 'attended_count', label: 'إجمالي الحضور', type: 'attendance_count', selected: false },
             ];
             if (churchCustomFields && churchCustomFields.length) {
@@ -12538,6 +12570,9 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         }
         function initCustomExportFields(force = false) {
             if (force || !customExportFields.length) customExportFields = getCustomExportDefaultFields();
+            customExportFields = customExportFields.filter(f =>
+                f.key !== 'custom_info' && f.source !== 'معلومات إضافية' && f.type !== 'custom_info'
+            );
             renderCustomExportFields();
         }
         function renderCustomExportFields() {
@@ -12623,7 +12658,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     : '<div class="custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
             }
             if (field.type === 'age') return _calcAge(s['عيد الميلاد'] || '') || '';
-            if (field.type === 'gender') return (s['النوع'] === 'female' || s['gender'] === 'female') ? 'أنثى' : 'ذكر';
+            if (field.type === 'gender') return formatGenderLabel(s);
             if (field.type === 'siblings') {
                 const studentId = getStudentDbId(s);
                 const info = parseStudentCustomInfo(s);
@@ -12633,14 +12668,6 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             }
             if (field.type === 'attendance_count') return getAttendanceCountForStudent(s);
             if (field.type === 'custom') return getCustomFieldValue(s, field.customIndex);
-            if (field.key === 'custom_info' || field.source === 'معلومات إضافية' || field.type === 'custom_info') {
-                const info = parseStudentCustomInfo(s);
-                const pairs = Object.entries(info)
-                    .filter(([k]) => !['sibling_group', 'value'].includes(k))
-                    .map(([k, v]) => `${k}: ${v}`);
-                if (info.value) pairs.unshift(String(info.value));
-                return pairs.join(forCsv ? ' ؛ ' : '\n');
-            }
             return s[field.source] || '';
         }
         function getAttendanceDisplayValue(s, date) {

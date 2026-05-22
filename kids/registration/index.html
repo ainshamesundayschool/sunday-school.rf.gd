@@ -333,8 +333,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <div class="ff">
             <label><i class="fas fa-venus-mars"></i> النوع <span class="req">*</span></label>
             <select id="kidGender">
-              <option value="male">ذكر</option>
-              <option value="female">أنثى</option>
+              <option value="male">ولد</option>
+              <option value="female">بنت</option>
             </select>
           </div>
         </div>
@@ -1115,7 +1115,7 @@ function v4() {
 function fillReview() {
   document.getElementById('rv-church').textContent  = churchName || '—';
   document.getElementById('rv-name').textContent    = val('kidName')    || '—';
-  document.getElementById('rv-gender').textContent  = val('kidGender') === 'female' ? 'أنثى' : 'ذكر';
+  document.getElementById('rv-gender').textContent  = val('kidGender') === 'female' ? 'بنت' : 'ولد';
   document.getElementById('rv-class').textContent   = val('kidClass')   || '—';
   document.getElementById('rv-bday').textContent    = val('kidBirthday')|| '—';
   document.getElementById('rv-phone').textContent   = val('kidPhone')   || '—';

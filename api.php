@@ -232,6 +232,11 @@ require_once 'config.php';
 require_once 'audit.php';
 
 // ── Auto-Gender Detection & Migration ─────────────────────────────
+function formatStudentGenderLabel($gender)
+{
+    return ($gender === 'female') ? 'بنت' : 'ولد';
+}
+
 function detectGenderFromName($name) {
     $name = trim($name);
     if (empty($name)) {
@@ -3042,6 +3047,8 @@ function addStudent()
         $classId = intval($_POST['classId'] ?? 0);
         $address = sanitize($_POST['address'] ?? '');
         $phone = $_POST['phone'] ?? '';
+        $emergencyPhone = $_POST['emergency_phone'] ?? '';
+        $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
         $birthday = sanitize($_POST['birthday'] ?? '');
         $coupons = isset($_POST['coupons']) ? intval($_POST['coupons']) : 0;
 
@@ -3074,6 +3081,17 @@ function addStudent()
         // 4. Validate Egyptian mobile format (01XXXXXXXXX = 11 digits)
         if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
             sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
+            return;
+        }
+
+        $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
+        $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
+        $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
+        if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
+            $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
+        }
+        if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
+            sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
             return;
         }
 
@@ -3179,18 +3197,20 @@ function addStudent()
         if ($formattedBirthday === null) {
             $stmt = $conn->prepare("
                 INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isisssiisss",
+                "isissssssiisss",
                 $churchId,
                 $name,
                 $classId,
                 $className,
                 $address,
                 $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
                 $coupons,
                 $totalCoupons,
                 $photoUrl,
@@ -3200,18 +3220,20 @@ function addStudent()
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, birthday, 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
             ");
             $stmt->bind_param(
-                "isissssiisss",
+                "isisssssssiisss",
                 $churchId,
                 $name,
                 $classId,
                 $className,
                 $address,
                 $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
                 $formattedBirthday,
                 $coupons,
                 $totalCoupons,
@@ -3346,6 +3368,8 @@ function updateStudent()
         $classId = intval($_POST['classId'] ?? 0);
         $address = sanitize($_POST['address'] ?? '');
         $phone = $_POST['phone'] ?? '';
+        $emergencyPhone = $_POST['emergency_phone'] ?? '';
+        $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
         $birthday = sanitize($_POST['birthday'] ?? '');
         $coupons = intval($_POST['coupons'] ?? 0);
 
@@ -3365,6 +3389,17 @@ function updateStudent()
 
         if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
             sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
+            return;
+        }
+
+        $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
+        $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
+        $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
+        if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
+            $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
+        }
+        if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
+            sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
             return;
         }
 
@@ -3473,17 +3508,19 @@ function updateStudent()
         if ($customInfoRaw !== null) {
             $updateStmt = $conn->prepare("
                 UPDATE students 
-                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, birthday = ?, 
+                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
                     commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sissssiissii",
+                "sisssssssiissii",
                 $name,
                 $classId,
                 $className,
                 $address,
                 $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
                 $formattedBirthday,
                 $coupons,
                 $totalCoupons,
@@ -3495,17 +3532,19 @@ function updateStudent()
         } else {
             $updateStmt = $conn->prepare("
                 UPDATE students 
-                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, birthday = ?, 
+                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
                     commitment_coupons = ?, coupons = ?, gender = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             $updateStmt->bind_param(
-                "sissssiisii",
+                "sisssssssiisii",
                 $name,
                 $classId,
                 $className,
                 $address,
                 $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
                 $formattedBirthday,
                 $coupons,
                 $totalCoupons,
@@ -11873,7 +11912,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
             if (is_array($parsed))
                 $customData = $parsed;
         }
-        $genderText = ($reg['student_gender'] ?? '') === 'female' ? 'أنثى' : 'ذكر';
+        $genderText = formatStudentGenderLabel($reg['student_gender'] ?? 'male');
         $row = [
             $index + 1,
             $reg['student_name'],
