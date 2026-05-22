@@ -13311,11 +13311,11 @@
             }
         }
 
-        function showClearHistoryModal() {
+        async function showClearHistoryModal() {
             const from = document.getElementById('auditDateFrom')?.value || '';
             const to = document.getElementById('auditDateTo')?.value || '';
             const rangeText = (from && to) ? `من ${from} إلى ${to}` : (from ? `من ${from}` : 'جميع السجلات');
-            if (!(await showConfirm({ message: `هل تريد حذف ${rangeText}؟ لا يمكن التراجع عن هذا الإجراء.` }))) return;
+            if (!(await showConfirm({ message: `هل تريد حذف ${rangeText}؟ لا يمكن التراجع عن هذا الإجراء.`, danger: true }))) return;
             clearAuditHistory(from, to);
         }
 
