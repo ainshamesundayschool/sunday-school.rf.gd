@@ -788,42 +788,60 @@
         }
 
         /* ── TAB LOADER ─────────────────────────────────────────────────── */
-        .tab-loader {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
-            width: 100%;
-            animation: fadeIn 0.3s var(--ease);
+        #tabLoader {
+            display: none !important;
         }
 
-        .tab-loader.active {
+        .tab-panel.is-loading > :not(.tab-panel-skeleton) {
+            visibility: hidden;
+            pointer-events: none;
+            height: 0;
+            overflow: hidden;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        .tab-panel-skeleton {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 4px 0 20px;
+            animation: fadeIn 0.25s var(--ease);
         }
 
-        .loader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--primary-light);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px var(--primary-glow);
+        .sk-row {
+            height: 56px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            border: 1px solid var(--border-solid);
         }
 
-        .loader-text {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-2);
-            letter-spacing: 0.5px;
+        .sk-row.tall {
+            height: 72px;
         }
 
-        .loader-dots {
-            display: inline-flex;
-            gap: 4px;
-            margin-right: 4px;
+        .sk-card {
+            height: 120px;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            border: 1px solid var(--border-solid);
+        }
+
+        @keyframes shimmerSkeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .panel-inline-skeleton {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px 0;
         }
 
         .loader-dot {
@@ -1226,61 +1244,205 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════════
-   TABLE — MODERN REDESIGN
+   DATA LIST — minimal rounded rows (dashboard-style)
 ═══════════════════════════════════════════════════════════════ */
+        .data-list {
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .data-list-head,
+        .data-row {
+            display: grid;
+            align-items: center;
+            gap: 10px 12px;
+            padding: 12px 16px;
+        }
+
+        .data-list-head {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-3);
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border-solid);
+        }
+
+        .data-list-body .data-row {
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background var(--t-base) var(--ease), transform var(--t-fast) var(--ease-spring);
+        }
+
+        .data-list-body .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-list-body .data-row:hover {
+            background: var(--card-hover);
+        }
+
+        .data-list-body .data-row:active {
+            transform: scale(0.995);
+        }
+
+        .data-row-chevron {
+            color: var(--text-3);
+            font-size: 0.68rem;
+            opacity: 0.45;
+            justify-self: end;
+            transition: transform var(--t-fast) var(--ease), opacity var(--t-fast);
+        }
+
+        .data-row:hover .data-row-chevron {
+            opacity: 1;
+            color: var(--primary);
+            transform: translateX(-3px);
+        }
+
+        .data-row-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .data-row-check input {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .data-cols-uncles { grid-template-columns: 32px 1fr 96px 100px 18px; }
+        .data-cols-students { grid-template-columns: 1fr 88px 108px 64px 80px 18px; }
+        .data-cols-students.dev { grid-template-columns: 1fr 88px 88px 108px 64px 80px 18px; }
+        .data-cols-graduates { grid-template-columns: 1fr 96px 108px 64px 18px; }
+        .data-cols-pending { grid-template-columns: 36px 44px 1fr 100px 88px 96px 100px 96px 18px; }
+        .data-cols-audit { grid-template-columns: 36px 130px 100px 1fr 80px 1fr 1fr 18px; }
+        .data-cols-uncle-att { grid-template-columns: 32px 1fr 88px 80px 18px; }
+
+        .att-record-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .att-record-card {
+            display: flex;
+            align-items: stretch;
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            border: 2px solid transparent;
+            overflow: hidden;
+            min-height: 118px;
+            cursor: pointer;
+            transition: box-shadow var(--t-base) var(--ease), transform var(--t-fast) var(--ease-spring);
+        }
+
+        .att-record-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .att-record-card.present {
+            border-color: rgba(16, 185, 129, .28);
+            background: linear-gradient(135deg, rgba(236, 253, 245, .95), rgba(209, 250, 229, .88));
+        }
+
+        .att-record-card.absent {
+            border-color: rgba(239, 68, 68, .24);
+            background: linear-gradient(135deg, rgba(254, 242, 242, .95), rgba(254, 226, 226, .88));
+        }
+
+        [data-theme="dark"] .att-record-card.present {
+            background: linear-gradient(135deg, rgba(6, 78, 59, .28), rgba(5, 95, 75, .22));
+        }
+
+        [data-theme="dark"] .att-record-card.absent {
+            background: linear-gradient(135deg, rgba(127, 29, 29, .28), rgba(153, 27, 27, .22));
+        }
+
+        .att-record-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 14px;
+            text-align: center;
+            gap: 4px;
+            background: rgba(91, 108, 245, .04);
+        }
+
+        .att-record-name {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+        .att-record-meta {
+            font-size: 0.72rem;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+
+        .att-record-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            min-width: 88px;
+        }
+
+        .att-record-status {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+        }
+
+        .att-record-card.present .att-record-status {
+            background: var(--success-light);
+            color: #065f46;
+        }
+
+        .att-record-card.absent .att-record-status {
+            background: var(--danger-light);
+            color: #991b1b;
+        }
+
         .table-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-solid);
+            background: var(--card);
         }
 
-        table {
+        .table-wrap table {
             width: 100%;
             border-collapse: collapse;
             min-width: 560px;
         }
 
-        thead th {
-            padding: 12px 16px;
+        .table-wrap thead th {
+            padding: 10px 14px;
             text-align: right;
             font-size: 0.68rem;
-            font-weight: 800;
+            font-weight: 700;
             color: var(--text-3);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
             background: var(--surface-2);
             border-bottom: 1px solid var(--border-solid);
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
         }
 
-        thead th:first-child {
-            border-radius: var(--radius) 0 0 0;
-        }
-
-        thead th:last-child {
-            border-radius: 0 var(--radius) 0 0;
-        }
-
-        tbody td {
-            padding: 14px 16px;
+        .table-wrap tbody td {
+            padding: 12px 14px;
             border-bottom: 1px solid var(--border);
-            font-size: 0.85rem;
-            vertical-align: middle;
+            font-size: 0.84rem;
             color: var(--text-2);
-        }
-
-        tbody tr {
-            transition: background var(--t-fast) var(--ease);
-        }
-
-        tbody tr:hover td {
-            background: rgba(91, 108, 245, 0.03);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
         }
 
         /* Name cell — flex layout so avatar + text never breaks the row height */
@@ -1877,22 +2039,40 @@
         }
 
         .trip-quick-actions {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 6px;
-            padding: 0 14px 10px;
+            display: none !important;
         }
 
-        .trip-quick-actions .act-btn {
-            width: 100%;
-            min-width: 0;
-            height: 32px;
-            padding: 0;
-            border-radius: 10px;
+        .trip-card-compact {
+            position: relative;
         }
 
-        .trip-quick-actions .act-btn i {
-            font-size: .82rem;
+        .trip-delete-fab {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--danger-light);
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease-spring);
+            z-index: 2;
+        }
+
+        .trip-card-compact:hover .trip-delete-fab {
+            opacity: 1;
+        }
+
+        .trip-delete-fab:hover {
+            background: var(--danger);
+            color: #fff;
+            transform: scale(1.06);
         }
 
         .trip-card-main {
@@ -4588,49 +4768,60 @@
             color: var(--muted);
         }
 
-        /* Minimal Reg Link (Premium glassmorphic redesign) */
+        /* Share link chip — compact, not full width */
+        .link-chip,
         .reg-link-minimal {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, rgba(91, 108, 245, 0.06) 0%, rgba(91, 108, 245, 0.01) 100%);
-            border: 1px solid rgba(91, 108, 245, 0.12);
-            border-radius: 14px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            box-shadow: 0 4px 24px rgba(91, 108, 245, 0.03);
-            backdrop-filter: blur(10px);
-            transition: border-color 0.3s, box-shadow 0.3s;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            max-width: 640px;
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-xl);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-xs);
+            transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
         }
 
+        .link-chip:hover,
         .reg-link-minimal:hover {
-            border-color: rgba(91, 108, 245, 0.25);
-            box-shadow: 0 6px 30px rgba(91, 108, 245, 0.06);
+            border-color: rgba(91, 108, 245, .28);
+            box-shadow: var(--shadow-sm);
         }
 
+        .link-chip-label,
         .rlm-label {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 800;
-            color: var(--brand);
+            color: var(--text-2);
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
+        .link-chip-label i,
+        .rlm-label i {
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .link-chip-url,
         .rlm-url {
-            flex: 1;
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             font-family: 'Cairo', sans-serif !important;
-            color: var(--brand);
-            background: rgba(91, 108, 245, 0.05);
-            border: 1px solid rgba(91, 108, 245, 0.1);
-            padding: 8px 14px;
-            border-radius: 10px;
+            color: var(--text-2);
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            padding: 10px 12px;
+            border-radius: var(--radius);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             direction: ltr;
+            text-align: left;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s, border-color 0.2s;
@@ -4641,9 +4832,123 @@
             border-color: rgba(91, 108, 245, 0.2);
         }
 
+        .link-chip-actions,
         .rlm-actions {
             display: flex;
-            gap: 6px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .link-chip-actions .btn,
+        .rlm-actions .btn {
+            min-height: 38px;
+            padding: 8px 14px !important;
+            font-size: 0.8rem !important;
+            border-radius: var(--radius) !important;
+        }
+
+        /* Row action sheet + confirm / prompt */
+        .action-sheet {
+            position: fixed;
+            inset: 0;
+            z-index: 2500;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--t-base) var(--ease);
+        }
+
+        .action-sheet.open {
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .action-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 17, 23, .45);
+            backdrop-filter: blur(4px);
+        }
+
+        .action-sheet-panel {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+            transform: translateY(100%);
+            transition: transform var(--t-slow) var(--ease-spring);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .action-sheet.open .action-sheet-panel {
+            transform: translateY(0);
+        }
+
+        .action-sheet-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text);
+            text-align: center;
+            padding: 8px 8px 14px;
+            border-bottom: 1px solid var(--border-solid);
+            margin-bottom: 8px;
+        }
+
+        .action-sheet-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 14px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: background var(--t-fast) var(--ease);
+        }
+
+        .action-sheet-btn:hover {
+            background: var(--surface-2);
+        }
+
+        .action-sheet-btn i {
+            width: 20px;
+            text-align: center;
+            color: var(--text-3);
+        }
+
+        .action-sheet-btn.danger {
+            color: var(--danger);
+        }
+
+        .action-sheet-btn.danger i {
+            color: var(--danger);
+        }
+
+        .action-sheet-cancel {
+            margin-top: 6px;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+
+        .app-dialog .modal-box {
+            max-width: 400px;
+            border-radius: var(--radius-xl);
+        }
+
+        .app-dialog-message {
+            font-size: 0.88rem;
+            color: var(--text-2);
+            line-height: 1.65;
+            white-space: pre-wrap;
         }
 
         .overview-kicker {
@@ -4913,71 +5218,141 @@
 
         .settings-hub-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
             gap: 12px;
+            max-width: 920px;
         }
 
         .settings-hub-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 14px;
+            justify-content: center;
+            gap: 10px;
+            aspect-ratio: 1;
+            max-width: 168px;
             background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 16px 18px;
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-xl);
+            padding: 18px 12px;
             cursor: pointer;
-            text-align: right;
-            transition: all var(--t-fast) var(--ease-spring);
+            text-align: center;
+            transition: border-color var(--t-base) var(--ease), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-base) var(--ease);
             box-shadow: var(--shadow-xs);
         }
 
         .settings-hub-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
+            border-color: rgba(91, 108, 245, .35);
+            transform: translateY(-3px);
             box-shadow: var(--shadow-md);
         }
 
         .settings-hub-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-sm);
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 1.35rem;
             flex-shrink: 0;
         }
 
-        .settings-hub-body {
-            flex: 1;
-            min-width: 0;
-        }
-
         .settings-hub-title {
-            font-size: 0.9rem;
+            font-size: 0.78rem;
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 3px;
+            line-height: 1.35;
         }
 
-        .settings-hub-desc {
-            font-size: 0.74rem;
-            color: var(--text-3);
-        }
-
-        .settings-hub-arrow {
-            color: var(--muted);
-            font-size: 0.72rem;
-            transition: transform var(--t-fast) var(--ease);
-        }
-
-        .settings-hub-card:hover .settings-hub-arrow {
-            transform: translateX(-3px);
-            color: var(--primary);
+        .settings-hub-desc,
+        .settings-hub-arrow,
+        .settings-hub-body {
+            display: none;
         }
 
         .settings-page {
             animation: settingsPageIn 0.22s var(--ease-spring);
+        }
+
+        .settings-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .settings-stack.wide {
+            max-width: 560px;
+        }
+
+        .settings-field-box {
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-xs);
+            transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+        }
+
+        .settings-field-box:hover {
+            border-color: rgba(91, 108, 245, .18);
+        }
+
+        .settings-field-box .form-group {
+            margin-bottom: 0;
+        }
+
+        .settings-field-box .form-label {
+            margin-bottom: 6px;
+        }
+
+        .settings-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .settings-panel-head .settings-panel-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .settings-panel-head .settings-panel-title i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .settings-stack .settings-section-divider {
+            margin: 6px 0 2px;
+            padding: 0 4px 6px;
+            border-bottom: none;
+            background: none;
+        }
+
+        .settings-stack .settings-hint {
+            margin-bottom: 0;
+        }
+
+        .settings-stack .settings-toggle-row {
+            max-width: none;
+            margin: 0;
+        }
+
+        .settings-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 4px;
         }
 
         @keyframes settingsPageIn {
@@ -5313,16 +5688,13 @@
             <!-- ── OVERVIEW ── -->
             <div id="overview" class="tab-panel">
                 <div class="overview-shell">
-                    <div id="kidRegBanner" class="reg-link-minimal" style="display:none; margin-bottom: 20px;">
-                        <div class="rlm-label">رابط تسجيل الأطفال:</div>
-                        <div class="rlm-url" id="overviewKidRegUrl"></div>
-                        <div class="rlm-actions">
-                            <button class="btn btn-primary btn-sm" style="padding: 4px 8px;"
-                                onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i
-                                    class="fas fa-copy"></i></button>
-                            <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
-                                onclick="window.location.href=document.getElementById('overviewKidRegUrl').textContent"><i
-                                    class="fas fa-external-link-alt"></i></button>
+                    <div id="kidRegBanner" class="link-chip" style="display:none;">
+                        <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
+                        <div class="link-chip-url" id="overviewKidRegUrl"></div>
+                        <div class="link-chip-actions">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i> نسخ</button>
+                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('overviewKidRegUrl').textContent,'رابط تسجيل الأطفال')"><i class="fab fa-whatsapp"></i> واتساب</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
                         </div>
                     </div>
 
@@ -5449,20 +5821,13 @@
             <!-- ── UNCLES ── -->
             <div id="uncles" class="tab-panel">
                 <!-- ── UNCLE REG LINK MINIMAL ── -->
-                <div id="uncleRegLinkCard" class="reg-link-minimal" style="margin-bottom:20px;">
-                    <div class="rlm-label">رابط تسجيل الخدام:</div>
-                    <div class="rlm-url" id="uncleDirectRegUrl">جاري التحميل...</div>
-                    <div class="rlm-actions">
-                        <button class="btn btn-primary btn-sm" style="padding: 4px 8px;"
-                            onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i
-                                class="fas fa-copy"></i></button>
-                        <button class="btn btn-success btn-sm"
-                            style="padding: 4px 8px; background: #25D366; border: none;"
-                            onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i
-                                class="fab fa-whatsapp"></i></button>
-                        <button class="btn btn-outline btn-sm" style="padding: 4px 8px;"
-                            onclick="window.location.href=document.getElementById('uncleDirectRegUrl').textContent"><i
-                                class="fas fa-external-link-alt"></i></button>
+                <div id="uncleRegLinkCard" class="link-chip">
+                    <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الخدام</div>
+                    <div class="link-chip-url" id="uncleDirectRegUrl">جاري التحميل...</div>
+                    <div class="link-chip-actions">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i class="fas fa-copy"></i> نسخ</button>
+                        <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i class="fab fa-whatsapp"></i> واتساب</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
                     </div>
                 </div>
 
@@ -5562,19 +5927,11 @@
                             <button onclick="clearUncleFilters()" class="btn btn-outline btn-sm"><i
                                     class="fas fa-times"></i></button>
                         </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>الاسم</th>
-                                        <th>الدور</th>
-                                        <th>تاريخ الإضافة</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="unclesTable"></tbody>
-                            </table>
+                        <div class="data-list">
+                            <div class="data-list-head data-cols-uncles" id="unclesListHead">
+                                <span>#</span><span>الاسم</span><span>الدور</span><span>تاريخ الإضافة</span><span></span>
+                            </div>
+                            <div class="data-list-body" id="unclesTable"></div>
                         </div>
                     </div>
                 </div>
@@ -5583,33 +5940,14 @@
             <!-- ── STUDENTS ── -->
             <div id="students" class="tab-panel">
                 <!-- ── KID REG LINK ── -->
-                <div id="studentsKidRegCard" class="card" style="margin-bottom:20px;display:none;">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-link" style="color:var(--primary);"></i> رابط التسجيل
-                            للأطفال</div>
-                    </div>
-                    <div class="card-body">
-                        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:12px;">شارك هذا الرابط مع أولياء
-                            الأمور لتسجيل الأطفال مباشرة في كنيستك.</p>
-                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                            <div id="studentsKidRegUrl"
-                                style="flex:1;min-width:200px;font-size:0.8rem;color:var(--brand);font-family:'Cairo', sans-serif !important;background:rgba(91, 108, 245, 0.05);padding:10px 14px;border-radius:10px;word-break:break-all;cursor:text;user-select:all;border:1px solid rgba(91, 108, 245, 0.1);font-weight:600;direction:ltr;text-align:left;">
-                            </div>
-                            <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
-                                <button class="btn btn-primary btn-sm"
-                                    onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')">
-                                    <i class="fas fa-copy"></i> نسخ الرابط
-                                </button>
-                                <button class="btn btn-sm" style="background:#25D366;color:white;"
-                                    onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')">
-                                    <i class="fab fa-whatsapp"></i> واتساب
-                                </button>
-                                <button class="btn btn-outline btn-sm"
-                                    onclick="window.location.href=document.getElementById('studentsKidRegUrl').textContent">
-                                    <i class="fas fa-external-link-alt"></i> فتح
-                                </button>
-                            </div>
-                        </div>
+                <div id="studentsKidRegCard" class="link-chip" style="display:none;">
+                    <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
+                    <p style="font-size:0.76rem;color:var(--text-3);margin:0;">شارك الرابط مع أولياء الأمور لتسجيل الأطفال مباشرة.</p>
+                    <div class="link-chip-url" id="studentsKidRegUrl"></div>
+                    <div class="link-chip-actions">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i> نسخ</button>
+                        <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i class="fab fa-whatsapp"></i> واتساب</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
                     </div>
                 </div>
 
@@ -5653,20 +5991,11 @@
                                 <option value="attendance">نسبة الحضور</option>
                             </select>
                         </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>الاسم</th>
-                                        <th>الفصل</th>
-                                        <th>الهاتف</th>
-                                        <th>الكوبونات</th>
-                                        <th>نسبة الحضور</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="studentsTable"></tbody>
-                            </table>
+                        <div class="data-list">
+                            <div class="data-list-head data-cols-students" id="studentsListHead">
+                                <span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>
+                            </div>
+                            <div class="data-list-body" id="studentsTable"></div>
                         </div>
                     </div>
                 </div>
@@ -5694,19 +6023,11 @@
                                     oninput="filterGraduatesTable()">
                             </div>
                         </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>الاسم</th>
-                                        <th>الفصل السابق</th>
-                                        <th>الهاتف</th>
-                                        <th>الكوبونات</th>
-                                        <th style="width:180px;text-align:center;">الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="graduatesTable"></tbody>
-                            </table>
+                        <div class="data-list">
+                            <div class="data-list-head data-cols-graduates">
+                                <span>الاسم</span><span>الفصل السابق</span><span>الهاتف</span><span>كوبونات</span><span></span>
+                            </div>
+                            <div class="data-list-body" id="graduatesTable"></div>
                         </div>
                     </div>
                 </div>
@@ -5744,20 +6065,7 @@
                                 <h3 id="attDetailTitle" style="font-size:1rem;font-weight:700;"></h3>
                             </div>
                             <div class="summary-box" id="attSummaryBoxes"></div>
-                            <div class="table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>الاسم</th>
-                                            <th>الفصل</th>
-                                            <th>الحالة</th>
-                                            <th>بواسطة</th>
-                                            <th>الإجراءات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attendanceTable"></tbody>
-                                </table>
-                            </div>
+                            <div class="att-record-grid" id="attendanceTable"></div>
                         </div>
                     </div>
                 </div>
@@ -5805,19 +6113,11 @@
                                     <h3 id="uncleAttDetailTitle2" style="font-size:1rem;font-weight:700;"></h3>
                                 </div>
                                 <div class="summary-box" id="uncleAttSummaryBoxes2"></div>
-                                <div class="table-wrap">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>الاسم</th>
-                                                <th>الدور</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="uncleAttendanceTable2"></tbody>
-                                    </table>
+                                <div class="data-list">
+                                    <div class="data-list-head data-cols-uncle-att">
+                                        <span>#</span><span>الاسم</span><span>الدور</span><span>الحالة</span><span></span>
+                                    </div>
+                                    <div class="data-list-body" id="uncleAttendanceTable2"></div>
                                 </div>
                             </div>
                         </div>
@@ -6056,83 +6356,33 @@
 
                     <!-- Grid of setting groups -->
                     <div class="settings-hub-grid">
-                        <button class="settings-hub-card" onclick="openSettingsPage('adminProfile')">
-                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);">
-                                <i class="fas fa-user-cog"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">حساب المسؤول</div>
-                                <div class="settings-hub-desc">الاسم، اسم المستخدم، وكلمة المرور</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('adminProfile')">
+                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);"><i class="fas fa-user-cog"></i></div>
+                            <div class="settings-hub-title">حساب المسؤول</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('churchInfo')">
-                            <div class="settings-hub-icon"
-                                style="background:var(--success-light);color:var(--success);">
-                                <i class="fas fa-church"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">بيانات الكنيسة</div>
-                                <div class="settings-hub-desc">اسم الكنيسة، البريد الإلكتروني، وكلمة المرور</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('churchInfo')">
+                            <div class="settings-hub-icon" style="background:var(--success-light);color:var(--success);"><i class="fas fa-church"></i></div>
+                            <div class="settings-hub-title">بيانات الكنيسة</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('churchPrefs')">
-                            <div class="settings-hub-icon"
-                                style="background:var(--warning-light);color:var(--warning-dark);">
-                                <i class="fas fa-sliders-h"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">تفضيلات الخدمة</div>
-                                <div class="settings-hub-desc">يوم الحضور، صلاحيات الخادم، طريقة العرض</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('churchPrefs')">
+                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);"><i class="fas fa-sliders-h"></i></div>
+                            <div class="settings-hub-title">تفضيلات الخدمة</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('customFields')">
-                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);">
-                                <i class="fas fa-tags"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">بيانات إضافية</div>
-                                <div class="settings-hub-desc">أضف معلومات إضافية لكل طفل</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('customFields')">
+                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);"><i class="fas fa-tags"></i></div>
+                            <div class="settings-hub-title">بيانات إضافية</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('classGroups')">
-                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">مجموعات الفصول</div>
-                                <div class="settings-hub-desc">ادمج فصولاً في مجموعة واحدة</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('classGroups')">
+                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);"><i class="fas fa-layer-group"></i></div>
+                            <div class="settings-hub-title">مجموعات الفصول</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
-                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">القبول التلقائي</div>
-                                <div class="settings-hub-desc">قبول الأطفال الجدد فوراً بدون موافقة</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
+                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);"><i class="fas fa-user-check"></i></div>
+                            <div class="settings-hub-title">القبول التلقائي</div>
                         </button>
-
-                        <button class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
-                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <div class="settings-hub-body">
-                                <div class="settings-hub-title">نقل الفصول للسنة الدراسية الجديدة</div>
-                                <div class="settings-hub-desc">نقل جميع الأطفال أو تحديد موعد النقل السنوي</div>
-                            </div>
-                            <i class="fas fa-chevron-left settings-hub-arrow"></i>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
+                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="settings-hub-title">نقل السنة الدراسية</div>
                         </button>
                     </div>
                 </div>
@@ -6145,21 +6395,22 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">حساب المسؤول</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-user-cog"></i> حساب المسؤول</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">الاسم الكامل</label>
                                 <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول">
                             </div>
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">اسم المستخدم</label>
                                 <input type="text" id="adminProfileUsername" class="form-input" placeholder="username"
                                     oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
                             </div>
-                            <div class="settings-section-divider">تغيير كلمة المرور</div>
+                        </div>
+                        <div class="settings-section-divider">تغيير كلمة المرور</div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الحالية</label>
                                 <div style="position:relative;">
@@ -6169,6 +6420,8 @@
                                         class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
                                 </div>
                             </div>
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
@@ -6178,6 +6431,8 @@
                                         class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
                                 </div>
                             </div>
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
@@ -6187,8 +6442,9 @@
                                         class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
                                 </div>
                             </div>
-                            <button class="btn btn-primary" onclick="saveAdminProfile()"
-                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ</button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6201,21 +6457,22 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">بيانات الكنيسة</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-church"></i> بيانات الكنيسة</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">اسم الكنيسة</label>
                                 <input type="text" id="churchEditName" class="form-input" placeholder="اسم الكنيسة">
                             </div>
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">البريد الإلكتروني</label>
                                 <input type="email" id="churchEditEmail" class="form-input"
                                     placeholder="البريد الإلكتروني للكنيسة">
                             </div>
-                            <div class="settings-section-divider">تغيير كلمة مرور الكنيسة</div>
+                        </div>
+                        <div class="settings-section-divider">تغيير كلمة مرور الكنيسة</div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
@@ -6225,6 +6482,8 @@
                                         class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwd"></i></button>
                                 </div>
                             </div>
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">تأكيد كلمة المرور</label>
                                 <div style="position:relative;">
@@ -6235,8 +6494,9 @@
                                         class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwdConfirm"></i></button>
                                 </div>
                             </div>
-                            <button class="btn btn-primary" onclick="saveChurchInfoSettings()"
-                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ</button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6249,15 +6509,12 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">تفضيلات الخدمة</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-sliders-h"></i> تفضيلات الخدمة</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:20px;">
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label"><i class="fas fa-calendar-day"
                                         style="margin-left:6px;color:var(--primary);"></i> يوم الحضور الافتراضي</label>
-                                <select id="settingAttendanceDay" class="form-select" style="max-width:280px;">
+                                <select id="settingAttendanceDay" class="form-select" style="width:100%;">
                                     <option value="1">الاثنين</option>
                                     <option value="2">الثلاثاء</option>
                                     <option value="3">الأربعاء</option>
@@ -6266,48 +6523,49 @@
                                     <option value="6">السبت</option>
                                     <option value="7">الأحد</option>
                                 </select>
-                                <small style="color:var(--muted);margin-top:4px;display:block;">يُحسب تلقائياً في لوحة
-                                    الخادم</small>
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">يُحسب تلقائياً في لوحة الخادم</small>
                             </div>
-
+                        </div>
+                        <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label"><i class="fas fa-user-lock"
                                         style="margin-left:6px;color:var(--primary);"></i> صلاحية الخادم للتنقل</label>
-                                <select id="settingUncleNav" class="form-select" style="max-width:280px;">
+                                <select id="settingUncleNav" class="form-select" style="width:100%;">
                                     <option value="all">يرى جميع الفصول</option>
                                     <option value="own">فصوله المعينة فقط</option>
                                 </select>
                             </div>
-
-                            <div class="settings-section-divider">طريقة عرض القائمة الرئيسية</div>
-                            <div style="display:flex;flex-direction:column;gap:10px;">
-                                <label class="settings-toggle-row" id="viewModeClassesLabel">
-                                    <input type="checkbox" id="settingViewClasses" checked
-                                        style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
-                                        onchange="_updateViewModeStyle()">
-                                    <div>
-                                        <div style="font-weight:700;font-size:0.88rem;">عرض الفصول منفصلة</div>
-                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل
-                                            فصل كبطاقة مستقلة</div>
-                                    </div>
-                                </label>
-                                <label class="settings-toggle-row" id="viewModeAllLabel">
-                                    <input type="checkbox" id="settingViewAll"
-                                        style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
-                                        onchange="_updateViewModeStyle()">
-                                    <div>
-                                        <div style="font-weight:700;font-size:0.88rem;">عرض الكل معاً</div>
-                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل
-                                            الأطفال في قائمة موحدة</div>
-                                    </div>
-                                </label>
-                            </div>
-                            <p id="viewModeWarning"
-                                style="display:none;padding:8px 12px;background:var(--danger-light);color:var(--danger);border-radius:8px;font-size:0.8rem;">
+                        </div>
+                        <div class="settings-section-divider">طريقة عرض القائمة الرئيسية</div>
+                        <div class="settings-field-box">
+                            <label class="settings-toggle-row" id="viewModeClassesLabel">
+                                <input type="checkbox" id="settingViewClasses" checked
+                                    style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
+                                    onchange="_updateViewModeStyle()">
+                                <div>
+                                    <div style="font-weight:700;font-size:0.88rem;">عرض الفصول منفصلة</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل فصل كبطاقة مستقلة</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="settings-field-box">
+                            <label class="settings-toggle-row" id="viewModeAllLabel">
+                                <input type="checkbox" id="settingViewAll"
+                                    style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
+                                    onchange="_updateViewModeStyle()">
+                                <div>
+                                    <div style="font-weight:700;font-size:0.88rem;">عرض الكل معاً</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل الأطفال في قائمة موحدة</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="settings-field-box" id="viewModeWarningBox" style="display:none;padding:12px 14px;">
+                            <p id="viewModeWarning" style="margin:0;font-size:0.8rem;color:var(--danger);">
                                 <i class="fas fa-exclamation-triangle"></i> يجب تفعيل خيار واحد على الأقل
                             </p>
-                            <button class="btn btn-primary" onclick="saveChurchSettings()"
-                                style="align-self:flex-start;"><i class="fas fa-save"></i> حفظ التفضيلات</button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ التفضيلات</button>
                         </div>
                     </div>
                 </div>
@@ -6320,20 +6578,22 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">بيانات إضافية</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-tags"></i> بيانات إضافية للأطفال</div>
-                            <button class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i
-                                    class="fas fa-plus"></i> إضافة حقل</button>
-                        </div>
-                        <div class="card-body">
+                    <div class="settings-stack wide">
+                        <div class="settings-field-box">
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
                                 <span>أضف معلومات إضافية تظهر في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى</span>
                             </div>
-                            <div id="customFieldsList" style="margin-bottom:10px;"></div>
-                            <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:10px;"><i
-                                    class="fas fa-save"></i> حفظ</button>
+                        </div>
+                        <div class="settings-field-box">
+                            <div class="settings-panel-head" style="margin-bottom:10px;">
+                                <span class="settings-panel-title"><i class="fas fa-tags"></i> الحقول</span>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i class="fas fa-plus"></i> إضافة حقل</button>
+                            </div>
+                            <div id="customFieldsList"></div>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6346,20 +6606,22 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">مجموعات الفصول</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-layer-group"></i> مجموعات الفصول المدمجة</div>
-                            <button class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i
-                                    class="fas fa-plus"></i> مجموعة جديدة</button>
-                        </div>
-                        <div class="card-body">
+                    <div class="settings-stack wide">
+                        <div class="settings-field-box">
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
                                 <span>ادمج عدة فصول في مجموعة تظهر كفصل واحد في لوحة الخادم</span>
                             </div>
-                            <div id="combinedGroupsList" style="margin-bottom:14px;"></div>
-                            <button class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i>
-                                حفظ</button>
+                        </div>
+                        <div class="settings-field-box">
+                            <div class="settings-panel-head" style="margin-bottom:10px;">
+                                <span class="settings-panel-title"><i class="fas fa-layer-group"></i> المجموعات</span>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i class="fas fa-plus"></i> مجموعة جديدة</button>
+                            </div>
+                            <div id="combinedGroupsList"></div>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6372,16 +6634,15 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">القبول التلقائي</span>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-user-check"></i> القبول التلقائي للأطفال</div>
-                        </div>
-                        <div class="card-body">
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
                                 <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم الطلبات المعلقة.</span>
                             </div>
-                            <label class="settings-toggle-row" id="autoApprovalLabel" style="max-width:480px;">
+                        </div>
+                        <div class="settings-field-box">
+                            <label class="settings-toggle-row" id="autoApprovalLabel">
                                 <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
                                     <input type="checkbox" id="settingAutoKidsApproval"
                                         style="opacity:0;width:0;height:0;position:absolute;"
@@ -6395,12 +6656,12 @@
                                     <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i
                                             class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
                                         القبول التلقائي معطّل</div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد
-                                        في لوحة الطلبات المعلقة</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد في لوحة الطلبات المعلقة</div>
                                 </div>
                             </label>
-                            <button class="btn btn-primary" onclick="saveChurchSettings()" style="margin-top:24px;"><i
-                                    class="fas fa-save"></i> حفظ</button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6413,59 +6674,57 @@
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">نقل الفصول للسنة الدراسية الجديدة</span>
                     </div>
-                    <div class="card" style="margin-bottom:16px;">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-level-up-alt"></i> نقل يدوي</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
-                            <div class="settings-hint" style="margin-bottom:0;">
+                    <div class="settings-stack wide">
+                        <div class="settings-field-box">
+                            <div class="settings-panel-title" style="margin-bottom:10px;"><i class="fas fa-level-up-alt"></i> نقل يدوي</div>
+                            <div class="settings-hint" style="margin-bottom:12px;">
                                 <i class="fas fa-circle-info"></i>
                                 <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
                             </div>
-                            <button class="btn btn-warning" onclick="confirmGradeUpAllKids()">
+                            <button type="button" class="btn btn-warning" onclick="confirmGradeUpAllKids()" style="width:100%;">
                                 <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
                             </button>
                         </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><i class="fas fa-calendar-check"></i> موعد النقل السنوي</div>
-                        </div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
-                            <div class="settings-hint" style="margin-bottom:0;">
+                        <div class="settings-section-divider">موعد النقل السنوي</div>
+                        <div class="settings-field-box">
+                            <div class="settings-hint" style="margin-bottom:12px;">
                                 <i class="fas fa-circle-info"></i>
                                 <span>حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).</span>
                             </div>
-                            <div style="display:flex;flex-wrap:wrap;gap:14px;">
-                                <div class="form-group" style="margin:0;">
-                                    <label class="form-label">الشهر</label>
-                                    <select id="settingAutoGradeMonth" class="form-select" style="min-width:160px;">
-                                        <option value="0">معطّل</option>
-                                        <option value="1">يناير</option>
-                                        <option value="2">فبراير</option>
-                                        <option value="3">مارس</option>
-                                        <option value="4">أبريل</option>
-                                        <option value="5">مايو</option>
-                                        <option value="6">يونيو</option>
-                                        <option value="7">يوليو</option>
-                                        <option value="8">أغسطس</option>
-                                        <option value="9">سبتمبر</option>
-                                        <option value="10">أكتوبر</option>
-                                        <option value="11">نوفمبر</option>
-                                        <option value="12">ديسمبر</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" style="margin:0;">
-                                    <label class="form-label">اليوم</label>
-                                    <select id="settingAutoGradeDay" class="form-select" style="min-width:120px;">
-                                        <option value="0">—</option>
-                                    </select>
-                                </div>
+                        </div>
+                        <div class="settings-field-box">
+                            <div class="form-group">
+                                <label class="form-label">الشهر</label>
+                                <select id="settingAutoGradeMonth" class="form-select" style="width:100%;">
+                                    <option value="0">معطّل</option>
+                                    <option value="1">يناير</option>
+                                    <option value="2">فبراير</option>
+                                    <option value="3">مارس</option>
+                                    <option value="4">أبريل</option>
+                                    <option value="5">مايو</option>
+                                    <option value="6">يونيو</option>
+                                    <option value="7">يوليو</option>
+                                    <option value="8">أغسطس</option>
+                                    <option value="9">سبتمبر</option>
+                                    <option value="10">أكتوبر</option>
+                                    <option value="11">نوفمبر</option>
+                                    <option value="12">ديسمبر</option>
+                                </select>
                             </div>
-                            <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--muted);margin:0;"></p>
-                            <button class="btn btn-primary" onclick="saveKidsGradeSettings()" style="align-self:flex-start;">
-                                <i class="fas fa-save"></i> حفظ الجدولة
-                            </button>
+                        </div>
+                        <div class="settings-field-box">
+                            <div class="form-group">
+                                <label class="form-label">اليوم</label>
+                                <select id="settingAutoGradeDay" class="form-select" style="width:100%;">
+                                    <option value="0">—</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="settings-field-box" id="autoGradeStatusHintBox" style="padding:12px 14px;">
+                            <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--text-3);margin:0;"></p>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveKidsGradeSettings()"><i class="fas fa-save"></i> حفظ الجدولة</button>
                         </div>
                     </div>
                 </div>
@@ -6487,24 +6746,12 @@
                                 onchange="loadPendingRegistrations()">
                                 <option value="">جميع الفصول</option>
                             </select></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="selectAllPending" onclick="toggleSelectAll()">
-                                        </th>
-                                        <th>الصورة</th>
-                                        <th>الاسم</th>
-                                        <th>اسم المستخدم</th>
-                                        <th>الفصل</th>
-                                        <th>تاريخ الميلاد</th>
-                                        <th>الهاتف</th>
-                                        <th>تاريخ الطلب</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pendingTable"></tbody>
-                            </table>
+                        <div class="data-list">
+                            <div class="data-list-head data-cols-pending">
+                                <span class="data-row-check"><input type="checkbox" id="selectAllPending" onclick="toggleSelectAll()"></span>
+                                <span></span><span>الاسم</span><span>المستخدم</span><span>الفصل</span><span>الميلاد</span><span>الهاتف</span><span>الطلب</span><span></span>
+                            </div>
+                            <div class="data-list-body" id="pendingTable"></div>
                         </div>
                     </div>
                 </div>
@@ -6704,23 +6951,11 @@
                         <div id="auditStatsRow"
                             style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0;">
                         </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>التاريخ والوقت</th>
-                                        <th>بواسطة</th>
-                                        <th>الحدث</th>
-                                        <th>الكيان</th>
-                                        <th>الاسم</th>
-                                        <th>التفاصيل</th>
-                                        <th>التغييرات</th>
-                                        <th style="width:42px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="auditTable"></tbody>
-                            </table>
+                        <div class="data-list">
+                            <div class="data-list-head data-cols-audit">
+                                <span>#</span><span>التاريخ</span><span>بواسطة</span><span>الحدث</span><span>الكيان</span><span>الاسم</span><span>التفاصيل</span><span></span>
+                            </div>
+                            <div class="data-list-body" id="auditTable"></div>
                         </div>
                         <div id="auditPagination"
                             style="display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap;"></div>
@@ -7833,7 +8068,7 @@
         }
 
         async function respondToCollab(requestId, status) {
-            if (status === 'rejected' && !confirm('هل أنت متأكد من رفض هذه الدعوة؟')) return;
+            if (status === 'rejected' && !(await showConfirm({ message: 'هل أنت متأكد من رفض هذه الدعوة؟' }))) return;
 
             const fd = new FormData();
             fd.append('action', 'respondToCollaborationRequest');
@@ -7977,7 +8212,7 @@
         }
 
         async function removeTripCollaborator(tripId, churchId, churchName) {
-            if (!confirm(`إزالة "${churchName}" من مشاركة الرحلة؟`)) return;
+            if (!(await showConfirm({ message: `إزالة "${churchName}" من مشاركة الرحلة؟` }))) return;
             const fd = new FormData();
             fd.append('action', 'removeTripCollaborator');
             fd.append('trip_id', tripId);
@@ -8564,8 +8799,8 @@
             }
         });
 
-        function logout() {
-            if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
+        async function logout() {
+            if (!(await showConfirm({ message: 'هل أنت متأكد من تسجيل الخروج؟' }))) return;
             fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=logout' })
                 .finally(() => {
                     // Only clear auth keys — preserve app preferences (theme, etc.)
@@ -8628,18 +8863,20 @@
             // UI: Mobile adjustments
             if (window.innerWidth <= 768) closeMobileSidebar();
 
-            // UI: Manage panels and loader
-            const loader = document.getElementById('tabLoader');
             const panels = document.querySelectorAll('.tab-panel');
             const isColdTab = !loadedTabs.has(name);
+            const targetPanel = document.getElementById(name);
 
-            // Hide all panels immediately to prevent "stale" view
-            panels.forEach(p => p.classList.remove('active'));
+            panels.forEach(p => {
+                p.classList.remove('active');
+                hidePanelSkeleton(p);
+            });
 
-            // Show loader
-            if (loader && isColdTab) loader.classList.add('active');
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+                if (isColdTab) showPanelSkeleton(targetPanel, name);
+            }
 
-            // Save state to URL
             setHashTab(name);
 
             // Define loaders with promise handling
@@ -8672,12 +8909,8 @@
             } catch (err) {
                 console.error('Error switching tab:', err);
             } finally {
-                // Hide loader and show the target panel
-                if (loader) loader.classList.remove('active');
-                const targetPanel = document.getElementById(name);
                 if (targetPanel) {
-                    targetPanel.classList.add('active');
-                    // Trigger a re-layout check for charts/tables if needed
+                    hidePanelSkeleton(targetPanel);
                     window.dispatchEvent(new Event('resize'));
                 }
             }
@@ -8698,6 +8931,116 @@
                 updateHashParam('student_id', window.currentStudentId);
             }
         }
+        // ── In-app confirm / prompt (no browser dialogs) ─────────────
+        let _confirmResolve = null;
+        let _promptResolve = null;
+        window._rowActionHandlers = {};
+
+        function showConfirm(opts) {
+            const o = typeof opts === 'string' ? { message: opts } : (opts || {});
+            return new Promise(resolve => {
+                _confirmResolve = resolve;
+                document.getElementById('confirmDialogTitle').textContent = o.title || 'تأكيد';
+                document.getElementById('confirmDialogMessage').textContent = o.message || '';
+                const okBtn = document.getElementById('confirmDialogOk');
+                okBtn.textContent = o.confirmText || 'تأكيد';
+                okBtn.className = 'btn ' + (o.danger ? 'btn-danger' : 'btn-primary');
+                document.getElementById('confirmDialog').classList.add('open');
+            });
+        }
+        function resolveConfirm(ok) {
+            document.getElementById('confirmDialog').classList.remove('open');
+            if (_confirmResolve) { _confirmResolve(!!ok); _confirmResolve = null; }
+        }
+
+        function showPrompt(opts) {
+            const o = typeof opts === 'string' ? { message: opts } : (opts || {});
+            return new Promise(resolve => {
+                _promptResolve = resolve;
+                document.getElementById('promptDialogTitle').textContent = o.title || 'إدخال';
+                document.getElementById('promptDialogMessage').textContent = o.message || '';
+                const inp = document.getElementById('promptDialogInput');
+                inp.value = o.defaultValue != null ? o.defaultValue : '';
+                document.getElementById('promptDialog').classList.add('open');
+                setTimeout(() => inp.focus(), 80);
+            });
+        }
+        function resolvePrompt(val) {
+            document.getElementById('promptDialog').classList.remove('open');
+            if (_promptResolve) { _promptResolve(val); _promptResolve = null; }
+        }
+
+        let _rowActionIdSeq = 0;
+        window._rowActionStash = {};
+
+        function stashRowActions(title, actions) {
+            const key = 'ra_' + (++_rowActionIdSeq);
+            window._rowActionStash[key] = { title: title || '', actions: actions || [] };
+            return key;
+        }
+        function openRowActionsByKey(key) {
+            const pack = window._rowActionStash[key];
+            if (!pack) return;
+            openRowActions(pack.title, pack.actions);
+        }
+
+        function openRowActions(title, actions) {
+            const sheet = document.getElementById('rowActionSheet');
+            document.getElementById('rowActionSheetTitle').textContent = title || '';
+            window._rowActionHandlers = {};
+            const body = document.getElementById('rowActionSheetBody');
+            body.innerHTML = (actions || []).map(a => {
+                const id = ++_rowActionIdSeq;
+                window._rowActionHandlers[id] = a.handler;
+                return `<button type="button" class="action-sheet-btn ${a.danger ? 'danger' : ''}" onclick="runRowAction(${id})">
+                    <i class="fas ${a.icon || 'fa-circle'}"></i><span>${escHtml(a.label || '')}</span>
+                </button>`;
+            }).join('');
+            sheet.classList.add('open');
+            sheet.setAttribute('aria-hidden', 'false');
+        }
+        function runRowAction(id) {
+            const fn = window._rowActionHandlers[id];
+            closeRowActionSheet();
+            if (typeof fn === 'function') fn();
+        }
+        function closeRowActionSheet() {
+            const sheet = document.getElementById('rowActionSheet');
+            sheet.classList.remove('open');
+            sheet.setAttribute('aria-hidden', 'true');
+        }
+
+        function tabSkeletonHtml(type) {
+            if (type === 'cards') {
+                return `<div class="tab-panel-skeleton">${Array(4).fill('<div class="sk-card"></div>').join('')}</div>`;
+            }
+            if (type === 'grid') {
+                return `<div class="tab-panel-skeleton" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">${Array(8).fill('<div class="sk-card" style="aspect-ratio:1;height:auto;min-height:100px;"></div>').join('')}</div>`;
+            }
+            return `<div class="tab-panel-skeleton">${Array(7).fill('<div class="sk-row"></div>').join('')}</div>`;
+        }
+
+        const TAB_SKELETON_TYPE = {
+            overview: 'cards', trips: 'cards', attendance: 'grid', uncleAttendance: 'grid',
+            churchSettings: 'grid', classes: 'cards'
+        };
+
+        function showPanelSkeleton(panel, name) {
+            if (!panel) return;
+            panel.querySelector('.tab-panel-skeleton')?.remove();
+            panel.insertAdjacentHTML('afterbegin', tabSkeletonHtml(TAB_SKELETON_TYPE[name] || 'list'));
+            panel.classList.add('is-loading');
+        }
+        function hidePanelSkeleton(panel) {
+            if (!panel) return;
+            panel.querySelector('.tab-panel-skeleton')?.remove();
+            panel.classList.remove('is-loading');
+        }
+
+        function panelInlineSkeleton(rows) {
+            return `<div class="panel-inline-skeleton">${Array(rows || 5).fill('<div class="sk-row"></div>').join('')}</div>`;
+        }
+
         function closeModal(id) {
             document.getElementById(id).classList.remove('open');
             if (id === 'tripDetailsModal') {
@@ -8977,36 +9320,44 @@
 
         function displayUncles(uncles) {
             const tb = document.getElementById('unclesTable'); if (!tb) return;
-            if (!uncles.length) { tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-user-tie"></i><h3>لا يوجد خُدام</h3></div></td></tr>`; return; }
-
+            const head = document.getElementById('unclesListHead');
             const showChurch = devViewChurchId === -1;
-            const thead = tb.closest('table').querySelector('thead tr');
-            if (showChurch) {
-                if (!thead.querySelector('.church-col')) {
-                    const th = document.createElement('th');
-                    th.className = 'church-col';
-                    th.textContent = 'الكنيسة';
-                    thead.insertBefore(th, thead.children[2]);
-                }
-            } else {
-                thead.querySelector('.church-col')?.remove();
+            if (head) {
+                head.className = showChurch ? 'data-list-head data-cols-uncles dev-church' : 'data-list-head data-cols-uncles';
+                head.style.gridTemplateColumns = showChurch ? '32px 1fr 88px 96px 100px 18px' : '';
+                head.innerHTML = showChurch
+                    ? '<span>#</span><span>الاسم</span><span>الكنيسة</span><span>الدور</span><span>تاريخ الإضافة</span><span></span>'
+                    : '<span>#</span><span>الاسم</span><span>الدور</span><span>تاريخ الإضافة</span><span></span>';
             }
-
+            if (!uncles.length) {
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-user-tie"></i><h3>لا يوجد خُدام</h3></div>`;
+                return;
+            }
             tb.innerHTML = uncles.map((u, i) => {
                 const roleText = u.role === 'admin' ? 'مسؤول' : u.role === 'developer' ? 'مطور' : 'خادم';
                 const roleCls = u.role === 'admin' ? 'badge-success' : u.role === 'developer' ? 'badge-dev' : 'badge-info';
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '-';
-                const avatarHtml = u.image_url ? `<div class="avatar-text"><img src="${u.image_url}" alt="${u.name}"></div>` : `<div class="avatar-text">${u.name.charAt(0)}</div>`;
-                const churchCell = showChurch ? `<td><span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(u.church_name || '')}</span></td>` : '';
-                return `<tr><td style="color:var(--text-3);font-size:0.78rem;">${i + 1}</td>
-            <td><div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(u.name)}</div><div class="td-name-sub">${u.username}</div></div></div></td>
-            ${churchCell}
-            <td><span class="badge ${roleCls}">${roleText}</span></td><td style="color:var(--text-3);font-size:0.8rem;">${date}</td>
-            <td><div class="actions">
-                <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
-                <button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}','${u.gender || 'male'}')"><i class="fas fa-edit"></i></button>
-                ${u.role === 'developer' || u.role === 'dev' ? '' : `<button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>`}
-            </div></td></tr>`;
+                const avatarHtml = u.image_url ? `<div class="avatar-text"><img src="${u.image_url}" alt=""></div>` : `<div class="avatar-text">${u.name.charAt(0)}</div>`;
+                const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(u.church_name || '')}</span>` : '';
+                const cols = showChurch ? '32px 1fr 88px 96px 100px 18px' : '';
+                const actions = [
+                    { label: 'تعديل', icon: 'fa-edit', handler: () => editUncle(u.id, u.name, u.username, u.role, u.image_url || '', u.gender || 'male') },
+                    { label: 'تغيير الصورة', icon: 'fa-camera', handler: () => saveUncleImage(u.id, u.name) },
+                ];
+                if (u.role !== 'developer' && u.role !== 'dev') {
+                    actions.push({ label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteUncle(u.id) });
+                }
+                const actKey = stashRowActions(u.name, actions);
+                return `<div class="data-row" style="${cols ? 'grid-template-columns:' + cols : ''}" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')"
+                    onkeydown="if(event.key==='Enter')this.click()">
+                    <span style="color:var(--text-3);font-size:0.78rem;">${i + 1}</span>
+                    <div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(u.name)}</div><div class="td-name-sub">${escHtml(u.username)}</div></div></div>
+                    ${showChurch ? churchCell : ''}
+                    <span class="badge ${roleCls}">${roleText}</span>
+                    <span style="color:var(--text-3);font-size:0.8rem;">${date}</span>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
         }
 
@@ -9096,7 +9447,7 @@
         }
 
         async function deleteUncle(id) {
-            if (!confirm('هل أنت متأكد من حذف هذا الخادم؟')) return;
+            if (!(await showConfirm({ message: 'هل أنت متأكد من حذف هذا الخادم؟' }))) return;
             const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteUncle'); fd.append('uncle_id', id);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حذف الخادم', 'success'); loadUncles(); }
@@ -9155,46 +9506,42 @@
 
         function renderStudentsTable(students) {
             const tb = document.getElementById('studentsTable');
-            if (!students.length) { tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-child"></i><h3>لا يوجد أطفال</h3></div></td></tr>`; return; }
-
+            const head = document.getElementById('studentsListHead');
             const showChurch = devViewChurchId === -1;
-            const thead = tb.closest('table').querySelector('thead tr');
-            if (showChurch) {
-                if (!thead.querySelector('.church-col')) {
-                    const th = document.createElement('th');
-                    th.className = 'church-col';
-                    th.textContent = 'الكنيسة';
-                    thead.insertBefore(th, thead.children[2]);
-                }
-            } else {
-                thead.querySelector('.church-col')?.remove();
+            if (head) {
+                head.className = showChurch ? 'data-list-head data-cols-students dev' : 'data-list-head data-cols-students';
+                head.innerHTML = showChurch
+                    ? '<span>الاسم</span><span>الكنيسة</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>'
+                    : '<span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>';
             }
-
+            if (!students.length) {
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-child"></i><h3>لا يوجد أطفال</h3></div>`;
+                return;
+            }
             tb.innerHTML = students.map(s => {
                 const rate = calcRate(s);
+                const sid = s['_studentId'];
                 const avatarHtml = s['صورة']
-                    ? `<div class="avatar-text"><img src="${s['صورة']}" alt="${s['الاسم']}"></div>`
+                    ? `<div class="avatar-text"><img src="${s['صورة']}" alt=""></div>`
                     : `<div class="avatar-text">${s['الاسم'].charAt(0)}</div>`;
-                const churchCell = showChurch ? `<td><span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(s['_churchName'] || '')}</span></td>` : '';
-                return `<tr data-student-id="${s['_studentId']}"><td>
-            <div class="td-name-cell">
-                ${avatarHtml}
-                <div>
-                    <div class="td-name-text"><span class="name-link" onclick="showStudentDetails(${s['_studentId']})" style="cursor:pointer;">${s['الاسم']}</span></div>
-                </div>
-            </div></td>
-            ${churchCell}
-            <td><span class="badge badge-primary">${s['الفصل']}</span></td>
-            <td style="color:var(--text-3);">${s['رقم التليفون'] || '—'}</td>
-            <td><strong style="font-size:1rem;color:var(--primary);">${s['كوبونات'] || 0}</strong></td>
-            <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress" style="width:64px;"><div class="progress-fill" style="width:${rate}%"></div></div><small style="color:var(--muted);font-size:0.72rem;">${rate}%</small></div></td>
-            <td><div class="actions">
-                <button class="act-btn act-view" onclick="showStudentDetails(${s['_studentId']})"><i class="fas fa-eye"></i></button>
-                <button class="act-btn act-edit" onclick="editStudentFull(${s['_studentId']})"><i class="fas fa-edit"></i></button>
-                <button class="act-btn act-pay" onclick="editCoupons(${s['_studentId']},'${escHtml(s['الاسم'])}',${s['كوبونات'] || 0})"><i class="fas fa-coins"></i></button>
-                <button class="act-btn" style="background:var(--text-3);" onclick="showCouponLogs(${s['_studentId']})"><i class="fas fa-history"></i></button>
-                <button class="act-btn act-delete" onclick="deleteStudentConfirm(${s['_studentId']},'${escHtml(s['الاسم'])}')"><i class="fas fa-trash"></i></button>
-            </div></td></tr>`;
+                const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(s['_churchName'] || '')}</span>` : '';
+                const actKey = stashRowActions(s['الاسم'], [
+                    { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showStudentDetails(sid) },
+                    { label: 'تعديل', icon: 'fa-edit', handler: () => editStudentFull(sid) },
+                    { label: 'الكوبونات', icon: 'fa-coins', handler: () => editCoupons(sid, s['الاسم'], s['كوبونات'] || 0) },
+                    { label: 'سجل الكوبونات', icon: 'fa-history', handler: () => showCouponLogs(sid) },
+                    { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteStudentConfirm(sid, s['الاسم']) },
+                ]);
+                return `<div class="data-row ${showChurch ? 'data-cols-students dev' : 'data-cols-students'}" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(s['الاسم'])}</div></div></div>
+                    ${showChurch ? churchCell : ''}
+                    <span class="badge badge-primary">${escHtml(s['الفصل'] || '')}</span>
+                    <span style="color:var(--text-3);">${escHtml(s['رقم التليفون'] || '—')}</span>
+                    <strong style="color:var(--primary);">${s['كوبونات'] || 0}</strong>
+                    <div style="display:flex;align-items:center;gap:6px;"><div class="progress" style="width:52px;"><div class="progress-fill" style="width:${rate}%"></div></div><small style="color:var(--text-3);font-size:0.7rem;">${rate}%</small></div>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
         }
 
@@ -9227,7 +9574,7 @@
         }
 
         async function deleteStudentConfirm(id, name) {
-            if (!confirm(`هل أنت متأكد من حذف الطفل "${name}"؟\nسيتم حذف جميع سجلات الحضور المرتبطة به.`)) return;
+            if (!(await showConfirm({ message: `هل أنت متأكد من حذف الطفل "${name}"؟\nسيتم حذف جميع سجلات الحضور المرتبطة به.`, danger: true }))) return;
             const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteStudent'); fd.append('studentId', id);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast(d.message, 'success'); loadStudents(); loadStatistics(); }
@@ -9492,7 +9839,7 @@
         }
 
         async function resetToDefaultClasses() {
-            if (!confirm('إعادة الفصول للافتراضي؟')) return;
+            if (!(await showConfirm({ message: 'إعادة الفصول للافتراضي؟' }))) return;
             const fd = new FormData(); fd.append('action', 'saveChurchClasses'); fd.append('classes', '[]');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تمت إعادة الضبط', 'success'); loadClassSettings(); }
@@ -9804,11 +10151,13 @@
             const showClasses = document.getElementById('settingViewClasses')?.checked ?? true;
             const showAll = document.getElementById('settingViewAll')?.checked ?? false;
             if (!showClasses && !showAll) {
-                document.getElementById('viewModeWarning').style.display = 'block';
+                const wBox = document.getElementById('viewModeWarningBox');
+                if (wBox) wBox.style.display = '';
                 showToast('يجب تفعيل خيار عرض واحد على الأقل', 'warning');
                 return;
             }
-            document.getElementById('viewModeWarning').style.display = 'none';
+            const wBox = document.getElementById('viewModeWarningBox');
+            if (wBox) wBox.style.display = 'none';
             const viewMode = (showClasses && showAll) ? 'both' : showClasses ? 'classes' : 'all';
 
             // Collect latest name values from inputs (in case user typed without triggering oninput)
@@ -9903,7 +10252,7 @@
         }
 
         async function confirmGradeUpAllKids() {
-            if (!confirm('هل تريد نقل جميع الأطفال للسنة الدراسية الجديدة؟\n\nكل طفل ينتقل للفصل التالي، ومن كان في أعلى فصل يذهب إلى قسم الخريجين.')) return;
+            if (!(await showConfirm({ message: 'هل تريد نقل جميع الأطفال للسنة الدراسية الجديدة؟\n\nكل طفل ينتقل للفصل التالي، ومن كان في أعلى فصل يذهب إلى قسم الخريجين.' }))) return;
             const fd = mkFd('gradeUpAllKids');
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (res.success) {
@@ -9999,42 +10348,42 @@
             const tb = document.getElementById('graduatesTable');
             if (!tb) return;
             if (!rows.length) {
-                tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-graduate"></i><h3>لا يوجد خريجون</h3><p style="color:var(--muted);font-size:0.82rem;">يظهرون هنا بعد نقل السنة الدراسية من أعلى فصل</p></div></td></tr>';
+                tb.innerHTML = '<div class="empty-state" style="padding:28px;"><i class="fas fa-user-graduate"></i><h3>لا يوجد خريجون</h3><p style="color:var(--text-3);font-size:0.82rem;">يظهرون هنا بعد نقل السنة الدراسية من أعلى فصل</p></div>';
                 return;
             }
             tb.innerHTML = rows.map(g => {
                 const sid = parseInt(g.id, 10);
-                const safeName = escHtml(g.name || '');
+                const safeName = g.name || '';
                 const prevClass = g.previous_class ? escHtml(g.previous_class) : '—';
                 const canRestore = !!g.can_restore;
-                const restoreBtn = canRestore
-                    ? `<button type="button" class="act-btn act-restore" title="إعادة للفصل السابق" onclick="restoreGraduate(${sid})"><i class="fas fa-undo"></i></button>`
-                    : `<button type="button" class="act-btn act-restore" title="الفصل السابق غير متاح" disabled><i class="fas fa-undo"></i></button>`;
-                return `<tr data-graduate-id="${sid}" data-can-restore="${canRestore ? '1' : '0'}" data-prev-class="${escHtml(g.previous_class || '')}">
-                <td><strong>${safeName}</strong></td>
-                <td><span class="badge badge-primary" style="font-size:0.72rem;">${prevClass}</span></td>
-                <td style="color:var(--text-3);">${escHtml(g.phone || '—')}</td>
-                <td><strong style="color:var(--primary);">${g.coupons || 0}</strong></td>
-                <td><div class="actions">
-                    ${restoreBtn}
-                    <button type="button" class="act-btn act-view" title="تصدير البيانات" onclick="exportGraduate(${sid})"><i class="fas fa-download"></i></button>
-                    <button type="button" class="act-btn act-export-del" title="تصدير ثم حذف" onclick="exportAndDeleteGraduate(${sid})"><i class="fas fa-file-export"></i></button>
-                    <button type="button" class="act-btn act-transfer" title="إرسال لكنيسة" onclick="openSendGraduateModal(${sid})"><i class="fas fa-paper-plane"></i></button>
-                    <button type="button" class="act-btn act-delete" title="حذف" onclick="deleteGraduate(${sid})"><i class="fas fa-trash"></i></button>
-                </div></td>
-            </tr>`;
+                const actions = [
+                    { label: 'تصدير البيانات', icon: 'fa-download', handler: () => exportGraduate(sid) },
+                    { label: 'تصدير ثم حذف', icon: 'fa-file-export', handler: () => exportAndDeleteGraduate(sid) },
+                    { label: 'إرسال لكنيسة', icon: 'fa-paper-plane', handler: () => openSendGraduateModal(sid) },
+                    { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteGraduate(sid) },
+                ];
+                if (canRestore) actions.unshift({ label: 'إعادة للفصل السابق', icon: 'fa-undo', handler: () => restoreGraduate(sid) });
+                const actKey = stashRowActions(safeName, actions);
+                return `<div class="data-row data-cols-graduates" data-graduate-id="${sid}" data-can-restore="${canRestore ? '1' : '0'}" data-prev-class="${escHtml(g.previous_class || '')}"
+                    role="button" tabindex="0" onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <strong>${escHtml(safeName)}</strong>
+                    <span class="badge badge-primary" style="font-size:0.72rem;">${prevClass}</span>
+                    <span style="color:var(--text-3);">${escHtml(g.phone || '—')}</span>
+                    <strong style="color:var(--primary);">${g.coupons || 0}</strong>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
         }
 
         async function restoreGraduate(studentId) {
-            const row = document.querySelector(`tr[data-graduate-id="${studentId}"]`);
-            const name = row?.querySelector('td strong')?.textContent?.trim() || 'هذا الخريج';
+            const row = document.querySelector(`[data-graduate-id="${studentId}"]`);
+            const name = row?.querySelector('strong')?.textContent?.trim() || 'هذا الخريج';
             const prevClass = row?.dataset?.prevClass || 'فصله السابق';
             if (row?.dataset?.canRestore !== '1') {
                 showToast('لا يمكن إعادة هذا الخريج — الفصل السابق غير متوفر', 'warning');
                 return;
             }
-            if (!confirm('إعادة ' + name + ' إلى فصل «' + prevClass + '»؟')) return;
+            if (!(await showConfirm({ message: 'إعادة ' + name + ' إلى فصل «' + prevClass + '»؟' }))) return;
             const fd = mkFd('restoreGraduateToClass');
             fd.append('studentId', String(studentId));
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -10053,14 +10402,14 @@
 
         async function exportAndDeleteGraduate(studentId) {
             exportGraduate(studentId);
-            if (!confirm('بعد التحميل، هل تريد حذف بيانات هذا الخريج من الكنيسة؟')) return;
+            if (!(await showConfirm({ message: 'بعد التحميل، هل تريد حذف بيانات هذا الخريج من الكنيسة؟' }))) return;
             await deleteGraduate(studentId, true);
         }
 
         async function deleteGraduate(studentId, skipConfirm) {
-            const row = document.querySelector(`tr[data-graduate-id="${studentId}"]`);
-            const name = row?.querySelector('td strong')?.textContent?.trim() || 'هذا الخريج';
-            if (!skipConfirm && !confirm('حذف بيانات ' + name + ' نهائياً؟')) return;
+            const row = document.querySelector(`[data-graduate-id="${studentId}"]`);
+            const name = row?.querySelector('strong')?.textContent?.trim() || 'هذا الخريج';
+            if (!skipConfirm && !(await showConfirm({ message: 'حذف بيانات ' + name + ' نهائياً؟', danger: true }))) return;
             const fd = mkFd('deleteGraduateStudent');
             fd.append('studentId', String(studentId));
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -10172,7 +10521,7 @@
                 showToast('اختر كنيسة من القائمة', 'warning');
                 return;
             }
-            if (!confirm('سيتم إرسال ' + name + ' إلى «' + churchName + '» وحذفه من قائمة الخريجين. متابعة؟')) return;
+            if (!(await showConfirm({ message: 'سيتم إرسال ' + name + ' إلى «' + churchName + '» وحذفه من قائمة الخريجين. متابعة؟' }))) return;
 
             const fd = mkFd('sendGraduateToChurch');
             fd.append('studentId', String(studentId));
@@ -10212,8 +10561,8 @@
             const lAll = document.getElementById('viewModeAllLabel');
             if (lClasses) { lClasses.style.borderColor = showClasses ? 'var(--primary)' : 'var(--border)'; lClasses.style.background = showClasses ? 'var(--brand-bg)' : ''; }
             if (lAll) { lAll.style.borderColor = showAll ? 'var(--primary)' : 'var(--border)'; lAll.style.background = showAll ? 'var(--brand-bg)' : ''; }
-            const warn = document.getElementById('viewModeWarning');
-            if (warn) warn.style.display = (!showClasses && !showAll) ? 'block' : 'none';
+            const warnBox = document.getElementById('viewModeWarningBox');
+            if (warnBox) warnBox.style.display = (!showClasses && !showAll) ? '' : 'none';
         }
 
         function toggleTripDates() { document.getElementById('endDateGroup').style.display = document.getElementById('tripType').value === 'multiple_days' ? 'block' : 'none'; }
@@ -10310,6 +10659,7 @@
                 const pct = t.max_participants > 0 ? Math.min(100, Math.round((t.registered_count || 0) / t.max_participants * 100)) : null;
                 const isOwner = t.is_owner === undefined || Number(t.is_owner) === 1;
                 return `<div class="trip-card trip-card-compact" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
+            ${isOwner ? `<button type="button" class="trip-delete-fab" title="حذف الرحلة" onclick="event.stopPropagation();deleteTrip(${t.id})"><i class="fas fa-trash"></i></button>` : ''}
             <div class="trip-card-top">
                 <div class="trip-mini-thumb" style="${t.image_url ? '' : 'background:linear-gradient(135deg,' + col + '18,' + col + '08);color:' + col + ';'}">
                     ${t.image_url ? `<img src="${t.image_url}" loading="lazy" alt="${escHtml(t.title || '')}">` : `<i class="fas fa-bus"></i>`}
@@ -10321,13 +10671,6 @@
                     </div>
                     <span class="trip-status-inline" style="color:${col};border-color:${col}22;background:${col}10;">${st}</span>
                 </div>
-            </div>
-            <div class="trip-quick-actions" onclick="event.stopPropagation()">
-                ${isOwner ? `<button class="act-btn" style="background:var(--primary);" onclick="openEditTrip(${t.id})" title="إعدادات الرحلة"><i class="fas fa-cog"></i></button>` : ''}
-                <button class="act-btn" style="background:#2563eb;" onclick="exportTripData(${t.id},'csv')" title="تصدير"><i class="fas fa-file-csv"></i></button>
-                <button class="act-btn" style="background:#4f46e5;" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}&trip_tab=exp'" title="مصروفات"><i class="fas fa-receipt"></i></button>
-                <button class="act-btn act-edit" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'" title="فتح"><i class="fas fa-eye"></i></button>
-                ${isOwner ? `<button class="act-btn act-delete" onclick="deleteTrip(${t.id})" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
             </div>
             <div class="trip-card-main">
                 <div class="trip-meta-row">
@@ -10646,7 +10989,7 @@
         }
 
         async function deleteTrip(id) {
-            if (!confirm('هل أنت متأكد من حذف هذه الرحلة؟')) return;
+            if (!(await showConfirm({ message: 'هل أنت متأكد من حذف هذه الرحلة؟' }))) return;
             const fd = new FormData(); fd.append('action', 'deleteTrip'); fd.append('trip_id', id);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حذف الرحلة', 'success'); loadTrips(); }
@@ -10668,7 +11011,7 @@
             ['regs', 'waitlist', 'exp'].forEach(t => {
                 document.getElementById('tdtab-' + t)?.removeAttribute('style');
             });
-            document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
+            document.getElementById('tripInfoContent').innerHTML = panelInlineSkeleton(4);
             document.getElementById('tripRegsContent').innerHTML = '';
             document.getElementById('tdRegsCount').textContent = '';
             document.getElementById('tdExpCount').textContent = '';
@@ -10919,7 +11262,7 @@
             }
 
             document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
-            document.getElementById('kidPickerGrid').innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
+            document.getElementById('kidPickerGrid').innerHTML = `<div class="panel-inline-skeleton" style="grid-column:1/-1">${Array(6).fill('<div class="sk-row"></div>').join('')}</div>`;
             openModal('registerStudentModal');
 
             const fd = new FormData();
@@ -11137,7 +11480,7 @@
         }
 
         async function cancelRegistration(regId, tripId) {
-            if (!confirm('إلغاء تسجيل هذا الطفل؟')) return;
+            if (!(await showConfirm({ message: 'إلغاء تسجيل هذا الطفل؟' }))) return;
             const fd = new FormData(); fd.append('action', 'cancelTripRegistration'); fd.append('registration_id', regId);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) {
@@ -11569,32 +11912,35 @@
             renderFridayCards();
         }
         function renderAttendanceTable(att, date) {
-            const tb = document.getElementById('attendanceTable');
+            const grid = document.getElementById('attendanceTable');
             if (!att.length) {
-                tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-calendar-times"></i><h3>لا توجد سجلات حضور لهذا اليوم</h3></div></td></tr>`;
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:28px;"><i class="fas fa-calendar-times"></i><h3>لا توجد سجلات حضور لهذا اليوم</h3></div>`;
                 return;
             }
 
-            tb.innerHTML = att.map(a => {
-                const statusClass = a.status === 'present' ? 'att-present' : 'att-absent';
-                const statusBadge = a.status === 'present' ? 'badge-success' : 'badge-danger';
+            grid.innerHTML = att.map(a => {
+                const statusClass = a.status === 'present' ? 'present' : 'absent';
                 const statusText = a.status === 'present' ? 'حاضر' : 'غائب';
-
-                return `<tr class="${statusClass}">
-            <td><strong>${a.student_name}</strong></td>
-            <td><span class="badge badge-primary">${a.class || '---'}</span></td>
-            <td><span class="badge ${statusBadge}">${statusText}</span></td>
-            <td>${a.recorded_by || '---'}</td>
-            <td><div class="actions">
-                <button class="act-btn act-edit" onclick="toggleAttendanceStatus(${a.id},'${a.status}','${date}')"><i class="fas fa-exchange-alt"></i></button>
-                <button class="act-btn act-delete" onclick="deleteAttendanceRecord(${a.id},'${date}')"><i class="fas fa-trash"></i></button>
-            </div></td>
-        </tr>`;
+                const actKey = stashRowActions(a.student_name, [
+                    { label: 'تبديل الحالة', icon: 'fa-exchange-alt', handler: () => toggleAttendanceStatus(a.id, a.status, date, true) },
+                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAttendanceRecord(a.id, date, true) },
+                ]);
+                return `<div class="att-record-card ${statusClass}" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <div class="att-record-info">
+                        <div class="att-record-name">${escHtml(a.student_name)}</div>
+                        <div class="att-record-meta">${escHtml(a.class || '—')} · ${escHtml(a.recorded_by || '—')}</div>
+                    </div>
+                    <div class="att-record-side">
+                        <span class="att-record-status">${statusText}</span>
+                        <i class="fas fa-chevron-left" style="font-size:0.65rem;color:var(--text-3);opacity:0.5;"></i>
+                    </div>
+                </div>`;
             }).join('');
         }
-        async function toggleAttendanceStatus(id, curr, date) {
+        async function toggleAttendanceStatus(id, curr, date, skipConfirm) {
             const nxt = curr === 'present' ? 'absent' : 'present';
-            if (!confirm(`تغيير الحالة إلى ${nxt === 'present' ? 'حاضر' : 'غائب'}؟`)) return;
+            if (!skipConfirm && !(await showConfirm({ message: `تغيير الحالة إلى ${nxt === 'present' ? 'حاضر' : 'غائب'}؟` }))) return;
 
             const fd = new FormData();
             fd.append('action', 'updateSingleAttendance');
@@ -11613,8 +11959,8 @@
                 showToast(d.message || 'فشل', 'error');
             }
         }
-        async function deleteAttendanceRecord(id, date) {
-            if (!confirm('حذف سجل الحضور؟')) return;
+        async function deleteAttendanceRecord(id, date, skipConfirm) {
+            if (!skipConfirm && !(await showConfirm({ message: 'حذف سجل الحضور؟', danger: true }))) return;
 
             const fd = new FormData();
             fd.append('action', 'deleteAttendance');
@@ -11701,32 +12047,39 @@
         }
         function renderPendingTable(regs) {
             const tb = document.getElementById('pendingTable');
-            if (!regs.length) { tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-hourglass-half"></i><h3>لا توجد طلبات معلقة</h3></div></td></tr>`; return; }
+            if (!regs.length) {
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-hourglass-half"></i><h3>لا توجد طلبات معلقة</h3></div>`;
+                return;
+            }
             tb.innerHTML = regs.map(r => {
                 const avatarHtml = r.image_url
-                    ? `<img src="${escHtml(r.image_url)}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`
-                    : `<div style="width:38px;height:38px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.1rem;"><i class="fas fa-user"></i></div>`;
+                    ? `<img src="${escHtml(r.image_url)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:36px;height:36px;border-radius:50%;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-user"></i></div>`;
                 const usernameHtml = r.username
-                    ? `<code style="font-size:0.8rem;background:var(--surface-2,#f5f5f5);padding:2px 8px;border-radius:6px;">${escHtml(r.username)}</code>`
-                    : `<span style="color:var(--muted,#aaa);font-size:0.8rem;">—</span>`;
-                return `<tr>
-            <td><input type="checkbox" class="pending-checkbox" value="${r.id}" onchange="updateSelectedPending()"></td>
-            <td>${avatarHtml}</td>
-            <td><strong>${escHtml(r['الاسم'])}</strong></td>
-            <td>${usernameHtml}</td>
-            <td><span class="badge badge-primary">${escHtml(r['الفصل'])}</span></td>
-            <td>${r['تاريخ الميلاد'] || '---'}</td><td>${r['الهاتف'] || '---'}</td><td>${r['تاريخ الإنشاء']}</td>
-            <td><div class="actions">
-                <button class="act-btn act-pay" title="قبول" onclick="approveRegistration(${r.id})"><i class="fas fa-check"></i></button>
-                <button class="act-btn act-delete" title="رفض" onclick="rejectRegistration(${r.id})"><i class="fas fa-times"></i></button>
-            </div></td></tr>`;
+                    ? `<code style="font-size:0.75rem;background:var(--surface-2);padding:2px 8px;border-radius:6px;">${escHtml(r.username)}</code>`
+                    : `<span style="color:var(--text-3);font-size:0.75rem;">—</span>`;
+                const actKey = stashRowActions(r['الاسم'], [
+                    { label: 'قبول', icon: 'fa-check', handler: () => approveRegistration(r.id) },
+                    { label: 'رفض', icon: 'fa-times', danger: true, handler: () => rejectRegistration(r.id) },
+                ]);
+                return `<div class="data-row data-cols-pending" role="button" tabindex="0" onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <span class="data-row-check" onclick="event.stopPropagation()"><input type="checkbox" class="pending-checkbox" value="${r.id}" onchange="updateSelectedPending()"></span>
+                    <span>${avatarHtml}</span>
+                    <strong>${escHtml(r['الاسم'])}</strong>
+                    <span>${usernameHtml}</span>
+                    <span class="badge badge-primary">${escHtml(r['الفصل'])}</span>
+                    <span style="font-size:0.8rem;color:var(--text-3);">${r['تاريخ الميلاد'] || '—'}</span>
+                    <span style="font-size:0.8rem;color:var(--text-3);">${r['الهاتف'] || '—'}</span>
+                    <span style="font-size:0.78rem;color:var(--text-3);">${r['تاريخ الإنشاء']}</span>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
         }
         function updateSelectedPending() { selectedPendingIds = [...document.querySelectorAll('.pending-checkbox:checked')].map(c => parseInt(c.value)); }
         function toggleSelectAll() { const all = document.getElementById('selectAllPending'); document.querySelectorAll('.pending-checkbox').forEach(c => c.checked = all.checked); updateSelectedPending(); }
-        function approveAllPending() {
+        async function approveAllPending() {
             if (!selectedPendingIds.length) { showToast('اختر طلبات أولاً', 'warning'); return; }
-            if (!confirm(`الموافقة على ${selectedPendingIds.length} طلب؟`)) return;
+            if (!(await showConfirm({ message: `الموافقة على ${selectedPendingIds.length} طلب؟` }))) return;
             const fd = _appendDevOverride(new FormData()); fd.append('action', 'bulkUpdateRegistrations');
             fd.append('registrationIds', JSON.stringify(selectedPendingIds)); fd.append('status', 'approved');
             fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
@@ -11734,16 +12087,16 @@
                 else showToast(d.message || 'فشل', 'error');
             });
         }
-        function approveRegistration(id) {
-            if (!confirm('قبول هذا الطلب؟')) return;
+        async function approveRegistration(id) {
+            if (!(await showConfirm({ message: 'قبول هذا الطلب؟' }))) return;
             const fd = _appendDevOverride(new FormData()); fd.append('action', 'approveRegistration'); fd.append('registrationId', id);
             fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { showToast('تم القبول', 'success'); loadPendingRegistrations(); loadStudents(); loadStatistics(); }
                 else showToast(d.message || 'فشل', 'error');
             });
         }
-        function rejectRegistration(id) {
-            if (!confirm('رفض هذا الطلب؟')) return;
+        async function rejectRegistration(id) {
+            if (!(await showConfirm({ message: 'رفض هذا الطلب؟', danger: true }))) return;
             const fd = _appendDevOverride(new FormData()); fd.append('action', 'rejectRegistration'); fd.append('registrationId', id);
             fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { showToast('تم الرفض', 'success'); loadPendingRegistrations(); }
@@ -12242,7 +12595,7 @@
         }
 
         async function devTemplateDelete(id) {
-            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا القالب نهائياً؟')) return;
+            if (!(await showConfirm({ message: 'هل أنت متأكد من رغبتك في حذف هذا القالب نهائياً؟' }))) return;
 
             const fd = mkFd('deleteCustomFieldTemplate');
             fd.append('id', id);
@@ -12349,7 +12702,7 @@
         function copyKidRegLink(url, churchName) {
             navigator.clipboard.writeText(url)
                 .then(() => showToast('تم نسخ رابط تسجيل أطفال "' + churchName + '" ✅', 'success'))
-                .catch(() => { prompt('انسخ الرابط يدوياً:', url); });
+                .catch(() => showToast('تعذّر النسخ — انسخ الرابط يدوياً', 'warning'));
         }
 
         function shareWhatsApp(url, text) {
@@ -12425,8 +12778,8 @@
         }
 
         async function deleteChurchConfirm(id, code) {
-            if (!confirm(`هل أنت متأكد من حذف الكنيسة؟\nالرمز: ${code}\n\nسيتم حذف جميع البيانات المرتبطة بها نهائياً!`)) return;
-            const enteredCode = prompt(`للتأكيد، أدخل رمز الكنيسة: "${code}"`);
+            if (!(await showConfirm({ message: `هل أنت متأكد من حذف الكنيسة؟\nالرمز: ${code}\n\nسيتم حذف جميع البيانات المرتبطة بها نهائياً!` }))) return;
+            const enteredCode = await showPrompt({ title: "تأكيد الحذف", message: `أدخل رمز الكنيسة: "${code}"`, defaultValue: "" });
             if (enteredCode !== code) { showToast('رمز الكنيسة غير صحيح', 'error'); return; }
             const fd = new FormData(); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -12558,15 +12911,17 @@
             const ls = {};
             ['loggedIn', 'loginType', 'uncleRole', 'role', 'userRole', 'uncleName', 'churchId', 'church_id',
                 'churchCode', 'church_code', 'churchName', 'uncleId'].forEach(k => { ls[k] = localStorage.getItem(k); });
-            alert(
-                '=== Server Session ===\n' + raw.substring(0, 500) +
-                '\n\n=== JS State ===\n' +
-                'sessionChurchId: ' + sessionChurchId + '\n' +
-                'devViewChurchId: ' + devViewChurchId + '\n' +
-                'isDeveloper: ' + isDeveloper + '\n' +
-                '\n=== localStorage ===\n' +
-                JSON.stringify(ls, null, 2)
-            );
+            const dbg = document.getElementById('debugDialogPre');
+            if (dbg) {
+                dbg.textContent = '=== Server Session ===\n' + raw.substring(0, 500) +
+                    '\n\n=== JS State ===\n' +
+                    'sessionChurchId: ' + sessionChurchId + '\n' +
+                    'devViewChurchId: ' + devViewChurchId + '\n' +
+                    'isDeveloper: ' + isDeveloper + '\n' +
+                    '\n=== localStorage ===\n' +
+                    JSON.stringify(ls, null, 2);
+                openModal('debugDialog');
+            } else showToast('تعذّر عرض التشخيص', 'warning');
         }
 
         // ── Audit / History ───────────────────────────────────────────
@@ -12577,9 +12932,7 @@
         async function loadAuditLogs() {
             const tb = document.getElementById('auditTable');
             if (tb) {
-                tb.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px;">
-            <i class="fas fa-spinner fa-spin" style="font-size:16px;"></i> جاري التحميل...
-        </td></tr>`;
+                tb.innerHTML = panelInlineSkeleton(6);
             }
 
             const fd = mkFd('getAuditLogs');
@@ -12596,19 +12949,13 @@
                     filterAuditLogs();
                 } else {
                     if (tb) {
-                        tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>${d.message || 'تعذّر تحميل السجل'}</h3>
-                </div></td></tr>`;
+                        tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(d.message || 'تعذّر تحميل السجل')}</h3></div>`;
                     }
                 }
             } catch (error) {
                 console.error('Error loading audit logs:', error);
                 if (tb) {
-                    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>خطأ في الاتصال بالخادم</h3>
-            </div></td></tr>`;
+                    tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>خطأ في الاتصال بالخادم</h3></div>`;
                 }
             }
         }
@@ -12720,7 +13067,7 @@
             const page = logs.slice(start, start + AUDIT_PAGE_SIZE);
 
             if (!page.length) {
-                tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-scroll"></i><h3>لا توجد سجلات تطابق البحث</h3></div></td></tr>`;
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-scroll"></i><h3>لا توجد سجلات تطابق البحث</h3></div>`;
                 pg.innerHTML = '';
                 return;
             }
@@ -12780,33 +13127,22 @@
                     }
                 }
 
-                return `<tr style="cursor:pointer;" onclick="showAuditDetail(${JSON.stringify(l).replace(/"/g, '&quot;')})">
-            <td style="color:var(--muted); font-size:0.78rem;">${start + i + 1}</td>
-            <td style="white-space:nowrap; font-size:0.8rem;">${dateStr}</td>
-            <td><strong style="font-size:0.85rem;">${escHtml(actor)}</strong></td>
-            <td><span class="badge ${meta.cls}" style="display:inline-flex; align-items:center; gap:4px;">
-                <i class="fas fa-${meta.icon}" style="font-size:10px;"></i>${meta.label}
-            </span></td>
-            <td><span style="display:inline-flex; align-items:center; gap:5px; font-size:0.82rem;">
-                <i class="fas fa-${entityIcon}" style="color:var(--primary); font-size:12px;"></i>${escHtml(entityType)}
-            </span></td>
-            <td style="font-size:0.82rem; max-width:150px;">
-                <span class="name-link" style="font-size:0.75rem;" onclick="event.stopPropagation(); showAuditDetail(${JSON.stringify(l).replace(/"/g, '&quot;')})">
-                    ${escHtml(String(entityName || '').substring(0, 30))}
-                </span>
-            </td>
-            <td style="font-size:0.82rem; color:var(--muted); max-width:200px;">
-                ${escHtml((l.notes || l.description || '').substring(0, 50))}
-            </td>
-            <td>${changesHtml}</td>
-            <td onclick="event.stopPropagation()">
-                <button class="act-btn act-delete" title="حذف هذا السجل"
-                    onclick="deleteAuditLogEntry(${l.id})"
-                    style="opacity:0.6;hover:opacity:1;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>`;
+                const logJson = JSON.stringify(l).replace(/"/g, '&quot;');
+                const actKey = stashRowActions(entityName || meta.label, [
+                    { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showAuditDetail(l) },
+                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAuditLogEntry(l.id) },
+                ]);
+                return `<div class="data-row data-cols-audit" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <span style="color:var(--text-3);font-size:0.78rem;">${start + i + 1}</span>
+                    <span style="white-space:nowrap;font-size:0.78rem;color:var(--text-3);">${dateStr}</span>
+                    <strong style="font-size:0.82rem;">${escHtml(actor)}</strong>
+                    <span class="badge ${meta.cls}"><i class="fas fa-${meta.icon}" style="font-size:9px;margin-left:4px;"></i>${meta.label}</span>
+                    <span style="font-size:0.78rem;color:var(--text-2);"><i class="fas fa-${entityIcon}" style="color:var(--primary);margin-left:4px;"></i>${escHtml(entityType)}</span>
+                    <span style="font-size:0.8rem;">${escHtml(String(entityName || '').substring(0, 28))}</span>
+                    <span style="font-size:0.75rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;">${escHtml((l.notes || l.description || '').substring(0, 40))}</span>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
 
             // Render pagination
@@ -12961,7 +13297,7 @@
 
         // ── Audit Log Delete Functions ────────────────────────────────
         async function deleteAuditLogEntry(logId) {
-            if (!logId || !confirm('هل تريد حذف هذا السجل؟')) return;
+            if (!logId || !(await showConfirm({ message: 'هل تريد حذف هذا السجل؟' }))) return;
             const fd = mkFd('deleteAuditLog');
             fd.append('log_id', logId);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -12979,7 +13315,7 @@
             const from = document.getElementById('auditDateFrom')?.value || '';
             const to = document.getElementById('auditDateTo')?.value || '';
             const rangeText = (from && to) ? `من ${from} إلى ${to}` : (from ? `من ${from}` : 'جميع السجلات');
-            if (!confirm(`هل تريد حذف ${rangeText}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+            if (!(await showConfirm({ message: `هل تريد حذف ${rangeText}؟ لا يمكن التراجع عن هذا الإجراء.` }))) return;
             clearAuditHistory(from, to);
         }
 
@@ -13431,71 +13767,6 @@
             }
         }
 
-        // Modified displayUncles function - REPLACE your existing displayUncles with this
-        function displayUncles(uncles) {
-            const tb = document.getElementById('unclesTable');
-            if (!tb) return;
-
-            if (!uncles.length) {
-                tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fas fa-user-tie"></i><h3>لا يوجد خُدام</h3></div></td></tr>`;
-                return;
-            }
-
-            const showChurch = devViewChurchId === -1;
-            const thead = tb.closest('table').querySelector('thead tr');
-
-            // Add church column if needed
-            if (showChurch) {
-                if (!thead.querySelector('.church-col')) {
-                    const th = document.createElement('th');
-                    th.className = 'church-col';
-                    th.textContent = 'الكنيسة';
-                    thead.insertBefore(th, thead.children[2]);
-                }
-            } else {
-                thead.querySelector('.church-col')?.remove();
-            }
-
-            // Add class column if not exists
-            if (!thead.querySelector('.class-col')) {
-                const th = document.createElement('th');
-                th.className = 'class-col';
-                th.textContent = 'الفصول';
-                thead.insertBefore(th, thead.children[showChurch ? 5 : 4]);
-            }
-
-            tb.innerHTML = uncles.map((u, i) => {
-                const roleText = u.role === 'admin' ? 'مسؤول' : u.role === 'developer' ? 'مطور' : 'خادم';
-                const roleCls = u.role === 'admin' ? 'badge-success' : u.role === 'developer' ? 'badge-dev' : 'badge-info';
-                const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '-';
-                const avatarHtml = u.image_url ? `<img src="${u.image_url}" class="avatar">` : `<div class="avatar-text">${u.name.charAt(0)}</div>`;
-                const churchCell = showChurch ? `<td><span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(u.church_name || '')}</span></td>` : '';
-
-                // Get class names - either from classes array or comma-separated string
-                let classDisplay = 'بدون فصل';
-                if (u.classes && u.classes.length) {
-                    classDisplay = u.classes.map(c => c.class_name).join('، ');
-                } else if (u.class) {
-                    classDisplay = u.class;
-                }
-
-                return `<tr>
-            <td>${i + 1}</td>
-            <td>${avatarHtml}</td>
-            ${churchCell}
-            <td><strong>${u.name}</strong></td>
-            <td>${u.role === 'developer' ? '—' : u.username}</td>
-            <td><span class="badge ${roleCls}">${roleText}</span></td>
-            <td>${classDisplay}</td>
-            <td>${date}</td>
-            <td><div class="actions">
-                <button class="act-btn act-img" onclick="saveUncleImage(${u.id},'${escHtml(u.name)}')" title="تغيير صورة"><i class="fas fa-camera"></i></button>
-                ${u.role === 'developer' ? '' : `<button class="act-btn act-edit" onclick="editUncle(${u.id},'${escHtml(u.name)}','${escHtml(u.username)}','${u.role}','${u.image_url || ''}')" title="تعديل"><i class="fas fa-edit"></i></button>`}
-                ${u.role === 'developer' || u.role === 'dev' ? '' : `<button class="act-btn act-delete" onclick="deleteUncle(${u.id})"><i class="fas fa-trash"></i></button>`}
-            </div></td>
-        </tr>`;
-            }).join('');
-        }
         // Show detailed audit log in modal
         function showAuditDetail(log) {
             // Parse if log is a string
@@ -13767,7 +14038,7 @@
         }
 
         async function generateRegKey() {
-            const label = prompt('ملاحظة للرابط (اختياري):', 'كنيسة جديدة');
+            const label = await showPrompt({ title: 'ملاحظة الرابط', message: 'ملاحظة للرابط (اختياري):', defaultValue: 'كنيسة جديدة' });
             if (label === null) return; // cancelled
 
             const fd = mkFd('generateChurchRegKey');
@@ -13816,7 +14087,7 @@
             box.querySelector('#_rkd_copy').addEventListener('click', () => {
                 navigator.clipboard.writeText(url)
                     .then(() => showToast('تم نسخ الرابط ✅', 'success'))
-                    .catch(() => prompt('انسخ الرابط يدوياً:', url));
+                    .catch(() => showToast('تعذّر النسخ', 'warning'));
             });
             box.querySelector('#_rkd_open').addEventListener('click', () => { window.location.href = url; });
             box.querySelector('#_rkd_wa').addEventListener('click', () => shareWhatsApp(url, 'رابط تسجيل كنيسة جديدة - ' + label));
@@ -13825,7 +14096,7 @@
 
         async function revokeRegKey(key, revoke) {
             const msg = revoke ? 'إلغاء هذا الرابط؟ لن يعمل بعد الآن.' : 'استعادة هذا الرابط وإعادة تفعيله؟';
-            if (!confirm(msg)) return;
+            if (!(await showConfirm({ message: msg }))) return;
             const fd = mkFd('revokeChurchRegKey');
             fd.append('key', key);
             fd.append('revoke', revoke);
@@ -13847,7 +14118,7 @@
             navigator.clipboard.writeText(url)
                 .then(() => showToast('تم نسخ رابط "' + label + '"', 'success'))
                 .catch(() => {
-                    prompt('انسخ الرابط يدوياً:', url);
+                    showToast('تعذّر النسخ — انسخ الرابط يدوياً', 'warning');
                 });
         }
 
@@ -14069,7 +14340,7 @@
         function copyText(url) {
             navigator.clipboard.writeText(url)
                 .then(() => showToast('تم النسخ ✅', 'success'))
-                .catch(() => { prompt('انسخ يدوياً:', url); });
+                .catch(() => showToast('تعذّر النسخ', 'warning'));
         }
         // ══════════════════════════════════════════════════════
         // CHURCH INFO CARD (uncles tab)
@@ -14109,7 +14380,7 @@
             const text = `اسم الكنيسة: ${name}\nرمز الكنيسة: ${code}\nاسم المستخدم: ${user}\nكلمة المرور: ${pwd}`;
             navigator.clipboard.writeText(text)
                 .then(() => showToast('تم نسخ بيانات الكنيسة ✅', 'success'))
-                .catch(() => prompt('انسخ يدوياً:', text));
+                .catch(() => showToast('تعذّر النسخ', 'warning'));
         }
 
         // Auto-populate church info card after uncles load
@@ -14633,26 +14904,28 @@
 
         function ua2RenderTable(att, date) {
             const tb = document.getElementById('uncleAttendanceTable2');
+            if (!tb) return;
             if (!att.length) {
-                tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3></div></td></tr>`;
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-user-slash"></i><h3>لا توجد سجلات حضور خُدام لهذا اليوم</h3></div>`;
                 return;
             }
             tb.innerHTML = att.map((a, i) => {
-                const sc = a.status === 'present' ? 'att-present' : 'att-absent';
                 const sb = a.status === 'present' ? 'badge-success' : 'badge-danger';
                 const roleBadge = a.role === 'admin'
                     ? '<span class="badge badge-primary">مسؤول</span>'
-                    : '<span class="badge" style="background:#ede9fe;color:#7c3aed;">خادم</span>';
-                return `<tr class="${sc}">
-                <td><strong>${i + 1}</strong></td>
-                <td><strong>${escHtml(a.uncle_name)}</strong></td>
-                <td>${roleBadge}</td>
-                <td><span class="badge ${sb}">${a.status === 'present' ? 'حاضر' : 'غائب'}</span></td>
-                <td><div class="actions">
-                    <button class="act-btn act-edit" onclick="ua2Toggle(${a.id},'${a.status}','${date}')"><i class="fas fa-exchange-alt"></i></button>
-                    <button class="act-btn act-delete" onclick="ua2Delete(${a.id},'${date}')"><i class="fas fa-trash"></i></button>
-                </div></td>
-            </tr>`;
+                    : '<span class="badge" style="background:var(--primary-bg);color:var(--primary);">خادم</span>';
+                const actKey = stashRowActions(a.uncle_name, [
+                    { label: 'تبديل الحالة', icon: 'fa-exchange-alt', handler: () => ua2Toggle(a.id, a.status, date) },
+                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => ua2Delete(a.id, date) },
+                ]);
+                return `<div class="data-row data-cols-uncle-att" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <span style="color:var(--text-3);">${i + 1}</span>
+                    <strong>${escHtml(a.uncle_name)}</strong>
+                    ${roleBadge}
+                    <span class="badge ${sb}">${a.status === 'present' ? 'حاضر' : 'غائب'}</span>
+                    <i class="fas fa-chevron-left data-row-chevron"></i>
+                </div>`;
             }).join('');
         }
 
@@ -14667,7 +14940,7 @@
         window.ua2Toggle = ua2Toggle;
 
         async function ua2Delete(id, date) {
-            if (!confirm('حذف سجل حضور الخادم؟')) return;
+            if (!(await showConfirm({ message: 'حذف سجل حضور الخادم؟' }))) return;
             const fd = mkFd('deleteUncleAttendance');
             fd.append('id', id);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -14683,8 +14956,8 @@
             const summaryEl = document.getElementById('reportSummaryBoxes2');
             if (!rankEl || !dayEl) return;
 
-            rankEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل التقرير...</div>';
-            dayEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري...</div>';
+            rankEl.innerHTML = panelInlineSkeleton(5);
+            dayEl.innerHTML = panelInlineSkeleton(3);
             if (summaryEl) summaryEl.innerHTML = '';
 
             const fd = mkFd('getUncleAttendanceReport');
@@ -14829,7 +15102,7 @@
             document.getElementById('uncleAttDate').value = new Date().toISOString().split('T')[0];
             uncleAttData = {};
             const listEl = document.getElementById('uncleAttList');
-            listEl.innerHTML = '<div class="container-loading"><div class="spin-icon"></div> جاري تحميل الخُدام...</div>';
+            listEl.innerHTML = panelInlineSkeleton(5);
             openModal('addUncleAttendanceModal');
             const fd = mkFd('getAllUncles');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
@@ -15013,6 +15286,70 @@
                     <button class="btn btn-outline" style="flex:1;"
                         onclick="closeModal('addUncleAttendanceModal')">إلغاء</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row actions sheet -->
+    <div id="rowActionSheet" class="action-sheet" aria-hidden="true">
+        <div class="action-sheet-backdrop" onclick="closeRowActionSheet()"></div>
+        <div class="action-sheet-panel">
+            <div class="action-sheet-title" id="rowActionSheetTitle"></div>
+            <div id="rowActionSheetBody"></div>
+            <button type="button" class="action-sheet-btn action-sheet-cancel" onclick="closeRowActionSheet()">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- Confirm dialog -->
+    <div id="confirmDialog" class="modal app-dialog">
+        <div class="modal-overlay" onclick="resolveConfirm(false)"></div>
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="confirmDialogTitle">تأكيد</h3>
+                <button type="button" class="modal-close" onclick="resolveConfirm(false)"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="app-dialog-message" id="confirmDialogMessage"></p>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="resolveConfirm(false)">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="confirmDialogOk" onclick="resolveConfirm(true)">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug dialog -->
+    <div id="debugDialog" class="modal app-dialog">
+        <div class="modal-overlay" onclick="closeModal('debugDialog')"></div>
+        <div class="modal-box" style="max-width:520px;">
+            <div class="modal-header">
+                <h3>تشخيص الجلسة</h3>
+                <button type="button" class="modal-close" onclick="closeModal('debugDialog')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <pre id="debugDialogPre" style="max-height:50vh;overflow:auto;font-size:0.72rem;white-space:pre-wrap;direction:ltr;text-align:left;background:var(--surface-2);padding:12px;border-radius:var(--radius);border:1px solid var(--border-solid);"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeModal('debugDialog')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt dialog -->
+    <div id="promptDialog" class="modal app-dialog">
+        <div class="modal-overlay" onclick="resolvePrompt(null)"></div>
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="promptDialogTitle">إدخال</h3>
+                <button type="button" class="modal-close" onclick="resolvePrompt(null)"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="app-dialog-message" id="promptDialogMessage" style="margin-bottom:12px;"></p>
+                <input type="text" id="promptDialogInput" class="form-input" autocomplete="off">
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="resolvePrompt(null)">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="promptDialogOk" onclick="resolvePrompt(document.getElementById('promptDialogInput').value)">موافق</button>
             </div>
         </div>
     </div>
