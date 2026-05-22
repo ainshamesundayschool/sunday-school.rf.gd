@@ -2044,46 +2044,76 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text-3) !important;
         }
 
-        .save-btn-attendance {
-            color: var(--success);
+        .save-btn-attendance:not(:disabled) {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.28);
         }
 
-        .save-btn-attendance i {
-            color: var(--success);
+        .save-btn-attendance:not(:disabled) i,
+        .save-btn-attendance:not(:disabled) .save-btn-label {
+            color: #fff;
+        }
+
+        .save-btn-attendance:not(:disabled) .save-count {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #fff;
         }
 
         .save-btn-attendance:not(:disabled):hover {
-            background: var(--success-bg);
-            border-color: var(--success);
-            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -1px rgba(16, 185, 129, 0.06);
+            background: #059669;
+            border-color: #059669;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
         }
 
-        .save-btn-coupons {
-            color: var(--coupon);
+        .save-btn-coupons:not(:disabled) {
+            background: var(--coupon);
+            border-color: var(--coupon);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.28);
         }
 
-        .save-btn-coupons i {
-            color: var(--coupon);
+        .save-btn-coupons:not(:disabled) i,
+        .save-btn-coupons:not(:disabled) .save-btn-label {
+            color: #fff;
+        }
+
+        .save-btn-coupons:not(:disabled) .save-count {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #fff;
         }
 
         .save-btn-coupons:not(:disabled):hover {
-            background: var(--coupon-bg);
-            border-color: var(--coupon);
-            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.1), 0 2px 4px -1px rgba(217, 119, 6, 0.06);
+            background: #7c3aed;
+            border-color: #7c3aed;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.35);
         }
 
-        .save-btn-unsaved {
-            color: var(--warning);
+        .save-btn-unsaved:not(:disabled) {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.28);
         }
 
-        .save-btn-unsaved i {
-            color: var(--warning);
+        .save-btn-unsaved:not(:disabled) i,
+        .save-btn-unsaved:not(:disabled) .save-btn-label {
+            color: #fff;
+        }
+
+        .save-btn-unsaved:not(:disabled) .save-count {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #fff;
         }
 
         .save-btn-unsaved:not(:disabled):hover {
-            background: var(--warning-bg);
-            border-color: var(--warning);
-            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06);
+            background: #d97706;
+            border-color: #d97706;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35);
         }
 
         .save-btn:not(:disabled):hover {
