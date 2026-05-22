@@ -7702,6 +7702,7 @@
                 const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (res.success) {
                     showToast(res.message || 'تمت الإزالة', 'success');
+                    clearTripsLocalCaches();
                     const idx = allTripsCache.findIndex(t => t.id == tripId);
                     if (idx >= 0 && res.collaborators_list) {
                         allTripsCache[idx].collaborators_list = res.collaborators_list;
@@ -7945,6 +7946,17 @@
             try {
                 localStorage.setItem(_cacheKey(name), JSON.stringify({ ts: Date.now(), payload }));
             } catch (e) { }
+        }
+
+        function clearTripsLocalCaches() {
+            try {
+                localStorage.removeItem(_cacheKey('trips'));
+                const code = (localStorage.getItem('churchCode') || localStorage.getItem('church_code') || '').trim();
+                const id = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || 0);
+                localStorage.removeItem('lastTripsData');
+                if (code) localStorage.removeItem(`lastTripsData_${code}`);
+                if (id) localStorage.removeItem(`lastTripsData_id_${id}`);
+            } catch (e) {}
         }
 
         function _readLocalCache(name) {
@@ -10371,6 +10383,8 @@
                 const tripTab = getHashData().params.get('trip_tab');
                 if (tripTab) switchTripTab(tripTab);
             } else if (tripResp.access_denied && tripResp.trip) {
+                allTripsCache = allTripsCache.filter(t => String(t.id) !== String(id));
+                window.currentTripObj = null;
                 renderTripAccessDenied(tripResp);
             } else {
                 document.getElementById('tripInfoContent').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في التحميل')}</h3></div>`;

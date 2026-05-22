@@ -9909,25 +9909,24 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {
-                    if (!localStorage.getItem(tripsCacheKey)) {
-                        container.style.display = 'none';
-                        head.style.display = 'none';
-                    }
+                    try { localStorage.setItem(tripsCacheKey, '[]'); } catch (e) { }
+                    container.innerHTML = '';
+                    container.style.display = 'none';
+                    head.style.display = 'none';
                     isFetchingTrips = false;
                     return;
                 }
 
                 const activeTrips = d.trips.filter(t => t.status === 'active' || t.status === 'planned');
+                try { localStorage.setItem(tripsCacheKey, JSON.stringify(activeTrips)); } catch (e) { }
                 if (!activeTrips.length) {
-                    if (!localStorage.getItem(tripsCacheKey)) {
-                        container.style.display = 'none';
-                        head.style.display = 'none';
-                    }
+                    container.innerHTML = '';
+                    container.style.display = 'none';
+                    head.style.display = 'none';
                     isFetchingTrips = false;
                     return;
                 }
 
-                localStorage.setItem(tripsCacheKey, JSON.stringify(activeTrips));
                 renderDashboardTripsHtml(activeTrips);
             } catch (e) {
                 if (!localStorage.getItem(tripsCacheKey)) {

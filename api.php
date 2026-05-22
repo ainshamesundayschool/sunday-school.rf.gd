@@ -461,10 +461,36 @@ function getTripParticipantIds($tripRow)
     }));
 }
 
-function isTripDeveloperViewer()
+function isTripDeveloperViewerRole()
 {
     $role = strtolower($_SESSION['uncle_role'] ?? '');
     return in_array($role, ['developer', 'dev', 'admin', 'administrator'], true);
+}
+
+/** Bypass trip ACL only when a developer explicitly switches church context. */
+function isTripDeveloperViewer()
+{
+    if (!isTripDeveloperViewerRole()) {
+        return false;
+    }
+    return !empty($_POST['dev_override_church_id']) || !empty($_GET['dev_override_church_id']);
+}
+
+function churchIsTripParticipant($tripRow, $churchId)
+{
+    return in_array(intval($churchId), getTripParticipantIds($tripRow), true);
+}
+
+function verifyTripParticipant($conn, $tripId, $churchId)
+{
+    $stmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    if (!$res) {
+        return false;
+    }
+    return churchIsTripParticipant($res, $churchId);
 }
 
 function churchHasPendingTripAccessRequest($conn, $tripId, $requesterChurchId, $ownerChurchId)
@@ -598,25 +624,6 @@ function joinTrip()
 }
 
 // ── Collaboration Helpers ──────────────────────────────────
-function verifyTripParticipant($conn, $tripId, $churchId)
-{
-    $stmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
-    $stmt->bind_param("i", $tripId);
-    $stmt->execute();
-    $res = $stmt->get_result()->fetch_assoc();
-    if (!$res)
-        return false;
-    $participants = [intval($res['church_id'])];
-    $collabRaw = $res['collaborating_churches'] ?? '';
-    if (!empty($collabRaw)) {
-        $collab = json_decode($collabRaw, true);
-        if (is_array($collab)) {
-            $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
-        }
-    }
-    return in_array(intval($churchId), $participants);
-}
-
 function verifyRegistrationParticipant($conn, $registrationId, $churchId)
 {
     $stmt = $conn->prepare("
@@ -740,9 +747,9 @@ function removeTripCollaborator()
         }
 
         ensureTripCollaborationRequestsTable($conn);
-        $delReq = $conn->prepare("DELETE FROM trip_collaboration_requests WHERE trip_id = ? AND to_church_id = ?");
+        $delReq = $conn->prepare("DELETE FROM trip_collaboration_requests WHERE trip_id = ? AND (from_church_id = ? OR to_church_id = ?)");
         if ($delReq) {
-            $delReq->bind_param('ii', $tripId, $removeChurchId);
+            $delReq->bind_param('iii', $tripId, $removeChurchId, $removeChurchId);
             $delReq->execute();
         }
 
@@ -9170,9 +9177,11 @@ function getTrips()
             $params = [$churchId, $churchId];
             $types = "ii";
         } else {
-            $sql .= "(t.church_id = ? OR (t.collaborating_churches IS NOT NULL AND t.collaborating_churches != '' AND t.collaborating_churches != '[]' AND JSON_CONTAINS(t.collaborating_churches, JSON_ARRAY(?))))";
-            $params = [$churchId, $churchId, $churchId];
-            $types = "iii";
+            // Scalar JSON_CONTAINS at '$' avoids JSON_ARRAY false positives (e.g. id 1 matching 10)
+            $sql .= "(t.church_id = ? OR JSON_CONTAINS(COALESCE(NULLIF(NULLIF(t.collaborating_churches, ''), '[]'), JSON_ARRAY()), CAST(? AS JSON), '$'))";
+            $churchJsonScalar = json_encode((int) $churchId);
+            $params = [$churchId, $churchId, $churchJsonScalar];
+            $types = "iis";
         }
 
         if (!empty($status) && $status !== 'all') {
@@ -9203,6 +9212,10 @@ function getTrips()
 
         $trips = [];
         while ($row = $result->fetch_assoc()) {
+            if (!$ownOnly && !churchIsTripParticipant($row, $churchId)) {
+                continue;
+            }
+
             // Clean up self-collaboration on the fly:
             if (!empty($row['collaborating_churches'])) {
                 $collabArr = json_decode($row['collaborating_churches'], true);
@@ -9806,13 +9819,12 @@ function getTripDetails()
             }
         }
 
-        $participants = getTripParticipantIds($trip);
         if (!isTripDeveloperViewer()) {
             if ($churchId <= 0) {
                 sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة لعرض هذه الرحلة']);
                 return;
             }
-            if (!in_array($churchId, $participants, true)) {
+            if (!churchIsTripParticipant($trip, $churchId)) {
                 buildTripAccessDeniedResponse($conn, $trip, $churchId);
                 return;
             }
