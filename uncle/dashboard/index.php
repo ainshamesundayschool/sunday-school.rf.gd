@@ -15209,9 +15209,63 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 .trim();
         }
 
+        /**
+         * Egyptian Franco (Franko) Arabic → Arabic transliteration
+         * Converts Latin-letter input like "mo7amed" → "محامد"
+         * Handles multi-char combos first, then single chars + numbers.
+         */
+        function francoToArabic(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+
+            // Check if the input has any Latin characters; if purely Arabic, skip
+            if (!/[a-z0-9]/.test(s)) return "";
+
+            // Multi-character combos (order matters – longest first)
+            const multiMap = [
+                ['sh', 'ش'], ['ch', 'تش'], ['kh', 'خ'], ['gh', 'غ'],
+                ['th', 'ث'], ['dh', 'ذ'], ['zh', 'ج'],
+                ['ph', 'ف'],
+                ['ou', 'و'], ['oo', 'و'], ['ee', 'ي'], ['ei', 'اي'],
+                ['aa', 'ا'], ['ii', 'ي'],
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+
+            // Single-character map (includes number substitutions)
+            const singleMap = {
+                'a': 'ا', 'b': 'ب', 't': 'ت', 'g': 'ج', 'j': 'ج',
+                'h': 'ح', 'd': 'د', 'r': 'ر', 'z': 'ز', 's': 'س',
+                'c': 'ك',
+                'f': 'ف', 'q': 'ق', 'k': 'ك', 'l': 'ل', 'm': 'م',
+                'n': 'ن', 'w': 'و', 'u': 'و', 'o': 'و',
+                'y': 'ي', 'i': 'ي', 'e': 'ي',
+                'x': 'اكس', 'v': 'ف', 'p': 'ب',
+                // Number substitutions (Egyptian Franco convention)
+                '2': 'ء', '3': 'ع', '4': 'ش', '5': 'خ',
+                '6': 'ط', '7': 'ح', '8': 'غ', '9': 'ق',
+            };
+
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    // Keep Arabic characters that might already be mixed in
+                    result += ch;
+                }
+            }
+            return normalizeArabic(result);
+        }
+
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
+            const qFranco = francoToArabic(query); // Franco → Arabic conversion
 
             let maxScore = 0;
             const fields = [
@@ -15232,12 +15286,27 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
                 else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
                 else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
+                // Franco Arabic matching (slightly lower score since it's a transliteration guess)
+                else if (qFranco && tNormalized === qFranco) currentScore = 92;
+                else if (qFranco && tNormalized.startsWith(qFranco)) currentScore = 72;
+                else if (qFranco && tNormalized.includes(qFranco)) currentScore = 52;
                 else {
                     let score = 0, queryIdx = 0;
                     for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
                         if (tNormalized[i] === qNormalized[queryIdx]) { queryIdx++; score++; }
                     }
                     if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
+
+                    // Also try fuzzy matching with Franco-converted Arabic
+                    if (qFranco) {
+                        let fScore = 0, fIdx = 0;
+                        for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
+                            if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
+                        }
+                        if (fIdx === qFranco.length) {
+                            currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
+                        }
+                    }
                 }
                 maxScore = Math.max(maxScore, currentScore * field.weight);
             });
