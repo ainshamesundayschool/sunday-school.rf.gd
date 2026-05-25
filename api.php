@@ -9303,10 +9303,10 @@ function getTrips()
             $types = "ii";
         } else {
             // Scalar JSON_CONTAINS at '$' avoids JSON_ARRAY false positives (e.g. id 1 matching 10)
-            $sql .= "(t.church_id = ? OR JSON_CONTAINS(COALESCE(NULLIF(NULLIF(t.collaborating_churches, ''), '[]'), JSON_ARRAY()), CAST(? AS JSON), '$'))";
-            $churchJsonScalar = json_encode((int) $churchId);
-            $params = [$churchId, $churchId, $churchJsonScalar];
-            $types = "iis";
+            // Binds the parameter as an integer to avoid MariaDB syntax errors with CAST(? AS JSON)
+            $sql .= "(t.church_id = ? OR JSON_CONTAINS(COALESCE(NULLIF(NULLIF(t.collaborating_churches, ''), '[]'), JSON_ARRAY()), ?))";
+            $params = [$churchId, $churchId, (int) $churchId];
+            $types = "iii";
         }
 
         if (!empty($status) && $status !== 'all') {
