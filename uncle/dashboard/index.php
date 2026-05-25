@@ -7223,6 +7223,114 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text-3);
             margin-bottom: 6px;
         }
+
+        /* ── INLINE SEARCH UNDER HERO STRIP ── */
+        .inline-search-wrap {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto 20px auto;
+            z-index: 99;
+        }
+
+        .inline-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            border-radius: 50px;
+            padding: 0 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--t) var(--ease);
+        }
+
+        .inline-search-box:focus-within {
+            border-color: var(--brand);
+            box-shadow: 0 4px 16px var(--brand-glow);
+            background: var(--surface);
+        }
+
+        .inline-search-box .search-icon {
+            color: var(--text-3);
+            font-size: 0.95rem;
+            margin-left: 10px;
+        }
+
+        .inline-search-box input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 10px 0;
+            color: var(--text);
+            font-size: 0.92rem;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+        }
+
+        .inline-search-box button {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            padding: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all var(--t) var(--ease);
+            margin-right: 6px;
+        }
+
+        .inline-search-box button:hover {
+            background: var(--surface-3);
+            color: var(--text);
+        }
+
+        .inline-search-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-lg);
+            max-height: 350px;
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transform-origin: top center;
+            animation: inlineSearchFadeIn 0.2s var(--ease);
+        }
+
+        @keyframes inlineSearchFadeIn {
+            from { opacity: 0; transform: translateY(-8px) scaleY(0.95); }
+            to { opacity: 1; transform: translateY(0) scaleY(1); }
+        }
+
+        .inline-search-item {
+            background: var(--surface-2);
+            padding: 10px 14px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+        }
+
+        .inline-search-item:hover {
+            background: var(--surface-3);
+            border-color: var(--text-4);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -7558,6 +7666,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Centered inline intelligent search bar -->
+                <div class="inline-search-wrap">
+                    <div class="inline-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="inlineSearchInput" placeholder="بحث ذكي (اسم الطفل، الفصل، الهاتف...)" oninput="performInlineSearch(this.value)" autocomplete="off">
+                        <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
                 <!-- Stats Toggle -->
@@ -15436,6 +15554,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             closeIntelligentSearchModal();
 
+            // Close inline search dropdown and clear input
+            const inlineDrop = document.getElementById('inlineSearchDropdown');
+            if (inlineDrop) inlineDrop.style.display = 'none';
+            const inlineInput = document.getElementById('inlineSearchInput');
+            if (inlineInput) inlineInput.value = '';
+            const clearBtn = document.getElementById('clearInlineSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+
             // Go to his class
             if (s['الفصل']) {
                 showClassView(s['الفصل']);
@@ -15467,6 +15593,88 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 // If no class, just open his menu
                 showStudentDetails(s['الاسم']);
             }
+        }
+
+        function performInlineSearch(val) {
+            const q = val.trim();
+            const container = document.getElementById('inlineSearchDropdown');
+            const clearBtn = document.getElementById('clearInlineSearchBtn');
+
+            if (clearBtn) {
+                clearBtn.style.display = q ? 'flex' : 'none';
+            }
+
+            if (!q) {
+                container.innerHTML = '';
+                container.style.display = 'none';
+                return;
+            }
+
+            const searchData = allStudentsData.length ? allStudentsData : students;
+            if (!searchData || !searchData.length) {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">البيانات غير متاحة.</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            let results = searchData.map(s => ({ ...s, _searchScore: getMatchScore(s, q) }))
+                .filter(s => s._searchScore > 0)
+                .sort((a, b) => b._searchScore - a._searchScore)
+                .slice(0, 15);
+
+            if (!results.length) {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">لا توجد نتائج مطابقة</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            container.innerHTML = results.map(s => {
+                const name = s['الاسم'] || '---';
+                const cls = s['الفصل'] || '---';
+                const id = s['_studentId'] || s['id'] || s['معرف'] || s['id_student'] || 0;
+                const photo = s['صورة']
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
+
+                return `
+                <div class="inline-search-item" onclick="selectStudentFromIntelligentSearch(${id})">
+                    ${photo}
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-3);"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
+                </div>`;
+            }).join('');
+
+            container.style.display = 'flex';
+        }
+
+        function clearInlineSearch() {
+            const input = document.getElementById('inlineSearchInput');
+            if (input) input.value = '';
+            performInlineSearch('');
+            if (input) input.focus();
+        }
+
+        // Close inline search dropdown on outside clicks
+        document.addEventListener('click', function(e) {
+            const wrap = document.querySelector('.inline-search-wrap');
+            if (wrap && !wrap.contains(e.target)) {
+                const dropdown = document.getElementById('inlineSearchDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        });
+
+        // Re-open inline search dropdown on focus if input has content
+        const inlineSearchInput = document.getElementById('inlineSearchInput');
+        if (inlineSearchInput) {
+            inlineSearchInput.addEventListener('focus', function() {
+                if (this.value.trim()) {
+                    const dropdown = document.getElementById('inlineSearchDropdown');
+                    if (dropdown) dropdown.style.display = 'flex';
+                }
+            });
         }
 
         function escStr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
