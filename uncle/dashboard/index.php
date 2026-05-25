@@ -1866,19 +1866,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 align-items: center;
                 gap: 4px;
             }
+
             .export-builder {
                 grid-template-columns: 1fr !important;
             }
+
             .export-builder:not(.show-preview-mobile) .export-preview-wrap {
                 display: none !important;
             }
+
             .export-builder:not(.show-preview-mobile) .export-controls {
                 max-height: none !important;
                 display: flex !important;
             }
+
             .export-builder.show-preview-mobile .export-controls {
                 display: none !important;
             }
+
             .export-builder.show-preview-mobile .export-preview-wrap {
                 display: block !important;
                 min-height: 65vh !important;
@@ -3129,7 +3134,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-item::after {
             content: '';
             position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             background: radial-gradient(circle at top right, var(--brand-glow), transparent 70%);
             opacity: 0;
             transition: opacity var(--t) var(--ease);
@@ -3876,10 +3884,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 4px 0;
             animation: dropdownFadeIn 0.15s ease-out;
         }
+
         @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .custom-dropdown-item {
             padding: 8px 14px;
             font-size: 0.8rem;
@@ -3892,10 +3909,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 600;
             letter-spacing: normal;
         }
+
         .custom-dropdown-item:hover {
             background: var(--brand-bg);
             color: var(--brand);
         }
+
         .custom-dropdown-item.active {
             background: var(--brand-bg);
             color: var(--brand);
@@ -5651,6 +5670,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @keyframes swipeBtnGlow {
+
             0%,
             60%,
             100% {
@@ -7322,11 +7342,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="account-role" id="accountDisplayRole">---</div>
                 <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
                 <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-                    <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()" style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
+                    <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()"
+                        style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
                     </button>
-                    <a href="/leaderboard/" class="btn btn-secondary" style="padding:8px 14px;font-size:.82rem;text-decoration:none">
+                    <a href="/leaderboard/" class="btn btn-secondary"
+                        style="padding:8px 14px;font-size:.82rem;text-decoration:none">
                         <i class="fas fa-crown"></i> الأوائل
                     </a>
                 </div>
@@ -7448,10 +7470,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </a>
             <div class="topbar-actions">
                 <?php if ($showSettings): ?>
-                <!-- Admin / Church settings -->
-                <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
-                </a>
+                    <!-- Admin / Church settings -->
+                    <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                    </a>
                 <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
@@ -7515,8 +7537,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                                 <button class="dropdown-item" id="manageAnnouncementsBtn"
                                     onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                                <button class="dropdown-item" onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
-                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوة</button>
+                                <button class="dropdown-item"
+                                    onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
+                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                                 <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
                                     style="position:relative; display:flex; justify-content:space-between; align-items:center;">
                                     <span><i class="fas fa-tasks"></i> المهام</span>
@@ -7587,9 +7610,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()" style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
+                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
                         <i class="fas fa-th-large"></i>
                         <span>عرض شبكي</span>
                     </button>
@@ -7659,23 +7684,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <option value="attendance_desc">الأكثر حضوراً</option>
                             <option value="top_desc">الأوائل</option>
                         </select>
-                        
+
                         <!-- Custom styled dropdown trigger -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
                                 style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.82rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2); border: 1.5px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; transition: all var(--t) var(--ease); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
                                 <span id="customSortDropdownLabel">الاسم أ-ي</span>
-                                <i class="fas fa-chevron-down" style="font-size: 0.72rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
+                                <i class="fas fa-chevron-down"
+                                    style="font-size: 0.72rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
-                                <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                                <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                                <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
-                                <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
-                                <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                                <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
-                                <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
-                                <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                                <div class="custom-dropdown-item active" data-value="name_az"
+                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                <div class="custom-dropdown-item" data-value="name_za"
+                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                <div class="custom-dropdown-item" data-value="age_asc"
+                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                                <div class="custom-dropdown-item" data-value="age_desc"
+                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                                <div class="custom-dropdown-item" data-value="class_az"
+                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                <div class="custom-dropdown-item" data-value="coupons_desc"
+                                    onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
+                                    كوبونات</div>
+                                <div class="custom-dropdown-item" data-value="attendance_desc"
+                                    onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر
+                                    حضوراً</div>
+                                <div class="custom-dropdown-item" data-value="top_desc"
+                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
                             </div>
                         </div>
                     </div>
@@ -7774,10 +7810,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                     <button class="action-strip-btn action-strip-standalone" id="tasksClassBtn"
                         onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass)"
-                        title="مهام الفصل"
-                        style="position:relative;">
+                        title="مهام الفصل" style="position:relative;">
                         <i class="fas fa-tasks"></i>
-                        <span class="tasks-notif-dot" id="tasksSubmissionDot" style="display:none; top: 4px; left: 4px;"></span>
+                        <span class="tasks-notif-dot" id="tasksSubmissionDot"
+                            style="display:none; top: 4px; left: 4px;"></span>
                         <span class="strip-btn-label">المهام</span>
                     </button>
                     <button class="action-strip-btn action-strip-standalone action-strip-add"
@@ -7924,17 +7960,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
             </div>
             <div class="mbody">
-                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا تلقائيًا عندما تختار طفلًا.</div>
+                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا
+                    تلقائيًا عندما تختار طفلًا.</div>
                 <div class="form-group sibling-link-search">
                     <label class="form-label" id="siblingLinkSearchLabel">ابحث عن أخت أو أخ</label>
-                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text" id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
+                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text"
+                            id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
                 </div>
                 <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
                 <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
             </div>
             <div class="mfooter" style="justify-content:space-between">
-                <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
-                <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+                <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i>
+                    مسح</button>
+                <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
             </div>
         </div>
     </div>
@@ -7942,7 +7982,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
         <div class="modal" style="max-width:720px">
             <div class="modal-header">
-                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوة</h3>
+                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوات</h3>
                 <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
             </div>
             <div class="mbody">
@@ -7957,8 +7997,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </details>
             </div>
             <div class="mfooter">
-                <button class="btn btn-g" type="button" onclick="exportSiblingAllSuggestionsAsCSV()" style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
-                <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i> إغلاق</button>
+                <button class="btn btn-g" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"
+                    style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
+                <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
+                    إغلاق</button>
             </div>
         </div>
     </div>
@@ -8023,7 +8065,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="form-group" style="grid-column:1/-1;">
                     <label class="form-label">ملاحظات طبية</label>
-                    <textarea id="editStudentMedicalNotes" class="form-input" rows="2" style="min-height:72px;resize:vertical;"></textarea>
+                    <textarea id="editStudentMedicalNotes" class="form-input" rows="2"
+                        style="min-height:72px;resize:vertical;"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
@@ -8103,7 +8146,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="form-group" style="grid-column:1/-1;">
                     <label class="form-label">ملاحظات طبية</label>
-                    <textarea id="studentMedicalNotes" class="form-input" rows="2" style="min-height:72px;resize:vertical;"></textarea>
+                    <textarea id="studentMedicalNotes" class="form-input" rows="2"
+                        style="min-height:72px;resize:vertical;"></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
@@ -8190,7 +8234,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="gap:8px;flex-wrap:wrap">
                 <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                    <button class="btn btn-sm btn-outline" id="mobileExportToggleBtn" onclick="toggleMobileExportView()" style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border-solid); height:30px;"><i class="fas fa-eye"></i> <span>معاينة الجدول</span></button>
+                    <button class="btn btn-sm btn-outline" id="mobileExportToggleBtn" onclick="toggleMobileExportView()"
+                        style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border-solid); height:30px;"><i
+                            class="fas fa-eye"></i> <span>معاينة الجدول</span></button>
                     <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
                             style="color:var(--success)"></i></button>
                     <button class="header-btn" id="customExportPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf"
@@ -8214,7 +8260,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="الاسم">الاسم</option>
                                 <option value="الفصل">الفصل</option>
                                 <option value="النوع">النوع</option>
-                                <option value="الإخوة">الإخوة</option>
+                                <option value="الإخوات">الإخوات</option>
                                 <option value="كوبونات">إجمالي الكوبونات</option>
                                 <option value="كوبونات الحضور">كوبونات الحضور</option>
                                 <option value="كوبونات الالتزام">كوبونات الالتزام</option>
@@ -9294,7 +9340,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
-const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
@@ -9902,7 +9948,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 try {
                     const trips = JSON.parse(cachedTrips);
                     renderDashboardTripsHtml(trips);
-                } catch (e) {}
+                } catch (e) { }
             }
 
             // Show skeleton if empty and no cache
@@ -10018,7 +10064,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const isVisible = menu.style.display === 'block';
             document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.style.display = 'none');
             menu.style.display = isVisible ? 'none' : 'block';
-            
+
             // Toggle icon rotate
             const btn = document.getElementById('customSortDropdownBtn');
             const icon = btn?.querySelector('.fa-chevron-down');
@@ -10030,18 +10076,18 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
         function selectCustomSortOption(el, value, label) {
             const labelEl = document.getElementById('customSortDropdownLabel');
             if (labelEl) labelEl.innerText = label;
-            
+
             const menu = document.getElementById('customSortDropdownMenu');
             if (menu) {
                 menu.style.display = 'none';
                 menu.querySelectorAll('.custom-dropdown-item').forEach(item => item.classList.remove('active'));
             }
             el.classList.add('active');
-            
+
             const btn = document.getElementById('customSortDropdownBtn');
             const icon = btn?.querySelector('.fa-chevron-down');
             if (icon) icon.style.transform = 'rotate(0deg)';
-            
+
             const select = document.getElementById('classSortSelect');
             if (select) {
                 select.value = value;
@@ -10243,7 +10289,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 const img = s['صورة']
                     ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
-const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
@@ -10822,8 +10868,8 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const female = getStudentGender(student) === 'female';
             return {
                 singular: female ? 'أخت' : 'أخ',
-                plural: female ? 'الأخوات' : 'الإخوة',
-                panelLabel: female ? 'الأخوات المرتبطات' : 'الإخوة المرتبطون',
+                plural: female ? 'الأخوات' : 'الإخوات',
+                panelLabel: female ? 'الأخوات المرتبطات' : 'الإخوات المرتبطون',
                 actionLabel: 'إضافة أخت أو أخ',
                 searchLabel: 'ابحث عن أخت أو أخ',
                 modalTitle: 'إضافة أخت أو أخ',
@@ -10882,20 +10928,22 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
                 { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
                 { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
-                { basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب أو الجزء الثاني من الاسم قد يتكرر', ok: (
-                    currentValues.father && targetValues.father && (
-                        norm(currentValues.father) === norm(targetValues.father) ||
-                        (
-                            getSecondNamePart(currentValues.father) &&
-                            getSecondNamePart(targetValues.father) &&
-                            norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                {
+                    basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب أو الجزء الثاني من الاسم قد يتكرر', ok: (
+                        currentValues.father && targetValues.father && (
+                            norm(currentValues.father) === norm(targetValues.father) ||
+                            (
+                                getSecondNamePart(currentValues.father) &&
+                                getSecondNamePart(targetValues.father) &&
+                                norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
+                            )
                         )
-                    )
-                ) || (
-                    currentValues.nameFamilyPart &&
-                    targetValues.nameFamilyPart &&
-                    norm(currentValues.nameFamilyPart) === norm(targetValues.nameFamilyPart)
-                ), strength: 'weak' },
+                    ) || (
+                            currentValues.nameFamilyPart &&
+                            targetValues.nameFamilyPart &&
+                            norm(currentValues.nameFamilyPart) === norm(targetValues.nameFamilyPart)
+                        ), strength: 'weak'
+                },
             ].filter(x => x.ok);
             if (!checks.length) return null;
             return {
@@ -11192,7 +11240,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `اقتراحات_الإخوة_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.csv`);
+            link.setAttribute("download", `اقتراحات_الإخوات_${new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -11359,10 +11407,10 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const siblingHtml = buildSiblingPanel(full);
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
-            const img = full.image_url 
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>` 
+            const img = full.image_url
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
-            
+
             let rowsList = [
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
                 ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars'],
@@ -12594,7 +12642,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
                 { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
-                { key: 'siblings', label: 'الإخوة', type: 'siblings', selected: false },
+                { key: 'siblings', label: 'الإخوات', type: 'siblings', selected: false },
                 { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'تليفون الطوارئ', selected: false },
                 { key: 'address', label: 'العنوان', source: 'العنوان', selected: false },
@@ -12753,7 +12801,7 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     const gA = (a['النوع'] === 'female' || a['gender'] === 'female') ? '2' : '1';
                     const gB = (b['النوع'] === 'female' || b['gender'] === 'female') ? '2' : '1';
                     res = collator.compare(gA, gB);
-                } else if (cfg.sortBy === 'الإخوة') {
+                } else if (cfg.sortBy === 'الإخوات') {
                     const studentIdA = getStudentDbId(a);
                     const infoA = parseStudentCustomInfo(a);
                     const groupA = infoA.sibling_group && typeof infoA.sibling_group === 'object' ? infoA.sibling_group : null;
@@ -12822,12 +12870,12 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
             initCustomExportFields();
             const title = document.getElementById('customExportTitle');
             if (title && !title.value) title.value = 'تقرير ' + getActiveViewLabel();
-            
+
             const builder = document.querySelector('#customExportModal .export-builder');
             if (builder) builder.classList.remove('show-preview-mobile');
             const btn = document.getElementById('mobileExportToggleBtn');
             if (btn) btn.innerHTML = '<i class="fas fa-eye"></i> <span>معاينة الجدول</span>';
-            
+
             document.getElementById('customExportModal').classList.add('active');
             renderCustomExportPreview();
             stopAutoRefresh();
@@ -15297,14 +15345,26 @@ const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style
                     }
                     if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
 
-                    // Also try fuzzy matching with Franco-converted Arabic
                     if (qFranco) {
+                        // Forward: Franco query chars found in order inside target
                         let fScore = 0, fIdx = 0;
                         for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
                             if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
                         }
                         if (fIdx === qFranco.length) {
                             currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
+                        }
+
+                        // Reverse: target chars found in order inside Franco query
+                        // Handles extra vowels from transliteration, e.g. "peter"→"بيتير" matching "بيتر"
+                        let rScore = 0, rIdx = 0;
+                        for (let i = 0; i < qFranco.length && rIdx < tNormalized.length; i++) {
+                            if (qFranco[i] === tNormalized[rIdx]) { rIdx++; rScore++; }
+                        }
+                        if (rIdx === tNormalized.length) {
+                            // All target chars found in Franco — score based on how tight the match is
+                            const ratio = tNormalized.length / qFranco.length;
+                            currentScore = Math.max(currentScore, ratio * 70);
                         }
                     }
                 }
