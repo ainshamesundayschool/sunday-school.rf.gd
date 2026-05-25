@@ -7321,6 +7321,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="account-name" id="accountDisplayName">---</div>
                 <div class="account-role" id="accountDisplayRole">---</div>
                 <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+                    <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()" style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
+                        <i class="fas fa-moon theme-toggle-icon-moon"></i>
+                        <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                    </button>
+                    <a href="/leaderboard/" class="btn btn-secondary" style="padding:8px 14px;font-size:.82rem;text-decoration:none">
+                        <i class="fas fa-crown"></i> الأوائل
+                    </a>
+                </div>
             </div>
             <div id="accountInfoView" style="margin-bottom:14px">
                 <div class="account-info-row">
@@ -7344,22 +7353,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="btn btn-danger" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="logout()"><i
                         class="fas fa-sign-out-alt"></i> خروج</button>
             </div>
-            <?php if ($showSettings): ?>
-                <a href="/uncle/church/"
-                    style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 16px; border-radius: var(--r-md); background: var(--surface-3); border-color: var(--border-solid); color: var(--text-2); font-family: Cairo, sans-serif; font-size: 0.84rem; font-weight: 700; text-decoration: none; margin-bottom: 12px; transition: all var(--t) var(--ease);"
-                    onmouseover="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.style.borderColor='var(--brand)'"
-                    onmouseout="this.style.background='var(--surface-3)';this.style.color='var(--text-2)';this.style.borderColor='var(--border-solid)'">
-                    <i class="fa-solid fa-screwdriver-wrench" style="font-size:.9rem"></i> لوحة الإدارة والإعدادات
-                    <i class="fas fa-arrow-left" style="font-size:.7rem;opacity:.5;margin-right:auto"></i>
-                </a>
-            <?php endif; ?>
-            <a href="/leaderboard/"
-                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 16px; border-radius: var(--r-md); background:linear-gradient(135deg,#7c5cfc,#fc5c7d); border-color: var(--border-solid); color: var(--bg); font-family: Cairo, sans-serif; font-size: 0.84rem; font-weight: 700; text-decoration: none; margin-bottom: 12px; transition: all var(--t) var(--ease);"
-                onmouseover="this.style.background='linear-gradient(135deg, rgb(77 49 189), rgb(252, 92, 125))';this.style.color='var(--bg)';this.style.borderColor='var(--brand)'"
-                onmouseout="this.style.background='linear-gradient(135deg,#7c5cfc,#fc5c7d)';this.style.color='var(--bg)';this.style.borderColor='var(--border-solid)'">
-                <i class="fas fa-crown" style="font-size:.9rem"></i> التحقق من الأوائل
-                <i class="fas fa-arrow-left" style="font-size:.7rem;opacity:.5;margin-right:auto"></i>
-            </a>
+
             <div class="account-edit-form" id="accountEditForm">
                 <form id="uncleProfileForm">
                     <div class="form-group">
@@ -7453,11 +7447,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             </a>
             <div class="topbar-actions">
-                <!-- Dark mode toggle -->
-                <button class="topbar-btn" id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
-                    <i class="fas fa-moon theme-toggle-icon-moon"></i>
-                    <i class="fas fa-sun theme-toggle-icon-sun"></i>
-                </button>
+                <?php if ($showSettings): ?>
+                <!-- Admin / Church settings -->
+                <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </a>
+                <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
                     style="position:relative;">
@@ -7479,7 +7474,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
-                <?php /* Admin/Settings button moved into profile modal */ ?>
                 <div class="topbar-avatar-btn" id="uncleChip"
                     style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
