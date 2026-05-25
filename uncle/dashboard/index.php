@@ -7331,6 +7331,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--text-4);
             transform: translateY(-1px);
         }
+
+        @media (max-width: 480px) {
+            .inline-search-wrap {
+                margin-bottom: 16px;
+            }
+            .inline-search-box {
+                padding: 0 12px;
+            }
+            .inline-search-box input {
+                padding: 8px 0;
+                font-size: 0.85rem;
+            }
+            .inline-search-box .search-icon {
+                font-size: 0.85rem;
+                margin-left: 8px;
+            }
+        }
     </style>
 </head>
 
@@ -7672,14 +7689,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-wrap">
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="inlineSearchInput" placeholder="بحث ذكي (اسم الطفل، الفصل، الهاتف...)" oninput="performInlineSearch(this.value)" autocomplete="off">
+                        <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..." oninput="performInlineSearch(this.value)" autocomplete="off">
                         <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i class="fas fa-times"></i></button>
                     </div>
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
+                <!-- Today's Birthdays Banner -->
+                <div id="todayBirthdayBanner">
+                    <div class="bday-banner-header">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
+                    </div>
+                    <div class="bday-banner-list" id="todayBirthdayList"></div>
+                </div>
+
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
+                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                        <i class="fas fa-th-large"></i>
+                        <span>عرض شبكي</span>
+                    </button>
+                </div>
+                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
+
                 <!-- Stats Toggle -->
-                <div class="stats-toggle-wrap">
+                <div class="stats-toggle-wrap" style="margin-top:14px;">
                     <button id="toggleStatsBtn" onclick="toggleStats()">
                         <i class="fas fa-chart-line"></i> عرض الإحصائيات
                     </button>
@@ -7719,27 +7756,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <!-- Today's Birthdays Banner -->
-                <div id="todayBirthdayBanner">
-                    <div class="bday-banner-header">
-                        <i class="fas fa-birthday-cake"></i>
-                        <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
-                    </div>
-                    <div class="bday-banner-list" id="todayBirthdayList"></div>
-                </div>
-
-                <div class="section-head" id="tripsSectionHead"
-                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
-                        <i class="fas fa-th-large"></i>
-                        <span>عرض شبكي</span>
-                    </button>
-                </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
-
-                <div class="section-head">
+                <div class="section-head" style="margin-top:20px;">
                     <span class="section-title">الفصول</span>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
