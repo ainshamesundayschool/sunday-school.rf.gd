@@ -6621,8 +6621,8 @@
       const tripImgAsBgChecked = document.getElementById('printTripImgAsBg')?.checked;
       const bgOptions = document.getElementById('printImgBgOptions');
       const inlineOptions = document.getElementById('printImgInlineOptions');
-      if (bgOptions) bgOptions.style.display = showTripImgAsBgChecked && showTripImgChecked ? 'flex' : 'none';
-      if (inlineOptions) inlineOptions.style.display = showTripImgChecked && !showTripImgAsBgChecked ? 'block' : 'none';
+      if (bgOptions) bgOptions.style.display = tripImgAsBgChecked && showTripImgChecked ? 'flex' : 'none';
+      if (inlineOptions) inlineOptions.style.display = showTripImgChecked && !tripImgAsBgChecked ? 'block' : 'none';
 
       const showStudentImgChecked = document.getElementById('printShowStudentImg')?.checked;
       const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
