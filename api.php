@@ -2948,19 +2948,19 @@ function submitAttendance()
                 // Find the student first
                 $student = null;
                 if ($resolvedClassId) {
-                    $s1 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons FROM students WHERE church_id = ? AND name = ? AND class_id = ?");
+                    $s1 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE church_id = ? AND name = ? AND class_id = ?");
                     $s1->bind_param("isi", $churchId, $studentName, $resolvedClassId);
                     $s1->execute();
                     $student = $s1->get_result()->fetch_assoc();
                 }
                 if (!$student) {
-                    $s2 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons FROM students WHERE church_id = ? AND name = ? AND class = ?");
+                    $s2 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE church_id = ? AND name = ? AND class = ?");
                     $s2->bind_param("iss", $churchId, $studentName, $className);
                     $s2->execute();
                     $student = $s2->get_result()->fetch_assoc();
                 }
                 if (!$student) {
-                    $s3 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons FROM students WHERE church_id = ? AND name = ? LIMIT 1");
+                    $s3 = $conn->prepare("SELECT id, name, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE church_id = ? AND name = ? LIMIT 1");
                     $s3->bind_param("is", $churchId, $studentName);
                     $s3->execute();
                     $student = $s3->get_result()->fetch_assoc();
@@ -2979,7 +2979,7 @@ function submitAttendance()
                         // Reverse coupon if was present
                         if ($existing['status'] === 'present') {
                             $newAtt = max(0, intval($student['attendance_coupons']) - 100);
-                            $newTotal = $newAtt + intval($student['commitment_coupons']);
+                            $newTotal = $newAtt + intval($student['commitment_coupons']) + intval($student['task_coupons']);
                             $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
                             $upd->bind_param("iii", $newAtt, $newTotal, $sid);
                             $upd->execute();
@@ -2999,7 +2999,7 @@ function submitAttendance()
 
             if ($resolvedClassId) {
                 $s1 = $conn->prepare("
-                    SELECT id, name, attendance_coupons, commitment_coupons 
+                    SELECT id, name, attendance_coupons, commitment_coupons, task_coupons
                     FROM students 
                     WHERE church_id = ? AND name = ? AND class_id = ?
                 ");
@@ -3011,7 +3011,7 @@ function submitAttendance()
             // Fallback: match by class text (legacy stored value)
             if (!$student) {
                 $s2 = $conn->prepare("
-                    SELECT id, name, attendance_coupons, commitment_coupons 
+                    SELECT id, name, attendance_coupons, commitment_coupons, task_coupons
                     FROM students 
                     WHERE church_id = ? AND name = ? AND class = ?
                 ");
@@ -3023,7 +3023,7 @@ function submitAttendance()
             // Last fallback: just name + church_id (no class filter)
             if (!$student) {
                 $s3 = $conn->prepare("
-                    SELECT id, name, attendance_coupons, commitment_coupons 
+                    SELECT id, name, attendance_coupons, commitment_coupons, task_coupons
                     FROM students 
                     WHERE church_id = ? AND name = ?
                     LIMIT 1
@@ -3041,6 +3041,7 @@ function submitAttendance()
             $studentId = $student['id'];
             $currentAttCoupons = intval($student['attendance_coupons']);
             $commitmentCoupons = intval($student['commitment_coupons']);
+            $taskCoupons = intval($student['task_coupons']);
 
             // Check existing attendance
             $chkAtt = $conn->prepare("SELECT status FROM attendance WHERE student_id = ? AND attendance_date = ?");
@@ -3063,7 +3064,7 @@ function submitAttendance()
                 if ($status === 'present') {
                     if (!$existing || $existing['status'] !== 'present') {
                         $newAtt = $currentAttCoupons + 100;
-                        $newTotal = $newAtt + $commitmentCoupons;
+                        $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
                         $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
                         $upd->bind_param("iii", $newAtt, $newTotal, $studentId);
                         $upd->execute();
@@ -3071,7 +3072,7 @@ function submitAttendance()
                 } else {
                     if ($existing && $existing['status'] === 'present') {
                         $newAtt = max(0, $currentAttCoupons - 100);
-                        $newTotal = $newAtt + $commitmentCoupons;
+                        $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
                         $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
                         $upd->bind_param("iii", $newAtt, $newTotal, $studentId);
                         $upd->execute();
@@ -3532,21 +3533,22 @@ function updateStudent()
         $className = $classData['arabic_name'] ?? '';
 
         $currentCouponsStmt = $conn->prepare("
-            SELECT attendance_coupons, commitment_coupons 
+            SELECT attendance_coupons, commitment_coupons, task_coupons
             FROM students WHERE id = ?
         ");
         $currentCouponsStmt->bind_param("i", $studentId);
         $currentCouponsStmt->execute();
         $currentData = $currentCouponsStmt->get_result()->fetch_assoc();
         $attendanceCoupons = intval($currentData['attendance_coupons']);
+        $taskCoupons = intval($currentData['task_coupons'] ?? 0);
 
         // Get snapshot BEFORE update
         $beforeSnapshot = getStudentSnapshot($studentId);
 
         // $coupons from POST = the new commitment_coupons value
-        $totalCoupons = $attendanceCoupons + $coupons;
+        $totalCoupons = $attendanceCoupons + $coupons + $taskCoupons;
 
-        error_log("Coupons calculation: attendance=$attendanceCoupons + commitment=$coupons = total=$totalCoupons");
+        error_log("Coupons calculation: attendance=$attendanceCoupons + commitment=$coupons + task=$taskCoupons = total=$totalCoupons");
 
         // Custom info — merge with existing; sibling links always come from DB table by student id
         $customInfoRaw = $_POST['custom_info'] ?? null;
@@ -3818,7 +3820,7 @@ function updateCoupons()
 
             // Search by student name and church_id only (no class JOIN that might fail)
             $stmt = $conn->prepare("
-                SELECT id, attendance_coupons 
+                SELECT id, attendance_coupons, task_coupons
                 FROM students 
                 WHERE church_id = ? AND name = ?
             ");
@@ -3829,7 +3831,8 @@ function updateCoupons()
             if ($row = $result->fetch_assoc()) {
                 $studentId = $row['id'];
                 $attendanceCoupons = intval($row['attendance_coupons']);
-                $totalCoupons = $attendanceCoupons + $coupons;
+                $taskCoupons = intval($row['task_coupons'] ?? 0);
+                $totalCoupons = $attendanceCoupons + $coupons + $taskCoupons;
 
                 $updateStmt = $conn->prepare("
                     UPDATE students 
@@ -8285,7 +8288,7 @@ function updateCouponsKids()
 
         // Get current coupons to calculate attendance_coupons
         $currentStmt = $conn->prepare("
-            SELECT coupons, attendance_coupons, commitment_coupons 
+            SELECT coupons, attendance_coupons, commitment_coupons, task_coupons
             FROM students 
             WHERE id = ?
         ");
@@ -8294,11 +8297,11 @@ function updateCouponsKids()
         $result = $currentStmt->get_result();
 
         if ($student = $result->fetch_assoc()) {
-            $currentCommitment = intval($student['commitment_coupons']);
             $currentAttendance = intval($student['attendance_coupons']);
+            $currentTask = intval($student['task_coupons'] ?? 0);
 
-            // Calculate new commitment coupons (total coupons - attendance coupons)
-            $newCommitment = $coupons - $currentAttendance;
+            // Keep task coupons intact when a total coupon value is edited directly.
+            $newCommitment = $coupons - $currentAttendance - $currentTask;
             if ($newCommitment < 0)
                 $newCommitment = 0;
 
