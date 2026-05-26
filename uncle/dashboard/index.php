@@ -5816,17 +5816,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Swipe trigger button in toolbar */
         .swipe-toolbar-btn {
-            background: var(--surface-2) !important;
-            color: var(--brand) !important;
-            border: 1.5px solid rgba(139, 92, 246, 0.25) !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(124, 58, 237, 0.1) !important;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, .34), transparent 28%),
+                linear-gradient(135deg, #8b5cf6 0%, #6366f1 48%, #06b6d4 100%) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.22) !important;
+            box-shadow:
+                0 10px 22px rgba(99, 102, 241, .22),
+                0 2px 8px rgba(6, 182, 212, .12),
+                inset 0 1px 0 rgba(255, 255, 255, .24) !important;
             animation: swipeBtnGlow 5.5s ease-in-out infinite;
             position: relative;
-            overflow: visible !important;
+            overflow: hidden !important;
+            isolation: isolate;
+        }
+
+        .swipe-toolbar-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 18%, rgba(255, 255, 255, .28) 48%, transparent 72%);
+            transform: translateX(-135%);
+            animation: swipeBtnSheen 5.5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .swipe-toolbar-btn>* {
+            position: relative;
+            z-index: 1;
         }
 
         .swipe-toolbar-btn i.swipe-hand-icon {
-            color: var(--brand) !important;
+            color: #fff !important;
         }
 
         @keyframes swipeBtnGlow {
@@ -5834,26 +5856,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
             0%,
             60%,
             100% {
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(124, 58, 237, 0.06);
+                box-shadow:
+                    0 10px 22px rgba(99, 102, 241, .18),
+                    0 2px 8px rgba(6, 182, 212, .10),
+                    inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
             70% {
-                box-shadow: 0 0 0 5px rgba(139, 92, 246, .12), 0 2px 16px rgba(124, 58, 237, .2);
+                box-shadow:
+                    0 0 0 6px rgba(99, 102, 241, .12),
+                    0 14px 30px rgba(99, 102, 241, .28),
+                    0 2px 10px rgba(6, 182, 212, .14),
+                    inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
             80% {
-                box-shadow: 0 0 0 9px rgba(139, 92, 246, .05), 0 2px 22px rgba(124, 58, 237, .15);
+                box-shadow:
+                    0 0 0 11px rgba(99, 102, 241, .05),
+                    0 16px 36px rgba(99, 102, 241, .20),
+                    0 4px 12px rgba(6, 182, 212, .12),
+                    inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
             90% {
-                box-shadow: 0 0 0 3px rgba(139, 92, 246, .08), 0 2px 12px rgba(124, 58, 237, .1);
+                box-shadow:
+                    0 0 0 4px rgba(99, 102, 241, .08),
+                    0 12px 24px rgba(99, 102, 241, .18),
+                    0 2px 8px rgba(6, 182, 212, .10),
+                    inset 0 1px 0 rgba(255, 255, 255, .22);
+            }
+        }
+
+        @keyframes swipeBtnSheen {
+            0%,
+            62%,
+            100% {
+                transform: translateX(-135%);
+                opacity: 0;
+            }
+
+            70% {
+                transform: translateX(30%);
+                opacity: .95;
+            }
+
+            82% {
+                transform: translateX(145%);
+                opacity: 0;
             }
         }
 
         .swipe-toolbar-btn:hover {
-            background: var(--brand-bg) !important;
-            border-color: var(--brand) !important;
-            transform: translateY(-2px) !important;
+            transform: translateY(-3px) scale(1.01) !important;
+            box-shadow:
+                0 16px 34px rgba(99, 102, 241, .28),
+                0 4px 14px rgba(6, 182, 212, .14),
+                inset 0 1px 0 rgba(255, 255, 255, .24) !important;
         }
 
         /* Swipe hand icon — animate then rest */
@@ -6290,14 +6348,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .swipe-remaining-pill {
-            background: var(--surface-3);
-            color: var(--text-3);
-            padding: 3px 8px;
+            background: rgba(248, 250, 252, .96);
+            color: var(--text-2);
+            border: 1px solid rgba(148, 163, 184, .18);
+            padding: 4px 9px;
             border-radius: var(--r-full);
             font-size: .68rem;
             font-weight: 700;
             font-family: Cairo, sans-serif;
             margin-right: auto;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
         }
 
         /* ── Bottom action bar ── */
@@ -6603,7 +6663,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-card {
             width: min(360px, 90vw);
             max-height: calc(100dvh - 230px);
-            background: var(--surface);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .99), rgba(248, 250, 252, .98));
             border-radius: 28px;
             overflow: hidden;
             box-shadow:
@@ -6617,37 +6677,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
             user-select: none;
             will-change: transform;
             touch-action: none;
-            transition: box-shadow .2s;
+            transition: box-shadow .2s, transform .2s ease;
         }
 
         .swipe-card.dragging {
             cursor: grabbing;
             transition: none !important;
-            box-shadow: 0 20px 70px rgba(0, 0, 0, .22);
+            box-shadow:
+                0 0 0 1.5px rgba(99, 102, 241, .16),
+                0 24px 72px rgba(15, 23, 42, .24);
         }
 
         /* ── Pre-assigned attendance state — mirrors attendance list card ── */
         .swipe-card.pre-present {
             box-shadow:
-                0 0 0 2.5px var(--success),
-                0 8px 24px rgba(16, 185, 129, .2),
-                0 20px 60px rgba(0, 0, 0, .1);
+                0 0 0 2.5px rgba(16, 185, 129, .92),
+                0 10px 28px rgba(16, 185, 129, .16),
+                0 20px 56px rgba(15, 23, 42, .12);
         }
 
         .swipe-card.pre-absent {
             box-shadow:
-                0 0 0 2.5px var(--danger),
-                0 8px 24px rgba(239, 68, 68, .2),
-                0 20px 60px rgba(0, 0, 0, .1);
+                0 0 0 2.5px rgba(239, 68, 68, .88),
+                0 10px 28px rgba(239, 68, 68, .16),
+                0 20px 56px rgba(15, 23, 42, .12);
         }
 
         .swipe-card.pre-present .swipe-card-info {
-            background: linear-gradient(135deg, rgba(236, 253, 245, .98), rgba(209, 250, 229, .92));
+            background: linear-gradient(135deg, rgba(240, 253, 250, .99), rgba(220, 252, 231, .96));
             border-top-color: rgba(16, 185, 129, .3);
         }
 
         .swipe-card.pre-absent .swipe-card-info {
-            background: linear-gradient(135deg, rgba(254, 242, 242, .98), rgba(254, 226, 226, .92));
+            background: linear-gradient(135deg, rgba(254, 242, 242, .99), rgba(254, 226, 226, .96));
             border-top-color: rgba(239, 68, 68, .3);
         }
 
@@ -6696,8 +6758,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Info panel at bottom of card */
         .swipe-card-info {
-            padding: 16px 18px 18px;
-            background: var(--surface);
+            padding: 18px 18px 19px;
+            background: rgba(255, 255, 255, .92);
+            backdrop-filter: blur(10px);
             border-top: 1.5px solid var(--border-solid);
             flex-shrink: 0;
         }
@@ -6710,20 +6773,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .swipe-card-name {
-            font-size: 1.25rem;
+            font-size: 1.22rem;
             font-weight: 900;
             color: var(--text);
             font-family: Cairo, sans-serif;
-            line-height: 1.2;
+            line-height: 1.22;
+            letter-spacing: -.01em;
         }
 
         .swipe-card-coupon-badge {
             display: flex;
             align-items: center;
             gap: 4px;
-            background: var(--coupon-bg);
+            background: linear-gradient(135deg, rgba(250, 245, 255, .95), rgba(243, 232, 255, .95));
             color: var(--coupon-dark);
-            border: 1.5px solid rgba(139, 92, 246, .2);
+            border: 1px solid rgba(139, 92, 246, .18);
             padding: 5px 10px;
             border-radius: var(--r-full);
             font-size: .8rem;
@@ -6742,9 +6806,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .swipe-card-class-tag {
-            background: var(--brand-bg);
-            color: var(--brand);
-            padding: 3px 10px;
+            background: linear-gradient(135deg, rgba(238, 242, 255, .96), rgba(224, 231, 255, .96));
+            color: var(--brand-dark);
+            border: 1px solid rgba(99, 102, 241, .12);
+            padding: 4px 11px;
             border-radius: var(--r-full);
             font-size: .72rem;
             font-weight: 700;
@@ -15349,6 +15414,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>`;
 
             const fresh = card.cloneNode(true);
+            fresh.className = 'swipe-card';
             // Apply pre-assigned border class before replacing
             if (st === 'present') fresh.classList.add('pre-present');
             else if (st === 'absent') fresh.classList.add('pre-absent');
