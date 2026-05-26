@@ -5705,21 +5705,47 @@ function updateChurchPassword()
 
     try {
         $role = $_SESSION['uncle_role'] ?? 'uncle';
-
-        if ($role !== 'developer') {
-            sendJSON(['success' => false, 'message' => 'غير مصرح']);
-        }
-
         $churchId = intval($_POST['church_id'] ?? 0);
         $newPassword = $_POST['new_password'] ?? '';
+        $currentPassword = $_POST['current_password'] ?? '';
+
+        $isDeveloper = ($role === 'developer' || $role === 'dev');
+        $isChurchAdmin = ($role === 'admin' || (isset($_SESSION['church_id']) && intval($_SESSION['church_id']) === $churchId));
+
+        if (!$isDeveloper && !$isChurchAdmin) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+            return;
+        }
 
         if ($churchId === 0 || empty($newPassword)) {
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        if (!$isDeveloper) {
+            if (empty($currentPassword)) {
+                sendJSON(['success' => false, 'message' => 'يجب إدخال كلمة المرور الحالية للكنيسة']);
+                return;
+            }
+            $stmt = $conn->prepare("SELECT password_hash FROM churches WHERE id = ?");
+            $stmt->bind_param("i", $churchId);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $expectedHash = $row['password_hash'];
+                if (hash('sha256', $currentPassword) !== $expectedHash) {
+                    sendJSON(['success' => false, 'message' => 'كلمة المرور الحالية غير صحيحة']);
+                    return;
+                }
+            } else {
+                sendJSON(['success' => false, 'message' => 'الكنيسة غير موجودة']);
+                return;
+            }
         }
 
         $passwordHash = hash('sha256', $newPassword);
-
-        $conn = getDBConnection();
         $stmt = $conn->prepare("UPDATE churches SET password_hash = ? WHERE id = ?");
         $stmt->bind_param("si", $passwordHash, $churchId);
 
@@ -13191,6 +13217,8 @@ function getSessionInfo()
         'admin_email' => $adminEmail,
         'uncle_id' => $uncleId,
         'uncle_name' => $uncleName,
+        'uncle_username' => $_SESSION['uncle_username'] ?? '',
+        'username' => $_SESSION['uncle_username'] ?? '',
         // Return role under EVERY key JS might check
         'uncle_role' => $uncleRole,
         'uncleRole' => $uncleRole,

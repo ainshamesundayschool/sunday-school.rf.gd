@@ -816,7 +816,6 @@
             background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
             background-size: 200% 100%;
             animation: shimmerSkeleton 1.4s ease infinite;
-            border: 1px solid var(--border-solid);
         }
 
         .sk-row.tall {
@@ -829,7 +828,6 @@
             background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
             background-size: 200% 100%;
             animation: shimmerSkeleton 1.4s ease infinite;
-            border: 1px solid var(--border-solid);
         }
 
         @keyframes shimmerSkeleton {
@@ -990,8 +988,6 @@
 
         .card:hover {
             box-shadow: var(--shadow-md);
-            border-color: var(--border-2);
-            transform: translateY(-2px);
         }
 
         .card-header {
@@ -1081,7 +1077,7 @@
             width: 100%;
             padding: 9px 36px 9px 12px;
             border: 1.5px solid var(--border-solid);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-pill);
             font-family: 'Cairo', sans-serif;
             font-size: 0.875rem;
             background: var(--surface-3);
@@ -1106,7 +1102,7 @@
         .btn {
             padding: 9px 18px;
             border: none;
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius);
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
             font-weight: 700;
@@ -1246,7 +1242,7 @@
         select.form-select {
             padding: 9px 12px;
             border: 1.5px solid var(--border-solid);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius);
             font-family: 'Cairo', sans-serif;
             font-size: 0.875rem;
             background: var(--surface-3);
@@ -2661,7 +2657,7 @@
         .exp-btn {
             padding: 6px 14px;
             border: none;
-            border-radius: var(--radius-xs);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
             font-size: 0.74rem;
@@ -4946,21 +4942,20 @@
             display: inline-flex;
             flex-direction: column;
             align-items: stretch;
-            gap: 10px;
+            gap: 6px;
             max-width: 640px;
             width: 100%;
-            padding: 14px 16px;
+            padding: 10px 14px;
             background: var(--card);
             border: 1px solid var(--border-solid);
-            border-radius: var(--radius-xl);
+            border-radius: var(--radius-lg);
             margin-bottom: 16px;
             box-shadow: var(--shadow-xs);
-            transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+            transition: box-shadow var(--t-base) var(--ease);
         }
 
         .link-chip:hover,
         .reg-link-minimal:hover {
-            border-color: rgba(91, 108, 245, .28);
             box-shadow: var(--shadow-sm);
         }
 
@@ -4987,8 +4982,8 @@
             color: var(--text-2);
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
-            padding: 10px 12px;
-            border-radius: var(--radius);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -5013,10 +5008,10 @@
 
         .link-chip-actions .btn,
         .rlm-actions .btn {
-            min-height: 38px;
-            padding: 8px 14px !important;
-            font-size: 0.8rem !important;
-            border-radius: var(--radius) !important;
+            min-height: 32px;
+            padding: 6px 10px !important;
+            font-size: 0.74rem !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         /* Row action sheet + confirm / prompt */
@@ -6607,7 +6602,7 @@
                         <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
                             الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">حساب المسؤول</span>
+                        <span class="settings-bc-item active">حسابي</span>
                     </div>
                     <div class="settings-stack">
                         <div class="settings-field-box">
@@ -6623,15 +6618,33 @@
                                     oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
                             </div>
                         </div>
-                        <div class="settings-section-divider">تغيير كلمة المرور</div>
+                        <div class="settings-field-box">
+                            <button type="button" class="btn btn-outline" style="width:100%; justify-content:center; border-radius: var(--radius);" onclick="openSettingsPage('changePassword')">
+                                <i class="fas fa-key"></i> تغيير كلمة المرور &larr;
+                            </button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Change Password -->
+                <div id="settingsPage_changePassword" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i> الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <button class="settings-bc-item" onclick="openSettingsPage('adminProfile')">حسابي</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">تغيير كلمة المرور</span>
+                    </div>
+                    <div class="settings-stack">
                         <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الحالية</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminCurrentPassword" class="form-input"
-                                        placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
+                                    <input type="password" id="adminCurrentPassword" class="form-input" placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6639,10 +6652,8 @@
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminNewPassword" class="form-input"
-                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
+                                    <input type="password" id="adminNewPassword" class="form-input" placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6650,15 +6661,13 @@
                             <div class="form-group">
                                 <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminConfirmPassword" class="form-input"
-                                        placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
+                                    <input type="password" id="adminConfirmPassword" class="form-input" placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="savePasswordChange()"><i class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
                 </div>
@@ -6685,32 +6694,56 @@
                                     placeholder="البريد الإلكتروني للكنيسة">
                             </div>
                         </div>
-                        <div class="settings-section-divider">تغيير كلمة مرور الكنيسة</div>
+                        <div class="settings-field-box">
+                            <button type="button" class="btn btn-outline" style="width:100%; justify-content:center; border-radius: var(--radius);" onclick="openSettingsPage('changeChurchPassword')">
+                                <i class="fas fa-shield-alt"></i> تغيير كلمة مرور الكنيسة &larr;
+                            </button>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Change Church Password -->
+                <div id="settingsPage_changeChurchPassword" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i> الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <button class="settings-bc-item" onclick="openSettingsPage('churchInfo')">بيانات الكنيسة</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">تغيير كلمة مرور الكنيسة</span>
+                    </div>
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
+                            <div class="form-group">
+                                <label class="form-label">كلمة المرور الحالية للكنيسة</label>
+                                <div style="position:relative;">
+                                    <input type="password" id="churchCurrentPassword" class="form-input" placeholder="أدخل كلمة المرور الحالية للكنيسة" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('churchCurrentPassword','eyeChurchCur')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchCur"></i></button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="settings-field-box">
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="churchEditPassword" class="form-input"
-                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('churchEditPassword','eyeChurchPwd')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwd"></i></button>
+                                    <input type="password" id="churchNewPassword" class="form-input" placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('churchNewPassword','eyeChurchNew')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNew"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="settings-field-box">
                             <div class="form-group">
-                                <label class="form-label">تأكيد كلمة المرور</label>
+                                <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="churchEditPasswordConfirm" class="form-input"
-                                        placeholder="أعد كتابة كلمة المرور" style="padding-left:40px;">
-                                    <button type="button"
-                                        onclick="toggleFieldPwd('churchEditPasswordConfirm','eyeChurchPwdConfirm')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchPwdConfirm"></i></button>
+                                    <input type="password" id="churchNewPasswordConfirm" class="form-input" placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('churchNewPasswordConfirm','eyeChurchNewConfirm')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNewConfirm"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchPasswordChange()"><i class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
                 </div>
@@ -9569,11 +9602,13 @@
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ar-EG') : '-';
                 const avatarHtml = u.image_url ? `<div class="avatar-text"><img src="${u.image_url}" alt=""></div>` : `<div class="avatar-text">${u.name.charAt(0)}</div>`;
                 const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(u.church_name || '')}</span>` : '';
-                const actions = [
-                    { label: 'تعديل', icon: 'fa-edit', handler: () => editUncle(u.id, u.name, u.username, u.role, u.image_url || '', u.gender || 'male') },
-                    { label: 'تغيير الصورة', icon: 'fa-camera', handler: () => saveUncleImage(u.id, u.name) },
-                ];
-                if (u.role !== 'developer' && u.role !== 'dev') {
+                const actions = [];
+                const isTargetDev = ['developer', 'dev'].includes(u.role);
+                if (!isTargetDev || isDeveloper) {
+                    actions.push({ label: 'تعديل', icon: 'fa-edit', handler: () => editUncle(u.id, u.name, u.username, u.role, u.image_url || '', u.gender || 'male') });
+                    actions.push({ label: 'تغيير الصورة', icon: 'fa-camera', handler: () => saveUncleImage(u.id, u.name) });
+                }
+                if (!isTargetDev) {
                     actions.push({ label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteUncle(u.id) });
                 }
                 const actKey = stashRowActions(u.name, actions);
@@ -10045,8 +10080,9 @@
         // ── Church Settings Tab loader ────────────────────────────────
         // ── Settings Page Router ──────────────────────────────────────────
         function openSettingsPage(page) {
-            // Hide hub, show the requested page
+            // Hide hub and all other settings pages, show the requested page
             document.getElementById('settingsHub').style.display = 'none';
+            document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
             const el = document.getElementById('settingsPage_' + page);
             if (el) { el.style.display = ''; el.style.removeProperty('display'); }
             if (page === 'kidsGradeUp') {
@@ -10054,6 +10090,16 @@
             }
             if (page === 'adminProfile') loadAdminProfile();
             if (page === 'churchInfo') loadChurchInfoSettings();
+            if (page === 'changePassword') {
+                document.getElementById('adminCurrentPassword') && (document.getElementById('adminCurrentPassword').value = '');
+                document.getElementById('adminNewPassword') && (document.getElementById('adminNewPassword').value = '');
+                document.getElementById('adminConfirmPassword') && (document.getElementById('adminConfirmPassword').value = '');
+            }
+            if (page === 'changeChurchPassword') {
+                document.getElementById('churchCurrentPassword') && (document.getElementById('churchCurrentPassword').value = '');
+                document.getElementById('churchNewPassword') && (document.getElementById('churchNewPassword').value = '');
+                document.getElementById('churchNewPasswordConfirm') && (document.getElementById('churchNewPasswordConfirm').value = '');
+            }
             // Scroll to top of content
             const panel = document.getElementById('churchSettings');
             if (panel) panel.scrollTop = 0;
@@ -13695,17 +13741,19 @@
         }
         // Function to save uncles table as image
         async function saveUnclesTableAsImage() {
-            const tableWrap = document.querySelector('#uncles .table-wrap');
-            if (!tableWrap) {
-                showToast('لا يمكن العثور على الجدول', 'error');
+            const dataList = document.querySelector('#uncles .data-list');
+            if (!dataList) {
+                showToast('لا يمكن العثور على قائمة الخدام', 'error');
                 return;
             }
 
             // Show loading indicator
             const btn = document.querySelector('[onclick="saveUnclesTableAsImage()"]');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btn.disabled = true;
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
 
             try {
                 // Check if html2canvas is loaded, if not load it
@@ -13714,33 +13762,33 @@
                 }
 
                 // Clone the table for capturing
-                const clone = tableWrap.cloneNode(true);
+                const clone = dataList.cloneNode(true);
                 const wrapper = document.createElement('div');
 
                 // Style the wrapper
                 wrapper.style.cssText = `
-            padding: 24px;
-            background: white;
-            border-radius: 14px;
-            font-family: 'Cairo', sans-serif;
-            direction: rtl;
-            min-width: ${tableWrap.scrollWidth + 48}px;
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            z-index: -1;
-        `;
+                    padding: 24px;
+                    background: white;
+                    border-radius: 14px;
+                    font-family: 'Cairo', sans-serif;
+                    direction: rtl;
+                    min-width: 600px;
+                    position: fixed;
+                    top: -9999px;
+                    left: -9999px;
+                    z-index: -1;
+                `;
 
                 // Add header with church info
                 const header = document.createElement('div');
                 header.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e4e7f0;
-        `;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
+                    border-bottom: 2px solid #e4e7f0;
+                `;
 
                 const churchName = document.getElementById('sidebarChurchName')?.textContent || 'مدارس الأحد';
                 const currentDate = new Date().toLocaleDateString('ar-EG', {
@@ -13750,98 +13798,122 @@
                 });
 
                 header.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #818cf8); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-tie" style="color: white; font-size: 0.9rem;"></i>
-                </div>
-                <div>
-                    <div style="font-size: 1rem; font-weight: 800; color: #1a1d2e;">قائمة الخُدام - ${churchName}</div>
-                    <div style="font-size: 0.72rem; color: #6b7280;">${currentDate}</div>
-                </div>
-            </div>
-            <div style="font-size: 0.75rem; color: #6b7280;">
-                إجمالي الخُدام: ${allUncles.length}
-            </div>
-        `;
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #818cf8); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user-tie" style="color: white; font-size: 0.9rem;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1rem; font-weight: 800; color: #1a1d2e;">قائمة الخُدام - ${churchName}</div>
+                            <div style="font-size: 0.72rem; color: #6b7280;">${currentDate}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6b7280;">
+                        إجمالي الخُدام: ${allUncles.length}
+                    </div>
+                `;
 
                 wrapper.appendChild(header);
                 wrapper.appendChild(clone);
 
-                // Style the table
-                const table = clone.querySelector('table');
-                if (table) {
-                    table.style.width = '100%';
-                    table.style.borderCollapse = 'collapse';
-                    table.style.fontFamily = 'Cairo, sans-serif';
+                // Hide action cell (last element) in head and all rows
+                const headLast = clone.querySelector('.data-list-head > *:last-child');
+                if (headLast) headLast.style.display = 'none';
+                
+                clone.querySelectorAll('.data-row').forEach(row => {
+                    const lastCell = row.querySelector('*:last-child');
+                    if (lastCell) lastCell.style.display = 'none';
+                });
 
-                    // Style table headers
-                    table.querySelectorAll('th').forEach(th => {
-                        th.style.cssText = `
-                    padding: 12px 16px;
-                    background: #f8f9fc;
-                    font-size: 0.78rem;
-                    font-weight: 700;
-                    color: #6b7280;
-                    border-bottom: 1px solid #e4e7f0;
-                    white-space: nowrap;
-                    text-align: right;
-                `;
-                    });
-
-                    // Style table cells
-                    table.querySelectorAll('td').forEach(td => {
-                        td.style.cssText = `
-                    padding: 12px 16px;
-                    border-bottom: 1px solid #f1f3f8;
-                    font-size: 0.88rem;
-                    vertical-align: middle;
-                    text-align: right;
-                `;
-                    });
-
-                    // Hide action buttons column (last column)
-                    const lastCells = table.querySelectorAll('td:last-child, th:last-child');
-                    lastCells.forEach(el => {
-                        if (el.querySelector('.actions') || el.textContent.trim() === 'الإجراءات') {
-                            el.style.display = 'none';
-                        }
-                    });
-
-                    // Add background to rows
-                    table.querySelectorAll('tbody tr').forEach((tr, index) => {
-                        if (index % 2 === 1) {
-                            tr.style.backgroundColor = '#fafbff';
-                        }
-                    });
-
-                    // Style badges
-                    table.querySelectorAll('.badge').forEach(badge => {
-                        badge.style.cssText = `
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 3px 10px;
-                    border-radius: 20px;
-                    font-size: 0.72rem;
-                    font-weight: 700;
-                    white-space: nowrap;
-                `;
-                    });
-
-                    table.querySelectorAll('.badge-success').forEach(b => {
-                        b.style.backgroundColor = '#d1fae5';
-                        b.style.color = '#065f46';
-                    });
-
-                    table.querySelectorAll('.badge-info').forEach(b => {
-                        b.style.backgroundColor = '#dbeafe';
-                        b.style.color = '#1e40af';
-                    });
-
-                    table.querySelectorAll('.badge-dev').forEach(b => {
-                        b.style.backgroundColor = '#ede9fe';
-                        b.style.color = '#5b21b6';
-                    });
+                // Style the list elements as a clean table/grid representation
+                const showChurch = clone.querySelector('.dev-church');
+                const gridTemplate = showChurch ? '40px 1fr 120px 100px 120px' : '40px 1fr 100px 120px';
+                
+                const head = clone.querySelector('.data-list-head');
+                if (head) {
+                    head.style.cssText = `
+                        display: grid;
+                        grid-template-columns: ${gridTemplate};
+                        padding: 12px 16px;
+                        background: #f8f9fc;
+                        border-bottom: 2px solid #e4e7f0;
+                        font-weight: 700;
+                        font-size: 0.82rem;
+                        color: #6b7280;
+                        gap: 12px;
+                        align-items: center;
+                    `;
                 }
+                
+                clone.querySelectorAll('.data-row').forEach((row, index) => {
+                    row.style.cssText = `
+                        display: grid;
+                        grid-template-columns: ${gridTemplate};
+                        padding: 14px 16px;
+                        border-bottom: 1px solid #f1f3f8;
+                        align-items: center;
+                        gap: 12px;
+                        background: ${index % 2 === 1 ? '#fafbff' : '#ffffff'};
+                    `;
+                    
+                    const nameCell = row.querySelector('.td-name-cell');
+                    if (nameCell) {
+                        nameCell.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            text-align: right;
+                        `;
+                    }
+                    
+                    const avatar = row.querySelector('.avatar-text');
+                    if (avatar) {
+                        avatar.style.cssText = `
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 50%;
+                            background: #eef2ff;
+                            color: #4f46e5;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            overflow: hidden;
+                        `;
+                        const img = avatar.querySelector('img');
+                        if (img) {
+                            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                        }
+                    }
+                });
+
+                clone.querySelectorAll('.badge').forEach(badge => {
+                    badge.style.cssText = `
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 4px 12px;
+                        border-radius: 9999px;
+                        font-size: 0.76rem;
+                        font-weight: 700;
+                        white-space: nowrap;
+                        text-align: center;
+                        width: fit-content;
+                    `;
+                    if (badge.classList.contains('badge-success')) {
+                        badge.style.backgroundColor = '#d1fae5';
+                        badge.style.color = '#065f46';
+                    } else if (badge.classList.contains('badge-info')) {
+                        badge.style.backgroundColor = '#dbeafe';
+                        badge.style.color = '#1e40af';
+                    } else if (badge.classList.contains('badge-dev')) {
+                        badge.style.backgroundColor = '#ede9fe';
+                        badge.style.color = '#5b21b6';
+                    } else if (badge.classList.contains('badge-primary')) {
+                        badge.style.backgroundColor = '#eff6ff';
+                        badge.style.color = '#1d4ed8';
+                    }
+                });
 
                 document.body.appendChild(wrapper);
 
@@ -13869,8 +13941,10 @@
                 showToast('فشل في حفظ الصورة', 'error');
             } finally {
                 // Restore button
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
             }
         }
 
@@ -14675,34 +14749,51 @@
         // ══════════════════════════════════════════════════════
         // ADMIN PROFILE (Church Settings Tab)
         // ══════════════════════════════════════════════════════
+        let currentProfileUncleId = null;
+        let currentProfileUncleRole = '';
+
         async function loadAdminProfile() {
             if (!allUncles.length) {
                 try { await loadUncles(); } catch (e) { /* ignore */ }
             }
-            const admin = allUncles.find(u => u.role === 'admin')
-                || allUncles.find(u => u.role !== 'uncle' && u.role !== 'developer' && u.role !== 'dev');
-            const nameEl = document.getElementById('adminProfileName');
-            const userInp = document.getElementById('adminProfileUsername');
-            if (nameEl) nameEl.value = admin?.name || localStorage.getItem('uncleName') || document.getElementById('sidebarUserName')?.textContent?.trim() || '';
-            if (userInp) {
-                userInp.value = isDeveloper ? '—' : (admin?.username || '');
-                const box = userInp.closest('.settings-field-box');
-                if (box) box.style.display = isDeveloper ? 'none' : '';
+            // Fetch session info
+            const fd = mkFd('getSessionInfo');
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            
+            let targetUncle = null;
+            if (d.success && d.uncle_id) {
+                targetUncle = allUncles.find(u => u.id == d.uncle_id);
+            }
+            if (!targetUncle) {
+                // fallback to the admin uncle
+                targetUncle = allUncles.find(u => u.role === 'admin')
+                    || allUncles.find(u => u.role !== 'uncle' && u.role !== 'developer' && u.role !== 'dev');
             }
 
-            document.getElementById('adminCurrentPassword') && (document.getElementById('adminCurrentPassword').value = '');
-            document.getElementById('adminNewPassword') && (document.getElementById('adminNewPassword').value = '');
-            document.getElementById('adminConfirmPassword') && (document.getElementById('adminConfirmPassword').value = '');
-
-            document.querySelectorAll('#settingsPage_adminProfile .settings-section-divider').forEach(div => {
-                if (!div.textContent.includes('كلمة المرور')) return;
-                div.style.display = isDeveloper ? 'none' : '';
-                let next = div.nextElementSibling;
-                while (next && next.classList.contains('settings-field-box')) {
-                    next.style.display = isDeveloper ? 'none' : '';
-                    next = next.nextElementSibling;
+            if (targetUncle) {
+                currentProfileUncleId = targetUncle.id;
+                currentProfileUncleRole = targetUncle.role;
+                
+                const nameEl = document.getElementById('adminProfileName');
+                const userInp = document.getElementById('adminProfileUsername');
+                if (nameEl) nameEl.value = targetUncle.name || '';
+                if (userInp) {
+                    userInp.value = targetUncle.username || '';
+                    const box = userInp.closest('.settings-field-box');
+                    if (box) box.style.display = '';
                 }
-            });
+            } else {
+                currentProfileUncleId = d.uncle_id || null;
+                currentProfileUncleRole = d.role || d.uncle_role || '';
+                const nameEl = document.getElementById('adminProfileName');
+                const userInp = document.getElementById('adminProfileUsername');
+                if (nameEl) nameEl.value = d.uncle_name || '';
+                if (userInp) {
+                    userInp.value = d.uncle_username || '';
+                    const box = userInp.closest('.settings-field-box');
+                    if (box) box.style.display = '';
+                }
+            }
         }
 
         async function loadChurchInfoSettings() {
@@ -14713,20 +14804,14 @@
                 const emailEl = document.getElementById('churchEditEmail');
                 if (nameEl) nameEl.value = d.church_name || localStorage.getItem('churchName') || '';
                 if (emailEl) emailEl.value = d.admin_email || '';
-                document.getElementById('churchEditPassword') && (document.getElementById('churchEditPassword').value = '');
-                document.getElementById('churchEditPasswordConfirm') && (document.getElementById('churchEditPasswordConfirm').value = '');
             } catch (e) { }
         }
 
         async function saveChurchInfoSettings() {
             const newName = (document.getElementById('churchEditName')?.value || '').trim();
             const newEmail = (document.getElementById('churchEditEmail')?.value || '').trim();
-            const newPwd = (document.getElementById('churchEditPassword')?.value || '');
-            const confPwd = (document.getElementById('churchEditPasswordConfirm')?.value || '');
 
             if (!newName) { showToast('اسم الكنيسة مطلوب', 'error'); return; }
-            if (newPwd && newPwd.length < 6) { showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
-            if (newPwd && newPwd !== confPwd) { showToast('كلمتا المرور غير متطابقتين', 'error'); return; }
 
             const cid = sessionChurchId || getChurchId();
             if (!cid) { showToast('لم يتم تحديد الكنيسة', 'error'); return; }
@@ -14745,21 +14830,6 @@
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (!d.success) { showToast(d.message || 'فشل في حفظ بيانات الكنيسة', 'error'); return; }
 
-            // Update password if provided
-            if (newPwd) {
-                const fdp = new FormData();
-                fdp.append('action', 'updateChurchPassword');
-                fdp.append('church_id', cid);
-                fdp.append('new_password', newPwd);
-                const dp = await fetch(API_URL, { method: 'POST', body: fdp }).then(r => r.json()).catch(() => ({ success: false }));
-                if (!dp.success) { showToast(dp.message || 'تم حفظ البيانات لكن فشل تغيير كلمة المرور', 'warning'); }
-                else {
-                    churchInfoRealPassword = newPwd;
-                    document.getElementById('churchEditPassword').value = '';
-                    document.getElementById('churchEditPasswordConfirm').value = '';
-                }
-            }
-
             // Update sidebar + localStorage
             localStorage.setItem('churchName', newName);
             const sidebarNameEl = document.getElementById('sidebarChurchName');
@@ -14771,52 +14841,99 @@
         async function saveAdminProfile() {
             const newName = (document.getElementById('adminProfileName')?.value || '').trim();
             const newUser = (document.getElementById('adminProfileUsername')?.value || '').trim();
-            const curPwd = (document.getElementById('adminCurrentPassword')?.value || '');
-            const newPwd = (document.getElementById('adminNewPassword')?.value || '');
-            const confirmPwd = (document.getElementById('adminConfirmPassword')?.value || '');
 
             if (!newName) { showToast('الاسم مطلوب', 'error'); return; }
             if (!newUser) { showToast('اسم المستخدم مطلوب', 'error'); return; }
 
-            if (newPwd || curPwd || confirmPwd) {
-                if (!curPwd) { showToast('أدخل كلمة المرور الحالية', 'error'); return; }
-                if (newPwd.length < 6) { showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
-                if (newPwd !== confirmPwd) { showToast('كلمتا المرور الجديدتان غير متطابقتين', 'error'); return; }
-            }
-
-            const admin = allUncles.find(u => u.role === 'admin');
-            if (!admin) { showToast('لم يتم العثور على حساب المسؤول', 'error'); return; }
+            const targetId = currentProfileUncleId || (allUncles.find(u => u.role === 'admin')?.id);
+            if (!targetId) { showToast('لم يتم العثور على حساب المسؤول', 'error'); return; }
 
             const fd = _appendDevOverride(new FormData());
             fd.append('action', 'updateUncle');
-            fd.append('uncle_id', admin.id);
+            fd.append('uncle_id', targetId);
             fd.append('name', newName);
             fd.append('username', newUser);
-            fd.append('role', 'admin');
-            if (newPwd && curPwd) {
-                fd.append('current_password', curPwd);
-                fd.append('new_password', newPwd);
-            }
+            
+            const targetRole = currentProfileUncleRole || (allUncles.find(u => u.id == targetId)?.role) || 'admin';
+            fd.append('role', targetRole);
 
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) {
                 showToast('تم حفظ بيانات الحساب بنجاح ✅', 'success');
-                // If password was changed, store it so the copy button works
-                if (newPwd && curPwd) {
-                    churchInfoRealPassword = newPwd;
-                    const pwdEl = document.getElementById('churchInfoPassword');
-                    if (pwdEl && churchPasswordVisible) pwdEl.textContent = newPwd;
-                }
-                // Clear password fields
-                ['adminCurrentPassword', 'adminNewPassword', 'adminConfirmPassword'].forEach(id => {
-                    const el = document.getElementById(id); if (el) el.value = '';
-                });
                 // Update stored name
                 if (newName) { localStorage.setItem('uncleName', newName); document.getElementById('sidebarUserName').textContent = newName; document.getElementById('sidebarAvatar').textContent = newName.charAt(0); }
                 if (newUser) localStorage.setItem('uncleUsername', newUser);
                 loadUncles();
             } else {
                 showToast(d.message || 'فشل في الحفظ', 'error');
+            }
+        }
+
+        async function savePasswordChange() {
+            const curPwd = (document.getElementById('adminCurrentPassword')?.value || '');
+            const newPwd = (document.getElementById('adminNewPassword')?.value || '');
+            const confirmPwd = (document.getElementById('adminConfirmPassword')?.value || '');
+
+            if (!curPwd) { showToast('أدخل كلمة المرور الحالية', 'error'); return; }
+            if (newPwd.length < 6) { showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+            if (newPwd !== confirmPwd) { showToast('كلمتا المرور الجديدتان غير متطابقتين', 'error'); return; }
+
+            const targetId = currentProfileUncleId || (allUncles.find(u => u.role === 'admin')?.id);
+            if (!targetId) { showToast('لم يتم العثور على حساب المسؤول', 'error'); return; }
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'updateUncle');
+            fd.append('uncle_id', targetId);
+            // Send existing name and username (so they are not blanked out)
+            const nameVal = document.getElementById('adminProfileName')?.value || '';
+            const userVal = document.getElementById('adminProfileUsername')?.value || '';
+            fd.append('name', nameVal);
+            fd.append('username', userVal);
+            const targetRole = currentProfileUncleRole || (allUncles.find(u => u.id == targetId)?.role) || 'admin';
+            fd.append('role', targetRole);
+            fd.append('current_password', curPwd);
+            fd.append('new_password', newPwd);
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast('تم تغيير كلمة المرور بنجاح ✅', 'success');
+                // Clear fields
+                ['adminCurrentPassword', 'adminNewPassword', 'adminConfirmPassword'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.value = '';
+                });
+                openSettingsPage('adminProfile');
+            } else {
+                showToast(d.message || 'فشل في تغيير كلمة المرور', 'error');
+            }
+        }
+
+        async function saveChurchPasswordChange() {
+            const curPwd = (document.getElementById('churchCurrentPassword')?.value || '');
+            const newPwd = (document.getElementById('churchNewPassword')?.value || '');
+            const confirmPwd = (document.getElementById('churchNewPasswordConfirm')?.value || '');
+
+            if (!curPwd) { showToast('أدخل كلمة المرور الحالية للكنيسة', 'error'); return; }
+            if (newPwd.length < 6) { showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+            if (newPwd !== confirmPwd) { showToast('كلمتا المرور الجديدتان غير متطابقتين', 'error'); return; }
+
+            const cid = sessionChurchId || getChurchId();
+            if (!cid) { showToast('لم يتم تحديد الكنيسة', 'error'); return; }
+
+            const fdp = new FormData();
+            fdp.append('action', 'updateChurchPassword');
+            fdp.append('church_id', cid);
+            fdp.append('current_password', curPwd);
+            fdp.append('new_password', newPwd);
+
+            const dp = await fetch(API_URL, { method: 'POST', body: fdp }).then(r => r.json()).catch(() => ({ success: false }));
+            if (dp.success) {
+                showToast('تم تغيير كلمة مرور الكنيسة بنجاح ✅', 'success');
+                ['churchCurrentPassword', 'churchNewPassword', 'churchNewPasswordConfirm'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.value = '';
+                });
+                openSettingsPage('churchInfo');
+            } else {
+                showToast(dp.message || 'فشل في تغيير كلمة المرور', 'error');
             }
         }
 
