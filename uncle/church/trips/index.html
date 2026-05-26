@@ -3025,10 +3025,16 @@
       justify-content: center;
       align-items: center;
       margin: 0 auto;
+      overflow: visible !important;
+      border-radius: 0 !important;
     }
 
     .print-card div[id^="qrcode_"] canvas, .print-card div[id^="prev_qrcode_"] canvas {
-      display: none !important;
+      width: var(--qr-size, 130px) !important;
+      height: var(--qr-size, 130px) !important;
+      display: block !important;
+      margin: 0 auto;
+      image-rendering: pixelated;
     }
 
     .print-card div[id^="qrcode_"] img, .print-card div[id^="prev_qrcode_"] img {
@@ -3036,25 +3042,42 @@
       height: var(--qr-size, 130px) !important;
       display: block !important;
       margin: 0 auto;
+      overflow: visible !important;
+      border-radius: 0 !important;
     }
 
     @media print {
+      @page {
+        size: auto;
+        margin: 8mm;
+      }
+
       body>*:not(#printArea) {
         display: none !important;
       }
 
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
       #printArea {
         display: grid !important;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        justify-items: center;
+        align-items: start;
+        gap: 10mm;
         width: 100%;
-        margin: 0;
-        padding: 0;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 2mm;
+        box-sizing: border-box;
       }
 
       .print-card {
         break-inside: avoid;
         page-break-inside: avoid;
+        margin: 0 auto;
       }
     }
 
@@ -3907,7 +3930,78 @@
       switchTripTab('exp');
     }
 
-    function exportTripData(id, fmt) { window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`; }
+    async function exportTripData(id, fmt) {
+      if (fmt !== 'csv') {
+        window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`;
+        return;
+      }
+
+      let trip = allTripsCache.find(t => t.id == id) || window.currentTripObj;
+      let regs = tripRegistrationsCache[id] || trip?.registrations || [];
+
+      if (!trip || !regs.length) {
+        try {
+          const fd = mkFd('getTripDetails');
+          fd.append('trip_id', id);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res?.success && res.trip) {
+            trip = res.trip;
+            regs = res.trip.registrations || [];
+            tripRegistrationsCache[id] = regs;
+          }
+        } catch (e) {}
+      }
+
+      if (!regs.length) {
+        showToast('لا يوجد مسجلون لتصديرهم', 'warning');
+        return;
+      }
+
+      const headers = [
+        'Registration ID',
+        'Type',
+        'Student ID',
+        'Guest ID',
+        'Name',
+        'Class',
+        'Church',
+        'Phone',
+        'Guardian',
+        'Paid',
+        'Donation',
+        'Status',
+        'Added At',
+        'Notes'
+      ];
+
+      const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+      const rows = regs.map(r => [
+        r.id,
+        r.registration_type || (r.guest_id ? 'guest' : 'student'),
+        r.student_id || '',
+        r.guest_id || '',
+        r.student_name || r.guest_name || r.name || '',
+        r.student_class || r.guest_class || r.class_name || '',
+        r.church_name || r.student_church || '',
+        r.phone || r.guest_phone || '',
+        r.guardian_name || r.guest_guardian_name || '',
+        r.total_paid ?? r.deposit ?? '',
+        r.total_donation ?? r.donation ?? '',
+        r.payment_status || '',
+        r.added_at || r.created_at || '',
+        r.notes || ''
+      ].map(escapeCsv).join(','));
+
+      const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `trip_${id}_registrations.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
     function copyTripLink(id) { const url = window.location.origin + window.location.pathname + `#trips?trip_id=${id}`; navigator.clipboard?.writeText(url).then(() => showToast?.('تم نسخ رابط الرحلة', 'success')).catch(() => showToast?.('فشل في نسخ الرابط', 'error')); }
 
     async function handleJoinTrip(tripId) {
@@ -6426,6 +6520,48 @@
       return printScale;
     }
 
+    function syncPrintSettingsUI() {
+      const showTripImgChecked = document.getElementById('printShowTripImage')?.checked;
+      const tripImageSubSettings = document.getElementById('printTripImageSubSettings');
+      if (tripImageSubSettings) tripImageSubSettings.style.display = showTripImgChecked ? 'flex' : 'none';
+
+      const tripImgAsBgChecked = document.getElementById('printTripImgAsBg')?.checked;
+      const bgOptions = document.getElementById('printImgBgOptions');
+      const inlineOptions = document.getElementById('printImgInlineOptions');
+      if (bgOptions) bgOptions.style.display = showTripImgAsBgChecked && showTripImgChecked ? 'flex' : 'none';
+      if (inlineOptions) inlineOptions.style.display = showTripImgChecked && !showTripImgAsBgChecked ? 'block' : 'none';
+
+      const showStudentImgChecked = document.getElementById('printShowStudentImg')?.checked;
+      const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
+      if (avatarFallbackRow) avatarFallbackRow.style.display = showStudentImgChecked ? 'flex' : 'none';
+
+      togglePrintDashControls();
+    }
+
+    function buildCustomDataMarkup(customDataRaw, trip) {
+      if (!customDataRaw) return '';
+      try {
+        const cd = typeof customDataRaw === 'string' ? JSON.parse(customDataRaw) : customDataRaw;
+        const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
+        return Object.entries(cd).map(([key, value]) => {
+          if (value == null || String(value).trim() === '') return '';
+          if (key.includes('__sf__')) {
+            const [parentName, sfName] = key.split('__sf__');
+            const parentMeta = cfIcons[parentName] || {};
+            const subFields = (parentMeta.sub_fields && parentMeta.sub_fields[cd[parentName]]) ? parentMeta.sub_fields[cd[parentName]] : [];
+            const sfMeta = subFields.find(sf => sf.name === sfName) || {};
+            const iconClass = sfMeta.icon || 'fas fa-tag';
+            return `<span><i class="${iconClass}"></i> ${sfName}: <strong>${escHtml(value)}</strong></span>`;
+          }
+          const meta = cfIcons[key];
+          const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
+          return `<span><i class="${iconClass}"></i> ${escHtml(value)}</span>`;
+        }).filter(Boolean).join(' ');
+      } catch (e) {
+        return '';
+      }
+    }
+
     function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap) {
       const borderColor = '#000000';
       const borderRadius = 10;
@@ -6490,6 +6626,13 @@
         }
       }
 
+      const safeStudentName = escHtml(r.student_name || r.guest_name || '؟');
+      const safeTripTitle = escHtml(trip.title || '');
+      const hasCustomContent = showCustom && !!String(customHtml || '').trim();
+      const qrWrapperStyles = textReadability === 'rect'
+        ? `background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px; border-radius:${10 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05);`
+        : '';
+
       // Inline small trip image rounding & dimensions
       const inlineRadius = tripImgRounded ? `${8 * scale}px` : '0px';
       const tripImageHtml = (showTripImage && !tripImgAsBg && trip.image_url) 
@@ -6547,9 +6690,9 @@
       // Trip Title + Inline Image Group
       let tripInfoGroupHtml = '';
       if (showTripImage || showTripTitle) {
-        const titleTag = showTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${trip.title}</h3>` : '';
+        const titleTag = showTripTitle && safeTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeTripTitle}</h3>` : '';
         const hasTripImgContent = showTripImage && !tripImgAsBg && trip.image_url;
-        const hasAnyTripContent = hasTripImgContent || showTripTitle;
+        const hasAnyTripContent = hasTripImgContent || !!titleTag;
         if (textReadability === 'rect' && hasAnyTripContent) {
           tripInfoGroupHtml = `
             <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px ${10 * scale}px; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
@@ -6568,13 +6711,12 @@
       // Student Avatar + Name + Custom Info Group
       let studentInfoGroupHtml = '';
       if (showStudentImg || showStudentName || showCustom) {
-        const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${r.student_name || '؟'}</h2>` : '';
-        const customTag = showCustom ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
+        const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+        const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
         
         // Check if there's any actual content to show
         const hasAvatarContent = !!avatarHtml;
         const hasNameContent = showStudentName;
-        const hasCustomContent = showCustom && customHtml;
         const hasAnyStudentContent = hasAvatarContent || hasNameContent || hasCustomContent;
 
         if (textReadability === 'rect' && hasAnyStudentContent) {
@@ -6603,7 +6745,7 @@
               ${churchHeaderHtml}
               ${tripInfoGroupHtml}
               ${studentInfoGroupHtml}
-              <div style="background: ${textReadability === 'rect' ? 'rgba(255,255,255,0.92)' : 'transparent'}; border: ${textReadability === 'rect' ? `1px solid ${strokeColor}` : 'none'}; padding: ${textReadability === 'rect' ? `${6 * scale}px` : '0px'}; border-radius: ${textReadability === 'rect' ? `${10 * scale}px` : '0px'}; box-shadow: ${textReadability === 'rect' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'}; display:flex; justify-content:center; align-items:center; overflow:hidden;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; border-radius:${6 * scale}px; overflow:hidden;"></div></div>
+              <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
           </div>
       </div>
       `;
@@ -6612,6 +6754,8 @@
     function updatePrintPreview() {
       const tripId = document.getElementById('printTripId').value;
       if (!tripId) return;
+
+      syncPrintSettingsUI();
 
       let regs = tripRegistrationsCache[tripId] || [];
       let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
@@ -6644,35 +6788,17 @@
       const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
       const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
 
-      // Use a mock/demo registration for preview (not a real kid)
+      const sourceReg = regs[0] || {};
       const r = {
-        id: 'preview_demo',
-        student_id: 'demo',
-        student_name: 'اسم الطفل',
-        student_image: '',   // intentionally blank so avatar fallback is demonstrated
-        custom_data: regs[0]?.custom_data || null
+        ...sourceReg,
+        id: sourceReg.id || 'preview_demo',
+        student_id: sourceReg.student_id || sourceReg.guest_id || 'demo',
+        student_name: sourceReg.student_name || sourceReg.guest_name || sourceReg.name || 'اسم الطفل',
+        student_image: sourceReg.student_image || '',
+        custom_data: sourceReg.custom_data || null
       };
       
-      let customHtml = '';
-      if (showCustom && r.custom_data) {
-        try {
-          const cd = JSON.parse(r.custom_data);
-          const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
-          customHtml = Object.entries(cd).map(([key, value]) => {
-            if (key.includes('__sf__')) {
-              const [parentName, sfName] = key.split('__sf__');
-              const parentMeta = cfIcons[parentName] || {};
-              const subFields = (parentMeta.sub_fields && parentMeta.sub_fields[cd[parentName]]) ? parentMeta.sub_fields[cd[parentName]] : [];
-              const sfMeta = subFields.find(sf => sf.name === sfName) || {};
-              const iconClass = sfMeta.icon || 'fas fa-tag';
-              return `<i class="${iconClass}"></i> ${sfName}: <strong>${value}</strong>`;
-            }
-            const meta = cfIcons[key];
-            const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
-            return `<i class="${iconClass}"></i> ${value}`;
-          }).join(' | ');
-        } catch (e) { }
-      }
+      const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
       const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
 
@@ -6691,7 +6817,7 @@
         height: qrSize,
         colorDark: "#000000",
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        correctLevel: QRCode.CorrectLevel.M
       });
     }
 
@@ -6716,13 +6842,7 @@
         } catch (e) { }
       }
       
-      // Update the visibility of trip image sub settings based on checkbox state
-      const showTripImgChecked = document.getElementById('printShowTripImage').checked;
-      document.getElementById('printTripImageSubSettings').style.display = showTripImgChecked ? 'flex' : 'none';
-      const tripImgAsBgChecked = document.getElementById('printTripImgAsBg').checked;
-      document.getElementById('printImgBgOptions').style.display = tripImgAsBgChecked ? 'flex' : 'none';
-      document.getElementById('printImgInlineOptions').style.display = tripImgAsBgChecked ? 'none' : 'block';
-      togglePrintDashControls();
+      syncPrintSettingsUI();
 
       updatePrintPreview();
     }
@@ -6779,28 +6899,9 @@
 
       regs.forEach(r => {
         const cardId = 'qrcode_' + r.id;
-        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
-        
-        let customHtml = '';
-        if (showCustom && r.custom_data) {
-          try {
-            const cd = JSON.parse(r.custom_data);
-            const cfIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : (JSON.parse(trip.custom_field_icons || '{}'));
-            customHtml = Object.entries(cd).map(([key, value]) => {
-              if (key.includes('__sf__')) {
-                const [parentName, sfName] = key.split('__sf__');
-                const parentMeta = cfIcons[parentName] || {};
-                const subFields = (parentMeta.sub_fields && parentMeta.sub_fields[cd[parentName]]) ? parentMeta.sub_fields[cd[parentName]] : [];
-                const sfMeta = subFields.find(sf => sf.name === sfName) || {};
-                const iconClass = sfMeta.icon || 'fas fa-tag';
-                return `<i class="${iconClass}"></i> ${sfName}: <strong>${value}</strong>`;
-              }
-              const meta = cfIcons[key];
-              const iconClass = meta ? ((typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag')) : 'fas fa-tag';
-              return `<i class="${iconClass}"></i> ${value}`;
-            }).join(' | ');
-          } catch (e) { }
-        }
+        const qrParam = r.student_id ? `student_id=${encodeURIComponent(r.student_id)}` : `guest_id=${encodeURIComponent(r.guest_id || r.id)}`;
+        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&${qrParam}`;
+        const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
         html += generateCardMarkup({
           trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
@@ -6816,7 +6917,7 @@
       
       const qrSize = Math.max(80, 130 * scale);
       qrTasks.forEach(task => {
-        new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+        new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
       });
 
       setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.gap = ''; }, 1000); }, 1200);
@@ -7258,7 +7359,7 @@
               <label class="form-label">شكل إطار الكارت</label>
               <select id="printCardOutlineStyle" class="form-select" style="width:100%;" onchange="togglePrintDashControls(); updatePrintPreview()">
                 <option value="dashed">متقطع</option>
-                <option value="solid">مصمت</option>
+                <option value="solid" selected>مصمت</option>
               </select>
             </div>
             <div id="printDashControls" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -7365,7 +7466,7 @@
             <select id="printTextReadability" class="form-select" style="width:100%;" onchange="updatePrintPreview()">
               <option value="none">بدون تأثير إضافي (تلقائي)</option>
               <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
-              <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
+              <option value="rect" selected>مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
             </select>
           </div>
 
