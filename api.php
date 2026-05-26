@@ -1624,6 +1624,9 @@ try {
         case 'deleteGuest':
             deleteGuest();
             break;
+        case 'transferGuestToStudent':
+            transferGuestToStudent();
+            break;
         case 'addTrip':
             addTrip();
             break;
@@ -13656,6 +13659,9 @@ try {
         case 'deleteGuest':
             deleteGuest();
             break;
+        case 'transferGuestToStudent':
+            transferGuestToStudent();
+            break;
 
         case 'addTrip':
             addTrip();
@@ -18740,3 +18746,120 @@ function deleteGuest()
     }
 }
 
+function transferGuestToStudent()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureGuestsTable($conn);
+
+        $guestId = intval($_POST['guest_id'] ?? 0);
+        $classId = intval($_POST['class_id'] ?? 0);
+        $customClassName = sanitize($_POST['custom_class_name'] ?? '');
+
+        if ($guestId === 0) {
+            sendJSON(['success' => false, 'message' => 'معرف الزائر مطلوب']);
+            return;
+        }
+
+        // Fetch guest data
+        $gstmt = $conn->prepare("SELECT * FROM guests WHERE id = ? AND church_id = ?");
+        $gstmt->bind_param("ii", $guestId, $churchId);
+        $gstmt->execute();
+        $guest = $gstmt->get_result()->fetch_assoc();
+
+        if (!$guest) {
+            sendJSON(['success' => false, 'message' => 'الزائر غير موجود']);
+            return;
+        }
+
+        // Determine the class_id and class name
+        $className = '';
+        if ($classId > 0) {
+            // Check custom church_classes first
+            $cs = $conn->prepare("SELECT arabic_name FROM church_classes WHERE id = ? AND church_id = ?");
+            $cs->bind_param("ii", $classId, $churchId);
+            $cs->execute();
+            $cr = $cs->get_result()->fetch_assoc();
+            if ($cr) {
+                $className = $cr['arabic_name'];
+            } else {
+                // Try global classes
+                $gs = $conn->prepare("SELECT arabic_name FROM classes WHERE id = ?");
+                $gs->bind_param("i", $classId);
+                $gs->execute();
+                $gr = $gs->get_result()->fetch_assoc();
+                $className = $gr ? $gr['arabic_name'] : '';
+            }
+        } elseif (!empty($customClassName)) {
+            // "Other" was selected – use custom name, class_id stays 0
+            $className = $customClassName;
+            $classId = 0;
+        } else {
+            sendJSON(['success' => false, 'message' => 'يجب اختيار فصل دراسي']);
+            return;
+        }
+
+        $conn->begin_transaction();
+
+        // Insert into students table
+        $name = $guest['name'];
+        $gender = $guest['gender'];
+        $phone = $guest['phone'];
+        $guardianName = $guest['guardian_name'];
+        $notes = $guest['notes'];
+
+        $ins = $conn->prepare("
+            INSERT INTO students
+                (church_id, name, gender, class_id, class, phone, emergency_phone, enrollment_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+        ");
+        $ins->bind_param(
+            "ississs",
+            $churchId,
+            $name,
+            $gender,
+            $classId,
+            $className,
+            $phone,
+            $guardianName
+        );
+
+        if (!$ins->execute()) {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل في إنشاء سجل الطالب: ' . $ins->error]);
+            return;
+        }
+
+        $newStudentId = $conn->insert_id;
+
+        // Update trip_registrations: link to new student_id and change type
+        $upd = $conn->prepare("
+            UPDATE trip_registrations
+            SET student_id = ?, registration_type = 'student', guest_id = NULL
+            WHERE guest_id = ? AND cancelled = 0
+        ");
+        $upd->bind_param("ii", $newStudentId, $guestId);
+        $upd->execute();
+
+        // Delete the guest record (already transferred)
+        $del = $conn->prepare("DELETE FROM guests WHERE id = ? AND church_id = ?");
+        $del->bind_param("ii", $guestId, $churchId);
+        $del->execute();
+
+        $conn->commit();
+
+        sendJSON([
+            'success' => true,
+            'student_id' => $newStudentId,
+            'message' => 'تم تحويل الزائر "' . $name . '" إلى طالب بنجاح'
+        ]);
+    } catch (Exception $e) {
+        if (isset($conn) && $conn->errno) {
+            $conn->rollback();
+        }
+        error_log("transferGuestToStudent error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في التحويل: ' . $e->getMessage()]);
+    }
+}

@@ -6416,7 +6416,11 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">الفصل / المرحلة الدراسية</label>
-                                        <input type="text" id="dashboardGuestClass" class="form-input" placeholder="مثال: حضانة، أولى ابتدائي...">
+                                        <select id="dashboardGuestClassSelect" class="form-select" style="width:100%;" onchange="toggleGuestCustomClass(this)">
+                                            <option value="">— اختر الفصل —</option>
+                                            <option value="other">أخرى (كتابة يدوية)</option>
+                                        </select>
+                                        <input type="text" id="dashboardGuestClassCustom" class="form-input" placeholder="اكتب اسم الفصل..." style="display:none; margin-top:8px;">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">رقم الهاتف</label>
@@ -10221,6 +10225,8 @@
 
         // ── Guests ─────────────────────────────────────────────────────
         function loadGuests() {
+            // Populate class dropdown on first load
+            populateGuestClassDropdown('dashboardGuestClassSelect');
             const fd = _appendDevOverride(new FormData());
             fd.append('action', 'getGuests');
             return fetch(API_URL, { method: 'POST', body: fd })
@@ -10262,6 +10268,7 @@
             tb.innerHTML = guests.map(g => {
                 const actKey = stashRowActions(g.name, [
                     { label: 'تعديل', icon: 'fa-edit', handler: () => editGuest(g) },
+                    { label: 'تحويل لطالب', icon: 'fa-user-graduate', handler: () => openTransferGuestModal(g) },
                     { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteGuestConfirm(g.id, g.name) },
                 ]);
                 const genderLbl = g.gender === 'male' ? 'ولد' : (g.gender === 'female' ? 'بنت' : '—');
@@ -10305,6 +10312,9 @@
                 lbl.textContent = 'إضافة زائر';
                 form.reset();
                 document.getElementById('dashboardGuestId').value = '';
+                document.getElementById('dashboardGuestClassSelect').value = '';
+                document.getElementById('dashboardGuestClassCustom').style.display = 'none';
+                document.getElementById('dashboardGuestClassCustom').value = '';
                 document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> إضافة الزائر';
             }
         }
@@ -10313,7 +10323,14 @@
             e.preventDefault();
             const name = document.getElementById('dashboardGuestName').value.trim();
             const gender = document.getElementById('dashboardGuestGender').value;
-            const guestClass = document.getElementById('dashboardGuestClass').value.trim();
+            const classSelect = document.getElementById('dashboardGuestClassSelect');
+            const classCustom = document.getElementById('dashboardGuestClassCustom');
+            let guestClass = '';
+            if (classSelect.value === 'other') {
+                guestClass = classCustom.value.trim();
+            } else if (classSelect.value) {
+                guestClass = classSelect.options[classSelect.selectedIndex].text;
+            }
             const phone = document.getElementById('dashboardGuestPhone').value.trim();
             const guardian = document.getElementById('dashboardGuestGuardian').value.trim();
             const notes = document.getElementById('dashboardGuestNotes').value.trim();
@@ -10343,6 +10360,9 @@
                         showToast(d.message || 'تمت العملية بنجاح', 'success');
                         document.getElementById('addGuestForm').reset();
                         document.getElementById('dashboardGuestId').value = '';
+                        document.getElementById('dashboardGuestClassSelect').value = '';
+                        document.getElementById('dashboardGuestClassCustom').style.display = 'none';
+                        document.getElementById('dashboardGuestClassCustom').value = '';
                         document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> إضافة الزائر';
                         document.getElementById('addGuestToggleLbl').textContent = 'إضافة زائر';
                         document.getElementById('addGuestFormWrap').style.display = 'none';
@@ -10360,7 +10380,25 @@
             document.getElementById('dashboardGuestId').value = g.id;
             document.getElementById('dashboardGuestName').value = g.name;
             document.getElementById('dashboardGuestGender').value = g.gender || 'male';
-            document.getElementById('dashboardGuestClass').value = g.class || '';
+            // Set class dropdown: try to find matching option, otherwise use "other"
+            const sel = document.getElementById('dashboardGuestClassSelect');
+            const customInput = document.getElementById('dashboardGuestClassCustom');
+            let found = false;
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].text === (g.class || '') && sel.options[i].value !== '' && sel.options[i].value !== 'other') {
+                    sel.value = sel.options[i].value;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && g.class) {
+                sel.value = 'other';
+                customInput.style.display = 'block';
+                customInput.value = g.class;
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
             document.getElementById('dashboardGuestPhone').value = g.phone || '';
             document.getElementById('dashboardGuestGuardian').value = g.guardian_name || '';
             document.getElementById('dashboardGuestNotes').value = g.notes || '';
@@ -10395,6 +10433,131 @@
                 (g.class || '').toLowerCase().includes(q)
             );
             renderGuestsTable(list);
+        }
+
+        function toggleGuestCustomClass(sel) {
+            const c = document.getElementById('dashboardGuestClassCustom');
+            c.style.display = sel.value === 'other' ? 'block' : 'none';
+            if (sel.value !== 'other') c.value = '';
+        }
+
+        let _guestClassesCache = null;
+        async function populateGuestClassDropdown(selectId) {
+            const sel = document.getElementById(selectId || 'dashboardGuestClassSelect');
+            if (!sel) return;
+            // Keep first two options (placeholder + other), remove rest
+            while (sel.options.length > 2) sel.remove(2);
+            if (!_guestClassesCache) {
+                const fd = _appendDevOverride(new FormData());
+                fd.append('action', 'getChurchClasses');
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => null);
+                if (d && d.success) _guestClassesCache = d.classes || [];
+                else _guestClassesCache = [];
+            }
+            _guestClassesCache.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.arabic_name;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ── Transfer Guest to Student ──────────────────────────────────
+        let _transferGuestData = null;
+        function openTransferGuestModal(guest) {
+            _transferGuestData = guest;
+            // Build modal HTML
+            let modalHtml = `
+            <div id="transferGuestModal" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;">
+                <div style="background:var(--surface);border-radius:16px;padding:28px;width:90%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);">
+                    <h3 style="margin:0 0 6px;font-size:1.15rem;"><i class="fas fa-user-graduate" style="color:var(--primary);"></i> تحويل زائر إلى طالب</h3>
+                    <p style="margin:0 0 18px;color:var(--text-3);font-size:.92rem;">سيتم نقل "<b>${escHtml(guest.name)}</b>" إلى قائمة الطلاب وربط رحلاته بالحساب الجديد.</p>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label class="form-label">اختر الفصل الدراسي *</label>
+                        <select id="transferClassSelect" class="form-select" style="width:100%;" onchange="document.getElementById('transferClassCustom').style.display=this.value==='other'?'block':'none'">
+                            <option value="">— اختر الفصل —</option>
+                            <option value="other">أخرى (كتابة يدوية)</option>
+                        </select>
+                        <input type="text" id="transferClassCustom" class="form-input" placeholder="اكتب اسم الفصل..." style="display:none;margin-top:8px;">
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+                        <button class="btn btn-ghost" type="button" onclick="closeTransferModal()">إلغاء</button>
+                        <button class="btn btn-primary" type="button" onclick="confirmTransferGuest()">
+                            <i class="fas fa-exchange-alt"></i> تحويل
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+            // Remove old modal if exists
+            const old = document.getElementById('transferGuestModal');
+            if (old) old.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            // Populate class dropdown
+            populateGuestClassDropdown('transferClassSelect');
+            // If guest already has a class set as "other", pre-fill
+            if (guest.class) {
+                setTimeout(() => {
+                    const sel = document.getElementById('transferClassSelect');
+                    let matched = false;
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].text === guest.class && sel.options[i].value !== '' && sel.options[i].value !== 'other') {
+                            sel.value = sel.options[i].value;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        sel.value = 'other';
+                        const ci = document.getElementById('transferClassCustom');
+                        ci.style.display = 'block';
+                        ci.value = guest.class;
+                    }
+                }, 300);
+            }
+        }
+
+        function closeTransferModal() {
+            const m = document.getElementById('transferGuestModal');
+            if (m) m.remove();
+            _transferGuestData = null;
+        }
+
+        async function confirmTransferGuest() {
+            if (!_transferGuestData) return;
+            const sel = document.getElementById('transferClassSelect');
+            const customInput = document.getElementById('transferClassCustom');
+            let classId = 0, customClassName = '';
+            if (sel.value === 'other') {
+                customClassName = customInput.value.trim();
+                if (!customClassName) {
+                    showToast('يرجى كتابة اسم الفصل', 'error');
+                    return;
+                }
+            } else if (sel.value) {
+                classId = parseInt(sel.value);
+            } else {
+                showToast('يجب اختيار فصل دراسي', 'error');
+                return;
+            }
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'transferGuestToStudent');
+            fd.append('guest_id', _transferGuestData.id);
+            fd.append('class_id', classId);
+            fd.append('custom_class_name', customClassName);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (d.success) {
+                    showToast(d.message, 'success');
+                    closeTransferModal();
+                    loadGuests();
+                } else {
+                    showToast(d.message || 'فشل في التحويل', 'error');
+                }
+            } catch {
+                showToast('فشل الاتصال بالخادم', 'error');
+            }
         }
 
         function exportGuestsToCSV() {
