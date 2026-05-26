@@ -3112,8 +3112,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 6px;
+            padding: 6px 8px;
             border-radius: var(--r-md);
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
@@ -3124,7 +3124,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-item:hover {
-            border-color: var(--brand);
             background: var(--brand-bg);
             transform: translateY(-2px);
             box-shadow: 0 4px 15px var(--brand-glow);
@@ -3150,14 +3149,46 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-item-main {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
             flex: 1;
         }
 
+        .sibling-item-info {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sibling-item-name {
+            font-weight: 800;
+            color: var(--text);
+            font-size: .80rem;
+            line-height: 1;
+        }
+
+        .sibling-item-class {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: var(--r-sm);
+            background: var(--surface-3);
+            color: var(--text-3);
+            font-size: .65rem;
+            font-weight: 700;
+            width: fit-content;
+        }
+
+        .sibling-item-class i {
+            font-size: .60rem;
+        }
+
         .sibling-mini-avatar {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
@@ -3183,34 +3214,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-item-main {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
             flex: 1;
-        }
-
-        .sibling-mini-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            border: 1.5px solid var(--border-solid);
-            box-shadow: var(--shadow-sm);
-            background: var(--surface-3);
-        }
-
-        .sibling-mini-avatar-fallback {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 1.5px solid var(--border-solid);
-            box-shadow: var(--shadow-sm);
-            background: var(--brand-bg);
-            color: var(--brand);
         }
 
         .sibling-item strong {
@@ -3262,7 +3268,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-candidate:hover {
-            border-color: var(--brand-l);
             background: var(--brand-bg);
         }
 
@@ -3295,8 +3300,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-suggestion-row {
-            display: grid;
-            gap: 3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 10px 12px;
             margin-top: 8px;
             border-radius: var(--r-lg);
@@ -3312,11 +3318,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 0 0 18px rgba(168, 85, 247, .14);
             position: relative;
             overflow: hidden;
+            width: 100%;
+            text-align: right;
         }
 
         .sibling-suggestion-row:hover,
         .sibling-suggestion-inline:hover {
-            border-color: rgba(124, 58, 237, .5);
             background:
                 radial-gradient(circle at top right, rgba(168, 85, 247, .3), transparent 55%),
                 linear-gradient(135deg, rgba(124, 58, 237, .18), rgba(91, 108, 245, .12));
@@ -3411,7 +3418,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-review-card:hover {
-            border-color: var(--brand-l);
             transform: translateY(-1px);
             box-shadow: var(--shadow-sm);
         }
@@ -3472,6 +3478,82 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .72rem;
             color: var(--text-3);
             margin-top: 4px;
+        }
+
+        .sibling-comparison-card {
+            padding: 12px;
+            border-radius: var(--r-md);
+            border: 1px solid rgba(124, 58, 237, .28);
+            background: linear-gradient(135deg, rgba(124, 58, 237, .08), rgba(91, 108, 245, .06));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sibling-comparison-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(124, 58, 237, .2);
+        }
+
+        .sibling-comparison-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(124, 58, 237, .3);
+            background: var(--surface-2);
+            flex-shrink: 0;
+        }
+
+        .sibling-comparison-avatar-fallback {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(124, 58, 237, .3);
+            background: var(--brand-bg);
+            color: var(--brand);
+            flex-shrink: 0;
+            font-size: 1.2rem;
+        }
+
+        .sibling-comparison-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: .75rem;
+        }
+
+        .sibling-comparison-label {
+            color: var(--text-3);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .sibling-comparison-value {
+            color: var(--text);
+            text-align: right;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .sibling-comparison-match {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: var(--r-full);
+            background: rgba(16, 185, 129, .15);
+            color: #10b981;
+            font-size: .65rem;
+            font-weight: 700;
+            margin-top: 2px;
         }
 
         .detail-icon {
@@ -7334,7 +7416,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .inline-search-item:hover {
             background: var(--surface-3);
-            border-color: var(--text-4);
             transform: translateY(-1px);
         }
 
@@ -8147,6 +8228,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
                 <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
                     إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sibling Comparison Modal -->
+    <div id="siblingComparisonModal" class="modal-overlay" style="z-index:1000009">
+        <div class="modal" style="max-width:800px">
+            <div class="modal-header">
+                <h3><i class="fas fa-scale-balanced"></i> المقارنة للتحقق</h3>
+                <button class="close-btn" id="closeSiblingComparisonModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingComparisonContent" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between">
+                <div>
+                    <button class="btn btn-g" id="confirmSiblingLinkBtn" type="button" style="background:#059669;color:#fff"><i class="fas fa-check"></i> تأكيد الربط</button>
+                </div>
+                <button class="btn btn-g" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </div>
     </div>
@@ -11176,17 +11276,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
             const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
             const visibleMembers = members.slice(0, 6);
+            const groupId = group?.id;
 
             const membersHtml = visibleMembers.length
                 ? visibleMembers.map(m => {
-                    return `<div class="sibling-item" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')">
-                        <div class="sibling-item-main">
+                    const mId = getStudentDbId(m);
+                    const mGender = getStudentGender(m);
+                    const icon = mGender === 'female' ? 'fa-user-circle' : 'fa-user-circle';
+                    return `<div class="sibling-item" onclick="event.stopPropagation(); showStudentDetails('${escJs(getStudentDisplayName(m))}')">
+                        <div class="sibling-item-main" style="cursor:pointer">
                             ${buildSiblingMiniAvatar(m)}
-                            <div style="min-width:0">
-                                <strong>${escHtml(getStudentDisplayName(m))}</strong>
-                                <small>${escHtml(getStudentClassName(m))}</small>
+                            <div class="sibling-item-info">
+                                <span class="sibling-item-name">${escHtml(getStudentDisplayName(m))}</span>
+                                <span class="sibling-item-class"><i class="fas fa-chalkboard-user"></i> ${escHtml(getStudentClassName(m))}</span>
                             </div>
                         </div>
+                        <button type="button" class="btn btn-g" style="padding:4px 6px;font-size:.68rem;color:var(--danger);flex-shrink:0" onclick="event.stopPropagation(); unlinkSibling(${JSON.stringify(studentId)}, ${JSON.stringify(mId)}, ${JSON.stringify(groupId)})" title="فك الارتباط"><i class="fas fa-times"></i></button>
                     </div>`;
                 }).join('')
                 : '';
@@ -11198,7 +11303,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div>
                             <div class="sibling-panel-title">${escHtml(words.panelLabel)}</div>
                         </div>
-                        <button type="button" class="btn btn-g sibling-link-btn" title="يفتح الاقتراحات ثم يضيف الأخت أو الأخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> ${escHtml(words.actionLabel)}</button>
+                        <button type="button" class="btn btn-g sibling-link-btn" title="فتح الاقتراحات وإضافة أخت/أخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> <i class="fas fa-plus"></i></button>
                     </div>
                     ${membersHtml ? `<div class="sibling-list">${membersHtml}</div>` : ''}
                 </div>
@@ -11286,10 +11391,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (!suggestion) return '';
                     const id = getStudentDbId(s);
                     const tag = suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح';
-                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">
-                        <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
-                        <span class="sibling-suggestion-tag">${tag}</span>
-                        <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
+                    const gender = getStudentGender(s);
+                    const avatar = s['صورة']
+                        ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
+                        : '';
+                    const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق" style="display:flex;align-items:center;gap:12px">
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                            ${avatar}${avatarFallback}
+                        </div>
+                        <div style="flex:1;text-align:right">
+                            <span class="sibling-suggestion-name">${escHtml(getStudentDisplayName(s))}</span>
+                            <span class="sibling-suggestion-tag">${tag}</span>
+                            <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
+                        </div>
                     </button>`;
                 })
                 .filter(Boolean)
@@ -11332,12 +11447,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     ${phone ? `<span>هاتف: ${escHtml(phone)}</span>` : ''}
                                     ${address ? `<span>العنوان: ${escHtml(address)}</span>` : ''}
                                 </div>
-                                ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="linkSiblingToCurrent(${id})" title="اضغط للإضافة">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
+                                ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
-                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="linkSiblingToCurrent(${id})"><i class="fas fa-plus"></i> إضافة</button>
+                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
                     </div>`;
             }).join('');
@@ -11495,6 +11610,174 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else {
                 showToast(d.message || 'فشل في حفظ الربط', 'error');
             }
+        }
+
+        async function unlinkSibling(currentStudentId, targetStudentId, groupId) {
+            const cid = parseInt(currentStudentId, 10) || 0;
+            const tid = parseInt(targetStudentId, 10) || 0;
+            if (!cid || !tid || !groupId) {
+                showToast('بيانات غير صحيحة', 'error');
+                return;
+            }
+
+            if (!confirm(`هل تريد فعلًا فك الارتباط بين هذا الطفل وأخيه/أختها؟`)) {
+                return;
+            }
+
+            // Get all members of the group except the target
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === cid);
+            const groupMembers = getSiblingMembersByGroupId(groupId, 0);
+            const allGroupIds = [cid, ...groupMembers.map(m => getStudentDbId(m))].filter(Boolean);
+            const remainingIds = allGroupIds.filter(id => id !== tid);
+
+            const fd = new FormData();
+            if (remainingIds.length > 0) {
+                // Update group without the removed member
+                fd.append('action', 'saveSiblingGroup');
+                fd.append('student_ids', JSON.stringify(remainingIds));
+                fd.append('group_id', groupId);
+                fd.append('status', 'approved');
+                fd.append('linked_by', localStorage.getItem('uncleName') || '');
+            } else {
+                // Delete the group if no members left
+                fd.append('action', 'deleteSiblingGroup');
+                fd.append('group_id', groupId);
+            }
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .catch(() => ({ success: false }));
+
+            if (d.success) {
+                showToast('تم فك الارتباط بنجاح', 'success');
+                await new Promise(resolve => setTimeout(resolve, 200));
+                loadData();
+                setTimeout(() => {
+                    if (current) showStudentDetails(getStudentDisplayName(current));
+                }, 500);
+            } else {
+                showToast(d.message || 'فشل في فك الارتباط', 'error');
+            }
+        }
+
+        let _siblingComparisonPair = { current: null, target: null };
+
+        function openSiblingComparison(currentStudentId, targetStudentId) {
+            const cid = parseInt(currentStudentId, 10) || 0;
+            const tid = parseInt(targetStudentId, 10) || 0;
+            if (!cid || !tid) return;
+
+            const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === cid);
+            const target = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === tid);
+
+            if (!current || !target) {
+                showToast('تعذر تحميل بيانات الطلاب', 'error');
+                return;
+            }
+
+            _siblingComparisonPair = { current, target };
+            showSiblingComparison();
+            document.getElementById('siblingComparisonModal')?.classList.add('active');
+        }
+
+        function closeSiblingComparison() {
+            document.getElementById('siblingComparisonModal')?.classList.remove('active');
+            _siblingComparisonPair = { current: null, target: null };
+        }
+
+        function buildComparisonField(current, target, keys, label) {
+            const getValue = (s, keys) => {
+                const info = parseStudentCustomInfo(s);
+                for (const key of keys) {
+                    const v = (s[key] || info[key] || '').toString().trim();
+                    if (v) return v;
+                }
+                return '';
+            };
+            const currentVal = getValue(current, keys);
+            const targetVal = getValue(target, keys);
+            const matches = currentVal && targetVal && (window.normalizeArabic ? normalizeArabic(currentVal) : currentVal.toLowerCase()) === (window.normalizeArabic ? normalizeArabic(targetVal) : targetVal.toLowerCase());
+            
+            return `
+                <div style="padding-bottom:8px">
+                    <div style="font-size:.75rem;color:var(--text-3);font-weight:600;margin-bottom:4px">${label}</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.75rem">
+                        <div style="padding:6px;background:var(--surface-3);border-radius:var(--r-sm);text-align:right;color:var(--text)">${escHtml(currentVal || '---')}</div>
+                        <div style="padding:6px;background:var(--surface-3);border-radius:var(--r-sm);text-align:right;color:var(--text)">${escHtml(targetVal || '---')}${matches ? '<span class="sibling-comparison-match"><i class="fas fa-check"></i> متطابق</span>' : ''}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showSiblingComparison() {
+            const { current, target } = _siblingComparisonPair;
+            if (!current || !target) return;
+
+            const content = document.getElementById('siblingComparisonContent');
+            if (!content) return;
+
+            const currentGender = getStudentGender(current);
+            const targetGender = getStudentGender(target);
+            
+            const currentAvatar = current['صورة']
+                ? `<img src="${window.photoUrl ? window.photoUrl(current['صورة']) : current['صورة']}" alt="" class="sibling-comparison-avatar" onerror="this.style.display='none';this.nextElementSibling?.style.setProperty('display','flex')">`
+                : '';
+            const currentAvatarFallback = `<div class="sibling-comparison-avatar-fallback ${currentGender}" ${current['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+            
+            const targetAvatar = target['صورة']
+                ? `<img src="${window.photoUrl ? window.photoUrl(target['صورة']) : target['صورة']}" alt="" class="sibling-comparison-avatar" onerror="this.style.display='none';this.nextElementSibling?.style.setProperty('display','flex')">`
+                : '';
+            const targetAvatarFallback = `<div class="sibling-comparison-avatar-fallback ${targetGender}" ${target['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+
+            const suggestion = getSiblingSuggestion(current, target);
+
+            const currentCard = `
+                <div class="sibling-comparison-card">
+                    <div class="sibling-comparison-header">
+                        <div style="display:flex;gap:8px">${currentAvatar}${currentAvatarFallback}</div>
+                        <div>
+                            <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(current))}</div>
+                            <div style="font-size:.7rem;color:var(--text-3)">${escHtml(getStudentClassName(current))}</div>
+                        </div>
+                    </div>
+                    ${buildComparisonField(current, target, ['الاسم', 'name'], 'الاسم')}
+                    ${buildComparisonField(current, target, ['النوع', 'gender'], 'النوع')}
+                    ${buildComparisonField(current, target, ['الفصل', 'class'], 'الفصل')}
+                    ${buildComparisonField(current, target, ['رقم التليفون', 'phone', 'emergency_phone'], 'رقم التليفون')}
+                    ${buildComparisonField(current, target, ['العنوان', 'address'], 'العنوان')}
+                    ${buildComparisonField(current, target, ['guardian_name', 'father_name', 'parent_name', 'mother_name', 'اسم ولي الأمر'], 'ولي الأمر')}
+                </div>
+            `;
+
+            const targetCard = `
+                <div class="sibling-comparison-card">
+                    <div class="sibling-comparison-header">
+                        <div style="display:flex;gap:8px">${targetAvatar}${targetAvatarFallback}</div>
+                        <div>
+                            <div style="font-weight:800;color:var(--text);font-size:.86rem">${escHtml(getStudentDisplayName(target))}</div>
+                            <div style="font-size:.7rem;color:var(--text-3)">${escHtml(getStudentClassName(target))}</div>
+                        </div>
+                    </div>
+                    ${buildComparisonField(target, current, ['الاسم', 'name'], 'الاسم')}
+                    ${buildComparisonField(target, current, ['النوع', 'gender'], 'النوع')}
+                    ${buildComparisonField(target, current, ['الفصل', 'class'], 'الفصل')}
+                    ${buildComparisonField(target, current, ['رقم التليفون', 'phone', 'emergency_phone'], 'رقم التليفون')}
+                    ${buildComparisonField(target, current, ['العنوان', 'address'], 'العنوان')}
+                    ${buildComparisonField(target, current, ['guardian_name', 'father_name', 'parent_name', 'mother_name', 'اسم ولي الأمر'], 'ولي الأمر')}
+                </div>
+            `;
+
+            content.innerHTML = currentCard + targetCard;
+        }
+
+        async function confirmSiblingComparison() {
+            const { current, target } = _siblingComparisonPair;
+            if (!current || !target) return;
+
+            const cid = getStudentDbId(current);
+            const tid = getStudentDbId(target);
+            closeSiblingComparison();
+            await linkSiblingToCurrent(tid);
         }
 
         function buildStudentDetailsFromCache(s) {
@@ -13764,6 +14047,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('cancelSiblingLinkBtn', 'click', closeSiblingLinkModal);
             on('closeSiblingSuggestionsModal', 'click', closeSiblingSuggestionsView);
             on('cancelSiblingSuggestionsBtn', 'click', closeSiblingSuggestionsView);
+            on('closeSiblingComparisonModal', 'click', closeSiblingComparison);
+            on('cancelSiblingComparisonBtn', 'click', closeSiblingComparison);
+            on('confirmSiblingLinkBtn', 'click', confirmSiblingComparison);
             on('clearSiblingLinkBtn', 'click', () => {
                 const search = document.getElementById('siblingLinkSearch');
                 const suggestion = document.getElementById('siblingLinkSuggestion');
