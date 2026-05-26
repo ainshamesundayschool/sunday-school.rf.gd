@@ -11643,25 +11643,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
 
-            // Get all members of the group except the target
             const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === cid);
             const groupMembers = getSiblingMembersByGroupId(groupId, 0);
             const allGroupIds = [cid, ...groupMembers.map(m => getStudentDbId(m))].filter(Boolean);
-            const remainingIds = allGroupIds.filter(id => id !== tid);
+            
+            // If the sibling group only has 2 members, unlinking them means disbanding the group (clear both)
+            // Otherwise, we only clear the target sibling from the group
+            const idsToClear = (allGroupIds.length <= 2) ? allGroupIds : [tid];
 
             const fd = new FormData();
-            if (remainingIds.length > 0) {
-                // Update group without the removed member
-                fd.append('action', 'saveSiblingGroup');
-                fd.append('student_ids', JSON.stringify(remainingIds));
-                fd.append('group_id', groupId);
-                fd.append('status', 'approved');
-                fd.append('linked_by', localStorage.getItem('uncleName') || '');
-            } else {
-                // Delete the group if no members left
-                fd.append('action', 'deleteSiblingGroup');
-                fd.append('group_id', groupId);
-            }
+            fd.append('action', 'saveSiblingGroup');
+            fd.append('op', 'clear');
+            fd.append('student_ids', JSON.stringify(idsToClear));
 
             const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
