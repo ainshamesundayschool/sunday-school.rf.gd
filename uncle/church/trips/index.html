@@ -3084,7 +3084,13 @@
 
     /* ── PRINT MODAL ────────────────────────────────────────────────── */
     #printSettingsModal .modal-box {
-      max-width: 1000px !important;
+      max-width: min(96vw, 1680px) !important;
+      width: 96vw !important;
+      height: min(92vh, 1200px) !important;
+      max-height: 92vh !important;
+      margin: 2vh auto !important;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Preview toggle button — always visible */
@@ -3120,15 +3126,38 @@
 
     /* ── Desktop: side-by-side ───────────────────────────────── */
     @media (min-width: 769px) {
+      #printSettingsModal .modal-head {
+        flex-shrink: 0;
+      }
       #printSettingsModal .modal-body {
         display: flex;
-        gap: 20px;
+        gap: 24px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        padding: 20px 24px 24px;
+      }
+      #printSettingsModal #printSettingsFormPanel {
+        flex: 0 0 min(420px, 32vw);
+        min-width: 360px;
+        max-width: 520px;
+        max-height: none !important;
+        overflow-y: auto;
+        padding-left: 8px;
       }
       #printPreviewPanel {
-        flex: 1.2;
-        min-width: 280px;
+        flex: 1 1 auto;
+        min-width: 0;
         border-right: 1px solid var(--border);
-        padding-right: 20px;
+        padding-right: 24px;
+        overflow: hidden;
+      }
+      #printSettingsModal #printPreviewWrapper {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: auto;
+        padding: 28px;
       }
     }
 
