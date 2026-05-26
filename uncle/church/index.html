@@ -3980,6 +3980,46 @@
             background: var(--card);
         }
 
+        /* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE 768px
+   ═══════════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            html {
+                font-size: 14px;
+            }
+
+            .data-list {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                position: relative;
+            }
+
+            /* Set minimum widths for table grid columns to prevent squeezing on mobile */
+            .data-cols-uncles {
+                min-width: 600px !important;
+            }
+            .data-cols-uncles.dev-church {
+                min-width: 700px !important;
+            }
+            .data-cols-students {
+                min-width: 650px !important;
+            }
+            .data-cols-students.dev {
+                min-width: 750px !important;
+            }
+            .data-cols-graduates {
+                min-width: 600px !important;
+            }
+            .data-cols-pending {
+                min-width: 900px !important;
+            }
+            .data-cols-audit {
+                min-width: 1100px !important;
+            }
+            .data-cols-uncle-att {
+                min-width: 500px !important;
+            }}
+
         .att-detail-list {
             display: flex;
             flex-direction: column;

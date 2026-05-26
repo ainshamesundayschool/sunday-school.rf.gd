@@ -3069,7 +3069,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-top: 8px;
             padding: 8px 10px;
             border-radius: var(--r-md);
-            border: 1px solid var(--border-solid);
             background: var(--surface);
         }
 
@@ -7309,8 +7308,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @keyframes inlineSearchFadeIn {
-            from { opacity: 0; transform: translateY(-8px) scaleY(0.95); }
-            to { opacity: 1; transform: translateY(0) scaleY(1); }
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scaleY(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scaleY(1);
+            }
         }
 
         .inline-search-item {
@@ -7336,13 +7342,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .inline-search-wrap {
                 margin-bottom: 16px;
             }
+
             .inline-search-box {
                 padding: 0 12px;
             }
+
             .inline-search-box input {
                 padding: 8px 0;
                 font-size: 0.85rem;
             }
+
             .inline-search-box .search-icon {
                 font-size: 0.85rem;
                 margin-left: 8px;
@@ -7689,8 +7698,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-wrap">
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..." oninput="performInlineSearch(this.value)" autocomplete="off">
-                        <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i class="fas fa-times"></i></button>
+                        <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
+                            oninput="performInlineSearch(this.value)" autocomplete="off">
+                        <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i
+                                class="fas fa-times"></i></button>
                     </div>
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
@@ -15675,7 +15686,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // Close inline search dropdown on outside clicks
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const wrap = document.querySelector('.inline-search-wrap');
             if (wrap && !wrap.contains(e.target)) {
                 const dropdown = document.getElementById('inlineSearchDropdown');
@@ -15686,7 +15697,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Re-open inline search dropdown on focus if input has content
         const inlineSearchInput = document.getElementById('inlineSearchInput');
         if (inlineSearchInput) {
-            inlineSearchInput.addEventListener('focus', function() {
+            inlineSearchInput.addEventListener('focus', function () {
                 if (this.value.trim()) {
                     const dropdown = document.getElementById('inlineSearchDropdown');
                     if (dropdown) dropdown.style.display = 'flex';
