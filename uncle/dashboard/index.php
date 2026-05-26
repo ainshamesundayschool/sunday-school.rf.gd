@@ -3065,6 +3065,65 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-inline: -8px
         }
 
+        .copy-holdable {
+            position: relative;
+            cursor: copy;
+            user-select: text;
+            -webkit-user-select: text;
+            -webkit-touch-callout: none;
+        }
+
+        .copy-holdable::after {
+            content: 'اضغط مطولاً للنسخ';
+            position: absolute;
+            inset-inline-end: 0;
+            top: -18px;
+            font-size: .62rem;
+            font-weight: 800;
+            color: var(--brand);
+            background: color-mix(in srgb, var(--brand-bg) 92%, white 8%);
+            border: 1px solid var(--brand-light);
+            border-radius: 999px;
+            padding: 2px 7px;
+            opacity: 0;
+            transform: translateY(4px);
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease;
+            white-space: nowrap;
+        }
+
+        .copy-holdable:hover::after {
+            opacity: .9;
+            transform: translateY(0);
+        }
+
+        .copy-hold-popup {
+            position: fixed;
+            z-index: 1000015;
+            background: rgba(15, 23, 42, .94);
+            color: #fff;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 800;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, .22);
+            pointer-events: none;
+            transform: translate(-50%, -120%);
+            animation: copyHoldPopupIn .18s ease;
+        }
+
+        @keyframes copyHoldPopupIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -105%) scale(.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -120%) scale(1);
+            }
+        }
+
         .sibling-panel {
             margin-top: 8px;
             padding: 8px 10px;
@@ -7591,15 +7650,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="accountInfoView" style="margin-bottom:14px">
                 <div class="account-info-row">
                     <span class="account-info-label"><i class="fas fa-user"></i> الاسم</span>
-                    <span class="account-info-value" id="aiName">---</span>
+                    <span class="account-info-value copy-holdable" id="aiName">---</span>
                 </div>
                 <div class="account-info-row">
                     <span class="account-info-label"><i class="fas fa-at"></i> المستخدم</span>
-                    <span class="account-info-value" id="aiUsername">---</span>
+                    <span class="account-info-value copy-holdable" id="aiUsername">---</span>
                 </div>
                 <div class="account-info-row">
                     <span class="account-info-label"><i class="fas fa-shield-alt"></i> الدور</span>
-                    <span class="account-info-value" id="aiRole">---</span>
+                    <span class="account-info-value copy-holdable" id="aiRole">---</span>
                 </div>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:12px">
@@ -9287,6 +9346,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function formatDateDDMMYYYY(d) { return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; }
         function parseDate(s) { const p = s.split('/'); return p.length === 3 ? new Date(p[2], p[1] - 1, p[0]) : new Date(0); }
         function copyToClipboard(text) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+        function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         function logout() {
             if (!confirm('تسجيل الخروج؟')) return;
             if (!navigator.onLine) {
@@ -11796,28 +11856,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
             let rowsList = [
-                ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card'],
-                ['النوع', genderLabel, 'purple', 'fa-venus-mars'],
-                ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher'],
-                ['العنوان', s['العنوان'] || '---', 'orange', 'fa-map-marker-alt'],
-                ['رقم التليفون', s['رقم التليفون'] || '---', 'green', 'fa-phone'],
+                ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card', s['الاسم'] || '---'],
+                ['النوع', genderLabel, 'purple', 'fa-venus-mars', genderLabel],
+                ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher', s['الفصل'] || '---'],
+                ['العنوان', s['العنوان'] || '---', 'orange', 'fa-map-marker-alt', s['العنوان'] || '---'],
+                ['رقم التليفون', s['رقم التليفون'] || '---', 'green', 'fa-phone', s['رقم التليفون'] || '---'],
             ];
             if (s['تليفون الطوارئ']) {
-                rowsList.push(['تليفون الطوارئ', s['تليفون الطوارئ'], 'green', 'fa-phone-alt']);
+                rowsList.push(['تليفون الطوارئ', s['تليفون الطوارئ'], 'green', 'fa-phone-alt', s['تليفون الطوارئ']]);
             }
             if (s['ملاحظات طبية']) {
-                rowsList.push(['ملاحظات طبية', s['ملاحظات طبية'], 'red', 'fa-notes-medical']);
+                rowsList.push(['ملاحظات طبية', s['ملاحظات طبية'], 'red', 'fa-notes-medical', s['ملاحظات طبية']]);
             }
             rowsList.push(
-                ['تاريخ الميلاد', s['عيد الميلاد'] || '---', 'pink', 'fa-birthday-cake'],
-                ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star']
+                ['تاريخ الميلاد', s['عيد الميلاد'] || '---', 'pink', 'fa-birthday-cake', s['عيد الميلاد'] || '---'],
+                ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(s['كوبونات'] || '0')]
             );
 
-            let rows = rowsList.map(([l, v, color, icon]) => `
+            let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
         <div class="detail-row">
             <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
             <div class="detail-label">${l}</div>
-            <div class="detail-val">${v}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(copyVal || v)}">${v}</div>
         </div>`).join('');
 
             // Append custom fields
@@ -11831,7 +11891,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="detail-row">
             <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
             <div class="detail-label">${cf.name}</div>
-            <div class="detail-val">${val}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(val)}">${val}</div>
         </div>`;
                     }
                 });
@@ -11853,28 +11913,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
 
             let rowsList = [
-                ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card'],
-                ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars'],
-                ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher'],
-                ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt'],
-                ['رقم التليفون', full.phone || '---', 'green', 'fa-phone'],
+                ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card', full.name || '---'],
+                ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars', formatGenderLabel(full.gender || full['النوع'])],
+                ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher', full.class || '---'],
+                ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt', full.address || '---'],
+                ['رقم التليفون', full.phone || '---', 'green', 'fa-phone', full.phone || '---'],
             ];
             if (full.emergency_phone) {
-                rowsList.push(['تليفون الطوارئ', full.emergency_phone, 'green', 'fa-phone-alt']);
+                rowsList.push(['تليفون الطوارئ', full.emergency_phone, 'green', 'fa-phone-alt', full.emergency_phone]);
             }
             if (full.medical_notes) {
-                rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical']);
+                rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical', full.medical_notes]);
             }
             rowsList.push(
-                ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake'],
-                ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star']
+                ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake', full.birthday || '---'],
+                ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(full.coupons || 0)]
             );
 
-            let rows = rowsList.map(([l, v, color, icon]) => `
+            let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
         <div class="detail-row">
             <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
             <div class="detail-label">${l}</div>
-            <div class="detail-val">${v}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(copyVal || v)}">${v}</div>
         </div>`).join('');
 
             // Append custom fields
@@ -11888,7 +11948,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="detail-row">
             <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
             <div class="detail-label">${cf.name}</div>
-            <div class="detail-val">${val}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(val)}">${val}</div>
         </div>`;
                     }
                 });
@@ -14108,6 +14168,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('copyAttendedModalBtn', 'click', copyAttendedData);
             on('saveAbsentAsCsvBtn', 'click', saveAbsentAsCSV);
             // on('copyAbsentModalBtn', 'click', copyAbsentData); // Handled by toggleAbsentDropdown
+            document.addEventListener('touchstart', startCopyHold, { passive: true });
+            document.addEventListener('touchmove', moveCopyHold, { passive: true });
+            document.addEventListener('touchend', () => cancelCopyHold());
+            document.addEventListener('touchcancel', () => cancelCopyHold());
+            document.addEventListener('mousedown', startCopyHold);
+            document.addEventListener('mousemove', moveCopyHold);
+            document.addEventListener('mouseup', () => cancelCopyHold());
+            document.addEventListener('mouseleave', () => cancelCopyHold());
+            document.addEventListener('contextmenu', e => {
+                if (e.target?.closest('.copy-holdable')) e.preventDefault();
+            });
             on('absentSearchInput', 'input', renderAbsentTable);
             on('classSortSelect', 'change', e => { classSortMode = e.target.value; renderAttendanceList(currentClass); });
             on('clearAbsentDataBtn', 'click', clearAbsentData);
@@ -14414,6 +14485,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _holdStartX = 0;
         let _holdStartY = 0;
         const HOLD_MS = 700;
+        let _copyHoldTarget = null;
+        let _copyHoldPopupTimer = null;
 
         function _holdStart(e, studentName) {
             _holdCancel();
@@ -14466,6 +14539,75 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('ctxMenu')?.remove();
         }
         window._ctxMenuActions = [];
+
+        function getCopyHoldText(el) {
+            if (!el) return '';
+            const raw = el.getAttribute('data-copy-text') || el.textContent || '';
+            return String(raw).replace(/\s+/g, ' ').trim();
+        }
+
+        function removeCopyHoldPopup() {
+            clearTimeout(_copyHoldPopupTimer);
+            _copyHoldPopupTimer = null;
+            document.getElementById('copyHoldPopup')?.remove();
+        }
+
+        function showCopyHoldPopup(el, msg) {
+            removeCopyHoldPopup();
+            const rect = el.getBoundingClientRect();
+            const pop = document.createElement('div');
+            pop.id = 'copyHoldPopup';
+            pop.className = 'copy-hold-popup';
+            pop.textContent = msg || 'تم النسخ';
+            pop.style.left = (rect.left + rect.width / 2) + 'px';
+            pop.style.top = Math.max(14, rect.top - 6) + 'px';
+            document.body.appendChild(pop);
+            _copyHoldPopupTimer = setTimeout(removeCopyHoldPopup, 1400);
+        }
+
+        async function copyHoldValue(el) {
+            const txt = getCopyHoldText(el);
+            if (!txt || txt === '---') return;
+            try {
+                if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(txt);
+                else copyToClipboard(txt);
+                navigator.vibrate && navigator.vibrate(16);
+                showCopyHoldPopup(el, 'تم النسخ');
+            } catch (e) {
+                copyToClipboard(txt);
+                showCopyHoldPopup(el, 'تم النسخ');
+            }
+        }
+
+        function startCopyHold(e) {
+            const el = e.target?.closest('.copy-holdable');
+            if (!el) return;
+            cancelCopyHold();
+            const p = e.touches ? e.touches[0] : e;
+            _copyHoldTarget = {
+                el,
+                x: p.clientX,
+                y: p.clientY,
+                timer: setTimeout(() => {
+                    const targetEl = _copyHoldTarget?.el;
+                    cancelCopyHold(false);
+                    if (targetEl) copyHoldValue(targetEl);
+                }, 550)
+            };
+        }
+
+        function moveCopyHold(e) {
+            if (!_copyHoldTarget?.timer) return;
+            const p = e.touches ? e.touches[0] : e;
+            if (Math.abs(p.clientX - _copyHoldTarget.x) > 8 || Math.abs(p.clientY - _copyHoldTarget.y) > 8) {
+                cancelCopyHold();
+            }
+        }
+
+        function cancelCopyHold(clearRef = true) {
+            if (_copyHoldTarget?.timer) clearTimeout(_copyHoldTarget.timer);
+            if (clearRef) _copyHoldTarget = null;
+        }
 
         // ══════════════════════════════════════════════════════════════
         // IMAGE MODAL — zoom & pan
