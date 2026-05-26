@@ -3117,16 +3117,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-md);
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
-            cursor: pointer;
             transition: all var(--t) var(--ease);
             position: relative;
             overflow: hidden;
-        }
-
-        .sibling-item:hover {
-            background: var(--brand-bg);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px var(--brand-glow);
         }
 
         .sibling-item::after {
@@ -3142,16 +3135,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
         }
 
-        .sibling-item:hover::after {
-            opacity: 1;
-        }
-
         .sibling-item-main {
             display: flex;
             align-items: center;
             gap: 8px;
             min-width: 0;
             flex: 1;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: var(--r-sm);
+            transition: all var(--t) var(--ease);
+        }
+
+        .sibling-item-main:hover {
+            background: var(--brand-bg);
+            padding-inline: 8px;
+            margin-inline: -4px;
         }
 
         .sibling-item-info {
@@ -3187,8 +3186,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-mini-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
@@ -3198,8 +3197,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-mini-avatar-fallback {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -3209,14 +3208,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-sm);
             background: var(--brand-bg);
             color: var(--brand);
+            font-size: 0.9rem;
         }
 
-        .sibling-item-main {
-            display: flex;
+        .sibling-unlink-btn {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            min-width: 0;
-            flex: 1;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--r-sm);
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: none;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all var(--t) var(--ease);
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .sibling-unlink-btn:hover {
+            background: var(--danger);
+            color: #fff;
+            transform: scale(1.08);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+        }
+
+        .sibling-unlink-btn:active {
+            transform: scale(0.95);
         }
 
         .sibling-item strong {
@@ -8198,9 +8218,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
             </div>
             <div class="mfooter" style="justify-content:space-between">
-                <button class="btn btn-g" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i>
+                <button class="btn btn-ghost" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i>
                     مسح</button>
-                <button class="btn btn-g" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i>
+                <button class="btn btn-ghost" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i>
                     إلغاء</button>
             </div>
         </div>
@@ -8224,9 +8244,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </details>
             </div>
             <div class="mfooter">
-                <button class="btn btn-g" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"
-                    style="background:#059669;color:#fff"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
-                <button class="btn btn-g" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
+                <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
+                <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
                     إغلاق</button>
             </div>
         </div>
@@ -8244,9 +8263,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div class="mfooter" style="justify-content:space-between">
                 <div>
-                    <button class="btn btn-g" id="confirmSiblingLinkBtn" type="button" style="background:#059669;color:#fff"><i class="fas fa-check"></i> تأكيد الربط</button>
+                    <button class="btn btn-success" id="confirmSiblingLinkBtn" type="button"><i class="fas fa-check"></i> تأكيد الربط</button>
                 </div>
-                <button class="btn btn-g" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+                <button class="btn btn-ghost" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </div>
     </div>
@@ -11283,15 +11302,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const mId = getStudentDbId(m);
                     const mGender = getStudentGender(m);
                     const icon = mGender === 'female' ? 'fa-user-circle' : 'fa-user-circle';
-                    return `<div class="sibling-item" onclick="event.stopPropagation(); showStudentDetails('${escJs(getStudentDisplayName(m))}')">
-                        <div class="sibling-item-main" style="cursor:pointer">
+                    return `<div class="sibling-item">
+                        <div class="sibling-item-main" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')">
                             ${buildSiblingMiniAvatar(m)}
                             <div class="sibling-item-info">
                                 <span class="sibling-item-name">${escHtml(getStudentDisplayName(m))}</span>
                                 <span class="sibling-item-class"><i class="fas fa-chalkboard-user"></i> ${escHtml(getStudentClassName(m))}</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-g" style="padding:4px 6px;font-size:.68rem;color:var(--danger);flex-shrink:0" onclick="event.stopPropagation(); unlinkSibling(${JSON.stringify(studentId)}, ${JSON.stringify(mId)}, ${JSON.stringify(groupId)})" title="فك الارتباط"><i class="fas fa-times"></i></button>
+                        <button type="button" class="sibling-unlink-btn" onclick="unlinkSibling(${JSON.stringify(studentId)}, ${JSON.stringify(mId)}, ${JSON.stringify(groupId)})" title="فك الارتباط"><i class="fas fa-trash-can"></i></button>
                     </div>`;
                 }).join('')
                 : '';
@@ -11303,7 +11322,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div>
                             <div class="sibling-panel-title">${escHtml(words.panelLabel)}</div>
                         </div>
-                        <button type="button" class="btn btn-g sibling-link-btn" title="فتح الاقتراحات وإضافة أخت/أخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> <i class="fas fa-plus"></i></button>
+                        <button type="button" class="btn btn-ghost sibling-link-btn" title="فتح الاقتراحات وإضافة أخت/أخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> <i class="fas fa-plus"></i></button>
                     </div>
                     ${membersHtml ? `<div class="sibling-list">${membersHtml}</div>` : ''}
                 </div>
@@ -11396,7 +11415,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" alt="" class="sibling-mini-avatar" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                         : '';
                     const avatarFallback = `<div class="sibling-mini-avatar-fallback ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
-                    return `<button type="button" class="sibling-suggestion-row btn btn-g" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق" style="display:flex;align-items:center;gap:12px">
+                    return `<div class="sibling-suggestion-row" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق" style="display:flex;align-items:center;gap:12px">
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             ${avatar}${avatarFallback}
                         </div>
@@ -11405,7 +11424,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span class="sibling-suggestion-tag">${tag}</span>
                             <span class="sibling-suggestion-text">${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</span>
                         </div>
-                    </button>`;
+                    </div>`;
                 })
                 .filter(Boolean)
                 .slice(0, 4);
@@ -11447,12 +11466,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     ${phone ? `<span>هاتف: ${escHtml(phone)}</span>` : ''}
                                     ${address ? `<span>العنوان: ${escHtml(address)}</span>` : ''}
                                 </div>
-                                ${suggestion ? `<button type="button" class="btn btn-g sibling-suggestion-inline" style="margin-top:4px;width:100%;justify-content:flex-start;gap:6px;padding:6px 10px;text-align:right" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</button>` : ''}
+                                ${suggestion ? `<div class="sibling-suggestion-inline" style="cursor:pointer" onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})" title="اضغط للمقارنة والتحقق">${suggestion.strength === 'weak' ? 'اقتراح ضعيف' : 'اقتراح'}: ${escHtml(suggestion.label)} - ${escHtml(suggestion.detail)}</div>` : ''}
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                             <span class="sibling-chip gray" style="font-size:.66rem">${linkedLabel}</span>
-                            <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})"><i class="fas fa-plus"></i> إضافة</button>
+                            <button type="button" class="btn btn-ghost" style="padding:5px 10px;font-size:.72rem" ${alreadyLinked ? 'disabled' : ''} onclick="openSiblingComparison(${JSON.stringify(_siblingLinkStudentId)}, ${id})"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
                     </div>`;
             }).join('');
@@ -11521,7 +11540,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="sibling-review-names">${escHtml(getStudentDisplayName(item.a))} + ${escHtml(getStudentDisplayName(item.b))}</div>
                     <div class="sibling-review-meta">${escHtml(getStudentClassName(item.a))} / ${escHtml(getStudentClassName(item.b))} · ${escHtml(item.suggestion.label)} · ${escHtml(item.suggestion.detail)}</div>
                 </div>
-                <button type="button" class="btn btn-g" style="padding:5px 10px;font-size:.72rem" onclick="event.stopPropagation();linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
+                <button type="button" class="btn btn-ghost" style="padding:5px 10px;font-size:.72rem" onclick="event.stopPropagation();linkSiblingPair(${aId}, ${bId})"><i class="fas fa-plus"></i> إضافة</button>
                 <span class="sibling-chip gray" style="font-size:.66rem">${tag}</span>
             </div>`;
         }
