@@ -11310,7 +11310,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="sibling-item-class"><i class="fas fa-chalkboard-user"></i> ${escHtml(getStudentClassName(m))}</span>
                             </div>
                         </div>
-                        <button type="button" class="sibling-unlink-btn" onclick="unlinkSibling(${JSON.stringify(studentId)}, ${JSON.stringify(mId)}, ${JSON.stringify(groupId)})" title="فك الارتباط"><i class="fas fa-trash-can"></i></button>
+                        <button type="button" class="sibling-unlink-btn" onclick="unlinkSibling(${studentId || 0}, ${mId || 0}, '${escJs(groupId || '')}')" title="فك الارتباط"><i class="fas fa-trash-can"></i></button>
                     </div>`;
                 }).join('')
                 : '';
