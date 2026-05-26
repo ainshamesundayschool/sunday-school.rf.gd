@@ -5481,29 +5481,18 @@
     }
 
     async function syncTripCapacityAfterUpdate(tripId, previousMax, nextMax) {
-      const regs = tripRegistrationsCache[tripId] || [];
-      const waitlist = window.currentWaitlistCache || [];
-
-      if (nextMax > 0 && regs.length > nextMax) {
-        const fd = mkFd('rebalanceTripWaitlist');
-        fd.append('trip_id', tripId);
-        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-        return {
-          success: !!res.success,
-          message: res.message || 'تمت إعادة موازنة قائمة الانتظار',
-          mode: 'shrink'
-        };
+      if (nextMax === previousMax) {
+        return { success: true, message: '', mode: 'noop' };
       }
 
-      if (nextMax > previousMax && waitlist.length) {
-        return {
-          success: true,
-          message: 'تم تحديث الحد الأقصى. إذا كان الخادم يدعم الترقية التلقائية فستظهر الأسماء الجديدة بعد التحديث.',
-          mode: 'grow'
-        };
-      }
-
-      return { success: true, message: '', mode: 'noop' };
+      const fd = mkFd('rebalanceTripWaitlist');
+      fd.append('trip_id', tripId);
+      const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+      return {
+        success: !!res.success,
+        message: res.message || (nextMax > previousMax ? 'تمت مراجعة قائمة الانتظار بعد زيادة الحد الأقصى' : 'تمت إعادة موازنة قائمة الانتظار'),
+        mode: nextMax > previousMax ? 'grow' : 'shrink'
+      };
     }
 
     async function cancelRegistration(regId, tripId) {
@@ -6414,6 +6403,108 @@
       document.getElementById('editTripFinalDisplay').value = final + ' جنيه';
     }
 
+    function getRegistrationJoinTime(reg) {
+      const raw = reg?.added_at || reg?.created_at || reg?.registered_at || reg?.timestamp || '';
+      const time = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(time) ? time : 0;
+    }
+
+    function getWaitlistJoinTime(entry) {
+      const raw = entry?.added_at || entry?.created_at || entry?.timestamp || '';
+      const time = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(time) ? time : 0;
+    }
+
+    function getParticipantDisplayName(item) {
+      return item?.student_name || item?.guest_name || item?.name || 'غير معروف';
+    }
+
+    function formatParticipantList(items = []) {
+      return items.map((item, idx) => `${idx + 1}. ${getParticipantDisplayName(item)}`).join('\n');
+    }
+
+    async function ensureTripCapacityPreviewData(tripId) {
+      let regs = tripRegistrationsCache[tripId] || [];
+      let waitlist = Array.isArray(window.currentWaitlistCache) ? window.currentWaitlistCache : [];
+
+      if (!regs.length) {
+        try {
+          const fd = mkFd('getTripDetails');
+          fd.append('trip_id', tripId);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res?.success && res.trip) {
+            regs = res.trip.registrations || [];
+            tripRegistrationsCache[tripId] = regs;
+            const idx = allTripsCache.findIndex(t => String(t.id) === String(tripId));
+            if (idx >= 0) allTripsCache[idx] = { ...allTripsCache[idx], ...res.trip };
+            if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
+              window.currentTripObj = { ...window.currentTripObj, ...res.trip };
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (!waitlist.length || window.currentTripId == tripId) {
+        try {
+          const fd = mkFd('getWaitlist');
+          fd.append('trip_id', tripId);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res?.success) {
+            waitlist = res.waitlist || [];
+            window.currentWaitlistCache = waitlist;
+          }
+        } catch (e) {}
+      }
+
+      return { regs, waitlist };
+    }
+
+    async function confirmTripCapacityChange(tripId, previousMax, nextMax) {
+      if (previousMax === nextMax) return true;
+
+      const { regs, waitlist } = await ensureTripCapacityPreviewData(tripId);
+      const registeredSorted = [...regs].sort((a, b) => getRegistrationJoinTime(b) - getRegistrationJoinTime(a));
+      const waitlistSorted = [...waitlist].sort((a, b) => {
+        const posA = parseInt(a.position || 0, 10) || 0;
+        const posB = parseInt(b.position || 0, 10) || 0;
+        if (posA && posB && posA !== posB) return posA - posB;
+        return getWaitlistJoinTime(a) - getWaitlistJoinTime(b);
+      });
+
+      const lines = [
+        `الحد الحالي: ${previousMax || 0}`,
+        `الحد الجديد: ${nextMax || 0}`
+      ];
+
+      if (nextMax > previousMax) {
+        const slots = previousMax > 0 ? Math.max(0, nextMax - previousMax) : waitlistSorted.length;
+        const promoted = waitlistSorted.slice(0, slots);
+        if (promoted.length) {
+          lines.push('');
+          lines.push('سيتم فحص أوائل قائمة الانتظار لترقيتهم إلى المسجلين:');
+          lines.push(formatParticipantList(promoted));
+        } else {
+          lines.push('');
+          lines.push('لا يوجد أحد حالياً في قائمة الانتظار ليتم تصعيده.');
+        }
+      } else {
+        const movedCount = nextMax > 0 ? Math.max(0, regs.length - nextMax) : regs.length;
+        const moved = registeredSorted.slice(0, movedCount);
+        if (moved.length) {
+          lines.push('');
+          lines.push('آخر من سجلوا وسيتم نقلهم إلى قائمة الانتظار:');
+          lines.push(formatParticipantList(moved));
+        } else {
+          lines.push('');
+          lines.push('لن يتم نقل أي أحد إلى قائمة الانتظار.');
+        }
+      }
+
+      lines.push('');
+      lines.push('هل تريد فعلاً تعديل الحد الأقصى للمشاركين؟');
+      return confirm(lines.join('\n'));
+    }
+
     function openEditTrip(id) {
       const t = allTripsCache.find(x => x.id == id) || window.currentTripObj;
       if (!t) return;
@@ -6442,6 +6533,8 @@
       const t = allTripsCache.find(x => x.id == tripId) || window.currentTripObj;
       const previousMax = parseInt(t?.max_participants || 0);
       const nextMax = parseInt(document.getElementById('editTripMaxParticipants').value || 0);
+      const approved = await confirmTripCapacityChange(tripId, previousMax, nextMax);
+      if (!approved) return;
       const fd = new FormData();
       fd.append('action', 'updateTrip');
       fd.append('trip_id', tripId);
@@ -6468,7 +6561,7 @@
           window.currentTripObj = { ...window.currentTripObj, max_participants: nextMax };
         }
         const syncRes = await syncTripCapacityAfterUpdate(tripId, previousMax, nextMax);
-        showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.mode === 'grow' ? 'info' : 'success');
+        showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.success ? (syncRes.mode === 'grow' ? 'info' : 'success') : 'warning');
         closeModal('editTripModal');
         loadTrips();
         await showTripDetails(tripId);
