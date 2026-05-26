@@ -11137,7 +11137,7 @@ function registerStudentForTrip()
             }
             $studentChurchId = intval($studentRes['church_id']);
 
-            if (!verifyTripParticipant($conn, $tripId, $studentChurchId)) {
+            if ($regType === 'student' && !verifyTripParticipant($conn, $tripId, $studentChurchId)) {
                 sendJSON(['success' => false, 'message' => 'كنيسة الطفل لا تشارك في هذه الرحلة']);
                 return;
             }
