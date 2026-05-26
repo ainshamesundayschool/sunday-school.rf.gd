@@ -792,7 +792,7 @@
             display: none !important;
         }
 
-        .tab-panel.is-loading > :not(.tab-panel-skeleton) {
+        .tab-panel.is-loading> :not(.tab-panel-skeleton) {
             visibility: hidden;
             pointer-events: none;
             height: 0;
@@ -831,8 +831,13 @@
         }
 
         @keyframes shimmerSkeleton {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .panel-inline-skeleton {
@@ -1043,8 +1048,8 @@
         }
 
         .toolbar .form-select,
-        .toolbar > .btn,
-        .toolbar > button.btn {
+        .toolbar>.btn,
+        .toolbar>button.btn {
             height: 40px;
             min-height: 40px;
             align-self: stretch;
@@ -1336,14 +1341,37 @@
             cursor: pointer;
         }
 
-        .data-cols-uncles { grid-template-columns: 32px 1fr 96px 100px 18px; }
-        .data-cols-uncles.dev-church { grid-template-columns: 32px 1fr 88px 96px 100px 18px; }
-        .data-cols-students { grid-template-columns: 1fr 88px 108px 64px 80px 18px; }
-        .data-cols-students.dev { grid-template-columns: 1fr 88px 88px 108px 64px 80px 18px; }
-        .data-cols-graduates { grid-template-columns: 1fr 96px 108px 64px 18px; }
-        .data-cols-pending { grid-template-columns: 36px 44px 1fr 100px 88px 96px 100px 96px 18px; }
-        .data-cols-audit { grid-template-columns: 36px 130px 100px 1fr 80px 1fr 1fr 18px; }
-        .data-cols-uncle-att { grid-template-columns: 32px 1fr 88px 80px 18px; }
+        .data-cols-uncles {
+            grid-template-columns: 32px 1fr 96px 100px 18px;
+        }
+
+        .data-cols-uncles.dev-church {
+            grid-template-columns: 32px 1fr 88px 96px 100px 18px;
+        }
+
+        .data-cols-students {
+            grid-template-columns: 1fr 88px 108px 64px 80px 18px;
+        }
+
+        .data-cols-students.dev {
+            grid-template-columns: 1fr 88px 88px 108px 64px 80px 18px;
+        }
+
+        .data-cols-graduates {
+            grid-template-columns: 1fr 96px 108px 64px 18px;
+        }
+
+        .data-cols-pending {
+            grid-template-columns: 36px 44px 1fr 100px 88px 96px 100px 96px 18px;
+        }
+
+        .data-cols-audit {
+            grid-template-columns: 36px 130px 100px 1fr 80px 1fr 1fr 18px;
+        }
+
+        .data-cols-uncle-att {
+            grid-template-columns: 32px 1fr 88px 80px 18px;
+        }
 
         /* ── INLINE ROW ACTIONS ON DESKTOP ── */
         .data-row-actions-cell {
@@ -1397,6 +1425,7 @@
         }
 
         @media (min-width: 769px) {
+
             /* Restrict desktop content width and align */
             .main-content,
             .page-header {
@@ -1406,14 +1435,37 @@
             }
 
             /* Adjust columns to fit inline action buttons on desktop */
-            .data-cols-uncles { grid-template-columns: 32px 1fr 96px 100px 120px; }
-            .data-cols-uncles.dev-church { grid-template-columns: 32px 1fr 88px 96px 100px 120px; }
-            .data-cols-students { grid-template-columns: 1fr 88px 108px 64px 80px 180px; }
-            .data-cols-students.dev { grid-template-columns: 1fr 88px 88px 108px 64px 80px 180px; }
-            .data-cols-graduates { grid-template-columns: 1fr 96px 108px 64px 180px; }
-            .data-cols-pending { grid-template-columns: 36px 44px 1fr 100px 88px 96px 100px 96px 120px; }
-            .data-cols-audit { grid-template-columns: 36px 130px 100px 1fr 80px 1fr 1fr 120px; }
-            .data-cols-uncle-att { grid-template-columns: 32px 1fr 88px 80px 120px; }
+            .data-cols-uncles {
+                grid-template-columns: 32px 1fr 96px 100px 120px;
+            }
+
+            .data-cols-uncles.dev-church {
+                grid-template-columns: 32px 1fr 88px 96px 100px 120px;
+            }
+
+            .data-cols-students {
+                grid-template-columns: 1fr 88px 108px 64px 80px 180px;
+            }
+
+            .data-cols-students.dev {
+                grid-template-columns: 1fr 88px 88px 108px 64px 80px 180px;
+            }
+
+            .data-cols-graduates {
+                grid-template-columns: 1fr 96px 108px 64px 180px;
+            }
+
+            .data-cols-pending {
+                grid-template-columns: 36px 44px 1fr 100px 88px 96px 100px 96px 120px;
+            }
+
+            .data-cols-audit {
+                grid-template-columns: 36px 130px 100px 1fr 80px 1fr 1fr 120px;
+            }
+
+            .data-cols-uncle-att {
+                grid-template-columns: 32px 1fr 88px 80px 120px;
+            }
 
             .data-row-chevron {
                 display: none !important;
@@ -1737,7 +1789,7 @@
             padding-left: 36px;
         }
 
-        .grad-church-search-wrap > i {
+        .grad-church-search-wrap>i {
             position: absolute;
             left: 12px;
             top: 50%;
@@ -2260,12 +2312,10 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                to bottom,
-                rgba(15, 23, 42, 0.1) 0%,
-                rgba(15, 23, 42, 0.45) 50%,
-                rgba(15, 23, 42, 0.95) 100%
-            );
+            background: linear-gradient(to bottom,
+                    rgba(15, 23, 42, 0.1) 0%,
+                    rgba(15, 23, 42, 0.45) 50%,
+                    rgba(15, 23, 42, 0.95) 100%);
             z-index: 2;
             pointer-events: none;
         }
@@ -3994,27 +4044,35 @@
             .data-cols-uncles {
                 min-width: 600px !important;
             }
+
             .data-cols-uncles.dev-church {
                 min-width: 700px !important;
             }
+
             .data-cols-students {
                 min-width: 650px !important;
             }
+
             .data-cols-students.dev {
                 min-width: 750px !important;
             }
+
             .data-cols-graduates {
                 min-width: 600px !important;
             }
+
             .data-cols-pending {
                 min-width: 900px !important;
             }
+
             .data-cols-audit {
                 min-width: 1100px !important;
             }
+
             .data-cols-uncle-att {
                 min-width: 500px !important;
-            }}
+            }
+        }
 
         .att-detail-list {
             display: flex;
@@ -5618,7 +5676,7 @@
             line-height: 1.6;
         }
 
-        .settings-hint > i {
+        .settings-hint>i {
             color: var(--primary);
             font-size: 0.95rem;
             margin-top: 3px;
@@ -5638,7 +5696,7 @@
             background: var(--bg);
         }
 
-        .settings-empty > i {
+        .settings-empty>i {
             font-size: 1.6rem;
             color: var(--text-3);
             opacity: 0.35;
@@ -5846,7 +5904,7 @@
             <div class="footer-actions">
                 <button class="footer-btn" onclick="refreshData()"><i
                         class="fas fa-sync-alt"></i><span>تحديث</span></button>
-                <button class="footer-btn" onclick="window.location.href='/'" title="الصفحة الرئيسية"><i
+                <button class="footer-btn" onclick="window.location.href='/uncle/dashboard'" title="الصفحة الرئيسية"><i
                         class="fas fa-external-link-alt"></i><span>الصفحة الرئيسية</span></button>
                 <button class="footer-btn danger" onclick="logout()"><i
                         class="fas fa-sign-out-alt"></i><span>خروج</span></button>
@@ -5902,9 +5960,15 @@
                         <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
                         <div class="link-chip-url" id="overviewKidRegUrl"></div>
                         <div class="link-chip-actions">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i> نسخ</button>
-                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('overviewKidRegUrl').textContent,'رابط تسجيل الأطفال')"><i class="fab fa-whatsapp"></i> واتساب</button>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="copyKidRegLink(document.getElementById('overviewKidRegUrl').textContent,'الكنيسة')"><i
+                                    class="fas fa-copy"></i> نسخ</button>
+                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;"
+                                onclick="shareWhatsApp(document.getElementById('overviewKidRegUrl').textContent,'رابط تسجيل الأطفال')"><i
+                                    class="fab fa-whatsapp"></i> واتساب</button>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="window.open(document.getElementById('overviewKidRegUrl').textContent,'_blank')"><i
+                                    class="fas fa-external-link-alt"></i> فتح</button>
                         </div>
                     </div>
 
@@ -6032,15 +6096,21 @@
             <div id="uncles" class="tab-panel">
                 <!-- ── UNCLE REG LINK MINIMAL ── -->
                 <div class="link-chip-center">
-                <div id="uncleRegLinkCard" class="link-chip">
-                    <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الخدام</div>
-                    <div class="link-chip-url" id="uncleDirectRegUrl">جاري التحميل...</div>
-                    <div class="link-chip-actions">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i class="fas fa-copy"></i> نسخ</button>
-                        <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i class="fab fa-whatsapp"></i> واتساب</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
+                    <div id="uncleRegLinkCard" class="link-chip">
+                        <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الخدام</div>
+                        <div class="link-chip-url" id="uncleDirectRegUrl">جاري التحميل...</div>
+                        <div class="link-chip-actions">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="copyText(document.getElementById('uncleDirectRegUrl').textContent)"><i
+                                    class="fas fa-copy"></i> نسخ</button>
+                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;"
+                                onclick="shareWhatsApp(document.getElementById('uncleDirectRegUrl').textContent,'رابط تسجيل خادم جديد')"><i
+                                    class="fab fa-whatsapp"></i> واتساب</button>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="window.open(document.getElementById('uncleDirectRegUrl').textContent,'_blank')"><i
+                                    class="fas fa-external-link-alt"></i> فتح</button>
+                        </div>
                     </div>
-                </div>
                 </div>
 
                 <!-- ── ADD UNCLE CARD ── -->
@@ -6136,12 +6206,14 @@
                                 <option value="admin">مسؤول</option>
                                 <option value="uncle">خادم</option>
                             </select>
-                            <button type="button" onclick="clearUncleFilters()" class="btn btn-outline btn-sm toolbar-clear-btn" title="مسح الفلاتر"><i
+                            <button type="button" onclick="clearUncleFilters()"
+                                class="btn btn-outline btn-sm toolbar-clear-btn" title="مسح الفلاتر"><i
                                     class="fas fa-times"></i></button>
                         </div>
                         <div class="data-list">
                             <div class="data-list-head data-cols-uncles" id="unclesListHead">
-                                <span>#</span><span>الاسم</span><span>الدور</span><span>تاريخ الإضافة</span><span></span>
+                                <span>#</span><span>الاسم</span><span>الدور</span><span>تاريخ
+                                    الإضافة</span><span></span>
                             </div>
                             <div class="data-list-body" id="unclesTable"></div>
                         </div>
@@ -6153,33 +6225,43 @@
             <div id="students" class="tab-panel">
                 <!-- ── KID REG LINK ── -->
                 <div class="link-chip-center" id="studentsKidRegCardWrap" style="display:none;">
-                <div id="studentsKidRegCard" class="link-chip">
-                    <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
-                    <p style="font-size:0.76rem;color:var(--text-3);margin:0;">شارك الرابط مع أولياء الأمور لتسجيل الأطفال مباشرة.</p>
-                    <div class="link-chip-url" id="studentsKidRegUrl"></div>
-                    <div class="link-chip-actions">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')"><i class="fas fa-copy"></i> نسخ</button>
-                        <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i class="fab fa-whatsapp"></i> واتساب</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i class="fas fa-external-link-alt"></i> فتح</button>
+                    <div id="studentsKidRegCard" class="link-chip">
+                        <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
+                        <p style="font-size:0.76rem;color:var(--text-3);margin:0;">شارك الرابط مع أولياء الأمور لتسجيل
+                            الأطفال مباشرة.</p>
+                        <div class="link-chip-url" id="studentsKidRegUrl"></div>
+                        <div class="link-chip-actions">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')"><i
+                                    class="fas fa-copy"></i> نسخ</button>
+                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;"
+                                onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i
+                                    class="fab fa-whatsapp"></i> واتساب</button>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i
+                                    class="fas fa-external-link-alt"></i> فتح</button>
+                        </div>
                     </div>
-                </div>
                 </div>
 
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
-                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> نقل الفصول للسنة الدراسية الجديدة</div>
+                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> نقل
+                            الفصول للسنة الدراسية الجديدة</div>
                     </div>
                     <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
                         <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
                             <button class="btn btn-warning btn-sm" onclick="confirmGradeUpAllKids()">
                                 <i class="fas fa-level-up-alt"></i> نقل الجميع للسنة الجديدة
                             </button>
-                            <button class="btn btn-outline btn-sm" onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');">
+                            <button class="btn btn-outline btn-sm"
+                                onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');">
                                 <i class="fas fa-calendar-alt"></i> موعد النقل السنوي
                             </button>
                         </div>
                         <p style="font-size:0.82rem;color:var(--muted);margin:0;">
-                            ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يُنقل إلى قسم <strong>خريجين</strong>.
+                            ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يُنقل إلى قسم
+                            <strong>خريجين</strong>.
                         </p>
                     </div>
                 </div>
@@ -6229,17 +6311,19 @@
                     </div>
                     <div class="card-body">
                         <p style="font-size:0.82rem;color:var(--muted);margin:0 0 14px;">
-                            أطفال أنهوا أعلى فصل في الكنيسة. يمكنك حذف بياناتهم، تصديرها ثم الحذف، أو إرسالهم لكنيسة أخرى.
+                            أطفال أنهوا أعلى فصل في الكنيسة. يمكنك حذف بياناتهم، تصديرها ثم الحذف، أو إرسالهم لكنيسة
+                            أخرى.
                         </p>
                         <div class="toolbar" style="margin-bottom:14px;">
                             <div class="search-wrap"><i class="fas fa-search"></i>
-                                <input type="text" id="graduateSearch" class="form-input" placeholder="بحث بالاسم أو الهاتف..."
-                                    oninput="filterGraduatesTable()">
+                                <input type="text" id="graduateSearch" class="form-input"
+                                    placeholder="بحث بالاسم أو الهاتف..." oninput="filterGraduatesTable()">
                             </div>
                         </div>
                         <div class="data-list">
                             <div class="data-list-head data-cols-graduates">
-                                <span>الاسم</span><span>الفصل السابق</span><span>الهاتف</span><span>كوبونات</span><span></span>
+                                <span>الاسم</span><span>الفصل
+                                    السابق</span><span>الهاتف</span><span>كوبونات</span><span></span>
                             </div>
                             <div class="data-list-body" id="graduatesTable"></div>
                         </div>
@@ -6391,7 +6475,8 @@
                     style="margin-bottom:20px; display:none; border:1px solid #0ea5e9;">
                     <div class="card-header"
                         style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe;">
-                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات / المؤتمرات
+                        <div class="card-title"><i class="fas fa-handshake"></i> دعوات التعاون والمشاركة في الرحلات /
+                            المؤتمرات
                             الواردة</div>
                     </div>
                     <div class="card-body" id="tripCollaborationInvitesList"
@@ -6566,31 +6651,41 @@
                     <!-- Grid of setting groups -->
                     <div class="settings-hub-grid">
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('adminProfile')">
-                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);"><i class="fas fa-user-cog"></i></div>
+                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);"><i
+                                    class="fas fa-user-cog"></i></div>
                             <div class="settings-hub-title">حساب المسؤول</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('churchInfo')">
-                            <div class="settings-hub-icon" style="background:var(--success-light);color:var(--success);"><i class="fas fa-church"></i></div>
+                            <div class="settings-hub-icon"
+                                style="background:var(--success-light);color:var(--success);"><i
+                                    class="fas fa-church"></i></div>
                             <div class="settings-hub-title">بيانات الكنيسة</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('churchPrefs')">
-                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);"><i class="fas fa-sliders-h"></i></div>
+                            <div class="settings-hub-icon"
+                                style="background:var(--warning-light);color:var(--warning-dark);"><i
+                                    class="fas fa-sliders-h"></i></div>
                             <div class="settings-hub-title">تفضيلات الخدمة</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('customFields')">
-                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);"><i class="fas fa-tags"></i></div>
+                            <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);"><i
+                                    class="fas fa-tags"></i></div>
                             <div class="settings-hub-title">بيانات إضافية</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('classGroups')">
-                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);"><i class="fas fa-layer-group"></i></div>
+                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);"><i
+                                    class="fas fa-layer-group"></i></div>
                             <div class="settings-hub-title">مجموعات الفصول</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
-                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);"><i class="fas fa-user-check"></i></div>
+                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
+                                <i class="fas fa-user-check"></i></div>
                             <div class="settings-hub-title">القبول التلقائي</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
-                            <div class="settings-hub-icon" style="background:var(--warning-light);color:var(--warning-dark);"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="settings-hub-icon"
+                                style="background:var(--warning-light);color:var(--warning-dark);"><i
+                                    class="fas fa-graduation-cap"></i></div>
                             <div class="settings-hub-title">نقل السنة الدراسية</div>
                         </button>
                     </div>
@@ -6619,12 +6714,15 @@
                             </div>
                         </div>
                         <div class="settings-field-box">
-                            <button type="button" class="btn btn-outline" style="width:100%; justify-content:center; border-radius: var(--radius);" onclick="openSettingsPage('changePassword')">
+                            <button type="button" class="btn btn-outline"
+                                style="width:100%; justify-content:center; border-radius: var(--radius);"
+                                onclick="openSettingsPage('changePassword')">
                                 <i class="fas fa-key"></i> تغيير كلمة المرور &larr;
                             </button>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i
+                                    class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6632,7 +6730,8 @@
                 <!-- Page: Change Password -->
                 <div id="settingsPage_changePassword" class="settings-page" style="display:none;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i> الإعدادات</button>
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <button class="settings-bc-item" onclick="openSettingsPage('adminProfile')">حسابي</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
@@ -6643,8 +6742,10 @@
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الحالية</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminCurrentPassword" class="form-input" placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
+                                    <input type="password" id="adminCurrentPassword" class="form-input"
+                                        placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6652,8 +6753,10 @@
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminNewPassword" class="form-input" placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
+                                    <input type="password" id="adminNewPassword" class="form-input"
+                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6661,13 +6764,16 @@
                             <div class="form-group">
                                 <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="adminConfirmPassword" class="form-input" placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
+                                    <input type="password" id="adminConfirmPassword" class="form-input"
+                                        placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="savePasswordChange()"><i class="fas fa-save"></i> حفظ كلمة المرور</button>
+                            <button type="button" class="btn btn-primary" onclick="savePasswordChange()"><i
+                                    class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
                 </div>
@@ -6695,12 +6801,15 @@
                             </div>
                         </div>
                         <div class="settings-field-box">
-                            <button type="button" class="btn btn-outline" style="width:100%; justify-content:center; border-radius: var(--radius);" onclick="openSettingsPage('changeChurchPassword')">
+                            <button type="button" class="btn btn-outline"
+                                style="width:100%; justify-content:center; border-radius: var(--radius);"
+                                onclick="openSettingsPage('changeChurchPassword')">
                                 <i class="fas fa-shield-alt"></i> تغيير كلمة مرور الكنيسة &larr;
                             </button>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i
+                                    class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6708,9 +6817,11 @@
                 <!-- Page: Change Church Password -->
                 <div id="settingsPage_changeChurchPassword" class="settings-page" style="display:none;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i> الإعدادات</button>
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <button class="settings-bc-item" onclick="openSettingsPage('churchInfo')">بيانات الكنيسة</button>
+                        <button class="settings-bc-item" onclick="openSettingsPage('churchInfo')">بيانات
+                            الكنيسة</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
                         <span class="settings-bc-item active">تغيير كلمة مرور الكنيسة</span>
                     </div>
@@ -6719,8 +6830,11 @@
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الحالية للكنيسة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="churchCurrentPassword" class="form-input" placeholder="أدخل كلمة المرور الحالية للكنيسة" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('churchCurrentPassword','eyeChurchCur')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchCur"></i></button>
+                                    <input type="password" id="churchCurrentPassword" class="form-input"
+                                        placeholder="أدخل كلمة المرور الحالية للكنيسة" style="padding-left:40px;">
+                                    <button type="button"
+                                        onclick="toggleFieldPwd('churchCurrentPassword','eyeChurchCur')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchCur"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6728,8 +6842,10 @@
                             <div class="form-group">
                                 <label class="form-label">كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="churchNewPassword" class="form-input" placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('churchNewPassword','eyeChurchNew')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNew"></i></button>
+                                    <input type="password" id="churchNewPassword" class="form-input"
+                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                    <button type="button" onclick="toggleFieldPwd('churchNewPassword','eyeChurchNew')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNew"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -6737,13 +6853,17 @@
                             <div class="form-group">
                                 <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                 <div style="position:relative;">
-                                    <input type="password" id="churchNewPasswordConfirm" class="form-input" placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('churchNewPasswordConfirm','eyeChurchNewConfirm')" class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNewConfirm"></i></button>
+                                    <input type="password" id="churchNewPasswordConfirm" class="form-input"
+                                        placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                    <button type="button"
+                                        onclick="toggleFieldPwd('churchNewPasswordConfirm','eyeChurchNewConfirm')"
+                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNewConfirm"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchPasswordChange()"><i class="fas fa-save"></i> حفظ كلمة المرور</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchPasswordChange()"><i
+                                    class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
                 </div>
@@ -6770,7 +6890,8 @@
                                     <option value="6">السبت</option>
                                     <option value="7">الأحد</option>
                                 </select>
-                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">يُحسب تلقائياً في لوحة الخادم</small>
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">يُحسب
+                                    تلقائياً في لوحة الخادم</small>
                             </div>
                         </div>
                         <div class="settings-field-box">
@@ -6791,7 +6912,8 @@
                                     onchange="_updateViewModeStyle()">
                                 <div>
                                     <div style="font-weight:700;font-size:0.88rem;">عرض الفصول منفصلة</div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل فصل كبطاقة مستقلة</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل فصل
+                                        كبطاقة مستقلة</div>
                                 </div>
                             </label>
                         </div>
@@ -6802,7 +6924,8 @@
                                     onchange="_updateViewModeStyle()">
                                 <div>
                                     <div style="font-weight:700;font-size:0.88rem;">عرض الكل معاً</div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل الأطفال في قائمة موحدة</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل الأطفال
+                                        في قائمة موحدة</div>
                                 </div>
                             </label>
                         </div>
@@ -6812,7 +6935,8 @@
                             </p>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ التفضيلات</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
+                                    class="fas fa-save"></i> حفظ التفضيلات</button>
                         </div>
                     </div>
                 </div>
@@ -6829,18 +6953,21 @@
                         <div class="settings-field-box">
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
-                                <span>أضف معلومات إضافية تظهر في بطاقة كل طفل — مثال: اسم المدرسة، الحارة، المستوى</span>
+                                <span>أضف معلومات إضافية تظهر في بطاقة كل طفل — مثال: اسم المدرسة، الحارة،
+                                    المستوى</span>
                             </div>
                         </div>
                         <div class="settings-field-box">
                             <div class="settings-panel-head" style="margin-bottom:10px;">
                                 <span class="settings-panel-title"><i class="fas fa-tags"></i> الحقول</span>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i class="fas fa-plus"></i> إضافة حقل</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addCustomFieldItem()"><i
+                                        class="fas fa-plus"></i> إضافة حقل</button>
                             </div>
                             <div id="customFieldsList"></div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
+                                    class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6863,12 +6990,14 @@
                         <div class="settings-field-box">
                             <div class="settings-panel-head" style="margin-bottom:10px;">
                                 <span class="settings-panel-title"><i class="fas fa-layer-group"></i> المجموعات</span>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i class="fas fa-plus"></i> مجموعة جديدة</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i
+                                        class="fas fa-plus"></i> مجموعة جديدة</button>
                             </div>
                             <div id="combinedGroupsList"></div>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
+                                    class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6885,7 +7014,8 @@
                         <div class="settings-field-box">
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
-                                <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم الطلبات المعلقة.</span>
+                                <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم
+                                    الطلبات المعلقة.</span>
                             </div>
                         </div>
                         <div class="settings-field-box">
@@ -6903,12 +7033,14 @@
                                     <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i
                                             class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
                                         القبول التلقائي معطّل</div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد في لوحة الطلبات المعلقة</div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد
+                                        في لوحة الطلبات المعلقة</div>
                                 </div>
                             </label>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
+                                    class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
                 </div>
@@ -6923,13 +7055,16 @@
                     </div>
                     <div class="settings-stack wide">
                         <div class="settings-field-box">
-                            <div class="settings-panel-title" style="margin-bottom:10px;"><i class="fas fa-level-up-alt"></i> نقل يدوي</div>
-                            <button type="button" class="btn btn-warning" onclick="confirmGradeUpAllKids()" style="width:100%; margin-bottom:12px;">
+                            <div class="settings-panel-title" style="margin-bottom:10px;"><i
+                                    class="fas fa-level-up-alt"></i> نقل يدوي</div>
+                            <button type="button" class="btn btn-warning" onclick="confirmGradeUpAllKids()"
+                                style="width:100%; margin-bottom:12px;">
                                 <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
                             </button>
                             <div class="settings-hint">
                                 <i class="fas fa-circle-info"></i>
-                                <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
+                                <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم
+                                    الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
                             </div>
                         </div>
                         <div class="settings-section-divider">موعد النقل السنوي</div>
@@ -6971,7 +7106,8 @@
                             <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--text-3);margin:0;"></p>
                         </div>
                         <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveKidsGradeSettings()"><i class="fas fa-save"></i> حفظ الجدولة</button>
+                            <button type="button" class="btn btn-primary" onclick="saveKidsGradeSettings()"><i
+                                    class="fas fa-save"></i> حفظ الجدولة</button>
                         </div>
                     </div>
                 </div>
@@ -6995,7 +7131,8 @@
                             </select></div>
                         <div class="data-list">
                             <div class="data-list-head data-cols-pending">
-                                <span class="data-row-check"><input type="checkbox" id="selectAllPending" onclick="toggleSelectAll()"></span>
+                                <span class="data-row-check"><input type="checkbox" id="selectAllPending"
+                                        onclick="toggleSelectAll()"></span>
                                 <span></span><span>الاسم</span><span>المستخدم</span><span>الفصل</span><span>الميلاد</span><span>الهاتف</span><span>الطلب</span><span></span>
                             </div>
                             <div class="data-list-body" id="pendingTable"></div>
@@ -7291,8 +7428,9 @@
                             <option value="male">ولد</option>
                             <option value="female">بنت</option>
                         </select></div>
-                    <div class="form-group" style="margin-bottom:20px;"><label class="form-label">رقم التليفون</label><input
-                            type="text" id="editUnclePhone" class="form-input" placeholder="رقم تليفون الخادم"></div>
+                    <div class="form-group" style="margin-bottom:20px;"><label class="form-label">رقم
+                            التليفون</label><input type="text" id="editUnclePhone" class="form-input"
+                            placeholder="رقم تليفون الخادم"></div>
                     <div class="form-group" style="margin-bottom:20px;">
                         <label class="form-label">الفصل (يمكن اختيار أكثر من فصل)</label>
                         <select id="editUncleClass" class="form-select" multiple style="width:100%; height:120px;">
@@ -7669,7 +7807,8 @@
                 </div>
                 <div id="bulkCustomDataTable"
                     style="overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:12px;padding:12px;">
-                    <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة تحتوي على بيانات إضافية لعرض جدول التحديث.
+                    <div style="color:var(--muted);font-size:0.9rem;">اختر رحلة تحتوي على بيانات إضافية لعرض جدول
+                        التحديث.
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
@@ -7750,18 +7889,21 @@
                 <p id="sendGraduateStudentLabel" style="font-size:0.88rem;color:var(--muted);margin:0 0 14px;"></p>
                 <div class="grad-church-search-wrap">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="gradChurchSearchInput" class="form-input" placeholder="ابحث باسم الكنيسة أو الرمز..."
-                        autocomplete="off" oninput="filterGradTransferChurches(this.value)">
+                    <input type="text" id="gradChurchSearchInput" class="form-input"
+                        placeholder="ابحث باسم الكنيسة أو الرمز..." autocomplete="off"
+                        oninput="filterGradTransferChurches(this.value)">
                 </div>
                 <div id="gradChurchSelected" class="grad-church-selected"></div>
                 <div id="gradChurchResults" class="grad-church-results"></div>
-                <p id="gradChurchEmpty" style="display:none;font-size:0.8rem;color:var(--muted);text-align:center;padding:12px 0;">
+                <p id="gradChurchEmpty"
+                    style="display:none;font-size:0.8rem;color:var(--muted);text-align:center;padding:12px 0;">
                     لا توجد كنائس مطابقة
                 </p>
                 <div style="display:flex;gap:10px;margin-top:18px;">
                     <button type="button" class="btn btn-primary" id="sendGraduateConfirmBtn" style="flex:2;" disabled
                         onclick="confirmSendGraduate()"><i class="fas fa-paper-plane"></i> إرسال الطلب</button>
-                    <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeSendGraduateModal()">إلغاء</button>
+                    <button type="button" class="btn btn-outline" style="flex:1;"
+                        onclick="closeSendGraduateModal()">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -8475,7 +8617,7 @@
                         try {
                             const ids = res.collaborators_list.map(c => c.id);
                             allTripsCache[idx].collaborating_churches = JSON.stringify(ids);
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                     await showTripCollaborationModal(tripId);
                     await loadTrips();
@@ -8499,7 +8641,7 @@
                     const idx = allTripsCache.findIndex(t => t.id == tripId);
                     if (idx >= 0) allTripsCache[idx] = trip;
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             if (!trip) {
                 showToast('الرحلة غير موجودة', 'error');
@@ -8722,7 +8864,7 @@
                 localStorage.removeItem('lastTripsData');
                 if (code) localStorage.removeItem(`lastTripsData_${code}`);
                 if (id) localStorage.removeItem(`lastTripsData_id_${id}`);
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function _readLocalCache(name) {
@@ -13818,7 +13960,7 @@
                 // Hide action cell (last element) in head and all rows
                 const headLast = clone.querySelector('.data-list-head > *:last-child');
                 if (headLast) headLast.style.display = 'none';
-                
+
                 clone.querySelectorAll('.data-row').forEach(row => {
                     const lastCell = row.querySelector('*:last-child');
                     if (lastCell) lastCell.style.display = 'none';
@@ -13827,7 +13969,7 @@
                 // Style the list elements as a clean table/grid representation
                 const showChurch = clone.querySelector('.dev-church');
                 const gridTemplate = showChurch ? '40px 1fr 120px 100px 120px' : '40px 1fr 100px 120px';
-                
+
                 const head = clone.querySelector('.data-list-head');
                 if (head) {
                     head.style.cssText = `
@@ -13843,7 +13985,7 @@
                         align-items: center;
                     `;
                 }
-                
+
                 clone.querySelectorAll('.data-row').forEach((row, index) => {
                     row.style.cssText = `
                         display: grid;
@@ -13854,7 +13996,7 @@
                         gap: 12px;
                         background: ${index % 2 === 1 ? '#fafbff' : '#ffffff'};
                     `;
-                    
+
                     const nameCell = row.querySelector('.td-name-cell');
                     if (nameCell) {
                         nameCell.style.cssText = `
@@ -13864,7 +14006,7 @@
                             text-align: right;
                         `;
                     }
-                    
+
                     const avatar = row.querySelector('.avatar-text');
                     if (avatar) {
                         avatar.style.cssText = `
@@ -14759,7 +14901,7 @@
             // Fetch session info
             const fd = mkFd('getSessionInfo');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            
+
             let targetUncle = null;
             if (d.success && d.uncle_id) {
                 targetUncle = allUncles.find(u => u.id == d.uncle_id);
@@ -14773,7 +14915,7 @@
             if (targetUncle) {
                 currentProfileUncleId = targetUncle.id;
                 currentProfileUncleRole = targetUncle.role;
-                
+
                 const nameEl = document.getElementById('adminProfileName');
                 const userInp = document.getElementById('adminProfileUsername');
                 if (nameEl) nameEl.value = targetUncle.name || '';
@@ -14853,7 +14995,7 @@
             fd.append('uncle_id', targetId);
             fd.append('name', newName);
             fd.append('username', newUser);
-            
+
             const targetRole = currentProfileUncleRole || (allUncles.find(u => u.id == targetId)?.role) || 'admin';
             fd.append('role', targetRole);
 
@@ -15606,8 +15748,8 @@
                 const cardId = 'qrcode_' + r.id;
                 const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
 
-                const avatarHtml = hasImage 
-                    ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">` 
+                const avatarHtml = hasImage
+                    ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">`
                     : '';
 
                 printArea.innerHTML += `
@@ -15697,7 +15839,8 @@
         <div class="action-sheet-panel">
             <div class="action-sheet-title" id="rowActionSheetTitle"></div>
             <div id="rowActionSheetBody"></div>
-            <button type="button" class="action-sheet-btn action-sheet-cancel" onclick="closeRowActionSheet()">إلغاء</button>
+            <button type="button" class="action-sheet-btn action-sheet-cancel"
+                onclick="closeRowActionSheet()">إلغاء</button>
         </div>
     </div>
 
@@ -15707,14 +15850,16 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 id="confirmDialogTitle">تأكيد</h3>
-                <button type="button" class="modal-close" onclick="resolveConfirm(false)"><i class="fas fa-times"></i></button>
+                <button type="button" class="modal-close" onclick="resolveConfirm(false)"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <p class="app-dialog-message" id="confirmDialogMessage"></p>
             </div>
             <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
                 <button type="button" class="btn btn-outline" onclick="resolveConfirm(false)">إلغاء</button>
-                <button type="button" class="btn btn-primary" id="confirmDialogOk" onclick="resolveConfirm(true)">تأكيد</button>
+                <button type="button" class="btn btn-primary" id="confirmDialogOk"
+                    onclick="resolveConfirm(true)">تأكيد</button>
             </div>
         </div>
     </div>
@@ -15725,10 +15870,12 @@
         <div class="modal-box" style="max-width:520px;">
             <div class="modal-header">
                 <h3>تشخيص الجلسة</h3>
-                <button type="button" class="modal-close" onclick="closeModal('debugDialog')"><i class="fas fa-times"></i></button>
+                <button type="button" class="modal-close" onclick="closeModal('debugDialog')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <pre id="debugDialogPre" style="max-height:50vh;overflow:auto;font-size:0.72rem;white-space:pre-wrap;direction:ltr;text-align:left;background:var(--surface-2);padding:12px;border-radius:var(--radius);border:1px solid var(--border-solid);"></pre>
+                <pre id="debugDialogPre"
+                    style="max-height:50vh;overflow:auto;font-size:0.72rem;white-space:pre-wrap;direction:ltr;text-align:left;background:var(--surface-2);padding:12px;border-radius:var(--radius);border:1px solid var(--border-solid);"></pre>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="closeModal('debugDialog')">إغلاق</button>
@@ -15742,7 +15889,8 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 id="promptDialogTitle">إدخال</h3>
-                <button type="button" class="modal-close" onclick="resolvePrompt(null)"><i class="fas fa-times"></i></button>
+                <button type="button" class="modal-close" onclick="resolvePrompt(null)"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <p class="app-dialog-message" id="promptDialogMessage" style="margin-bottom:12px;"></p>
@@ -15750,7 +15898,8 @@
             </div>
             <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
                 <button type="button" class="btn btn-outline" onclick="resolvePrompt(null)">إلغاء</button>
-                <button type="button" class="btn btn-primary" id="promptDialogOk" onclick="resolvePrompt(document.getElementById('promptDialogInput').value)">موافق</button>
+                <button type="button" class="btn btn-primary" id="promptDialogOk"
+                    onclick="resolvePrompt(document.getElementById('promptDialogInput').value)">موافق</button>
             </div>
         </div>
     </div>
