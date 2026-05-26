@@ -2095,6 +2095,62 @@
       color: var(--primary);
     }
 
+    /* Segmented Control Selector */
+    .registration-type-selector {
+      display: flex;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+      direction: rtl;
+    }
+    .registration-type-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .registration-type-btn.active {
+      background: var(--primary);
+      color: white !important;
+      box-shadow: var(--shadow-sm);
+    }
+    .registration-type-btn:hover:not(.active) {
+      background: rgba(0, 0, 0, 0.03);
+      color: var(--text);
+    }
+
+    /* Guest Form Styling */
+    .guest-form-panel {
+      background: rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .guest-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 480px) {
+      .guest-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     #registerStudentModal .modal-body {
       display: flex;
       min-height: 0;
@@ -3989,7 +4045,23 @@
         <form id="registerStudentForm" onsubmit="registerStudentForTrip(event)">
           <input type="hidden" id="registerTripId">
           <input type="hidden" id="registerStudentId">
-          <div class="kid-picker-panel" style="margin-bottom:14px;">
+          <input type="hidden" id="registerChurchId">
+          <input type="hidden" id="registerType" value="student">
+
+          <!-- segmented control for registration type -->
+          <div class="registration-type-selector">
+            <button type="button" class="registration-type-btn active" id="btnRegTypeLocal" onclick="switchRegistrationType('student')">
+              <i class="fas fa-church"></i> طفل بالكنيسة
+            </button>
+            <button type="button" class="registration-type-btn" id="btnRegTypeOther" onclick="switchRegistrationType('other_church_student')">
+              <i class="fas fa-globe"></i> كنيسة أخرى
+            </button>
+            <button type="button" class="registration-type-btn" id="btnRegTypeGuest" onclick="switchRegistrationType('guest')">
+              <i class="fas fa-user-tag"></i> تسجيل زائر
+            </button>
+          </div>
+
+          <div class="kid-picker-panel" id="panel_student" style="margin-bottom:14px;">
             <label class="form-label" style="margin-bottom:8px;display:block;">اختر طفلاً</label>
             <div class="church-picker-tabs" id="churchPickerTabs"
               style="display:none; gap:8px; overflow-x:auto; padding:4px 2px 10px; margin-bottom:12px; border-bottom:1px solid var(--border); direction:rtl;">
@@ -4008,6 +4080,82 @@
               </div>
             </div>
             <div class="kid-selected-info" id="kidSelectedInfo">لم يتم اختيار طفل بعد</div>
+          </div>
+
+          <!-- Tab 2: Other church student search -->
+          <div class="kid-picker-panel" id="panel_other_church_student" style="display:none; margin-bottom:14px;">
+            <label class="form-label" style="margin-bottom:8px;display:block;">ابحث عن طفل في جميع الكنائس</label>
+            <!-- search -->
+            <div class="kid-picker-search">
+              <i class="fas fa-search"></i>
+              <input type="text" id="otherChurchStudentSearch" placeholder="ابحث بالاسم أو رقم الهاتف..."
+                oninput="debouncedOtherChurchSearch()">
+            </div>
+            <!-- grid of kid cards -->
+            <div class="kid-grid" id="otherChurchPickerGrid" style="margin-top: 12px;">
+              <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
+                <i class="fas fa-search" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>
+                اكتب حرفين على الأقل للبحث...
+              </div>
+            </div>
+            <div class="kid-selected-info" id="otherChurchSelectedInfo">لم يتم اختيار طفل بعد</div>
+          </div>
+
+          <!-- Tab 3: Guest registration form -->
+          <div class="guest-form-panel" id="panel_guest" style="display:none; margin-bottom:14px;">
+            <div style="display:flex; gap:8px; margin-bottom:12px; background:var(--surface-2); padding:4px; border-radius:10px; border:1px solid var(--border);">
+              <button type="button" id="btnGuestNew" class="btn btn-sm" style="flex:1; border:none; border-radius:6px; font-weight:700; background:var(--primary); color:#fff;" onclick="setGuestMode('new')">
+                <i class="fas fa-plus-circle"></i> زائر جديد
+              </button>
+              <button type="button" id="btnGuestExisting" class="btn btn-sm" style="flex:1; border:none; border-radius:6px; font-weight:700; background:transparent; color:var(--text);" onclick="setGuestMode('existing')">
+                <i class="fas fa-list"></i> زائر مسجل مسبقاً
+              </button>
+            </div>
+            <input type="hidden" id="registerGuestId" value="">
+            <input type="hidden" id="registerGuestMode" value="new">
+
+            <!-- New guest form fields -->
+            <div id="guestFieldsNew">
+              <label class="form-label" style="margin-bottom:12px;display:block;font-weight:800;color:var(--primary);"><i class="fas fa-id-card"></i> بيانات الزائر الجديد</label>
+              <div class="guest-form-grid">
+                <div class="form-group">
+                  <label class="form-label">الاسم الكامل *</label>
+                  <input type="text" id="guestName" class="form-input" placeholder="اسم الطفل ثلاثي أو رباعي">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">النوع *</label>
+                  <select id="guestGender" class="form-select" style="width:100%;">
+                    <option value="male">ولد</option>
+                    <option value="female">بنت</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">الفصل / المرحلة الدراسية</label>
+                  <input type="text" id="guestClass" class="form-input" placeholder="مثال: حضانة، أولى ابتدائي...">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">رقم الهاتف</label>
+                  <input type="tel" id="guestPhone" class="form-input" placeholder="رقم هاتف الطفل أو ولي الأمر">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">اسم ولي الأمر</label>
+                  <input type="text" id="guestGuardian" class="form-input" placeholder="الاسم الكامل لولي الأمر">
+                </div>
+              </div>
+            </div>
+
+            <!-- Existing guest picker section -->
+            <div id="guestFieldsExisting" style="display:none;">
+              <div class="search-wrap" style="margin-bottom:10px;"><i class="fas fa-search"></i>
+                <input type="text" id="registerGuestSearch" class="form-input" placeholder="بحث بالاسم أو الهاتف في الزوار..." oninput="filterRegisterGuests()">
+              </div>
+              <div class="kid-grid" id="guestPickerGrid" style="max-height:220px; overflow-y:auto; gap:8px;">
+                <div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);">
+                  جاري تحميل الزوار...
+                </div>
+              </div>
+              <div class="kid-selected-info" id="guestSelectedInfo" style="margin-top:8px;">لم يتم اختيار زائر بعد</div>
+            </div>
           </div>
           <details id="registerCustomFieldsWrapper"
             style="display:none; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--bg);">
@@ -4325,16 +4473,9 @@
     let _kidPickerChurchFilter = '';
 
     async function showRegisterStudentModal(tripId) {
-      _selectedKidId = null;
-      _kidPickerClassFilter = '';
-      _kidPickerChurchFilter = '';
+      resetRegisterKidPicker();
       document.getElementById('registerTripId').value = tripId;
-      document.getElementById('registerDeposit').value = '0';
       document.getElementById('registerDonation').value = '0';
-      document.getElementById('registerNotes').value = '';
-      document.getElementById('registerStudentSearch').value = '';
-      document.getElementById('registerStudentId').value = '';
-      document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
       document.getElementById('kidPickerGrid').innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الأطفال...</div>`;
 
       renderRegisterCustomFields(tripId);
@@ -4519,28 +4660,270 @@
       el.classList.add('selected');
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    function switchRegistrationType(type) {
+      document.getElementById('registerType').value = type;
+      
+      // Update buttons
+      document.getElementById('btnRegTypeLocal').classList.toggle('active', type === 'student');
+      document.getElementById('btnRegTypeOther').classList.toggle('active', type === 'other_church_student');
+      document.getElementById('btnRegTypeGuest').classList.toggle('active', type === 'guest');
+      
+      // Toggle panels
+      document.getElementById('panel_student').style.display = type === 'student' ? 'flex' : 'none';
+      document.getElementById('panel_other_church_student').style.display = type === 'other_church_student' ? 'flex' : 'none';
+      document.getElementById('panel_guest').style.display = type === 'guest' ? 'block' : 'none';
+    }
+
+    let _otherChurchSearchTimer = null;
+    function debouncedOtherChurchSearch() {
+      clearTimeout(_otherChurchSearchTimer);
+      _otherChurchSearchTimer = setTimeout(handleExternalSearch, 300);
+    }
+
+    async function handleExternalSearch() {
+      const q = document.getElementById('otherChurchStudentSearch').value.trim();
+      const grid = document.getElementById('otherChurchPickerGrid');
+      
+      if (q.length < 2) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);"><i class="fas fa-search" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>اكتب حرفين على الأقل للبحث...</div>`;
+        return;
+      }
+      
+      grid.innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري البحث...</div>`;
+      
+      const fd = new FormData();
+      fd.append('action', 'searchAllStudents');
+      fd.append('query', q);
+      
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success && res.data && res.data.length > 0) {
+          const tripId = document.getElementById('registerTripId').value;
+          const regs = tripRegistrationsCache[tripId] || [];
+          
+          grid.innerHTML = res.data.map(s => {
+            const sid = s.id;
+            const name = s.name || '؟';
+            const cls = s.class || '';
+            const phone = s.phone || '';
+            const churchName = s.church_name || 'كنيسة أخرى';
+            const churchId = s.church_id;
+            const initials = name.charAt(0);
+            
+            const isSelected = String(sid) === String(_selectedKidId);
+            const reg = regs.find(r => String(r.student_id) === String(sid));
+            const isRegistered = !!reg;
+            const paid = Math.round(parseFloat(reg?.total_paid) || 0);
+            
+            return `<div class="kid-card ${isSelected && !isRegistered ? 'selected' : ''} ${isRegistered ? 'registered' : ''}" ${isRegistered ? 'aria-disabled="true"' : `onclick="selectOtherChurchKid('${sid}', '${escHtml(name)}', '${escHtml(cls)}', '${churchId}', '${escHtml(churchName)}', this)"`}>
+              <div class="kid-avatar">${initials}</div>
+              <div class="kid-name">${name}</div>
+              <div class="kid-cls" style="color:var(--primary); font-weight:700;">${churchName}</div>
+              ${cls ? `<div class="kid-cls">${cls}</div>` : ''}
+              ${phone ? `<div class="kid-cls" style="direction:ltr; font-size:0.7rem; opacity:0.8;">${phone}</div>` : ''}
+              ${isRegistered ? `<div class="kid-paid">مسجل • دفع ${paid} ج</div>` : ''}
+            </div>`;
+          }).join('');
+        } else {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);"><i class="fas fa-search-minus" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>لم يتم العثور على أطفال تطابق هذا البحث</div>`;
+        }
+      } catch (e) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--danger);"><i class="fas fa-exclamation-triangle" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>حدث خطأ أثناء البحث</div>`;
+      }
+    }
+
+    function selectOtherChurchKid(id, name, cls, churchId, churchName, el) {
+      if (el?.classList.contains('registered')) return;
+      _selectedKidId = String(id);
+      document.getElementById('registerStudentId').value = id;
+      document.getElementById('registerChurchId').value = churchId;
+      document.getElementById('otherChurchSelectedInfo').innerHTML = `<i class="fas fa-check-circle" style="color:var(--primary);margin-left:6px;"></i> تم اختيار: <strong>${name}</strong> من ${churchName}${cls ? ' — ' + cls : ''}`;
+      document.querySelectorAll('#otherChurchPickerGrid .kid-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    let allGuestsCache = [];
+    function setGuestMode(mode) {
+      document.getElementById('registerGuestMode').value = mode;
+      const isNew = mode === 'new';
+      
+      const btnNew = document.getElementById('btnGuestNew');
+      const btnExisting = document.getElementById('btnGuestExisting');
+      if (isNew) {
+        btnNew.style.background = 'var(--primary)';
+        btnNew.style.color = '#fff';
+        btnExisting.style.background = 'transparent';
+        btnExisting.style.color = 'var(--text)';
+      } else {
+        btnExisting.style.background = 'var(--primary)';
+        btnExisting.style.color = '#fff';
+        btnNew.style.background = 'transparent';
+        btnNew.style.color = 'var(--text)';
+        
+        loadGuestsForRegistration();
+      }
+
+      document.getElementById('guestFieldsNew').style.display = isNew ? 'block' : 'none';
+      document.getElementById('guestFieldsExisting').style.display = isNew ? 'none' : 'block';
+    }
+
+    async function loadGuestsForRegistration() {
+      const grid = document.getElementById('guestPickerGrid');
+      if (!grid) return;
+      
+      if (allGuestsCache.length > 0) {
+        filterRegisterGuests();
+        return;
+      }
+      
+      grid.innerHTML = `<div class="container-loading" style="grid-column:1/-1"><div class="spin-icon"></div> جاري تحميل الزوار...</div>`;
+      
+      const fd = new FormData();
+      fd.append('action', 'getGuests');
+      
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+          allGuestsCache = res.data || [];
+          filterRegisterGuests();
+        } else {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--danger);">خطأ في تحميل الزوار</div>`;
+        }
+      } catch (e) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--danger);">فشل الاتصال بالخادم</div>`;
+      }
+    }
+
+    function filterRegisterGuests() {
+      const q = document.getElementById('registerGuestSearch').value.toLowerCase();
+      const grid = document.getElementById('guestPickerGrid');
+      if (!grid) return;
+
+      const filtered = allGuestsCache.filter(g => 
+        !q || 
+        g.name.toLowerCase().includes(q) || 
+        (g.phone || '').includes(q)
+      );
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);">لا يوجد زوار تطابق البحث</div>`;
+        return;
+      }
+
+      const tripId = document.getElementById('registerTripId').value;
+      const regs = tripRegistrationsCache[tripId] || [];
+
+      grid.innerHTML = filtered.map(g => {
+        const initials = g.name.charAt(0);
+        const isSelected = String(g.id) === String(document.getElementById('registerGuestId').value);
+        const reg = regs.find(r => r.registration_type === 'guest' && String(r.guest_id) === String(g.id));
+        const isRegistered = !!reg;
+
+        return `<div class="kid-card ${isSelected && !isRegistered ? 'selected' : ''} ${isRegistered ? 'registered' : ''}" ${isRegistered ? 'aria-disabled="true"' : `onclick="selectGuestForReg('${g.id}', '${escHtml(g.name)}', '${escHtml(g.class || '')}', this)"`}>
+          <div class="kid-avatar">${initials}</div>
+          <div class="kid-name">${g.name}</div>
+          ${g.class ? `<div class="kid-cls">${g.class}</div>` : ''}
+          ${isRegistered ? `<div class="kid-paid">مسجل بالفعل</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    function selectGuestForReg(id, name, cls, el) {
+      if (el?.classList.contains('registered')) return;
+      document.getElementById('registerGuestId').value = id;
+      document.getElementById('guestSelectedInfo').innerHTML = `<i class="fas fa-check-circle" style="color:var(--primary);margin-left:6px;"></i> تم اختيار: <strong>${name}</strong>${cls ? ' — ' + cls : ''}`;
+      document.querySelectorAll('#guestPickerGrid .kid-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
     function resetRegisterKidPicker() {
       _selectedKidId = null;
       document.getElementById('registerStudentId').value = '';
+      document.getElementById('registerChurchId').value = '';
       document.getElementById('registerDeposit').value = '0';
       document.getElementById('registerNotes').value = '';
       document.getElementById('kidSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
+      
+      // Reset other church search
+      document.getElementById('otherChurchStudentSearch').value = '';
+      document.getElementById('otherChurchPickerGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);"><i class="fas fa-search" style="font-size:2rem;opacity:.2;display:block;margin-bottom:8px;"></i>اكتب حرفين على الأقل للبحث...</div>`;
+      document.getElementById('otherChurchSelectedInfo').textContent = 'لم يتم اختيار طفل بعد';
+      
+      // Reset guest fields
+      document.getElementById('guestName').value = '';
+      document.getElementById('guestPhone').value = '';
+      document.getElementById('guestGuardian').value = '';
+      document.getElementById('guestClass').value = '';
+      document.getElementById('guestGender').value = 'male';
+
+      // Reset guest search & cache
+      if (document.getElementById('registerGuestId')) {
+        document.getElementById('registerGuestId').value = '';
+        document.getElementById('guestSelectedInfo').textContent = 'لم يتم اختيار زائر بعد';
+        document.getElementById('registerGuestSearch').value = '';
+      }
+      setGuestMode('new');
+
+      // Reset segmented control
+      switchRegistrationType('student');
+
       // Reset custom field dropdowns
       document.querySelectorAll('#registerCustomFieldsSection select, #registerCustomFieldsSection input').forEach(el => { el.value = ''; });
       filterRegisterStudents();
     }
+
     async function registerStudentForTrip(e) {
       e.preventDefault();
       const tripId = document.getElementById('registerTripId').value;
+      const regType = document.getElementById('registerType').value || 'student';
       const studentId = document.getElementById('registerStudentId').value;
-      if (!studentId) { showToast('اختر طفلاً من القائمة', 'warning'); return; }
+
+      if (regType !== 'guest' && !studentId) {
+        showToast('اختر طفلاً من القائمة', 'warning');
+        return;
+      }
+      
       const btn = document.getElementById('regSubmitBtn');
       btn.classList.add('btn-loading'); btn.disabled = true;
-      const fd = new FormData(); fd.append('action', 'registerStudentForTrip');
-      fd.append('trip_id', tripId); fd.append('student_id', studentId);
+      const fd = new FormData();
+      fd.append('action', 'registerStudentForTrip');
+      fd.append('trip_id', tripId);
+      fd.append('registration_type', regType);
       fd.append('deposit', document.getElementById('registerDeposit').value || 0);
       fd.append('donation', document.getElementById('registerDonation').value || 0);
       fd.append('notes', document.getElementById('registerNotes').value);
+
+      if (regType === 'other_church_student') {
+        fd.append('student_id', studentId);
+        fd.append('church_id', document.getElementById('registerChurchId').value || '');
+      } else if (regType === 'guest') {
+        const guestMode = document.getElementById('registerGuestMode').value;
+        if (guestMode === 'existing') {
+          const guestId = document.getElementById('registerGuestId').value;
+          if (!guestId) {
+            showToast('اختر زائراً من القائمة', 'warning');
+            btn.classList.remove('btn-loading'); btn.disabled = false;
+            return;
+          }
+          fd.append('guest_id', guestId);
+        } else {
+          const guestName = document.getElementById('guestName').value.trim();
+          if (!guestName) {
+            showToast('اسم الزائر مطلوب', 'warning');
+            btn.classList.remove('btn-loading'); btn.disabled = false;
+            return;
+          }
+          fd.append('guest_name', guestName);
+          fd.append('guest_phone', document.getElementById('guestPhone').value || '');
+          fd.append('guest_guardian_name', document.getElementById('guestGuardian').value || '');
+          fd.append('guest_class', document.getElementById('guestClass').value || '');
+          fd.append('guest_gender', document.getElementById('guestGender').value || '');
+        }
+      } else {
+        fd.append('student_id', studentId);
+      }
+
       // Collect custom fields data
       const customData = collectRegisterCustomData();
       if (Object.keys(customData).length > 0) {

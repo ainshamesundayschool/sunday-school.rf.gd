@@ -497,6 +497,50 @@
             gap: 0;
         }
 
+        /* Submenu styling in sidebar */
+        .submenu {
+            display: none;
+            flex-direction: column;
+            padding-right: 18px; /* For RTL indentation */
+            margin: 2px 8px 4px;
+            border-right: 1.5px solid var(--border);
+        }
+        .submenu .nav-item.sub-item {
+            margin: 2px 0;
+            width: 100%;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 550;
+            background: transparent;
+        }
+        .submenu .nav-item.sub-item i {
+            font-size: 0.8rem;
+        }
+        .submenu .nav-item.sub-item.active {
+            background: var(--primary-bg);
+            color: var(--primary-dark) !important;
+            box-shadow: none;
+        }
+        .submenu .nav-item.sub-item.active i {
+            color: var(--primary);
+        }
+        .submenu-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .data-cols-guests-item {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 1fr 1fr;
+            gap: 10px;
+            padding: 12px;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .data-cols-guests-item:hover {
+            background: var(--bg);
+        }
+
         /* Tooltip on collapsed */
         .sidebar.collapsed .nav-item::after {
             content: attr(data-tooltip);
@@ -5861,12 +5905,26 @@
             <button class="nav-item" onclick="switchTab('uncles', this)" data-tooltip="الخُدام">
                 <i class="fas fa-user-tie"></i><span class="label">الخُدام</span>
             </button>
-            <button class="nav-item" onclick="switchTab('students', this)" data-tooltip="الأطفال">
-                <i class="fas fa-child"></i><span class="label">الأطفال</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('graduates', this)" data-tooltip="خريجين">
-                <i class="fas fa-user-graduate"></i><span class="label">خريجين</span>
-            </button>
+            <!-- Kids Main Group -->
+            <div class="nav-group-wrapper" id="kidsNavGroup">
+                <button class="nav-item" type="button" onclick="toggleSubmenu('kidsSubmenu')" data-tooltip="الأطفال" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="display:flex; align-items:center; gap:12px;">
+                        <i class="fas fa-child"></i><span class="label">الأطفال</span>
+                    </span>
+                    <i class="fas fa-chevron-down submenu-arrow" style="font-size:0.75rem; margin-right:auto; transition: transform 0.2s;"></i>
+                </button>
+                <div class="submenu" id="kidsSubmenu">
+                    <button class="nav-item sub-item" type="button" onclick="switchTab('students', this)" data-tooltip="قائمة الأطفال">
+                        <i class="fas fa-list"></i><span class="label">قائمة الأطفال</span>
+                    </button>
+                    <button class="nav-item sub-item" type="button" onclick="switchTab('graduates', this)" data-tooltip="خريجين">
+                        <i class="fas fa-user-graduate"></i><span class="label">خريجين</span>
+                    </button>
+                    <button class="nav-item sub-item" type="button" onclick="switchTab('guests', this)" data-tooltip="الزوار والضيوف">
+                        <i class="fas fa-user-tag"></i><span class="label">الزوار والضيوف</span>
+                    </button>
+                </div>
+            </div>
             <button class="nav-item" onclick="switchTab('attendance', this)" data-tooltip="الحضور">
                 <i class="fas fa-calendar-check"></i><span class="label">الحضور</span>
             </button>
@@ -6325,6 +6383,87 @@
                                     السابق</span><span>الهاتف</span><span>كوبونات</span><span></span>
                             </div>
                             <div class="data-list-body" id="graduatesTable"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── GUESTS ── -->
+            <div id="guests" class="tab-panel">
+                <!-- ── ADD GUEST CARD ── -->
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-user-tag"></i> قائمة الزوار والضيوف</div>
+                        <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddGuestForm()">
+                            <i class="fas fa-plus" id="addGuestChevron"></i> <span id="addGuestToggleLbl">إضافة زائر</span>
+                        </button>
+                    </div>
+                    <div id="addGuestFormWrap" style="display:none;border-top:1px solid var(--border);">
+                        <div class="card-body" style="background:var(--surface-2);">
+                            <form id="addGuestForm" onsubmit="addGuestFromDashboard(event)" novalidate autocomplete="off">
+                                <input type="hidden" id="dashboardGuestId" value="">
+                                <div class="form-grid" style="margin-bottom:18px;">
+                                    <div class="form-group">
+                                        <label class="form-label">الاسم الكامل *</label>
+                                        <input type="text" id="dashboardGuestName" class="form-input" required placeholder="اسم الطفل ثلاثي أو رباعي">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">النوع *</label>
+                                        <select id="dashboardGuestGender" class="form-select" style="width:100%;" required>
+                                            <option value="male">ولد</option>
+                                            <option value="female">بنت</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">الفصل / المرحلة الدراسية</label>
+                                        <input type="text" id="dashboardGuestClass" class="form-input" placeholder="مثال: حضانة، أولى ابتدائي...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">رقم الهاتف</label>
+                                        <input type="tel" id="dashboardGuestPhone" class="form-input" placeholder="رقم هاتف الطفل أو ولي الأمر">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">اسم ولي الأمر</label>
+                                        <input type="text" id="dashboardGuestGuardian" class="form-input" placeholder="الاسم الكامل لولي الأمر">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">ملاحظات</label>
+                                        <input type="text" id="dashboardGuestNotes" class="form-input" placeholder="ملاحظات إضافية">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="addGuestSubmitBtn">
+                                    <i class="fas fa-plus"></i> إضافة الزائر
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── GUESTS LIST CARD ── -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-users"></i> الزوار المسجلون</div>
+                        <div class="export-row">
+                            <button class="exp-btn exp-csv" onclick="exportGuestsToCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="toolbar" style="margin-bottom:14px;">
+                            <div class="search-wrap"><i class="fas fa-search"></i>
+                                <input type="text" id="guestSearch" class="form-input" placeholder="بحث بالاسم أو الهاتف أو ولي الأمر..." oninput="searchGuests()">
+                            </div>
+                        </div>
+                        <div class="data-list">
+                            <div class="data-list-head" style="display:grid; grid-template-columns: 1.8fr 0.8fr 1fr 1fr 1.2fr 1fr 0.8fr; gap:10px; font-weight:800; padding:12px; border-bottom:2px solid var(--border);">
+                                <span>الاسم</span>
+                                <span>النوع</span>
+                                <span>الفصل</span>
+                                <span>الهاتف</span>
+                                <span>ولي الأمر</span>
+                                <span>الرحلات</span>
+                                <span>إجراءات</span>
+                            </div>
+                            <div class="data-list-body" id="guestsTable"></div>
                         </div>
                     </div>
                 </div>
@@ -8808,7 +8947,7 @@
         }
 
         const API_URL = '/api.php';
-        let allStudents = [], allUncles = [], classes = [], pendingRegistrations = [];
+        let allStudents = [], allUncles = [], classes = [], pendingRegistrations = [], allGuests = [];
         let currentTrips = [], allTripsCache = [];
         let selectedPendingIds = [], currentFileData = [];
         let sidebarCollapsed = false;
@@ -9221,6 +9360,7 @@
             uncles: ['الخُدام', 'إدارة الخُدام'],
             students: ['الأطفال', 'إدارة الأطفال'],
             graduates: ['خريجين', 'إدارة الخريجين وطلبات النقل'],
+            guests: ['الزوار والضيوف', 'إدارة الزوار والضيوف بالرحلات'],
             attendance: ['الحضور', 'سجل الحضور'],
             uncleAttendance: ['حضور الخُدام', 'سجل حضور الخُدام'],
             trips: ['الرحلات / المؤتمرات', 'إدارة الرحلات / المؤتمرات'],
@@ -9240,6 +9380,16 @@
                 if (hub) hub.style.display = '';
                 document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
             }
+            // Automatically expand submenu if switching to a kids sub-tab
+            if (['students', 'graduates', 'guests'].includes(name)) {
+                const sub = document.getElementById('kidsSubmenu');
+                if (sub) {
+                    sub.style.display = 'flex';
+                    const arrow = sub.previousElementSibling.querySelector('.submenu-arrow');
+                    if (arrow) arrow.classList.add('rotated');
+                }
+            }
+
             // UI: Update sidebar buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
@@ -9279,6 +9429,7 @@
                 uncles: () => runDataLoad('uncles', loadUncles),
                 students: async () => { await runDataLoad('students', loadStudents); renderKidRegLinks(); },
                 graduates: () => runDataLoad('graduates', loadGraduates),
+                guests: () => runDataLoad('guests', loadGuests),
                 trips: () => runDataLoad('trips', loadTrips),
                 attendance: () => runDataLoad('attendance', initAttendance),
                 uncleAttendance: () => initUncleAttendanceTab(),
@@ -10066,6 +10217,195 @@
                 if (d.success) { showToast('تم تحديث الكوبونات', 'success'); closeModal('editCouponsModal'); loadStudents(); }
                 else showToast(d.message || 'فشل', 'error');
             });
+        }
+
+        // ── Guests ─────────────────────────────────────────────────────
+        function loadGuests() {
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'getGuests');
+            return fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        allGuests = d.data || [];
+                        _saveLocalCache('guests', { data: allGuests });
+                        renderGuestsTable(allGuests);
+                    } else {
+                        const cached = _readLocalCache('guests');
+                        if (cached?.data) {
+                            allGuests = cached.data || [];
+                            renderGuestsTable(allGuests);
+                            if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
+                            return;
+                        }
+                        showToast('خطأ في تحميل الزوار', 'error');
+                    }
+                }).catch(() => {
+                    const cached = _readLocalCache('guests');
+                    if (cached?.data) {
+                        allGuests = cached.data || [];
+                        renderGuestsTable(allGuests);
+                        if (_offlineSessionMode) _showOfflineCacheToast();
+                        return;
+                    }
+                    showToast('خطأ في تحميل الزوار', 'error');
+                });
+        }
+
+        function renderGuestsTable(guests) {
+            const tb = document.getElementById('guestsTable');
+            if (!tb) return;
+            if (!guests.length) {
+                tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-users"></i><h3>لا يوجد زوار مسجلون</h3></div>`;
+                return;
+            }
+            tb.innerHTML = guests.map(g => {
+                const actKey = stashRowActions(g.name, [
+                    { label: 'تعديل', icon: 'fa-edit', handler: () => editGuest(g) },
+                    { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteGuestConfirm(g.id, g.name) },
+                ]);
+                const genderLbl = g.gender === 'male' ? 'ولد' : (g.gender === 'female' ? 'بنت' : '—');
+                const phoneVal = g.phone || '—';
+                const classVal = g.class || '—';
+                const guardianVal = g.guardian_name || '—';
+                const tripsHtml = g.trip_count > 0 
+                    ? `<span class="badge badge-success" title="${escHtml(g.trip_names || '')}" style="cursor:help;">${g.trip_count} رحلة</span>`
+                    : `<span class="badge badge-outline">0</span>`;
+
+                return `<div class="data-row data-cols-guests-item" role="button" tabindex="0"
+                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <div class="td-name-cell">
+                        <div class="avatar-text">${g.name.charAt(0)}</div>
+                        <div><div class="td-name-text">${escHtml(g.name)}</div></div>
+                    </div>
+                    <span>${genderLbl}</span>
+                    <span class="badge badge-primary">${escHtml(classVal)}</span>
+                    <span style="color:var(--text-3);">${escHtml(phoneVal)}</span>
+                    <span>${escHtml(guardianVal)}</span>
+                    <div>${tripsHtml}</div>
+                    <div class="data-row-actions-cell">
+                        <i class="fas fa-chevron-left data-row-chevron"></i>
+                        ${renderInlineRowActions(actKey)}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleAddGuestForm() {
+            const wrap = document.getElementById('addGuestFormWrap');
+            const chev = document.getElementById('addGuestChevron');
+            const lbl = document.getElementById('addGuestToggleLbl');
+            const form = document.getElementById('addGuestForm');
+            if (wrap.style.display === 'none') {
+                wrap.style.display = 'block';
+                chev.className = 'fas fa-chevron-up';
+            } else {
+                wrap.style.display = 'none';
+                chev.className = 'fas fa-plus';
+                lbl.textContent = 'إضافة زائر';
+                form.reset();
+                document.getElementById('dashboardGuestId').value = '';
+                document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> إضافة الزائر';
+            }
+        }
+
+        function addGuestFromDashboard(e) {
+            e.preventDefault();
+            const name = document.getElementById('dashboardGuestName').value.trim();
+            const gender = document.getElementById('dashboardGuestGender').value;
+            const guestClass = document.getElementById('dashboardGuestClass').value.trim();
+            const phone = document.getElementById('dashboardGuestPhone').value.trim();
+            const guardian = document.getElementById('dashboardGuestGuardian').value.trim();
+            const notes = document.getElementById('dashboardGuestNotes').value.trim();
+            const guestId = document.getElementById('dashboardGuestId').value;
+
+            if (!name) {
+                showToast('اسم الزائر مطلوب', 'error');
+                return;
+            }
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', guestId ? 'updateGuest' : 'addGuest');
+            if (guestId) {
+                fd.append('guest_id', guestId);
+            }
+            fd.append('name', name);
+            fd.append('gender', gender);
+            fd.append('class', guestClass);
+            fd.append('phone', phone);
+            fd.append('guardian_name', guardian);
+            fd.append('notes', notes);
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        showToast(d.message || 'تمت العملية بنجاح', 'success');
+                        document.getElementById('addGuestForm').reset();
+                        document.getElementById('dashboardGuestId').value = '';
+                        document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> إضافة الزائر';
+                        document.getElementById('addGuestToggleLbl').textContent = 'إضافة زائر';
+                        document.getElementById('addGuestFormWrap').style.display = 'none';
+                        document.getElementById('addGuestChevron').className = 'fas fa-plus';
+                        loadGuests();
+                    } else {
+                        showToast(d.message || 'خطأ في حفظ الزائر', 'error');
+                    }
+                }).catch(() => {
+                    showToast('فشل الاتصال بالخادم', 'error');
+                });
+        }
+
+        function editGuest(g) {
+            document.getElementById('dashboardGuestId').value = g.id;
+            document.getElementById('dashboardGuestName').value = g.name;
+            document.getElementById('dashboardGuestGender').value = g.gender || 'male';
+            document.getElementById('dashboardGuestClass').value = g.class || '';
+            document.getElementById('dashboardGuestPhone').value = g.phone || '';
+            document.getElementById('dashboardGuestGuardian').value = g.guardian_name || '';
+            document.getElementById('dashboardGuestNotes').value = g.notes || '';
+            document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+            document.getElementById('addGuestToggleLbl').textContent = 'تعديل بيانات الزائر';
+            document.getElementById('addGuestFormWrap').style.display = 'block';
+            document.getElementById('addGuestChevron').className = 'fas fa-chevron-up';
+            document.getElementById('guests').scrollTop = 0;
+        }
+
+        async function deleteGuestConfirm(id, name) {
+            if (!(await showConfirm({ message: `هل أنت متأكد من حذف الزائر "${name}"؟\nسيتم إلغاء جميع حجوزات الرحلات المرتبطة به.`, danger: true }))) return;
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'deleteGuest');
+            fd.append('guest_id', id);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast(d.message, 'success');
+                loadGuests();
+            } else {
+                showToast(d.message || 'فشل في الحذف', 'error');
+            }
+        }
+
+        function searchGuests() {
+            const q = document.getElementById('guestSearch').value.toLowerCase();
+            const list = allGuests.filter(g => 
+                !q || 
+                g.name.toLowerCase().includes(q) || 
+                (g.phone || '').includes(q) || 
+                (g.guardian_name || '').toLowerCase().includes(q) ||
+                (g.class || '').toLowerCase().includes(q)
+            );
+            renderGuestsTable(list);
+        }
+
+        function exportGuestsToCSV() {
+            let csv = '\uFEFF' + 'الاسم,النوع,الفصل,رقم الهاتف,اسم ولي الأمر,ملاحظات,عدد الرحلات,الرحلات\n';
+            allGuests.forEach(g => { 
+                const gender = g.gender === 'male' ? 'ولد' : (g.gender === 'female' ? 'بنت' : '—');
+                csv += `"${g.name}","${gender}","${g.class || ''}","${g.phone || ''}","${g.guardian_name || ''}","${g.notes || ''}","${g.trip_count || 0}","${g.trip_names || ''}"\n`; 
+            });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            a.download = `الزوار_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+            showToast('تم تصدير CSV', 'success');
         }
 
         // ── Classes ────────────────────────────────────────────────────
