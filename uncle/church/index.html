@@ -16137,6 +16137,21 @@
                 chev.className = isHidden ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
             }
         }
+
+        function toggleSubmenu(id) {
+            const sub = document.getElementById(id);
+            if (!sub) return;
+            const isHidden = !sub.style.display || sub.style.display === 'none';
+            sub.style.display = isHidden ? 'flex' : 'none';
+            const arrow = sub.previousElementSibling.querySelector('.submenu-arrow');
+            if (arrow) {
+                if (isHidden) {
+                    arrow.classList.add('rotated');
+                } else {
+                    arrow.classList.remove('rotated');
+                }
+            }
+        }
     </script>
 
     <!-- Uncle Attendance Modal -->

@@ -18543,7 +18543,7 @@ function searchAllStudents()
             $students[] = $row;
         }
 
-        sendJSON(['success' => true, 'students' => $students]);
+        sendJSON(['success' => true, 'students' => $students, 'data' => $students]);
     } catch (Exception $e) {
         error_log("searchAllStudents error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في البحث: ' . $e->getMessage()]);
