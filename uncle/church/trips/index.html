@@ -6961,7 +6961,8 @@
 
       // Get settings
       const scale = parseFloat(document.getElementById('printScale').value) / 100;
-      const gap = document.getElementById('printGap').value + 'px';
+      const gapX = document.getElementById('printGapX').value + 'px';
+      const gapY = document.getElementById('printGapY').value + 'px';
       const padding = document.getElementById('printPadding').value + 'px';
       const showChurch = document.getElementById('printShowChurch').checked;
       const showTripImage = document.getElementById('printShowTripImage').checked;
@@ -6983,7 +6984,8 @@
 
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = '';
-      printArea.style.gap = gap;
+      printArea.style.columnGap = gapX;
+      printArea.style.rowGap = gapY;
       
       let html = '';
       const qrTasks = [];
@@ -7013,7 +7015,7 @@
         new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
       });
 
-      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.gap = ''; }, 1000); }, 1200);
+      setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.columnGap = ''; printArea.style.rowGap = ''; }, 1000); }, 1200);
     }
 
     let systemChurches = [];
@@ -7438,9 +7440,16 @@
 
           <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <div>
-              <label class="form-label">المسافة بين البطاقات</label>
-              <input type="number" id="printGap" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              <label class="form-label">المسافة الأفقية بين البطاقات</label>
+              <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
             </div>
+            <div>
+              <label class="form-label">المسافة الرأسية بين البطاقات</label>
+              <input type="number" id="printGapY" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+            </div>
+          </div>
+
+          <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <div>
               <label class="form-label">المسافات الداخلية</label>
               <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
@@ -7557,9 +7566,9 @@
           <div class="form-group">
             <label class="form-label" style="font-weight:800;">تأثير وضوح نصوص الكارت</label>
             <select id="printTextReadability" class="form-select" style="width:100%;" onchange="updatePrintPreview()">
-              <option value="none">بدون تأثير إضافي (تلقائي)</option>
+              <option value="none" selected>بدون تأثير إضافي (تلقائي)</option>
               <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
-              <option value="rect" selected>مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
+              <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
             </select>
           </div>
 
