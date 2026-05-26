@@ -11177,6 +11177,12 @@ function registerStudentForTrip()
             return;
         }
 
+        $totalPerKid = getTripTotalPerKid($conn, $tripId);
+        if ($deposit > $totalPerKid) {
+            sendJSON(['success' => false, 'message' => 'المبلغ أكبر من سعر الرحلة']);
+            return;
+        }
+
         $maxParticipants = intval($trip['max_participants'] ?? 0);
 
         // عدد المسجلين النشطين
@@ -11424,7 +11430,7 @@ function addTripPayment()
             }
         }
 
-        $paidStmt = $conn->prepare("SELECT SUM(amount) as total FROM trip_payments WHERE registration_id = ?");
+        $paidStmt = $conn->prepare("SELECT SUM(amount) as total FROM trip_payments WHERE registration_id = ? AND is_deleted = 0");
         $paidStmt->bind_param("i", $registrationId);
         $paidStmt->execute();
         $paidResult = $paidStmt->get_result();
@@ -11471,7 +11477,7 @@ function addTripPayment()
             // Recalculate and sync payment_status
             $recalcStmt = $conn->prepare("
         SELECT COALESCE(SUM(amount), 0) as total_paid
-        FROM trip_payments WHERE registration_id = ?
+        FROM trip_payments WHERE registration_id = ? AND is_deleted = 0
     ");
             $recalcStmt->bind_param("i", $registrationId);
             $recalcStmt->execute();
@@ -17162,7 +17168,7 @@ function getStudentTrips()
             if ($studentId) {
                 $mStmt = $conn->prepare("
                     SELECT tr.id, tr.payment_status, tr.amount_paid,
-                           COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id=tr.id),0) AS total_paid
+                           COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id=tr.id AND is_deleted = 0),0) AS total_paid
                     FROM trip_registrations tr
                     WHERE tr.trip_id=? AND tr.student_id=? AND tr.cancelled=0
                     LIMIT 1
