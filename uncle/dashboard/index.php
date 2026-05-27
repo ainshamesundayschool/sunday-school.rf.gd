@@ -7766,7 +7766,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: relative;
             max-width: 500px;
             width: 100%;
-            margin: 0 auto 20px auto;
+            margin: 0 auto 28px auto;
             z-index: 99;
         }
 
@@ -7879,7 +7879,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .inline-search-wrap {
                 width: calc(100% - 34px);
                 max-width: 420px;
-                margin-bottom: 16px;
+                margin-bottom: 22px;
             }
 
             .inline-search-box {
