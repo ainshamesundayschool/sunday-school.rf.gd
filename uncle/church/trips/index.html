@@ -2766,6 +2766,142 @@
       display: none;
     }
 
+    .trip-tabs-bar {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      background: var(--bg);
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .trip-summary-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr);
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffffff, #f8f9ff);
+      margin-bottom: 18px;
+    }
+
+    .trip-summary-main {
+      display: flex;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .trip-summary-thumb {
+      width: 74px;
+      height: 74px;
+      border-radius: 16px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: var(--surface-2, #f7f8fc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .trip-summary-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .trip-summary-copy {
+      min-width: 0;
+    }
+
+    .trip-summary-copy h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .trip-summary-sub {
+      font-size: 0.82rem;
+      color: var(--text-2);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .trip-summary-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .trip-summary-side {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .trip-summary-price {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: white;
+    }
+
+    .trip-summary-price small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      margin-bottom: 4px;
+    }
+
+    .trip-summary-price strong {
+      display: block;
+      color: var(--primary);
+      font-size: 1.2rem;
+      line-height: 1.1;
+    }
+
+    .trip-summary-price span {
+      display: block;
+      color: var(--text-3);
+      font-size: 0.72rem;
+      margin-top: 4px;
+    }
+
+    .trip-summary-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .trip-summary-stat {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: white;
+      text-align: center;
+    }
+
+    .trip-summary-stat strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .trip-summary-stat span {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
     .trip-folder-body {
       padding: 24px 28px;
       flex: 0 0 auto;
@@ -2820,6 +2956,21 @@
       padding: 0;
       overflow: visible !important;
       max-height: none !important;
+    }
+
+    .trip-shell-page .shell-mounted-modal {
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: calc(100vh - 240px);
+    }
+
+    .trip-shell-page .shell-mounted-modal .modal-head {
+      flex-shrink: 0;
+    }
+
+    .trip-shell-page .shell-mounted-modal .modal-body {
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     #tripDetailsModal .modal-box {
@@ -2896,6 +3047,10 @@
       #tripDetailsScroll {
         padding: 18px 22px 24px !important;
       }
+
+      .trip-shell-page .shell-mounted-modal {
+        min-height: calc(100vh - 210px);
+      }
     }
 
     @media (max-width: 1099px) {
@@ -2912,6 +3067,16 @@
 
       #tripDetailsScroll {
         padding: 18px 16px 24px !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .trip-summary-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .trip-summary-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -3403,6 +3568,92 @@
       }
     }
 
+    .trip-shell-page #printSettingsModal .modal-box,
+    #printSettingsModal[data-shell-mounted="1"] .modal-box {
+      width: 100% !important;
+      max-width: none !important;
+      height: calc(100vh - 220px) !important;
+      max-height: none !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    .trip-shell-page #printSettingsModal .modal-body,
+    #printSettingsModal[data-shell-mounted="1"] .modal-body {
+      display: grid !important;
+      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr) !important;
+      gap: 24px !important;
+      align-items: stretch !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      padding: 20px 24px 24px !important;
+    }
+
+    .trip-shell-page #printSettingsModal #printSettingsFormPanel,
+    #printSettingsModal[data-shell-mounted="1"] #printSettingsFormPanel {
+      order: 2;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      height: 100% !important;
+      overflow-y: auto !important;
+    }
+
+    .trip-shell-page #printSettingsModal #printPreviewPanel,
+    #printSettingsModal[data-shell-mounted="1"] #printPreviewPanel {
+      order: 1;
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      overflow: hidden !important;
+      border-right: 1px solid var(--border) !important;
+      padding-right: 24px !important;
+      margin: 0 !important;
+    }
+
+    .trip-shell-page #printSettingsModal #printPreviewWrapper,
+    #printSettingsModal[data-shell-mounted="1"] #printPreviewWrapper {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: auto !important;
+    }
+
+    .trip-shell-page #registerStudentModal .modal-box,
+    #registerStudentModal[data-shell-mounted="1"] .modal-box {
+      width: 100% !important;
+      max-width: none !important;
+      height: calc(100vh - 220px) !important;
+      max-height: none !important;
+      margin: 0 !important;
+    }
+
+    .trip-shell-page #registerStudentModal .modal-body,
+    #registerStudentModal[data-shell-mounted="1"] .modal-body {
+      overflow: hidden !important;
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+
+    .trip-shell-page #registerStudentModal #registerStudentForm,
+    #registerStudentModal[data-shell-mounted="1"] #registerStudentForm,
+    .trip-shell-page #registerStudentModal .kid-picker-panel,
+    #registerStudentModal[data-shell-mounted="1"] .kid-picker-panel {
+      min-height: 0 !important;
+    }
+
+    .trip-shell-page #registerStudentModal .kid-grid,
+    #registerStudentModal[data-shell-mounted="1"] .kid-grid {
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
     /* ── Mobile: stacked — settings first, preview below ────── */
     @media (max-width: 768px) {
       #printSettingsModal .modal-box {
@@ -3475,58 +3726,41 @@
     <div class="modal-box"
       style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
       <div id="tdHeader"
-        style="position:relative;background:#1a1d2e;color:white;padding:10px 16px 0;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div style="position:relative;z-index:1;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;min-width:0;">
-            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;">
-              <div id="tdCoverThumb"
-                style="width:32px;height:32px;border-radius:8px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:0.95rem;">
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;overflow:hidden;white-space:nowrap;">
-                <h2 id="tdModalTitle" style="font-size:0.98rem;font-weight:900;color:white;margin:0;line-height:1.1;overflow:hidden;text-overflow:ellipsis;">تفاصيل الرحلة</h2>
-                <div id="tdStatusBadge" style="display:flex;align-items:center;gap:4px;flex-shrink:0;"></div>
-                <div id="tdSubtitle" style="font-size:0.7rem;color:rgba(255,255,255,0.62);line-height:1.1;overflow:hidden;text-overflow:ellipsis;"></div>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
-              <div id="tdPricePill"
-                style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 8px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
-                <div style="font-size:0.58rem;color:rgba(255,255,255,0.58);">الإجمالي / طفل</div>
-                <div id="tdTotalPricePill" style="font-size:0.88rem;font-weight:900;color:white;line-height:1;">0 ج</div>
-                <div id="tdPriceBreakPill" style="font-size:0.56rem;color:rgba(255,255,255,0.46);line-height:1;"></div>
-              </div>
-              <button class="modal-close" onclick="window.location.href='/uncle/church/#trips'"
-                style="background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.14);width:30px;height:30px;border-radius:50%;font-size:0.82rem;display:flex;align-items:center;justify-content:center;"><i
-                  class="fas fa-times"></i></button>
-            </div>
-          </div>
-          <div id="tdQuickStats" style="display:flex;gap:0;margin:0 -16px;padding:0 16px;"></div>
-        </div>
-        <div class="td-tabs trip-header-tabs" id="tdTabsDesktop" style="margin:6px -16px 0;padding:0 16px;border-bottom:none;background:transparent;">
-          <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
-          <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
-          <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
-          <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
-        </div>
-        <div class="td-tabs" id="tdTabsMobile" style="margin:6px -16px 0;padding:0 16px;border-bottom:none;background:transparent;">
-          <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
-            style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
-            الملخص</div>
-          <div class="td-tab" id="tdtab-regs" data-title="المسجلون" data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
-            style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
-            <span class="td-badge" id="tdRegsCount"></span>
-          </div>
-          <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار" data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
-            style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
-            الانتظار
-            <span class="td-badge warn" id="tdWaitlistCount"></span>
-          </div>
-          <div class="td-tab" id="tdtab-exp" data-title="المصروفات" data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
-            style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
-            المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
-        </div>
+        style="display:none;">
+        <div id="tdCoverThumb"></div>
+        <h2 id="tdModalTitle">تفاصيل الرحلة</h2>
+        <div id="tdStatusBadge"></div>
+        <div id="tdSubtitle"></div>
+        <div id="tdTotalPricePill">0 ج</div>
+        <div id="tdPriceBreakPill"></div>
+        <div id="tdQuickStats"></div>
       </div>
       <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:24px 28px;">
+        <div class="trip-tabs-bar">
+          <div class="td-tabs trip-header-tabs" id="tdTabsDesktop" style="margin:0;padding:0;border-bottom:none;background:transparent;">
+            <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
+            <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
+            <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+            <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
+          </div>
+          <div class="td-tabs" id="tdTabsMobile" style="margin:0;padding:0;border-bottom:none;background:transparent;">
+            <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
+              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
+              الملخص</div>
+            <div class="td-tab" id="tdtab-regs" data-title="المسجلون" data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
+              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
+              <span class="td-badge" id="tdRegsCount"></span>
+            </div>
+            <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار" data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
+              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
+              الانتظار
+              <span class="td-badge warn" id="tdWaitlistCount"></span>
+            </div>
+            <div class="td-tab" id="tdtab-exp" data-title="المصروفات" data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
+              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
+              المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
+          </div>
+        </div>
         <div class="trip-workspace">
           <section class="trip-folder-shell">
             <div class="trip-folder-header">
@@ -3797,6 +4031,9 @@
       tripShellStack.forEach((page, idx) => page.pageEl.classList.toggle('active', idx === index));
       pagesHost.classList.add('active');
       panels.style.display = 'none';
+      panels.style.visibility = 'hidden';
+      panels.style.height = '0';
+      panels.style.padding = '0';
       const active = tripShellStack[index];
       const crumbs = buildTripBreadcrumb(tripShellStack.slice(0, index + 1).map((page, pageIndex) => ({
         label: page.title,
@@ -3832,7 +4069,12 @@
       }
       document.getElementById('tripShellPages')?.classList.remove('active');
       const panels = document.querySelector('.trip-folder-body');
-      if (panels) panels.style.display = '';
+      if (panels) {
+        panels.style.display = '';
+        panels.style.visibility = '';
+        panels.style.height = '';
+        panels.style.padding = '';
+      }
       updateTripFolderHeader(currentTripTab);
     }
 
@@ -4186,6 +4428,41 @@
         </div>`;
 
       document.getElementById('tripInfoContent').innerHTML = `
+        <div class="trip-summary-hero">
+          <div class="trip-summary-main">
+            <div class="trip-summary-thumb">
+              ${trip.image_url ? `<img src="${trip.image_url}" alt="${escHtml(trip.title)}">` : `<i class="fas fa-${trip.type === 'one_day' ? 'bus' : 'campground'}"></i>`}
+            </div>
+            <div class="trip-summary-copy">
+              <h2>${escHtml(trip.title)}</h2>
+              <div class="trip-summary-sub">${escHtml(trip.start_date_formatted || trip.start_date || '—')}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}</div>
+              <div class="trip-summary-badges">
+                <span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>
+                ${!isOwner ? `<span class="badge" style="font-size:0.72rem;background:#e0f2fe;color:#0ea5e9;border:1px solid #0ea5e9;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="trip-summary-side">
+            <div class="trip-summary-price">
+              <small>الإجمالي / طفل</small>
+              <strong>${totalPerKid} ج</strong>
+              <span>${expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر ${tripWordDef}`}</span>
+            </div>
+            <div class="trip-summary-price">
+              <small>المحصّل / المتبقي</small>
+              <strong style="color:var(--success);font-size:1rem;">${totalCollected} ج</strong>
+              <span style="color:var(--danger);">${totalRemaining} ج متبقي</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-summary-stats">
+          <div class="trip-summary-stat"><strong>${regs.length}</strong><span>مسجل</span></div>
+          <div class="trip-summary-stat"><strong>${fin.waitlistCount || 0}</strong><span>انتظار</span></div>
+          <div class="trip-summary-stat"><strong>${totalDonations} ج</strong><span>تبرعات</span></div>
+          <div class="trip-summary-stat"><strong>${trip.max_participants || '∞'}</strong><span>أقصى عدد</span></div>
+        </div>
+
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
             <div class="info-box"><small>تاريخ البدء</small><div style="font-weight:700;">${trip.start_date_formatted || trip.start_date || '—'}</div></div>
             <div class="info-box"><small>سعر ${tripWordDef} الأساسي</small><div style="color:var(--primary);font-weight:800;">${basePrice} ج</div></div>
