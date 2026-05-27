@@ -657,8 +657,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: relative;
             overflow: hidden;
             box-shadow:
-                0 1px 0 rgba(255, 255, 255, .7) inset,
-                0 6px 14px rgba(15, 23, 42, .05);
+                0 .5px 0 rgba(255, 255, 255, .5) inset,
+                0 5px 12px rgba(15, 23, 42, .04);
         }
 
         .topbar-btn:hover {
@@ -667,8 +667,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand);
             transform: translateY(-1px);
             box-shadow:
-                0 1px 0 rgba(255, 255, 255, .78) inset,
-                0 3px 8px var(--brand-glow)
+                0 .5px 0 rgba(255, 255, 255, .58) inset,
+                0 3px 7px rgba(91, 108, 245, .10)
         }
 
         .topbar-avatar-btn {
@@ -5625,7 +5625,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-wrap {
             margin: 2px 0 14px;
             display: grid;
-            gap: 10px;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(248, 250, 252, .92), rgba(255, 255, 255, .96));
+            border: 1px solid rgba(226, 232, 240, .9);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .8) inset,
+                0 10px 24px rgba(15, 23, 42, .04);
+            animation: homeToolsLanding .45s var(--spring);
+        }
+
+        @keyframes homeToolsLanding {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .home-tools-head {
@@ -5636,7 +5656,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .home-tools-title {
-            font-size: .82rem;
+            font-size: .78rem;
             font-weight: 800;
             color: var(--text-2);
         }
@@ -5646,7 +5666,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: transparent;
             color: var(--brand);
             font-family: inherit;
-            font-size: .73rem;
+            font-size: .7rem;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
@@ -5657,9 +5677,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tools-rail {
             display: flex;
-            gap: 8px;
+            gap: 7px;
             overflow-x: auto;
-            padding-bottom: 4px;
+            padding: 1px 1px 4px;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -5672,21 +5692,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex: 0 0 auto;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 8px 12px;
+            gap: 6px;
+            padding: 7px 10px;
             border-radius: var(--r-full);
-            background: var(--surface);
+            background: rgba(255, 255, 255, .78);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
             font-family: inherit;
-            font-size: .74rem;
+            font-size: .71rem;
             font-weight: 700;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             box-shadow:
-                0 1px 0 rgba(255, 255, 255, .72) inset,
-                0 6px 14px rgba(15, 23, 42, .04);
+                0 .5px 0 rgba(255, 255, 255, .72) inset,
+                0 4px 10px rgba(15, 23, 42, .035);
             white-space: nowrap;
+            animation: toolChipIn .42s var(--spring) both;
+        }
+
+        .home-tool-chip:nth-child(1) { animation-delay: .03s; }
+        .home-tool-chip:nth-child(2) { animation-delay: .06s; }
+        .home-tool-chip:nth-child(3) { animation-delay: .09s; }
+        .home-tool-chip:nth-child(4) { animation-delay: .12s; }
+        .home-tool-chip:nth-child(5) { animation-delay: .15s; }
+        .home-tool-chip:nth-child(6) { animation-delay: .18s; }
+        .home-tool-chip:nth-child(7) { animation-delay: .21s; }
+        .home-tool-chip:nth-child(8) { animation-delay: .24s; }
+        .home-tool-chip:nth-child(9) { animation-delay: .27s; }
+
+        @keyframes toolChipIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .home-tool-chip:hover {
@@ -5697,7 +5740,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .home-tool-chip i {
-            font-size: .8rem;
+            font-size: .76rem;
         }
 
         .tools-grid {
@@ -8216,17 +8259,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead"
-                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
-                        <i class="fas fa-th-large"></i>
-                        <span>عرض شبكي</span>
-                    </button>
-                </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
-
                 <div class="home-tools-wrap">
                     <div class="home-tools-head">
                         <span class="home-tools-title">أدوات سريعة</span>
@@ -8287,6 +8319,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
                 </div>
+
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
+                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                        <i class="fas fa-th-large"></i>
+                        <span>عرض شبكي</span>
+                    </button>
+                </div>
+                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
                 <div class="section-head" style="margin-top:20px;">
                     <span class="section-title">الفصول</span>
