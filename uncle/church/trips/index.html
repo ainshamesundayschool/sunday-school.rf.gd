@@ -2434,22 +2434,43 @@
       inset: 0;
       z-index: 2100;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
-      background: rgba(10, 8, 26, 0.55);
-      backdrop-filter: blur(6px);
+      background: rgba(10, 8, 26, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       animation: fadeIn .2s var(--ease-out);
+      padding: 20px;
     }
 
     .kid-overview-box {
       background: white;
-      border-radius: 20px 20px 0 0;
+      border-radius: 18px;
       width: 100%;
-      max-width: 520px;
-      max-height: 80vh;
+      max-width: 480px;
+      max-height: 82vh;
       overflow-y: auto;
-      padding: 20px 20px 30px;
-      animation: slideUp .3s var(--ease);
+      padding: 22px 22px 26px;
+      animation: scaleIn .2s var(--ease-spring);
+      box-shadow: 0 24px 64px rgba(10,8,26,0.22), 0 8px 24px rgba(10,8,26,0.1);
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Mobile: keep bottom-sheet on small screens */
+    @media (max-width: 600px) {
+      .kid-overview-panel {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .kid-overview-box {
+        border-radius: 20px 20px 0 0;
+        max-width: 100%;
+        animation: slideUp .3s var(--ease);
+      }
     }
 
     .kid-overview-header {
@@ -2767,18 +2788,26 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(10, 8, 26, 0.55);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      background: rgba(10, 8, 26, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 1000;
       justify-content: center;
-      align-items: flex-end;
-      padding: 0;
+      align-items: center;
+      padding: 20px;
     }
 
     .modal.open {
       display: flex;
       animation: fadeIn 0.2s var(--ease-out);
+    }
+
+    /* Bottom-sheet only on small screens */
+    @media (max-width: 600px) {
+      .modal {
+        align-items: flex-end;
+        padding: 0;
+      }
     }
 
     @keyframes fadeIn {
@@ -2793,16 +2822,25 @@
 
     .modal-box {
       background: white;
-      border-radius: 20px 20px 0 0 !important;
+      border-radius: 16px !important;
       width: 100% !important;
-      max-width: 700px !important;
+      max-width: 680px !important;
       height: auto !important;
-      max-height: 92vh !important;
+      max-height: 88vh !important;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: var(--shadow-xl);
-      animation: slideUp 0.28s var(--ease-out);
+      box-shadow: 0 24px 64px rgba(10,8,26,0.2), 0 8px 24px rgba(10,8,26,0.1);
+      animation: scaleIn 0.2s var(--ease-spring);
+    }
+
+    @media (max-width: 600px) {
+      .modal-box {
+        border-radius: 20px 20px 0 0 !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        animation: slideUp 0.28s var(--ease-out);
+      }
     }
 
     /* Full-screen trip detail stays full-screen */
