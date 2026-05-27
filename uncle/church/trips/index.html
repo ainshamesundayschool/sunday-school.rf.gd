@@ -4032,6 +4032,11 @@
        DASHBOARD REDESIGN — Modern clean full-screen layout
     ════════════════════════════════════════════════════════════════ */
 
+    html, body {
+      overflow: hidden !important;
+      height: 100% !important;
+    }
+
     body {
       background: #f0f1f6 !important;
     }
@@ -4910,8 +4915,8 @@
       const tripWordDef = trip.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
       
       // Dynamic DOM updates
-      document.querySelector('.topbar-title').textContent = 'إدارة ' + tripWordDef;
-      document.querySelector('.topbar-breadcrumb span').textContent = 'تفاصيل ' + tripWordDef;
+      const _ttl = document.querySelector('.topbar-title'); if (_ttl) _ttl.textContent = 'إدارة ' + tripWordDef;
+      const _tbc = document.querySelector('.topbar-breadcrumb span'); if (_tbc) _tbc.textContent = 'تفاصيل ' + tripWordDef;
       document.getElementById('tdModalTitle').textContent = 'تفاصيل ' + tripWordDef;
 
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
