@@ -3996,8 +3996,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-img {
-            width: 28px;
-            height: 28px;
+            width: 31px;
+            height: 31px;
             border-radius: 8px;
             object-fit: cover;
             background: var(--brand-bg);
@@ -4053,7 +4053,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: space-between;
             width: 100%;
             gap: 6px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 
         .trip-slim-date {
