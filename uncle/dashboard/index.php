@@ -637,6 +637,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding-left: 4px
         }
 
+        .topbar-search-wrap {
+            display: none;
+            position: relative;
+            flex: 1;
+            max-width: 420px;
+            margin: 0 16px;
+            z-index: 120;
+        }
+
+        .topbar-search-wrap .inline-search-box {
+            min-height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .82);
+            backdrop-filter: blur(10px);
+        }
+
+        .topbar-search-wrap .inline-search-box input {
+            font-size: .86rem;
+            padding: 9px 0;
+        }
+
+        .topbar-search-wrap .inline-search-dropdown {
+            top: calc(100% + 8px);
+        }
+
+        @media (min-width: 980px) {
+            .topbar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .topbar-search-wrap {
+                display: block;
+            }
+
+            #classesView .inline-search-wrap {
+                display: none;
+            }
+        }
+
         .topbar-btn {
             height: 38px;
             min-width: 38px;
@@ -3907,8 +3949,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trips-horizontal-scroll {
             display: flex;
             overflow-x: auto;
-            gap: 12px;
-            padding: 4px 2px 14px;
+            gap: 10px;
+            padding: 4px 2px 12px;
             margin-bottom: 10px;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -3920,22 +3962,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trips-horizontal-scroll.expanded {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             overflow-x: visible;
-            gap: 16px;
-            padding: 4px 0 14px;
+            gap: 10px;
+            padding: 4px 0 10px;
         }
 
         .trip-slim-card {
             flex: 0 0 auto;
-            width: 240px;
+            width: 210px;
             background: var(--surface-2);
             border-radius: var(--r-lg);
             border: 1.5px solid var(--border-solid);
-            padding: 10px;
+            padding: 9px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             box-shadow: var(--shadow-sm);
@@ -3951,15 +3993,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trips-horizontal-scroll.expanded .trip-slim-card {
             width: 100%;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
         }
 
         .trip-slim-img {
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             border-radius: var(--r-sm);
             object-fit: cover;
             background: var(--brand-bg);
@@ -3967,16 +4005,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
         }
 
-        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-img {
-            width: 100%;
-            height: 140px;
-            border-radius: var(--r-md);
-        }
-
         .trip-skeleton {
             flex: 0 0 auto;
-            width: 240px;
-            height: 70px;
+            width: 210px;
+            height: 60px;
             background: var(--surface-3);
             border-radius: var(--r-lg);
             animation: skeleton-pulse 1.5s infinite;
@@ -4006,7 +4038,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-name {
-            font-size: 0.88rem;
+            font-size: 0.82rem;
             font-weight: 800;
             color: var(--text);
             white-space: nowrap;
@@ -4015,18 +4047,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 2px;
             letter-spacing: normal;
         }
-
-        .trips-horizontal-scroll.expanded .trip-slim-card .trip-slim-name {
-            font-size: 0.95rem;
-            white-space: normal;
-            word-break: break-word;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         .trip-slim-meta-row {
             display: flex;
             align-items: center;
@@ -5807,16 +5827,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .72rem;
+            font-size: .7rem;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 4px 9px;
             border-radius: 20px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            height: 30px;
+            height: 28px;
             box-shadow: none;
         }
 
@@ -8192,6 +8212,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="topbar-subtitle">نظام مدارس الأحد</div>
                 </div>
             </a>
+            <div class="topbar-search-wrap">
+                <div class="inline-search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
+                        oninput="performInlineSearch(this.value, 'topbar')" autocomplete="off">
+                    <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
+            </div>
             <div class="topbar-actions">
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
@@ -8276,7 +8306,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
                     <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                        style="font-size: 0.7rem; padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px;">
                         <i class="fas fa-th-large"></i>
                         <span>عرض شبكي</span>
                     </button>
@@ -16560,13 +16590,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             closeIntelligentSearchModal();
 
-            // Close inline search dropdown and clear input
-            const inlineDrop = document.getElementById('inlineSearchDropdown');
-            if (inlineDrop) inlineDrop.style.display = 'none';
-            const inlineInput = document.getElementById('inlineSearchInput');
-            if (inlineInput) inlineInput.value = '';
-            const clearBtn = document.getElementById('clearInlineSearchBtn');
-            if (clearBtn) clearBtn.style.display = 'none';
+            ['inlineSearchDropdown', 'topbarSearchDropdown'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            ['inlineSearchInput', 'topbarSearchInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            ['clearInlineSearchBtn', 'clearTopbarSearchBtn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
 
             // Go to his class
             if (s['الفصل']) {
@@ -16601,10 +16636,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        function performInlineSearch(val) {
-            const q = val.trim();
-            const container = document.getElementById('inlineSearchDropdown');
-            const clearBtn = document.getElementById('clearInlineSearchBtn');
+        function _renderInlineSearchResults(q, source = 'inline') {
+            const container = document.getElementById(source === 'topbar' ? 'topbarSearchDropdown' : 'inlineSearchDropdown');
+            const clearBtn = document.getElementById(source === 'topbar' ? 'clearTopbarSearchBtn' : 'clearInlineSearchBtn');
+            if (!container) return;
 
             if (clearBtn) {
                 clearBtn.style.display = q ? 'flex' : 'none';
@@ -16656,32 +16691,52 @@ if ($hasUncleId && $uncleRole === 'uncle')
             container.style.display = 'flex';
         }
 
-        function clearInlineSearch() {
-            const input = document.getElementById('inlineSearchInput');
-            if (input) input.value = '';
-            performInlineSearch('');
+        function performInlineSearch(val, source = 'inline') {
+            const q = (val || '').trim();
+            const currentInput = document.getElementById(source === 'topbar' ? 'topbarSearchInput' : 'inlineSearchInput');
+            const otherInput = document.getElementById(source === 'topbar' ? 'inlineSearchInput' : 'topbarSearchInput');
+            const rawValue = currentInput ? currentInput.value : val;
+            if (otherInput && otherInput.value !== rawValue) otherInput.value = rawValue;
+            _renderInlineSearchResults(q, 'inline');
+            _renderInlineSearchResults(q, 'topbar');
+        }
+
+        function clearInlineSearch(source = 'inline') {
+            ['inlineSearchInput', 'topbarSearchInput'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+            _renderInlineSearchResults('', 'inline');
+            _renderInlineSearchResults('', 'topbar');
+            const input = document.getElementById(source === 'topbar' ? 'topbarSearchInput' : 'inlineSearchInput');
             if (input) input.focus();
         }
 
         // Close inline search dropdown on outside clicks
         document.addEventListener('click', function (e) {
             const wrap = document.querySelector('.inline-search-wrap');
+            const topbarWrap = document.querySelector('.topbar-search-wrap');
             if (wrap && !wrap.contains(e.target)) {
                 const dropdown = document.getElementById('inlineSearchDropdown');
                 if (dropdown) dropdown.style.display = 'none';
             }
+            if (topbarWrap && !topbarWrap.contains(e.target)) {
+                const dropdown = document.getElementById('topbarSearchDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
         });
 
-        // Re-open inline search dropdown on focus if input has content
-        const inlineSearchInput = document.getElementById('inlineSearchInput');
-        if (inlineSearchInput) {
-            inlineSearchInput.addEventListener('focus', function () {
+        // Re-open search dropdown on focus if input has content
+        [['inlineSearchInput', 'inlineSearchDropdown'], ['topbarSearchInput', 'topbarSearchDropdown']].forEach(([inputId, dropdownId]) => {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.addEventListener('focus', function () {
                 if (this.value.trim()) {
-                    const dropdown = document.getElementById('inlineSearchDropdown');
+                    const dropdown = document.getElementById(dropdownId);
                     if (dropdown) dropdown.style.display = 'flex';
                 }
             });
-        }
+        });
 
         function escStr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
