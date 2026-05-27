@@ -5624,8 +5624,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tools-wrap {
             margin: 2px 0 14px;
-            display: grid;
-            gap: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 0;
             animation: homeToolsLanding .45s var(--spring);
         }
@@ -5642,51 +5643,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        .home-tools-head {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 6px;
-            min-height: 0;
-        }
-
         .home-tools-link {
-            border: none;
-            background: transparent;
-            color: var(--brand);
+            flex: 0 0 auto;
+            border: 1px dashed rgba(91, 108, 245, .28);
+            background: linear-gradient(180deg, rgba(238, 242, 255, .75), rgba(255, 255, 255, .92));
+            color: var(--brand-dark);
             font-family: inherit;
-            font-size: .64rem;
+            font-size: .68rem;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 0;
+            justify-content: center;
+            gap: 6px;
+            min-width: 96px;
+            padding: 7px 10px;
+            border-radius: 999px;
             transition: all var(--t) var(--ease);
+            box-shadow:
+                0 .5px 0 rgba(255, 255, 255, .78) inset,
+                0 6px 14px rgba(91, 108, 245, .06);
+            white-space: nowrap;
         }
 
         .home-tools-link:hover {
             transform: translateY(-1px);
-            opacity: .85;
+            border-color: rgba(91, 108, 245, .42);
+            background: var(--brand-bg);
         }
 
         .home-tools-rail {
             display: flex;
             gap: 7px;
-            overflow-x: auto;
-            padding: 2px 2px 4px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .home-tools-rail::-webkit-scrollbar {
-            display: none;
+            overflow: hidden;
+            padding: 2px 0 4px;
+            flex: 1;
+            min-width: 0;
         }
 
         .home-tool-chip {
-            flex: 0 0 auto;
+            flex: 1 1 0;
+            min-width: 0;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             padding: 7px 10px;
             border-radius: var(--r-full);
@@ -5702,6 +5702,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 0 .5px 0 rgba(255, 255, 255, .72) inset,
                 0 4px 10px rgba(15, 23, 42, .035);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             animation: toolChipIn .42s var(--spring) both;
         }
 
@@ -5739,6 +5741,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tool-chip i {
             font-size: .76rem;
+            flex-shrink: 0;
         }
 
         .tools-grid {
@@ -8235,22 +8238,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
-                <div class="home-tools-head" style="margin:0 2px 6px 2px;">
-                    <button class="home-tools-link" onclick="showAllToolsModal()">
-                        كل الأدوات <i class="fas fa-arrow-left"></i>
-                    </button>
-                </div>
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
-                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                     </div>
+                    <button class="home-tools-link" onclick="showAllToolsModal()">
+                        كل الأدوات <i class="fas fa-arrow-left"></i>
+                    </button>
                 </div>
 
                 <!-- Centered inline intelligent search bar -->
