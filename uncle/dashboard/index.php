@@ -8285,8 +8285,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
-                <!-- Stats Toggle -->
-                <div class="stats-toggle-wrap" style="margin-top:14px;">
+                <div class="section-head" style="margin-top:8px;">
+                    <span class="section-title">الفصول</span>
                     <button id="toggleStatsBtn" onclick="toggleStats()">
                         <i class="fas fa-chart-line"></i> عرض الإحصائيات
                     </button>
@@ -8324,10 +8324,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="stat-tile-lbl">متوسط الكوبونات</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="section-head" style="margin-top:8px;">
-                    <span class="section-title">الفصول</span>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
 
