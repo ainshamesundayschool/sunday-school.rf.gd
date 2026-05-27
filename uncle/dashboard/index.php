@@ -1506,12 +1506,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0 !important;
             flex: 1 1 0px !important;
             width: 100% !important;
-            padding: 6px 12px !important;
+            padding: 5px 10px !important;
             display: inline-flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 3px !important;
+            gap: 2px !important;
             border-radius: var(--r-lg) !important;
             min-width: 0 !important;
         }
@@ -1534,7 +1534,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .strip-btn-label {
-            font-size: 0.65rem !important;
+            font-size: 0.61rem !important;
             font-weight: 800 !important;
             display: block;
             white-space: nowrap;
@@ -1547,13 +1547,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            padding: 10px 10px;
+            gap: 5px;
+            padding: 8px 9px;
             background: var(--surface);
             border: 1.5px solid var(--border);
             border-radius: var(--r-lg);
             font-family: 'Cairo', sans-serif;
-            font-size: .83rem;
+            font-size: .76rem;
             font-weight: 700;
             cursor: pointer;
             color: var(--text-2);
@@ -1585,7 +1585,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .action-strip-btn>i:first-child {
-            font-size: .85rem;
+            font-size: .78rem;
             flex-shrink: 0
         }
 
@@ -1598,7 +1598,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .chevron {
-            font-size: .65rem;
+            font-size: .58rem;
             flex-shrink: 0;
             transition: transform var(--t) var(--ease)
         }
@@ -1984,17 +1984,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             gap: 4px;
-            padding: 6px 10px;
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-full);
+            padding: 2px 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
             font-size: .72rem;
             font-weight: 700;
             color: var(--text-2);
             white-space: nowrap;
             flex-shrink: 0;
             transition: all var(--t) var(--ease);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-shadow: none;
         }
 
         .toolbar-stat .stat-lbl {
@@ -2225,8 +2225,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             .toolbar-stat {
-                font-size: .78rem;
-                padding: 7px 12px;
+                font-size: .75rem;
+                padding: 2px 0;
             }
 
             /* buttons switch to row layout: icon left, text right */
@@ -2253,8 +2253,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         @media (min-width:768px) {
             .toolbar-stat {
-                font-size: .82rem;
-                padding: 8px 14px;
+                font-size: .78rem;
+                padding: 2px 0;
             }
 
             .save-btn {
