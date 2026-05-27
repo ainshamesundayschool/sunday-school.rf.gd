@@ -3962,7 +3962,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trips-horizontal-scroll.expanded {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
             overflow-x: visible;
             gap: 7px;
             padding: 2px 0 7px;
@@ -3970,11 +3970,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trip-slim-card {
             flex: 0 0 auto;
-            width: 150px;
+            width: 170px;
             background: var(--surface-2);
             border-radius: 13px;
             border: 1px solid var(--border-solid);
-            padding: 6px 7px;
+            padding: 7px 8px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -4007,7 +4007,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trip-skeleton {
             flex: 0 0 auto;
-            width: 150px;
+            width: 170px;
             height: 40px;
             background: var(--surface-3);
             border-radius: 13px;
@@ -4064,6 +4064,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 3px;
             white-space: nowrap;
             letter-spacing: normal;
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .trip-slim-kids-count {
@@ -4078,6 +4080,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 3px;
             white-space: nowrap;
             letter-spacing: normal;
+            flex-shrink: 0;
         }
 
         /* ── CUSTOM DROPDOWN ── */
