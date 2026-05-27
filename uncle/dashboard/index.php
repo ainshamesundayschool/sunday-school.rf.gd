@@ -5652,14 +5652,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-head {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
             gap: 6px;
-            min-height: 18px;
+            min-height: 0;
         }
 
         .home-tools-link {
-            border: none;
-            background: transparent;
+            border: 1px solid rgba(91, 108, 245, .14);
+            background: rgba(255, 255, 255, .7);
             color: var(--brand);
             font-family: inherit;
             font-size: .7rem;
@@ -5668,7 +5668,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 2px 0;
+            padding: 6px 12px;
+            border-radius: var(--r-full);
+            transition: all var(--t) var(--ease);
+            box-shadow: 0 .5px 0 rgba(255, 255, 255, .72) inset;
+        }
+
+        .home-tools-link:hover {
+            background: var(--brand-bg);
+            border-color: rgba(91, 108, 245, .22);
+            transform: translateY(-1px);
         }
 
         .home-tools-rail {
@@ -5808,15 +5817,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .75rem;
+            font-size: .72rem;
             font-weight: 700;
-            padding: 6px 14px;
-            border-radius: var(--r-full);
+            padding: 4px 10px;
+            border-radius: 20px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
+            height: 30px;
+            box-shadow: none;
         }
 
         #toggleStatsBtn:hover {
@@ -8133,30 +8144,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
             <div class="tools-grid">
-                <button class="tool-card" onclick="hideAllToolsModal();openIntelligentSearchModal()">
-                    <span class="tool-card-icon"><i class="fas fa-search"></i></span>
-                    <span class="tool-card-name">بحث ذكي</span>
-                    <span class="tool-card-desc">ابحث بالاسم أو الفصل أو الهاتف بسرعة.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showAllStudentsModal()">
-                    <span class="tool-card-icon"><i class="fas fa-list"></i></span>
-                    <span class="tool-card-name">جميع الأطفال</span>
-                    <span class="tool-card-desc">عرض كل الأطفال مع بحث وفرز شامل.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showBirthdayModal()">
-                    <span class="tool-card-icon"><i class="fas fa-birthday-cake"></i></span>
-                    <span class="tool-card-name">أعياد الميلاد</span>
-                    <span class="tool-card-desc">اعرف أعياد اليوم والشهر بسرعة.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showAnnouncementsModal()">
-                    <span class="tool-card-icon"><i class="fas fa-bullhorn"></i></span>
-                    <span class="tool-card-name">الإعلانات</span>
-                    <span class="tool-card-desc">أرسل إعلانات عامة أو مخصصة للأطفال.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();openSiblingSuggestionsView()">
-                    <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
-                    <span class="tool-card-name">اقتراحات الإخوات</span>
-                    <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/withdraw/'">
+                    <span class="tool-card-icon"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-name">سحب كوبونات</span>
+                    <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
                 <button class="tool-card" onclick="window.location.href='/uncle/dashboard/tasks/'">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
@@ -8168,15 +8159,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">تصدير مخصص</span>
                     <span class="tool-card-desc">صدّر البيانات بالطريقة المناسبة لك.</span>
                 </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAnnouncementsModal()">
+                    <span class="tool-card-icon"><i class="fas fa-bullhorn"></i></span>
+                    <span class="tool-card-name">الإعلانات</span>
+                    <span class="tool-card-desc">أرسل إعلانات عامة أو مخصصة للأطفال.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showBirthdayModal()">
+                    <span class="tool-card-icon"><i class="fas fa-birthday-cake"></i></span>
+                    <span class="tool-card-name">أعياد الميلاد</span>
+                    <span class="tool-card-desc">اعرف أعياد اليوم والشهر بسرعة.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAllStudentsModal()">
+                    <span class="tool-card-icon"><i class="fas fa-list"></i></span>
+                    <span class="tool-card-name">جميع الأطفال</span>
+                    <span class="tool-card-desc">عرض كل الأطفال مع بحث وفرز شامل.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();openSiblingSuggestionsView()">
+                    <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+                    <span class="tool-card-name">اقتراحات الإخوات</span>
+                    <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                </button>
                 <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();showBulkAddModal()">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
-                </button>
-                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/withdraw/'">
-                    <span class="tool-card-icon"><i class="fas fa-star"></i></span>
-                    <span class="tool-card-name">سحب كوبونات</span>
-                    <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
             </div>
         </div>
@@ -8267,14 +8273,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                     </div>
                     <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
+                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
+                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                     </div>
                 </div>
 
