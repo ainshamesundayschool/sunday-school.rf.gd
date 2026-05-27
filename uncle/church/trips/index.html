@@ -2703,6 +2703,8 @@
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .trip-folder-header {
@@ -2730,6 +2732,30 @@
       font-weight: 800;
     }
 
+    .trip-folder-breadcrumb button,
+    .trip-folder-breadcrumb span {
+      border: none;
+      background: none;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      color: inherit;
+    }
+
+    .trip-folder-breadcrumb button {
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+
+    .trip-folder-breadcrumb button:hover {
+      color: var(--primary);
+    }
+
+    .trip-folder-breadcrumb .active {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
     .trip-folder-header h3 {
       margin: 0;
       font-size: 1.15rem;
@@ -2744,6 +2770,57 @@
 
     .trip-folder-body {
       padding: 24px 28px;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .trip-shell-pages {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      background: var(--card);
+    }
+
+    .trip-shell-pages.active {
+      display: block;
+    }
+
+    .trip-shell-page {
+      display: none;
+      min-height: 100%;
+      padding: 24px 28px 32px;
+    }
+
+    .trip-shell-page.active {
+      display: block;
+    }
+
+    .shell-mounted-modal {
+      width: 100%;
+      max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      animation: none !important;
+    }
+
+    .shell-mounted-modal .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--card);
+      padding: 0 0 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .shell-mounted-modal .modal-body {
+      padding: 0;
+      overflow: visible;
     }
 
     @media (min-width: 1100px) {
@@ -2760,8 +2837,10 @@
         flex-direction: column;
         width: 280px;
         flex-shrink: 0;
-        background: linear-gradient(180deg, rgba(34, 30, 74, 0.98), rgba(19, 17, 46, 0.98));
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        align-self: stretch;
+        min-height: 100%;
+        background: linear-gradient(180deg, #ffffff, #f7f8fc);
+        border: 1px solid var(--border);
         border-radius: 24px;
         padding: 18px;
         box-shadow: var(--shadow-lg);
@@ -2771,18 +2850,18 @@
 
       .trip-folder-nav-head {
         padding: 6px 6px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--border);
         margin-bottom: 14px;
       }
 
       .trip-folder-nav-head .eyebrow {
-        color: rgba(255, 255, 255, 0.55);
+        color: var(--muted);
         font-size: 0.72rem;
         margin-bottom: 6px;
       }
 
       .trip-folder-nav-head h3 {
-        color: #fff;
+        color: var(--text);
         font-size: 1rem;
         margin: 0;
       }
@@ -2803,25 +2882,25 @@
         gap: 12px;
         padding: 14px 16px;
         border-radius: 18px;
-        background: rgba(255, 255, 255, 0.04);
-        color: rgba(255, 255, 255, 0.74) !important;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+        background: var(--surface-2, #f7f8fc);
+        color: var(--text-2) !important;
+        border: 1px solid var(--border);
+        border-bottom-color: var(--border) !important;
         transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
       }
 
       .td-tabs.trip-folder-tabs .td-tab:hover {
         transform: translateX(-4px);
-        color: #fff !important;
-        border-color: rgba(129, 140, 248, 0.5);
-        background: rgba(99, 102, 241, 0.14);
+        color: var(--primary) !important;
+        border-color: var(--primary-light);
+        background: var(--primary-light);
       }
 
       .td-tabs.trip-folder-tabs .td-tab.active {
-        color: #fff !important;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.26), rgba(99, 102, 241, 0.12));
-        border-color: rgba(129, 140, 248, 0.55);
-        box-shadow: 0 12px 24px rgba(19, 17, 46, 0.28);
+        color: var(--primary) !important;
+        background: linear-gradient(135deg, #eef0ff, #f7f8ff);
+        border-color: var(--primary-light);
+        box-shadow: var(--shadow-sm);
       }
 
       .td-tabs.trip-folder-tabs .td-tab .td-badge {
@@ -3454,17 +3533,17 @@
               <h3>التنقل بين الأقسام</h3>
             </div>
             <div class="td-tabs trip-folder-tabs">
-              <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-folder-open"></i> الملخص</div>
-              <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-folder"></i> المسجلون <span class="td-badge" id="tdRegsCountDesktop"></span></div>
-              <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-folder"></i> قائمة الانتظار <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
-              <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-folder"></i> المصروفات <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
+              <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i> الملخص</div>
+              <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون <span class="td-badge" id="tdRegsCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i> قائمة الانتظار <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> المصروفات <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
             </div>
           </aside>
 
           <section class="trip-folder-shell">
             <div class="trip-folder-header">
               <div>
-                <div class="trip-folder-breadcrumb"><span>الرحلات</span><i class="fas fa-chevron-left"></i><span>تفاصيل الرحلة</span><i class="fas fa-chevron-left"></i><strong id="tripFolderCrumb">الملخص</strong></div>
+                <div class="trip-folder-breadcrumb" id="tripFolderBreadcrumb"></div>
                 <h3 id="tripFolderTitle">الملخص</h3>
                 <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
               </div>
@@ -3537,6 +3616,7 @@
                 <div id="expensesList"></div>
               </div>
             </div>
+            <div class="trip-shell-pages" id="tripShellPages"></div>
           </section>
         </div>
       </div>
@@ -3553,6 +3633,7 @@
     let allStudents = [];
     let manualAttStudents = {};
     let currentTripTab = 'info';
+    let tripShellStack = [];
     window.currentTripId = null;
 
     function mkFd(action) {
@@ -3624,13 +3705,147 @@
       await showTripDetails(window.currentTripId, { keepTab: true });
     }
 
+    function isDesktopShellMode() {
+      return window.innerWidth >= 1100;
+    }
+
+    function isShellMounted(id) {
+      return tripShellStack.some(page => page.modalId === id);
+    }
+
+    function isModalOpenInAnyMode(id) {
+      return isShellMounted(id) || document.getElementById(id)?.classList.contains('open');
+    }
+
+    function getModalShellTitle(id) {
+      const modal = document.getElementById(id);
+      return modal?.dataset?.shellTitle || modal?.querySelector('.modal-head h2')?.textContent?.trim() || 'نافذة';
+    }
+
+    function getModalShellDesc(id) {
+      return document.getElementById(id)?.dataset?.shellDesc || 'أدوات الرحلة وتفاصيلها.';
+    }
+
+    function buildTripBreadcrumb(extra = []) {
+      const root = [
+        { label: 'الرحلات' },
+        { label: 'تفاصيل الرحلة', action: () => closeAllShellPages() },
+        { label: document.getElementById('tdtab-' + currentTripTab)?.dataset?.title || 'الملخص', action: () => { closeAllShellPages(); switchTripTab(currentTripTab); } }
+      ];
+      return root.concat(extra);
+    }
+
+    function renderTripBreadcrumb(items) {
+      const wrap = document.getElementById('tripFolderBreadcrumb');
+      if (!wrap) return;
+      wrap.innerHTML = items.map((item, idx) => {
+        const clickable = typeof item.action === 'function';
+        const isLast = idx === items.length - 1;
+        const tag = clickable && !isLast ? 'button' : 'span';
+        return `${idx ? '<i class="fas fa-chevron-left"></i>' : ''}<${tag} class="${isLast ? 'active' : ''}" ${clickable && !isLast ? `data-bc-index="${idx}" type="button"` : ''}>${escHtml(item.label)}</${tag}>`;
+      }).join('');
+      wrap.querySelectorAll('[data-bc-index]').forEach(el => {
+        const item = items[parseInt(el.dataset.bcIndex, 10)];
+        el.onclick = item.action;
+      });
+    }
+
     function openModal(id) {
+      if (id !== 'tripDetailsModal' && isDesktopShellMode() && document.getElementById('tripDetailsModal')?.classList.contains('open')) {
+        openShellPage(id);
+        return;
+      }
       document.getElementById(id).classList.add('open');
     }
     function closeModal(id) {
+      if (isShellMounted(id)) {
+        closeShellPage(id);
+        return;
+      }
       document.getElementById(id).classList.remove('open');
       // If it's the main trip details modal and we're on the standalone page, maybe we should redirect back?
       // But for now, just closing is fine as the close button handles redirect.
+    }
+
+    function openShellPage(id) {
+      const modal = document.getElementById(id);
+      const box = modal?.querySelector('.modal-box');
+      const pagesHost = document.getElementById('tripShellPages');
+      const panels = document.querySelector('.trip-folder-body');
+      if (!modal || !box || !pagesHost || !panels) return;
+
+      const existingIndex = tripShellStack.findIndex(page => page.modalId === id);
+      if (existingIndex >= 0) {
+        activateShellPage(existingIndex);
+        return;
+      }
+
+      const page = document.createElement('div');
+      page.className = 'trip-shell-page';
+      page.dataset.modalId = id;
+      page.appendChild(box);
+      box.classList.add('shell-mounted-modal');
+      modal.dataset.shellMounted = '1';
+      modal.classList.remove('open');
+
+      pagesHost.appendChild(page);
+      tripShellStack.push({
+        modalId: id,
+        pageEl: page,
+        modalEl: modal,
+        boxEl: box,
+        originalParent: modal,
+        title: getModalShellTitle(id),
+        desc: getModalShellDesc(id)
+      });
+
+      activateShellPage(tripShellStack.length - 1);
+    }
+
+    function activateShellPage(index) {
+      const pagesHost = document.getElementById('tripShellPages');
+      const panels = document.querySelector('.trip-folder-body');
+      if (!pagesHost || !panels) return;
+      tripShellStack.forEach((page, idx) => page.pageEl.classList.toggle('active', idx === index));
+      pagesHost.classList.add('active');
+      panels.style.display = 'none';
+      const active = tripShellStack[index];
+      const crumbs = buildTripBreadcrumb(tripShellStack.slice(0, index + 1).map((page, pageIndex) => ({
+        label: page.title,
+        action: () => activateShellPage(pageIndex)
+      })));
+      renderTripBreadcrumb(crumbs);
+      document.getElementById('tripFolderTitle')?.replaceChildren(document.createTextNode(active.title));
+      document.getElementById('tripFolderDesc')?.replaceChildren(document.createTextNode(active.desc));
+    }
+
+    function closeShellPage(id) {
+      const index = tripShellStack.findIndex(page => page.modalId === id);
+      if (index < 0) return;
+      const removed = tripShellStack.splice(index, 1)[0];
+      removed.boxEl.classList.remove('shell-mounted-modal');
+      removed.originalParent.appendChild(removed.boxEl);
+      removed.modalEl.dataset.shellMounted = '0';
+      removed.modalEl.classList.remove('open');
+      removed.pageEl.remove();
+
+      if (tripShellStack.length) activateShellPage(tripShellStack.length - 1);
+      else closeAllShellPages();
+    }
+
+    function closeAllShellPages() {
+      while (tripShellStack.length) {
+        const page = tripShellStack.pop();
+        page.boxEl.classList.remove('shell-mounted-modal');
+        page.originalParent.appendChild(page.boxEl);
+        page.modalEl.dataset.shellMounted = '0';
+        page.modalEl.classList.remove('open');
+        page.pageEl.remove();
+      }
+      document.getElementById('tripShellPages')?.classList.remove('active');
+      const panels = document.querySelector('.trip-folder-body');
+      if (panels) panels.style.display = '';
+      updateTripFolderHeader(currentTripTab);
     }
 
     function openRegisterModal() {
@@ -3642,6 +3857,7 @@
 
     function switchTripTab(tab, updateUrl = true) {
       currentTripTab = tab;
+      closeAllShellPages();
       ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.classList.toggle('active', t === tab);
         document.getElementById('tdtab-desktop-' + t)?.classList.toggle('active', t === tab);
@@ -3656,7 +3872,7 @@
       const sourceTab = document.getElementById('tdtab-' + tab);
       const title = sourceTab?.dataset.title || sourceTab?.textContent?.trim() || 'الملخص';
       const desc = sourceTab?.dataset.desc || 'نظرة عامة على الرحلة.';
-      document.getElementById('tripFolderCrumb')?.replaceChildren(document.createTextNode(title));
+      renderTripBreadcrumb(buildTripBreadcrumb());
       document.getElementById('tripFolderTitle')?.replaceChildren(document.createTextNode(title));
       document.getElementById('tripFolderDesc')?.replaceChildren(document.createTextNode(desc));
     }
@@ -5434,13 +5650,13 @@
           ? findWaitlistEntry({ waitlistId, studentId, guestId })
           : regs.find(r => String(r.id) === String(regId));
 
-        if (document.getElementById('addDonationModal').style.display === 'block') {
+        if (isModalOpenInAnyMode('addDonationModal')) {
           showAddDonationModal(regId, studentName);
-        } else if (document.getElementById('addPaymentModal').style.display === 'block') {
+        } else if (isModalOpenInAnyMode('addPaymentModal')) {
           const price = getCurrentTripTotalPerKid();
           const paid = parseFloat(reg?.total_paid ?? reg?.deposit) || 0;
           showAddPaymentModal(regId, studentName, price, paid, { targetType, tripId, studentId, guestId, waitlistId });
-        } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
+        } else if (isModalOpenInAnyMode('paymentHistoryModal')) {
           showPaymentHistoryModal(regId, studentName, { targetType, tripId, studentId, guestId, waitlistId });
         }
       } else showToast(d.message || 'فشل الحذف', 'error');
@@ -5478,13 +5694,13 @@
           ? findWaitlistEntry({ waitlistId, studentId, guestId })
           : regs.find(r => String(r.id) === String(regId));
 
-        if (document.getElementById('addDonationModal').style.display === 'block') {
+        if (isModalOpenInAnyMode('addDonationModal')) {
           showAddDonationModal(regId, studentName);
-        } else if (document.getElementById('addPaymentModal').style.display === 'block') {
+        } else if (isModalOpenInAnyMode('addPaymentModal')) {
           const price = getCurrentTripTotalPerKid();
           const paid = parseFloat(reg?.total_paid ?? reg?.deposit) || 0;
           showAddPaymentModal(regId, studentName, price, paid, { targetType, tripId, studentId, guestId, waitlistId });
-        } else if (document.getElementById('paymentHistoryModal').style.display === 'block') {
+        } else if (isModalOpenInAnyMode('paymentHistoryModal')) {
           showPaymentHistoryModal(regId, studentName, { targetType, tripId, studentId, guestId, waitlistId });
         }
       } else showToast(d.message || 'فشل الاستعادة', 'error');
