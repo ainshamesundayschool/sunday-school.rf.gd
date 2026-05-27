@@ -5617,7 +5617,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Today's Birthday Banner (homepage) ── */
         /* Stats Toggle */
         .stats-toggle-wrap {
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: center;
         }
@@ -5626,15 +5626,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin: 2px 0 14px;
             display: grid;
             gap: 6px;
-            padding: 10px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, rgba(248, 250, 252, .92), rgba(255, 255, 255, .96));
-            border: 1px solid rgba(226, 232, 240, .9);
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, .8) inset,
-                0 10px 24px rgba(15, 23, 42, .04);
+            padding: 0;
             animation: homeToolsLanding .45s var(--spring);
-            overflow: hidden;
         }
 
         @keyframes homeToolsLanding {
@@ -8242,6 +8235,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
+                <div class="home-tools-head" style="margin:0 2px 6px 2px;">
+                    <button class="home-tools-link" onclick="showAllToolsModal()">
+                        كل الأدوات <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+                <div class="home-tools-wrap">
+                    <div class="home-tools-rail">
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
+                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
+                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
+                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
+                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                    </div>
+                </div>
+
                 <!-- Centered inline intelligent search bar -->
                 <div class="inline-search-wrap">
                     <div class="inline-search-box">
@@ -8261,24 +8272,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
-                </div>
-
-                <div class="home-tools-head" style="margin:0 2px 6px 2px;">
-                    <button class="home-tools-link" onclick="showAllToolsModal()">
-                        كل الأدوات <i class="fas fa-arrow-left"></i>
-                    </button>
-                </div>
-                <div class="home-tools-wrap">
-                    <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
-                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
-                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
-                    </div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
@@ -8333,7 +8326,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <div class="section-head" style="margin-top:20px;">
+                <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
