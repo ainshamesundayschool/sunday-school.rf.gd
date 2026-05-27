@@ -1525,23 +1525,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             margin-bottom: 8px;
             align-items: stretch;
-            justify-content: center;
-            flex-wrap: wrap;
         }
 
         .action-strip-standalone {
             border: 1.5px solid var(--border-solid) !important;
             background: var(--surface) !important;
             color: var(--text-2) !important;
-            flex: 0 1 auto !important;
-            width: auto !important;
-            min-width: 84px !important;
-            padding: 5px 10px !important;
+            flex-shrink: 0 !important;
+            flex: 1 1 0px !important;
+            width: 100% !important;
+            padding: 6px 12px !important;
             display: inline-flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 2px !important;
+            gap: 3px !important;
             border-radius: var(--r-lg) !important;
             min-width: 0 !important;
         }
@@ -8481,18 +8479,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <div class="class-inline-search-wrap">
-                    <div class="inline-search-box">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" placeholder="ابحث بذكاء داخل الفصل..." autocomplete="off">
-                        <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display:none"
-                            title="مسح البحث">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="search-results-info" id="searchResultsInfo"></div>
-
                 <!-- Pending registrations -->
                 <div class="pending-section" id="pendingRegistrationsSection">
                     <div class="pending-header">
@@ -8634,6 +8620,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="save-btn-bottom"><span class="save-btn-label">الكوبونات</span></span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <div class="class-inline-search-wrap">
+                    <div class="inline-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="اسم الطفل، الفصل، الهاتف..." autocomplete="off">
+                        <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display:none"
+                            title="مسح البحث">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -13624,14 +13621,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             searchQuery = ''; filteredStudents = [];
             const si = document.getElementById('searchInput'); if (si) si.value = '';
             const cb = document.getElementById('clearSearchBtn'); if (cb) cb.style.display = 'none';
-            const ri = document.getElementById('searchResultsInfo'); if (ri) ri.classList.remove('show');
             clearTimeout(searchTimeout); searchTimeout = null;
             if (currentClass) renderAttendanceList(currentClass);
         }
         function updateSearchResultsInfo(count) {
-            const el = document.getElementById('searchResultsInfo'); if (!el) return;
-            const total = getActiveViewStudents().length;
-            if (searchQuery) { el.innerHTML = count > 0 ? `<i class="fas fa-search"></i> ${count} من ${total} طفل لـ "${searchQuery}"` : `<i class="fas fa-exclamation-circle"></i> لا نتائج لـ "${searchQuery}"`; el.classList.add('show'); } else el.classList.remove('show');
+            return;
         }
         function performSearch() { searchQuery = (document.getElementById('searchInput')?.value || '').trim(); executeSearch(); }
         function setupAllStudentsSearch() {
