@@ -3949,9 +3949,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trips-horizontal-scroll {
             display: flex;
             overflow-x: auto;
-            gap: 8px;
-            padding: 2px 2px 10px;
-            margin-bottom: 10px;
+            gap: 6px;
+            padding: 2px 0 7px;
+            margin-bottom: 8px;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -3962,22 +3962,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trips-horizontal-scroll.expanded {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
             overflow-x: visible;
-            gap: 10px;
-            padding: 4px 0 10px;
+            gap: 7px;
+            padding: 2px 0 7px;
         }
 
         .trip-slim-card {
             flex: 0 0 auto;
-            width: 188px;
+            width: 150px;
             background: var(--surface-2);
-            border-radius: var(--r-lg);
-            border: 1.5px solid var(--border-solid);
-            padding: 8px;
+            border-radius: 13px;
+            border: 1px solid var(--border-solid);
+            padding: 6px 7px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             box-shadow: var(--shadow-sm);
@@ -3996,9 +3996,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-img {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--r-sm);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
             object-fit: cover;
             background: var(--brand-bg);
             flex-shrink: 0;
@@ -4007,10 +4007,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trip-skeleton {
             flex: 0 0 auto;
-            width: 188px;
-            height: 52px;
+            width: 150px;
+            height: 40px;
             background: var(--surface-3);
-            border-radius: var(--r-lg);
+            border-radius: 13px;
             animation: skeleton-pulse 1.5s infinite;
         }
 
@@ -4034,17 +4034,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
         .trip-slim-name {
-            font-size: 0.78rem;
+            font-size: 0.68rem;
             font-weight: 800;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             letter-spacing: normal;
         }
         .trip-slim-meta-row {
@@ -4052,30 +4052,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
         .trip-slim-date {
-            font-size: 0.7rem;
+            font-size: 0.66rem;
             color: var(--text-3);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             white-space: nowrap;
             letter-spacing: normal;
         }
 
         .trip-slim-kids-count {
-            font-size: 0.7rem;
+            font-size: 0.64rem;
             color: var(--brand);
             background: var(--brand-bg);
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: var(--r-full);
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             white-space: nowrap;
             letter-spacing: normal;
         }
