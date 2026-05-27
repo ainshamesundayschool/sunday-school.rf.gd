@@ -1107,6 +1107,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 10px
         }
 
+        .class-inline-search-wrap {
+            position: relative;
+            max-width: 460px;
+            width: 100%;
+            margin: 0 0 10px;
+            z-index: 15;
+        }
+
+        .class-inline-search-wrap .inline-search-box {
+            padding: 0 14px;
+            border-radius: 18px;
+            box-shadow: none;
+        }
+
+        .class-inline-search-wrap .inline-search-box input {
+            padding: 9px 0;
+            font-size: 0.88rem;
+        }
+
+        .class-inline-search-wrap .inline-search-box .search-icon {
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .class-inline-search-wrap .inline-search-box button {
+            margin-right: 2px;
+        }
+
         .class-title-text {
             font-size: 1rem;
             font-weight: 800;
@@ -1497,15 +1525,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             margin-bottom: 8px;
             align-items: stretch;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .action-strip-standalone {
             border: 1.5px solid var(--border-solid) !important;
             background: var(--surface) !important;
             color: var(--text-2) !important;
-            flex-shrink: 0 !important;
-            flex: 1 1 0px !important;
-            width: 100% !important;
+            flex: 0 1 auto !important;
+            width: auto !important;
+            min-width: 84px !important;
             padding: 5px 10px !important;
             display: inline-flex !important;
             flex-direction: column !important;
@@ -1972,7 +2002,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Stats ─────────────────────────────────────────────────── */
         .toolbar-stats {
             display: flex;
-            gap: 4px;
+            gap: 10px;
             flex: 1;
             min-width: 0;
             overflow-x: auto;
@@ -6925,15 +6955,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-sort-inline {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
+            gap: 5px;
+            padding: 4px 8px;
             background: var(--surface-3);
             border-radius: var(--r-full);
             font-family: Cairo, sans-serif;
         }
 
         .swipe-sort-inline label {
-            font-size: .68rem;
+            font-size: .62rem;
             color: var(--text-3);
             font-weight: 700;
         }
@@ -6943,10 +6973,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: transparent;
             color: var(--text-2);
             font: inherit;
-            font-size: .72rem;
+            font-size: .66rem;
             font-weight: 800;
             outline: none;
-            padding-inline: 2px;
+            padding-inline: 1px;
             cursor: pointer;
         }
 
@@ -8422,10 +8452,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- Custom styled dropdown trigger -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                                style="padding: 5px 13px; border-radius: var(--r-full); font-size: 0.76rem; height: auto; min-width: 124px; margin: 0; background-color: var(--surface-2); border: 1px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 7px; transition: all var(--t) var(--ease); box-shadow: none;">
+                                style="padding: 4px 10px; border-radius: var(--r-full); font-size: 0.69rem; height: auto; min-width: 108px; margin: 0; background-color: var(--surface-2); border: 1px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; transition: all var(--t) var(--ease); box-shadow: none;">
                                 <span id="customSortDropdownLabel">الاسم أ-ي</span>
                                 <i class="fas fa-chevron-down"
-                                    style="font-size: 0.65rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
+                                    style="font-size: 0.58rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
                                 <div class="custom-dropdown-item active" data-value="name_az"
@@ -8450,6 +8480,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
                 </div>
+
+                <div class="class-inline-search-wrap">
+                    <div class="inline-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="ابحث بذكاء داخل الفصل..." autocomplete="off">
+                        <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display:none"
+                            title="مسح البحث">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="search-results-info" id="searchResultsInfo"></div>
 
                 <!-- Pending registrations -->
                 <div class="pending-section" id="pendingRegistrationsSection">
@@ -8556,15 +8598,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span class="strip-btn-label">إضافة</span>
                     </button>
                 </div>
-
-                <!-- Search -->
-                <div class="search-wrap">
-                    <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن طفل بالاسم...">
-                    <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
-                    <button class="clear-search-btn" id="clearSearchBtn"><i class="fas fa-times"></i> إلغاء</button>
-                </div>
-                <!-- Old sort element removed -->
-                <div class="search-results-info" id="searchResultsInfo"></div>
 
                 <!-- Sticky attendance toolbar -->
                 <div class="att-toolbar">
@@ -13564,8 +13597,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function filterAndSortActiveStudents() {
             let list = getActiveViewStudents();
             if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                list = list.filter(s => (s['الاسم'] || '').toLowerCase().includes(q));
+                list = list
+                    .map(s => ({ ...s, _classSearchScore: getMatchScore(s, searchQuery) }))
+                    .filter(s => s._classSearchScore > 0)
+                    .sort((a, b) => b._classSearchScore - a._classSearchScore);
             }
             return sortStudentsForCurrentView(list);
         }
@@ -13578,9 +13613,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function executeSearch() {
             if (!searchQuery || !currentClass) { clearSearch(); return; }
-            const q = searchQuery.toLowerCase();
-            filteredStudents = getActiveViewStudents().filter(s => (s['الاسم'] || '').toLowerCase().includes(q));
-            renderAttendanceList(currentClass); document.getElementById('clearSearchBtn').style.display = 'flex';
+            filteredStudents = getActiveViewStudents()
+                .map(s => ({ ...s, _classSearchScore: getMatchScore(s, searchQuery) }))
+                .filter(s => s._classSearchScore > 0)
+                .sort((a, b) => b._classSearchScore - a._classSearchScore);
+            renderAttendanceList(currentClass);
+            document.getElementById('clearSearchBtn').style.display = 'flex';
         }
         function clearSearch() {
             searchQuery = ''; filteredStudents = [];
