@@ -8618,7 +8618,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="action-strip-row-2">
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-swipe"
                         onclick="startSwipeMode()" title="وضع السحب السريع">
-                        <i class="fas fa-hand-pointer"></i>
+                        <i class="fas fa-hand-pointer swipe-hand-icon"></i>
                         <span class="strip-btn-label">سحب</span>
                     </button>
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral" onclick="showResetModal()"
