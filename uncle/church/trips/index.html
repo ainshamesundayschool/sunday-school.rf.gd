@@ -1667,18 +1667,17 @@
     .reg-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 12px;
+      padding: 12px 14px;
       background: white;
-      border-radius: var(--radius);
+      border-radius: 16px;
       border: 1px solid var(--border);
-      margin-bottom: 7px;
       transition: all var(--t-fast) var(--ease);
     }
 
     .reg-row:hover {
       border-color: var(--primary);
-      box-shadow: var(--shadow-xs);
+      box-shadow: 0 1px 6px rgba(15, 14, 26, 0.05);
     }
 
     .reg-ava {
@@ -1726,6 +1725,104 @@
     .reg-info span {
       font-size: 0.7rem;
       color: var(--muted);
+    }
+
+    .trip-section-shell {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .trip-section-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+    }
+
+    .trip-section-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .trip-section-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .trip-section-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      color: var(--text-2);
+    }
+
+    .trip-section-meta strong {
+      color: var(--text);
+    }
+
+    .trip-list-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .trip-reg-side {
+      min-width: 110px;
+      text-align: left;
+      flex-shrink: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .trip-reg-side .main {
+      font-size: 0.9rem;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .trip-reg-side .sub {
+      font-size: 0.72rem;
+      line-height: 1.1;
+    }
+
+    .trip-reg-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    .trip-empty-card {
+      max-width: 760px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    .waitlist-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 900;
+      flex-shrink: 0;
+      background: var(--bg);
+      color: var(--text-2);
+      border: 1px solid var(--border);
     }
 
     .kid-picker-search {
@@ -3077,6 +3174,27 @@
 
       .trip-summary-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .trip-section-toolbar {
+        padding: 12px;
+      }
+
+      .trip-section-meta {
+        gap: 10px;
+      }
+
+      .reg-row {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .trip-reg-side {
+        width: 100%;
+        min-width: 0;
+        text-align: right;
       }
     }
 
@@ -4526,15 +4644,19 @@
 
       const pm = { paid: ['var(--success)', 'مدفوع بالكامل'], partial: ['var(--warning)', 'جزئي'], pending: ['var(--danger)', 'غير مدفوع'] };
       document.getElementById('tripRegsContent').innerHTML = regs.length
-        ? `<div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);">
-              <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
-              <div style="display:flex;gap:16px;font-size:0.82rem;">
-                <span>المسجلون: <strong>${regs.length}</strong></span>
-                <span style="color:var(--success);">محصّل: <strong>${registrationCollected} ج</strong></span>
-                <span style="color:var(--danger);">متبقي: <strong>${registrationRemaining} ج</strong></span>
+        ? `<div class="trip-section-shell">
+            <div class="trip-section-toolbar">
+              <div class="trip-section-copy">
+                <div class="trip-section-title">المسجلون</div>
+                <div class="trip-section-meta">
+                  <span>العدد <strong>${regs.length}</strong></span>
+                  <span style="color:var(--success);">المحصّل <strong>${registrationCollected} ج</strong></span>
+                  <span style="color:var(--danger);">المتبقي <strong>${registrationRemaining} ج</strong></span>
+                </div>
               </div>
+              <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
             </div>
-            <div style="display:grid;gap:8px;">
+            <div class="trip-list-stack">
               ${regs.map((r) => {
           const paid = parseFloat(r.total_paid) || 0;
           const remaining = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
@@ -4549,21 +4671,26 @@
                   <div class="reg-info" style="flex:1;min-width:0;">
                     <strong style="font-size:0.9rem;">${escHtml(r.student_name)}</strong>
                     <span style="color:var(--muted);font-size:0.72rem;">${escHtml(r.student_class || '—')}</span>
+                    <div class="trip-reg-meta">
+                      <span>${lbl}</span>
+                      <span>${pct}% مدفوع</span>
+                    </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
                       <div style="flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px;transition:width .6s ease;"></div></div>
                       <span style="font-size:0.65rem;color:${col};font-weight:700;">${pct}%</span>
                     </div>
                   </div>
-                  <div style="text-align:left;flex-shrink:0;">
-                    <div style="font-size:0.88rem;font-weight:800;color:var(--success);">${Math.round(paid)} ج</div>
-                    <div style="font-size:0.72rem;color:var(--danger);">متبقي: ${Math.round(remaining)} ج</div>
+                  <div class="trip-reg-side">
+                    <div class="main" style="color:var(--success);">${Math.round(paid)} ج</div>
+                    <div class="sub" style="color:var(--danger);">متبقي ${Math.round(remaining)} ج</div>
                     <span style="display:inline-block;margin-top:3px;background:${col}18;color:${col};font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:10px;">${lbl}</span>
                   </div>
                   <i class="fas fa-chevron-left" style="color:var(--muted);font-size:0.75rem;flex-shrink:0;"></i>
                 </div>`;
         }).join('')}
-            </div>`
-        : `<div class="empty-state"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button></div>`;
+            </div>
+          </div>`
+        : `<div class="empty-state trip-empty-card"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button></div>`;
       document.getElementById('expTripId').value = trip.id;
       document.getElementById('addExpenseForm').reset();
       document.getElementById('expCalcResult').textContent = 'أدخل المبلغ لحساب النصيب';
@@ -6103,7 +6230,7 @@
       const badge = document.getElementById('tdWaitlistCount');
       if (badge) badge.textContent = list.length || '';
       if (!list.length) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><h3>قائمة الانتظار فارغة</h3><p style="color:var(--muted);font-size:0.85rem;margin-bottom:15px;">عند امتلاء الرحلة يتم إضافة الأطفال هنا تلقائياً</p>
+        container.innerHTML = `<div class="empty-state trip-empty-card"><i class="fas fa-clock"></i><h3>قائمة الانتظار فارغة</h3><p style="color:var(--muted);font-size:0.85rem;margin-bottom:15px;">عند امتلاء الرحلة يتم إضافة الأطفال هنا تلقائياً</p>
           <button class="btn btn-outline btn-sm" onclick="autoDetectWaitlist(${tripId})" style="border-color:var(--primary);color:var(--primary);">
             <i class="fas fa-magic"></i> فحص التجاوز والموازنة
           </button>
@@ -6113,17 +6240,21 @@
       const waitlistCollected = window.currentWaitlistCache.reduce((s, w) => s + (parseFloat(w.total_paid ?? w.deposit) || 0), 0);
       const waitlistRemaining = sumWaitlistRemaining(window.currentWaitlistCache, getCurrentTripTotalPerKid());
       container.innerHTML = `
-        <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
-          <div style="font-size:0.88rem;color:var(--text-2);flex:1;"><strong>${list.length}</strong> طفل في قائمة الانتظار — سيتم ترقية الأول تلقائياً عند إلغاء أي تسجيل</div>
-          <div style="display:flex;gap:16px;font-size:0.82rem;flex-wrap:wrap;">
-            <span style="color:var(--success);">محصّل: <strong>${Math.round(waitlistCollected)} ج</strong></span>
-            <span style="color:var(--danger);">متبقي: <strong>${Math.round(waitlistRemaining)} ج</strong></span>
+        <div class="trip-section-shell">
+          <div class="trip-section-toolbar">
+            <div class="trip-section-copy">
+              <div class="trip-section-title">قائمة الانتظار</div>
+              <div class="trip-section-meta">
+                <span>العدد <strong>${list.length}</strong></span>
+                <span style="color:var(--success);">المحصّل <strong>${Math.round(waitlistCollected)} ج</strong></span>
+                <span style="color:var(--danger);">المتبقي <strong>${Math.round(waitlistRemaining)} ج</strong></span>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="autoDetectWaitlist(${tripId})" style="border-color:var(--primary);color:var(--primary);">
+              <i class="fas fa-magic"></i> موازنة تلقائية
+            </button>
           </div>
-          <button class="btn btn-outline btn-sm" onclick="autoDetectWaitlist(${tripId})" style="border-color:var(--primary);color:var(--primary);">
-            <i class="fas fa-magic"></i> موازنة تلقائية
-          </button>
-        </div>
-        <div style="display:grid;gap:8px;">
+          <div class="trip-list-stack">
           ${window.currentWaitlistCache.map((w, idx) => {
         const initials = (w.student_name || '؟').charAt(0);
         const img = w.student_image || '';
@@ -6134,22 +6265,22 @@
         const col = { paid: 'var(--success)', partial: 'var(--warning)', pending: 'var(--danger)' }[status];
         const lbl = { paid: 'مدفوع بالكامل', partial: 'جزئي', pending: 'غير مدفوع' }[status];
         return `<div class="reg-row" style="border-right:3px solid ${idx === 0 ? 'var(--warning)' : 'var(--border-2)'};">
-              <div style="width:28px;height:28px;border-radius:50%;background:${idx === 0 ? 'var(--warning-light)' : 'var(--bg)'};color:${idx === 0 ? 'var(--warning)' : 'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;flex-shrink:0;">${w.position}</div>
+              <div class="waitlist-badge" style="background:${idx === 0 ? 'var(--warning-light)' : 'var(--bg)'};color:${idx === 0 ? 'var(--warning)' : 'var(--muted)'};border-color:${idx === 0 ? 'var(--warning-mid)' : 'var(--border)'};">${w.position}</div>
               <div class="reg-ava" style="border-color:${idx === 0 ? 'var(--warning)' : 'var(--border)'}33;">
                 ${img ? `<img src="${img}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;"><span style="display:none">${initials}</span>` : initials}
               </div>
               <div class="reg-info" style="flex:1;">
                 <strong>${escHtml(w.student_name)}</strong>
                 <span>${escHtml(w.student_class || '—')}</span>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:0.68rem;margin-top:4px;">
+                <div class="trip-reg-meta">
                   ${idx === 0 ? `<span style="color:var(--warning);font-weight:700;"><i class="fas fa-star"></i> التالي</span>` : ''}
                   <span style="color:var(--success);font-weight:700;">مدفوع: ${Math.round(paid)} ج</span>
                   <span style="color:var(--danger);font-weight:700;">متبقي: ${Math.round(remaining)} ج</span>
                   <span style="color:${col};font-weight:700;">${lbl}</span>
                 </div>
               </div>
-              <div style="text-align:left;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-                <div style="font-size:0.72rem;color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
+              <div class="trip-reg-side" style="min-width:132px;">
+                <div class="sub" style="color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
                 <div style="display:flex;gap:6px;">
                   <button class="btn btn-success btn-sm" onclick='showAddPaymentModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${totalPerKid}, ${paid}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-money-bill"></i> دفعة</button>
                   <button class="btn btn-outline btn-sm" onclick='showPaymentHistoryModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-history"></i> السجل</button>
@@ -6158,6 +6289,7 @@
               <button class="act-btn act-delete" title="إزالة من قائمة الانتظار" onclick='removeFromWaitlist(${tripId}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-times"></i></button>
             </div>`;
       }).join('')}
+          </div>
         </div>`;
     }
 
