@@ -4105,6 +4105,8 @@
       border-bottom: none !important;
       box-shadow: 0 2px 16px rgba(0,0,0,0.22) !important;
       flex-shrink: 0;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+      overflow: hidden;
     }
 
     .trip-tabs-bar-inner {
@@ -4227,6 +4229,7 @@
       background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid)) !important;
       border-bottom: 1px solid rgba(255,255,255,0.05) !important;
       padding: 16px 24px !important;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
     }
 
     .trip-folder-header h3 {
@@ -4327,7 +4330,8 @@
       position: sticky !important;
       top: 0 !important;
       z-index: 40 !important;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.05) !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.05) !important;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
     }
 
     .trip-folder-header h3 {
@@ -4356,6 +4360,7 @@
       padding: 20px !important;
       background: var(--surface) !important;
       min-height: calc(100vh - 110px);
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
     }
 
     /* ── Trip summary hero — clean card ─────────────────────────── */
@@ -4607,7 +4612,6 @@
       flex-wrap: wrap !important;
       padding: 14px 18px !important;
       border: none !important;
-      border-radius: 0 !important;
       border-bottom: 1px solid var(--border) !important;
       background: white !important;
       border-radius: var(--radius-card) var(--radius-card) 0 0 !important;
