@@ -6561,19 +6561,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 12px;
             flex-shrink: 0;
             background: var(--surface);
-            border-bottom: 1px solid var(--border-solid);
-            box-shadow: var(--shadow-sm);
         }
 
         .swipe-exit-btn {
             background: var(--surface-3);
-            border: 1.5px solid var(--border-solid);
+            border: none;
             color: var(--text-2);
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: var(--r-full);
             cursor: pointer;
             font-family: Cairo, sans-serif;
-            font-size: .8rem;
+            font-size: .76rem;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -6593,18 +6591,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 7px;
             min-width: 0;
+        }
+
+        .swipe-sort-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--surface-3);
+            border-radius: var(--r-full);
+            font-family: Cairo, sans-serif;
+        }
+
+        .swipe-sort-inline label {
+            font-size: .68rem;
+            color: var(--text-3);
+            font-weight: 700;
+        }
+
+        .swipe-sort-inline select {
+            border: none;
+            background: transparent;
+            color: var(--text-2);
+            font: inherit;
+            font-size: .72rem;
+            font-weight: 800;
+            outline: none;
+            padding-inline: 2px;
+            cursor: pointer;
         }
 
         .swipe-progress-bar {
             width: 100%;
-            max-width: 160px;
-            height: 6px;
+            max-width: 150px;
+            height: 5px;
             background: var(--surface-3);
             border-radius: var(--r-full);
             overflow: hidden;
-            border: 1px solid var(--border-solid);
         }
 
         .swipe-progress-fill {
@@ -6633,9 +6658,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             gap: 4px;
             font-family: Cairo, sans-serif;
-            font-size: .82rem;
+            font-size: .78rem;
             font-weight: 800;
-            padding: 4px 10px;
+            padding: 4px 9px;
             border-radius: var(--r-full);
         }
 
@@ -6658,20 +6683,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 100%;
             position: relative;
             overflow: hidden;
-            padding: 8px 20px 0;
+            padding: 6px 18px 0;
         }
 
         /* ── THE CARD ── */
         .swipe-card {
-            width: min(360px, 90vw);
-            max-height: calc(100dvh - 230px);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .99), rgba(248, 250, 252, .98));
-            border-radius: 28px;
+            width: min(320px, 86vw);
+            max-height: calc(100dvh - 250px);
+            background: var(--surface);
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow:
-                0 0 0 1.5px var(--border-solid),
-                0 8px 24px rgba(0, 0, 0, .08),
-                0 20px 60px rgba(0, 0, 0, .13);
+            border: 1px solid var(--border-solid);
+            box-shadow: 0 12px 34px rgba(15, 23, 42, .12);
             display: flex;
             flex-direction: column;
             position: relative;
@@ -6685,24 +6708,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-card.dragging {
             cursor: grabbing;
             transition: none !important;
-            box-shadow:
-                0 0 0 1.5px rgba(99, 102, 241, .16),
-                0 24px 72px rgba(15, 23, 42, .24);
+            box-shadow: 0 20px 48px rgba(15, 23, 42, .18);
         }
 
         /* ── Pre-assigned attendance state — mirrors attendance list card ── */
         .swipe-card.pre-present {
-            box-shadow:
-                0 0 0 2.5px rgba(16, 185, 129, .92),
-                0 10px 28px rgba(16, 185, 129, .16),
-                0 20px 56px rgba(15, 23, 42, .12);
+            border-color: rgba(16, 185, 129, .9);
+            box-shadow: 0 14px 34px rgba(16, 185, 129, .12);
         }
 
         .swipe-card.pre-absent {
-            box-shadow:
-                0 0 0 2.5px rgba(239, 68, 68, .88),
-                0 10px 28px rgba(239, 68, 68, .16),
-                0 20px 56px rgba(15, 23, 42, .12);
+            border-color: rgba(239, 68, 68, .88);
+            box-shadow: 0 14px 34px rgba(239, 68, 68, .12);
         }
 
         .swipe-card.pre-present .swipe-card-info {
@@ -6727,7 +6744,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-card-photo {
             width: 100%;
             flex: 1;
-            min-height: 180px;
+            min-height: 155px;
             object-fit: cover;
             object-position: center top;
             display: block;
@@ -6737,7 +6754,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-card-photo-placeholder {
             width: 100%;
             flex: 1;
-            min-height: 180px;
+            min-height: 155px;
             background: linear-gradient(145deg, var(--brand-bg), var(--coupon-bg));
             display: flex;
             align-items: center;
@@ -6760,10 +6777,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Info panel at bottom of card */
         .swipe-card-info {
-            padding: 18px 18px 19px;
-            background: rgba(255, 255, 255, .92);
-            backdrop-filter: blur(10px);
-            border-top: 1.5px solid var(--border-solid);
+            padding: 14px 14px 15px;
+            background: var(--surface);
             flex-shrink: 0;
         }
 
@@ -6775,7 +6790,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .swipe-card-name {
-            font-size: 1.22rem;
+            font-size: 1.06rem;
             font-weight: 900;
             color: var(--text);
             font-family: Cairo, sans-serif;
@@ -6789,10 +6804,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 4px;
             background: linear-gradient(135deg, rgba(250, 245, 255, .95), rgba(243, 232, 255, .95));
             color: var(--coupon-dark);
-            border: 1px solid rgba(139, 92, 246, .18);
-            padding: 5px 10px;
+            padding: 4px 9px;
             border-radius: var(--r-full);
-            font-size: .8rem;
+            font-size: .74rem;
             font-weight: 800;
             font-family: Cairo, sans-serif;
             flex-shrink: 0;
@@ -6810,10 +6824,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-card-class-tag {
             background: linear-gradient(135deg, rgba(238, 242, 255, .96), rgba(224, 231, 255, .96));
             color: var(--brand-dark);
-            border: 1px solid rgba(99, 102, 241, .12);
-            padding: 4px 11px;
+            padding: 4px 10px;
             border-radius: var(--r-full);
-            font-size: .72rem;
+            font-size: .68rem;
             font-weight: 700;
             font-family: Cairo, sans-serif;
         }
@@ -6824,28 +6837,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 4px;
             padding: 3px 10px;
             border-radius: var(--r-full);
-            font-size: .72rem;
+            font-size: .68rem;
             font-weight: 700;
             font-family: Cairo, sans-serif;
-            border: 1.5px solid;
         }
 
         .swipe-card-prev-status.present {
             background: var(--success-bg);
             color: var(--success-dark);
-            border-color: rgba(16, 185, 129, .25);
         }
 
         .swipe-card-prev-status.absent {
             background: var(--danger-bg);
             color: var(--danger-dark);
-            border-color: rgba(239, 68, 68, .25);
         }
 
         .swipe-card-prev-status.pending {
             background: var(--surface-3);
             color: var(--text-3);
-            border-color: var(--border-solid);
         }
 
         /* ── STAMP labels — bare handwritten text, no box ── */
@@ -6912,7 +6921,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 16px;
             padding: 14px 24px max(env(safe-area-inset-bottom, 16px), 16px);
             background: var(--surface);
-            border-top: 1px solid var(--border-solid);
         }
 
         /* Absent — left, large */
@@ -8061,10 +8069,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- Custom styled dropdown trigger -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                                style="padding: 6px 16px; border-radius: var(--r-full); font-size: 0.82rem; height: auto; min-width: 140px; margin: 0; background-color: var(--surface-2); border: 1.5px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; transition: all var(--t) var(--ease); box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                                style="padding: 5px 13px; border-radius: var(--r-full); font-size: 0.76rem; height: auto; min-width: 124px; margin: 0; background-color: var(--surface-2); border: 1px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 7px; transition: all var(--t) var(--ease); box-shadow: none;">
                                 <span id="customSortDropdownLabel">الاسم أ-ي</span>
                                 <i class="fas fa-chevron-down"
-                                    style="font-size: 0.72rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
+                                    style="font-size: 0.65rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
                                 <div class="custom-dropdown-item active" data-value="name_az"
@@ -8259,6 +8267,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <button class="swipe-exit-btn" onclick="exitSwipeMode()" title="خروج"><i class="fas fa-times"></i></button>
             <div class="swipe-progress-wrap">
                 <div class="swipe-class-label" id="swipeClassLabel"></div>
+                <div class="swipe-sort-inline">
+                    <label for="swipeSortSelect">الترتيب</label>
+                    <select id="swipeSortSelect" onchange="changeSwipeSort(this.value)">
+                        <option value="name_az">الاسم أ-ي</option>
+                        <option value="name_za">الاسم ي-أ</option>
+                        <option value="age_asc">الأصغر سناً</option>
+                        <option value="age_desc">الأكبر سناً</option>
+                        <option value="class_az">الفصل</option>
+                        <option value="coupons_desc">الأكثر كوبونات</option>
+                        <option value="attendance_desc">الأكثر حضوراً</option>
+                        <option value="top_desc">الأوائل</option>
+                    </select>
+                </div>
                 <div class="swipe-progress-bar">
                     <div class="swipe-progress-fill" id="swipeProgressFill"></div>
                 </div>
@@ -10465,16 +10486,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        function selectCustomSortOption(el, value, label) {
+        function syncSortControls(value, label) {
+            const select = document.getElementById('classSortSelect');
+            if (select) select.value = value;
+
+            const swipeSelect = document.getElementById('swipeSortSelect');
+            if (swipeSelect) swipeSelect.value = value;
+
             const labelEl = document.getElementById('customSortDropdownLabel');
-            if (labelEl) labelEl.innerText = label;
+            if (labelEl && label) labelEl.innerText = label;
 
             const menu = document.getElementById('customSortDropdownMenu');
             if (menu) {
-                menu.style.display = 'none';
-                menu.querySelectorAll('.custom-dropdown-item').forEach(item => item.classList.remove('active'));
+                menu.querySelectorAll('.custom-dropdown-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.value === value);
+                });
             }
-            el.classList.add('active');
+        }
+
+        function getSortLabel(value) {
+            const item = document.querySelector(`#customSortDropdownMenu .custom-dropdown-item[data-value="${value}"]`);
+            return item ? item.textContent.trim() : 'الاسم أ-ي';
+        }
+
+        function selectCustomSortOption(el, value, label) {
+            const menu = document.getElementById('customSortDropdownMenu');
+            if (menu) {
+                menu.style.display = 'none';
+            }
+            syncSortControls(value, label);
 
             const btn = document.getElementById('customSortDropdownBtn');
             const icon = btn?.querySelector('.fa-chevron-down');
@@ -10485,6 +10525,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 select.value = value;
                 select.dispatchEvent(new Event('change'));
             }
+        }
+
+        function changeSwipeSort(value) {
+            classSortMode = value;
+            syncSortControls(value, getSortLabel(value));
+            if (_swipeList.length && document.getElementById('swipeOverlay')?.classList.contains('active')) {
+                _sortSwipeRemaining();
+            }
+            renderAttendanceList(currentClass);
         }
 
         // Close dropdown when clicking outside
@@ -14247,7 +14296,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (e.target?.closest('.copy-holdable')) e.preventDefault();
             });
             on('absentSearchInput', 'input', renderAbsentTable);
-            on('classSortSelect', 'change', e => { classSortMode = e.target.value; renderAttendanceList(currentClass); });
+            on('classSortSelect', 'change', e => {
+                classSortMode = e.target.value;
+                syncSortControls(classSortMode, getSortLabel(classSortMode));
+                renderAttendanceList(currentClass);
+            });
             on('clearAbsentDataBtn', 'click', clearAbsentData);
             on('photoInput', 'change', handleImageSelect);
             on('savePhotoBtn', 'click', uploadStudentPhoto);
@@ -15356,10 +15409,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _swipeDragging = false, _swipeCard = null;
         const SWIPE_THRESHOLD = 80; // px to commit a swipe
 
+        function _sortSwipeRemaining() {
+            const done = _swipeList.slice(0, _swipeIdx);
+            const remaining = sortStudentsForCurrentView(_swipeList.slice(_swipeIdx));
+            _swipeList = done.concat(remaining);
+            _renderSwipeCard();
+            _updateSwipeProgress();
+        }
+
         function startSwipeMode() {
             const src = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
             if (!src.length) { showToast('لا يوجد أطفال في هذا الفصل', 'info'); return; }
-            _swipeList = [...src];
+            _swipeList = sortStudentsForCurrentView(src);
             _swipeIdx = 0;
             _swipePres = 0;
             _swipeAbs = 0;
@@ -15369,6 +15430,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (hints) hints.style.display = '';
             const lbl = document.getElementById('swipeClassLabel');
             if (lbl) lbl.textContent = currentClass || '';
+            const swipeSortSelect = document.getElementById('swipeSortSelect');
+            if (swipeSortSelect) swipeSortSelect.value = classSortMode || 'name_az';
             document.getElementById('swipeOverlay').classList.add('active');
             document.body.style.overflow = 'hidden';
             _renderSwipeCard();
