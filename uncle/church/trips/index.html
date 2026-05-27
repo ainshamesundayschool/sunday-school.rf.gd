@@ -117,9 +117,34 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Standalone trips route is a full-screen detail view only. */
+    /* ── FULLSCREEN TRIP DETAILS ────────────────────────────────────── */
     .main-wrapper {
-      display: none;
+      display: none !important;
+    }
+
+    /* Trip details fills the full viewport immediately */
+    .trip-details-fullscreen {
+      display: flex !important;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: var(--bg);
+    }
+
+    .trip-details-fullscreen .modal-box {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100vh !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .trip-details-fullscreen .modal-box .modal-head,
+    .trip-details-fullscreen .modal-box .modal-close {
+      display: none !important;
     }
 
     /* ── SCROLLBAR ──────────────────────────────────────────────────── */
@@ -3639,18 +3664,119 @@
       }
     }
 
-    /* ── PRINT MODAL ────────────────────────────────────────────────── */
-    #printSettingsModal .modal-box {
-      max-width: min(96vw, 1680px) !important;
-      width: 96vw !important;
-      height: min(92vh, 1200px) !important;
-      max-height: 92vh !important;
-      margin: 2vh auto !important;
-      display: flex;
-      flex-direction: column;
+    /* ── PRINT MODAL — Full-screen split view ───────────────────────── */
+    #printSettingsModal {
+      padding: 0 !important;
+      align-items: stretch !important;
     }
 
-    /* Preview toggle button — always visible */
+    #printSettingsModal .modal-box {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100vh !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    /* Redesigned print modal header bar */
+    #printSettingsModal .modal-head {
+      background: var(--sidebar-bg);
+      border-bottom: none !important;
+      padding: 0 20px !important;
+      height: 54px;
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    #printSettingsModal .modal-head h2 {
+      color: white !important;
+      font-size: 0.9rem !important;
+      gap: 10px;
+    }
+
+    #printSettingsModal .modal-head h2 i {
+      color: var(--indigo-400) !important;
+    }
+
+    #printSettingsModal .modal-head .modal-close {
+      color: rgba(255,255,255,0.5) !important;
+      background: rgba(255,255,255,0.06) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: var(--radius-xs) !important;
+    }
+
+    #printSettingsModal .modal-head .modal-close:hover {
+      background: rgba(220,38,38,0.3) !important;
+      color: #fca5a5 !important;
+      border-color: rgba(220,38,38,0.4) !important;
+    }
+
+    /* Print body: full split */
+    #printSettingsModal .modal-body {
+      display: grid !important;
+      grid-template-columns: 380px 1fr !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      gap: 0 !important;
+    }
+
+    /* Settings panel — left side (in RTL this is right) */
+    #printSettingsModal #printSettingsFormPanel {
+      order: 2 !important;
+      height: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: 20px 20px 24px !important;
+      background: var(--card);
+      border-right: 1px solid var(--border) !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      width: 100% !important;
+    }
+
+    /* Preview panel — takes remaining space */
+    #printPreviewPanel {
+      order: 1 !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      overflow: hidden !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      border-right: none !important;
+      padding-right: 0 !important;
+    }
+
+    /* Preview header row */
+    #printPreviewPanel > div:first-child {
+      padding: 14px 20px 0 !important;
+      flex-shrink: 0;
+    }
+
+    #printSettingsModal #printPreviewWrapper {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: auto !important;
+      background: #e8eaf0 !important;
+      padding: 24px !important;
+      margin: 12px 16px 16px !important;
+      border-radius: var(--radius-lg) !important;
+      border: none !important;
+    }
+
+    /* Preview toggle button */
     #togglePreviewBtn {
       display: flex;
       align-items: center;
@@ -3673,7 +3799,6 @@
       background: var(--primary-light);
     }
 
-    /* Preview wrapper collapses, button stays */
     #printPreviewWrapper {
       transition: all 0.3s var(--ease);
     }
@@ -3681,60 +3806,12 @@
       display: none !important;
     }
 
-    /* ── Desktop: side-by-side ───────────────────────────────── */
-    @media (min-width: 769px) {
-      #printSettingsModal .modal-head {
-        flex-shrink: 0;
-      }
-      #printSettingsModal .modal-body {
-        display: grid !important;
-        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-        align-items: stretch;
-        gap: 24px;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
-        padding: 20px 24px 24px;
-      }
-      #printSettingsModal #printSettingsFormPanel {
-        min-width: 0 !important;
-        width: 100% !important;
-        max-width: none !important;
-        max-height: none !important;
-        height: 100%;
-        overflow-y: auto;
-        padding-left: 8px;
-        order: 2;
-      }
-      #printPreviewPanel {
-        width: 100% !important;
-        min-width: 0;
-        border-right: 1px solid var(--border);
-        padding-right: 24px;
-        overflow: hidden;
-        align-items: stretch !important;
-        height: 100%;
-        order: 1;
-      }
-      #printSettingsModal #printPreviewWrapper {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: 100%;
-        overflow: auto;
-        padding: 28px;
-      }
-
-      #printPreviewContent {
-        min-height: 100%;
-        width: 100%;
-      }
-    }
-
+    /* Shell-mounted: same layout */
     .trip-shell-page #printSettingsModal .modal-box,
     #printSettingsModal[data-shell-mounted="1"] .modal-box {
       width: 100% !important;
       max-width: none !important;
-      height: calc(100vh - 220px) !important;
+      height: 100% !important;
       max-height: none !important;
       margin: 0 !important;
       border-radius: 0 !important;
@@ -3743,18 +3820,18 @@
     .trip-shell-page #printSettingsModal .modal-body,
     #printSettingsModal[data-shell-mounted="1"] .modal-body {
       display: grid !important;
-      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr) !important;
-      gap: 24px !important;
+      grid-template-columns: 380px 1fr !important;
+      gap: 0 !important;
       align-items: stretch !important;
       min-height: 0 !important;
       height: 100% !important;
       overflow: hidden !important;
-      padding: 20px 24px 24px !important;
+      padding: 0 !important;
     }
 
     .trip-shell-page #printSettingsModal #printSettingsFormPanel,
     #printSettingsModal[data-shell-mounted="1"] #printSettingsFormPanel {
-      order: 2;
+      order: 2 !important;
       width: 100% !important;
       min-width: 0 !important;
       max-width: none !important;
@@ -3765,7 +3842,7 @@
 
     .trip-shell-page #printSettingsModal #printPreviewPanel,
     #printSettingsModal[data-shell-mounted="1"] #printPreviewPanel {
-      order: 1;
+      order: 1 !important;
       width: 100% !important;
       min-width: 0 !important;
       height: 100% !important;
@@ -3773,8 +3850,8 @@
       flex-direction: column !important;
       align-items: stretch !important;
       overflow: hidden !important;
-      border-right: 1px solid var(--border) !important;
-      padding-right: 24px !important;
+      border-right: none !important;
+      padding-right: 0 !important;
       margin: 0 !important;
     }
 
@@ -3786,6 +3863,29 @@
       overflow: auto !important;
     }
 
+    /* ── Mobile: stacked ── */
+    @media (max-width: 768px) {
+      #printSettingsModal .modal-body {
+        grid-template-columns: 1fr !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+      #printSettingsModal #printSettingsFormPanel {
+        height: auto !important;
+        overflow-y: visible !important;
+        border-right: none !important;
+        border-top: 1px solid var(--border) !important;
+      }
+      #printPreviewPanel {
+        min-height: 320px;
+        order: 1 !important;
+      }
+      #printSettingsModal #printPreviewWrapper {
+        min-height: 260px !important;
+      }
+    }
+
+    /* registerStudentModal shell styles */
     .trip-shell-page #registerStudentModal .modal-box,
     #registerStudentModal[data-shell-mounted="1"] .modal-box {
       width: 100% !important;
@@ -3927,29 +4027,239 @@
         min-height: 260px !important;
       }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       DASHBOARD REDESIGN — Modern clean full-screen layout
+    ════════════════════════════════════════════════════════════════ */
+
+    body {
+      background: #f0f1f6 !important;
+    }
+
+    #tripDetailsModal {
+      background: transparent !important;
+      backdrop-filter: none !important;
+    }
+
+    #tripDetailsModal > .modal-box {
+      background: #f0f1f6 !important;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+
+    #tripDetailsScroll {
+      padding: 0 !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Sticky dark header tab bar */
+    .trip-tabs-bar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 50 !important;
+      background: var(--sidebar-bg) !important;
+      border-bottom: none !important;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.22) !important;
+      flex-shrink: 0;
+    }
+
+    .trip-tabs-bar-inner {
+      padding: 0 24px !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      display: flex !important;
+      align-items: center !important;
+      min-height: 56px !important;
+      gap: 2px;
+    }
+
+    /* Desktop tabs (>= 1100px): show trip-header-tabs, hide mobile */
+    @media (min-width: 1100px) {
+      .td-tabs.trip-header-tabs {
+        display: flex !important;
+        gap: 2px !important;
+        flex: 1;
+      }
+
+      #tdTabsMobile {
+        display: none !important;
+      }
+
+      .td-tabs.trip-header-tabs .td-tab {
+        color: rgba(255,255,255,0.45) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 7px 16px !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transition: all 0.15s !important;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+        min-width: unset;
+      }
+
+      .td-tabs.trip-header-tabs .td-tab:hover {
+        background: rgba(255,255,255,0.08) !important;
+        color: rgba(255,255,255,0.85) !important;
+        border-color: transparent !important;
+      }
+
+      .td-tabs.trip-header-tabs .td-tab.active {
+        background: rgba(99,102,241,0.82) !important;
+        color: white !important;
+        box-shadow: 0 2px 10px rgba(99,102,241,0.4) !important;
+        border-color: transparent !important;
+      }
+    }
+
+    /* Mobile tabs (< 1100px): hide desktop, style mobile */
+    @media (max-width: 1099px) {
+      .td-tabs.trip-header-tabs {
+        display: none !important;
+      }
+
+      #tdTabsMobile {
+        display: flex !important;
+      }
+
+      #tdTabsMobile .td-tab {
+        color: rgba(255,255,255,0.45) !important;
+        border-bottom: 2px solid transparent !important;
+        padding: 14px 10px !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap;
+      }
+
+      #tdTabsMobile .td-tab:hover { color: rgba(255,255,255,0.85) !important; }
+
+      #tdTabsMobile .td-tab.active {
+        color: white !important;
+        border-bottom-color: var(--indigo-400) !important;
+      }
+    }
+
+    .trip-tabs-close {
+      margin-right: auto !important;
+      background: rgba(255,255,255,0.07) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      color: rgba(255,255,255,0.45) !important;
+      border-radius: var(--radius-xs) !important;
+      width: 30px !important;
+      height: 30px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 0.8rem !important;
+      cursor: pointer !important;
+      transition: all 0.15s !important;
+    }
+
+    .trip-tabs-close:hover {
+      background: rgba(220,38,38,0.22) !important;
+      color: #fca5a5 !important;
+      border-color: rgba(220,38,38,0.28) !important;
+    }
+
+    .trip-workspace {
+      padding: 20px !important;
+      flex: 1;
+    }
+
+    .trip-folder-shell {
+      background: var(--card) !important;
+      border-radius: var(--radius-xl) !important;
+      border: 1px solid var(--border) !important;
+      box-shadow: var(--shadow-sm) !important;
+      overflow: hidden;
+    }
+
+    .trip-folder-header {
+      background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid)) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+      padding: 16px 24px !important;
+    }
+
+    .trip-folder-header h3 {
+      color: white !important;
+      font-size: 1rem !important;
+      font-weight: 800 !important;
+      margin: 0 !important;
+    }
+
+    .trip-folder-header p {
+      color: rgba(255,255,255,0.4) !important;
+      font-size: 0.78rem !important;
+      margin-top: 3px !important;
+    }
+
+    .trip-folder-breadcrumb {
+      font-size: 0.7rem !important;
+      color: rgba(255,255,255,0.3) !important;
+      margin-bottom: 4px !important;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .trip-folder-breadcrumb .active { color: rgba(255,255,255,0.65) !important; }
+
+    .trip-folder-breadcrumb i { font-size: 0.6rem !important; opacity: 0.35; }
+
+    .trip-folder-breadcrumb button {
+      background: none !important;
+      border: none !important;
+      color: var(--indigo-400) !important;
+      cursor: pointer !important;
+      font-family: 'Cairo', sans-serif !important;
+      font-size: 0.7rem !important;
+      padding: 0 !important;
+    }
+
+    .trip-folder-breadcrumb button:hover {
+      color: white !important;
+      text-decoration: underline;
+    }
+
+    .trip-folder-body {
+      padding: 20px !important;
+    }
+
+    .trip-summary-hero {
+      background: linear-gradient(135deg, var(--indigo-900), var(--sidebar-bg)) !important;
+      border-radius: var(--radius-lg) !important;
+      border: 1px solid rgba(99,102,241,0.18) !important;
+    }
+
+    .td-badge {
+      background: rgba(220,38,38,0.82) !important;
+      color: white !important;
+    }
+
+    .td-badge.warn {
+      background: rgba(217,119,6,0.82) !important;
+      color: white !important;
+    }
+
+    @media (max-width: 768px) {
+      .trip-workspace { padding: 10px !important; }
+      .trip-folder-shell { border-radius: var(--radius-lg) !important; }
+      .trip-folder-header { padding: 14px 16px !important; }
+      .trip-tabs-bar-inner { padding: 0 12px !important; }
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- Minimal trips page content (keeps the page self-contained) -->
-  <div class="main-wrapper">
-    <div class="topbar">
-      <div class="topbar-left">
-        <button class="mobile-menu-btn">☰</button>
-        <div>
-          <div class="topbar-title">إدارة الرحلة</div>
-          <div class="topbar-breadcrumb"><span>تفاصيل الرحلة</span></div>
-        </div>
-      </div>
-      <div class="topbar-right"></div>
-    </div>
-
-    <main class="main-content" style="display:none;"></main>
-  </div>
-
-  <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
-  <div id="tripDetailsModal" class="modal" style="padding:0;">
+  <!-- Trip Details — full screen, no landing screen -->
+  <div id="tripDetailsModal" class="modal trip-details-fullscreen" style="padding:0;">
     <div class="modal-box"
       style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
       <div id="tdHeader"
