@@ -2872,6 +2872,38 @@
       margin-bottom: 10px;
     }
 
+    .trip-tabs-bar-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffffff, #f8f9ff);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .trip-tabs-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      color: var(--text-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+
+    .trip-tabs-close:hover {
+      color: var(--danger);
+      border-color: var(--danger-mid);
+      background: var(--danger-light);
+    }
+
     .trip-summary-hero {
       display: grid;
       grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.8fr);
@@ -3092,12 +3124,12 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        margin: 0 -16px;
-        padding: 8px 16px 0;
-        border-top: 1px solid rgba(255,255,255,0.08);
+        margin: 0;
+        padding: 0;
         overflow-x: auto;
         overflow-y: hidden;
         scrollbar-width: none;
+        flex: 1;
       }
 
       .trip-header-tabs::-webkit-scrollbar {
@@ -3164,6 +3196,11 @@
 
       #tripDetailsScroll {
         padding: 18px 16px 24px !important;
+      }
+
+      .trip-tabs-bar-inner {
+        padding: 8px 10px;
+        border-radius: 16px;
       }
     }
 
@@ -3855,28 +3892,33 @@
       </div>
       <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:24px 28px;">
         <div class="trip-tabs-bar">
-          <div class="td-tabs trip-header-tabs" id="tdTabsDesktop" style="margin:0;padding:0;border-bottom:none;background:transparent;">
-            <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
-            <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
-            <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
-            <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
-          </div>
-          <div class="td-tabs" id="tdTabsMobile" style="margin:0;padding:0;border-bottom:none;background:transparent;">
-            <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
-              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
-              الملخص</div>
-            <div class="td-tab" id="tdtab-regs" data-title="المسجلون" data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
-              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
-              <span class="td-badge" id="tdRegsCount"></span>
+          <div class="trip-tabs-bar-inner">
+            <div class="td-tabs trip-header-tabs" id="tdTabsDesktop" style="margin:0;padding:0;border-bottom:none;background:transparent;">
+              <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
+              <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
             </div>
-            <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار" data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
-              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
-              الانتظار
-              <span class="td-badge warn" id="tdWaitlistCount"></span>
+            <div class="td-tabs" id="tdTabsMobile" style="margin:0;padding:0;border-bottom:none;background:transparent;flex:1;">
+              <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
+                style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
+                الملخص</div>
+              <div class="td-tab" id="tdtab-regs" data-title="المسجلون" data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
+                style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
+                <span class="td-badge" id="tdRegsCount"></span>
+              </div>
+              <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار" data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
+                style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
+                الانتظار
+                <span class="td-badge warn" id="tdWaitlistCount"></span>
+              </div>
+              <div class="td-tab" id="tdtab-exp" data-title="المصروفات" data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
+                style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
+                المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
             </div>
-            <div class="td-tab" id="tdtab-exp" data-title="المصروفات" data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
-              style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
-              المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
+            <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'" title="إغلاق">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
         </div>
         <div class="trip-workspace">
@@ -4312,7 +4354,7 @@
       const fdTrip = mkFd('getTripDetails'); fdTrip.append('trip_id', id);
       const fdExp = mkFd('getTripExpenses'); fdExp.append('trip_id', id);
       const [tripResp, expResp] = await Promise.all([
-        fetch(API_URL, { method: 'POST', body: fdTrip }).then(r => r.json()).catch(() => ({ success: false })),
+        fetch(API_URL, { method: 'POST', body: fdTrip }).then(r => r.json()).catch((err) => ({ success: false, _network_error: true, message: err?.message || '' })),
         fetch(API_URL, { method: 'POST', body: fdExp }).then(r => r.json()).catch(() => ({ success: false }))
       ]);
       tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
@@ -4336,10 +4378,21 @@
         renderTripAccessDenied(tripResp);
       }
       else {
+        const isNetworkIssue = !!tripResp._network_error || /connection refused/i.test(String(tripResp.message || ''));
+        const msg = isNetworkIssue ? 'تعذر الاتصال بالخادم الآن' : (tripResp.message || 'فشل في تحميل الرحلة');
+        const retryHtml = `
+          <div class="empty-state trip-empty-card">
+            <i class="fas fa-plug"></i>
+            <h3>${escHtml(msg)}</h3>
+            <p style="color:var(--muted);font-size:0.84rem;margin:8px 0 14px;">حاول إعادة تحميل تفاصيل الرحلة بعد لحظات.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="showTripDetails(${id})">
+              <i class="fas fa-rotate-right"></i> إعادة المحاولة
+            </button>
+          </div>`;
         const sumDiv = document.getElementById('standaloneTripSummary');
-        if (sumDiv) sumDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في تحميل الرحلة')}</h3></div>`;
+        if (sumDiv) sumDiv.innerHTML = retryHtml;
         const infoDiv = document.getElementById('tripInfoContent');
-        if (infoDiv) infoDiv.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(tripResp.message || 'فشل في التحميل')}</h3></div>`;
+        if (infoDiv) infoDiv.innerHTML = retryHtml;
       }
     }
 
