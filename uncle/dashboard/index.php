@@ -5645,8 +5645,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-link {
             flex: 0 0 auto;
             border: 1px dashed rgba(91, 108, 245, .28);
-            background: linear-gradient(180deg, rgba(238, 242, 255, .75), rgba(255, 255, 255, .92));
-            color: var(--brand-dark);
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color: #fff;
             font-family: inherit;
             font-size: .68rem;
             font-weight: 800;
@@ -5659,22 +5659,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: 999px;
             transition: all var(--t) var(--ease);
             box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .78) inset,
-                0 6px 14px rgba(91, 108, 245, .06);
+                0 .5px 0 rgba(255, 255, 255, .22) inset,
+                0 6px 14px rgba(91, 108, 245, .14);
             white-space: nowrap;
         }
 
         .home-tools-link:hover {
             transform: translateY(-1px);
-            border-color: rgba(91, 108, 245, .42);
-            background: var(--brand-bg);
+            border-color: rgba(91, 108, 245, .18);
+            filter: brightness(1.03);
         }
 
         .home-tools-rail {
             display: flex;
-            gap: 7px;
+            gap: 5px;
             overflow-x: auto;
-            padding: 2px 2px 4px;
+            padding: 2px 0 4px;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -5688,7 +5688,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 10px;
+            padding: 7px 9px;
             border-radius: var(--r-full);
             background: rgba(255, 255, 255, .78);
             border: 1px solid var(--border-solid);
