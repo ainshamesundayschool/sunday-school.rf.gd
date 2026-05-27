@@ -1550,14 +1550,61 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--brand-bg) !important
         }
 
+        .action-strip-standalone.swipe-like {
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            box-shadow:
+                0 7px 16px rgba(15, 23, 42, .08),
+                inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+            position: relative;
+            overflow: hidden !important;
+        }
+
+        .action-strip-standalone.swipe-like::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .16), transparent 48%);
+            pointer-events: none;
+        }
+
+        .action-strip-standalone.swipe-like > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-strip-swipe {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 55%, #06b6d4 100%) !important;
+            color: #fff !important;
+            border-color: rgba(255, 255, 255, 0.18) !important;
+        }
+
+        .action-strip-swipe:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 55%, #0891b2 100%) !important;
+            color: #fff !important;
+            border-color: rgba(255, 255, 255, 0.22) !important;
+        }
+
+        .action-strip-neutral {
+            background: var(--surface-2) !important;
+            color: var(--text-2) !important;
+            border-color: var(--border-solid) !important;
+        }
+
+        .action-strip-neutral:hover {
+            background: var(--surface-3) !important;
+            color: var(--text) !important;
+            border-color: var(--border-solid) !important;
+        }
+
         .action-strip-add {
-            border-color: rgba(16, 185, 129, .35) !important;
+            background: var(--success-bg) !important;
+            border-color: rgba(16, 185, 129, .22) !important;
             color: var(--success) !important
         }
 
         .action-strip-add:hover {
-            border-color: var(--success) !important;
-            background: var(--success-bg) !important;
+            border-color: rgba(16, 185, 129, .32) !important;
+            background: color-mix(in srgb, var(--success-bg) 72%, white 28%) !important;
             color: var(--success) !important
         }
 
@@ -8522,6 +8569,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i
                                     class="fas fa-table"></i> جداول أطفال الفصل</button>
+                            <button class="dropdown-item"
+                                onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                    class="fas fa-tasks"></i> مهام الفصل <span class="tasks-notif-dot"
+                                    id="tasksSubmissionDot" style="display:none; position:static; margin-right:auto;"></span></button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
                                 تصدير مخصص</button>
@@ -8565,20 +8616,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="action-strip-row-2">
-                    <button class="action-strip-btn action-strip-standalone" onclick="showResetModal()"
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-swipe"
+                        onclick="startSwipeMode()" title="وضع السحب السريع">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span class="strip-btn-label">سحب</span>
+                    </button>
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral" onclick="showResetModal()"
                         title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
                         <span class="strip-btn-label">تراجع</span>
                     </button>
-                    <button class="action-strip-btn action-strip-standalone" id="tasksClassBtn"
-                        onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass)"
-                        title="مهام الفصل" style="position:relative;">
-                        <i class="fas fa-tasks"></i>
-                        <span class="tasks-notif-dot" id="tasksSubmissionDot"
-                            style="display:none; top: 4px; left: 4px;"></span>
-                        <span class="strip-btn-label">المهام</span>
-                    </button>
-                    <button class="action-strip-btn action-strip-standalone action-strip-add"
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-add"
                         onclick="showAddPersonModal()" title="إضافة طفل جديد">
                         <i class="fas fa-user-plus"></i>
                         <span class="strip-btn-label">إضافة</span>
@@ -8599,12 +8647,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="stat-lbl">متوسط</span></span>
                         </div>
                         <div class="save-row">
-                            <!-- Swipe mode — FIRST, with glow -->
-                            <button class="save-btn swipe-toolbar-btn" onclick="startSwipeMode()"
-                                title="وضع السحب السريع">
-                                <i class="fas fa-hand-pointer swipe-hand-icon"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">سحب</span></span>
-                            </button>
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()">
                                 <i class="fas fa-check-circle"></i>
