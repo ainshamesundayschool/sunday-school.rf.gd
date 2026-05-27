@@ -2351,9 +2351,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-md)
         }
 
-        .attendance-item.has-local {
-            border-right: 3px solid var(--warning) !important
-        }
+        .attendance-item.has-local {}
 
         .attendance-item.absent {
             border-color: rgba(239, 68, 68, .28);
@@ -2496,7 +2494,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .status-badge.local-unsaved {
             background: var(--warning-bg);
             color: #92400e;
-            border: 1px solid rgba(245, 158, 11, .25)
         }
 
         [data-theme="dark"] .status-badge.local-unsaved {
@@ -4800,6 +4797,95 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 14px;
             margin-bottom: 18px;
             border: 1px solid rgba(91, 108, 245, .15)
+        }
+
+        .announcement-student-picker {
+            display: grid;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .announcement-picked-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 12px;
+        }
+
+        .announcement-picked-card {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: var(--r-full);
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid rgba(91, 108, 245, .14);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 6px 14px rgba(15, 23, 42, .04);
+            font-size: .76rem;
+            font-weight: 700;
+        }
+
+        .announcement-picked-card button {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(239, 68, 68, .12);
+            color: var(--danger);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: .68rem;
+            flex-shrink: 0;
+        }
+
+        .announcement-student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .announcement-student-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 8px;
+            border-radius: var(--r-md);
+            background: var(--surface);
+            border: 1px solid rgba(91, 108, 245, .12);
+            color: var(--text-2);
+            font-size: .76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+
+        .announcement-student-option:hover {
+            transform: translateY(-1px);
+            border-color: var(--brand);
+            background: rgba(255, 255, 255, .92);
+            color: var(--brand);
+        }
+
+        .announcement-student-option.selected {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(91, 108, 245, .18);
+        }
+
+        .announcement-student-helper {
+            font-size: .72rem;
+            color: var(--text-3);
+            font-weight: 600;
         }
 
         .announcements-table-wrap {
@@ -9165,7 +9251,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 id="announcementLink" placeholder="https://..."></div>
                         <div class="form-group"><label class="form-label">أطفال محددين <small
                                     style="color:var(--text-3)">(اختياري)</small></label><input type="text"
-                                class="form-input" id="announcementStudents" placeholder="اتركه فارغاً للجميع" disabled>
+                                class="form-input" id="announcementStudents" placeholder="اتركه فارغاً للجميع" readonly>
+                            <div class="announcement-student-picker">
+                                <div class="announcement-picked-list" id="announcementPickedList"></div>
+                                <div class="announcement-student-helper" id="announcementStudentHelper">اختَر الأطفال بالضغط عليهم من القائمة التالية</div>
+                                <div class="announcement-student-grid" id="announcementStudentGrid"></div>
+                            </div>
                         </div>
                         <div style="display:flex;gap:8px">
                             <button type="submit" class="btn btn-success" style="flex:1"><i class="fas fa-plus"></i>
@@ -9268,6 +9359,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── STATE ─────────────────────────────────────────────────────
         let students = [], classes = [], allStudentsData = [];
+        let selectedAnnouncementStudents = [];
         let currentClass = '', currentFriday = '';
         let attendanceData = {}, couponData = {}, absentData = {};
         let originalAttendanceData = {}, originalCouponData = {};
@@ -12554,7 +12646,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideAbsentModal() { document.getElementById('absentModal').classList.remove('active'); startAutoRefresh(); }
         function showPastFridaysModal() { document.getElementById('pastFridaysModal').classList.add('active'); renderPastFridays(); stopAutoRefresh(); }
         function hidePastFridaysModal() { document.getElementById('pastFridaysModal').classList.remove('active'); startAutoRefresh(); }
-        function showAnnouncementsModal() { document.getElementById('announcementsModal').classList.add('active'); loadAnnouncements(); stopAutoRefresh(); }
+        function showAnnouncementsModal() { document.getElementById('announcementsModal').classList.add('active'); loadAnnouncements(); renderAnnouncementStudentGrid(); renderAnnouncementSelectedCards(); stopAutoRefresh(); }
         function hideAnnouncementsModal() { document.getElementById('announcementsModal').classList.remove('active'); startAutoRefresh(); }
         function showResetModal() { document.getElementById('resetModal').classList.add('active'); stopAutoRefresh(); }
         function hideResetModal() { document.getElementById('resetModal').classList.remove('active'); startAutoRefresh(); }
@@ -14231,6 +14323,72 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).join('');
             if (cnt) cnt.textContent = active;
         }
+        function getAnnouncementPickerStudents() {
+            const cls = document.getElementById('announcementClass')?.value || 'الجميع';
+            const source = (allStudentsData && allStudentsData.length) ? allStudentsData : students;
+            return source.filter(s => cls === 'الجميع' || (s['الفصل'] || '') === cls);
+        }
+        function syncAnnouncementStudentsInput() {
+            const input = document.getElementById('announcementStudents');
+            if (input) input.value = selectedAnnouncementStudents.map(s => s.name).join(', ');
+        }
+        function renderAnnouncementSelectedCards() {
+            const wrap = document.getElementById('announcementPickedList');
+            const helper = document.getElementById('announcementStudentHelper');
+            if (!wrap) return;
+            if (!selectedAnnouncementStudents.length) {
+                wrap.innerHTML = '';
+                if (helper) helper.textContent = 'اختَر الأطفال بالضغط عليهم من القائمة التالية';
+                syncAnnouncementStudentsInput();
+                return;
+            }
+            wrap.innerHTML = selectedAnnouncementStudents.map(s => `
+                <span class="announcement-picked-card">
+                    ${s.name}
+                    <button type="button" onclick="removeAnnouncementStudent('${s.id}')"><i class="fas fa-times"></i></button>
+                </span>`).join('');
+            if (helper) helper.textContent = `تم اختيار ${selectedAnnouncementStudents.length} طفل`;
+            syncAnnouncementStudentsInput();
+        }
+        function renderAnnouncementStudentGrid() {
+            const grid = document.getElementById('announcementStudentGrid');
+            const helper = document.getElementById('announcementStudentHelper');
+            if (!grid) return;
+            const pool = getAnnouncementPickerStudents();
+            if (!pool.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-3);font-size:.75rem">لا يوجد أطفال في هذا الفصل</div>';
+                if (!selectedAnnouncementStudents.length && helper) helper.textContent = 'لا يوجد أطفال متاحون للاختيار في هذا الفصل';
+                syncAnnouncementStudentsInput();
+                return;
+            }
+            grid.innerHTML = pool.map(s => {
+                const id = String(getStudentId(s));
+                const selected = selectedAnnouncementStudents.some(x => x.id === id);
+                return `<button type="button" class="announcement-student-option${selected ? ' selected' : ''}" onclick="toggleAnnouncementStudent('${id}')">${s['الاسم'] || '---'}</button>`;
+            }).join('');
+            if (!selectedAnnouncementStudents.length && helper) helper.textContent = 'اختَر الأطفال بالضغط عليهم من القائمة التالية';
+            syncAnnouncementStudentsInput();
+        }
+        function toggleAnnouncementStudent(id) {
+            const pool = getAnnouncementPickerStudents();
+            const target = pool.find(s => String(getStudentId(s)) === String(id));
+            if (!target) return;
+            const existing = selectedAnnouncementStudents.findIndex(s => s.id === String(id));
+            if (existing >= 0) selectedAnnouncementStudents.splice(existing, 1);
+            else selectedAnnouncementStudents.push({ id: String(id), name: target['الاسم'] || '---' });
+            renderAnnouncementSelectedCards();
+            renderAnnouncementStudentGrid();
+        }
+        function removeAnnouncementStudent(id) {
+            selectedAnnouncementStudents = selectedAnnouncementStudents.filter(s => s.id !== String(id));
+            renderAnnouncementSelectedCards();
+            renderAnnouncementStudentGrid();
+        }
+        function resetAnnouncementStudentPicker() {
+            selectedAnnouncementStudents = [];
+            renderAnnouncementSelectedCards();
+            renderAnnouncementStudentGrid();
+        }
         function toggleAnnouncementStatus(idx, val) { if (confirm(`${val ? 'تفعيل' : 'تعطيل'} هذا الإعلان؟`)) { showLoading('...'); makeApiCall({ action: 'toggleAnnouncement', rowIndex: idx, active: val ? 'true' : 'false' }, r => { showToast(r.message, 'success'); loadAnnouncements(); }, () => showToast('فشل', 'error')); } }
         function deleteAnnouncement(idx, txt) { if (confirm(`حذف "${txt}"؟`)) { showLoading('...'); makeApiCall({ action: 'deleteAnnouncement', rowIndex: idx }, r => { showToast(r.message, 'success'); loadAnnouncements(); }, () => showToast('فشل', 'error')); } }
 
@@ -14386,10 +14544,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const type = document.getElementById('announcementType').value, text = document.getElementById('announcementText').value.trim(), link = document.getElementById('announcementLink').value.trim(), cls = document.getElementById('announcementClass').value, stds = document.getElementById('announcementStudents').value.trim();
                 if (!text) { showToast('أدخل نص الإعلان', 'error'); return; } if (type === 'button' && !link) { showToast('أدخل رابطاً للزر', 'error'); return; }
                 showLoading('...');
-                makeApiCall({ action: 'addAnnouncement', type, text, link, class: cls, students: stds }, r => { showToast(r.message, 'success'); document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; loadAnnouncements(); }, () => showToast('فشل', 'error'));
+                makeApiCall({ action: 'addAnnouncement', type, text, link, class: cls, students: stds }, r => { showToast(r.message, 'success'); document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); loadAnnouncements(); }, () => showToast('فشل', 'error'));
             });
-            on('clearAnnouncementForm', 'click', () => { document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; });
+            on('clearAnnouncementForm', 'click', () => { document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); });
             on('announcementType', 'change', () => { document.getElementById('linkFieldContainer').style.display = document.getElementById('announcementType').value === 'button' ? 'block' : 'none'; });
+            on('announcementClass', 'change', () => {
+                const allowed = new Set(getAnnouncementPickerStudents().map(s => String(getStudentId(s))));
+                selectedAnnouncementStudents = selectedAnnouncementStudents.filter(s => allowed.has(s.id));
+                renderAnnouncementSelectedCards();
+                renderAnnouncementStudentGrid();
+            });
             on('actionsStripBtn', 'click', e => { e.stopPropagation(); toggleDropdown('actionsDropdownMenu', 'actionsStripBtn'); });
             on('couponsStripBtn', 'click', e => { e.stopPropagation(); toggleDropdown('couponsDropdownMenu', 'couponsStripBtn'); });
             // Overlay click & swipe-to-close
