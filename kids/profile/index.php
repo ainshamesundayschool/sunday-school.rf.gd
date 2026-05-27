@@ -535,37 +535,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     /* ══ SECTION CARD ════════════════════════════════════ */
     .sc {
-      background: var(--surf);
-      border-radius: var(--r-lg);
-      border: 1px solid var(--bdr);
-      box-shadow: var(--sh-sm);
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .98));
+      border-radius: 26px;
+      border: 1px solid rgba(226, 232, 240, .9);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, .85) inset,
+        0 14px 34px rgba(15, 23, 42, .06);
       overflow: hidden;
-      margin-bottom: 14px;
-      transition: box-shadow var(--norm), transform var(--norm);
+      margin-bottom: 16px;
+      transition: box-shadow var(--norm), transform var(--norm), border-color var(--norm);
+    }
+
+    .sc::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .9), rgba(255, 255, 255, 0));
+      pointer-events: none;
     }
 
     .sc:hover {
-      box-shadow: var(--sh-md);
+      transform: translateY(-3px);
+      border-color: rgba(129, 140, 248, .45);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, .92) inset,
+        0 20px 46px rgba(15, 23, 42, .09);
     }
 
     .sc-head {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 11px;
-      padding: 14px 18px 12px;
-      border-bottom: 1px solid var(--bdr2);
-      background: linear-gradient(90deg, var(--s2), var(--surf));
+      gap: 12px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(241, 245, 249, .95);
+      background:
+        radial-gradient(circle at top right, rgba(99, 102, 241, .07), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(248, 250, 252, .86));
     }
 
     .sc-ico {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--r-sm);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: .9rem;
+      font-size: 1rem;
       flex-shrink: 0;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, .8) inset,
+        0 10px 22px rgba(15, 23, 42, .08);
     }
 
     .sc-label {
@@ -573,29 +596,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .sc-title {
-      font-size: .96rem;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 800;
       color: var(--t1);
     }
 
     .sc-sub {
-      font-size: .7rem;
+      font-size: .74rem;
       color: var(--t4);
-      margin-top: 1px;
-      font-weight: 500;
+      margin-top: 2px;
+      font-weight: 600;
     }
 
     .sc-badge {
       font-size: .72rem;
       font-weight: 800;
-      padding: 3px 10px;
+      padding: 5px 11px;
       border-radius: var(--r-full);
-      background: var(--brand-bg);
+      background: linear-gradient(135deg, rgba(238, 242, 255, .96), rgba(224, 231, 255, .96));
       color: var(--brand);
+      border: 1px solid rgba(129, 140, 248, .2);
     }
 
     .sc-body {
-      padding: 16px;
+      padding: 18px;
     }
 
     /* ══ INFO PILLS ══════════════════════════════════════ */
@@ -1467,77 +1491,244 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     /* ══ ANNOUNCEMENTS ═══════════════════════════════════ */
-    .ann-item {
-      padding: 13px 15px;
-      border-radius: var(--r-md);
-      background: var(--s2);
-      border: 1px solid var(--bdr);
-      border-right: 4px solid var(--brand);
-      margin-bottom: 9px;
-      transition: var(--fast);
+    .ann-shell {
+      display: grid;
+      gap: 14px;
     }
 
-    .ann-item:last-child {
-      margin-bottom: 0;
+    .ann-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(140px, .9fr);
+      gap: 12px;
+    }
+
+    .ann-summary-card,
+    .ann-highlight {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(226, 232, 240, .95);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .96));
+      box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+    }
+
+    .ann-highlight {
+      padding: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, .18), transparent 42%),
+        linear-gradient(135deg, rgba(255, 251, 235, .98), rgba(255, 255, 255, .98));
+    }
+
+    .ann-highlight-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: var(--r-full);
+      background: rgba(255, 255, 255, .72);
+      color: var(--warn);
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      border: 1px solid rgba(245, 158, 11, .16);
+    }
+
+    .ann-highlight-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--t1);
+      margin-bottom: 6px;
+    }
+
+    .ann-highlight-text {
+      font-size: .83rem;
+      line-height: 1.75;
+      color: var(--t2);
+      margin-bottom: 12px;
+    }
+
+    .ann-highlight-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .ann-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .ann-stat {
+      padding: 13px 12px;
+      border-radius: 16px;
+      background: var(--s2);
+      border: 1px solid var(--bdr);
+      text-align: center;
+    }
+
+    .ann-stat-val {
+      display: block;
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--t1);
+      line-height: 1;
+    }
+
+    .ann-stat-lbl {
+      display: block;
+      margin-top: 5px;
+      font-size: .68rem;
+      color: var(--t4);
+      font-weight: 700;
+    }
+
+    .ann-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .ann-item {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      padding: 15px 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, .95), rgba(255, 255, 255, .98));
+      border: 1px solid rgba(226, 232, 240, .95);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .04);
+      transition: transform var(--fast), box-shadow var(--fast), border-color var(--fast);
+    }
+
+    .ann-item::before {
+      content: '';
+      position: absolute;
+      inset: 12px auto 12px 0;
+      width: 4px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, var(--warn-l), var(--brand));
+      opacity: .9;
     }
 
     .ann-item:hover {
-      transform: translateX(-2px);
-      background: var(--brand-bg);
+      transform: translateY(-2px);
+      border-color: rgba(129, 140, 248, .4);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, .07);
     }
 
     .ann-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 5px;
+      gap: 10px;
     }
 
     .ann-type {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: .69rem;
-      font-weight: 700;
-      padding: 3px 9px;
+      gap: 5px;
+      font-size: .7rem;
+      font-weight: 800;
+      padding: 5px 10px;
       border-radius: var(--r-full);
-      background: var(--brand-bg);
+      background: linear-gradient(135deg, rgba(238, 242, 255, .96), rgba(224, 231, 255, .96));
       color: var(--brand);
+      border: 1px solid rgba(129, 140, 248, .16);
+    }
+
+    .ann-type.link {
+      background: linear-gradient(135deg, rgba(237, 233, 254, .96), rgba(243, 232, 255, .96));
+      color: var(--cou);
+      border-color: rgba(139, 92, 246, .18);
     }
 
     .ann-date {
-      font-size: .67rem;
+      font-size: .68rem;
       color: var(--t4);
+      font-weight: 700;
+      white-space: nowrap;
+      padding-top: 2px;
     }
 
     .ann-text {
-      font-size: .82rem;
+      font-size: .84rem;
       color: var(--t1);
-      line-height: 1.6;
+      line-height: 1.75;
+      padding-right: 4px;
+    }
+
+    .ann-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ann-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--r-full);
+      background: var(--s2);
+      border: 1px solid var(--bdr);
+      color: var(--t3);
+      font-size: .68rem;
+      font-weight: 700;
     }
 
     .ann-link-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      margin-top: 8px;
-      padding: 5px 14px;
+      gap: 6px;
+      padding: 7px 14px;
       border-radius: var(--r-full);
       background: linear-gradient(135deg, var(--cou-l), var(--cou));
       color: #fff;
       font-size: .76rem;
-      font-weight: 700;
+      font-weight: 800;
       text-decoration: none;
       border: none;
       cursor: pointer;
       font-family: 'Baloo Bhaijaan 2', sans-serif;
       transition: var(--fast);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, .22) inset,
+        0 10px 20px rgba(124, 58, 237, .18);
     }
 
     .ann-link-btn:hover {
       transform: translateY(-2px);
-      box-shadow: var(--sh-md);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, .24) inset,
+        0 14px 24px rgba(124, 58, 237, .22);
+    }
+
+    .ann-empty {
+      text-align: center;
+      padding: 28px 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, .96), rgba(255, 255, 255, .98));
+      border: 1px dashed rgba(203, 213, 225, .9);
+      color: var(--t3);
+    }
+
+    .ann-empty i {
+      display: block;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: var(--warn);
+      opacity: .75;
+    }
+
+    .ann-empty strong {
+      display: block;
+      font-size: .9rem;
+      color: var(--t1);
+      margin-bottom: 4px;
     }
 
     /* ══ OVERLAY / MODAL ═════════════════════════════════ */
@@ -2808,6 +2999,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         grid-template-columns: 1fr;
       }
 
+      .sc {
+        border-radius: 22px;
+      }
+
+      .sc-head {
+        padding: 16px 16px 12px;
+      }
+
+      .sc-body {
+        padding: 15px;
+      }
+
       .ch-breakdown {
         flex-direction: row;
         flex-wrap: wrap;
@@ -2822,6 +3025,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
 
       .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .ann-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .ann-stat-grid {
         grid-template-columns: repeat(2, 1fr);
       }
 
@@ -2841,6 +3052,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       .hero-name {
         font-size: 1.4rem;
+      }
+
+      .ann-stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ann-top,
+      .ann-footer {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
 
@@ -3494,7 +3715,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="sc-ico" style="background:var(--warn-bg);color:var(--warn-l);"><i class="fas fa-bullhorn"></i></div>
         <div class="sc-label">
           <div class="sc-title">الإعلانات</div>
+          <div class="sc-sub" id="annSub">كل جديد يخصك هيظهر هنا أولاً</div>
         </div>
+        <div class="sc-badge" id="annBadge">0</div>
       </div>
       <div class="sc-body">
         <div id="annList"></div>
@@ -5547,18 +5770,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (!student) return;
       try {
         const d = await api({ action: 'getAnnouncementsForStudent', churchId: student.church_id || 1, studentClass: student.class, studentName: student.name });
-        if (d.success && d.announcements && d.announcements.length) {
-          document.getElementById('annList').innerHTML = d.announcements.map(a => `
-        <div class="ann-item">
-          <div class="ann-top">
-            <span class="ann-type"><i class="fas fa-${a.type === 'button' ? 'link' : 'comment'}"></i>${a.type === 'button' ? 'زر' : 'رسالة'}</span>
-            <span class="ann-date">${fmtDate(a.created_at)}</span>
-          </div>
-          <div class="ann-text">${esc(a.text)}</div>
-          ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> اضغط هنا</a>` : ''}
-        </div>`).join('');
-          document.getElementById('scAnn').style.display = 'block';
+        const listEl = document.getElementById('annList');
+        const scAnn = document.getElementById('scAnn');
+        const annSub = document.getElementById('annSub');
+        const annBadge = document.getElementById('annBadge');
+        const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
+
+        if (!anns.length) {
+          if (listEl) {
+            listEl.innerHTML = `
+        <div class="ann-empty">
+          <i class="fas fa-bullhorn"></i>
+          <strong>لا توجد إعلانات حالياً</strong>
+          <span>أول ما ينزل إعلان جديد من الخدام أو الكنيسة هتلاقيه هنا.</span>
+        </div>`;
+          }
+          if (annSub) annSub.textContent = 'لا توجد تحديثات جديدة الآن';
+          if (annBadge) annBadge.textContent = '0';
+          if (scAnn) scAnn.style.display = 'block';
+          return;
         }
+
+        const latest = anns[0];
+        const buttonCount = anns.filter(a => a.type === 'button' && a.link).length;
+        const messageCount = anns.length - buttonCount;
+
+        if (annSub) annSub.textContent = `${anns.length} إعلان${anns.length > 1 ? 'ات' : ''} موجه ليك`;
+        if (annBadge) annBadge.textContent = String(anns.length);
+
+        listEl.innerHTML = `
+      <div class="ann-shell">
+        <div class="ann-summary">
+          <div class="ann-highlight">
+            <div class="ann-highlight-badge"><i class="fas fa-sparkles"></i> أحدث إعلان</div>
+            <div class="ann-highlight-title">${latest.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك'}</div>
+            <div class="ann-highlight-text">${esc(latest.text)}</div>
+            <div class="ann-highlight-meta">
+              <span class="ann-type ${latest.type === 'button' ? 'link' : ''}">
+                <i class="fas fa-${latest.type === 'button' ? 'link' : 'comment-dots'}"></i>
+                ${latest.type === 'button' ? 'رابط سريع' : 'رسالة'}
+              </span>
+              <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latest.created_at)}</span>
+              ${latest.type === 'button' && latest.link ? `<a href="${esc(latest.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> فتح الرابط</a>` : ''}
+            </div>
+          </div>
+          <div class="ann-summary-card">
+            <div class="ann-stat-grid">
+              <div class="ann-stat">
+                <span class="ann-stat-val">${anns.length}</span>
+                <span class="ann-stat-lbl">إجمالي الإعلانات</span>
+              </div>
+              <div class="ann-stat">
+                <span class="ann-stat-val">${buttonCount}</span>
+                <span class="ann-stat-lbl">روابط سريعة</span>
+              </div>
+              <div class="ann-stat">
+                <span class="ann-stat-val">${messageCount}</span>
+                <span class="ann-stat-lbl">رسائل</span>
+              </div>
+              <div class="ann-stat">
+                <span class="ann-stat-val">${student.class ? esc(student.class) : 'عام'}</span>
+                <span class="ann-stat-lbl">الفصل الحالي</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ann-list">
+          ${anns.map(a => `
+            <div class="ann-item">
+              <div class="ann-top">
+                <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
+                  <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
+                  ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
+                </span>
+                <span class="ann-date">${fmtDate(a.created_at)}</span>
+              </div>
+              <div class="ann-text">${esc(a.text)}</div>
+              <div class="ann-footer">
+                <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
+                ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+        if (scAnn) scAnn.style.display = 'block';
       } catch (e) { }
     }
 
