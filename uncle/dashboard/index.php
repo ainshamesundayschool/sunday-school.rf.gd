@@ -3073,43 +3073,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -webkit-touch-callout: none;
         }
 
-        .copy-holdable::after {
-            content: 'اضغط مطولاً للنسخ';
-            position: absolute;
-            inset-inline-end: 0;
-            top: -18px;
-            font-size: .62rem;
-            font-weight: 800;
-            color: var(--brand);
-            background: color-mix(in srgb, var(--brand-bg) 92%, white 8%);
-            border: 1px solid var(--brand-light);
-            border-radius: 999px;
-            padding: 2px 7px;
-            opacity: 0;
-            transform: translateY(4px);
-            pointer-events: none;
-            transition: opacity .18s ease, transform .18s ease;
-            white-space: nowrap;
-        }
-
-        .copy-holdable:hover::after {
-            opacity: .9;
-            transform: translateY(0);
-        }
-
         .copy-hold-popup {
             position: fixed;
             z-index: 1000015;
-            background: rgba(15, 23, 42, .94);
+            background: rgba(15, 23, 42, .96);
             color: #fff;
-            padding: 7px 10px;
-            border-radius: 999px;
+            padding: 8px 9px;
+            border-radius: 16px;
             font-size: .72rem;
             font-weight: 800;
             box-shadow: 0 10px 30px rgba(2, 6, 23, .22);
-            pointer-events: none;
+            pointer-events: auto;
             transform: translate(-50%, -120%);
             animation: copyHoldPopupIn .18s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .copy-hold-popup button {
+            border: none;
+            background: linear-gradient(135deg, #60a5fa, #818cf8);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font: inherit;
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
+        }
+
+        .copy-hold-popup button:hover {
+            filter: brightness(1.05);
+        }
+
+        .copy-hold-popup .copy-hold-popup-label {
+            opacity: .9;
+            white-space: nowrap;
         }
 
         @keyframes copyHoldPopupIn {
@@ -14617,31 +14619,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('copyHoldPopup')?.remove();
         }
 
-        function showCopyHoldPopup(el, msg) {
+        function showCopyHoldPopup(el) {
             removeCopyHoldPopup();
             const rect = el.getBoundingClientRect();
             const pop = document.createElement('div');
             pop.id = 'copyHoldPopup';
             pop.className = 'copy-hold-popup';
-            pop.textContent = msg || 'تم النسخ';
+            pop.innerHTML = `
+                <span class="copy-hold-popup-label">نسخ هذه المعلومة؟</span>
+                <button type="button" id="copyHoldPopupBtn">نسخ</button>
+            `;
             pop.style.left = (rect.left + rect.width / 2) + 'px';
             pop.style.top = Math.max(14, rect.top - 6) + 'px';
             document.body.appendChild(pop);
-            _copyHoldPopupTimer = setTimeout(removeCopyHoldPopup, 1400);
-        }
-
-        async function copyHoldValue(el) {
-            const txt = getCopyHoldText(el);
-            if (!txt || txt === '---') return;
-            try {
-                if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(txt);
-                else copyToClipboard(txt);
+            document.getElementById('copyHoldPopupBtn')?.addEventListener('click', async ev => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const txt = getCopyHoldText(el);
+                if (!txt || txt === '---') return;
+                try {
+                    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(txt);
+                    else copyToClipboard(txt);
+                } catch (e) {
+                    copyToClipboard(txt);
+                }
                 navigator.vibrate && navigator.vibrate(16);
-                showCopyHoldPopup(el, 'تم النسخ');
-            } catch (e) {
-                copyToClipboard(txt);
-                showCopyHoldPopup(el, 'تم النسخ');
-            }
+                removeCopyHoldPopup();
+                showToast('تم النسخ', 'success', { dur: 1400 });
+            });
+            _copyHoldPopupTimer = setTimeout(removeCopyHoldPopup, 2600);
         }
 
         function startCopyHold(e) {
@@ -14656,7 +14662,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 timer: setTimeout(() => {
                     const targetEl = _copyHoldTarget?.el;
                     cancelCopyHold(false);
-                    if (targetEl) copyHoldValue(targetEl);
+                    if (targetEl) {
+                        navigator.vibrate && navigator.vibrate(14);
+                        showCopyHoldPopup(targetEl);
+                    }
                 }, 550)
             };
         }
