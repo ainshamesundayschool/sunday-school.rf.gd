@@ -737,16 +737,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 18px;
         }
 
-        .hero-greeting {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--text)
-        }
-
-        .hero-greeting span {
-            color: var(--brand)
-        }
-
         .hero-actions {
             display: flex;
             gap: 8px;
@@ -5632,6 +5622,145 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
         }
 
+        .home-tools-wrap {
+            margin: 2px 0 14px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .home-tools-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .home-tools-title {
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--text-2);
+        }
+
+        .home-tools-link {
+            border: none;
+            background: transparent;
+            color: var(--brand);
+            font-family: inherit;
+            font-size: .73rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        .home-tools-rail {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .home-tools-rail::-webkit-scrollbar {
+            display: none;
+        }
+
+        .home-tool-chip {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 12px;
+            border-radius: var(--r-full);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            font-family: inherit;
+            font-size: .74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 6px 14px rgba(15, 23, 42, .04);
+            white-space: nowrap;
+        }
+
+        .home-tool-chip:hover {
+            transform: translateY(-1px);
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-bg);
+        }
+
+        .home-tool-chip i {
+            font-size: .8rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .tool-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+            padding: 16px 14px;
+            border-radius: var(--r-xl);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .98));
+            border: 1px solid var(--border-solid);
+            color: var(--text);
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .78) inset,
+                0 10px 22px rgba(15, 23, 42, .05);
+            font-family: inherit;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--brand);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .82) inset,
+                0 16px 28px rgba(91, 108, 245, .10);
+        }
+
+        .tool-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: var(--brand-bg);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .8) inset,
+                0 10px 18px rgba(91, 108, 245, .12);
+        }
+
+        .tool-card-name {
+            font-size: .84rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .tool-card-desc {
+            font-size: .68rem;
+            line-height: 1.5;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+
         #toggleStatsBtn {
             font-family: inherit;
             background: var(--surface-2);
@@ -7953,6 +8082,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <div class="modal-overlay" id="allToolsModal">
+        <div class="modal" style="max-width:760px">
+            <div class="modal-header">
+                <h3><i class="fas fa-grid-2"></i> كل الأدوات</h3>
+                <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
+            </div>
+            <div class="tools-grid">
+                <button class="tool-card" onclick="hideAllToolsModal();openIntelligentSearchModal()">
+                    <span class="tool-card-icon"><i class="fas fa-search"></i></span>
+                    <span class="tool-card-name">بحث ذكي</span>
+                    <span class="tool-card-desc">ابحث بالاسم أو الفصل أو الهاتف بسرعة.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAllStudentsModal()">
+                    <span class="tool-card-icon"><i class="fas fa-list"></i></span>
+                    <span class="tool-card-name">جميع الأطفال</span>
+                    <span class="tool-card-desc">عرض كل الأطفال مع بحث وفرز شامل.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showBirthdayModal()">
+                    <span class="tool-card-icon"><i class="fas fa-birthday-cake"></i></span>
+                    <span class="tool-card-name">أعياد الميلاد</span>
+                    <span class="tool-card-desc">اعرف أعياد اليوم والشهر بسرعة.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAnnouncementsModal()">
+                    <span class="tool-card-icon"><i class="fas fa-bullhorn"></i></span>
+                    <span class="tool-card-name">الإعلانات</span>
+                    <span class="tool-card-desc">أرسل إعلانات عامة أو مخصصة للأطفال.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();openSiblingSuggestionsView()">
+                    <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+                    <span class="tool-card-name">اقتراحات الإخوات</span>
+                    <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                </button>
+                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/tasks/'">
+                    <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
+                    <span class="tool-card-name">المهام</span>
+                    <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAllKidsCustomExport()">
+                    <span class="tool-card-icon"><i class="fas fa-file-export"></i></span>
+                    <span class="tool-card-name">تصدير مخصص</span>
+                    <span class="tool-card-desc">صدّر البيانات بالطريقة المناسبة لك.</span>
+                </button>
+                <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();showBulkAddModal()">
+                    <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
+                    <span class="tool-card-name">إضافة مجموعة</span>
+                    <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
+                </button>
+                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/withdraw/'">
+                    <span class="tool-card-icon"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-name">سحب كوبونات</span>
+                    <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN CONTAINER -->
     <div id="mainContainer">
 
@@ -8010,55 +8195,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
-                <div class="hero-strip">
-                    <div>
-                        <div class="hero-greeting">أهلاً، <span
-                                id="heroName"><?php echo htmlspecialchars($uncleName ?: $churchName); ?></span> 👋</div>
-                    </div>
-                    <div class="hero-actions">
-                        <div class="action-dropdown">
-                            <button class="topbar-btn" style="font-family: inherit;"
-                                onclick="toggleDropdown('heroActionsMenu')">
-                                <i class="fas fa-ellipsis-v"></i> إجراءات
-                            </button>
-                            <div class="dropdown-menu" id="heroActionsMenu" style="left:0; right:auto;">
-                                <button class="dropdown-item"
-                                    onclick="openIntelligentSearchModal(); closeAllDropdowns()"><i
-                                        class="fas fa-search"></i> بحث ذكي</button>
-                                <button class="dropdown-item" id="showAllStudentsModalBtn"
-                                    onclick="closeAllDropdowns()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                                <a href="/uncle/dashboard/withdraw/" class="dropdown-item"><i class="fas fa-star"></i>
-                                    سحب كوبونات</a>
-
-                                <div class="dropdown-divider"></div>
-                                <div class="dropdown-group-label">أدوات إضافية</div>
-                                <button class="dropdown-item" id="showBirthdayModalBtn" onclick="closeAllDropdowns()"><i
-                                        class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                                <button class="dropdown-item" id="manageAnnouncementsBtn"
-                                    onclick="closeAllDropdowns()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                                <button class="dropdown-item"
-                                    onclick="openSiblingSuggestionsView(); closeAllDropdowns()"><i
-                                        class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                                <a href="/uncle/dashboard/tasks/" class="dropdown-item" id="tasksGlobalBtn"
-                                    style="position:relative; display:flex; justify-content:space-between; align-items:center;">
-                                    <span><i class="fas fa-tasks"></i> المهام</span>
-                                    <span id="globalTasksBadge"
-                                        style="display:none;background:var(--brand);color:#fff;border-radius:9px;min-width:17px;height:17px;font-size:.6rem;font-weight:800;padding:0 3px;align-items:center;justify-content:center;"></span>
-                                </a>
-
-                                <div class="dropdown-divider"></div>
-                                <div class="dropdown-group-label">إضافات وتصدير</div>
-                                <button class="dropdown-item"
-                                    onclick="showAllKidsCustomExport(); closeAllDropdowns()"><i
-                                        class="fas fa-file-export"></i> تصدير مخصص</button>
-                                <button class="dropdown-item" id="bulkAddKidsBtn"
-                                    onclick="showBulkAddModal(); closeAllDropdowns()"><i class="fas fa-upload"></i>
-                                    إضافة مجموعة</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Centered inline intelligent search bar -->
                 <div class="inline-search-wrap">
                     <div class="inline-search-box">
@@ -8090,6 +8226,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
+
+                <div class="home-tools-wrap">
+                    <div class="home-tools-head">
+                        <span class="home-tools-title">أدوات سريعة</span>
+                        <button class="home-tools-link" onclick="showAllToolsModal()">
+                            <i class="fas fa-grid-2"></i> كل الأدوات
+                        </button>
+                    </div>
+                    <div class="home-tools-rail">
+                        <button class="home-tool-chip" onclick="openIntelligentSearchModal()"><i class="fas fa-search"></i> بحث ذكي</button>
+                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
+                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
+                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
+                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
+                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
+                    </div>
+                </div>
 
                 <!-- Stats Toggle -->
                 <div class="stats-toggle-wrap" style="margin-top:14px;">
@@ -9980,6 +10136,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideAccountModal() { document.getElementById('accountModal').classList.remove('active'); startAutoRefresh(); }
         function showAccountEditForm() { document.getElementById('accountEditForm').classList.add('active'); }
         function hideAccountEditForm() { document.getElementById('accountEditForm').classList.remove('active'); }
+        function showAllToolsModal() { document.getElementById('allToolsModal').classList.add('active'); stopAutoRefresh(); }
+        function hideAllToolsModal() { document.getElementById('allToolsModal').classList.remove('active'); startAutoRefresh(); }
 
         // ── DROPDOWNS ─────────────────────────────────────────────────
         function toggleDropdown(id, btn) {
@@ -15593,10 +15751,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Hide bulk-add button unless the user is an admin/developer
             try {
                 const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
-                const bulkBtn = document.getElementById('bulkAddKidsBtn');
-                if (bulkBtn && !['admin', 'developer'].includes(String(role).toLowerCase())) {
-                    bulkBtn.style.display = 'none';
-                }
+                ['bulkAddKidsBtn', 'homeBulkAddKidsBtn', 'allToolsBulkAddBtn'].forEach(id => {
+                    const bulkBtn = document.getElementById(id);
+                    if (bulkBtn && !['admin', 'developer'].includes(String(role).toLowerCase())) {
+                        bulkBtn.style.display = 'none';
+                    }
+                });
             } catch (e) { }
             // React to permission changes live (Chrome 93+)
             if ('permissions' in navigator) {
