@@ -3949,8 +3949,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trips-horizontal-scroll {
             display: flex;
             overflow-x: auto;
-            gap: 10px;
-            padding: 4px 2px 12px;
+            gap: 8px;
+            padding: 2px 2px 10px;
             margin-bottom: 10px;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -3970,14 +3970,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trip-slim-card {
             flex: 0 0 auto;
-            width: 210px;
+            width: 188px;
             background: var(--surface-2);
             border-radius: var(--r-lg);
             border: 1.5px solid var(--border-solid);
-            padding: 9px;
+            padding: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             box-shadow: var(--shadow-sm);
@@ -3996,8 +3996,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-img {
-            width: 42px;
-            height: 42px;
+            width: 36px;
+            height: 36px;
             border-radius: var(--r-sm);
             object-fit: cover;
             background: var(--brand-bg);
@@ -4007,8 +4007,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .trip-skeleton {
             flex: 0 0 auto;
-            width: 210px;
-            height: 60px;
+            width: 188px;
+            height: 52px;
             background: var(--surface-3);
             border-radius: var(--r-lg);
             animation: skeleton-pulse 1.5s infinite;
@@ -4038,7 +4038,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .trip-slim-name {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 800;
             color: var(--text);
             white-space: nowrap;
@@ -5824,25 +5824,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         #toggleStatsBtn {
             font-family: inherit;
-            background: var(--surface-2);
+            background: var(--surface-3);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .7rem;
+            font-size: .8rem;
             font-weight: 700;
-            padding: 4px 9px;
-            border-radius: 20px;
+            padding: 8px 14px;
+            border-radius: var(--r-md);
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            height: 28px;
-            box-shadow: none;
+            height: auto;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 6px 14px rgba(15, 23, 42, .05);
         }
 
         #toggleStatsBtn:hover {
-            background: var(--surface-3);
-            border-color: var(--text-4);
+            background: var(--brand-bg);
+            color: var(--brand);
             transform: translateY(-1px);
         }
 
@@ -8306,7 +8308,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
                     <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.7rem; padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px;">
+                        style="font-size: 0.8rem; padding: 8px 14px; border-radius: var(--r-md); border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: auto; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
                         <i class="fas fa-th-large"></i>
                         <span>عرض شبكي</span>
                     </button>
