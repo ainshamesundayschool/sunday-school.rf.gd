@@ -2685,6 +2685,171 @@
       animation: fadeIn 0.22s var(--ease-out);
     }
 
+    .trip-workspace {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .trip-folder-nav {
+      display: none;
+    }
+
+    .trip-folder-shell {
+      flex: 1;
+      min-width: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .trip-folder-header {
+      display: none;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.02)), var(--card);
+    }
+
+    .trip-folder-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .trip-folder-breadcrumb strong {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .trip-folder-header h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+
+    .trip-folder-header p {
+      margin: 6px 0 0;
+      color: var(--text-2);
+      font-size: 0.85rem;
+    }
+
+    .trip-folder-body {
+      padding: 24px 28px;
+    }
+
+    @media (min-width: 1100px) {
+      #tdTabsMobile {
+        display: none;
+      }
+
+      .trip-workspace {
+        min-height: calc(100vh - 250px);
+      }
+
+      .trip-folder-nav {
+        display: flex;
+        flex-direction: column;
+        width: 280px;
+        flex-shrink: 0;
+        background: linear-gradient(180deg, rgba(34, 30, 74, 0.98), rgba(19, 17, 46, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 18px;
+        box-shadow: var(--shadow-lg);
+        position: sticky;
+        top: 24px;
+      }
+
+      .trip-folder-nav-head {
+        padding: 6px 6px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 14px;
+      }
+
+      .trip-folder-nav-head .eyebrow {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.72rem;
+        margin-bottom: 6px;
+      }
+
+      .trip-folder-nav-head h3 {
+        color: #fff;
+        font-size: 1rem;
+        margin: 0;
+      }
+
+      .td-tabs.trip-folder-tabs {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+
+      .td-tabs.trip-folder-tabs .td-tab {
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.74) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+        transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
+      }
+
+      .td-tabs.trip-folder-tabs .td-tab:hover {
+        transform: translateX(-4px);
+        color: #fff !important;
+        border-color: rgba(129, 140, 248, 0.5);
+        background: rgba(99, 102, 241, 0.14);
+      }
+
+      .td-tabs.trip-folder-tabs .td-tab.active {
+        color: #fff !important;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.26), rgba(99, 102, 241, 0.12));
+        border-color: rgba(129, 140, 248, 0.55);
+        box-shadow: 0 12px 24px rgba(19, 17, 46, 0.28);
+      }
+
+      .td-tabs.trip-folder-tabs .td-tab .td-badge {
+        margin-right: auto;
+      }
+
+      .trip-folder-shell {
+        min-height: calc(100vh - 250px);
+      }
+
+      .trip-folder-header {
+        display: flex;
+      }
+    }
+
+    @media (max-width: 1099px) {
+      .trip-folder-shell {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .trip-folder-body {
+        padding: 24px 0 0;
+      }
+    }
+
     .modal-box.wide {
       max-width: 860px !important;
     }
@@ -3263,89 +3428,116 @@
           </div>
           <div id="tdQuickStats" style="display:flex;gap:0;margin:0 -28px;padding:0 28px;"></div>
         </div>
-        <div class="td-tabs" style="margin:12px -28px 0;padding:0 28px;border-bottom:none;background:transparent;">
-          <div class="td-tab active" id="tdtab-info" onclick="switchTripTab('info')"
+        <div class="td-tabs" id="tdTabsMobile" style="margin:12px -28px 0;padding:0 28px;border-bottom:none;background:transparent;">
+          <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
             الملخص</div>
-          <div class="td-tab" id="tdtab-regs" onclick="switchTripTab('regs')"
+          <div class="td-tab" id="tdtab-regs" data-title="المسجلون" data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
             <span class="td-badge" id="tdRegsCount"></span>
           </div>
-          <div class="td-tab" id="tdtab-waitlist" onclick="switchTripTab('waitlist')"
+          <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار" data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
             الانتظار
             <span class="td-badge warn" id="tdWaitlistCount"></span>
           </div>
-          <div class="td-tab" id="tdtab-exp" onclick="switchTripTab('exp')"
+          <div class="td-tab" id="tdtab-exp" data-title="المصروفات" data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
             المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px 28px;">
-        <div class="td-panel active" id="tdpanel-info">
-          <div id="tripInfoContent"></div>
-        </div>
-        <div class="td-panel" id="tdpanel-regs">
-          <div id="tripRegsContent"></div>
-        </div>
-        <div class="td-panel" id="tdpanel-waitlist">
-          <div id="tripWaitlistContent"></div>
-        </div>
-        <div class="td-panel" id="tdpanel-exp">
-          <input type="hidden" id="expTripId">
-          <div id="expPriceBanner"
-            style="display:none;background:linear-gradient(135deg,var(--primary),#6366f1);border-radius:14px;padding:16px 20px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div>
-              <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (الرحلة + مصروفات)</div>
-              <div id="expTotalPerKidVal" style="font-size:1.8rem;font-weight:900;">0 ج</div>
-              <div id="expPriceBreakdown" style="font-size:0.7rem;opacity:.7;margin-top:2px;"></div>
+        <div class="trip-workspace">
+          <aside class="trip-folder-nav">
+            <div class="trip-folder-nav-head">
+              <div class="eyebrow">مجلدات الرحلة</div>
+              <h3>التنقل بين الأقسام</h3>
             </div>
-            <i class="fas fa-calculator" style="font-size:2.5rem;opacity:.3;"></i>
-          </div>
-          <div class="summary-box" id="expSummary" style="margin-bottom:16px;"></div>
-          <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i
-              class="fas fa-plus-circle" style="color:var(--primary);"></i> إضافة مصروف جديد</h4>
-          <form id="addExpenseForm" onsubmit="addTripExpense(event)">
-            <div class="form-grid">
-              <div class="form-group"><label class="form-label">اسم المصروف</label><input type="text" id="expName"
-                  class="form-input" placeholder="إيجار باص، طعام..."></div>
-              <div class="form-group"><label class="form-label">النوع</label><select id="expType" class="form-select"
-                  style="width:100%;">
-                  <option value="bus">إيجار باص</option>
-                  <option value="food">طعام</option>
-                  <option value="entry">دخول</option>
-                  <option value="other">أخرى</option>
-                </select></div>
-              <div class="form-group"><label class="form-label">المبلغ الإجمالي (ج)</label><input type="number"
-                  id="expAmount" class="form-input" step="1" min="0" required oninput="calcExpPerKid()"></div>
-              <div class="form-group"><label class="form-label">طريقة التمويل</label><select id="expFunding"
-                  class="form-select" style="width:100%;" onchange="toggleExpFunding()">
-                  <option value="kids">يدفعها الأطفال</option>
-                  <option value="funded">ممولة</option>
-                  <option value="partial">جزئية</option>
-                </select></div>
-              <div class="form-group" id="expDivisionGroup"><label class="form-label">التقسيم</label><select
-                  id="expDivision" class="form-select" style="width:100%;" onchange="calcExpPerKid()">
-                  <option value="per_kid">المبلغ على كل طفل</option>
-                  <option value="total_divided">يُقسَّم على الأطفال</option>
-                </select></div>
-              <div class="form-group" id="expKidsAmountGroup" style="display:none;"><label class="form-label">ما يدفعه
-                  الأطفال</label><input type="number" id="expKidsAmount" class="form-input" step="1" min="0"
-                  oninput="calcExpPerKid()"></div>
-              <div class="form-group" style="grid-column:1/-1;">
-                <div
-                  style="background:var(--info-light);color:#1e40af;padding:11px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;"
-                  id="expCalcResult">أدخل المبلغ لحساب النصيب</div>
+            <div class="td-tabs trip-folder-tabs">
+              <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-folder-open"></i> الملخص</div>
+              <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-folder"></i> المسجلون <span class="td-badge" id="tdRegsCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-folder"></i> قائمة الانتظار <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+              <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-folder"></i> المصروفات <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
+            </div>
+          </aside>
+
+          <section class="trip-folder-shell">
+            <div class="trip-folder-header">
+              <div>
+                <div class="trip-folder-breadcrumb"><span>الرحلات</span><i class="fas fa-chevron-left"></i><span>تفاصيل الرحلة</span><i class="fas fa-chevron-left"></i><strong id="tripFolderCrumb">الملخص</strong></div>
+                <h3 id="tripFolderTitle">الملخص</h3>
+                <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
               </div>
-              <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ملاحظات</label><input
-                  type="text" id="expNotes" class="form-input" placeholder="ملاحظات إضافية"></div>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:10px;" id="addExpBtn"><i
-                class="fas fa-plus"></i> إضافة المصروف</button>
-          </form>
-          <hr class="divider-line">
-          <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;">قائمة المصروفات</h4>
-          <div id="expensesList"></div>
+
+            <div class="trip-folder-body">
+              <div class="td-panel active" id="tdpanel-info">
+                <div id="tripInfoContent"></div>
+              </div>
+              <div class="td-panel" id="tdpanel-regs">
+                <div id="tripRegsContent"></div>
+              </div>
+              <div class="td-panel" id="tdpanel-waitlist">
+                <div id="tripWaitlistContent"></div>
+              </div>
+              <div class="td-panel" id="tdpanel-exp">
+                <input type="hidden" id="expTripId">
+                <div id="expPriceBanner"
+                  style="display:none;background:linear-gradient(135deg,var(--primary),#6366f1);border-radius:14px;padding:16px 20px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                  <div>
+                    <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (الرحلة + مصروفات)</div>
+                    <div id="expTotalPerKidVal" style="font-size:1.8rem;font-weight:900;">0 ج</div>
+                    <div id="expPriceBreakdown" style="font-size:0.7rem;opacity:.7;margin-top:2px;"></div>
+                  </div>
+                  <i class="fas fa-calculator" style="font-size:2.5rem;opacity:.3;"></i>
+                </div>
+                <div class="summary-box" id="expSummary" style="margin-bottom:16px;"></div>
+                <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:8px;"><i
+                    class="fas fa-plus-circle" style="color:var(--primary);"></i> إضافة مصروف جديد</h4>
+                <form id="addExpenseForm" onsubmit="addTripExpense(event)">
+                  <div class="form-grid">
+                    <div class="form-group"><label class="form-label">اسم المصروف</label><input type="text" id="expName"
+                        class="form-input" placeholder="إيجار باص، طعام..."></div>
+                    <div class="form-group"><label class="form-label">النوع</label><select id="expType" class="form-select"
+                        style="width:100%;">
+                        <option value="bus">إيجار باص</option>
+                        <option value="food">طعام</option>
+                        <option value="entry">دخول</option>
+                        <option value="other">أخرى</option>
+                      </select></div>
+                    <div class="form-group"><label class="form-label">المبلغ الإجمالي (ج)</label><input type="number"
+                        id="expAmount" class="form-input" step="1" min="0" required oninput="calcExpPerKid()"></div>
+                    <div class="form-group"><label class="form-label">طريقة التمويل</label><select id="expFunding"
+                        class="form-select" style="width:100%;" onchange="toggleExpFunding()">
+                        <option value="kids">يدفعها الأطفال</option>
+                        <option value="funded">ممولة</option>
+                        <option value="partial">جزئية</option>
+                      </select></div>
+                    <div class="form-group" id="expDivisionGroup"><label class="form-label">التقسيم</label><select
+                        id="expDivision" class="form-select" style="width:100%;" onchange="calcExpPerKid()">
+                        <option value="per_kid">المبلغ على كل طفل</option>
+                        <option value="total_divided">يُقسَّم على الأطفال</option>
+                      </select></div>
+                    <div class="form-group" id="expKidsAmountGroup" style="display:none;"><label class="form-label">ما يدفعه
+                        الأطفال</label><input type="number" id="expKidsAmount" class="form-input" step="1" min="0"
+                        oninput="calcExpPerKid()"></div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                      <div
+                        style="background:var(--info-light);color:#1e40af;padding:11px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;"
+                        id="expCalcResult">أدخل المبلغ لحساب النصيب</div>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;"><label class="form-label">ملاحظات</label><input
+                        type="text" id="expNotes" class="form-input" placeholder="ملاحظات إضافية"></div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="margin-top:10px;" id="addExpBtn"><i
+                      class="fas fa-plus"></i> إضافة المصروف</button>
+                </form>
+                <hr class="divider-line">
+                <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;">قائمة المصروفات</h4>
+                <div id="expensesList"></div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -3452,10 +3644,21 @@
       currentTripTab = tab;
       ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.classList.toggle('active', t === tab);
+        document.getElementById('tdtab-desktop-' + t)?.classList.toggle('active', t === tab);
         document.getElementById('tdpanel-' + t)?.classList.toggle('active', t === tab);
       });
+      updateTripFolderHeader(tab);
       if (tab === 'waitlist') loadWaitlist(window.currentTripId);
       if (updateUrl && window.currentTripId) updateHashParam('trip_tab', tab);
+    }
+
+    function updateTripFolderHeader(tab) {
+      const sourceTab = document.getElementById('tdtab-' + tab);
+      const title = sourceTab?.dataset.title || sourceTab?.textContent?.trim() || 'الملخص';
+      const desc = sourceTab?.dataset.desc || 'نظرة عامة على الرحلة.';
+      document.getElementById('tripFolderCrumb')?.replaceChildren(document.createTextNode(title));
+      document.getElementById('tripFolderTitle')?.replaceChildren(document.createTextNode(title));
+      document.getElementById('tripFolderDesc')?.replaceChildren(document.createTextNode(desc));
     }
 
     async function requestTripAccessFor(tripId) {
@@ -3511,6 +3714,7 @@
       }
       ['regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.setAttribute('style', 'opacity:0.45;pointer-events:none;');
+        document.getElementById('tdtab-desktop-' + t)?.setAttribute('style', 'opacity:0.45;pointer-events:none;');
       });
     }
 
@@ -3519,12 +3723,17 @@
       if (!id) return;
       ['regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.removeAttribute('style');
+        document.getElementById('tdtab-desktop-' + t)?.removeAttribute('style');
       });
       const targetTab = opts.tab || getSelectedTripTab() || currentTripTab;
       document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
       document.getElementById('tripRegsContent').innerHTML = '';
       document.getElementById('tdRegsCount').textContent = '';
+      document.getElementById('tdRegsCountDesktop').textContent = '';
       document.getElementById('tdExpCount').textContent = '';
+      document.getElementById('tdExpCountDesktop').textContent = '';
+      document.getElementById('tdWaitlistCount').textContent = '';
+      document.getElementById('tdWaitlistCountDesktop').textContent = '';
       document.getElementById('tdModalTitle').textContent = 'تفاصيل الرحلة';
       document.getElementById('tdSubtitle').textContent = '';
       document.getElementById('tdTotalPricePill').textContent = '...';
@@ -3736,16 +3945,21 @@
       `;
       document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}`;
       document.getElementById('tdRegsCount').textContent = regs.length || '';
+      document.getElementById('tdRegsCountDesktop').textContent = regs.length || '';
       document.getElementById('tdExpCount').textContent = exps.length || '';
+      document.getElementById('tdExpCountDesktop').textContent = exps.length || '';
       // Waitlist badge (use trip.waitlist from getTripDetails; refresh async)
       const badge = document.getElementById('tdWaitlistCount');
+      const desktopBadge = document.getElementById('tdWaitlistCountDesktop');
       if (badge) badge.textContent = fin.waitlistCount || '';
+      if (desktopBadge) desktopBadge.textContent = fin.waitlistCount || '';
       (async () => {
         const fd2 = mkFd('getWaitlist'); fd2.append('trip_id', trip.id);
         const wd = await fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).catch(() => ({ success: false }));
         if (wd.success) {
           window.currentWaitlistCache = wd.waitlist || [];
           if (badge) badge.textContent = (wd.waitlist || []).length || '';
+          if (desktopBadge) desktopBadge.textContent = (wd.waitlist || []).length || '';
         }
       })();
       document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
