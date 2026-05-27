@@ -5652,7 +5652,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-head {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: flex-end;
             gap: 6px;
             min-height: 0;
         }
