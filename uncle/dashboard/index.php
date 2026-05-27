@@ -5827,16 +5827,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-3);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .8rem;
+            font-size: .7rem;
             font-weight: 700;
-            padding: 8px 14px;
-            border-radius: var(--r-md);
+            padding: 4px 10px;
+            border-radius: 20px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            height: auto;
+            height: 28px;
             box-shadow:
                 0 1px 0 rgba(255, 255, 255, .72) inset,
                 0 6px 14px rgba(15, 23, 42, .05);
@@ -8308,7 +8308,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
                     <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.8rem; padding: 8px 14px; border-radius: var(--r-md); border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: auto; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
+                        style="font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
                         <i class="fas fa-th-large"></i>
                         <span>عرض شبكي</span>
                     </button>
