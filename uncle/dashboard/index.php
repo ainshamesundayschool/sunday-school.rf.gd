@@ -5642,32 +5642,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        .home-tools-head {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 6px;
-            min-height: 0;
-        }
-
         .home-tools-link {
-            border: none;
-            background: transparent;
-            color: var(--brand);
+            flex: 0 0 auto;
+            border: 1px dashed rgba(91, 108, 245, .28);
+            background: linear-gradient(180deg, rgba(238, 242, 255, .75), rgba(255, 255, 255, .92));
+            color: var(--brand-dark);
             font-family: inherit;
-            font-size: .64rem;
+            font-size: .68rem;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 0;
+            justify-content: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
             transition: all var(--t) var(--ease);
+            box-shadow:
+                0 .5px 0 rgba(255, 255, 255, .78) inset,
+                0 6px 14px rgba(91, 108, 245, .06);
+            white-space: nowrap;
         }
 
         .home-tools-link:hover {
             transform: translateY(-1px);
-            opacity: .85;
+            border-color: rgba(91, 108, 245, .42);
+            background: var(--brand-bg);
         }
 
         .home-tools-rail {
@@ -8235,11 +8235,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
-                <div class="home-tools-head" style="margin:0 2px 6px 2px;">
-                    <button class="home-tools-link" onclick="showAllToolsModal()">
-                        كل الأدوات <i class="fas fa-arrow-left"></i>
-                    </button>
-                </div>
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
@@ -8250,6 +8245,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tools-link" onclick="showAllToolsModal()">
+                            كل الأدوات <i class="fas fa-arrow-left"></i>
+                        </button>
                     </div>
                 </div>
 
