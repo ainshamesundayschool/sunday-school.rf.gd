@@ -8263,12 +8263,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
+                <div class="home-tools-head" style="margin:0 2px 6px 2px;">
+                    <button class="home-tools-link" onclick="showAllToolsModal()">
+                        كل الأدوات <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
                 <div class="home-tools-wrap">
-                    <div class="home-tools-head" style="margin:0 2px 2px 2px;">
-                        <button class="home-tools-link" onclick="showAllToolsModal()">
-                            كل الأدوات <i class="fas fa-arrow-left"></i>
-                        </button>
-                    </div>
                     <div class="home-tools-rail">
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
