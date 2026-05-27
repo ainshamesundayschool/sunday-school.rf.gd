@@ -5625,8 +5625,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-wrap {
             margin: 2px 0 14px;
             display: grid;
-            gap: 8px;
-            padding: 12px;
+            gap: 6px;
+            padding: 10px;
             border-radius: 20px;
             background: linear-gradient(180deg, rgba(248, 250, 252, .92), rgba(255, 255, 255, .96));
             border: 1px solid rgba(226, 232, 240, .9);
@@ -5634,6 +5634,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 0 1px 0 rgba(255, 255, 255, .8) inset,
                 0 10px 24px rgba(15, 23, 42, .04);
             animation: homeToolsLanding .45s var(--spring);
+            overflow: hidden;
         }
 
         @keyframes homeToolsLanding {
@@ -5651,14 +5652,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-head {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .home-tools-title {
-            font-size: .78rem;
-            font-weight: 800;
-            color: var(--text-2);
+            justify-content: flex-end;
+            gap: 6px;
+            min-height: 18px;
         }
 
         .home-tools-link {
@@ -5679,7 +5675,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             gap: 7px;
             overflow-x: auto;
-            padding: 1px 1px 4px;
+            padding: 2px 2px 4px;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -5733,10 +5729,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .home-tool-chip:hover {
-            transform: translateY(-1px);
+            transform: translateY(-1px) scale(.995);
             border-color: var(--brand);
             color: var(--brand);
             background: var(--brand-bg);
+            box-shadow:
+                0 .5px 0 rgba(255, 255, 255, .74) inset,
+                0 5px 12px rgba(91, 108, 245, .06);
         }
 
         .home-tool-chip i {
@@ -7877,6 +7876,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         @media (max-width: 480px) {
             .inline-search-wrap {
+                width: calc(100% - 34px);
+                max-width: 420px;
                 margin-bottom: 16px;
             }
 
@@ -8261,13 +8262,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div class="home-tools-wrap">
                     <div class="home-tools-head">
-                        <span class="home-tools-title">أدوات سريعة</span>
                         <button class="home-tools-link" onclick="showAllToolsModal()">
                             <i class="fas fa-grid-2"></i> كل الأدوات
                         </button>
                     </div>
                     <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="openIntelligentSearchModal()"><i class="fas fa-search"></i> بحث ذكي</button>
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                         <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
