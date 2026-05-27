@@ -654,6 +654,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
             text-decoration: none;
             flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .7) inset,
+                0 6px 14px rgba(15, 23, 42, .05);
         }
 
         .topbar-btn:hover {
@@ -661,7 +666,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--brand);
             border-color: var(--brand);
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px var(--brand-glow)
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .78) inset,
+                0 3px 8px var(--brand-glow)
         }
 
         .topbar-avatar-btn {
@@ -1519,19 +1526,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             color: var(--text-2);
             transition: all var(--t) var(--ease);
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .68) inset,
+                0 6px 14px rgba(15, 23, 42, .05);
         }
 
         .action-strip-btn:hover {
             background: var(--brand-bg);
             color: var(--brand);
             border-color: var(--brand);
-            transform: translateY(-1px)
+            transform: translateY(-1px);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .76) inset,
+                0 10px 18px rgba(91, 108, 245, .10);
         }
 
         .action-strip-btn.open {
             background: var(--brand-bg);
             color: var(--brand);
-            border-color: var(--brand)
+            border-color: var(--brand);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .76) inset,
+                0 8px 16px rgba(91, 108, 245, .08);
         }
 
         .action-strip-btn>i:first-child {
@@ -2000,7 +2018,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             min-width: 52px;
             background: var(--surface-2);
             color: var(--text-2);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 1px 3px rgba(0, 0, 0, 0.05),
+                0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
         .save-btn i {
@@ -2053,7 +2076,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--success);
             border-color: var(--success);
             color: #fff;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.28);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .22) inset,
+                0 2px 6px rgba(16, 185, 129, 0.28);
         }
 
         .save-btn-attendance:not(:disabled) i,
@@ -2070,14 +2095,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn-attendance:not(:disabled):hover {
             background: #059669;
             border-color: #059669;
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .24) inset,
+                0 4px 10px rgba(16, 185, 129, 0.35);
         }
 
         .save-btn-coupons:not(:disabled) {
             background: var(--coupon);
             border-color: var(--coupon);
             color: #fff;
-            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.28);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .22) inset,
+                0 2px 6px rgba(139, 92, 246, 0.28);
         }
 
         .save-btn-coupons:not(:disabled) i,
@@ -2094,14 +2123,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn-coupons:not(:disabled):hover {
             background: #7c3aed;
             border-color: #7c3aed;
-            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.35);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .24) inset,
+                0 4px 10px rgba(139, 92, 246, 0.35);
         }
 
         .save-btn-unsaved:not(:disabled) {
             background: var(--warning);
             border-color: var(--warning);
             color: #fff;
-            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.28);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .22) inset,
+                0 2px 6px rgba(245, 158, 11, 0.28);
         }
 
         .save-btn-unsaved:not(:disabled) i,
@@ -2118,7 +2151,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn-unsaved:not(:disabled):hover {
             background: #d97706;
             border-color: #d97706;
-            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .24) inset,
+                0 4px 10px rgba(245, 158, 11, 0.35);
         }
 
         .save-btn:not(:disabled):hover {
@@ -2708,11 +2743,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .82rem;
             position: relative;
             overflow: hidden;
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .22) inset,
+                0 8px 18px rgba(79, 70, 229, .16);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md)
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .26) inset,
+                0 12px 22px rgba(79, 70, 229, .18)
         }
 
         .btn:active {
@@ -2753,7 +2793,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .btn-ghost {
             background: var(--surface-3);
             color: var(--text-2);
-            border: 1px solid var(--border-solid)
+            border: 1px solid var(--border-solid);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 6px 14px rgba(15, 23, 42, .05);
         }
 
         .btn-ghost:hover {
@@ -5819,14 +5862,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* Swipe trigger button in toolbar */
         .swipe-toolbar-btn {
             background:
-                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, .34), transparent 28%),
+                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, .24), transparent 26%),
                 linear-gradient(135deg, #8b5cf6 0%, #6366f1 48%, #06b6d4 100%) !important;
             color: #fff !important;
-            border: 1px solid rgba(255, 255, 255, 0.22) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
             box-shadow:
-                0 10px 22px rgba(99, 102, 241, .22),
-                0 2px 8px rgba(6, 182, 212, .12),
-                inset 0 1px 0 rgba(255, 255, 255, .24) !important;
+                0 8px 18px rgba(99, 102, 241, .18),
+                0 2px 8px rgba(6, 182, 212, .10),
+                inset 0 1px 0 rgba(255, 255, 255, .22) !important;
             animation: swipeBtnGlow 5.5s ease-in-out infinite;
             position: relative;
             overflow: hidden !important;
@@ -5859,24 +5902,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             60%,
             100% {
                 box-shadow:
-                    0 10px 22px rgba(99, 102, 241, .18),
-                    0 2px 8px rgba(6, 182, 212, .10),
+                    0 8px 18px rgba(99, 102, 241, .16),
+                    0 2px 8px rgba(6, 182, 212, .08),
                     inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
             70% {
                 box-shadow:
-                    0 0 0 6px rgba(99, 102, 241, .12),
-                    0 14px 30px rgba(99, 102, 241, .28),
-                    0 2px 10px rgba(6, 182, 212, .14),
+                    0 0 0 4px rgba(99, 102, 241, .09),
+                    0 12px 24px rgba(99, 102, 241, .22),
+                    0 2px 10px rgba(6, 182, 212, .10),
                     inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
             80% {
                 box-shadow:
-                    0 0 0 11px rgba(99, 102, 241, .05),
-                    0 16px 36px rgba(99, 102, 241, .20),
-                    0 4px 12px rgba(6, 182, 212, .12),
+                    0 0 0 7px rgba(99, 102, 241, .04),
+                    0 14px 28px rgba(99, 102, 241, .16),
+                    0 4px 12px rgba(6, 182, 212, .10),
                     inset 0 1px 0 rgba(255, 255, 255, .22);
             }
 
@@ -5911,8 +5954,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .swipe-toolbar-btn:hover {
             transform: translateY(-3px) scale(1.01) !important;
             box-shadow:
-                0 16px 34px rgba(99, 102, 241, .28),
-                0 4px 14px rgba(6, 182, 212, .14),
+                0 14px 28px rgba(99, 102, 241, .22),
+                0 4px 14px rgba(6, 182, 212, .10),
                 inset 0 1px 0 rgba(255, 255, 255, .24) !important;
         }
 
@@ -6390,7 +6433,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: Cairo, sans-serif;
             font-weight: 800;
             font-size: .92rem;
-            box-shadow: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
             transition: all .2s cubic-bezier(.16, 1, .3, 1);
         }
 
@@ -6439,6 +6482,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: 'Cairo', sans-serif;
             font-size: .82rem;
             font-weight: 700;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
             transition: all .18s;
         }
 
