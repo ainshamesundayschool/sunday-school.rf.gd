@@ -5652,7 +5652,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-head {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 6px;
             min-height: 0;
         }
@@ -8274,17 +8274,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                     </div>
-                    <div class="home-tools-head">
-                        <button class="home-tools-link" onclick="showAllToolsModal()">
-                            كل الأدوات <i class="fas fa-arrow-left"></i>
-                        </button>
-                    </div>
                 </div>
-
-                <!-- Stats Toggle -->
-                <div class="stats-toggle-wrap" style="margin-top:14px;">
-                    <button id="toggleStatsBtn" onclick="toggleStats()">
-                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
+                <div class="home-tools-head" style="margin:-4px 2px 12px 2px;">
+                    <button class="home-tools-link" onclick="showAllToolsModal()">
+                        كل الأدوات <i class="fas fa-arrow-left"></i>
                     </button>
                 </div>
 
@@ -8332,6 +8325,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
+
+                <!-- Stats Toggle -->
+                <div class="stats-toggle-wrap" style="margin-top:14px;">
+                    <button id="toggleStatsBtn" onclick="toggleStats()">
+                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
+                    </button>
+                </div>
 
                 <div class="section-head" style="margin-top:20px;">
                     <span class="section-title">الفصول</span>
