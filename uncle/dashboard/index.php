@@ -772,7 +772,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
 
         @media(min-width:600px) {
@@ -8264,6 +8264,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="home-tools-wrap">
+                    <div class="home-tools-head" style="margin:0 2px 2px 2px;">
+                        <button class="home-tools-link" onclick="showAllToolsModal()">
+                            كل الأدوات <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
                     <div class="home-tools-rail">
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
@@ -8275,9 +8280,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                     </div>
                 </div>
-                <div class="home-tools-head" style="margin:-4px 2px 12px 2px;">
-                    <button class="home-tools-link" onclick="showAllToolsModal()">
-                        كل الأدوات <i class="fas fa-arrow-left"></i>
+
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
+                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
+                        <i class="fas fa-th-large"></i>
+                        <span>عرض شبكي</span>
+                    </button>
+                </div>
+                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
+
+                <!-- Stats Toggle -->
+                <div class="stats-toggle-wrap" style="margin-top:14px;">
+                    <button id="toggleStatsBtn" onclick="toggleStats()">
+                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
                     </button>
                 </div>
 
@@ -8313,24 +8331,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="stat-tile-lbl">متوسط الكوبونات</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="section-head" id="tripsSectionHead"
-                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
-                        style="font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 30px;">
-                        <i class="fas fa-th-large"></i>
-                        <span>عرض شبكي</span>
-                    </button>
-                </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
-
-                <!-- Stats Toggle -->
-                <div class="stats-toggle-wrap" style="margin-top:14px;">
-                    <button id="toggleStatsBtn" onclick="toggleStats()">
-                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
-                    </button>
                 </div>
 
                 <div class="section-head" style="margin-top:20px;">
