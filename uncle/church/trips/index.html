@@ -2686,37 +2686,7 @@
     }
 
     .trip-workspace {
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-
-    .trip-folder-nav {
-      display: none;
-    }
-
-    .trip-folder-nav.collapsed .trip-folder-nav-head .eyebrow,
-    .trip-folder-nav.collapsed .trip-folder-nav-head h3,
-    .trip-folder-nav.collapsed .trip-nav-tab-label {
-      display: none;
-    }
-
-    .trip-folder-nav.collapsed {
-      width: 72px !important;
-      padding: 12px 8px;
-    }
-
-    .trip-folder-nav.collapsed .td-tabs.trip-folder-tabs .td-tab {
-      justify-content: center;
-      padding: 10px 8px;
-    }
-
-    .trip-folder-nav.collapsed .td-tabs.trip-folder-tabs .td-tab .td-badge {
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      margin-right: 0;
-      transform: scale(0.88);
+      display: block;
     }
 
     .trip-folder-shell {
@@ -2792,25 +2762,8 @@
       font-size: 0.85rem;
     }
 
-    .trip-nav-toggle {
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text-2);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition);
-      flex-shrink: 0;
-    }
-
-    .trip-nav-toggle:hover {
-      color: var(--primary);
-      border-color: var(--border);
-      background: transparent;
+    .trip-header-tabs {
+      display: none;
     }
 
     .trip-folder-body {
@@ -2873,77 +2826,53 @@
         display: none;
       }
 
-      .trip-workspace {
-        min-height: calc(100vh - 250px);
-      }
-
-      .trip-folder-nav {
+      .trip-header-tabs {
         display: flex;
-        flex-direction: column;
-        width: 180px;
-        flex-shrink: 0;
-        align-self: stretch;
-        min-height: 100%;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 12px 10px;
-        box-shadow: none;
-        position: sticky;
-        top: 24px;
+        align-items: center;
+        gap: 6px;
+        margin: 0 -16px;
+        padding: 8px 16px 0;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
       }
 
-      .trip-folder-nav-head {
-        display: flex;
-        justify-content: flex-end;
-        padding: 0 2px 8px;
-        margin-bottom: 8px;
+      .trip-header-tabs::-webkit-scrollbar {
+        display: none;
       }
 
-      .td-tabs.trip-folder-tabs {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin: 0;
-        padding: 0;
-        border: none;
-      }
-
-      .td-tabs.trip-folder-tabs .td-tab {
-        width: 100%;
-        min-width: 0;
+      .trip-header-tabs .td-tab {
+        min-width: max-content;
         position: relative;
-        justify-content: flex-start;
-        gap: 10px;
-        padding: 10px 12px;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 12px;
         border-radius: 10px;
-        background: transparent;
-        color: var(--text-2) !important;
-        border: 1px solid transparent;
-        border-bottom-color: transparent !important;
+        background: rgba(255,255,255,0.04);
+        color: rgba(255,255,255,0.74) !important;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-bottom-color: rgba(255,255,255,0.08) !important;
         box-shadow: none !important;
         transition: background var(--transition), border-color var(--transition), color var(--transition);
+        white-space: nowrap;
       }
 
-      .td-tabs.trip-folder-tabs .td-tab:hover {
-        color: var(--primary) !important;
-        border-color: var(--border);
-        background: #f8f9fc;
+      .trip-header-tabs .td-tab:hover {
+        color: white !important;
+        border-color: rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.08);
       }
 
-      .td-tabs.trip-folder-tabs .td-tab.active {
-        color: var(--primary) !important;
-        background: #f3f5ff;
-        border-color: #e2e7ff;
+      .trip-header-tabs .td-tab.active {
+        color: white !important;
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.18);
         box-shadow: none;
       }
 
-      .td-tabs.trip-folder-tabs .td-tab .td-badge {
+      .trip-header-tabs .td-tab .td-badge {
         margin-right: auto;
-      }
-
-      .trip-folder-shell {
-        min-height: calc(100vh - 250px);
       }
 
       .trip-folder-header {
@@ -3410,6 +3339,8 @@
       }
       #printSettingsModal .modal-body {
         display: flex;
+        flex-direction: row-reverse;
+        align-items: stretch;
         gap: 24px;
         flex: 1;
         min-height: 0;
@@ -3417,8 +3348,8 @@
         padding: 20px 24px 24px;
       }
       #printSettingsModal #printSettingsFormPanel {
-        flex: 0 0 min(420px, 32vw);
-        min-width: 360px;
+        flex: 0 0 min(420px, 34vw);
+        min-width: 340px;
         max-width: 520px;
         max-height: none !important;
         overflow-y: auto;
@@ -3430,6 +3361,9 @@
         border-right: 1px solid var(--border);
         padding-right: 24px;
         overflow: hidden;
+        align-items: stretch !important;
+        position: sticky;
+        top: 0;
       }
       #printSettingsModal #printPreviewWrapper {
         flex: 1 1 auto;
@@ -3539,6 +3473,12 @@
           </div>
           <div id="tdQuickStats" style="display:flex;gap:0;margin:0 -16px;padding:0 16px;"></div>
         </div>
+        <div class="td-tabs trip-header-tabs" id="tdTabsDesktop" style="margin:6px -16px 0;padding:0 16px;border-bottom:none;background:transparent;">
+          <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
+          <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
+          <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+          <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
+        </div>
         <div class="td-tabs" id="tdTabsMobile" style="margin:6px -16px 0;padding:0 16px;border-bottom:none;background:transparent;">
           <div class="td-tab active" id="tdtab-info" data-title="الملخص" data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
             style="color:rgba(255,255,255,0.6);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
@@ -3559,20 +3499,6 @@
       </div>
       <div style="flex:1;overflow-y:auto;padding:24px 28px;">
         <div class="trip-workspace">
-          <aside class="trip-folder-nav">
-            <div class="trip-folder-nav-head">
-              <button type="button" class="trip-nav-toggle" id="tripNavToggle" onclick="toggleTripDashboardTabs()" title="طي التبويبات">
-                <i class="fas fa-sidebar"></i>
-              </button>
-            </div>
-            <div class="td-tabs trip-folder-tabs">
-              <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
-              <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge" id="tdRegsCountDesktop"></span></div>
-              <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
-              <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span class="td-badge warn" id="tdExpCountDesktop"></span></div>
-            </div>
-          </aside>
-
           <section class="trip-folder-shell">
             <div class="trip-folder-header">
               <div>
@@ -3740,24 +3666,6 @@
 
     function isDesktopShellMode() {
       return window.innerWidth >= 1100;
-    }
-
-    function applyTripDashboardTabsState() {
-      const nav = document.querySelector('.trip-folder-nav');
-      const btn = document.getElementById('tripNavToggle');
-      if (!nav || !btn) return;
-      const collapsed = localStorage.getItem('trip_dashboard_tabs_collapsed') === '1' && isDesktopShellMode();
-      nav.classList.toggle('collapsed', collapsed);
-      btn.title = collapsed ? 'توسيع التبويبات' : 'طي التبويبات';
-      btn.innerHTML = collapsed
-        ? '<i class="fas fa-angles-left"></i>'
-        : '<i class="fas fa-angles-right"></i>';
-    }
-
-    function toggleTripDashboardTabs() {
-      const collapsed = localStorage.getItem('trip_dashboard_tabs_collapsed') === '1';
-      localStorage.setItem('trip_dashboard_tabs_collapsed', collapsed ? '0' : '1');
-      applyTripDashboardTabsState();
     }
 
     function isShellMounted(id) {
@@ -4540,7 +4448,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-      applyTripDashboardTabsState();
       const joinTripId = parseInt(new URLSearchParams(window.location.search).get('joinTrip') || '0');
       if (joinTripId > 0) {
         await handleJoinTrip(joinTripId);
@@ -4583,8 +4490,6 @@
       if (tripId && tripId !== window.currentTripId) showTripDetails(tripId);
       else if (tripId) switchTripTab(getSelectedTripTab(), false);
     });
-
-    window.addEventListener('resize', applyTripDashboardTabsState);
 
     function showKidOverview(el) {
       const r = JSON.parse(el.dataset.reg);
@@ -8135,7 +8040,7 @@
         </div>
 
         <!-- Preview Panel -->
-        <div id="printPreviewPanel" style="display:flex; flex-direction:column; gap:10px; justify-content:flex-start; align-items:center;">
+        <div id="printPreviewPanel" style="display:flex; flex-direction:column; gap:10px; justify-content:flex-start; align-items:stretch; min-width:0;">
           <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
             <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text);"><i class="fas fa-eye" style="color:var(--primary);"></i> معاينة حية (عينة لأول طفل)</h3>
             <button type="button" id="togglePreviewBtn" onclick="togglePrintPreview()">
