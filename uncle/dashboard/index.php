@@ -5658,26 +5658,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .home-tools-link {
-            border: 1px solid rgba(91, 108, 245, .14);
-            background: rgba(255, 255, 255, .7);
+            border: none;
+            background: transparent;
             color: var(--brand);
             font-family: inherit;
-            font-size: .7rem;
+            font-size: .64rem;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: var(--r-full);
+            gap: 4px;
+            padding: 0;
             transition: all var(--t) var(--ease);
-            box-shadow: 0 .5px 0 rgba(255, 255, 255, .72) inset;
         }
 
         .home-tools-link:hover {
-            background: var(--brand-bg);
-            border-color: rgba(91, 108, 245, .22);
             transform: translateY(-1px);
+            opacity: .85;
         }
 
         .home-tools-rail {
@@ -8267,11 +8264,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="home-tools-wrap">
-                    <div class="home-tools-head">
-                        <button class="home-tools-link" onclick="showAllToolsModal()">
-                            <i class="fas fa-grid-2"></i> كل الأدوات
-                        </button>
-                    </div>
                     <div class="home-tools-rail">
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
@@ -8281,6 +8273,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                    </div>
+                    <div class="home-tools-head">
+                        <button class="home-tools-link" onclick="showAllToolsModal()">
+                            كل الأدوات <i class="fas fa-arrow-left"></i>
+                        </button>
                     </div>
                 </div>
 
