@@ -5005,6 +5005,69 @@
     @media (min-width: 980px){
       .page-wrap{padding:20px}
     }
+
+    /* Desktop layout improvements: make modals wider and panels side-by-side
+       so print preview, registration and kid-picker appear next to settings
+       on larger screens. Keep fullscreen trip details unchanged. */
+    @media (min-width: 1000px) {
+      /* wider base modal */
+      .modal .modal-box { max-width: 1100px !important; }
+
+      /* Print modal: side-by-side preview + settings */
+      #printSettingsModal .modal-box,
+      .trip-shell-page #printSettingsModal .modal-box,
+      #printSettingsModal[data-shell-mounted="1"] .modal-box {
+        max-width: 1200px !important;
+        margin: 36px auto !important;
+        height: calc(100vh - 72px) !important;
+        border-radius: var(--r-lg) !important;
+      }
+
+      #printSettingsModal .modal-body,
+      .trip-shell-page #printSettingsModal .modal-body,
+      #printSettingsModal[data-shell-mounted="1"] .modal-body {
+        grid-template-columns: 420px 1fr !important;
+        gap: 18px !important;
+      }
+
+      /* Registration modal: ensure two-column layout on desktop */
+      #registerStudentModal .modal-box,
+      .trip-shell-page #registerStudentModal .modal-box,
+      #registerStudentModal[data-shell-mounted="1"] .modal-box {
+        max-width: 1100px !important;
+        height: auto !important;
+        min-height: 60vh !important;
+        border-radius: var(--r-lg) !important;
+        margin: 36px auto !important;
+      }
+
+      #registerStudentModal #registerStudentForm,
+      .trip-shell-page #registerStudentModal #registerStudentForm,
+      #registerStudentModal[data-shell-mounted="1"] #registerStudentForm {
+        grid-template-columns: 1fr 360px !important;
+        gap: 20px !important;
+      }
+
+      /* Main workspace: left content + right sidebar for settings/quick actions */
+      .trip-workspace {
+        display: grid !important;
+        grid-template-columns: 1fr 360px !important;
+        gap: 20px !important;
+        align-items: start;
+      }
+
+      .trip-folder-shell { width: 100%; }
+      .trip-folder-body { padding: 24px !important; }
+
+      /* Prefer rounded modal corners on desktop (except fullscreen trip details) */
+      .trip-details-fullscreen .modal-box { border-radius: 0 !important; }
+      .modal .modal-box { border-radius: var(--r-lg) !important; }
+
+      /* Give regs/waitlist/kid views more breathing room */
+      #tripRegsContent, #tripWaitlistContent, #tripInfoContent {
+        min-height: 380px;
+      }
+    }
   </style>
 </head>
 
