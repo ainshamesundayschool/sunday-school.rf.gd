@@ -4913,6 +4913,99 @@
     }
 
   </style>
+  </style>
+
+  <!-- Dashboard style overrides: apply brand tokens and component styles
+       from uncle/dashboard/index.php to modernize the trips UI while
+       preserving all existing IDs and JS hooks. -->
+  <style>
+    :root{
+      --brand: #5b6cf5;
+      --brand-dark: #4354e8;
+      --brand-light: #a5b0ff;
+      --brand-bg: #eef0ff;
+      --brand-glow: rgba(91,108,245,.18);
+
+      --primary: var(--brand);
+      --primary-dark: var(--brand-dark);
+      --primary-light: var(--brand-light);
+      --primary-glow: var(--brand-glow);
+
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --coupon: #8b5cf6;
+
+      --bg: #f3f4f9;
+      --surface: #ffffff;
+      --surface-2: #f7f8fc;
+      --border: rgba(91,108,245,.12);
+      --border-solid: #e4e6f0;
+      --text: #1a1d2e;
+      --text-2: #4b5068;
+      --text-3: #8b90a8;
+
+      --r-sm: 10px;
+      --r-md: 14px;
+      --r-lg: 18px;
+      --r-full: 9999px;
+
+      --shadow-sm: 0 2px 8px -2px rgba(0,0,0,.07);
+      --shadow-md: 0 8px 24px -4px rgba(0,0,0,.10);
+    }
+
+    /* Topbar modernization */
+    .topbar{background:var(--bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:0 18px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border)}
+    .topbar-title{font-weight:800;color:var(--text);font-size:0.98rem}
+    .topbar-breadcrumb{font-size:0.78rem;color:var(--text-3)}
+    .topbar-breadcrumb span{color:var(--primary);font-weight:700}
+
+    /* Page wrapper */
+    .page-wrap{max-width:1440px;margin:0 auto;padding:16px}
+
+    /* Stat tiles / cards */
+    .stat-tile{background:var(--surface);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);transition:all .22s var(--ease)}
+    .stat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+    .stat-tile-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem}
+    .stat-tile-icon.blue{background:var(--brand-bg);color:var(--brand)}
+    .stat-tile-val{font-size:1.2rem;font-weight:900;color:var(--text)}
+    .stat-tile-lbl{font-size:0.72rem;color:var(--text-3);font-weight:700}
+
+    /* Trip card */
+    .trip-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:all .22s var(--ease)}
+    .trip-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md)}
+    .trip-img{height:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--brand-bg), rgba(91,108,245,.06));}
+    .trip-body{padding:12px}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:white;border-color:transparent;box-shadow:0 8px 24px rgba(91,108,245,.08)}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-2)}
+    .btn-success{background:var(--success);color:white;border-color:transparent}
+    .btn-danger{background:var(--danger);color:white;border-color:transparent}
+
+    /* Trip action buttons grid */
+    .trip-actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+    .trip-action-btn{background:var(--surface);border:1px solid var(--border);padding:9px 12px;border-radius:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+
+    /* Modal polish */
+    .modal{display:none;position:fixed;inset:0;z-index:1200;align-items:center;justify-content:center;padding:18px}
+    .modal.open{display:flex}
+    .modal .modal-box{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--shadow-md);max-width:980px;width:100%;padding:0;overflow:hidden}
+    .modal .modal-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .modal .modal-body{padding:14px}
+    .modal .modal-close{background:transparent;border:none;cursor:pointer;color:var(--text-3)}
+
+    /* Small helpers to keep alignment with dashboard look */
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:800;font-size:0.75rem}
+    .badge.badge-info{background:var(--info-light);color:var(--info)}
+    .badge.badge-success{background:var(--success);color:white}
+    .badge.badge-warning{background:var(--warning);color:white}
+
+    @media (min-width: 980px){
+      .page-wrap{padding:20px}
+    }
+  </style>
 </head>
 
 <body>
@@ -4965,10 +5058,15 @@
         <div class="trip-workspace">
           <section class="trip-folder-shell">
             <div class="trip-folder-header">
-              <div>
-                <div class="trip-folder-breadcrumb" id="tripFolderBreadcrumb"></div>
-                <h3 id="tripFolderTitle">الملخص</h3>
-                <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
+              <div class="topbar">
+                <div class="topbar-left">
+                  <div>
+                    <div class="trip-folder-breadcrumb topbar-breadcrumb" id="tripFolderBreadcrumb"></div>
+                    <h3 id="tripFolderTitle" class="topbar-title">الملخص</h3>
+                    <p id="tripFolderDesc" class="topbar-subtitle">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
+                  </div>
+                </div>
+                <div class="topbar-right" id="tripTopbarActions"></div>
               </div>
             </div>
 
