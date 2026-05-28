@@ -117,34 +117,9 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── FULLSCREEN TRIP DETAILS ────────────────────────────────────── */
+    /* Standalone trips route is a full-screen detail view only. */
     .main-wrapper {
-      display: none !important;
-    }
-
-    /* Trip details fills the full viewport immediately */
-    .trip-details-fullscreen {
-      display: flex !important;
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      background: var(--bg);
-    }
-
-    .trip-details-fullscreen .modal-box {
-      max-width: 100% !important;
-      width: 100% !important;
-      height: 100% !important;
-      max-height: 100vh !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .trip-details-fullscreen .modal-box .modal-head,
-    .trip-details-fullscreen .modal-box .modal-close {
-      display: none !important;
+      display: none;
     }
 
     /* ── SCROLLBAR ──────────────────────────────────────────────────── */
@@ -2434,43 +2409,22 @@
       inset: 0;
       z-index: 2100;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      background: rgba(10, 8, 26, 0.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(10, 8, 26, 0.55);
+      backdrop-filter: blur(6px);
       animation: fadeIn .2s var(--ease-out);
-      padding: 20px;
     }
 
     .kid-overview-box {
       background: white;
-      border-radius: 18px;
+      border-radius: 20px 20px 0 0;
       width: 100%;
-      max-width: 480px;
-      max-height: 82vh;
+      max-width: 520px;
+      max-height: 80vh;
       overflow-y: auto;
-      padding: 22px 22px 26px;
-      animation: scaleIn .2s var(--ease-spring);
-      box-shadow: 0 24px 64px rgba(10,8,26,0.22), 0 8px 24px rgba(10,8,26,0.1);
-    }
-
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.96); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-
-    /* Mobile: keep bottom-sheet on small screens */
-    @media (max-width: 600px) {
-      .kid-overview-panel {
-        align-items: flex-end;
-        padding: 0;
-      }
-      .kid-overview-box {
-        border-radius: 20px 20px 0 0;
-        max-width: 100%;
-        animation: slideUp .3s var(--ease);
-      }
+      padding: 20px 20px 30px;
+      animation: slideUp .3s var(--ease);
     }
 
     .kid-overview-header {
@@ -2788,26 +2742,18 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(10, 8, 26, 0.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(10, 8, 26, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 1000;
       justify-content: center;
-      align-items: center;
-      padding: 20px;
+      align-items: flex-end;
+      padding: 0;
     }
 
     .modal.open {
       display: flex;
       animation: fadeIn 0.2s var(--ease-out);
-    }
-
-    /* Bottom-sheet only on small screens */
-    @media (max-width: 600px) {
-      .modal {
-        align-items: flex-end;
-        padding: 0;
-      }
     }
 
     @keyframes fadeIn {
@@ -2822,25 +2768,16 @@
 
     .modal-box {
       background: white;
-      border-radius: 16px !important;
+      border-radius: 20px 20px 0 0 !important;
       width: 100% !important;
-      max-width: 680px !important;
+      max-width: 700px !important;
       height: auto !important;
-      max-height: 88vh !important;
+      max-height: 92vh !important;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 24px 64px rgba(10,8,26,0.2), 0 8px 24px rgba(10,8,26,0.1);
-      animation: scaleIn 0.2s var(--ease-spring);
-    }
-
-    @media (max-width: 600px) {
-      .modal-box {
-        border-radius: 20px 20px 0 0 !important;
-        max-width: 100% !important;
-        max-height: 92vh !important;
-        animation: slideUp 0.28s var(--ease-out);
-      }
+      box-shadow: var(--shadow-xl);
+      animation: slideUp 0.28s var(--ease-out);
     }
 
     /* Full-screen trip detail stays full-screen */
@@ -3702,119 +3639,18 @@
       }
     }
 
-    /* ── PRINT MODAL — Full-screen split view ───────────────────────── */
-    #printSettingsModal {
-      padding: 0 !important;
-      align-items: stretch !important;
-    }
-
+    /* ── PRINT MODAL ────────────────────────────────────────────────── */
     #printSettingsModal .modal-box {
-      max-width: 100% !important;
-      width: 100% !important;
-      height: 100% !important;
-      max-height: 100vh !important;
-      margin: 0 !important;
-      border-radius: 0 !important;
+      max-width: min(96vw, 1680px) !important;
+      width: 96vw !important;
+      height: min(92vh, 1200px) !important;
+      max-height: 92vh !important;
+      margin: 2vh auto !important;
       display: flex;
       flex-direction: column;
-      background: var(--bg);
-      overflow: hidden;
     }
 
-    /* Redesigned print modal header bar */
-    #printSettingsModal .modal-head {
-      background: var(--sidebar-bg);
-      border-bottom: none !important;
-      padding: 0 20px !important;
-      height: 54px;
-      display: flex !important;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-
-    #printSettingsModal .modal-head h2 {
-      color: white !important;
-      font-size: 0.9rem !important;
-      gap: 10px;
-    }
-
-    #printSettingsModal .modal-head h2 i {
-      color: var(--indigo-400) !important;
-    }
-
-    #printSettingsModal .modal-head .modal-close {
-      color: rgba(255,255,255,0.5) !important;
-      background: rgba(255,255,255,0.06) !important;
-      border: 1px solid rgba(255,255,255,0.1) !important;
-      border-radius: var(--radius-xs) !important;
-    }
-
-    #printSettingsModal .modal-head .modal-close:hover {
-      background: rgba(220,38,38,0.3) !important;
-      color: #fca5a5 !important;
-      border-color: rgba(220,38,38,0.4) !important;
-    }
-
-    /* Print body: full split */
-    #printSettingsModal .modal-body {
-      display: grid !important;
-      grid-template-columns: 380px 1fr !important;
-      flex: 1 !important;
-      min-height: 0 !important;
-      overflow: hidden !important;
-      padding: 0 !important;
-      gap: 0 !important;
-    }
-
-    /* Settings panel — left side (in RTL this is right) */
-    #printSettingsModal #printSettingsFormPanel {
-      order: 2 !important;
-      height: 100% !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      padding: 20px 20px 24px !important;
-      background: var(--card);
-      border-right: 1px solid var(--border) !important;
-      min-width: 0 !important;
-      max-width: none !important;
-      max-height: none !important;
-      width: 100% !important;
-    }
-
-    /* Preview panel — takes remaining space */
-    #printPreviewPanel {
-      order: 1 !important;
-      height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
-      overflow: hidden !important;
-      width: 100% !important;
-      min-width: 0 !important;
-      border-right: none !important;
-      padding-right: 0 !important;
-    }
-
-    /* Preview header row */
-    #printPreviewPanel > div:first-child {
-      padding: 14px 20px 0 !important;
-      flex-shrink: 0;
-    }
-
-    #printSettingsModal #printPreviewWrapper {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      height: 100% !important;
-      overflow: auto !important;
-      background: #e8eaf0 !important;
-      padding: 24px !important;
-      margin: 12px 16px 16px !important;
-      border-radius: var(--radius-lg) !important;
-      border: none !important;
-    }
-
-    /* Preview toggle button */
+    /* Preview toggle button — always visible */
     #togglePreviewBtn {
       display: flex;
       align-items: center;
@@ -3837,6 +3673,7 @@
       background: var(--primary-light);
     }
 
+    /* Preview wrapper collapses, button stays */
     #printPreviewWrapper {
       transition: all 0.3s var(--ease);
     }
@@ -3844,12 +3681,60 @@
       display: none !important;
     }
 
-    /* Shell-mounted: same layout */
+    /* ── Desktop: side-by-side ───────────────────────────────── */
+    @media (min-width: 769px) {
+      #printSettingsModal .modal-head {
+        flex-shrink: 0;
+      }
+      #printSettingsModal .modal-body {
+        display: grid !important;
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+        align-items: stretch;
+        gap: 24px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        padding: 20px 24px 24px;
+      }
+      #printSettingsModal #printSettingsFormPanel {
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        height: 100%;
+        overflow-y: auto;
+        padding-left: 8px;
+        order: 2;
+      }
+      #printPreviewPanel {
+        width: 100% !important;
+        min-width: 0;
+        border-right: 1px solid var(--border);
+        padding-right: 24px;
+        overflow: hidden;
+        align-items: stretch !important;
+        height: 100%;
+        order: 1;
+      }
+      #printSettingsModal #printPreviewWrapper {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: auto;
+        padding: 28px;
+      }
+
+      #printPreviewContent {
+        min-height: 100%;
+        width: 100%;
+      }
+    }
+
     .trip-shell-page #printSettingsModal .modal-box,
     #printSettingsModal[data-shell-mounted="1"] .modal-box {
       width: 100% !important;
       max-width: none !important;
-      height: 100% !important;
+      height: calc(100vh - 220px) !important;
       max-height: none !important;
       margin: 0 !important;
       border-radius: 0 !important;
@@ -3858,18 +3743,18 @@
     .trip-shell-page #printSettingsModal .modal-body,
     #printSettingsModal[data-shell-mounted="1"] .modal-body {
       display: grid !important;
-      grid-template-columns: 380px 1fr !important;
-      gap: 0 !important;
+      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr) !important;
+      gap: 24px !important;
       align-items: stretch !important;
       min-height: 0 !important;
       height: 100% !important;
       overflow: hidden !important;
-      padding: 0 !important;
+      padding: 20px 24px 24px !important;
     }
 
     .trip-shell-page #printSettingsModal #printSettingsFormPanel,
     #printSettingsModal[data-shell-mounted="1"] #printSettingsFormPanel {
-      order: 2 !important;
+      order: 2;
       width: 100% !important;
       min-width: 0 !important;
       max-width: none !important;
@@ -3880,7 +3765,7 @@
 
     .trip-shell-page #printSettingsModal #printPreviewPanel,
     #printSettingsModal[data-shell-mounted="1"] #printPreviewPanel {
-      order: 1 !important;
+      order: 1;
       width: 100% !important;
       min-width: 0 !important;
       height: 100% !important;
@@ -3888,8 +3773,8 @@
       flex-direction: column !important;
       align-items: stretch !important;
       overflow: hidden !important;
-      border-right: none !important;
-      padding-right: 0 !important;
+      border-right: 1px solid var(--border) !important;
+      padding-right: 24px !important;
       margin: 0 !important;
     }
 
@@ -3901,29 +3786,6 @@
       overflow: auto !important;
     }
 
-    /* ── Mobile: stacked ── */
-    @media (max-width: 768px) {
-      #printSettingsModal .modal-body {
-        grid-template-columns: 1fr !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-      }
-      #printSettingsModal #printSettingsFormPanel {
-        height: auto !important;
-        overflow-y: visible !important;
-        border-right: none !important;
-        border-top: 1px solid var(--border) !important;
-      }
-      #printPreviewPanel {
-        min-height: 320px;
-        order: 1 !important;
-      }
-      #printSettingsModal #printPreviewWrapper {
-        min-height: 260px !important;
-      }
-    }
-
-    /* registerStudentModal shell styles */
     .trip-shell-page #registerStudentModal .modal-box,
     #registerStudentModal[data-shell-mounted="1"] .modal-box {
       width: 100% !important;
@@ -4065,1016 +3927,29 @@
         min-height: 260px !important;
       }
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       DASHBOARD REDESIGN — Modern clean full-screen layout
-    ════════════════════════════════════════════════════════════════ */
-
-    html, body {
-      overflow: hidden !important;
-      height: 100% !important;
-    }
-
-    body {
-      background: #f0f1f6 !important;
-    }
-
-    #tripDetailsModal {
-      background: transparent !important;
-      backdrop-filter: none !important;
-    }
-
-    #tripDetailsModal > .modal-box {
-      background: #f0f1f6 !important;
-      box-shadow: none !important;
-      animation: none !important;
-    }
-
-    #tripDetailsScroll {
-      padding: 0 !important;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Sticky dark header tab bar */
-    .trip-tabs-bar {
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 50 !important;
-      background: var(--sidebar-bg) !important;
-      border-bottom: none !important;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.22) !important;
-      flex-shrink: 0;
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
-      overflow: hidden;
-    }
-
-    .trip-tabs-bar-inner {
-      padding: 0 24px !important;
-      border-radius: 0 !important;
-      border: none !important;
-      background: transparent !important;
-      display: flex !important;
-      align-items: center !important;
-      min-height: 56px !important;
-      gap: 2px;
-    }
-
-    /* Desktop tabs (>= 1100px): show trip-header-tabs, hide mobile */
-    @media (min-width: 1100px) {
-      .td-tabs.trip-header-tabs {
-        display: flex !important;
-        gap: 2px !important;
-        flex: 1;
-      }
-
-      #tdTabsMobile {
-        display: none !important;
-      }
-
-      .td-tabs.trip-header-tabs .td-tab {
-        color: rgba(255,255,255,0.45) !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 7px 16px !important;
-        font-size: 0.82rem !important;
-        font-weight: 700 !important;
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        transition: all 0.15s !important;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        white-space: nowrap;
-        min-width: unset;
-      }
-
-      .td-tabs.trip-header-tabs .td-tab:hover {
-        background: rgba(255,255,255,0.08) !important;
-        color: rgba(255,255,255,0.85) !important;
-        border-color: transparent !important;
-      }
-
-      .td-tabs.trip-header-tabs .td-tab.active {
-        background: rgba(99,102,241,0.82) !important;
-        color: white !important;
-        box-shadow: 0 2px 10px rgba(99,102,241,0.4) !important;
-        border-color: transparent !important;
-      }
-    }
-
-    /* Mobile tabs (< 1100px): hide desktop, style mobile */
-    @media (max-width: 1099px) {
-      .td-tabs.trip-header-tabs {
-        display: none !important;
-      }
-
-      #tdTabsMobile {
-        display: flex !important;
-      }
-
-      #tdTabsMobile .td-tab {
-        color: rgba(255,255,255,0.45) !important;
-        border-bottom: 2px solid transparent !important;
-        padding: 14px 10px !important;
-        font-size: 0.8rem !important;
-        font-weight: 700 !important;
-        white-space: nowrap;
-      }
-
-      #tdTabsMobile .td-tab:hover { color: rgba(255,255,255,0.85) !important; }
-
-      #tdTabsMobile .td-tab.active {
-        color: white !important;
-        border-bottom-color: var(--indigo-400) !important;
-      }
-    }
-
-    .trip-tabs-close {
-      margin-right: auto !important;
-      background: rgba(255,255,255,0.07) !important;
-      border: 1px solid rgba(255,255,255,0.1) !important;
-      color: rgba(255,255,255,0.45) !important;
-      border-radius: var(--radius-xs) !important;
-      width: 30px !important;
-      height: 30px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      font-size: 0.8rem !important;
-      cursor: pointer !important;
-      transition: all 0.15s !important;
-    }
-
-    .trip-tabs-close:hover {
-      background: rgba(220,38,38,0.22) !important;
-      color: #fca5a5 !important;
-      border-color: rgba(220,38,38,0.28) !important;
-    }
-
-    .trip-workspace {
-      padding: 20px !important;
-      flex: 1;
-    }
-
-    .trip-folder-shell {
-      background: var(--card) !important;
-      border-radius: var(--radius-xl) !important;
-      border: 1px solid var(--border) !important;
-      box-shadow: var(--shadow-sm) !important;
-      overflow: hidden;
-    }
-
-    .trip-folder-header {
-      background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid)) !important;
-      border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-      padding: 16px 24px !important;
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
-    }
-
-    .trip-folder-header h3 {
-      color: white !important;
-      font-size: 1rem !important;
-      font-weight: 800 !important;
-      margin: 0 !important;
-    }
-
-    .trip-folder-header p {
-      color: rgba(255,255,255,0.4) !important;
-      font-size: 0.78rem !important;
-      margin-top: 3px !important;
-    }
-
-    .trip-folder-breadcrumb {
-      font-size: 0.7rem !important;
-      color: rgba(255,255,255,0.3) !important;
-      margin-bottom: 4px !important;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .trip-folder-breadcrumb .active { color: rgba(255,255,255,0.65) !important; }
-
-    .trip-folder-breadcrumb i { font-size: 0.6rem !important; opacity: 0.35; }
-
-    .trip-folder-breadcrumb button {
-      background: none !important;
-      border: none !important;
-      color: var(--indigo-400) !important;
-      cursor: pointer !important;
-      font-family: 'Cairo', sans-serif !important;
-      font-size: 0.7rem !important;
-      padding: 0 !important;
-    }
-
-    .trip-folder-breadcrumb button:hover {
-      color: white !important;
-      text-decoration: underline;
-    }
-
-    .trip-folder-body {
-      padding: 20px !important;
-    }
-
-    .trip-summary-hero {
-      background: linear-gradient(135deg, var(--indigo-900), var(--sidebar-bg)) !important;
-      border-radius: var(--radius-lg) !important;
-      border: 1px solid rgba(99,102,241,0.18) !important;
-    }
-
-    .td-badge {
-      background: rgba(220,38,38,0.82) !important;
-      color: white !important;
-    }
-
-    .td-badge.warn {
-      background: rgba(217,119,6,0.82) !important;
-      color: white !important;
-    }
-
-    @media (max-width: 768px) {
-      .trip-workspace { padding: 10px !important; }
-      .trip-folder-shell { border-radius: var(--radius-lg) !important; }
-      .trip-folder-header { padding: 14px 16px !important; }
-      .trip-tabs-bar-inner { padding: 0 12px !important; }
-    }
-
-    /* ════════════════════════════════════════════════════════════════════
-       FULL UI OVERHAUL — Modern, clean, aligned
-    ════════════════════════════════════════════════════════════════════ */
-
-    /* ── CSS variable tweaks for better palette ─────────────────── */
-    :root {
-      --surface: #f7f8fc;
-      --surface-2: #eff1f8;
-      --radius-card: 14px;
-    }
-
-    /* ── Trip folder shell ──────────────────────────────────────── */
-    .trip-folder-shell {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      overflow: visible !important;
-    }
-
-    .trip-folder-header {
-      background: var(--sidebar-bg) !important;
-      border-bottom: none !important;
-      padding: 14px 24px !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 16px !important;
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 40 !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.05) !important;
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
-    }
-
-    .trip-folder-header h3 {
-      font-size: 0.92rem !important;
-      font-weight: 700 !important;
-      color: rgba(255,255,255,0.9) !important;
-      margin: 0 !important;
-    }
-
-    .trip-folder-header p {
-      font-size: 0.72rem !important;
-      color: rgba(255,255,255,0.35) !important;
-      margin: 2px 0 0 !important;
-    }
-
-    .trip-folder-breadcrumb {
-      font-size: 0.7rem !important;
-      color: rgba(255,255,255,0.28) !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-      margin-bottom: 2px !important;
-    }
-
-    .trip-folder-body {
-      padding: 20px !important;
-      background: var(--surface) !important;
-      min-height: calc(100vh - 110px);
-      border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
-    }
-
-    /* ── Trip summary hero — clean card ─────────────────────────── */
-    .trip-summary-hero {
-      display: grid !important;
-      grid-template-columns: 1fr auto !important;
-      gap: 20px !important;
-      padding: 20px 22px !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius-card) !important;
-      background: white !important;
-      margin-bottom: 14px !important;
-      align-items: center !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .trip-summary-thumb {
-      width: 64px !important;
-      height: 64px !important;
-      border-radius: 12px !important;
-      background: var(--primary-light) !important;
-      border: 1px solid var(--indigo-200, var(--border)) !important;
-      color: var(--primary) !important;
-      font-size: 1.4rem !important;
-    }
-
-    .trip-summary-copy h2 {
-      font-size: 1.1rem !important;
-      font-weight: 800 !important;
-      color: var(--text) !important;
-      letter-spacing: -0.02em !important;
-    }
-
-    .trip-summary-sub {
-      font-size: 0.78rem !important;
-      color: var(--text-3) !important;
-      margin-top: 4px !important;
-    }
-
-    .trip-summary-badges {
-      margin-top: 8px !important;
-      gap: 6px !important;
-    }
-
-    .trip-summary-side {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: flex-end !important;
-      gap: 6px !important;
-    }
-
-    .trip-summary-price {
-      border: 1px solid var(--border) !important;
-      border-radius: 10px !important;
-      padding: 10px 14px !important;
-      background: var(--surface) !important;
-      min-width: 160px !important;
-      text-align: right !important;
-    }
-
-    .trip-summary-price small {
-      font-size: 0.65rem !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
-      color: var(--muted) !important;
-    }
-
-    .trip-summary-price strong {
-      font-size: 1.35rem !important;
-      font-weight: 900 !important;
-      letter-spacing: -0.02em !important;
-      line-height: 1.1 !important;
-    }
-
-    .trip-summary-price span {
-      font-size: 0.7rem !important;
-      color: var(--text-3) !important;
-      margin-top: 2px !important;
-    }
-
-    /* ── Stat chips row ─────────────────────────────────────────── */
-    .trip-summary-stats {
-      display: flex !important;
-      gap: 8px !important;
-      flex-wrap: wrap !important;
-      margin-bottom: 14px !important;
-    }
-
-    .trip-summary-stat {
-      flex: 1 1 80px !important;
-      padding: 12px 14px !important;
-      border: 1px solid var(--border) !important;
-      border-radius: 10px !important;
-      background: white !important;
-      text-align: center !important;
-      min-width: 70px !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .trip-summary-stat strong {
-      display: block !important;
-      font-size: 1.3rem !important;
-      font-weight: 900 !important;
-      letter-spacing: -0.02em !important;
-      color: var(--text) !important;
-      line-height: 1 !important;
-    }
-
-    .trip-summary-stat span {
-      display: block !important;
-      margin-top: 4px !important;
-      font-size: 0.65rem !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
-      color: var(--muted) !important;
-    }
-
-    /* ── Info boxes ─────────────────────────────────────────────── */
-    .info-box {
-      background: white !important;
-      padding: 12px 14px !important;
-      border-radius: 10px !important;
-      border: 1px solid var(--border) !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .info-box small {
-      font-size: 0.65rem !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
-      color: var(--muted) !important;
-      display: block !important;
-      margin-bottom: 4px !important;
-    }
-
-    .info-box div {
-      font-size: 1rem !important;
-      font-weight: 800 !important;
-      color: var(--text) !important;
-    }
-
-    /* ── Trip action buttons — horizontal pill row ───────────────── */
-    .trip-actions-grid {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 8px !important;
-      margin-top: 20px !important;
-    }
-
-    .trip-action-btn {
-      display: inline-flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 8px !important;
-      padding: 9px 16px !important;
-      border: 1px solid var(--border-2) !important;
-      border-radius: 999px !important;
-      background: white !important;
-      cursor: pointer !important;
-      transition: all 0.15s !important;
-      font-family: 'Cairo', sans-serif !important;
-      font-size: 0.82rem !important;
-      font-weight: 700 !important;
-      color: var(--text-2) !important;
-      text-decoration: none !important;
-      white-space: nowrap !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .trip-action-btn i {
-      font-size: 0.82rem !important;
-      width: auto !important;
-      height: auto !important;
-      border-radius: 0 !important;
-      background: none !important;
-      display: inline !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      color: var(--muted) !important;
-    }
-
-    .trip-action-btn:hover {
-      border-color: var(--primary) !important;
-      background: var(--primary-light) !important;
-      color: var(--primary) !important;
-      transform: translateY(-1px) !important;
-      box-shadow: 0 4px 12px rgba(79,70,229,0.15) !important;
-    }
-
-    .trip-action-btn:hover i {
-      color: var(--primary) !important;
-    }
-
-    .trip-action-btn.primary {
-      background: var(--primary) !important;
-      border-color: var(--primary) !important;
-      color: white !important;
-      box-shadow: 0 2px 8px rgba(79,70,229,0.35) !important;
-    }
-
-    .trip-action-btn.primary i {
-      color: rgba(255,255,255,0.8) !important;
-    }
-
-    .trip-action-btn.primary:hover {
-      background: var(--indigo-700) !important;
-      border-color: var(--indigo-700) !important;
-      color: white !important;
-    }
-
-    .trip-action-btn.success {
-      background: var(--success) !important;
-      border-color: var(--success) !important;
-      color: white !important;
-      box-shadow: 0 2px 8px rgba(5,150,105,0.3) !important;
-    }
-
-    .trip-action-btn.success i { color: rgba(255,255,255,0.8) !important; }
-
-    .trip-action-btn.success:hover {
-      background: #047857 !important;
-      border-color: #047857 !important;
-      color: white !important;
-    }
-
-    .trip-action-btn.danger {
-      border-color: var(--danger-mid) !important;
-      color: var(--danger) !important;
-    }
-
-    .trip-action-btn.danger i { color: var(--danger) !important; }
-
-    .trip-action-btn.danger:hover {
-      background: var(--danger) !important;
-      border-color: var(--danger) !important;
-      color: white !important;
-    }
-
-    /* ── Section toolbar (registrants header) ───────────────────── */
-    .trip-section-toolbar {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      gap: 12px !important;
-      flex-wrap: wrap !important;
-      padding: 14px 18px !important;
-      border: none !important;
-      border-bottom: 1px solid var(--border) !important;
-      background: white !important;
-      border-radius: var(--radius-card) var(--radius-card) 0 0 !important;
-    }
-
-    .trip-section-title {
-      font-size: 0.9rem !important;
-      font-weight: 800 !important;
-      color: var(--text) !important;
-    }
-
-    .trip-section-meta {
-      font-size: 0.75rem !important;
-      color: var(--text-3) !important;
-      gap: 12px !important;
-    }
-
-    .trip-section-shell {
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius-card) !important;
-      overflow: hidden !important;
-      background: white !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .trip-list-stack {
-      gap: 0 !important;
-    }
-
-    /* ── Registration rows — clean list ─────────────────────────── */
-    .reg-row {
-      padding: 12px 18px !important;
-      border-bottom: 1px solid var(--border) !important;
-      border-radius: 0 !important;
-      gap: 12px !important;
-      background: white !important;
-      border-right: none !important;
-      border-left: none !important;
-      border-top: none !important;
-    }
-
-    .reg-row:last-child {
-      border-bottom: none !important;
-    }
-
-    .reg-row:hover {
-      background: var(--surface) !important;
-      border-color: var(--border) !important;
-      box-shadow: none !important;
-    }
-
-    .reg-ava {
-      width: 40px !important;
-      height: 40px !important;
-      border-radius: 50% !important;
-      font-size: 0.9rem !important;
-      flex-shrink: 0 !important;
-    }
-
-    .reg-info strong {
-      font-size: 0.88rem !important;
-      font-weight: 700 !important;
-    }
-
-    .reg-info span {
-      font-size: 0.72rem !important;
-    }
-
-    .trip-reg-side {
-      min-width: 100px !important;
-    }
-
-    .trip-reg-side .main {
-      font-size: 0.88rem !important;
-      font-weight: 800 !important;
-    }
-
-    .trip-reg-side .sub {
-      font-size: 0.7rem !important;
-    }
-
-    /* ── Expense rows ───────────────────────────────────────────── */
-    .exp-row {
-      border-radius: 10px !important;
-      border: 1px solid var(--border) !important;
-      padding: 12px 14px !important;
-      margin-bottom: 8px !important;
-      background: white !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-    }
-
-    /* ── Summary box ────────────────────────────────────────────── */
-    .summary-box {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
-      gap: 10px !important;
-      margin-bottom: 16px !important;
-    }
-
-    .sbox {
-      background: white !important;
-      border: 1px solid var(--border) !important;
-      border-radius: 10px !important;
-      padding: 12px 14px !important;
-      text-align: center !important;
-      box-shadow: var(--shadow-xs) !important;
-    }
-
-    .sbox .sv {
-      font-size: 1.4rem !important;
-      font-weight: 900 !important;
-      letter-spacing: -0.02em !important;
-      line-height: 1 !important;
-    }
-
-    .sbox .sl {
-      font-size: 0.65rem !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
-      color: var(--muted) !important;
-      margin-top: 4px !important;
-    }
-
-    /* ── Modals — tighter, more modern ─────────────────────────── */
-    .modal-head {
-      padding: 16px 20px !important;
-      background: white !important;
-    }
-
-    .modal-head h2 {
-      font-size: 0.95rem !important;
-      font-weight: 800 !important;
-      gap: 8px !important;
-    }
-
-    .modal-body {
-      padding: 18px 20px !important;
-    }
-
-    /* ── Form inputs — tighter, cleaner ─────────────────────────── */
-    .form-input, .form-textarea, select.form-select {
-      border-radius: 8px !important;
-      font-size: 0.85rem !important;
-      padding: 8px 11px !important;
-      border-color: var(--border-2) !important;
-      background: var(--surface) !important;
-    }
-
-    .form-input:focus, .form-textarea:focus, select.form-select:focus {
-      background: white !important;
-      border-color: var(--primary) !important;
-    }
-
-    .form-label {
-      font-size: 0.75rem !important;
-      font-weight: 700 !important;
-      color: var(--text-2) !important;
-    }
-
-    /* ── Buttons — pill style, consistent height ─────────────────── */
-    .btn {
-      border-radius: 999px !important;
-      padding: 8px 18px !important;
-      font-size: 0.82rem !important;
-      font-weight: 700 !important;
-      height: 36px !important;
-      letter-spacing: 0 !important;
-    }
-
-    .btn-sm {
-      height: 30px !important;
-      padding: 5px 14px !important;
-      font-size: 0.76rem !important;
-      border-radius: 999px !important;
-    }
-
-    .btn-icon {
-      width: 36px !important;
-      height: 36px !important;
-      padding: 0 !important;
-      border-radius: 8px !important;
-    }
-
-    /* ── Action icon buttons — subtle ghost style ─────────────── */
-    .act-btn {
-      width: 28px !important;
-      height: 28px !important;
-      border-radius: 8px !important;
-      font-size: 0.72rem !important;
-      opacity: 0.85 !important;
-    }
-
-    .act-btn:hover {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-
-    /* ── Badges — tighter ───────────────────────────────────────── */
-    .badge {
-      padding: 3px 10px !important;
-      font-size: 0.65rem !important;
-      font-weight: 700 !important;
-      border-radius: 999px !important;
-    }
-
-    /* ── Table ──────────────────────────────────────────────────── */
-    thead th {
-      background: var(--surface) !important;
-      font-size: 0.65rem !important;
-      padding: 10px 14px !important;
-      font-weight: 800 !important;
-      letter-spacing: 0.06em !important;
-    }
-
-    tbody td {
-      padding: 11px 14px !important;
-      font-size: 0.84rem !important;
-    }
-
-    /* ── Kid overview panel ─────────────────────────────────────── */
-    .kid-overview-box {
-      border-radius: 20px 20px 0 0 !important;
-      max-width: 560px !important;
-    }
-
-    /* ── Empty state ────────────────────────────────────────────── */
-    .empty-state {
-      padding: 48px 20px !important;
-    }
-
-    .empty-state i {
-      font-size: 2.5rem !important;
-      opacity: 0.12 !important;
-    }
-
-    /* ── Print settings form label grouping ─────────────────────── */
-    #printSettingsFormPanel .form-group {
-      margin-bottom: 4px !important;
-    }
-
-    /* ── Collaborator section ───────────────────────────────────── */
-    .trip-summary-hero + * .info-box,
-    .trip-folder-body .info-box {
-      transition: border-color 0.15s, box-shadow 0.15s !important;
-    }
-
-    .trip-folder-body .info-box:hover {
-      border-color: var(--border-2) !important;
-      box-shadow: var(--shadow-sm) !important;
-    }
-
-    /* ── Waitlist badge ─────────────────────────────────────────── */
-    .waitlist-badge {
-      border-radius: 8px !important;
-      width: 28px !important;
-      height: 28px !important;
-      font-size: 0.72rem !important;
-    }
-
-    /* ── Mobile adjustments ─────────────────────────────────────── */
-    @media (max-width: 768px) {
-      .trip-summary-hero {
-        grid-template-columns: 1fr !important;
-      }
-
-      .trip-summary-side {
-        flex-direction: row !important;
-        align-items: stretch !important;
-      }
-
-      .trip-summary-price {
-        flex: 1 !important;
-        min-width: 0 !important;
-      }
-
-      .trip-folder-body {
-        padding: 12px !important;
-      }
-
-      .trip-folder-header {
-        padding: 12px 16px !important;
-      }
-
-      .trip-actions-grid {
-        gap: 6px !important;
-      }
-
-      .trip-action-btn {
-        padding: 7px 12px !important;
-        font-size: 0.78rem !important;
-      }
-
-      .reg-row {
-        padding: 10px 14px !important;
-      }
-    }
-
-  </style>
-  </style>
-
-  <!-- Dashboard style overrides: apply brand tokens and component styles
-       from uncle/dashboard/index.php to modernize the trips UI while
-       preserving all existing IDs and JS hooks. -->
-  <style>
-    :root{
-      --brand: #5b6cf5;
-      --brand-dark: #4354e8;
-      --brand-light: #a5b0ff;
-      --brand-bg: #eef0ff;
-      --brand-glow: rgba(91,108,245,.18);
-
-      --primary: var(--brand);
-      --primary-dark: var(--brand-dark);
-      --primary-light: var(--brand-light);
-      --primary-glow: var(--brand-glow);
-
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --coupon: #8b5cf6;
-
-      --bg: #f3f4f9;
-      --surface: #ffffff;
-      --surface-2: #f7f8fc;
-      --border: rgba(91,108,245,.12);
-      --border-solid: #e4e6f0;
-      --text: #1a1d2e;
-      --text-2: #4b5068;
-      --text-3: #8b90a8;
-
-      --r-sm: 10px;
-      --r-md: 14px;
-      --r-lg: 18px;
-      --r-full: 9999px;
-
-      --shadow-sm: 0 2px 8px -2px rgba(0,0,0,.07);
-      --shadow-md: 0 8px 24px -4px rgba(0,0,0,.10);
-    }
-
-    /* Topbar modernization */
-    .topbar{background:var(--bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:0 18px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border)}
-    .topbar-title{font-weight:800;color:var(--text);font-size:0.98rem}
-    .topbar-breadcrumb{font-size:0.78rem;color:var(--text-3)}
-    .topbar-breadcrumb span{color:var(--primary);font-weight:700}
-
-    /* Page wrapper */
-    .page-wrap{max-width:1440px;margin:0 auto;padding:16px}
-
-    /* Stat tiles / cards */
-    .stat-tile{background:var(--surface);border-radius:var(--r-lg);padding:12px 14px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);transition:all .22s var(--ease)}
-    .stat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
-    .stat-tile-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem}
-    .stat-tile-icon.blue{background:var(--brand-bg);color:var(--brand)}
-    .stat-tile-val{font-size:1.2rem;font-weight:900;color:var(--text)}
-    .stat-tile-lbl{font-size:0.72rem;color:var(--text-3);font-weight:700}
-
-    /* Trip card */
-    .trip-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:all .22s var(--ease)}
-    .trip-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md)}
-    .trip-img{height:120px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--brand-bg), rgba(91,108,245,.06));}
-    .trip-body{padding:12px}
-
-    /* Buttons */
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-weight:700}
-    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:white;border-color:transparent;box-shadow:0 8px 24px rgba(91,108,245,.08)}
-    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-2)}
-    .btn-success{background:var(--success);color:white;border-color:transparent}
-    .btn-danger{background:var(--danger);color:white;border-color:transparent}
-
-    /* Trip action buttons grid */
-    .trip-actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
-    .trip-action-btn{background:var(--surface);border:1px solid var(--border);padding:9px 12px;border-radius:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-
-    /* Modal polish */
-    .modal{display:none;position:fixed;inset:0;z-index:1200;align-items:center;justify-content:center;padding:18px}
-    .modal.open{display:flex}
-    .modal .modal-box{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--shadow-md);max-width:980px;width:100%;padding:0;overflow:hidden}
-    .modal .modal-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .modal .modal-body{padding:14px}
-    .modal .modal-close{background:transparent;border:none;cursor:pointer;color:var(--text-3)}
-
-    /* Small helpers to keep alignment with dashboard look */
-    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:800;font-size:0.75rem}
-    .badge.badge-info{background:var(--info-light);color:var(--info)}
-    .badge.badge-success{background:var(--success);color:white}
-    .badge.badge-warning{background:var(--warning);color:white}
-
-    @media (min-width: 980px){
-      .page-wrap{padding:20px}
-    }
-
-    /* Desktop layout improvements: make modals wider and panels side-by-side
-       so print preview, registration and kid-picker appear next to settings
-       on larger screens. Keep fullscreen trip details unchanged. */
-    @media (min-width: 1000px) {
-      /* wider base modal */
-      .modal .modal-box { max-width: 1100px !important; }
-
-      /* Print modal: side-by-side preview + settings */
-      #printSettingsModal .modal-box,
-      .trip-shell-page #printSettingsModal .modal-box,
-      #printSettingsModal[data-shell-mounted="1"] .modal-box {
-        max-width: 1200px !important;
-        margin: 36px auto !important;
-        height: calc(100vh - 72px) !important;
-        border-radius: var(--r-lg) !important;
-      }
-
-      #printSettingsModal .modal-body,
-      .trip-shell-page #printSettingsModal .modal-body,
-      #printSettingsModal[data-shell-mounted="1"] .modal-body {
-        grid-template-columns: 420px 1fr !important;
-        gap: 18px !important;
-      }
-
-      /* Registration modal: ensure two-column layout on desktop */
-      #registerStudentModal .modal-box,
-      .trip-shell-page #registerStudentModal .modal-box,
-      #registerStudentModal[data-shell-mounted="1"] .modal-box {
-        max-width: 1100px !important;
-        height: auto !important;
-        min-height: 60vh !important;
-        border-radius: var(--r-lg) !important;
-        margin: 36px auto !important;
-      }
-
-      #registerStudentModal #registerStudentForm,
-      .trip-shell-page #registerStudentModal #registerStudentForm,
-      #registerStudentModal[data-shell-mounted="1"] #registerStudentForm {
-        grid-template-columns: 1fr 360px !important;
-        gap: 20px !important;
-      }
-
-      /* Main workspace: left content + right sidebar for settings/quick actions */
-      .trip-workspace {
-        display: grid !important;
-        grid-template-columns: 1fr 360px !important;
-        gap: 20px !important;
-        align-items: start;
-      }
-
-      .trip-folder-shell { width: 100%; }
-      .trip-folder-body { padding: 24px !important; }
-
-      /* Prefer rounded modal corners on desktop (except fullscreen trip details) */
-      .trip-details-fullscreen .modal-box { border-radius: 0 !important; }
-      .modal .modal-box { border-radius: var(--r-lg) !important; }
-
-      /* Give regs/waitlist/kid views more breathing room */
-      #tripRegsContent, #tripWaitlistContent, #tripInfoContent {
-        min-height: 380px;
-      }
-    }
   </style>
 </head>
 
 <body>
 
-  <!-- Trip Details — full screen, no landing screen -->
-  <div id="tripDetailsModal" class="modal trip-details-fullscreen" style="padding:0;">
+  <!-- Minimal trips page content (keeps the page self-contained) -->
+  <div class="main-wrapper">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn">☰</button>
+        <div>
+          <div class="topbar-title">إدارة الرحلة</div>
+          <div class="topbar-breadcrumb"><span>تفاصيل الرحلة</span></div>
+        </div>
+      </div>
+      <div class="topbar-right"></div>
+    </div>
+
+    <main class="main-content" style="display:none;"></main>
+  </div>
+
+  <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
+  <div id="tripDetailsModal" class="modal" style="padding:0;">
     <div class="modal-box"
       style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
       <div id="tdHeader"
@@ -5121,15 +3996,10 @@
         <div class="trip-workspace">
           <section class="trip-folder-shell">
             <div class="trip-folder-header">
-              <div class="topbar">
-                <div class="topbar-left">
-                  <div>
-                    <div class="trip-folder-breadcrumb topbar-breadcrumb" id="tripFolderBreadcrumb"></div>
-                    <h3 id="tripFolderTitle" class="topbar-title">الملخص</h3>
-                    <p id="tripFolderDesc" class="topbar-subtitle">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
-                  </div>
-                </div>
-                <div class="topbar-right" id="tripTopbarActions"></div>
+              <div>
+                <div class="trip-folder-breadcrumb" id="tripFolderBreadcrumb"></div>
+                <h3 id="tripFolderTitle">الملخص</h3>
+                <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
               </div>
             </div>
 
@@ -5730,8 +4600,8 @@
       const tripWordDef = trip.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
       
       // Dynamic DOM updates
-      const _ttl = document.querySelector('.topbar-title'); if (_ttl) _ttl.textContent = 'إدارة ' + tripWordDef;
-      const _tbc = document.querySelector('.topbar-breadcrumb span'); if (_tbc) _tbc.textContent = 'تفاصيل ' + tripWordDef;
+      document.querySelector('.topbar-title').textContent = 'إدارة ' + tripWordDef;
+      document.querySelector('.topbar-breadcrumb span').textContent = 'تفاصيل ' + tripWordDef;
       document.getElementById('tdModalTitle').textContent = 'تفاصيل ' + tripWordDef;
 
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
