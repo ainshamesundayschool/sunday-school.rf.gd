@@ -39,6 +39,21 @@ function safeBindParam($stmt, ...$params) {
     $stmt->bind_param($types, ...$params);
 }
 
+/**
+ * Ensures churches.church_type exists before handlers query or write it.
+ */
+function ensureChurchTypeColumn(mysqli $conn): void
+{
+    $check = $conn->query("SHOW COLUMNS FROM churches LIKE 'church_type'");
+    if ($check && $check->num_rows > 0) {
+        return;
+    }
+
+    if (!$conn->query("ALTER TABLE churches ADD COLUMN church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'")) {
+        throw new Exception('Failed to ensure church_type column: ' . $conn->error);
+    }
+}
+
 // ── Game / QR processing for trips ─────────────────────────
 function processGameQRCode()
 {
@@ -6826,6 +6841,8 @@ function deleteUncle()
         error_log("deleteUncle error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في حذف الخادم: ' . $e->getMessage()]);
     }
+
+}
 
 // ===== DEVELOPER: UPDATE CHURCH ADMIN EMAIL =====
 function updateChurchAdminEmail()
