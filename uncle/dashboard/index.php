@@ -8311,7 +8311,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
-                    style="position:relative;">
+                    style="position:relative;overflow:visible;">
                     <i class="fas fa-bell"></i>
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
@@ -8347,10 +8347,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
                         <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>

@@ -5681,12 +5681,15 @@ function updateChurch()
 
     try {
         $role = $_SESSION['uncle_role'] ?? 'uncle';
-
-        if ($role !== 'developer') {
-            sendJSON(['success' => false, 'message' => 'غير مصرح']);
-        }
-
         $churchId = intval($_POST['church_id'] ?? 0);
+
+        $isDeveloper = in_array(strtolower($role), ['developer', 'dev']);
+        $isChurchAdmin = ($role === 'admin' || (isset($_SESSION['church_id']) && intval($_SESSION['church_id']) === $churchId));
+
+        if (!$isDeveloper && !$isChurchAdmin) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+            return;
+        }
         $churchName = sanitize($_POST['church_name'] ?? '');
         $adminEmail = sanitize($_POST['admin_email'] ?? '');
         $churchType = in_array($_POST['church_type'] ?? '', ['kids', 'youth']) ? $_POST['church_type'] : 'kids';
