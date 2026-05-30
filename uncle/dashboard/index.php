@@ -10259,14 +10259,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             };
 
             document.getElementById('accountDisplayName').textContent = u.name || '';
-            // Compute honorific: prefer provided honorific, then gender-based honorific, fallback to role
-            const _gender = u.gender || localStorage.getItem('uncleGender') || '';
-            const honor = u.honorific || ((_gender === 'female') ? 'طنط' : 'انكل');
-            const roleText = (String(u.role || '').toLowerCase() === 'developer') ? 'مطوّر' : honor;
-            document.getElementById('accountDisplayRole').textContent = roleText || '';
+            document.getElementById('accountDisplayRole').textContent = u.role || '';
             document.getElementById('aiName').textContent = u.name || '';
             document.getElementById('aiUsername').textContent = u.username || '';
-            document.getElementById('aiRole').textContent = roleText || '';
+            document.getElementById('aiRole').textContent = u.role || '';
             document.getElementById('uncleProfileName').value = u.name || '';
             document.getElementById('uncleProfileUsername').value = u.username || '';
             document.getElementById('uncleProfileNewPassword').value = '';
@@ -10619,11 +10615,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         // Avoid recursive loops — mark as loading
                         _uncleAssignedClassesLoaded = true;
                         makeApiCall({ action: 'getCurrentUncle' }, r => {
-                                if (r.uncle && Array.isArray(r.uncle.classes) && r.uncle.classes.length) {
-                                    window.currentUncle = r.uncle;
-                                    try { localStorage.setItem('uncleAssignedClasses', JSON.stringify(r.uncle.classes.map(c => c.class_name || c.arabic_name || c))); } catch (e) { }
-                                    try { if (r.uncle.gender) localStorage.setItem('uncleGender', r.uncle.gender); } catch (e) { }
-                                    try { if (r.uncle.honorific) localStorage.setItem('uncleHonorific', r.uncle.honorific); } catch (e) { }
+                            if (r.uncle && Array.isArray(r.uncle.classes) && r.uncle.classes.length) {
+                                window.currentUncle = r.uncle;
+                                try { localStorage.setItem('uncleAssignedClasses', JSON.stringify(r.uncle.classes.map(c => c.class_name || c.arabic_name || c))); } catch (e) { }
                             }
                             // Re-run display after we've fetched assignments
                             displayClasses();
@@ -14345,8 +14339,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     localStorage.setItem('uncleName', r.uncle.name || '');
                     localStorage.setItem('uncleUsername', r.uncle.username || '');
                     localStorage.setItem('uncleRole', r.uncle.role || '');
-                    try { if (r.uncle.gender) localStorage.setItem('uncleGender', r.uncle.gender); } catch (e) { }
-                    try { if (r.uncle.honorific) localStorage.setItem('uncleHonorific', r.uncle.honorific); } catch (e) { }
                     const chip = document.getElementById('uncleChip');
                     if (chip) chip.style.display = 'flex';
                     // Update hero greeting with fresh name from DB

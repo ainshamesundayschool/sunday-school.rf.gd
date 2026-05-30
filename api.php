@@ -6295,13 +6295,6 @@ function handleUncleLogin()
 
             $stmt = $conn->prepare("
                 SELECT u.id, u.church_id, u.name, u.username, u.password_hash,
-                       u.image_url, u.role, u.gender, c.church_name, c.church_code,
-                       COALESCE(c.church_type, 'kids') AS church_type
-                FROM uncles u
-                LEFT JOIN churches c ON u.church_id = c.id
-                WHERE u.username = ?
-            ");
-                SELECT u.id, u.church_id, u.name, u.username, u.password_hash,
                        u.image_url, u.role, c.church_name, c.church_code,
                        COALESCE(c.church_type, 'kids') AS church_type
                 FROM uncles u
@@ -6322,12 +6315,10 @@ function handleUncleLogin()
                 $_SESSION['uncle_username'] = $row['username'];
                 $_SESSION['uncle_image'] = $row['image_url'];
                 $_SESSION['uncle_role'] = $row['role'];
-                $_SESSION['uncle_gender'] = $row['gender'] ?? 'male';
 
                 auditLogin('uncle', $row['id'], $row['name']);
                 runBackgroundGradeUpChecks();
 
-                $hon = (isset($row['gender']) && strtolower($row['gender']) === 'female') ? 'طنط' : 'انكل';
                 sendJSON([
                     'success' => true,
                     'message' => 'تم تسجيل الدخول بنجاح',
@@ -6336,9 +6327,7 @@ function handleUncleLogin()
                         'name' => $row['name'],
                         'username' => $row['username'],
                         'image_url' => $row['image_url'],
-                        'role' => $row['role'],
-                        'gender' => $row['gender'] ?? 'male',
-                        'honorific' => $hon
+                        'role' => $row['role']
                     ],
                     'church_name' => $row['church_name'],
                     'church_type' => $row['church_type'],
@@ -6371,18 +6360,17 @@ function getCurrentUncle()
     // Always fetch fresh data from DB so image_url / name reflect latest edits
     try {
         $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT id, name, username, image_url, role, gender FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, username, image_url, role FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
         $stmt->bind_param("i", $uncleId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
 
-            if ($row) {
+        if ($row) {
             // Sync session with fresh DB values
             $_SESSION['uncle_name'] = $row['name'];
             $_SESSION['uncle_username'] = $row['username'];
             $_SESSION['uncle_image'] = $row['image_url'];
             $_SESSION['uncle_role'] = $row['role'];
-                $_SESSION['uncle_gender'] = $row['gender'] ?? 'male';
 
             // Also include assigned classes for this uncle (if any)
             $assignedClasses = [];
@@ -6392,7 +6380,6 @@ function getCurrentUncle()
                 error_log("getCurrentUncle - failed to load assigned classes: " . $e->getMessage());
             }
 
-            $hon = (isset($row['gender']) && strtolower($row['gender']) === 'female') ? 'طنط' : 'انكل';
             sendJSON([
                 'success' => true,
                 'uncle' => [
@@ -6401,8 +6388,6 @@ function getCurrentUncle()
                     'username' => $row['username'],
                     'image_url' => $row['image_url'] ?? '',
                     'role' => $row['role'] ?? 'uncle',
-                    'gender' => $row['gender'] ?? 'male',
-                    'honorific' => $hon,
                     'classes' => $assignedClasses
                 ]
             ]);
@@ -6415,8 +6400,6 @@ function getCurrentUncle()
                 } catch (Exception $e) {
                 }
             }
-            $g = $_SESSION['uncle_gender'] ?? 'male';
-            $hon = (strtolower($g) === 'female') ? 'طنط' : 'انكل';
             sendJSON([
                 'success' => true,
                 'uncle' => [
@@ -6425,8 +6408,6 @@ function getCurrentUncle()
                     'username' => $_SESSION['uncle_username'] ?? '',
                     'image_url' => $_SESSION['uncle_image'] ?? '',
                     'role' => $_SESSION['uncle_role'] ?? 'uncle',
-                    'gender' => $g,
-                    'honorific' => $hon,
                     'classes' => $fallbackClasses
                 ]
             ]);
@@ -13334,8 +13315,6 @@ function getSessionInfo()
         'role' => $uncleRole,
         'login_type' => $loginType,
         'loginType' => $loginType,
-        'uncle_gender' => $_SESSION['uncle_gender'] ?? '',
-        'uncle_honorific' => (isset($_SESSION['uncle_gender']) && strtolower($_SESSION['uncle_gender']) === 'female') ? 'طنط' : ((isset($_SESSION['uncle_gender']) && $_SESSION['uncle_gender'] !== '') ? 'انكل' : ''),
     ]);
 }
 // Handle different actions
@@ -13975,18 +13954,6 @@ function getClassUncles()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
         $stmt = $conn->prepare("
-        SELECT u.id, u.name, u.image_url, u.role, u.username, u.gender
-        FROM uncle_class_assignments a
-        JOIN uncles u ON a.uncle_id = u.id
-        WHERE a.church_id = ? AND a.class_name = ?
-          AND (u.deleted IS NULL OR u.deleted = 0)
-        ORDER BY
-        CASE u.role
-            WHEN 'admin' THEN 1
-            WHEN 'developer' THEN 2
-            ELSE 3
-        END, u.name
-    ");
             SELECT u.id, u.name, u.image_url, u.role, u.username
             FROM uncle_class_assignments a
             JOIN uncles u ON a.uncle_id = u.id
@@ -14002,10 +13969,7 @@ function getClassUncles()
         $stmt->bind_param("is", $churchId, $className);
         $stmt->execute();
         $uncles = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        foreach ($uncles as &$u) {
-            $g = $u['gender'] ?? 'male';
-            $u['honorific'] = (strtolower($g) === 'female') ? 'طنط' : 'انكل';
-        }
+
         sendJSON(['success' => true, 'uncles' => $uncles]);
 
     } catch (Exception $e) {
@@ -17318,13 +17282,6 @@ function getPublicClassUncles()
         }
 
         $stmt = $conn->prepare("
-        SELECT u.id, u.name, u.image_url, u.role, u.phone, u.gender
-        FROM uncle_class_assignments a
-        JOIN uncles u ON a.uncle_id = u.id
-        WHERE a.church_id = ? AND a.class_name = ?
-          AND (u.deleted IS NULL OR u.deleted = 0)
-        ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'developer' THEN 2 ELSE 3 END, u.name
-    ");
             SELECT u.id, u.name, u.image_url, u.role, u.phone
             FROM uncle_class_assignments a
             JOIN uncles u ON a.uncle_id = u.id
@@ -17335,11 +17292,6 @@ function getPublicClassUncles()
         $stmt->bind_param('is', $churchId, $className);
         $stmt->execute();
         $uncles = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        // add honorific
-        foreach ($uncles as &$u) {
-            $g = $u['gender'] ?? 'male';
-            $u['honorific'] = (strtolower($g) === 'female') ? 'طنط' : 'انكل';
-        }
         sendJSON(['success' => true, 'uncles' => $uncles, 'resolved_class_name' => $className]);
     } catch (Exception $e) {
         sendJSON(['success' => true, 'uncles' => []]);
