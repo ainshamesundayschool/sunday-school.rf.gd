@@ -6083,9 +6083,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
           if (qType === 'open') {
             const openScore = openScores[qId] !== undefined ? openScores[qId] : (openScores[q.id] !== undefined ? openScores[q.id] : null);
-            const openScoreHtml = openScore !== null
-              ? `<div style="margin-top:8px;font-size:.75rem;color:var(--ok);font-weight:700;"><i class="fas fa-check-circle"></i> درجتك: ${openScore} من ${q.degree || 1}</div>`
-              : `<div style="margin-top:8px;font-size:.75rem;color:var(--warn);font-weight:700;"><i class="fas fa-clock"></i> في انتظار التصحيح</div>`;
+            let openScoreHtml;
+            if (openScore !== null) {
+              const deg = q.degree || 1;
+              const pct = Math.round((openScore / deg) * 100);
+              let colorVar = 'var(--ok)';
+              // Color bands: high -> green, mid -> orange, low -> yellow
+              if (pct >= 80) colorVar = 'var(--ok)';
+              else if (pct >= 50) colorVar = 'var(--warn-l)';
+              else colorVar = 'var(--gold-l)';
+              openScoreHtml = `<div style="margin-top:8px;font-size:.75rem;color:${colorVar};font-weight:700;"><i class="fas fa-check-circle"></i> درجتك: ${openScore} من ${deg}</div>`;
+            } else {
+              openScoreHtml = `<div style="margin-top:8px;font-size:.75rem;color:var(--warn);font-weight:700;"><i class="fas fa-clock"></i> في انتظار التصحيح</div>`;
+            }
             html += `<div style="background:var(--s2);padding:15px;border-radius:var(--r-sm);border:1.5px solid var(--bdr);">
           <div style="font-size:.7rem;color:var(--t3);margin-bottom:6px;font-weight:700;">إجابتك المسجلة:</div>
           <div style="color:var(--t2);font-size:.9rem;white-space:pre-wrap;line-height:1.6;">${esc(given !== undefined ? String(given) : '— لم تُجب على هذا السؤال —')}</div>
