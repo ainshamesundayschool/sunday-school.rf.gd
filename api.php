@@ -3839,7 +3839,7 @@ function updateCoupons()
 
             // Search by student name and church_id only (no class JOIN that might fail)
             $stmt = $conn->prepare("
-                SELECT id, attendance_coupons, task_coupons
+                SELECT id, coupons, attendance_coupons, task_coupons
                 FROM students 
                 WHERE church_id = ? AND name = ?
             ");
@@ -3849,6 +3849,7 @@ function updateCoupons()
 
             if ($row = $result->fetch_assoc()) {
                 $studentId = $row['id'];
+                $oldTotal = intval($row['coupons']);
                 $attendanceCoupons = intval($row['attendance_coupons']);
                 $taskCoupons = intval($row['task_coupons'] ?? 0);
                 $totalCoupons = $attendanceCoupons + $coupons + $taskCoupons;
@@ -3864,6 +3865,8 @@ function updateCoupons()
 
                 if ($updateStmt->execute()) {
                     error_log("✅ Updated $studentName: commitment=$coupons, total=$totalCoupons");
+                    // ► AUDIT
+                    auditCouponChange($studentId, $studentName, $oldTotal, $totalCoupons, 'تعديل دفعة (التزام)');
                     $successCount++;
                 } else {
                     error_log("❌ Failed to update $studentName: " . $updateStmt->error);
@@ -8310,7 +8313,7 @@ function updateCouponsKids()
 
         // Get current coupons to calculate attendance_coupons
         $currentStmt = $conn->prepare("
-            SELECT coupons, attendance_coupons, commitment_coupons, task_coupons
+            SELECT name, coupons, attendance_coupons, commitment_coupons, task_coupons
             FROM students 
             WHERE id = ?
         ");
@@ -8345,6 +8348,9 @@ function updateCouponsKids()
                 $changeAmount = $coupons - $oldCount;
                 $logStmt->bind_param("iiiii", $studentId, $uncleId, $oldCount, $coupons, $changeAmount);
                 $logStmt->execute();
+
+                // ► AUDIT
+                auditCouponChange($studentId, $student['name'] ?? '', $oldCount, $coupons, 'تعديل يدوي');
 
                 sendJSON(['success' => true, 'message' => 'تم تحديث الكوبونات بنجاح']);
             } else {
@@ -16204,7 +16210,7 @@ function deleteSubmission()
         $awarded = (int) $sub['coupons_awarded'];
         $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
         if ($awarded > 0) {
-            $stuStmt = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+            $stuStmt = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
             $stuStmt->bind_param('i', $sub['student_id']);
             $stuStmt->execute();
             $stu = $stuStmt->get_result()->fetch_assoc();
@@ -16218,6 +16224,9 @@ function deleteSubmission()
                 $logStmt = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
                 $logStmt->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
                 $logStmt->execute();
+
+                // ► AUDIT
+                auditCouponChange($sub['student_id'], $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
             }
         }
 
@@ -16396,7 +16405,7 @@ function updateTask()
 
             // Apply coupon diff to student
             if ($couponDiff !== 0) {
-                $stuQ2 = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+                $stuQ2 = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
                 $stuQ2->bind_param('i', $sub['student_id']);
                 $stuQ2->execute();
                 $stu2 = $stuQ2->get_result()->fetch_assoc();
@@ -16409,6 +16418,9 @@ function updateTask()
                     $log2 = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
                     $log2->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu2['task_coupons'], $newTask2, $couponDiff, $reason2);
                     $log2->execute();
+
+                    // ► AUDIT
+                    auditCouponChange($sub['student_id'], $stu2['name'] ?? '', (int) $stu2['coupons'], $newTotal2, $reason2);
                 }
             }
         }
@@ -16473,7 +16485,7 @@ function deleteTask()
 
             if ($reverseCoupons) {
                 // Withdraw the coupons from the student
-                $stuQ = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+                $stuQ = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
                 $stuQ->bind_param('i', $subRow['student_id']);
                 $stuQ->execute();
                 $stu = $stuQ->get_result()->fetch_assoc();
@@ -16487,6 +16499,9 @@ function deleteTask()
                     $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
                     $log->bind_param('iiiiss', $subRow['student_id'], $uncleId, $stu['task_coupons'], $newTask, $negAwarded, $reason);
                     $log->execute();
+
+                    // ► AUDIT
+                    auditCouponChange($subRow['student_id'], $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
                 }
             } else {
                 // Keep the coupons — just log that the task was removed but coupons were retained
@@ -16824,7 +16839,7 @@ function submitTaskAnswers()
 
         // Award coupons — update task_coupons AND recalculate total coupons
         if ($coupons > 0) {
-            $cur = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+            $cur = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
             $cur->bind_param('i', $studentId);
             $cur->execute();
             $stu = $cur->get_result()->fetch_assoc();
@@ -16845,6 +16860,9 @@ function submitTaskAnswers()
             $reason = "مهمة #{$taskId}: {$task['title']}";
             $log->bind_param('iiiis', $studentId, $stu['task_coupons'], $newTask, $coupons, $reason);
             $log->execute();
+
+            // ► AUDIT
+            auditCouponChange($studentId, $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
         }
 
         $conn->commit();
@@ -17970,7 +17988,7 @@ function gradeOpenAnswer()
 
         // Apply coupon diff to task_coupons AND recalculate total coupons
         if ($couponDiff !== 0) {
-            $stuStmt = $conn->prepare("SELECT task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+            $stuStmt = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
             $stuStmt->bind_param('i', $sub['student_id']);
             $stuStmt->execute();
             $stu = $stuStmt->get_result()->fetch_assoc();
@@ -17984,6 +18002,9 @@ function gradeOpenAnswer()
                 $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
                 $log->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu['task_coupons'], $newTask, $couponDiff, $reason);
                 $log->execute();
+
+                // ► AUDIT
+                auditCouponChange($sub['student_id'], $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
             }
         }
 
