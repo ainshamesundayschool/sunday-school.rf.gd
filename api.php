@@ -1901,7 +1901,7 @@ try {
                 $row = null;
                 try {
                     $conn = getDBConnection();
-                    $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+                    ensureChurchTypeColumn($conn);
                     $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ?");
                     $stmt->bind_param("s", $church_code);
                     $stmt->execute();
@@ -1933,7 +1933,7 @@ try {
                 $row = null;
                 try {
                     $conn = getDBConnection();
-                    $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+                    ensureChurchTypeColumn($conn);
                     $stmt = $conn->prepare("
                 SELECT u.id, u.name, u.username, u.role, u.church_id,
                        c.church_name, c.church_code,
@@ -2248,7 +2248,7 @@ function handleLogin()
 
         try {
             $conn = getDBConnection();
-            $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+            ensureChurchTypeColumn($conn);
             $stmt = $conn->prepare("SELECT id, church_name, password_hash, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ?");
             $stmt->bind_param("s", $churchCode);
             $stmt->execute();
@@ -4843,7 +4843,7 @@ function handleAutoLogin()
         $conn = getDBConnection();
 
         // Ensure church_type column exists
-        $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+        ensureChurchTypeColumn($conn);
 
         if (!empty($churchCode)) {
             $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ? LIMIT 1");
@@ -5546,7 +5546,7 @@ function addChurch()
 
         // Ensure church_type column exists (safe for both DBs)
         // ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids';
-        $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+        ensureChurchTypeColumn($conn);
 
         // Check if church code already exists
         $checkStmt = $conn->prepare("SELECT id FROM churches WHERE church_code = ?");
@@ -5608,7 +5608,7 @@ function getAllChurchesForAdmin()
         // Query helper — runs against one connection and appends to $churches
         $fetchFrom = function (mysqli $conn, string $dbLabel) use (&$churches) {
             // Ensure church_type column exists on this DB
-            $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+            ensureChurchTypeColumn($conn);
 
             $stmt = $conn->prepare("
                 SELECT 
@@ -5670,7 +5670,7 @@ function updateChurch()
         $conn = getDBConnection();
 
         // Ensure column exists
-        $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+        ensureChurchTypeColumn($conn);
 
         $stmt = $conn->prepare("UPDATE churches SET church_name = ?, admin_email = ?, church_type = ? WHERE id = ?");
         $stmt->bind_param("sssi", $churchName, $adminEmail, $churchType, $churchId);
@@ -6260,7 +6260,7 @@ function handleUncleLogin()
 
         try {
             $conn = getDBConnection();
-            $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+            ensureChurchTypeColumn($conn);
 
             $stmt = $conn->prepare("
                 SELECT u.id, u.church_id, u.name, u.username, u.password_hash,
@@ -13231,7 +13231,7 @@ function getSessionInfo()
         try {
             $conn = getDBConnection();
             // Ensure column exists
-            $conn->query("ALTER TABLE churches ADD COLUMN IF NOT EXISTS church_type ENUM('kids','youth') NOT NULL DEFAULT 'kids'");
+            ensureChurchTypeColumn($conn);
             $stmt = $conn->prepare("SELECT church_name, church_code, admin_email, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ?");
             $stmt->bind_param("i", $churchId);
             $stmt->execute();

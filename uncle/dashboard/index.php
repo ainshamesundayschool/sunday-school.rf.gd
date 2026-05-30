@@ -315,7 +315,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).catch(function () { });
         })();
     </script>
-    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="manifest" href="/manifest.json">
 
     <!-- ── Preconnect to font origins so DNS+TLS is ready before CSS fires ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

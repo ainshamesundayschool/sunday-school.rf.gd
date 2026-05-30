@@ -1,7 +1,7 @@
 {
   "name": "Sunday School",
   "short_name": "Sunday School",
-  "description": "نظام إدارة مدارس الأحد — الحضور والكوبونات",
+  "description": "Sunday School management system",
   "start_url": "/uncle/dashboard/",
   "scope": "/",
   "display": "standalone",
