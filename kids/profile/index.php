@@ -6052,6 +6052,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const correctMap = sub.correct_answers || {};
       // open_scores: map of {qId: score} for open questions graded by uncle
       const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores || '{}') : (sub.open_scores || {});
+      // correction_notes: map of {qId: noteText} for questions graded by uncle
+      const corrNotes = typeof sub.correction_notes === 'string' ? JSON.parse(sub.correction_notes || '{}') : (sub.correction_notes || {});
 
       let html = `<div style="padding:20px;max-height:75vh;overflow-y:auto;background:var(--bg);">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:15px;background:#fff;border-radius:var(--r-md);box-shadow:var(--sh-sm);">
@@ -6139,6 +6141,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               html += `<div style="margin-top:8px;font-size:.75rem;color:var(--t4);font-weight:700;"><i class="fas fa-minus-circle"></i> لم تُجب على هذا السؤال</div>`;
             }
           }
+
+          // Show correction note if present
+          const note = corrNotes[qId] !== undefined ? corrNotes[qId] : (corrNotes[q.id] !== undefined ? corrNotes[q.id] : null);
+          if (note && note.trim()) {
+            html += `<div style="margin-top:12px;display:flex;gap:10px;padding:12px;background:#fffbeb;border:1.5px solid #fef3c7;border-radius:var(--r-sm);color:#92400e;align-items:flex-start;text-align:right;direction:rtl;">
+              <div style="width:30px;height:30px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;color:#b45309;font-size:1rem;flex-shrink:0;"><i class="fas fa-comment-dots"></i></div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:.76rem;margin-bottom:2px;color:#b45309;">توضيح الأنكل / الإجابة الصحيحة:</div>
+                <div style="font-size:.84rem;line-height:1.5;white-space:pre-wrap;">${esc(note)}</div>
+              </div>
+            </div>`;
+          }
+
           html += `</div>`;
         });
       }

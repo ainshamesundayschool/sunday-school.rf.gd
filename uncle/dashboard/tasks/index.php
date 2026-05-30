@@ -468,6 +468,14 @@ a{font-family:'Cairo',sans-serif;}
 .grade-save-btn{display:block;width:100%;margin-top:14px;padding:12px;background:var(--brand);color:#fff;border:none;border-radius:var(--r-full);font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--fast);}
 .grade-save-btn:hover{background:var(--brand-d);}
 .pending-badge{display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#dc2626;border-radius:var(--r-full);padding:2px 9px;font-size:.7rem;font-weight:700;}
+/* Correction note input in grading panel */
+.grade-note-row{display:flex;align-items:flex-start;gap:8px;margin-top:8px;padding:9px 11px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:var(--r-sm);}
+.grade-note-row i{color:#d97706;font-size:.82rem;margin-top:5px;flex-shrink:0;}
+.grade-note-row .gn-wrap{flex:1;display:flex;flex-direction:column;gap:3px;}
+.grade-note-row .gn-lbl{font-size:.68rem;font-weight:700;color:#92400e;}
+.grade-note-inp{width:100%;padding:7px 10px;border:1.5px solid #fde68a;border-radius:var(--r-sm);font-family:'Cairo',sans-serif;font-size:.78rem;color:var(--t1);background:#fff;outline:none;resize:vertical;min-height:36px;max-height:120px;transition:border-color var(--fast);}
+.grade-note-inp:focus{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.12);}
+.grade-note-inp::placeholder{color:#d4a373;font-size:.74rem;}
 
 /* ── Image source tabs ── */
 .q-img-tabs{display:flex;gap:0;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--bdr);background:var(--bg2);margin-bottom:8px;}
@@ -1858,6 +1866,16 @@ function renderGradePanel() {
       const qId = String(q.id);
       const imgH = q.image_url ? `<div style="margin:4px 0 8px;border-radius:8px;overflow:hidden;border:1px solid var(--bdr);"><img src="${q.image_url}" alt="" style="width:100%;max-height:160px;object-fit:contain;display:block;background:#f8fafc;"></div>` : '';
 
+      // Note textarea HTML — shown for every question type
+      const noteId = `gn_${sub.id}_${q.id}`;
+      const buildNoteHtml = (placeholder) => `<div class="grade-note-row">
+        <i class="fas fa-comment-dots"></i>
+        <div class="gn-wrap">
+          <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+          <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}"></textarea>
+        </div>
+      </div>`;
+
       if(qtype === 'open'){
         const ans = answers[qId] !== undefined ? String(answers[qId]) : '';
         return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
@@ -1874,6 +1892,7 @@ function renderGradePanel() {
               oninput="clampGradeInput(this);updateSubScore(${sub.id})">
             <span class="grade-max-lbl">/ ${q.degree}</span>
           </div>
+          ${buildNoteHtml('اكتب ملاحظة أو الإجابة الصحيحة للطفل…')}
         </div>`;
       }
 
@@ -1891,6 +1910,9 @@ function renderGradePanel() {
 
       if(qtype === 'tf') {
         const opts = ['صحيح','خطأ'];
+        // Pre-populate note suggestion for wrong TF answers
+        const tfNotePlaceholder = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
+        const tfNoteDefault = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : '';
         return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
             <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
@@ -1911,11 +1933,21 @@ function renderGradePanel() {
               </div>`;
             }).join('')}
           </div>
+          <div class="grade-note-row">
+            <i class="fas fa-comment-dots"></i>
+            <div class="gn-wrap">
+              <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+              <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${tfNotePlaceholder}">${tfNoteDefault}</textarea>
+            </div>
+          </div>
         </div>`;
       }
 
       // MCQ
       const opts = typeof q.options==='string' ? JSON.parse(q.options) : (q.options||[]);
+      // Pre-populate note suggestion for wrong MCQ answers
+      const mcqNotePlaceholder = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
+      const mcqNoteDefault = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : '';
       return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
           <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
@@ -1936,6 +1968,13 @@ function renderGradePanel() {
             ${isCorr&&!isSel?'<i class="fas fa-check" style="margin-right:auto;color:var(--ok);"></i>':''}
           </div>`;
         }).join('')}
+        <div class="grade-note-row">
+          <i class="fas fa-comment-dots"></i>
+          <div class="gn-wrap">
+            <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+            <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${mcqNotePlaceholder}">${mcqNoteDefault}</textarea>
+          </div>
+        </div>
       </div>`;
     }).join('');
 
@@ -1992,10 +2031,18 @@ async function submitGrade(subId, subIdx) {
   document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
     scores[inp.dataset.qid] = parseInt(inp.value)||0;
   });
+  const notes = {};
+  document.querySelectorAll(`.grade-note-inp[data-sub="${subId}"]`).forEach(ta => {
+    if(ta.value.trim()) notes[ta.dataset.qid] = ta.value.trim();
+  });
   const btn = document.querySelector(`#gradecard_${subId} .grade-save-btn`);
   const orig = btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…';
   try {
-    const d = await api('gradeOpenAnswer', {submission_id: subId, scores: JSON.stringify(scores)});
+    const d = await api('gradeOpenAnswer', {
+      submission_id: subId,
+      scores: JSON.stringify(scores),
+      notes: JSON.stringify(notes)
+    });
     if(d.success){
       // coupon_diff = change in task_coupons (positive = added, negative = removed, 0 = no change)
       let couponMsg = '';

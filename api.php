@@ -16709,12 +16709,13 @@ function getStudentTasks()
                 // so both the kid view and uncle review can highlight right/wrong answers
                 if (!empty($t['show_answers'])) {
                     // Fetch full answers blob from DB (not in $sSel yet)
-                    $ansStmt = $conn->prepare("SELECT answers, open_scores FROM task_submissions WHERE id=? LIMIT 1");
+                    $ansStmt = $conn->prepare("SELECT answers, open_scores, correction_notes FROM task_submissions WHERE id=? LIMIT 1");
                     $ansStmt->bind_param('i', $subRow['id']);
                     $ansStmt->execute();
                     $ansRow = $ansStmt->get_result()->fetch_assoc();
                     $mySubmission['answers'] = $ansRow ? json_decode($ansRow['answers'] ?? '{}', true) : [];
                     $mySubmission['open_scores'] = $ansRow ? json_decode($ansRow['open_scores'] ?? '{}', true) : [];
+                    $mySubmission['correction_notes'] = $ansRow ? json_decode($ansRow['correction_notes'] ?? '{}', true) : [];
 
                     // Also attach correct answers for each question so frontend can color-code
                     $correctMap = [];
@@ -17884,6 +17885,7 @@ function gradeOpenAnswer()
         $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
         $subId = (int) ($_POST['submission_id'] ?? 0);
         $scoresJson = $_POST['scores'] ?? '{}'; // {question_id: score}
+        $notesJson = $_POST['notes'] ?? '{}'; // {question_id: "note text"}
 
         if (!$subId) {
             sendJSON(['success' => false, 'message' => 'submission_id مطلوب']);
@@ -17897,8 +17899,12 @@ function gradeOpenAnswer()
         $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS coupons_awarded INT NOT NULL DEFAULT 0");
         $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_by_uncle_id INT DEFAULT NULL");
         $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_at DATETIME DEFAULT NULL");
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS correction_notes LONGTEXT DEFAULT NULL");
 
         $scores = json_decode($scoresJson, true) ?: [];
+        $notes = json_decode($notesJson, true) ?: [];
+        // Filter out empty notes
+        $notes = array_filter($notes, function($v) { return is_string($v) && trim($v) !== ''; });
 
         // Load submission + task
         $subStmt = $conn->prepare("SELECT ts.*, t.total_degree, t.coupon_matrix, t.class_id FROM task_submissions ts JOIN tasks t ON t.id=ts.task_id WHERE ts.id=? AND ts.church_id=?");
@@ -17953,8 +17959,9 @@ function gradeOpenAnswer()
 
         // Update submission with full recalculated score (replaces old score entirely)
         $openJson = json_encode($scores, JSON_UNESCAPED_UNICODE);
-        $upd = $conn->prepare("UPDATE task_submissions SET score=?, open_scores=?, coupons_awarded=?, is_graded=1, graded_by_uncle_id=?, graded_at=NOW() WHERE id=?");
-        $upd->bind_param('isiii', $totalScore, $openJson, $coupons, $uncleId, $subId);
+        $corrNotesJson = !empty($notes) ? json_encode($notes, JSON_UNESCAPED_UNICODE) : null;
+        $upd = $conn->prepare("UPDATE task_submissions SET score=?, open_scores=?, correction_notes=?, coupons_awarded=?, is_graded=1, graded_by_uncle_id=?, graded_at=NOW() WHERE id=?");
+        $upd->bind_param('issiii', $totalScore, $openJson, $corrNotesJson, $coupons, $uncleId, $subId);
         $upd->execute();
 
         // Apply coupon diff to task_coupons AND recalculate total coupons
