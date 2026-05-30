@@ -172,7 +172,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
         : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
     $ogImage = 'https://sunday-school.rf.gd/imgs/Thumbnail-300x.png';
-    $ogUrl = 'https://sunday-school.rf.gd/';
+    $ogUrl = 'https://sunday-school.rf.gd/uncle/dashboard/';
     ?>
 
     <!-- ── Font-ready guard: hide body until Cairo is loaded (or 300ms max).
@@ -215,7 +215,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <meta property="og:locale" content="ar_AR">
 
     <!-- ═══ Twitter / X Card ═══ -->
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?php echo htmlspecialchars($ogTitle); ?>">
     <meta name="twitter:description" content="<?php echo htmlspecialchars($ogDescription); ?>">
     <meta name="twitter:image" content="<?php echo $ogImage; ?>">

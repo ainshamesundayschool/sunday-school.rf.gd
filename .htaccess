@@ -35,14 +35,11 @@ RewriteRule ^ - [L]
 # Redirect to homepage if root is accessed
 RewriteRule ^$ /index.html [L]
 
-# Redirect /kids to kids.html
-RewriteRule ^kids/?$ /kids.html [L]
+# Redirect /kids to the actual directory entry point
+RewriteRule ^kids/?$ /kids/index.html [L,QSA]
 
-# Fix 3: Add QSA flag to preserve existing query strings
-RewriteRule ^kids/?$ /kids.html [L,QSA]
-
-# Redirect /login to login.html
-RewriteRule ^login/?$ /login.html [L,QSA]
+# Redirect /login to the actual directory entry point
+RewriteRule ^login/?$ /login/index.html [L,QSA]
 
 # Handle /uncle/dashboard
 RewriteRule ^uncle/dashboard/?$ /uncle/dashboard/index.php [L,QSA]
