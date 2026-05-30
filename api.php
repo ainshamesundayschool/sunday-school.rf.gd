@@ -4187,23 +4187,23 @@ function updateStudentImage()
         error_log("updateStudentImage error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في تحديث صورة الطفل']);
     }
-                text as 'النص', 
-                link as 'الرابط', 
-                class as 'الفصل', 
-                student_names as 'أسماء الأطفال', 
-                is_active as 'منشط',
-                DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as 'تاريخ الإضافة'
-            FROM announcements 
-            WHERE church_id = ?
-            ORDER BY created_at DESC
-        ");
+}
+
+// ===== GET ALL ANNOUNCEMENTS =====
+function getAllAnnouncements()
+{
+    try {
+        $churchId = getChurchId();
+        $cairoTimeZone = '+02:00';
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("\n            SELECT id, type, text as 'النص', link as 'الرابط', class as 'الفصل', student_names as 'أسماء الأطفال', is_active as 'منشط',\n            DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as 'تاريخ الإضافة'\n            FROM announcements \n            WHERE church_id = ?\n            ORDER BY created_at DESC\n        ");
         $stmt->bind_param("si", $cairoTimeZone, $churchId);
         $stmt->execute();
         $result = $stmt->get_result();
 
         $announcements = [];
         while ($row = $result->fetch_assoc()) {
-            // Replace AM/PM with Arabic equivalents
             if (!empty($row['تاريخ الإضافة'])) {
                 $row['تاريخ الإضافة'] = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $row['تاريخ الإضافة']);
             }
@@ -6824,7 +6824,9 @@ function deleteUncle()
 
     } catch (Exception $e) {
         error_log("deleteUncle error: " . $e->getMessage());
-        
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف الخادم: ' . $e->getMessage()]);
+    }
+
 // ===== DEVELOPER: UPDATE CHURCH ADMIN EMAIL =====
 function updateChurchAdminEmail()
 {
