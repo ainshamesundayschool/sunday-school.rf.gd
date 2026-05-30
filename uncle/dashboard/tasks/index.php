@@ -1494,7 +1494,7 @@ function addTier(from=50,to=100,coupons=3){
     <div class="ctier-del" onclick="this.closest('.ctier').remove()"><i class="fas fa-times"></i></div>`;
   document.getElementById('ctierList').appendChild(div);
 }
-function initTiers(){document.getElementById('ctierList').innerHTML='';addTier(0,49,0);addTier(50,69,30);addTier(70,84,60);addTier(85,94,80);addTier(95,100,100);} 
+function initTiers(){document.getElementById('ctierList').innerHTML='';addTier(0,49,0);addTier(50,69,10);addTier(70,84,30);addTier(85,94,50);addTier(95,100,100);}
 
 // ─── Assign-to ───────────────────────────────────────────────────
 function onAssignChange(){
