@@ -11353,7 +11353,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const records = [];
             changedCouponStudents.forEach(id => {
                 const s = sourceList.find(s => getStudentId(s) === id);
-                if (s) records.push({ studentName: s['الاسم'].trim(), coupons: (parseInt(s['كوبونات الالتزام'] || 0)) + (parseInt(couponData[id] || 0)) });
+                if (s) records.push({ studentName: s['الاسم'].trim(), coupons: Math.max(0, (parseInt(s['كوبونات الالتزام'] || 0)) + (parseInt(couponData[id] || 0))) });
             });
             makeApiCall({ action: 'updateCoupons', className: currentClass, couponData: JSON.stringify(records) }, d => {
                 if (d.offline) {

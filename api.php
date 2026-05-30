@@ -3133,7 +3133,7 @@ function addStudent()
         $emergencyPhone = $_POST['emergency_phone'] ?? '';
         $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
         $birthday = sanitize($_POST['birthday'] ?? '');
-        $coupons = isset($_POST['coupons']) ? intval($_POST['coupons']) : 0;
+        $coupons = max(0, isset($_POST['coupons']) ? intval($_POST['coupons']) : 0);
 
         error_log("addStudent called:");
         error_log("Church ID: $churchId");
@@ -3454,7 +3454,7 @@ function updateStudent()
         $emergencyPhone = $_POST['emergency_phone'] ?? '';
         $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
         $birthday = sanitize($_POST['birthday'] ?? '');
-        $coupons = intval($_POST['coupons'] ?? 0);
+        $coupons = max(0, intval($_POST['coupons'] ?? 0));
 
         if ($studentId === 0 || empty($name) || $classId === 0) {
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
@@ -3833,7 +3833,7 @@ function updateCoupons()
 
         foreach ($couponData as $record) {
             $studentName = sanitize($record['studentName'] ?? '');
-            $coupons = intval($record['coupons'] ?? 0);
+            $coupons = max(0, intval($record['coupons'] ?? 0));
 
             error_log("Updating: $studentName -> $coupons coupons");
 
@@ -8293,7 +8293,7 @@ function updateCouponsKids()
     try {
         $uncleId = $_SESSION['uncle_id'] ?? null;
         $studentId = intval($_POST['studentId'] ?? 0);
-        $coupons = intval($_POST['coupons'] ?? 0);
+        $coupons = max(0, intval($_POST['coupons'] ?? 0));
 
         if ($studentId === 0) {
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
@@ -8738,7 +8738,7 @@ function updateCouponsWithReason()
 
     try {
         $studentId = intval($_POST['studentId'] ?? 0);
-        $coupons = intval($_POST['coupons'] ?? 0);
+        $coupons = max(0, intval($_POST['coupons'] ?? 0));
         $reason = sanitize($_POST['reason'] ?? 'تعديل يدوي');
         $uncleId = $_SESSION['uncle_id'] ?? null;
 
@@ -8750,16 +8750,20 @@ function updateCouponsWithReason()
         $conn = getDBConnection();
 
         // BEFORE update, get old values
-        $beforeStmt = $conn->prepare("SELECT coupons, name FROM students WHERE id = ?");
+        $beforeStmt = $conn->prepare("SELECT name, coupons, attendance_coupons, task_coupons FROM students WHERE id = ?");
         $beforeStmt->bind_param("i", $studentId);
         $beforeStmt->execute();
         $beforeRow = $beforeStmt->get_result()->fetch_assoc();
         $oldTotal = intval($beforeRow['coupons'] ?? 0);
         $sName = $beforeRow['name'] ?? '';
+        $currentAttendance = intval($beforeRow['attendance_coupons'] ?? 0);
+        $currentTask = intval($beforeRow['task_coupons'] ?? 0);
+
+        $newCommitment = max(0, $coupons - $currentAttendance - $currentTask);
 
         // Update student
-        $updateStmt = $conn->prepare("UPDATE students SET coupons = ?, updated_at = NOW() WHERE id = ?");
-        $updateStmt->bind_param("ii", $coupons, $studentId);
+        $updateStmt = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ?");
+        $updateStmt->bind_param("iii", $coupons, $newCommitment, $studentId);
 
         if ($updateStmt->execute()) {
             // Log the coupon change
