@@ -4162,65 +4162,31 @@ function deleteStudent()
 // ===== UPDATE STUDENT IMAGE =====
 function updateStudentImage()
 {
+    checkUncleAuth();
+
     try {
-        $churchId = getChurchId(); // This might be the problem!
-        $studentName = sanitize($_POST['studentName'] ?? '');
+        $studentId = intval($_POST['student_id'] ?? 0);
         $imageUrl = sanitize($_POST['imageUrl'] ?? '');
 
-        // Debug logs
-        error_log("updateStudentImage called:");
-        error_log("Church ID from session: " . ($churchId ?? 'NULL'));
-        error_log("Student Name: $studentName");
-        error_log("Image URL: $imageUrl");
-
-        // Try getting student ID directly from POST
-        $studentId = intval($_POST['studentId'] ?? 0);
-
-        $conn = getDBConnection();
-
-        if ($studentId > 0) {
-            // Use studentId if provided
-            error_log("Using studentId: $studentId");
-            $stmt = $conn->prepare("UPDATE students SET image_url = ? WHERE id = ?");
-            $stmt->bind_param("si", $imageUrl, $studentId);
-        } elseif (!empty($studentName) && $churchId) {
-            // Use name and church_id as fallback
-            error_log("Using studentName: $studentName, churchId: $churchId");
-            $stmt = $conn->prepare("UPDATE students SET image_url = ? WHERE church_id = ? AND name = ?");
-            $stmt->bind_param("sis", $imageUrl, $churchId, $studentName);
-        } else {
-            error_log("Missing parameters: studentId=$studentId, studentName=$studentName, churchId=$churchId");
-            sendJSON(['success' => false, 'message' => 'بيانات غير كافية لتحديث الصورة']);
+        if ($studentId === 0 || empty($imageUrl)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
             return;
         }
 
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("UPDATE students SET image_url = ? WHERE id = ?");
+        $stmt->bind_param("si", $imageUrl, $studentId);
+
         if ($stmt->execute()) {
-            error_log("✅ Image updated successfully for student ID: $studentId");
-            sendJSON(['success' => true, 'message' => 'تم تحديث الصورة بنجاح']);
+            sendJSON(['success' => true, 'message' => 'تم تحديث صورة الطفل بنجاح', 'student_id' => $studentId, 'imageUrl' => $imageUrl]);
         } else {
-            error_log("❌ Failed to update image: " . $stmt->error);
-            sendJSON(['success' => false, 'message' => 'فشل في تحديث الصورة: ' . $stmt->error]);
+            sendJSON(['success' => false, 'message' => 'فشل في تحديث صورة الطفل: ' . $conn->error]);
         }
 
     } catch (Exception $e) {
         error_log("updateStudentImage error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في تحديث الصورة: ' . $e->getMessage()]);
+        sendJSON(['success' => false, 'message' => 'خطأ في تحديث صورة الطفل']);
     }
-}
-// ===== ANNOUNCEMENTS =====
-function getAllAnnouncements()
-{
-    try {
-        $churchId = getChurchId();
-        $conn = getDBConnection();
-
-        // Set Cairo timezone (UTC+2, no daylight saving)
-        $cairoTimeZone = '+02:00';
-
-        $stmt = $conn->prepare("
-            SELECT 
-                id as rowIndex, 
-                type as 'النوع', 
                 text as 'النص', 
                 link as 'الرابط', 
                 class as 'الفصل', 
@@ -6858,23 +6824,26 @@ function deleteUncle()
 
     } catch (Exception $e) {
         error_log("deleteUncle error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في حذف الخادم: ' . $e->getMessage()]);
-    }
-}
+        
 // ===== DEVELOPER: UPDATE CHURCH ADMIN EMAIL =====
 function updateChurchAdminEmail()
 {
     checkAuth();
-
     try {
         $role = $_SESSION['uncle_role'] ?? 'uncle';
 
         if ($role !== 'developer') {
             sendJSON(['success' => false, 'message' => 'غير مصرح']);
+            return;
         }
 
         $churchId = intval($_POST['church_id'] ?? 0);
         $adminEmail = sanitize($_POST['admin_email'] ?? '');
+
+        if ($churchId === 0 || empty($adminEmail)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
 
         $conn = getDBConnection();
         $stmt = $conn->prepare("UPDATE churches SET admin_email = ? WHERE id = ?");

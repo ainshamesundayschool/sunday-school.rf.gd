@@ -8162,10 +8162,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="form-input" id="uncleProfileUsername" required></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركه فارغاً
-                                للإبقاء)</small></label>
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
+                                class="form-input" id="uncleProfileEmail" ></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الهاتف</label>
+                        <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
+                                class="form-input" id="uncleProfilePhone" ></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">النوع</label>
+                        <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i>
+                            <select class="form-input" id="uncleProfileGender">
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">كلمة المرور الحالية</label>
+                        <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
+                                class="form-input" id="uncleProfileCurrentPassword"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة للإبقاء)</small></label>
                         <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
                                 class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                        <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
+                                class="form-input" id="uncleProfileConfirmPassword" minlength="6"></div>
                     </div>
                     <div style="display:flex;gap:8px">
                         <button type="submit" class="btn btn-success" style="flex:1"><i class="fas fa-save"></i>
@@ -14374,7 +14402,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function uploadUnclePhoto(blob) {
             showLoading('جاري رفع الصورة...');
             const fd = new FormData(); fd.append('photo', new File([blob], `uncle_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('username', window.currentUncle?.username || 'user');
-            fetch('https://sunday-school.rf.gd/upload_uncle.php/', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+            fetch('https://sunday-school.rf.gd/upload_uncle.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     makeApiCall({ action: 'updateUncleImage', imageUrl: d.imageUrl }, () => {
                         showToast('تم التحديث', 'success');
@@ -14812,10 +14840,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('unclePhotoInput', 'change', e => { if (e.target.files?.[0]) { currentImageFile = e.target.files[0]; currentPhotoEditorType = 'uncle'; openCropModal(URL.createObjectURL(currentImageFile)); } });
             on('uncleProfileForm', 'submit', e => {
                 e.preventDefault();
-                const name = document.getElementById('uncleProfileName').value.trim(), username = document.getElementById('uncleProfileUsername').value.trim(), pass = document.getElementById('uncleProfileNewPassword').value.trim();
+                const name = document.getElementById('uncleProfileName').value.trim();
+                const username = document.getElementById('uncleProfileUsername').value.trim();
+                const email = (document.getElementById('uncleProfileEmail')?.value || '').trim();
+                const phone = (document.getElementById('uncleProfilePhone')?.value || '').trim();
+                const gender = (document.getElementById('uncleProfileGender')?.value || 'male');
+                const currentPass = (document.getElementById('uncleProfileCurrentPassword')?.value || '').trim();
+                const newPass = (document.getElementById('uncleProfileNewPassword')?.value || '').trim();
+                const confirmPass = (document.getElementById('uncleProfileConfirmPassword')?.value || '').trim();
+
                 if (!name || !username) { showToast('الاسم واسم المستخدم مطلوبان', 'error'); return; }
+                // If changing password, require current and confirm match
+                if (newPass) {
+                    if (!currentPass) { showToast('أدخل كلمة المرور الحالية لتغييرها', 'error'); return; }
+                    if (newPass !== confirmPass) { showToast('كلمة المرور الجديدة غير متطابقة', 'error'); return; }
+                }
+
                 showLoading('جاري التحديث...');
-                makeApiCall({ action: 'updateUncleProfile', name, username, new_password: pass }, r => { showToast('تم التحديث', 'success'); document.getElementById('accountDisplayName').textContent = name; if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; } hideAccountEditForm(); }, e => showToast('فشل: ' + e, 'error'));
+                const payload = { action: 'updateUncleProfile', name, username, email, phone, gender };
+                if (newPass) { payload.current_password = currentPass; payload.new_password = newPass; }
+
+                makeApiCall(payload, r => {
+                    showToast('تم التحديث', 'success');
+                    document.getElementById('accountDisplayName').textContent = name;
+                    if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
+                    hideAccountEditForm();
+                }, e => showToast('فشل: ' + e, 'error'));
             });
             on('resetAttendanceBtn', 'click', () => {
                 if (confirm('إعادة تعيين الحضور المحلي؟')) {
