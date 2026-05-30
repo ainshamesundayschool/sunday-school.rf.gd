@@ -4429,15 +4429,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const grid = document.getElementById('uncleCardGrid');
       const sub = document.getElementById('unclesSub');
       if (!sec || !grid || !uncles.length) return;
-      sub.textContent = uncles.length + ' مدرس';
-      const roleLbl = { admin: 'مدرس', developer: 'مطوّر', uncle: 'مدرس' };
+      // Use gender-based honorific for uncle display (انكل / طنط). Keep 'مطوّر' for developers.
+      const _firstHonor = uncles[0] ? (uncles[0].honorific || (uncles[0].gender === 'female' ? 'طنط' : 'انكل')) : '';
+      sub.textContent = uncles.length + ' ' + (_firstHonor || 'مدرس');
       grid.innerHTML = uncles.map(u => `
     <div class="uncle-card" onclick="openUncleDrawer(${u.id})">
       <div class="uncle-card-av">
         ${u.image_url ? `<img src="${esc(u.image_url)}" alt="${esc(u.name)}">` : u.name.charAt(0)}
       </div>
       <div class="uncle-card-name">${esc(u.name)}</div>
-      <div class="uncle-card-role">${roleLbl[u.role] || u.role}</div>
+      <div class="uncle-card-role">${(String(u.role).toLowerCase() === 'developer') ? 'مطوّر' : (u.honorific || (u.gender === 'female' ? 'طنط' : 'انكل'))}</div>
     </div>`).join('');
       sec.style.display = 'block';
     }
@@ -4445,7 +4446,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function openUncleDrawer(uid) {
       const u = classUncles.find(x => x.id === uid);
       if (!u) return;
-      const roleLbl = { admin: 'مدرس', developer: 'مطوّر', uncle: 'مدرس' };
+      
       const hasPhone = u.phone && u.phone.trim();
       // Format phone for WhatsApp (strip leading 0, add country code)
       const waPhone = hasPhone ? '20' + u.phone.trim().replace(/^0/, '') : '';
@@ -4467,7 +4468,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div>
         <div class="uncle-drawer-name">${esc(u.name)}</div>
-        <div class="uncle-drawer-role">${roleLbl[u.role] || u.role}</div>
+        <div class="uncle-drawer-role">${(String(u.role).toLowerCase() === 'developer') ? 'مطوّر' : (u.honorific || (u.gender === 'female' ? 'طنط' : 'انكل'))}</div>
       </div>
     </div>
     <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
@@ -4922,7 +4923,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <i class="fas fa-phone-slash" style="display:block;font-size:1.2rem;margin-bottom:5px;opacity:.4;"></i>
       لم يُضَف رقم هاتف لأي مدرّس بعد</div>`;
       } else {
-        const roleLbl = { admin: 'مشرف', developer: 'مطوّر', uncle: 'مدرّس' };
+        const roleLbl = { admin: 'مشرف', developer: 'مطوّر' };
         ul.innerHTML = unclesWithPhone.map(u => `
       <button onclick="sendRowReport(${u.id})"
         style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-md);border:1.5px solid var(--bdr);background:var(--surf);cursor:pointer;font-family:'Baloo Bhaijaan 2',sans-serif;transition:var(--fast);"
@@ -4933,7 +4934,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         </div>
         <div style="flex:1;text-align:right;">
           <div style="font-size:.88rem;font-weight:800;color:var(--t1);">${esc(u.name)}</div>
-          <div style="font-size:.68rem;color:var(--t4);font-weight:500;">${roleLbl[u.role] || u.role}</div>
+          <div style="font-size:.68rem;color:var(--t4);font-weight:500;">${(String(u.role).toLowerCase() === 'developer') ? 'مطوّر' : (u.honorific || (u.gender === 'female' ? 'طنط' : 'انكل'))}</div>
         </div>
         <div style="width:30px;height:30px;border-radius:var(--r-sm);background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;">
           <i class="fab fa-whatsapp"></i>

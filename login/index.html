@@ -733,6 +733,8 @@ position: absolute;
             localStorage.setItem('uncleName',     data.uncle?.name      || '');
             localStorage.setItem('uncleRole',     data.uncle?.role      || 'uncle');
             localStorage.setItem('uncleImage',    data.uncle?.image_url || '');
+            if (data.uncle?.gender) localStorage.setItem('uncleGender', data.uncle.gender);
+            if (data.uncle?.honorific) localStorage.setItem('uncleHonorific', data.uncle.honorific);
             localStorage.setItem('churchName',    data.church_name      || '');
             localStorage.setItem('churchCode',    data.church_code      || '');
         }

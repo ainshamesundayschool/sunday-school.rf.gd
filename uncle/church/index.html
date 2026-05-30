@@ -9143,6 +9143,8 @@
                     const churchCode = d.church_code || '';
 
                     if (role) { localStorage.setItem('uncleRole', role); localStorage.setItem('role', role); }
+                    if (d.uncle_gender) localStorage.setItem('uncleGender', d.uncle_gender);
+                    if (d.uncle_honorific) localStorage.setItem('uncleHonorific', d.uncle_honorific);
                     if (name) localStorage.setItem('uncleName', name);
                     if (churchName) localStorage.setItem('churchName', churchName);
                     if (churchCode) { localStorage.setItem('churchCode', churchCode); localStorage.setItem('church_code', churchCode); sessionChurchCode = churchCode; }
