@@ -6,6 +6,8 @@
 <title>تسجيل طفل جديد</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" media="print" onload="this.media='all'">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -605,16 +607,10 @@ async function apiFetch(data) {
   return JSON.parse(text.slice(idx));
 }
 
-/* ════════════════ AVATAR HELPERS ════════════════ */
-let cropState = {
-  image: null,
-  scale: 1,
-  offsetX: 0,
-  offsetY: 0,
-  isDragging: false,
-  startX: 0,
-  startY: 0
-};
+/* ════════════════ AVATAR HELPERS — Cropper.js based ════════════════ */
+let cropper = null;
+let cropSrc = null;
+let currentCroppedBlob = null;
 
 function handleAvatarChange(event) {
   const file = event.target.files[0];
@@ -623,136 +619,40 @@ function handleAvatarChange(event) {
     alert('الرجاء اختيار ملف صورة');
     return;
   }
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    cropState.image = e.target.result;
-    cropState.scale = 1;
-    cropState.offsetX = 0;
-    cropState.offsetY = 0;
-    openCropModal();
-  };
-  reader.readAsDataURL(file);
+  // Use object URL for Cropper
+  try { if (cropSrc && cropSrc.startsWith('blob:')) URL.revokeObjectURL(cropSrc); } catch (e) {}
+  cropSrc = URL.createObjectURL(file);
+  openCropModal(cropSrc);
 }
 
-function openCropModal() {
+function openCropModal(src) {
+  if (typeof Cropper === 'undefined') {
+    alert('جاري تحميل محرر الصور، حاول مجدداً...');
+    setTimeout(() => openCropModal(src), 300);
+    return;
+  }
+  if (cropper) { cropper.destroy(); cropper = null; }
+  const img = document.getElementById('cropImg'); img.src = src;
   document.getElementById('cropModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  
-  const img = document.getElementById('cropImg');
-  img.src = cropState.image;
-  
-  img.onload = function() {
-    renderCrop();
-    setupCropDrag();
-  };
+  img.onload = function() { cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: .8 }); };
 }
 
 function closeCropModal() {
   document.getElementById('cropModal').style.display = 'none';
   document.body.style.overflow = 'auto';
-  document.getElementById('kidAvatar').value = '';
+  const fileInput = document.getElementById('kidAvatar'); if (fileInput) fileInput.value = '';
+  if (cropper) { cropper.destroy(); cropper = null; }
+  try { if (cropSrc && cropSrc.startsWith('blob:')) URL.revokeObjectURL(cropSrc); } catch (e) {}
+  cropSrc = null;
 }
 
-function renderCrop() {
-  const preview = document.getElementById('cropPreview');
-  const img = document.getElementById('cropImg');
-  
-  const containerWidth = preview.offsetWidth;
-  const containerHeight = preview.offsetHeight;
-  
-  const baseScale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
-  const finalScale = baseScale * cropState.scale;
-  
-  img.style.width = (img.naturalWidth * finalScale) + 'px';
-  img.style.height = (img.naturalHeight * finalScale) + 'px';
-  img.style.left = (containerWidth / 2 - img.offsetWidth / 2 + cropState.offsetX) + 'px';
-  img.style.top = (containerHeight / 2 - img.offsetHeight / 2 + cropState.offsetY) + 'px';
-}
-
-function setupCropDrag() {
-  const img = document.getElementById('cropImg');
-  const preview = document.getElementById('cropPreview');
-  
-  img.addEventListener('mousedown', startCropDrag);
-  img.addEventListener('touchstart', startCropDrag);
-}
-
-function startCropDrag(e) {
-  e.preventDefault();
-  cropState.isDragging = true;
-  cropState.startX = e.touches ? e.touches[0].clientX : e.clientX;
-  cropState.startY = e.touches ? e.touches[0].clientY : e.clientY;
-  
-  document.addEventListener('mousemove', cropDrag);
-  document.addEventListener('touchmove', cropDrag, { passive: false });
-  document.addEventListener('mouseup', endCropDrag);
-  document.addEventListener('touchend', endCropDrag);
-}
-
-function cropDrag(e) {
-  if (!cropState.isDragging) return;
-  e.preventDefault();
-  
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  const y = e.touches ? e.touches[0].clientY : e.clientY;
-  
-  cropState.offsetX += x - cropState.startX;
-  cropState.offsetY += y - cropState.startY;
-  cropState.startX = x;
-  cropState.startY = y;
-  
-  renderCrop();
-}
-
-function endCropDrag() {
-  cropState.isDragging = false;
-  document.removeEventListener('mousemove', cropDrag);
-  document.removeEventListener('touchmove', cropDrag);
-  document.removeEventListener('mouseup', endCropDrag);
-  document.removeEventListener('touchend', endCropDrag);
-}
-
-function cropZoomIn() {
-  cropState.scale = Math.min(cropState.scale + 0.2, 3);
-  renderCrop();
-}
-
-function cropZoomOut() {
-  cropState.scale = Math.max(cropState.scale - 0.2, 1);
-  renderCrop();
-}
+function cropZoomIn() { if (cropper) cropper.zoom(0.2); }
+function cropZoomOut() { if (cropper) cropper.zoom(-0.2); }
 
 function applyCrop() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 300;
-  canvas.height = 300;
-  
-  const ctx = canvas.getContext('2d');
-  ctx.beginPath();
-  ctx.arc(150, 150, 150, 0, Math.PI * 2);
-  ctx.clip();
-  
-  const img = document.getElementById('cropImg');
-  const preview = document.getElementById('cropPreview');
-  const containerWidth = preview.offsetWidth;
-  const containerHeight = preview.offsetHeight;
-  const baseScale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
-  const finalScale = baseScale * cropState.scale;
-  
-  const drawX = containerWidth / 2 - img.naturalWidth * finalScale / 2 + cropState.offsetX;
-  const drawY = containerHeight / 2 - img.naturalHeight * finalScale / 2 + cropState.offsetY;
-  
-  const ratio = 300 / Math.min(containerWidth, containerHeight);
-  
-  ctx.drawImage(
-    img,
-    (drawX) * ratio,
-    (drawY) * ratio,
-    img.naturalWidth * finalScale * ratio,
-    img.naturalHeight * finalScale * ratio
-  );
-  
+  if (!cropper) { closeCropModal(); return; }
+  const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
   canvas.toBlob(function(blob) {
     const reader = new FileReader();
     reader.onload = function(e) {
