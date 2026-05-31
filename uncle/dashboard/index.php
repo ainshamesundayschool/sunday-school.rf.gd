@@ -23,6 +23,11 @@ ini_set('session.gc_maxlifetime', 315360000);
 ini_set('session.cookie_lifetime', 315360000);
 session_start();
 
+// Ensure HTML pages revalidate so clients pick up updates promptly
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 $hasChurchId = isset($_SESSION['church_id']);
 $hasUncleId = isset($_SESSION['uncle_id']);
 $hasSession = $hasChurchId || $hasUncleId;
@@ -15465,10 +15470,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Then paste the PUBLIC key string here:
         const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_KEY : (getenv("VAPID_PUBLIC_KEY") ?: ""); ?>';
 
+        // ── Show "new version" update toast ─────────────────────────
+        function _showUpdateToast() {
+            if (document.getElementById('sw-update-toast')) return; // already shown
+            const toast = document.createElement('div');
+            toast.id = 'sw-update-toast';
+            toast.style.cssText = `
+                position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+                background:#1e293b;color:#fff;padding:14px 20px;
+                border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);
+                display:flex;align-items:center;gap:14px;z-index:99999;
+                font-family:inherit;min-width:280px;justify-content:space-between;
+                border:1px solid rgba(255,255,255,.1);
+                animation:swToastSlideUp .35s cubic-bezier(.4,0,.2,1);
+            `;
+            toast.innerHTML = `
+                <div style="font-size:.9rem;font-weight:600;">🔄 يتوفر تحديث جديد</div>
+                <button onclick="window.location.reload()" style="
+                    background:#6366f1;border:none;color:#fff;
+                    padding:7px 16px;border-radius:9px;
+                    cursor:pointer;font-weight:700;font-size:.85rem;font-family:inherit;
+                    white-space:nowrap;
+                ">تحديث الآن</button>
+            `;
+            if (!document.getElementById('swToastKf')) {
+                const st = document.createElement('style');
+                st.id = 'swToastKf';
+                st.textContent = `@keyframes swToastSlideUp{from{transform:translate(-50%,60px);opacity:0}to{transform:translateX(-50%);opacity:1}}`;
+                document.head.appendChild(st);
+            }
+            document.body.appendChild(toast);
+        }
+
         // ── Register service worker ───────────────────────────────────
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=11')
+                navigator.serviceWorker.register('/sw.js?v=12')
                     .then(reg => {
                         _initPushSubscription(reg);
                         // ── Re-subscribe whenever SW becomes active after an update ──
@@ -15496,6 +15534,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             navigator.serviceWorker.addEventListener('message', e => {
                 const d = e.data;
                 if (!d) return;
+
+                // New SW version activated — show update toast
+                if (d.type === 'NEW_VERSION_INSTALLED') {
+                    _showUpdateToast();
+                    return;
+                }
+
+                // Silent reload requested by new service worker activation
+                if (d.type === 'RELOAD_NOW') {
+                    try { window.location.reload(); } catch (err) {}
+                    return;
+                }
 
                 // Background sync completed — reload data so UI reflects server state
                 if (d.type === 'SYNC_COMPLETE') {

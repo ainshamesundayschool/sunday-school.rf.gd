@@ -48,6 +48,13 @@ self.addEventListener('activate', e => {
             .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
             .then(() => self.clients.claim())
             .then(() => _registerPeriodicSync())
+            .then(async () => {
+                // Notify all clients that a new version is ready
+                const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+                for (const client of allClients) {
+                    client.postMessage({ type: 'NEW_VERSION_INSTALLED', version: CACHE_NAME });
+                }
+            })
     );
 });
 

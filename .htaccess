@@ -15,11 +15,19 @@ DirectoryIndex index.html index.php
         Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
     </FilesMatch>
 
-    # Disable caching for HTML files
+    # Disable caching for HTML, PHP files and the service worker
     <FilesMatch "\.(html|htm|php)$">
         Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
         Header set Pragma "no-cache"
         Header set Expires "0"
+    </FilesMatch>
+
+    # Service worker must NEVER be cached — browser must always get the latest version
+    <FilesMatch "^sw\.js$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+        Header set Service-Worker-Allowed "/"
     </FilesMatch>
 </IfModule>
 

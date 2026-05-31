@@ -977,6 +977,72 @@ background: rgba(255, 255, 255, .95);
     </div>
 
     <script>
+        // ── SERVICE WORKER REGISTRATION ──
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // We append a version query param to ensure the browser fetches the latest SW script
+                navigator.serviceWorker.register('/sw.js?v=12').then(reg => {
+                    // Check for updates every time the page is focused or loaded
+                    reg.update();
+
+                    // Listen for the 'updatefound' event
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // New content is available; please refresh.
+                                    showUpdateToast();
+                                }
+                            }
+                        };
+                    };
+                }).catch(err => console.error('SW Registration failed:', err));
+            });
+
+            // Listen for messages from the Service Worker
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'NEW_VERSION_INSTALLED') {
+                    showUpdateToast();
+                }
+            });
+        }
+
+        function showUpdateToast() {
+            // Check if a toast already exists to avoid duplicates
+            if (document.getElementById('update-toast')) return;
+
+            const toast = document.createElement('div');
+            toast.id = 'update-toast';
+            toast.style.cssText = `
+                position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+                background: var(--dark); color: white; padding: 16px 24px;
+                border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+                display: flex; align-items: center; gap: 16px; z-index: 9999;
+                font-family: 'Cairo', sans-serif; min-width: 300px; justify-content: space-between;
+                border: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s ease-out;
+            `;
+            toast.innerHTML = `
+                <div style="font-size: 0.9rem; font-weight: 500;">يتوفر تحديث جديد للموقع</div>
+                <button onclick="window.location.reload()" style="
+                    background: var(--primary); border: none; color: white;
+                    padding: 8px 16px; border-radius: var(--radius-sm);
+                    cursor: pointer; font-weight: 700; font-family: 'Cairo';
+                ">تحديث الآن</button>
+            `;
+            document.body.appendChild(toast);
+        }
+
+        // Add slideUp animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from { transform: translate(-50%, 100px); opacity: 0; }
+                to { transform: translate(-50%, 0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
         // بيانات إحصائية ديناميكية
         const stats = {
             totalKids: 1250,
