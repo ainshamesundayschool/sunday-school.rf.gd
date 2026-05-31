@@ -749,6 +749,208 @@ text-align: center;
                 font-size: 0.9rem;
             }
         }
+
+        /* ===== SCREENSHOTS SHOWCASE — Phone Frames ===== */
+        .ss-section {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-xl) 0 var(--spacing-md);
+        }
+        .ss-section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+        .ss-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-bg);
+            color: var(--primary);
+            border: 1.5px solid rgba(99,102,241,.2);
+            border-radius: 999px;
+            padding: 5px 16px;
+            font-size: .8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .ss-section-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -.02em;
+            margin-bottom: 6px;
+        }
+        .ss-section-sub {
+            color: var(--secondary);
+            font-size: .88rem;
+        }
+        /* Track */
+        .ss-outer {
+            position: relative;
+        }
+        .ss-track {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 16px 20px 28px;
+            cursor: grab;
+            user-select: none;
+        }
+        .ss-track::-webkit-scrollbar { display: none; }
+        .ss-track.is-dragging { cursor: grabbing; }
+        /* Fade sides */
+        .ss-outer::before, .ss-outer::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 40px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .ss-outer::before { right: 0; background: linear-gradient(to left,rgba(248,250,252,.95),transparent); }
+        .ss-outer::after  { left:  0; background: linear-gradient(to right,rgba(248,250,252,.95),transparent); }
+        /* Phone card */
+        .ss-phone-card {
+            flex: 0 0 200px;
+            scroll-snap-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            transition: transform .3s ease;
+        }
+        .ss-phone-card:hover { transform: translateY(-8px); }
+        @media(max-width:600px) {
+            .ss-phone-card { flex: 0 0 58vw; }
+        }
+        @media(min-width:900px) {
+            .ss-phone-card { flex: 0 0 210px; }
+        }
+        /* Phone shell */
+        .ss-phone {
+            width: 100%;
+            border-radius: 28px;
+            background: #1a1a2e;
+            padding: 8px;
+            box-shadow: 0 20px 50px -10px rgba(99,102,241,.35),
+                        0 6px 18px -4px rgba(0,0,0,.25),
+                        inset 0 0 0 1px rgba(255,255,255,.08);
+            position: relative;
+        }
+        /* Side buttons */
+        .ss-phone::before {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 22%;
+            width: 3px;
+            height: 14%;
+            background: #2a2a3e;
+            border-radius: 2px 0 0 2px;
+        }
+        .ss-phone::after {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: 18%;
+            width: 3px;
+            height: 10%;
+            background: #2a2a3e;
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 calc(100% + 6px) 0 #2a2a3e;
+        }
+        .ss-screen {
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+            /* Crop status bar: show from ~8% down */
+            height: 0;
+            padding-bottom: 185%;
+            background: #000;
+        }
+        .ss-screen img {
+            position: absolute;
+            top: -7%;     /* nudge up to hide clock/battery row */
+            left: 0;
+            width: 100%;
+            height: 115%; /* compensate for the crop */
+            object-fit: cover;
+            object-position: top center;
+            display: block;
+        }
+        /* Label */
+        .ss-phone-label {
+            text-align: center;
+            padding: 0 4px;
+        }
+        .ss-phone-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: .7rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .ss-phone-title {
+            font-size: .9rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+        .ss-phone-desc {
+            font-size: .72rem;
+            color: var(--secondary);
+            line-height: 1.45;
+        }
+        /* Navigation */
+        .ss-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .ss-dots-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .ss-dot {
+            width: 7px; height: 7px;
+            border-radius: 999px;
+            background: var(--border);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all .28s ease;
+        }
+        .ss-dot.active {
+            background: var(--primary);
+            width: 20px;
+        }
+        .ss-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(99,102,241,.22);
+            background: #fff;
+            color: var(--primary);
+            font-size: .85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .18s ease;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+        }
+        .ss-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: scale(1.1); }
+        .ss-btn:disabled { opacity: .3; pointer-events: none; }
+
     </style>
 </head>
 <body>
@@ -811,7 +1013,10 @@ text-align: center;
             </section>
             
         </div>
-<!-- Features Section -->
+<!-- ═══ SCREENSHOTS SHOWCASE ═══ -->
+
+
+        <!-- Features Section -->
         <section class="features-section">
             <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
             <div class="features-grid">
@@ -875,6 +1080,208 @@ text-align: center;
                         <i class="fas fa-arrow-left"></i>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ═══ SCREENSHOTS SHOWCASE ═══ -->
+        <section class="ss-section" id="screenshots">
+            <div class="ss-section-header">
+                <div class="ss-eyebrow"><i class="fas fa-mobile-alt"></i> لقطات من النظام</div>
+                <h2 class="ss-section-title">شاهد النظام بنفسك</h2>
+                <p class="ss-section-sub">تصفّح شاشات النظام الفعلية واكتشف مدى سهولة الاستخدام</p>
+            </div>
+            <div class="ss-outer">
+                <div class="ss-track" id="ssTrack">
+
+                    <!-- 1 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/class attendance view.PNG" alt="عرض الفصل" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#eef2ff;color:#4f46e5"><i class="fas fa-users"></i> الفصل</div>
+                            <div class="ss-phone-title">عرض الفصل الدراسي</div>
+                            <div class="ss-phone-desc">قائمة الأطفال وحالة الحضور دفعة واحدة</div>
+                        </div>
+                    </div>
+
+                    <!-- 2 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/attendance assigning.PNG" alt="تسجيل الحضور" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i class="fas fa-user-check"></i> الحضور</div>
+                            <div class="ss-phone-title">تسجيل الحضور</div>
+                            <div class="ss-phone-desc">تأشير الحضور والغياب لكل طفل بسهولة</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/attendance date.PNG" alt="تاريخ الحضور" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-calendar-alt"></i> التاريخ</div>
+                            <div class="ss-phone-title">اختيار تاريخ الحضور</div>
+                            <div class="ss-phone-desc">تسجيل الحضور لأي تاريخ سابق أو حالي</div>
+                        </div>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/swipe attendance feature.PNG" alt="سحب للحضور" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i class="fas fa-hand-pointer"></i> سحب</div>
+                            <div class="ss-phone-title">تسجيل بالسحب</div>
+                            <div class="ss-phone-desc">اسحب يميناً أو يساراً لتسجيل الحضور بسرعة</div>
+                        </div>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/kid profile view.PNG" alt="ملف الطفل" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#fdf4ff;color:#7c3aed"><i class="fas fa-child"></i> الطفل</div>
+                            <div class="ss-phone-title">ملف الطفل الشخصي</div>
+                            <div class="ss-phone-desc">صورة الطفل، كوبوناته، ونسبة حضوره</div>
+                        </div>
+                    </div>
+
+                    <!-- 6 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/kid profile view 2.PNG" alt="ملف الطفل 2" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#fdf4ff;color:#7c3aed"><i class="fas fa-star"></i> الكوبونات</div>
+                            <div class="ss-phone-title">تفاصيل الكوبونات</div>
+                            <div class="ss-phone-desc">سجل كوبونات الطفل والنقاط المكتسبة</div>
+                        </div>
+                    </div>
+
+                    <!-- 7 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/kid info.PNG" alt="معلومات الطفل" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#fff7ed;color:#c2410c"><i class="fas fa-info-circle"></i> البيانات</div>
+                            <div class="ss-phone-title">بيانات الطفل</div>
+                            <div class="ss-phone-desc">معلومات الطفل الكاملة وبيانات العائلة</div>
+                        </div>
+                    </div>
+
+                    <!-- 8 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/withdraw couons feature.PNG" alt="سحب كوبونات" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#fef9c3;color:#a16207"><i class="fas fa-coins"></i> الكوبونات</div>
+                            <div class="ss-phone-title">سحب الكوبونات</div>
+                            <div class="ss-phone-desc">تحويل وصرف الكوبونات للمكافآت</div>
+                        </div>
+                    </div>
+
+                    <!-- 9 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/bulk add kids feature.PNG" alt="إضافة جماعية" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#eef2ff;color:#4f46e5"><i class="fas fa-users-cog"></i> الإضافة</div>
+                            <div class="ss-phone-title">إضافة جماعية للأطفال</div>
+                            <div class="ss-phone-desc">أضف مجموعة أطفال دفعة واحدة بسهولة</div>
+                        </div>
+                    </div>
+
+                    <!-- 10 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/uncle class view.PNG" alt="عرض الانكل" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i class="fas fa-user-tie"></i> الانكل</div>
+                            <div class="ss-phone-title">لوحة تحكم الانكل</div>
+                            <div class="ss-phone-desc">إدارة الفصل والأطفال من مكان واحد</div>
+                        </div>
+                    </div>
+
+                    <!-- 11 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/task exams.PNG" alt="المهام والامتحانات" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#fff1f2;color:#be123c"><i class="fas fa-tasks"></i> المهام</div>
+                            <div class="ss-phone-title">المهام والامتحانات</div>
+                            <div class="ss-phone-desc">تتبع مهام وامتحانات الأطفال وتقييمها</div>
+                        </div>
+                    </div>
+
+                    <!-- 12 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/qr code game points.PNG" alt="نقاط اللعبة" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-gamepad"></i> الألعاب</div>
+                            <div class="ss-phone-title">نقاط لعبة QR</div>
+                            <div class="ss-phone-desc">نظام نقاط تفاعلي عبر رموز QR</div>
+                        </div>
+                    </div>
+
+                    <!-- 13 -->
+                    <div class="ss-phone-card">
+                        <div class="ss-phone">
+                            <div class="ss-screen">
+                                <img src="/imgs/screenshots/game qr codes customization print.PNG" alt="طباعة QR" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="ss-phone-label">
+                            <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-qrcode"></i> QR</div>
+                            <div class="ss-phone-title">تخصيص وطباعة QR</div>
+                            <div class="ss-phone-desc">تخصيص وطباعة بطاقات QR للأطفال</div>
+                        </div>
+                    </div>
+
+                </div><!-- end .ss-track -->
+            </div><!-- end .ss-outer -->
+
+            <div class="ss-nav">
+                <button class="ss-btn" id="ssBtnPrev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+                <div class="ss-dots-row" id="ssDots2"></div>
+                <button class="ss-btn" id="ssBtnNext" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
             </div>
         </section>
 
@@ -977,6 +1384,80 @@ background: rgba(255, 255, 255, .95);
     </div>
 
     <script>
+        // ── SCREENSHOTS CAROUSEL ──────────────────────────────────
+        (function () {
+            const track   = document.getElementById('ssTrack');
+            const dotsRow = document.getElementById('ssDots2');
+            const btnPrev = document.getElementById('ssBtnPrev');
+            const btnNext = document.getElementById('ssBtnNext');
+            if (!track) return;
+
+            const cards = Array.from(track.querySelectorAll('.ss-phone-card'));
+            const total = cards.length;
+
+            // Build dots
+            cards.forEach((_, i) => {
+                const d = document.createElement('button');
+                d.className = 'ss-dot' + (i === 0 ? ' active' : '');
+                d.setAttribute('aria-label', 'انتقل للقطة ' + (i + 1));
+                d.addEventListener('click', () => scrollToCard(i));
+                dotsRow.appendChild(d);
+            });
+
+            function getCardWidth() {
+                return cards[0] ? cards[0].offsetWidth + 20 : 220; // card + gap
+            }
+
+            function scrollToCard(index) {
+                const cw = getCardWidth();
+                // Center the card in the track
+                const trackW = track.offsetWidth;
+                const offset = (cw * index) - (trackW / 2) + (cw / 2);
+                track.scrollTo({ left: offset, behavior: 'smooth' });
+            }
+
+            function updateDots() {
+                const cw = getCardWidth();
+                const idx = Math.round(track.scrollLeft / cw);
+                dotsRow.querySelectorAll('.ss-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === idx);
+                });
+                if (btnPrev) btnPrev.disabled = idx === 0;
+                if (btnNext) btnNext.disabled = idx >= total - 1;
+            }
+
+            track.addEventListener('scroll', updateDots, { passive: true });
+
+            if (btnPrev) btnPrev.addEventListener('click', () => {
+                const cw = getCardWidth();
+                track.scrollBy({ left: -cw, behavior: 'smooth' });
+            });
+            if (btnNext) btnNext.addEventListener('click', () => {
+                const cw = getCardWidth();
+                track.scrollBy({ left: cw, behavior: 'smooth' });
+            });
+
+            // Drag to scroll
+            let isDown = false, startX = 0, scrollLeft = 0;
+            track.addEventListener('mousedown', e => {
+                isDown = true;
+                track.classList.add('is-dragging');
+                startX = e.pageX - track.offsetLeft;
+                scrollLeft = track.scrollLeft;
+            });
+            track.addEventListener('mouseleave', () => { isDown = false; track.classList.remove('is-dragging'); });
+            track.addEventListener('mouseup',    () => { isDown = false; track.classList.remove('is-dragging'); });
+            track.addEventListener('mousemove', e => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x    = e.pageX - track.offsetLeft;
+                const walk = (x - startX) * 1.4;
+                track.scrollLeft = scrollLeft - walk;
+            });
+
+            updateDots();
+        })();
+
         // ── SERVICE WORKER REGISTRATION ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
