@@ -4180,7 +4180,7 @@ function updateStudentImage()
     checkUncleAuth();
 
     try {
-        $studentId = intval($_POST['student_id'] ?? 0);
+        $studentId = intval($_POST['student_id'] ?? $_POST['studentId'] ?? 0);
         $imageUrl = sanitize($_POST['imageUrl'] ?? '');
 
         if ($studentId === 0 || empty($imageUrl)) {

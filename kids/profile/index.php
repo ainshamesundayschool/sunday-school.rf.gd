@@ -38,7 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
-  <title id="pageTitle">بوابة الطفل</title>
+  <title id="pageTitle" data-i18n="kid_portal_title">بوابة الطفل</title>
+  <!-- Language Sync and Multi-language support -->
+  <script src="/js/lang-sync.js"></script>
   <meta name="theme-color" content="#4f46e5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap"
@@ -3564,9 +3566,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <!-- Coupon hero card (private only) -->
     <div class="coupon-hero" id="couponHero" style="display:none">
       <div>
-        <div class="ch-total-label"><i class="fas fa-star"></i> إجمالي كوبوناتك</div>
+        <div class="ch-total-label"><i class="fas fa-star"></i> <span data-i18n="stats_coupons_total">إجمالي كوبوناتك</span></div>
         <div class="ch-total-val" id="chTotal">0</div>
-        <div class="ch-total-unit">كوبون</div>
+        <div class="ch-total-unit" data-i18n="coupon">كوبون</div>
       </div>
       <div class="ch-breakdown" id="chBreakdown"></div>
     </div>
@@ -3577,19 +3579,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <div class="stats-bar" id="statsBar" style="display:none">
     <div class="sb-cell ok">
       <div class="sb-val" id="sbP">0</div>
-      <div class="sb-lbl">حضر</div>
+      <div class="sb-lbl" data-i18n="present">حضر</div>
     </div>
     <div class="sb-cell err">
       <div class="sb-val" id="sbA">0</div>
-      <div class="sb-lbl">غاب</div>
+      <div class="sb-lbl" data-i18n="absent">غاب</div>
     </div>
     <div class="sb-cell neu">
       <div class="sb-val" id="sbR">0%</div>
-      <div class="sb-lbl">نسبة</div>
+      <div class="sb-lbl" data-i18n="rate">نسبة</div>
     </div>
     <div class="sb-cell cou">
       <div class="sb-val" id="sbC">0</div>
-      <div class="sb-lbl">كوبون</div>
+      <div class="sb-lbl" data-i18n="coupon">كوبون</div>
     </div>
   </div>
 
@@ -3610,20 +3612,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <span id="friendBannerName">ملف صديق</span>
       <button onclick="returnToMyProfile()"
         style="margin-right:auto;background:none;border:none;color:#9333ea;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:5px;"><i
-          class="fas fa-arrow-right"></i> رجوع</button>
+          class="fas fa-arrow-right"></i> <span data-i18n="back">رجوع</span></button>
     </div>
     <!-- Search friends (private only) -->
     <div class="sc" id="scSearch" style="display:none">
       <div class="sc-head">
         <div class="sc-ico" style="background:#fdf2f8;color:#9333ea;"><i class="fas fa-search"></i></div>
         <div class="sc-label">
-          <div class="sc-title">ابحث عن صحبك في الكنيسة</div>
+          <div class="sc-title" data-i18n="sec_search_title">ابحث عن صحبك في الكنيسة</div>
         </div>
       </div>
       <div class="sc-body">
         <div class="friend-search-bar">
           <i class="fas fa-search" style="color:var(--t4);font-size:.85rem;"></i>
-          <input type="text" id="friendSearchInput" placeholder="ابحث بالاسم…" oninput="onFriendSearch(this.value)"
+          <input type="text" id="friendSearchInput" placeholder="ابحث بالاسم…" data-i18n-placeholder="search_placeholder" oninput="onFriendSearch(this.value)"
             autocomplete="off">
           <button
             onclick="document.getElementById('friendSearchInput').value='';document.getElementById('friendSearchResults').innerHTML=''"
@@ -5860,27 +5862,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // ── Edit / Password / Photo ───────────────────────────────────────
     async function saveProfile() {
       const n = document.getElementById('eN').value.trim();
-      if (!n) { toast('أدخل الاسم', 'err'); return; }
+      if (!n) { toast(window.SundaySchoolI18n.translate('toast_name_required'), 'err'); return; }
       try {
         const d = await api({ action: 'updateStudentInfo', studentId: student.id, name: n, address: document.getElementById('eA').value.trim(), phone: document.getElementById('eP').value.trim(), birthday: document.getElementById('eB').value.trim() });
         if (d.success) {
           student.name = n; student.address = document.getElementById('eA').value.trim();
           student.phone = document.getElementById('eP').value.trim(); student.birthday = document.getElementById('eB').value.trim();
           document.getElementById('heroName').textContent = n;
-          renderInfo(student, false); closeOv('editOv'); toast('تم الحفظ ✓', 'ok');
-        } else toast(d.message || 'فشل', 'err');
-      } catch (e) { toast('خطأ في الاتصال', 'err'); }
+          renderInfo(student, false); closeOv('editOv'); toast(window.SundaySchoolI18n.translate('success'), 'ok');
+        } else toast(d.message || (window.SundaySchoolI18n.lang === 'en' ? 'Failed' : 'فشل'), 'err');
+      } catch (e) { toast(window.SundaySchoolI18n.translate('error_conn'), 'err'); }
     }
     async function changePass() {
       const o = document.getElementById('po').value.trim(), n = document.getElementById('pn').value.trim(), c = document.getElementById('pc').value.trim();
-      if (!o || !n || !c) { toast('أكمل جميع الحقول', 'err'); return; }
-      if (n !== c) { toast('كلمة المرور غير متطابقة', 'err'); return; }
-      if (n.length < 6) { toast('٦ أحرف على الأقل', 'err'); return; }
+      if (!o || !n || !c) { toast(window.SundaySchoolI18n.lang === 'en' ? 'Fill all fields' : 'أكمل جميع الحقول', 'err'); return; }
+      if (n !== c) { toast(window.SundaySchoolI18n.translate('toast_pass_mismatch'), 'err'); return; }
+      if (n.length < 6) { toast(window.SundaySchoolI18n.translate('toast_pass_length'), 'err'); return; }
       try {
         const d = await api({ action: 'setupStudentPassword', phone: localStorage.getItem('savedUsername') || student.phone, studentId: student.id, password: o, newPassword: n });
-        if (d.success) { localStorage.setItem('savedPassword', n); closeOv('passOv'); toast('تم التغيير ✓', 'ok');['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = ''); }
-        else toast(d.message || 'فشل', 'err');
-      } catch (e) { toast('خطأ', 'err'); }
+        if (d.success) { localStorage.setItem('savedPassword', n); closeOv('passOv'); toast(window.SundaySchoolI18n.translate('success'), 'ok');['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = ''); }
+        else toast(d.message || (window.SundaySchoolI18n.lang === 'en' ? 'Failed' : 'فشل'), 'err');
+      } catch (e) { toast(window.SundaySchoolI18n.translate('error'), 'err'); }
     }
     function onPhoto(e) {
       const file = e.target.files[0]; if (!file) return;
@@ -5901,15 +5903,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         croppedBlob = blob;
         const prev = document.getElementById('photoPrev');
         prev.src = URL.createObjectURL(blob); prev.style.display = 'block';
+        document.getElementById('dropZone').style.display = 'none';
         document.getElementById('cropWrap').style.display = 'none';
         document.getElementById('cropBtn').style.display = 'none';
         document.getElementById('uploadBtn').style.display = 'inline-flex';
-        cropper.destroy(); cropper = null; toast('تم القص ✓', 'ok');
+        cropper.destroy(); cropper = null; toast(window.SundaySchoolI18n.translate('success'), 'ok');
       }, 'image/jpeg', .9);
     }
     async function uploadPhoto() {
-      if (!croppedBlob) { toast('اختر صورة أولاً', 'err'); return; }
-      showLoad('جارٍ رفع الصورة…');
+      if (!croppedBlob) { toast(window.SundaySchoolI18n.lang === 'en' ? 'Select an image first' : 'اختر صورة أولاً', 'err'); return; }
+      showLoad(window.SundaySchoolI18n.lang === 'en' ? 'Uploading image...' : 'جارٍ رفع الصورة…');
       const fd = new FormData();
       fd.append('photo', new File([croppedBlob], `profile_${student.phone}_${Date.now()}.jpg`, { type: 'image/jpeg' }));
       fd.append('studentId', student.id); fd.append('studentName', student.name);
@@ -5923,9 +5926,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (d.success) {
           student.image_url = up.imageUrl;
           document.getElementById('avatarInner').innerHTML = `<img src="${up.imageUrl}?t=${Date.now()}" alt="">`;
-          closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
+          closeOv('photoOv'); resetPhoto(); toast(window.SundaySchoolI18n.translate('success'), 'ok');
         } else throw new Error(d.message);
-      } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
+      } catch (e) { hideLoad(); toast((window.SundaySchoolI18n.lang === 'en' ? 'Error: ' : 'خطأ: ') + e.message, 'err'); }
     }
     function resetPhoto() {
       document.getElementById('dropZone').style.display = 'block';
