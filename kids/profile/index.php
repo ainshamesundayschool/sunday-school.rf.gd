@@ -38,9 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
-  <title id="pageTitle" data-i18n="kid_portal_title">بوابة الطفل</title>
-  <!-- Language Sync and Multi-language support -->
-  <script src="/js/lang-sync.js"></script>
+  <title id="pageTitle">بوابة الطفل</title>
   <meta name="theme-color" content="#4f46e5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap"
@@ -3566,9 +3564,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <!-- Coupon hero card (private only) -->
     <div class="coupon-hero" id="couponHero" style="display:none">
       <div>
-        <div class="ch-total-label"><i class="fas fa-star"></i> <span data-i18n="stats_coupons_total">إجمالي كوبوناتك</span></div>
+        <div class="ch-total-label"><i class="fas fa-star"></i> <span>إجمالي كوبوناتك</span></div>
         <div class="ch-total-val" id="chTotal">0</div>
-        <div class="ch-total-unit" data-i18n="coupon">كوبون</div>
+        <div class="ch-total-unit">كوبون</div>
       </div>
       <div class="ch-breakdown" id="chBreakdown"></div>
     </div>
@@ -3579,19 +3577,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <div class="stats-bar" id="statsBar" style="display:none">
     <div class="sb-cell ok">
       <div class="sb-val" id="sbP">0</div>
-      <div class="sb-lbl" data-i18n="present">حضر</div>
+      <div class="sb-lbl">حضر</div>
     </div>
     <div class="sb-cell err">
       <div class="sb-val" id="sbA">0</div>
-      <div class="sb-lbl" data-i18n="absent">غاب</div>
+      <div class="sb-lbl">غاب</div>
     </div>
     <div class="sb-cell neu">
       <div class="sb-val" id="sbR">0%</div>
-      <div class="sb-lbl" data-i18n="rate">نسبة</div>
+      <div class="sb-lbl">نسبة</div>
     </div>
     <div class="sb-cell cou">
       <div class="sb-val" id="sbC">0</div>
-      <div class="sb-lbl" data-i18n="coupon">كوبون</div>
+      <div class="sb-lbl">كوبون</div>
     </div>
   </div>
 
@@ -3612,20 +3610,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <span id="friendBannerName">ملف صديق</span>
       <button onclick="returnToMyProfile()"
         style="margin-right:auto;background:none;border:none;color:#9333ea;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:5px;"><i
-          class="fas fa-arrow-right"></i> <span data-i18n="back">رجوع</span></button>
+          class="fas fa-arrow-right"></i> <span>رجوع</span></button>
     </div>
     <!-- Search friends (private only) -->
     <div class="sc" id="scSearch" style="display:none">
       <div class="sc-head">
         <div class="sc-ico" style="background:#fdf2f8;color:#9333ea;"><i class="fas fa-search"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_search_title">ابحث عن صحبك في الكنيسة</div>
+          <div class="sc-title">ابحث عن صحبك في الكنيسة</div>
         </div>
       </div>
       <div class="sc-body">
         <div class="friend-search-bar">
           <i class="fas fa-search" style="color:var(--t4);font-size:.85rem;"></i>
-          <input type="text" id="friendSearchInput" placeholder="ابحث بالاسم…" data-i18n-placeholder="search_placeholder" oninput="onFriendSearch(this.value)"
+          <input type="text" id="friendSearchInput" placeholder="ابحث بالاسم…" oninput="onFriendSearch(this.value)"
             autocomplete="off">
           <button
             onclick="document.getElementById('friendSearchInput').value='';document.getElementById('friendSearchResults').innerHTML=''"
@@ -3641,7 +3639,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:#e0e7ff;color:var(--brand);"><i class="fas fa-id-card"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_info_title">المعلومات الشخصية</div>
+          <div class="sc-title">المعلومات الشخصية</div>
         </div>
       </div>
       <div class="sc-body">
@@ -3654,8 +3652,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--ok-bg);color:var(--ok);"><i class="fas fa-calendar-check"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_att_title">سجل الحضور</div>
-          <div class="sc-sub" id="attSub" data-i18n="sec_att_sub">آخر 12 أسبوع</div>
+          <div class="sc-title">سجل الحضور</div>
+          <div class="sc-sub" id="attSub">آخر 12 أسبوع</div>
         </div>
         <div class="sc-badge" id="attBadge"></div>
       </div>
@@ -3663,21 +3661,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="att-stats">
           <div class="as ok">
             <div class="as-val" id="ap">0</div>
-            <div class="as-lbl" data-i18n="present">حضر</div>
+            <div class="as-lbl">حضر</div>
           </div>
           <div class="as err">
             <div class="as-val" id="aa">0</div>
-            <div class="as-lbl" data-i18n="absent">غاب</div>
+            <div class="as-lbl">غاب</div>
           </div>
           <div class="as neu">
             <div class="as-val" id="ar">0%</div>
-            <div class="as-lbl" data-i18n="rate">نسبة</div>
+            <div class="as-lbl">نسبة</div>
           </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div style="text-align:center;margin-top:4px;">
           <span class="att-view-all" id="attViewAllBtn" onclick="openAttHistory()">
-            <i class="fas fa-list-ul"></i> <span data-i18n="att_btn_view_all">عرض السجل بالكامل</span>
+            <i class="fas fa-list-ul"></i> <span>عرض السجل بالكامل</span>
           </span>
         </div>
       </div>
@@ -3688,7 +3686,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-tasks"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_tasks_title">الاختبارات والمهام</div>
+          <div class="sc-title">الاختبارات والمهام</div>
           <div class="sc-sub" id="taskSub"></div>
         </div>
       </div>
@@ -3702,7 +3700,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--trip-bg);color:var(--trip-l);"><i class="fas fa-bus"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_trips_title">الرحلات / المؤتمرات</div>
+          <div class="sc-title">الرحلات / المؤتمرات</div>
           <div class="sc-sub" id="tripSub"></div>
         </div>
       </div>
@@ -3716,8 +3714,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--warn-bg);color:var(--warn-l);"><i class="fas fa-bullhorn"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_ann_title">الإعلانات</div>
-          <div class="sc-sub" id="annSub" data-i18n="ann_from_church">كل جديد يخصك هيظهر هنا أولاً</div>
+          <div class="sc-title">الإعلانات</div>
+          <div class="sc-sub" id="annSub">كل جديد يخصك هيظهر هنا أولاً</div>
         </div>
         <div class="sc-badge" id="annBadge">0</div>
       </div>
@@ -3731,7 +3729,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-chalkboard-teacher"></i></div>
         <div class="sc-label">
-          <div class="sc-title" data-i18n="sec_uncles_title">انكل وطنط اللي معاك في الفصل</div>
+          <div class="sc-title">انكل وطنط اللي معاك في الفصل</div>
           <div class="sc-sub" id="unclesSub"></div>
         </div>
       </div>
@@ -3769,7 +3767,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <i class="fas fa-calendar-check"></i>
         </div>
         <div style="flex:1;">
-          <div style="font-size:1rem;font-weight:800;color:var(--t1);" data-i18n="att_btn_view_all">سجل الحضور الكامل</div>
+          <div style="font-size:1rem;font-weight:800;color:var(--t1);">سجل الحضور الكامل</div>
           <div style="font-size:.72rem;color:var(--t4);font-weight:600;" id="attHistSubtitle">جارٍ التحميل…</div>
         </div>
         <button onclick="closeOv('attHistOv')"
@@ -3784,17 +3782,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div
           style="text-align:center;padding:10px 6px;border-radius:var(--r-md);background:var(--ok-bg);border:1px solid #6ee7b7;">
           <div style="font-size:1.2rem;font-weight:800;color:var(--ok);" id="ahsPresent">0</div>
-          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;" data-i18n="present">حضر</div>
+          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;">حضر</div>
         </div>
         <div
           style="text-align:center;padding:10px 6px;border-radius:var(--r-md);background:var(--err-bg);border:1px solid #fca5a5;">
           <div style="font-size:1.2rem;font-weight:800;color:var(--err);" id="ahsAbsent">0</div>
-          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;" data-i18n="absent">غاب</div>
+          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;">غاب</div>
         </div>
         <div
           style="text-align:center;padding:10px 6px;border-radius:var(--r-md);background:var(--s2);border:1px solid var(--bdr);">
           <div style="font-size:1.2rem;font-weight:800;color:var(--brand);" id="ahsRate">0%</div>
-          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;" data-i18n="rate">نسبة الحضور</div>
+          <div style="font-size:.6rem;color:var(--t4);margin-top:2px;font-weight:600;">نسبة الحضور</div>
         </div>
       </div>
 
@@ -3842,7 +3840,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <i class="fas fa-flag"></i>
         </div>
         <div style="flex:1;">
-          <div style="font-size:.96rem;font-weight:800;color:var(--t1);" data-i18n="att_btn_report">بلّغ عن خطأ</div>
+          <div style="font-size:.96rem;font-weight:800;color:var(--t1);">بلّغ عن خطأ</div>
           <div style="font-size:.72rem;color:var(--t4);font-weight:600;" id="reportDateLabel"></div>
         </div>
         <button onclick="closeOv('attReportOv')"
@@ -3857,11 +3855,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div style="display:flex;gap:10px;">
           <button id="reportShouldPresent" onclick="setReportShould('present')"
             style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-check-circle"></i> <span data-i18n="present">حضر</span>
+            <i class="fas fa-check-circle"></i> <span>حضر</span>
           </button>
           <button id="reportShouldAbsent" onclick="setReportShould('absent')"
             style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-times-circle"></i> <span data-i18n="absent">غاب</span>
+            <i class="fas fa-times-circle"></i> <span>غاب</span>
           </button>
         </div>
       </div>
@@ -3891,17 +3889,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="ss-items">
         <div class="ss-item" onclick="closeOv('settingsOv');setTimeout(()=>openOv('editOv'),180)">
           <div class="ss-item-ico" style="background:#e0e7ff;color:#4338ca;"><i class="fas fa-user-edit"></i></div>
-          <div class="ss-item-label" data-i18n="btn_edit_profile">تعديل معلوماتي</div>
+          <div class="ss-item-label">تعديل معلوماتي</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
         <div class="ss-item" onclick="closeOv('settingsOv');setTimeout(()=>openOv('passOv'),180)">
           <div class="ss-item-ico" style="background:#fef3c7;color:#92400e;"><i class="fas fa-lock"></i></div>
-          <div class="ss-item-label" data-i18n="btn_change_pass">تغيير كلمة المرور</div>
+          <div class="ss-item-label">تغيير كلمة المرور</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
         <div class="ss-item" onclick="closeOv('settingsOv');setTimeout(()=>openOv('photoOv'),180)">
           <div class="ss-item-ico" style="background:#d1fae5;color:#065f46;"><i class="fas fa-camera"></i></div>
-          <div class="ss-item-label" data-i18n="modal_photo_title">تغيير الصورة الشخصية</div>
+          <div class="ss-item-label">تغيير الصورة الشخصية</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
       </div>
@@ -3909,11 +3907,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="ss-items">
         <div class="ss-item danger" onclick="doLogout()">
           <div class="ss-item-ico" style="background:#fee2e2;color:#b91c1c;"><i class="fas fa-sign-out-alt"></i></div>
-          <div class="ss-item-label" data-i18n="btn_logout">تسجيل الخروج</div>
+          <div class="ss-item-label">تسجيل الخروج</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
       </div>
-      <button class="ss-close-btn" onclick="closeOv('settingsOv')" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('settingsOv')">إغلاق</button>
     </div>
   </div>
 
@@ -3926,21 +3924,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-user-edit"></i></div>
-          <span data-i18n="modal_edit_title">تعديل المعلومات</span>
+          <span>تعديل المعلومات</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
-        <div class="fg"><label class="flbl" data-i18n="info_name">الاسم</label><input class="fi" id="eN" type="text"></div>
-        <div class="fg"><label class="flbl" data-i18n="info_address">العنوان</label><input class="fi" id="eA" type="text"></div>
-        <div class="fg"><label class="flbl" data-i18n="info_phone">التليفون</label><input class="fi" id="eP" type="tel"></div>
-        <div class="fg" style="margin-bottom:0;"><label class="flbl" data-i18n="info_birthday">تاريخ الميلاد</label><input class="fi" id="eB"
+        <div class="fg"><label class="flbl">الاسم</label><input class="fi" id="eN" type="text"></div>
+        <div class="fg"><label class="flbl">العنوان</label><input class="fi" id="eA" type="text"></div>
+        <div class="fg"><label class="flbl">التليفون</label><input class="fi" id="eP" type="tel"></div>
+        <div class="fg" style="margin-bottom:0;"><label class="flbl">تاريخ الميلاد</label><input class="fi" id="eB"
             type="text" placeholder="DD/MM/YYYY"></div>
       </div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="saveProfile()"><i class="fas fa-save"></i>
-          <span data-i18n="btn_save_changes">حفظ المعلومات</span></button>
+          <span>حفظ المعلومات</span></button>
       </div>
-      <button class="ss-close-btn" onclick="closeOv('editOv')" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('editOv')">إغلاق</button>
     </div>
   </div>
 
@@ -3953,28 +3951,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-lock"></i></div>
-          <span data-i18n="modal_pass_title">تغيير كلمة المرور</span>
+          <span>تغيير كلمة المرور</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
-        <div class="fg"><label class="flbl" data-i18n="field_current_pass">الحالية</label>
+        <div class="fg"><label class="flbl">الحالية</label>
           <div class="pass-wrap"><input class="fi" id="po" type="password"><button type="button" class="pass-eye"
               onclick="tPass('po',this)"><i class="fas fa-eye"></i></button></div>
         </div>
-        <div class="fg"><label class="flbl" data-i18n="field_new_pass">الجديدة (٦ أحرف+)</label>
+        <div class="fg"><label class="flbl">الجديدة (٦ أحرف+)</label>
           <div class="pass-wrap"><input class="fi" id="pn" type="password"><button type="button" class="pass-eye"
               onclick="tPass('pn',this)"><i class="fas fa-eye"></i></button></div>
         </div>
-        <div class="fg" style="margin-bottom:0;"><label class="flbl" data-i18n="field_confirm_pass">تأكيد الجديدة</label>
+        <div class="fg" style="margin-bottom:0;"><label class="flbl">تأكيد الجديدة</label>
           <div class="pass-wrap"><input class="fi" id="pc" type="password"><button type="button" class="pass-eye"
               onclick="tPass('pc',this)"><i class="fas fa-eye"></i></button></div>
         </div>
       </div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="changePass()"><i class="fas fa-lock"></i>
-          <span data-i18n="btn_change_now">تغيير كلمة المرور</span></button>
+          <span>تغيير كلمة المرور</span></button>
       </div>
-      <button class="ss-close-btn" onclick="closeOv('passOv')" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('passOv')">إغلاق</button>
     </div>
   </div>
 
@@ -3987,13 +3985,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#d1fae5;color:#065f46;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-camera"></i></div>
-          <span data-i18n="modal_photo_title">تغيير الصورة الشخصية</span>
+          <span>تغيير الصورة الشخصية</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
         <div class="upload-drop" id="dropZone" onclick="document.getElementById('photoIn').click()">
           <i class="fas fa-cloud-upload-alt"></i>
-          <p data-i18n="photo_placeholder">اضغط أو اسحب صورة هنا</p>
+          <p>اضغط أو اسحب صورة هنا</p>
           <input type="file" id="photoIn" accept="image/*" style="display:none" onchange="onPhoto(event)">
         </div>
         <div id="cropWrap" style="display:none">
@@ -4004,11 +4002,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div style="padding:8px 22px 0;display:flex;gap:8px;">
         <button class="btn btn-p" id="cropBtn" style="display:none;width:100%;padding:12px;" onclick="doCrop()"><i
-            class="fas fa-crop-alt"></i> <span data-i18n="btn_crop_photo">قص الصورة</span></button>
+            class="fas fa-crop-alt"></i> <span>قص الصورة</span></button>
         <button class="btn btn-p" id="uploadBtn" style="display:none;width:100%;padding:12px;"
-          onclick="uploadPhoto()"><i class="fas fa-upload"></i> <span data-i18n="btn_upload_photo">رفع الصورة</span></button>
+          onclick="uploadPhoto()"><i class="fas fa-upload"></i> <span>رفع الصورة</span></button>
       </div>
-      <button class="ss-close-btn" onclick="closeOv('photoOv');resetPhoto()" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('photoOv');resetPhoto()">إغلاق</button>
     </div>
   </div>
 
@@ -4021,15 +4019,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-exchange-alt"></i></div>
-          <span data-i18n="switch_acc_title">تبديل الحساب</span>
+          <span>تبديل الحساب</span>
         </div>
       </div>
       <div id="switchList" style="padding:10px 16px;"></div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="doSwitch()"><i
-            class="fas fa-exchange-alt"></i> <span data-i18n="switch_acc_btn">تبديل الحساب</span></button>
+            class="fas fa-exchange-alt"></i> <span>تبديل الحساب</span></button>
       </div>
-      <button class="ss-close-btn" onclick="closeOv('switchOv')" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('switchOv')">إغلاق</button>
     </div>
   </div>
 
@@ -4049,7 +4047,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         </div>
       </div>
       <div id="tripOvBody" style="padding:16px 18px;"></div>
-      <button class="ss-close-btn" onclick="closeOv('tripOv')" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('tripOv')">إغلاق</button>
     </div>
   </div>
 
@@ -4057,7 +4055,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <div class="overlay settings-overlay" id="uncleOv">
     <div class="settings-sheet" style="padding-bottom:max(20px,env(safe-area-inset-bottom));">
       <div id="uncleOvContent"></div>
-      <button class="ss-close-btn" onclick="closeOv('uncleOv')" style="margin:12px 16px 0;" data-i18n="close">إغلاق</button>
+      <button class="ss-close-btn" onclick="closeOv('uncleOv')" style="margin:12px 16px 0;">إغلاق</button>
     </div>
   </div>
 
@@ -5862,27 +5860,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // ── Edit / Password / Photo ───────────────────────────────────────
     async function saveProfile() {
       const n = document.getElementById('eN').value.trim();
-      if (!n) { toast(window.SundaySchoolI18n.translate('toast_name_required'), 'err'); return; }
+      if (!n) { toast('أدخل الاسم', 'err'); return; }
       try {
         const d = await api({ action: 'updateStudentInfo', studentId: student.id, name: n, address: document.getElementById('eA').value.trim(), phone: document.getElementById('eP').value.trim(), birthday: document.getElementById('eB').value.trim() });
         if (d.success) {
           student.name = n; student.address = document.getElementById('eA').value.trim();
           student.phone = document.getElementById('eP').value.trim(); student.birthday = document.getElementById('eB').value.trim();
           document.getElementById('heroName').textContent = n;
-          renderInfo(student, false); closeOv('editOv'); toast(window.SundaySchoolI18n.translate('success'), 'ok');
-        } else toast(d.message || (window.SundaySchoolI18n.lang === 'en' ? 'Failed' : 'فشل'), 'err');
-      } catch (e) { toast(window.SundaySchoolI18n.translate('error_conn'), 'err'); }
+          renderInfo(student, false); closeOv('editOv'); toast('تم الحفظ ✓', 'ok');
+        } else toast(d.message || 'فشل', 'err');
+      } catch (e) { toast('خطأ في الاتصال', 'err'); }
     }
     async function changePass() {
       const o = document.getElementById('po').value.trim(), n = document.getElementById('pn').value.trim(), c = document.getElementById('pc').value.trim();
-      if (!o || !n || !c) { toast(window.SundaySchoolI18n.lang === 'en' ? 'Fill all fields' : 'أكمل جميع الحقول', 'err'); return; }
-      if (n !== c) { toast(window.SundaySchoolI18n.translate('toast_pass_mismatch'), 'err'); return; }
-      if (n.length < 6) { toast(window.SundaySchoolI18n.translate('toast_pass_length'), 'err'); return; }
+      if (!o || !n || !c) { toast('أكمل جميع الحقول', 'err'); return; }
+      if (n !== c) { toast('كلمة المرور غير متطابقة', 'err'); return; }
+      if (n.length < 6) { toast('٦ أحرف على الأقل', 'err'); return; }
       try {
         const d = await api({ action: 'setupStudentPassword', phone: localStorage.getItem('savedUsername') || student.phone, studentId: student.id, password: o, newPassword: n });
-        if (d.success) { localStorage.setItem('savedPassword', n); closeOv('passOv'); toast(window.SundaySchoolI18n.translate('success'), 'ok');['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = ''); }
-        else toast(d.message || (window.SundaySchoolI18n.lang === 'en' ? 'Failed' : 'فشل'), 'err');
-      } catch (e) { toast(window.SundaySchoolI18n.translate('error'), 'err'); }
+        if (d.success) { localStorage.setItem('savedPassword', n); closeOv('passOv'); toast('تم التغيير ✓', 'ok');['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = ''); }
+        else toast(d.message || 'فشل', 'err');
+      } catch (e) { toast('خطأ', 'err'); }
     }
     function onPhoto(e) {
       const file = e.target.files[0]; if (!file) return;
@@ -5907,12 +5905,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         document.getElementById('cropWrap').style.display = 'none';
         document.getElementById('cropBtn').style.display = 'none';
         document.getElementById('uploadBtn').style.display = 'inline-flex';
-        cropper.destroy(); cropper = null; toast(window.SundaySchoolI18n.translate('success'), 'ok');
+        cropper.destroy(); cropper = null; toast('تم القص ✓', 'ok');
       }, 'image/jpeg', .9);
     }
     async function uploadPhoto() {
-      if (!croppedBlob) { toast(window.SundaySchoolI18n.lang === 'en' ? 'Select an image first' : 'اختر صورة أولاً', 'err'); return; }
-      showLoad(window.SundaySchoolI18n.lang === 'en' ? 'Uploading image...' : 'جارٍ رفع الصورة…');
+      if (!croppedBlob) { toast('اختر صورة أولاً', 'err'); return; }
+      showLoad('جارٍ رفع الصورة…');
       const fd = new FormData();
       fd.append('photo', new File([croppedBlob], `profile_${student.phone}_${Date.now()}.jpg`, { type: 'image/jpeg' }));
       fd.append('studentId', student.id); fd.append('studentName', student.name);
@@ -5926,9 +5924,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (d.success) {
           student.image_url = up.imageUrl;
           document.getElementById('avatarInner').innerHTML = `<img src="${up.imageUrl}?t=${Date.now()}" alt="">`;
-          closeOv('photoOv'); resetPhoto(); toast(window.SundaySchoolI18n.translate('success'), 'ok');
+          closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
         } else throw new Error(d.message);
-      } catch (e) { hideLoad(); toast((window.SundaySchoolI18n.lang === 'en' ? 'Error: ' : 'خطأ: ') + e.message, 'err'); }
+      } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
     }
     function resetPhoto() {
       document.getElementById('dropZone').style.display = 'block';
