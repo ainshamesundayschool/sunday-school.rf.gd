@@ -54,6 +54,64 @@ function ensureChurchTypeColumn(mysqli $conn): void
     }
 }
 
+// ── Safe deletion of uploaded files ─────────────────────────
+/**
+ * Safely deletes an uploaded image file from the server.
+ * Handles both full URLs (https://sunday-school.rf.gd/uploads/...)
+ * and relative paths (/uploads/...).
+ * 
+ * Security: validates path is within uploads dir, no traversal,
+ * and the file is a real image. Never throws — returns bool.
+ */
+function deleteUploadedFile(?string $imageUrl): bool {
+    if (empty($imageUrl)) return false;
+
+    // Extract relative path from full URL or relative path
+    $path = $imageUrl;
+    if (strpos($path, 'https://') === 0 || strpos($path, 'http://') === 0) {
+        $parsed = parse_url($path);
+        $path = $parsed['path'] ?? '';
+    }
+
+    // Must start with /uploads/
+    if (strpos($path, '/uploads/') !== 0) {
+        error_log("deleteUploadedFile: path does not start with /uploads/: " . $imageUrl);
+        return false;
+    }
+
+    // Build absolute file path
+    $filePath = __DIR__ . $path;
+    $realPath = @realpath($filePath);
+    $uploadsDir = @realpath(__DIR__ . '/uploads');
+
+    // Safety checks
+    if (!$realPath || !$uploadsDir) {
+        error_log("deleteUploadedFile: file not found or uploads dir missing: " . $imageUrl);
+        return false;
+    }
+
+    // Path traversal protection
+    if (strpos($realPath, $uploadsDir . DIRECTORY_SEPARATOR) !== 0 && $realPath !== $uploadsDir) {
+        error_log("SECURITY deleteUploadedFile: path traversal attempt blocked: " . $imageUrl);
+        return false;
+    }
+
+    // Must be a regular file
+    if (!is_file($realPath)) {
+        error_log("deleteUploadedFile: not a regular file: " . $imageUrl);
+        return false;
+    }
+
+    // Delete file
+    if (@unlink($realPath)) {
+        error_log("✅ Cleaned up uploaded file: " . $path);
+        return true;
+    }
+
+    error_log("❌ Failed to delete uploaded file: " . $path);
+    return false;
+}
+
 // ── Game / QR processing for trips ─────────────────────────
 function processGameQRCode()
 {
@@ -1500,6 +1558,11 @@ try {
             checkAuth();
             deleteChurch();
             break;
+
+        case 'cleanupOrphanedFiles':
+            cleanupOrphanedFiles();
+            break;
+
         case 'generateKidsTemplate':
             generateKidsTemplate();
             break;
@@ -4088,7 +4151,7 @@ function deleteStudent()
 
         // First, get student info for logging
         $getStmt = $conn->prepare("
-            SELECT s.name, c.arabic_name as class 
+            SELECT s.name, s.image_url, c.arabic_name as class 
             FROM students s
             LEFT JOIN classes c ON s.class_id = c.id
             WHERE s.id = ? AND s.church_id = ?
@@ -4105,6 +4168,7 @@ function deleteStudent()
         $student = $result->fetch_assoc();
         $studentName = $student['name'];
         $className = $student['class'];
+        $studentImageUrl = $student['image_url'] ?? null;
 
         // Start transaction
         $conn->begin_transaction();
@@ -4141,6 +4205,9 @@ function deleteStudent()
             if ($deleteStmt->execute()) {
                 if ($deleteStmt->affected_rows > 0) {
                     $conn->commit();
+
+                    // Clean up student image file from disk
+                    deleteUploadedFile($studentImageUrl);
 
                     // Log the deletion
                     error_log("Student deleted - ID: $studentId, Name: $studentName, Class: $className, Church: $churchId");
@@ -5773,6 +5840,136 @@ function updateChurchPassword()
     }
 }
 
+// ===== DEVELOPER: CLEANUP ORPHANED FILES =====
+/**
+ * Scans upload directories and compares against DB references.
+ * Dry-run by default — only deletes with confirm=true.
+ * Developer-only access.
+ */
+function cleanupOrphanedFiles()
+{
+    checkAuth();
+
+    try {
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        if ($role !== 'developer') {
+            sendJSON(['success' => false, 'message' => 'غير مصرح — للمطورين فقط']);
+            return;
+        }
+
+        $confirm = ($_POST['confirm'] ?? 'false') === 'true';
+        $conn = getDBConnection();
+
+        // ── Collect all image URLs referenced in DB ──
+        $dbUrls = [];
+
+        // Students
+        $res = $conn->query("SELECT image_url FROM students WHERE image_url IS NOT NULL AND image_url != ''");
+        while ($row = $res->fetch_assoc()) {
+            $dbUrls[] = $row['image_url'];
+        }
+
+        // Uncles (include soft-deleted — their images may still be referenced)
+        $res = $conn->query("SELECT image_url FROM uncles WHERE image_url IS NOT NULL AND image_url != ''");
+        while ($row = $res->fetch_assoc()) {
+            $dbUrls[] = $row['image_url'];
+        }
+
+        // Trips
+        $res = $conn->query("SELECT image_url FROM trips WHERE image_url IS NOT NULL AND image_url != ''");
+        while ($row = $res->fetch_assoc()) {
+            $dbUrls[] = $row['image_url'];
+        }
+
+        // Pending registrations
+        $res = $conn->query("SELECT image_url FROM pending_registrations WHERE image_url IS NOT NULL AND image_url != ''");
+        while ($row = $res->fetch_assoc()) {
+            $dbUrls[] = $row['image_url'];
+        }
+
+        // Normalize all DB URLs to just filenames for comparison
+        $dbFilenames = [];
+        foreach ($dbUrls as $url) {
+            $path = $url;
+            if (strpos($path, 'http') === 0) {
+                $parsed = parse_url($path);
+                $path = $parsed['path'] ?? '';
+            }
+            $dbFilenames[] = basename($path);
+        }
+        $dbFilenameSet = array_flip($dbFilenames);
+
+        // ── Scan upload directories ──
+        $uploadDirs = [
+            'students' => __DIR__ . '/uploads/students/',
+            'uncle'    => __DIR__ . '/uploads/uncle/',
+            'trips'    => __DIR__ . '/uploads/trips/',
+            'profiles' => __DIR__ . '/uploads/profiles/',
+        ];
+
+        $orphaned = [];
+        $totalFiles = 0;
+        $totalOrphanedSize = 0;
+
+        foreach ($uploadDirs as $dirName => $dirPath) {
+            if (!is_dir($dirPath)) continue;
+
+            $files = @scandir($dirPath);
+            if (!$files) continue;
+
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') continue;
+                $fullPath = $dirPath . $file;
+                if (!is_file($fullPath)) continue;
+
+                $totalFiles++;
+
+                // Check if this file is referenced in the DB
+                if (!isset($dbFilenameSet[$file])) {
+                    $fileSize = @filesize($fullPath);
+                    $orphaned[] = [
+                        'directory' => $dirName,
+                        'filename'  => $file,
+                        'size'      => $fileSize,
+                        'sizeHuman' => round($fileSize / 1024, 1) . ' KB',
+                        'path'      => '/uploads/' . $dirName . '/' . $file,
+                    ];
+                    $totalOrphanedSize += $fileSize;
+                }
+            }
+        }
+
+        // ── Delete if confirmed ──
+        $deletedCount = 0;
+        if ($confirm && count($orphaned) > 0) {
+            foreach ($orphaned as &$item) {
+                $deleted = deleteUploadedFile($item['path']);
+                $item['deleted'] = $deleted;
+                if ($deleted) $deletedCount++;
+            }
+            unset($item);
+        }
+
+        sendJSON([
+            'success'            => true,
+            'dryRun'             => !$confirm,
+            'totalFilesOnDisk'   => $totalFiles,
+            'totalReferencedInDB'=> count($dbFilenames),
+            'orphanedCount'      => count($orphaned),
+            'orphanedSizeTotal'  => round($totalOrphanedSize / 1024, 1) . ' KB',
+            'deletedCount'       => $deletedCount,
+            'orphanedFiles'      => $orphaned,
+            'message'            => $confirm
+                ? "تم حذف $deletedCount من " . count($orphaned) . " ملف يتيم"
+                : count($orphaned) . " ملف يتيم — أرسل confirm=true للحذف الفعلي",
+        ]);
+
+    } catch (Exception $e) {
+        error_log("cleanupOrphanedFiles error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
 // ===== ADMIN: DELETE CHURCH =====
 function deleteChurch()
 {
@@ -5811,11 +6008,61 @@ function deleteChurch()
             }
         }
 
+        // ── Collect all image URLs BEFORE deleting the church ──
+        $imageUrls = [];
+
+        // Student images
+        $imgStmt = $conn->prepare("SELECT image_url FROM students WHERE church_id = ? AND image_url IS NOT NULL AND image_url != ''");
+        $imgStmt->bind_param("i", $churchId);
+        $imgStmt->execute();
+        $imgResult = $imgStmt->get_result();
+        while ($imgRow = $imgResult->fetch_assoc()) {
+            $imageUrls[] = $imgRow['image_url'];
+        }
+
+        // Uncle images
+        $imgStmt = $conn->prepare("SELECT image_url FROM uncles WHERE church_id = ? AND image_url IS NOT NULL AND image_url != ''");
+        $imgStmt->bind_param("i", $churchId);
+        $imgStmt->execute();
+        $imgResult = $imgStmt->get_result();
+        while ($imgRow = $imgResult->fetch_assoc()) {
+            $imageUrls[] = $imgRow['image_url'];
+        }
+
+        // Trip images
+        $imgStmt = $conn->prepare("SELECT image_url FROM trips WHERE church_id = ? AND image_url IS NOT NULL AND image_url != ''");
+        $imgStmt->bind_param("i", $churchId);
+        $imgStmt->execute();
+        $imgResult = $imgStmt->get_result();
+        while ($imgRow = $imgResult->fetch_assoc()) {
+            $imageUrls[] = $imgRow['image_url'];
+        }
+
+        // Pending registration images (both image_url and profile_photo)
+        $imgStmt = $conn->prepare("SELECT image_url FROM pending_registrations WHERE church_id = ? AND image_url IS NOT NULL AND image_url != ''");
+        $imgStmt->bind_param("i", $churchId);
+        $imgStmt->execute();
+        $imgResult = $imgStmt->get_result();
+        while ($imgRow = $imgResult->fetch_assoc()) {
+            $imageUrls[] = $imgRow['image_url'];
+        }
+
+        error_log("deleteChurch: collected " . count($imageUrls) . " image URLs for cleanup (church_id=$churchId)");
+
         // Delete church (in real scenario, you might want to soft delete)
         $stmt = $conn->prepare("DELETE FROM churches WHERE id = ?");
         $stmt->bind_param("i", $churchId);
 
         if ($stmt->execute()) {
+            // ── Clean up all collected image files AFTER successful DB deletion ──
+            $deletedCount = 0;
+            foreach ($imageUrls as $url) {
+                if (deleteUploadedFile($url)) {
+                    $deletedCount++;
+                }
+            }
+            error_log("deleteChurch: cleaned up $deletedCount/" . count($imageUrls) . " image files (church_id=$churchId)");
+
             sendJSON(['success' => true, 'message' => 'تم حذف الكنيسة بنجاح']);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في حذف الكنيسة']);
@@ -6791,7 +7038,7 @@ function deleteUncle()
         $conn = getDBConnection();
 
         // Verify this uncle belongs to the church
-        $checkStmt = $conn->prepare("SELECT id, name, role FROM uncles WHERE id = ? AND church_id = ?");
+        $checkStmt = $conn->prepare("SELECT id, name, role, image_url FROM uncles WHERE id = ? AND church_id = ?");
         $checkStmt->bind_param("ii", $uncleId, $churchId);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
@@ -6826,6 +7073,9 @@ function deleteUncle()
             $stmt->execute();
 
             $conn->commit();
+
+            // Clean up uncle image file from disk
+            deleteUploadedFile($uncleData['image_url'] ?? null);
 
             // Audit log
             writeAuditLog('uncle_delete', 'uncle', $uncleId, $uncleName, null, null, 'حذف خادم');
@@ -13507,6 +13757,10 @@ try {
         case 'deleteChurch':
             checkAuth();
             deleteChurch();
+            break;
+
+        case 'cleanupOrphanedFiles':
+            cleanupOrphanedFiles();
             break;
 
         case 'generateKidsTemplate':
