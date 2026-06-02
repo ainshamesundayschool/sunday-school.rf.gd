@@ -790,12 +790,12 @@
         /* ===== SCREENSHOTS SHOWCASE ===== */
         .ss-section {
             margin-bottom: var(--spacing-xl);
-            padding: var(--spacing-xl) 0 var(--spacing-md);
+            padding: clamp(42px, 6vw, 72px) 0 var(--spacing-md);
         }
 
         .ss-section-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .ss-eyebrow {
@@ -817,12 +817,12 @@
 
         .ss-track {
             display: flex;
-            gap: 14px;
+            gap: 18px;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            padding: 12px 32px 20px;
+            padding: 14px 32px 28px;
             cursor: grab;
             user-select: none;
         }
@@ -858,18 +858,19 @@
 
         /* Phone card */
         .ss-phone-card {
-            flex: 0 0 150px;
+            flex: 0 0 172px;
             scroll-snap-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+            transition: transform .3s cubic-bezier(.4, 0, .2, 1), filter .3s ease;
         }
 
         .ss-phone-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-8px) scale(1.02);
+            filter: saturate(1.03);
         }
 
         @media(max-width: 480px) {
@@ -884,13 +885,79 @@
 
         @media(min-width: 768px) {
             .ss-phone-card {
-                flex: 0 0 158px;
+                flex: 0 0 182px;
             }
         }
 
         @media(min-width: 1100px) {
+            .ss-section {
+                padding-top: 72px;
+            }
+
+            .ss-section-header {
+                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                align-items: end;
+                margin-bottom: 20px;
+            }
+
+            .ss-outer::before,
+            .ss-outer::after {
+                width: 80px;
+            }
+
+            .ss-track {
+                gap: 24px;
+                padding: 18px 48px 32px;
+            }
+
             .ss-phone-card {
-                flex: 0 0 168px;
+                flex: 0 0 266px;
+            }
+
+            .ss-phone {
+                padding: 10px;
+                border-radius: 24px;
+                background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+                border: 1px solid rgba(148, 163, 184, .25);
+                box-shadow: 0 18px 40px -18px rgba(15, 23, 42, .35),
+                    0 4px 14px -8px rgba(99, 102, 241, .2);
+            }
+
+            .ss-phone::before,
+            .ss-phone::after {
+                display: none;
+            }
+
+            .ss-screen {
+                padding-bottom: 66%;
+                border-radius: 18px;
+            }
+
+            .ss-screen img {
+                top: 0;
+                height: 100%;
+                object-position: center top;
+            }
+
+            .ss-phone-label {
+                align-items: flex-start;
+                width: 100%;
+                padding: 0 4px;
+            }
+
+            .ss-phone-badge {
+                font-size: .74rem;
+                padding: 4px 12px;
+            }
+
+            .ss-phone-desc {
+                display: block;
+                font-size: .76rem;
+                line-height: 1.45;
+                color: var(--secondary);
+                max-width: 100%;
             }
         }
 
@@ -994,6 +1061,10 @@
 
         /* Badge */
         .ss-phone-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
             text-align: center;
         }
 
@@ -1005,6 +1076,10 @@
             padding: 3px 10px;
             font-size: .7rem;
             font-weight: 700;
+        }
+
+        .ss-phone-desc {
+            display: none;
         }
 
         /* Navigation */
@@ -1116,16 +1191,15 @@
         }
 
         .ss-lb-img-wrap img {
-            max-height: 78vh;
-            max-width: min(400px, 85vw);
+            max-height: 82vh;
+            max-width: min(1120px, 92vw);
             width: auto;
-            border-radius: 28px;
+            border-radius: 24px;
             box-shadow: 0 30px 80px -10px rgba(0, 0, 0, .7);
             display: block;
             object-fit: contain;
-            /* Crop status bar */
-            clip-path: inset(7% 0 0 0 round 28px);
-            transform: scale(.92);
+            background: #0b1220;
+            transform: scale(.94);
             transition: transform .35s cubic-bezier(.4, 0, .2, 1), opacity .3s ease;
             opacity: 0;
         }
@@ -1159,6 +1233,31 @@
         .ss-lb-close:hover {
             background: rgba(255, 255, 255, .25);
             transform: scale(1.1);
+        }
+
+        .ss-lb-fullscreen {
+            position: absolute;
+            top: 16px;
+            left: 68px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .18);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s ease;
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        .ss-lb-fullscreen:hover {
+            background: rgba(255, 255, 255, .25);
+            transform: scale(1.08);
         }
 
         /* Prev / Next */
@@ -1204,6 +1303,11 @@
             pointer-events: none;
         }
 
+        .ss-lb-fullscreen.is-active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
         /* Bottom label */
         .ss-lb-label {
             display: flex;
@@ -1226,6 +1330,11 @@
             font-size: .75rem;
             color: rgba(255, 255, 255, .45);
             font-weight: 500;
+        }
+
+        .ss-lightbox.is-fullscreen .ss-lb-img-wrap img {
+            max-width: min(1280px, 96vw);
+            max-height: 90vh;
         }
 
         /* Mobile prev/next: bottom corners */
@@ -1394,6 +1503,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#eef2ff;color:#4f46e5"><i
                                     class="fas fa-users"></i> الفصل</div>
+                            <div class="ss-phone-desc">عرض الحضور داخل الفصل بسرعة ووضوح.</div>
                         </div>
                     </div>
 
@@ -1405,6 +1515,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i
                                     class="fas fa-user-check"></i> الحضور</div>
+                            <div class="ss-phone-desc">تسجيل الحضور من شاشة واحدة بدون تعقيد.</div>
                         </div>
                     </div>
 
@@ -1416,6 +1527,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i
                                     class="fas fa-calendar-alt"></i> التاريخ</div>
+                            <div class="ss-phone-desc">اختيار تاريخ الحضور ومراجعة الأيام السابقة.</div>
                         </div>
                     </div>
 
@@ -1427,6 +1539,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i
                                     class="fas fa-hand-pointer"></i> سحب</div>
+                            <div class="ss-phone-desc">تمرير أسرع بين الصفوف والأسماء.</div>
                         </div>
                     </div>
 
@@ -1438,6 +1551,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#fdf4ff;color:#7c3aed"><i
                                     class="fas fa-child"></i> الطفل</div>
+                            <div class="ss-phone-desc">ملف الطفل مع بياناته الأساسية في لمحة واحدة.</div>
                         </div>
                     </div>
 
@@ -1449,6 +1563,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#fdf4ff;color:#7c3aed"><i
                                     class="fas fa-star"></i> الكوبونات</div>
+                            <div class="ss-phone-desc">متابعة الكوبونات والرصد اليومي للمكافآت.</div>
                         </div>
                     </div>
 
@@ -1460,6 +1575,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#fff7ed;color:#c2410c"><i
                                     class="fas fa-info-circle"></i> البيانات</div>
+                            <div class="ss-phone-desc">معلومات الطفل الأساسية وصورته الشخصية.</div>
                         </div>
                     </div>
 
@@ -1471,6 +1587,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#fef9c3;color:#a16207"><i
                                     class="fas fa-coins"></i> الكوبونات</div>
+                            <div class="ss-phone-desc">سحب الكوبونات وإدارة الرصيد المتاح.</div>
                         </div>
                     </div>
 
@@ -1482,6 +1599,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#eef2ff;color:#4f46e5"><i
                                     class="fas fa-users-cog"></i> إضافة</div>
+                            <div class="ss-phone-desc">إضافة جماعية للأطفال والفصول بسهولة.</div>
                         </div>
                     </div>
 
@@ -1493,6 +1611,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#ecfdf5;color:#059669"><i
                                     class="fas fa-user-tie"></i> الانكل</div>
+                            <div class="ss-phone-desc">عرض خدام الفصل وأدوات المتابعة اليومية.</div>
                         </div>
                     </div>
 
@@ -1504,6 +1623,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#fff1f2;color:#be123c"><i
                                     class="fas fa-tasks"></i> المهام</div>
+                            <div class="ss-phone-desc">اختبارات ومهام مع تقييم أوضح وأسهل.</div>
                         </div>
                     </div>
 
@@ -1515,6 +1635,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i
                                     class="fas fa-gamepad"></i> الألعاب</div>
+                            <div class="ss-phone-desc">نقاط QR والتحفيز التفاعلي للأطفال.</div>
                         </div>
                     </div>
 
@@ -1526,6 +1647,7 @@
                         <div class="ss-phone-label">
                             <div class="ss-phone-badge" style="background:#eff6ff;color:#1d4ed8"><i
                                     class="fas fa-qrcode"></i> QR</div>
+                            <div class="ss-phone-desc">تخصيص وطباعة أكواد QR من نفس الشاشة.</div>
                         </div>
                     </div>
 
@@ -1543,6 +1665,7 @@
         <div class="ss-lightbox" id="ssLightbox" role="dialog" aria-modal="true">
             <div class="ss-lb-backdrop" id="ssLbBackdrop"></div>
             <button class="ss-lb-close" id="ssLbClose" aria-label="إغلاق"><i class="fas fa-times"></i></button>
+            <button class="ss-lb-fullscreen" id="ssLbFullscreen" aria-label="ملء الشاشة"><i class="fas fa-expand"></i></button>
             <button class="ss-lb-prev" id="ssLbPrev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
             <button class="ss-lb-next" id="ssLbNext" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
             <div class="ss-lb-inner">
@@ -1760,7 +1883,7 @@
 
                 // Click opens lightbox
                 card.addEventListener('click', () => {
-                    if (track.classList.contains('is-dragging')) return;
+                    if (track.classList.contains('is-dragging') || didDrag) return;
                     openLightbox(i);
                 });
             });
@@ -1833,7 +1956,9 @@
             const lbPrev = document.getElementById('ssLbPrev');
             const lbNext = document.getElementById('ssLbNext');
             const lbBack = document.getElementById('ssLbBackdrop');
+            const lbFullscreen = document.getElementById('ssLbFullscreen');
             let lbIdx = 0;
+            let isFullscreen = false;
 
             function openLightbox(index) {
                 lbIdx = Math.max(0, Math.min(index, total - 1));
@@ -1845,12 +1970,49 @@
                 lbNext.disabled = lbIdx >= total - 1;
                 lb.classList.add('open');
                 document.body.style.overflow = 'hidden';
+                updateFullscreenButton();
             }
 
             function closeLightbox() {
                 lb.classList.remove('open');
+                lb.classList.remove('is-fullscreen');
                 document.body.style.overflow = '';
                 setTimeout(() => { lbImg.src = ''; }, 320);
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => { });
+                }
+                isFullscreen = false;
+                updateFullscreenButton();
+            }
+
+            function updateFullscreenButton() {
+                if (!lbFullscreen) return;
+                const active = isFullscreen || !!document.fullscreenElement;
+                lbFullscreen.classList.toggle('is-active', active);
+                lbFullscreen.innerHTML = active
+                    ? '<i class="fas fa-compress"></i>'
+                    : '<i class="fas fa-expand"></i>';
+                lbFullscreen.setAttribute('aria-label', active ? 'الخروج من ملء الشاشة' : 'ملء الشاشة');
+            }
+
+            async function toggleFullscreen() {
+                if (!lb.classList.contains('open')) return;
+                try {
+                    if (document.fullscreenElement) {
+                        await document.exitFullscreen();
+                        isFullscreen = false;
+                        lb.classList.remove('is-fullscreen');
+                    } else {
+                        await lb.requestFullscreen?.();
+                        isFullscreen = true;
+                        lb.classList.add('is-fullscreen');
+                    }
+                } catch (e) {
+                    // Fallback to visual fullscreen mode if browser fullscreen is unavailable
+                    isFullscreen = !isFullscreen;
+                    lb.classList.toggle('is-fullscreen', isFullscreen);
+                }
+                updateFullscreenButton();
             }
 
             function lbGoTo(index) {
@@ -1874,13 +2036,20 @@
             if (lbBack) lbBack.addEventListener('click', closeLightbox);
             if (lbPrev) lbPrev.addEventListener('click', () => lbGoTo(lbIdx - 1));
             if (lbNext) lbNext.addEventListener('click', () => lbGoTo(lbIdx + 1));
+            if (lbFullscreen) lbFullscreen.addEventListener('click', toggleFullscreen);
+
+            document.addEventListener('fullscreenchange', () => {
+                isFullscreen = !!document.fullscreenElement;
+                lb.classList.toggle('is-fullscreen', isFullscreen);
+                updateFullscreenButton();
+            });
 
             // Keyboard nav
             document.addEventListener('keydown', e => {
                 if (!lb.classList.contains('open')) return;
                 if (e.key === 'Escape') closeLightbox();
-                if (e.key === 'ArrowRight' || e.key === 'ArrowUp') lbGoTo(lbIdx - 1);
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') lbGoTo(lbIdx + 1);
+                if (e.key === 'ArrowRight' || e.key === 'ArrowUp') lbGoTo(lbIdx + 1);
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') lbGoTo(lbIdx - 1);
             });
 
             // Touch swipe in lightbox
