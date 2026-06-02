@@ -3447,6 +3447,14 @@ function updateStudentImageAfterCreation()
             return;
         }
 
+        $studentExistsStmt = $conn->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
+        $studentExistsStmt->bind_param("i", $studentId);
+        $studentExistsStmt->execute();
+        if (!$studentExistsStmt->get_result()->fetch_assoc()) {
+            sendJSON(['success' => false, 'message' => 'Student not found']);
+            return;
+        }
+
         // Handle photo upload
         $photoUrl = null;
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -3510,6 +3518,24 @@ function updateStudentImageAfterCreation()
         $updateStmt->bind_param("si", $photoUrl, $studentId);
 
         if ($updateStmt->execute()) {
+            $verifyStmt = $conn->prepare("SELECT image_url FROM students WHERE id = ? LIMIT 1");
+            $verifyStmt->bind_param("i", $studentId);
+            $verifyStmt->execute();
+            $saved = $verifyStmt->get_result()->fetch_assoc();
+            $savedUrl = $saved['image_url'] ?? '';
+
+            if ($savedUrl !== $photoUrl) {
+                sendJSON(['success' => false, 'message' => 'Photo uploaded but was not saved to the student profile']);
+                return;
+            }
+
+            sendJSON([
+                'success' => true,
+                'message' => 'Photo updated successfully',
+                'student_id' => $studentId,
+                'imageUrl' => $savedUrl
+            ]);
+            return;
             sendJSON(['success' => true, 'message' => 'تم تحديث الصورة بنجاح']);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في تحديث الصورة: ' . $updateStmt->error]);

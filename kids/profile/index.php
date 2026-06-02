@@ -5922,8 +5922,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const d = await api({ action: 'updateStudentImageAfterCreation', studentId: student.id, imageUrl: up.imageUrl });
         hideLoad();
         if (d.success) {
-          student.image_url = up.imageUrl;
-          document.getElementById('avatarInner').innerHTML = `<img src="${up.imageUrl}?t=${Date.now()}" alt="">`;
+          const savedUrl = d.imageUrl || up.imageUrl;
+          const fresh = await api({ action: 'getStudentProfile', studentId: student.id });
+          if (!fresh.success || !fresh.student || fresh.student.image_url !== savedUrl) {
+            throw new Error('Photo uploaded but was not saved to the student profile');
+          }
+          student = norm(fresh.student);
+          document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
           closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
         } else throw new Error(d.message);
       } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
