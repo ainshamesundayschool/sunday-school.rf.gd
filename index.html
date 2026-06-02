@@ -1332,14 +1332,6 @@
             font-weight: 500;
         }
 
-        .ss-lb-desc {
-            max-width: min(680px, 86vw);
-            color: rgba(255, 255, 255, .72);
-            font-size: .88rem;
-            line-height: 1.7;
-            text-align: center;
-        }
-
         .ss-lightbox.is-fullscreen .ss-lb-img-wrap img {
             max-width: min(1280px, 96vw);
             max-height: 90vh;
@@ -1362,441 +1354,6 @@
                 font-size: .95rem;
             }
         }
-
-        /* ===== MODERN HOME REFRESH ===== */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background:
-                linear-gradient(180deg, #f8fafc 0%, #eef5ff 42%, #f7fafc 100%);
-            color: #111827;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            background:
-                linear-gradient(120deg, rgba(20, 184, 166, .10), transparent 28%),
-                linear-gradient(300deg, rgba(245, 158, 11, .10), transparent 30%),
-                radial-gradient(circle at 50% 0%, rgba(37, 99, 235, .12), transparent 38%);
-            animation: pageGlow 12s ease-in-out infinite alternate;
-        }
-
-        @keyframes pageGlow {
-            from {
-                opacity: .72;
-                transform: translateY(0);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(-18px);
-            }
-        }
-
-        .container {
-            animation: pageEnter .65s cubic-bezier(.16, 1, .3, 1) both;
-        }
-
-        @keyframes pageEnter {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .top-section {
-            gap: clamp(14px, 2vw, 26px);
-            align-items: stretch;
-            margin: 8px 0 clamp(26px, 4vw, 48px);
-        }
-
-        .header,
-        .cover-section,
-        .features-section,
-        .mfeatures-section,
-        .user-card,
-        .site-footer {
-            background: rgba(255, 255, 255, .78);
-            border: 1px solid rgba(148, 163, 184, .24);
-            box-shadow: 0 24px 70px -46px rgba(15, 23, 42, .55);
-            backdrop-filter: blur(22px);
-        }
-
-        .header {
-            min-height: clamp(320px, 42vw, 520px);
-            text-align: start;
-            justify-content: flex-end;
-            isolation: isolate;
-        }
-
-        .header::before {
-            height: auto;
-            inset: 18px;
-            border-radius: 22px;
-            background:
-                linear-gradient(135deg, rgba(37, 99, 235, .12), rgba(20, 184, 166, .10)),
-                repeating-linear-gradient(135deg, rgba(15, 23, 42, .055) 0 1px, transparent 1px 14px);
-            animation: none;
-            z-index: -1;
-        }
-
-        .header::after {
-            content: '';
-            position: absolute;
-            width: 190px;
-            height: 190px;
-            left: -44px;
-            top: -42px;
-            border-radius: 48px;
-            background: linear-gradient(135deg, rgba(245, 158, 11, .22), rgba(20, 184, 166, .16));
-            transform: rotate(16deg);
-            z-index: -1;
-        }
-
-        .title.main {
-            color: #0f172a;
-            background: none;
-            -webkit-text-fill-color: currentColor;
-            animation: none;
-            font-size: clamp(3.1rem, 8vw, 7.2rem);
-            line-height: .9;
-            letter-spacing: 0;
-            margin-bottom: 18px;
-        }
-
-        .subtitle {
-            max-width: 620px;
-            color: #475569;
-            font-size: clamp(1rem, 1.45vw, 1.22rem);
-            line-height: 1.9;
-        }
-
-        .cover-section {
-            min-height: clamp(320px, 42vw, 520px);
-            box-shadow:
-                0 32px 80px -48px rgba(15, 23, 42, .7),
-                0 0 0 1px rgba(255, 255, 255, .7) inset;
-        }
-
-        .cover-image {
-            transform: scale(1.015);
-            transition: transform .8s cubic-bezier(.16, 1, .3, 1), filter .8s ease;
-            filter: saturate(1.06) contrast(1.02);
-        }
-
-        .cover-section:hover .cover-image {
-            transform: scale(1.055);
-        }
-
-        .features-section {
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, .86), rgba(239, 246, 255, .72));
-        }
-
-        .feature-item,
-        .user-card {
-            transform: translateY(0);
-        }
-
-        .feature-item {
-            border-radius: 22px;
-            background: rgba(255, 255, 255, .52);
-            border: 1px solid rgba(226, 232, 240, .75);
-        }
-
-        .feature-icon {
-            background: #0f172a;
-            border-radius: 18px;
-        }
-
-        .start-btn {
-            border-radius: 999px;
-            background: #111827;
-            box-shadow: 0 18px 36px -22px rgba(17, 24, 39, .75);
-        }
-
-        .ss-section {
-            padding: clamp(34px, 5vw, 72px) 0 clamp(20px, 3vw, 44px);
-        }
-
-        .ss-section-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 18px;
-            text-align: start;
-            margin-bottom: 18px;
-        }
-
-        .ss-section-header::after {
-            content: 'A clearer look at the newest profile, attendance, coupons, tasks, trips, and QR tools.';
-            max-width: 560px;
-            color: #64748b;
-            font-size: .95rem;
-            line-height: 1.8;
-            direction: ltr;
-            text-align: left;
-        }
-
-        .ss-eyebrow {
-            background: #0f172a;
-            color: #fff;
-            border: 0;
-            border-radius: 999px;
-            padding: 9px 18px;
-            box-shadow: 0 16px 34px -24px rgba(15, 23, 42, .9);
-        }
-
-        .ss-outer {
-            border-radius: 30px;
-            background: rgba(255, 255, 255, .62);
-            border: 1px solid rgba(148, 163, 184, .22);
-            box-shadow: 0 28px 70px -50px rgba(15, 23, 42, .55);
-            overflow: hidden;
-            backdrop-filter: blur(20px);
-        }
-
-        .ss-outer::before,
-        .ss-outer::after {
-            display: none;
-        }
-
-        .ss-track {
-            gap: 18px;
-            padding: 20px;
-        }
-
-        .ss-phone-card {
-            flex: 0 0 min(330px, 78vw);
-            align-items: stretch;
-            gap: 0;
-            border-radius: 24px;
-            overflow: hidden;
-            background: #fff;
-            border: 1px solid rgba(226, 232, 240, .95);
-            box-shadow: 0 18px 44px -34px rgba(15, 23, 42, .7);
-        }
-
-        .ss-phone-card:hover {
-            transform: translateY(-6px);
-        }
-
-        .ss-phone {
-            padding: 0;
-            border: 0;
-            border-radius: 0;
-            background: #f8fafc;
-            box-shadow: none;
-        }
-
-        .ss-phone::before,
-        .ss-phone::after {
-            display: none;
-        }
-
-        .ss-screen {
-            padding-bottom: 66%;
-            border-radius: 0;
-            background: #e2e8f0;
-        }
-
-        .ss-screen img {
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top center;
-        }
-
-        .ss-phone-label {
-            align-items: flex-start;
-            text-align: start;
-            gap: 10px;
-            padding: 16px 16px 18px;
-            min-height: 138px;
-        }
-
-        .ss-phone-badge {
-            padding: 6px 12px;
-            font-size: .78rem;
-        }
-
-        .ss-phone-desc {
-            display: block;
-            color: #475569;
-            font-size: .86rem;
-            line-height: 1.75;
-        }
-
-        .ss-zoom-hint {
-            border-radius: 0;
-            background: linear-gradient(180deg, transparent 45%, rgba(15, 23, 42, .28));
-        }
-
-        .ss-phone-card:hover .ss-zoom-hint {
-            background: rgba(15, 23, 42, .18);
-        }
-
-        .ss-btn {
-            border-radius: 14px;
-            background: #111827;
-            color: #fff;
-            border: 0;
-        }
-
-        .ss-dot.active {
-            background: #111827;
-        }
-
-        .ss-lightbox {
-            background: rgba(2, 6, 23, .96);
-        }
-
-        .ss-lb-backdrop {
-            background:
-                radial-gradient(circle at 30% 20%, rgba(20, 184, 166, .12), transparent 34%),
-                rgba(2, 6, 23, .88);
-        }
-
-        .ss-lb-img-wrap {
-            width: min(1180px, 92vw);
-            max-height: 80vh;
-        }
-
-        .ss-lb-img-wrap img {
-            width: 100%;
-            max-width: 100%;
-            max-height: 80vh;
-            border-radius: 18px;
-        }
-
-        .ss-lightbox.is-fullscreen {
-            inset: 0;
-            align-items: stretch;
-            justify-content: stretch;
-        }
-
-        .ss-lightbox.is-fullscreen .ss-lb-inner {
-            padding: 12px;
-            gap: 12px;
-        }
-
-        .ss-lightbox.is-fullscreen .ss-lb-img-wrap {
-            width: 100vw;
-            height: calc(100vh - 92px);
-            max-height: none;
-        }
-
-        .ss-lightbox.is-fullscreen .ss-lb-img-wrap img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            border-radius: 10px;
-        }
-
-        @media (min-width: 1100px) {
-            .ss-track {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                overflow: visible;
-                cursor: default;
-            }
-
-            .ss-phone-card {
-                flex: initial;
-            }
-
-            .ss-nav {
-                display: none;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .top-section {
-                display: block;
-            }
-
-            .header {
-                min-height: 270px;
-                padding: 28px 22px;
-                border-radius: 28px;
-            }
-
-            .header::before {
-                inset: 12px;
-                border-radius: 20px;
-            }
-
-            .title.main {
-                font-size: clamp(3.05rem, 17vw, 5rem);
-            }
-
-            .subtitle {
-                font-size: .96rem;
-            }
-
-            .cover-section {
-                min-height: 360px;
-                border-radius: 28px;
-                margin-bottom: 18px;
-            }
-
-            .ss-section-header {
-                display: block;
-            }
-
-            .ss-section-header::after {
-                display: block;
-                margin-top: 12px;
-                direction: rtl;
-                text-align: right;
-                content: 'لقطات أوضح للتحديثات الجديدة: ملف الطفل، الحضور، الكوبونات، المهام، الرحلات، وأدوات QR.';
-            }
-
-            .ss-outer {
-                margin-inline: -2px;
-                border-radius: 24px;
-            }
-
-            .ss-track {
-                padding: 14px;
-                gap: 14px;
-            }
-
-            .ss-phone-card {
-                flex-basis: min(286px, 82vw);
-                border-radius: 22px;
-            }
-
-            .ss-screen {
-                padding-bottom: 142%;
-            }
-
-            .ss-phone-label {
-                min-height: 154px;
-            }
-
-            .ss-lb-img-wrap {
-                width: 94vw;
-                max-height: 76vh;
-            }
-
-            .ss-lb-img-wrap img {
-                max-height: 76vh;
-            }
-        }
     </style>
 </head>
 
@@ -1814,8 +1371,8 @@
         <div class="top-section">
             <!-- Header -->
             <header class="header">
-                <h1 class="title main">Sunday School</h1>
-                <p class="subtitle">منصة حديثة لإدارة الحضور، الكوبونات، المهام، الرحلات، وملفات الأطفال في مكان واحد.</p>
+                <h1 class="title main">نظام مدارس الأحد</h1>
+                <p class="subtitle">نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
 
                 <!-- Hidden Stats Section -->
                 <div class="stats-grid" style="display: none;">
@@ -1854,8 +1411,8 @@
             <section class="cover-section" id="cover">
                 <img src="imgs/Sunday%20School%20App.png" alt="Sunday School Cover" class="cover-image">
                 <div class="cover-overlay" style="display: none;">
-                    <h1 class="cover-title">Sunday School</h1>
-                    <p class="cover-subtitle">كل أدوات الخدمة في تجربة سهلة وسريعة على الموبايل والكمبيوتر.</p>
+                    <h1 class="cover-title">نظام مدارس الأحد</h1>
+                    <p class="cover-subtitle">نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
                 </div>
             </section>
 
@@ -2115,7 +1672,6 @@
                 <div class="ss-lb-img-wrap"><img id="ssLbImg" src="" alt=""></div>
                 <div class="ss-lb-label">
                     <div class="ss-lb-badge" id="ssLbBadge"></div>
-                    <div class="ss-lb-desc" id="ssLbDesc"></div>
                     <div class="ss-lb-counter" id="ssLbCounter"></div>
                 </div>
             </div>
@@ -2309,121 +1865,12 @@
             const cards = Array.from(track.querySelectorAll('.ss-phone-card'));
             const total = cards.length;
             let currentIdx = 0;
-            const screenshotCopy = [
-                {
-                    icon: 'fas fa-users',
-                    label: 'الفصل والحضور',
-                    color: '#2563eb',
-                    bg: '#eff6ff',
-                    desc: 'عرض منظم للفصل يساعد الخادم يشوف الأطفال، حالة الحضور، والمعلومات المهمة بسرعة من غير زحمة.'
-                },
-                {
-                    icon: 'fas fa-user-check',
-                    label: 'تسجيل الحضور',
-                    color: '#059669',
-                    bg: '#ecfdf5',
-                    desc: 'تسجيل حضور وغياب الأطفال من شاشة واحدة مع تحديث فوري للكوبونات والنسب.'
-                },
-                {
-                    icon: 'fas fa-calendar-alt',
-                    label: 'اختيار التاريخ',
-                    color: '#1d4ed8',
-                    bg: '#eff6ff',
-                    desc: 'اختيار تاريخ الحضور ومراجعة الأيام السابقة بطريقة واضحة، مفيدة للتصحيح والمتابعة.'
-                },
-                {
-                    icon: 'fas fa-hand-pointer',
-                    label: 'سحب سريع',
-                    color: '#0f766e',
-                    bg: '#ccfbf1',
-                    desc: 'تنقل أسرع بين الأطفال والصفوف، مناسب للموبايل وقت الزحمة في الخدمة.'
-                },
-                {
-                    icon: 'fas fa-child',
-                    label: 'ملف الطفل',
-                    color: '#7c3aed',
-                    bg: '#f5f3ff',
-                    desc: 'ملف شخصي للطفل يجمع الصورة، الفصل، الكنيسة، الكوبونات، الحضور، والمهام في تجربة واحدة.'
-                },
-                {
-                    icon: 'fas fa-ticket-alt',
-                    label: 'رصيد الكوبونات',
-                    color: '#9333ea',
-                    bg: '#faf5ff',
-                    desc: 'متابعة الكوبونات حسب المصدر: حضور، التزام، مهام، ورصيد إجمالي ظاهر للطفل والخادم.'
-                },
-                {
-                    icon: 'fas fa-id-card',
-                    label: 'بيانات الطفل',
-                    color: '#c2410c',
-                    bg: '#fff7ed',
-                    desc: 'بيانات الطفل الأساسية وصورته ومعلومات التواصل، جاهزة للعرض والتعديل من مكان واضح.'
-                },
-                {
-                    icon: 'fas fa-coins',
-                    label: 'سحب الكوبونات',
-                    color: '#a16207',
-                    bg: '#fef9c3',
-                    desc: 'إدارة سحب الكوبونات بشكل أسرع مع تقليل الأخطاء في الرصيد والمتابعة.'
-                },
-                {
-                    icon: 'fas fa-users-cog',
-                    label: 'إضافة جماعية',
-                    color: '#4f46e5',
-                    bg: '#eef2ff',
-                    desc: 'إضافة أطفال وفصول بكميات كبيرة بدل الإدخال الفردي، لتجهيز الكنيسة أسرع.'
-                },
-                {
-                    icon: 'fas fa-user-tie',
-                    label: 'واجهة الخادم',
-                    color: '#059669',
-                    bg: '#ecfdf5',
-                    desc: 'أدوات الخادم اليومية لعرض الفصل، متابعة الأطفال، والوصول السريع للحضور والبيانات.'
-                },
-                {
-                    icon: 'fas fa-tasks',
-                    label: 'المهام والاختبارات',
-                    color: '#be123c',
-                    bg: '#fff1f2',
-                    desc: 'مهام واختبارات للطفل مع درجات وكوبونات ونتائج أوضح بعد التسليم.'
-                },
-                {
-                    icon: 'fas fa-gamepad',
-                    label: 'نقاط QR',
-                    color: '#1d4ed8',
-                    bg: '#eff6ff',
-                    desc: 'نظام نقاط وألعاب باستخدام QR لزيادة التفاعل والحماس داخل الفصل.'
-                },
-                {
-                    icon: 'fas fa-qrcode',
-                    label: 'طباعة QR',
-                    color: '#0f766e',
-                    bg: '#ccfbf1',
-                    desc: 'تخصيص وطباعة أكواد QR لاستخدامها في الألعاب والنقاط والأنشطة.'
-                }
-            ];
-
-            cards.forEach((card, i) => {
-                const copy = screenshotCopy[i];
-                if (!copy) return;
-                const badge = card.querySelector('.ss-phone-badge');
-                const desc = card.querySelector('.ss-phone-desc');
-                const img = card.querySelector('img');
-                if (badge) {
-                    badge.style.background = copy.bg;
-                    badge.style.color = copy.color;
-                    badge.innerHTML = `<i class="${copy.icon}"></i> ${copy.label}`;
-                }
-                if (desc) desc.textContent = copy.desc;
-                if (img) img.alt = copy.label;
-            });
 
             // Collect image + badge data from cards
             const data = cards.map(card => ({
                 src: card.querySelector('img').src,
                 alt: card.querySelector('img').alt,
-                badge: card.querySelector('.ss-phone-badge').outerHTML,
-                desc: card.querySelector('.ss-phone-desc')?.textContent || ''
+                badge: card.querySelector('.ss-phone-badge').outerHTML
             }));
 
             // Add zoom-hint overlay to each phone screen
@@ -2504,7 +1951,6 @@
             const lb = document.getElementById('ssLightbox');
             const lbImg = document.getElementById('ssLbImg');
             const lbBadge = document.getElementById('ssLbBadge');
-            const lbDesc = document.getElementById('ssLbDesc');
             const lbCount = document.getElementById('ssLbCounter');
             const lbClose = document.getElementById('ssLbClose');
             const lbPrev = document.getElementById('ssLbPrev');
@@ -2519,7 +1965,6 @@
                 lbImg.src = data[lbIdx].src;
                 lbImg.alt = data[lbIdx].alt;
                 lbBadge.innerHTML = data[lbIdx].badge;
-                if (lbDesc) lbDesc.textContent = data[lbIdx].desc;
                 lbCount.textContent = (lbIdx + 1) + ' / ' + total;
                 lbPrev.disabled = lbIdx === 0;
                 lbNext.disabled = lbIdx >= total - 1;
@@ -2552,31 +1997,20 @@
 
             async function toggleFullscreen() {
                 if (!lb.classList.contains('open')) return;
-                const nativeFullscreen = lb.requestFullscreen && document.exitFullscreen;
                 try {
-                    if (document.fullscreenElement || (!nativeFullscreen && isFullscreen)) {
-                        if (document.fullscreenElement) {
-                            await document.exitFullscreen();
-                        }
-                        isFullscreen = false;
-                        lb.classList.remove('is-fullscreen');
-                    } else if (nativeFullscreen) {
-                        await lb.requestFullscreen();
-                        isFullscreen = true;
-                        lb.classList.add('is-fullscreen');
-                    } else {
-                        isFullscreen = true;
-                        lb.classList.add('is-fullscreen');
-                    }
-                } catch (e) {
-                    if (isFullscreen || lb.classList.contains('is-fullscreen')) {
+                    if (document.fullscreenElement) {
                         await document.exitFullscreen();
                         isFullscreen = false;
                         lb.classList.remove('is-fullscreen');
                     } else {
+                        await lb.requestFullscreen?.();
                         isFullscreen = true;
                         lb.classList.add('is-fullscreen');
                     }
+                } catch (e) {
+                    // Fallback to visual fullscreen mode if browser fullscreen is unavailable
+                    isFullscreen = !isFullscreen;
+                    lb.classList.toggle('is-fullscreen', isFullscreen);
                 }
                 updateFullscreenButton();
             }
@@ -2590,7 +2024,6 @@
                     lbImg.src = data[lbIdx].src;
                     lbImg.alt = data[lbIdx].alt;
                     lbBadge.innerHTML = data[lbIdx].badge;
-                    if (lbDesc) lbDesc.textContent = data[lbIdx].desc;
                     lbCount.textContent = (lbIdx + 1) + ' / ' + total;
                     lbPrev.disabled = lbIdx === 0;
                     lbNext.disabled = lbIdx >= total - 1;
