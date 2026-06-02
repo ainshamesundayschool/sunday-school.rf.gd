@@ -100,10 +100,11 @@
             "task_no_deadline": "بدون آخر موعد",
             "task_max_coupons": "حتى {num} كوبون",
             "task_upon_answering": "عند الإجابة",
-            "task_score": "درجة",
-            "task_time": "دقيقة",
+            "task_score": "{num} درجة",
+            "task_time": "{num} دقيقة",
             
             // Kid Trips
+            "trip_sub_count": "{num} رحلة",
             "trip_free": "مجانية",
             "trip_price": "{num} ج.م",
             "trip_remaining": "متبقي {num} ج.م",
@@ -250,10 +251,11 @@
             "task_no_deadline": "No Deadline",
             "task_max_coupons": "Up to {num} Coupons",
             "task_upon_answering": "When answered",
-            "task_score": "Score",
-            "task_time": "Min",
+            "task_score": "{num} Points",
+            "task_time": "{num} Min",
 
             // Kid Trips
+            "trip_sub_count": "{num} Trips",
             "trip_free": "Free",
             "trip_price": "{num} EGP",
             "trip_remaining": "{num} EGP Left",
@@ -371,8 +373,14 @@
         [lang="en"] .user-card:hover .user-action {
             transform: translateX(8px) !important;
         }
-        [lang="en"] .fa-arrow-left {
-            transform: scaleX(-1);
+        [lang="en"] .fa-arrow-left,
+        [lang="en"] .fa-arrow-right,
+        [lang="en"] .fa-chevron-left,
+        [lang="en"] .fa-chevron-right,
+        [lang="en"] .fa-long-arrow-alt-left,
+        [lang="en"] .fa-long-arrow-alt-right {
+            transform: scaleX(-1) !important;
+            display: inline-block;
         }
         [lang="en"] .ua-more, [lang="en"] .ka-more {
             margin-right: unset !important;
@@ -482,6 +490,16 @@
             }
         });
 
+        // Update settings modal language toggle elements dynamically
+        const langToggleTextElements = document.querySelectorAll('#langToggleText');
+        langToggleTextElements.forEach(el => {
+            el.textContent = lang === 'en' ? 'AR' : 'EN';
+        });
+        const langSwitchLabelElements = document.querySelectorAll('#langSwitchLabel');
+        langSwitchLabelElements.forEach(el => {
+            el.textContent = lang === 'en' ? 'العربية' : 'English';
+        });
+
         // Toggle layout classes on body
         document.body.classList.toggle('lang-en', lang === 'en');
         document.body.classList.toggle('lang-ar', lang === 'ar');
@@ -489,6 +507,11 @@
 
     // ─── SWITCHER FLOATING BUTTON ───
     function createSwitcherWidget() {
+        // Do not show the floating widget on internal dashboard/profile/trip/leaderboard/church pages
+        const isInternal = /\/(dashboard|profile|trip|leaderboard|church)\//i.test(window.location.pathname) || window.location.pathname.endsWith('profile/index.php') || window.location.pathname.endsWith('dashboard/index.php');
+        if (isInternal || window.SundaySchoolHideLangWidget) {
+            return;
+        }
         if (document.getElementById('langSwitcherBtn')) return;
 
         const btn = document.createElement('div');
@@ -496,24 +519,23 @@
         btn.className = 'lang-switcher-widget';
         
         // Render globe icon + switch label
-        const targetLang = lang === 'en' ? 'ar' : 'en';
         const displayLabel = lang === 'en' ? 'العربية' : 'English';
         btn.innerHTML = `<i class="fas fa-globe"></i> <span>${displayLabel}</span>`;
         
-        btn.addEventListener('click', function () {
-            // Toggle language
-            const newLang = targetLang;
-            setCookie('lang', newLang, 365);
-            localStorage.setItem('lang', newLang);
-            
-            // Push query param to URL to ensure seamless synchronization
-            const url = new URL(window.location.href);
-            url.searchParams.set('lang', newLang);
-            window.location.href = url.toString();
-        });
+        btn.addEventListener('click', toggleLanguage);
 
         document.body.appendChild(btn);
     }
+
+    function toggleLanguage() {
+        const targetLang = lang === 'en' ? 'ar' : 'en';
+        setCookie('lang', targetLang, 365);
+        localStorage.setItem('lang', targetLang);
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', targetLang);
+        window.location.href = url.toString();
+    }
+    window.toggleLanguage = toggleLanguage;
 
     // Run DOM translate and load widget on content loaded
     if (document.readyState === 'loading') {

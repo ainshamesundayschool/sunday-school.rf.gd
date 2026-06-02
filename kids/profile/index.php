@@ -3904,6 +3904,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div class="ss-item-label" data-i18n="modal_photo_title">تغيير الصورة الشخصية</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
+        <div class="ss-item" onclick="window.toggleLanguage()">
+          <div class="ss-item-ico" style="background:#e0f2fe;color:#0369a1;"><i class="fas fa-globe"></i></div>
+          <div class="ss-item-label" id="langSwitchLabel">English / العربية</div>
+          <i class="fas fa-chevron-left ss-item-arr"></i>
+        </div>
       </div>
       <div class="ss-divider"></div>
       <div class="ss-items">
@@ -4997,7 +5002,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const el = document.getElementById('taskList');
       document.getElementById('taskSub').textContent = tasks.length + ' مهمة';
       if (!tasks.length) { document.getElementById('scTasks').style.display = 'none'; return; }
-      const stLbl = { done: 'مكتمل', open: 'مفتوح', upcoming: 'قادم', expired: 'منتهي' };
+      const stLbl = {
+        done: '<span data-i18n="task_done">مكتمل</span>',
+        open: '<span data-i18n="task_open">مفتوح</span>',
+        upcoming: '<span data-i18n="task_upcoming">قادم</span>',
+        expired: '<span data-i18n="task_expired">منتهي</span>'
+      };
       const stBar = { done: 'done-bar', open: '', upcoming: 'up-bar', expired: 'exp-bar' };
       const stBadge = { done: 'tb-done', open: 'tb-open', upcoming: 'tb-up', expired: 'tb-exp' };
       el.innerHTML = tasks.map(t => {
@@ -5019,7 +5029,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <span style="margin-right:auto;display:flex;align-items:center;gap:4px;">
           <i class="fas fa-ticket-alt" style="color:var(--cou-l);font-size:.75rem;"></i>
           <strong style="color:var(--cou);font-size:.82rem;">${sub.coupons_awarded}</strong>
-          <span style="font-size:.7rem;color:var(--t3);margin-left:5px;">كوبون</span>
+          <span style="font-size:.7rem;color:var(--t3);margin-left:5px;" data-i18n="coupon">كوبون</span>
           ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
         </span>
       </div>`;
@@ -5027,8 +5037,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           // Not submitted: show max possible coupons
           couponRow = `<div style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:5px 9px;border-radius:var(--r-sm);background:var(--cou-bg);border:1px solid #c4b5fd;font-size:.74rem;">
         <i class="fas fa-ticket-alt" style="color:var(--cou-l);"></i>
-        <span style="color:var(--cou);font-weight:700;">حتى ${maxCoupon} كوبون</span>
-        <span style="color:var(--t4);font-size:.68rem;">عند الإجابة</span>
+        <span style="color:var(--cou);font-weight:700;" data-i18n="task_max_coupons" data-i18n-num="${maxCoupon}">حتى ${maxCoupon} كوبون</span>
+        <span style="color:var(--t4);font-size:.68rem;" data-i18n="task_upon_answering">عند الإجابة</span>
       </div>`;
         }
 
@@ -5040,14 +5050,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <span class="task-badge ${stBadge[st]}">${stLbl[st]}</span>
         </div>
         <div class="task-metas">
-          <span class="task-meta-chip"><i class="fas fa-calendar-alt"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</span>
-          ${t.total_degree ? `<span class="task-meta-chip"><i class="fas fa-star"></i>${t.total_degree} درجة</span>` : ''}
-          ${t.time_limit ? `<span class="task-meta-chip"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</span>` : ''}
+          <span class="task-meta-chip"><i class="fas fa-calendar-alt"></i>${parseInt(t.no_deadline || 0) ? '<span data-i18n="task_no_deadline">بدون آخر موعد</span>' : fmtDate(t.end_date)}</span>
+          ${t.total_degree ? `<span class="task-meta-chip"><i class="fas fa-star"></i><span data-i18n="task_score" data-i18n-num="${t.total_degree}">${t.total_degree} درجة</span></span>` : ''}
+          ${t.time_limit ? `<span class="task-meta-chip"><i class="fas fa-stopwatch"></i><span data-i18n="task_time" data-i18n-num="${t.time_limit}">${t.time_limit} دقيقة</span></span>` : ''}
         </div>
         ${couponRow}
       </div>
     </div>`;
       }).join('');
+      if (window.SundaySchoolI18n) window.SundaySchoolI18n.translateDOM();
     }
 
     // ── Task exam (full-screen, DB-anchored timer, auto-save) ─────────
@@ -5617,19 +5628,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
     function renderTrips(trips) {
       const el = document.getElementById('tripList');
-      document.getElementById('tripSub').textContent = trips.length + ' رحلة';
-      const stLbl = { planned: 'مخطط', active: 'نشط', completed: 'مكتمل', cancelled: 'ملغي' };
+      document.getElementById('tripSub').innerHTML = `<span data-i18n="trip_sub_count" data-i18n-num="${trips.length}">${trips.length} رحلة</span>`;
+      const stLbl = {
+        planned: '<span data-i18n="trip_planned">مخطط</span>',
+        active: '<span data-i18n="trip_active">نشط</span>',
+        completed: '<span data-i18n="trip_completed">مكتمل</span>',
+        cancelled: '<span data-i18n="trip_cancelled">ملغي</span>'
+      };
       el.innerHTML = trips.map(t => {
         const thumb = t.image_url
           ? `<img class="trip-thumb" src="${esc(t.image_url)}" alt="${esc(t.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
           : '';
         const ph = `<div class="trip-thumb-placeholder" ${t.image_url ? 'style="display:none"' : ''}><i class="fas fa-bus"></i><span>${esc(t.title)}</span></div>`;
         const priceOverlay = parseFloat(t.final_price) > 0
-          ? `<span class="trip-price-pill main"><i class="fas fa-tag"></i>${parseFloat(t.final_price).toFixed(0)} ج.م</span>`
-          : `<span class="trip-price-pill main"><i class="fas fa-gift"></i> مجانية</span>`;
+          ? `<span class="trip-price-pill main" data-i18n="trip_price" data-i18n-num="${parseFloat(t.final_price).toFixed(0)}"><i class="fas fa-tag"></i>${parseFloat(t.final_price).toFixed(0)} ج.م</span>`
+          : `<span class="trip-price-pill main" data-i18n="trip_free"><i class="fas fa-gift"></i> مجانية</span>`;
         const myReg = t.my_registration;
         const remOverlay = myReg && parseFloat(myReg.remaining) > 0
-          ? `<span class="trip-price-pill remaining"><i class="fas fa-exclamation-circle"></i>متبقي ${parseFloat(myReg.remaining).toFixed(0)} ج.م</span>`
+          ? `<span class="trip-price-pill remaining" data-i18n="trip_remaining" data-i18n-num="${parseFloat(myReg.remaining).toFixed(0)}"><i class="fas fa-exclamation-circle"></i>متبقي ${parseFloat(myReg.remaining).toFixed(0)} ج.م</span>`
           : '';
         // Kids avatars strip
         const canSeeKids = String(t.show_registered_kids ?? 1) === '1';
@@ -5644,13 +5660,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const contactBtn = notRegistered && classUncles.length
           ? `<div class="trip-contact-bar" onclick="event.stopPropagation();openTripContactUncle(${t.id})">
           <i class="fas fa-exclamation-circle"></i>
-          <span>اسمك غير موجود في القائمة</span>
-          <span class="trip-contact-action"><i class="fas fa-comments"></i> تواصل مع المدرّس</span>
+          <span data-i18n="trip_not_registered">اسمك غير موجود في القائمة</span>
+          <span class="trip-contact-action"><i class="fas fa-comments"></i> <span data-i18n="trip_contact_uncle">تواصل مع المدرّس</span></span>
          </div>`
           : notRegistered
             ? `<div class="trip-contact-bar unreach">
             <i class="fas fa-info-circle"></i>
-            <span>اسمك غير موجود في قائمة الرحلة</span>
+            <span data-i18n="trip_not_registered">اسمك غير موجود في قائمة الرحلة</span>
            </div>`
             : '';
         return `<div class="trip-card" onclick="openTrip(${t.id})">
@@ -5673,6 +5689,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
     </div>`;
       }).join('');
+      if (window.SundaySchoolI18n) window.SundaySchoolI18n.translateDOM();
     }
     function openTrip(id) {
       const t = allTrips.find(x => x.id == id); if (!t) return;
@@ -5681,10 +5698,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const stLbl = { planned: 'مخطط', active: 'نشط', completed: 'مكتمل', cancelled: 'ملغي' };
       const myReg = t.my_registration;
       const myRegHtml = myReg ? `<div class="my-trip-box">
-    <div class="my-trip-title"><i class="fas fa-check-circle"></i> أنت مسجّل في هذه الرحلة</div>
+    <div class="my-trip-title" data-i18n="trip_registered"><i class="fas fa-check-circle"></i> أنت مسجّل في هذه الرحلة</div>
     <div class="my-trip-row">
-      <div class="mtr-cell ok"><div class="mtr-val">${parseFloat(myReg.total_paid).toFixed(0)} ج.م</div><div class="mtr-lbl">المدفوع</div></div>
-      <div class="mtr-cell${parseFloat(myReg.remaining) > 0 ? ' warn' : 'ok'}"><div class="mtr-val">${parseFloat(myReg.remaining).toFixed(0)} ج.م</div><div class="mtr-lbl">المتبقي</div></div>
+      <div class="mtr-cell ok"><div class="mtr-val" data-i18n="trip_paid" data-i18n-num="${parseFloat(myReg.total_paid).toFixed(0)}">${parseFloat(myReg.total_paid).toFixed(0)} ج.م</div><div class="mtr-lbl">المدفوع</div></div>
+      <div class="mtr-cell${parseFloat(myReg.remaining) > 0 ? ' warn' : 'ok'}"><div class="mtr-val" data-i18n="trip_remaining" data-i18n-num="${parseFloat(myReg.remaining).toFixed(0)}">${parseFloat(myReg.remaining).toFixed(0)} ج.م</div><div class="mtr-lbl">المتبقي</div></div>
     </div>
   </div>`: '';
       // Not-registered contact block

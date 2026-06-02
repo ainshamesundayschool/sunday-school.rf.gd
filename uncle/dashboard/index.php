@@ -8126,6 +8126,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
                     </button>
+                    <button class="btn btn-secondary" id="langToggleBtn" onclick="window.toggleLanguage()"
+                        style="padding:8px 14px;font-size:.82rem" title="Language / اللغة">
+                        <i class="fas fa-globe"></i> <span id="langToggleText">EN</span>
+                    </button>
                     <a href="/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
                         <i class="fas fa-crown"></i> الأوائل
@@ -14295,7 +14299,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fd.append('studentClass', currentStudentForEdit['الفصل']);
                     fd.append('enhanceImage', 'false');
                     fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
+                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                         else showToast('فشل الرفع: ' + (d.message || ''), 'error');
                     }).catch(() => showToast('خطأ في الاتصال', 'error'));
                 }, 'image/jpeg', .9);
@@ -14317,7 +14321,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
             fd.append('enhanceImage', 'false');
             fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
+                if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                 else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
         }
