@@ -2722,6 +2722,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(1.08)
         }
 
+        .coupon-value-display.coupon-toggle-pop {
+            animation: couponTogglePop .28s ease;
+        }
+
+        @keyframes couponTogglePop {
+            0% {
+                transform: scale(1);
+            }
+
+            45% {
+                transform: scale(1.18);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
         /* 4-dot position indicator */
         .coupon-value-display::after {
             content: '';
@@ -9693,6 +9711,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let originalAttendanceData = {}, originalCouponData = {};
         let changedStudents = new Set(), savedStudents = new Set();
         let changedCouponStudents = new Set(), savedCouponStudents = new Set();
+        let couponValueIdxByStudent = {};
         let currentStudentForEdit = null, studentToDelete = null;
         let currentRegistrationDetails = null, pendingRegistrations = [];
         let selectedRegistrations = new Set();
@@ -10238,7 +10257,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : ''}</span>
                 <div class="coupon-toggle-row">
                     <button class="coupon-toggle-btn minus" onclick="adjustStudentCoupons('${id}',-1)"><i class="fas fa-minus"></i></button>
-                    <div class="coupon-value-display" id="cv-${id}" data-idx="2" onclick="toggleCouponValue('${id}')">50</div>
+                    <div class="coupon-value-display" id="cv-${id}" data-idx="${getCouponValueIdx(id)}" onclick="toggleCouponValue('${id}')">${getCouponValueForStudent(id)}</div>
                     <button class="coupon-toggle-btn plus" onclick="adjustStudentCoupons('${id}',1)"><i class="fas fa-plus"></i></button>
                 </div>
                 <div class="attend-btn-row">
@@ -10547,8 +10566,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (d.classes && d.classes.length) classes = d.classes;
                     updateDashboardStats();
                     loadDashboardTrips();
-                    if (!currentClass) displayClasses();
-                    else renderTodayBirthdayBanner();
+                    if (!currentClass) {
+                        if (silent) renderClassesSkeleton();
+                        else displayClasses();
+                    } else renderTodayBirthdayBanner();
                     updateCurrentDateDisplay();
                     if (currentClass) {
                         loadAttendanceDataForClass(currentClass);
@@ -11094,18 +11115,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!className) return;
             localStorage.setItem(`changedStudents_${className}_${date || currentFriday}`, JSON.stringify([...changedStudents]));
         }
+        function getCouponValueIdx(studentId) {
+            const idx = couponValueIdxByStudent[studentId];
+            return Number.isInteger(idx) && idx >= 0 && idx < couponPresetValues.length ? idx : 2;
+        }
+        function getCouponValueForStudent(studentId) {
+            return couponPresetValues[getCouponValueIdx(studentId)] || 50;
+        }
+        function setCouponValueDisplay(studentId, animate = false) {
+            const el = document.getElementById(`cv-${studentId}`);
+            if (!el) return;
+            const idx = getCouponValueIdx(studentId);
+            el.textContent = couponPresetValues[idx] || 50;
+            el.setAttribute('data-idx', String(idx));
+            if (animate) {
+                el.classList.remove('coupon-toggle-pop');
+                void el.offsetWidth;
+                el.classList.add('coupon-toggle-pop');
+                window.setTimeout(() => el.classList.remove('coupon-toggle-pop'), 320);
+            }
+        }
         function loadCouponDataForClass(className) {
             couponData = JSON.parse(localStorage.getItem(`couponData_${className}`) || '{}');
             const sc = localStorage.getItem(`savedCoupons_${className}`);
             savedCouponStudents = sc ? new Set(JSON.parse(sc)) : new Set();
             const chk = localStorage.getItem(`changedCouponStudents_${className}`);
             changedCouponStudents = chk ? new Set(JSON.parse(chk)) : new Set();
+            try {
+                couponValueIdxByStudent = JSON.parse(localStorage.getItem(`couponValueIdx_${className}`) || '{}') || {};
+            } catch (e) {
+                couponValueIdxByStudent = {};
+            }
             students.filter(s => s['الفصل'] === className).forEach(s => { const id = getStudentId(s); originalCouponData[id] = parseInt(s['كوبونات الالتزام'] || 0); });
         }
         function saveCouponDataForClass(className) {
             if (!className) return;
             localStorage.setItem(`couponData_${className}`, JSON.stringify(couponData || {}));
             localStorage.setItem(`changedCouponStudents_${className}`, JSON.stringify([...changedCouponStudents]));
+            localStorage.setItem(`couponValueIdx_${className}`, JSON.stringify(couponValueIdxByStudent || {}));
         }
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
@@ -11236,7 +11283,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : ''}</span>
                 <div class="coupon-toggle-row">
                     <button class="coupon-toggle-btn minus" onclick="adjustStudentCoupons('${id}',-1)"><i class="fas fa-minus"></i></button>
-                    <div class="coupon-value-display" id="cv-${id}" data-idx="2" onclick="toggleCouponValue('${id}')">50</div>
+                    <div class="coupon-value-display" id="cv-${id}" data-idx="${getCouponValueIdx(id)}" onclick="toggleCouponValue('${id}')">${getCouponValueForStudent(id)}</div>
                     <button class="coupon-toggle-btn plus" onclick="adjustStudentCoupons('${id}',1)"><i class="fas fa-plus"></i></button>
                 </div>
                 <div class="attend-btn-row">
@@ -11322,21 +11369,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // ── COUPON TOGGLE ─────────────────────────────────────────────
-        let globalCouponIdx = 2;
         function toggleCouponValue(id) {
-            globalCouponIdx = (globalCouponIdx + 1) % couponPresetValues.length;
-            const newVal = couponPresetValues[globalCouponIdx];
-            document.querySelectorAll('.coupon-value-display').forEach((el, i) => {
-                setTimeout(() => {
-                    el.textContent = newVal; el.setAttribute('data-idx', globalCouponIdx);
-                    el.style.transform = 'scale(1.2)';
-                    setTimeout(() => { el.style.transform = ''; el.style.background = ''; el.style.color = ''; }, 270);
-                }, i * 16);
-            });
+            const currentIdx = getCouponValueIdx(id);
+            couponValueIdxByStudent[id] = (currentIdx + 1) % couponPresetValues.length;
+            saveCouponDataForClass(currentClass);
+            setCouponValueDisplay(id, true);
         }
         function adjustStudentCoupons(studentId, dir) {
-            const el = document.getElementById(`cv-${studentId}`);
-            const val = el ? parseInt(el.textContent) || 50 : 50;
+            const val = getCouponValueForStudent(studentId);
             const cur = parseInt(couponData[studentId] || 0);
             couponData[studentId] = cur + dir * val;
             if (couponData[studentId] !== 0) { changedCouponStudents.add(studentId); savedCouponStudents.delete(studentId); } else changedCouponStudents.delete(studentId);
@@ -11350,7 +11390,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function resetCouponDataForClass(className) {
             couponData = {}; changedCouponStudents.clear(); savedCouponStudents.clear();
+            couponValueIdxByStudent = {};
             localStorage.removeItem(`couponData_${className}`); localStorage.removeItem(`changedCouponStudents_${className}`); localStorage.removeItem(`savedCoupons_${className}`);
+            localStorage.removeItem(`couponValueIdx_${className}`);
             renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns(); showToast('تم إعادة تعيين الكوبونات', 'info');
         }
 
