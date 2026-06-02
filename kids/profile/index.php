@@ -3564,7 +3564,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <!-- Coupon hero card (private only) -->
     <div class="coupon-hero" id="couponHero" style="display:none">
       <div>
-        <div class="ch-total-label"><i class="fas fa-star"></i> إجمالي كوبوناتك</div>
+        <div class="ch-total-label"><i class="fas fa-star"></i> <span>إجمالي كوبوناتك</span></div>
         <div class="ch-total-val" id="chTotal">0</div>
         <div class="ch-total-unit">كوبون</div>
       </div>
@@ -3610,7 +3610,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <span id="friendBannerName">ملف صديق</span>
       <button onclick="returnToMyProfile()"
         style="margin-right:auto;background:none;border:none;color:#9333ea;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:5px;"><i
-          class="fas fa-arrow-right"></i> رجوع</button>
+          class="fas fa-arrow-right"></i> <span>رجوع</span></button>
     </div>
     <!-- Search friends (private only) -->
     <div class="sc" id="scSearch" style="display:none">
@@ -3675,7 +3675,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="cal-grid" id="calGrid"></div>
         <div style="text-align:center;margin-top:4px;">
           <span class="att-view-all" id="attViewAllBtn" onclick="openAttHistory()">
-            <i class="fas fa-list-ul"></i> عرض السجل الكامل
+            <i class="fas fa-list-ul"></i> <span>عرض السجل بالكامل</span>
           </span>
         </div>
       </div>
@@ -3855,11 +3855,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div style="display:flex;gap:10px;">
           <button id="reportShouldPresent" onclick="setReportShould('present')"
             style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-check-circle"></i> حضر
+            <i class="fas fa-check-circle"></i> <span>حضر</span>
           </button>
           <button id="reportShouldAbsent" onclick="setReportShould('absent')"
             style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-times-circle"></i> غاب
+            <i class="fas fa-times-circle"></i> <span>غاب</span>
           </button>
         </div>
       </div>
@@ -3924,7 +3924,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-user-edit"></i></div>
-          تعديل المعلومات
+          <span>تعديل المعلومات</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
@@ -3936,7 +3936,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="saveProfile()"><i class="fas fa-save"></i>
-          حفظ المعلومات</button>
+          <span>حفظ المعلومات</span></button>
       </div>
       <button class="ss-close-btn" onclick="closeOv('editOv')">إغلاق</button>
     </div>
@@ -3951,7 +3951,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-lock"></i></div>
-          تغيير كلمة المرور
+          <span>تغيير كلمة المرور</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
@@ -3970,7 +3970,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="changePass()"><i class="fas fa-lock"></i>
-          تغيير كلمة المرور</button>
+          <span>تغيير كلمة المرور</span></button>
       </div>
       <button class="ss-close-btn" onclick="closeOv('passOv')">إغلاق</button>
     </div>
@@ -3985,7 +3985,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:#d1fae5;color:#065f46;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-camera"></i></div>
-          تغيير الصورة الشخصية
+          <span>تغيير الصورة الشخصية</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
@@ -4002,9 +4002,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div style="padding:8px 22px 0;display:flex;gap:8px;">
         <button class="btn btn-p" id="cropBtn" style="display:none;width:100%;padding:12px;" onclick="doCrop()"><i
-            class="fas fa-crop-alt"></i> قص الصورة</button>
+            class="fas fa-crop-alt"></i> <span>قص الصورة</span></button>
         <button class="btn btn-p" id="uploadBtn" style="display:none;width:100%;padding:12px;"
-          onclick="uploadPhoto()"><i class="fas fa-upload"></i> رفع الصورة</button>
+          onclick="uploadPhoto()"><i class="fas fa-upload"></i> <span>رفع الصورة</span></button>
       </div>
       <button class="ss-close-btn" onclick="closeOv('photoOv');resetPhoto()">إغلاق</button>
     </div>
@@ -4019,13 +4019,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div
             style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-exchange-alt"></i></div>
-          تبديل الحساب
+          <span>تبديل الحساب</span>
         </div>
       </div>
       <div id="switchList" style="padding:10px 16px;"></div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="doSwitch()"><i
-            class="fas fa-exchange-alt"></i> تبديل الحساب</button>
+            class="fas fa-exchange-alt"></i> <span>تبديل الحساب</span></button>
       </div>
       <button class="ss-close-btn" onclick="closeOv('switchOv')">إغلاق</button>
     </div>
@@ -5901,6 +5901,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         croppedBlob = blob;
         const prev = document.getElementById('photoPrev');
         prev.src = URL.createObjectURL(blob); prev.style.display = 'block';
+        document.getElementById('dropZone').style.display = 'none';
         document.getElementById('cropWrap').style.display = 'none';
         document.getElementById('cropBtn').style.display = 'none';
         document.getElementById('uploadBtn').style.display = 'inline-flex';
@@ -5918,11 +5919,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const r = await fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd, headers: { Accept: 'application/json' } });
         const up = await r.json();
         if (!up.success) throw new Error(up.message);
-        const d = await api({ action: 'updateStudentImage', studentId: student.id, imageUrl: up.imageUrl });
+        const d = await api({ action: 'updateStudentImageAfterCreation', studentId: student.id, imageUrl: up.imageUrl });
         hideLoad();
         if (d.success) {
-          student.image_url = up.imageUrl;
-          document.getElementById('avatarInner').innerHTML = `<img src="${up.imageUrl}?t=${Date.now()}" alt="">`;
+          const savedUrl = d.imageUrl || up.imageUrl;
+          const fresh = await api({ action: 'getStudentProfile', studentId: student.id });
+          if (!fresh.success || !fresh.student || fresh.student.image_url !== savedUrl) {
+            throw new Error('Photo uploaded but was not saved to the student profile');
+          }
+          student = norm(fresh.student);
+          document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
           closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
         } else throw new Error(d.message);
       } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
