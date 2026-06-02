@@ -128,6 +128,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 <html lang="ar" dir="rtl" data-theme="light">
 
 <head>
+    <script src="/js/lang-sync.js"></script>
     <meta name="facebook-domain-verification" content="fxb1yj847dop22gkxax1i02jkz7w98" />
 
     <!-- ═══ INSTANT THEME BOOTSTRAP — must be first script in <head> ═══
