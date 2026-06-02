@@ -5919,7 +5919,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const r = await fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd, headers: { Accept: 'application/json' } });
         const up = await r.json();
         if (!up.success) throw new Error(up.message);
-        const d = await api({ action: 'updateStudentImage', studentId: student.id, imageUrl: up.imageUrl });
+        const d = await api({ action: 'updateStudentImageAfterCreation', studentId: student.id, imageUrl: up.imageUrl });
         hideLoad();
         if (d.success) {
           student.image_url = up.imageUrl;

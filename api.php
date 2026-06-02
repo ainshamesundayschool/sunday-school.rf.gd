@@ -3439,6 +3439,7 @@ function addStudent()
 function updateStudentImageAfterCreation()
 {
     try {
+        $conn = getDBConnection();
         $studentId = intval($_POST['studentId'] ?? 0);
 
         if ($studentId === 0) {
@@ -3452,7 +3453,6 @@ function updateStudentImageAfterCreation()
             error_log("Photo uploaded for update, starting upload process...");
 
             // Get student info for filename
-            $conn = getDBConnection();
             $infoStmt = $conn->prepare("SELECT name, phone FROM students WHERE id = ?");
             $infoStmt->bind_param("i", $studentId);
             $infoStmt->execute();
