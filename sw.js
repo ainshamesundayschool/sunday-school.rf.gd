@@ -1,7 +1,8 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v11                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const CACHE_NAME        = 'sunday-school-v11';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v11';
+const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
@@ -105,6 +106,19 @@ self.addEventListener('fetch', e => {
         return;
     }
 
+    // Build version must always be fetched fresh so updates can be detected.
+    if (url.pathname === '/version.php') {
+        e.respondWith(fetch(e.request, { cache: 'no-store' }).catch(() => new Response(JSON.stringify({
+            success: false,
+            version: 'dev',
+            source: 'offline'
+        }), {
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            status: 503
+        })));
+        return;
+    }
+
     // API / POST calls
     if (e.request.method === 'POST' || url.pathname.includes('api.php')) {
         e.respondWith(
@@ -131,22 +145,39 @@ self.addEventListener('fetch', e => {
     // switching churches can show the previous church's rendered dashboard.
     if (e.request.mode === 'navigate') {
         e.respondWith(
-            fetch(e.request, {
-                cache: (isSessionSensitive && !isOfflineShellFriendly) ? 'no-store' : 'default'
-            }).then(r => {
-                if (r && r.ok && isOfflineShellFriendly) {
-                    const copy = r.clone();
-                    caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
+            (async () => {
+                const remoteVersion = isOfflineShellFriendly ? await _getRemoteBuildVersion() : null;
+                const versionMismatch = !!remoteVersion && remoteVersion !== SW_VERSION;
+
+                if (isOfflineShellFriendly && versionMismatch) {
+                    try {
+                        const fresh = await fetch(e.request, { cache: 'no-store' });
+                        if (fresh && fresh.ok) {
+                            const copy = fresh.clone();
+                            caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
+                        }
+                        return fresh;
+                    } catch (_) { }
                 }
-                return r;
-            }).catch(async () => {
-                const cached = await _matchOfflineShell(e.request, url);
-                if (cached && (isOfflineShellFriendly || !isSessionSensitive)) return cached;
-                return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
-                    status: 503,
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                });
-            })
+
+                try {
+                    const r = await fetch(e.request, {
+                        cache: (isSessionSensitive && !isOfflineShellFriendly) ? 'no-store' : 'default'
+                    });
+                    if (r && r.ok && isOfflineShellFriendly) {
+                        const copy = r.clone();
+                        caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
+                    }
+                    return r;
+                } catch (_) {
+                    const cached = await _matchOfflineShell(e.request, url);
+                    if (cached && (isOfflineShellFriendly || !isSessionSensitive)) return cached;
+                    return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    });
+                }
+            })()
         );
         return;
     }
@@ -200,6 +231,17 @@ async function _matchOfflineShell(request, url) {
     }
 
     return null;
+}
+
+async function _getRemoteBuildVersion() {
+    try {
+        const resp = await fetch('/version.php', { cache: 'no-store' });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data && data.version ? data.version : null;
+    } catch (err) {
+        return null;
+    }
 }
 
 // ── BACKGROUND SYNC ───────────────────────────────────────────

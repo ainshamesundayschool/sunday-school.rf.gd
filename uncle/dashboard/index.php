@@ -15504,9 +15504,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── Register service worker ───────────────────────────────────
 
+        async function getBuildVersion() {
+            try {
+                const resp = await fetch('/version.php', { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.version) return data.version;
+                }
+            } catch (e) { }
+            return 'v12';
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=12')
+                getBuildVersion().then(version => {
+                    navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(version)}`)
                     .then(reg => {
                         _initPushSubscription(reg);
                         // ── Re-subscribe whenever SW becomes active after an update ──
@@ -15518,6 +15530,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         });
                     })
                     .catch(() => { });
+                });
             });
 
             // ── Re-subscribe + reload data when coming back online ───────
