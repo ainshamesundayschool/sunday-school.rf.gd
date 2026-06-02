@@ -3527,6 +3527,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       font-size: .95rem;
       box-shadow: 0 4px 14px rgba(124, 58, 237, .35);
     }
+
+    .birthday-greeting-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 16px;
+      border-radius: var(--r-full);
+      border: 1px solid rgba(255, 255, 255, .34);
+      background: rgba(255, 255, 255, .18);
+      color: #fff;
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .18);
+      backdrop-filter: blur(10px);
+      transition: var(--fast);
+    }
+
+    .birthday-greeting-btn.show {
+      display: inline-flex;
+    }
+
+    .birthday-greeting-btn:hover {
+      background: rgba(255, 255, 255, .28);
+      transform: translateY(-1px);
+    }
+
+    .birthday-card-preview {
+      width: min(100%, 360px);
+      aspect-ratio: 4 / 5;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--s2);
+      border: 1px solid var(--bdr);
+      box-shadow: var(--sh-lg);
+      margin: 0 auto;
+    }
+
+    .birthday-card-preview canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .birthday-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 22px 0;
+    }
   </style>
 </head>
 
@@ -3560,6 +3613,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             id="heroClassTxt">—</span></span>
         <div class="uncle-strip" id="uncleStrip" style="display:none"></div>
       </div>
+      <button class="birthday-greeting-btn" id="birthdayGreetingBtn" type="button" onclick="openBirthdayGreeting()">
+        <i class="fas fa-cake-candles"></i>
+        <span>صورة عيد الميلاد</span>
+      </button>
     </div>
     <!-- Coupon hero card (private only) -->
     <div class="coupon-hero" id="couponHero" style="display:none">
@@ -4010,6 +4067,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
   </div>
 
+  <!-- Birthday Greeting -->
+  <div class="overlay settings-overlay" id="bdayGreetingOv">
+    <div class="settings-sheet" style="max-width:430px;">
+      <div class="ss-handle"></div>
+      <div
+        style="padding:18px 22px 10px;border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px;">
+        <div
+          style="width:36px;height:36px;border-radius:var(--r-sm);background:#fef3c7;color:#b45309;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-cake-candles"></i>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:1.05rem;font-weight:800;color:var(--t1);">صورة عيد الميلاد</div>
+          <div style="font-size:.72rem;color:var(--t4);font-weight:600;">احفظها أو شاركها مع أصحابك</div>
+        </div>
+        <button onclick="closeOv('bdayGreetingOv')"
+          style="width:30px;height:30px;border-radius:var(--r-sm);border:1.5px solid var(--bdr);background:var(--s2);color:var(--t3);font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div style="padding:18px 22px 0;">
+        <div class="birthday-card-preview">
+          <canvas id="birthdayGreetingCanvas" width="1080" height="1350"></canvas>
+        </div>
+      </div>
+      <div class="birthday-actions">
+        <button class="btn btn-p" onclick="shareBirthdayGreeting()"><i class="fas fa-share-alt"></i>
+          <span>مشاركة</span></button>
+        <button class="btn btn-p" onclick="saveBirthdayGreeting()"><i class="fas fa-download"></i>
+          <span>حفظ</span></button>
+      </div>
+      <button class="ss-close-btn" onclick="closeOv('bdayGreetingOv')">إغلاق</button>
+    </div>
+  </div>
+
   <!-- Account Switch -->
   <div class="overlay settings-overlay" id="switchOv">
     <div class="settings-sheet">
@@ -4202,6 +4293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     let cropper = null, croppedBlob = null;
     let allTrips = [], allTasks = [];
     let curTask = null, taskAnswers = {}, examDone = false;
+    let birthdayGreetingStudent = null;
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
@@ -4338,6 +4430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function renderHero(s, isPrivate) {
       document.getElementById('hero').style.display = 'flex';
       document.getElementById('heroName').textContent = s.name;
+      updateBirthdayGreetingButton(s);
       document.getElementById('heroClassTxt').textContent = s.class || '—';
       if (s.church_name) {
         document.getElementById('churchName').textContent = s.church_name;
@@ -4406,6 +4499,267 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
     // Global uncles list (filled after load)
     let classUncles = [];
+
+    function normalizeBirthdayDigits(value) {
+      const ar = '٠١٢٣٤٥٦٧٨٩';
+      const fa = '۰۱۲۳۴۵۶۷۸۹';
+      return String(value || '')
+        .replace(/[٠-٩]/g, d => ar.indexOf(d))
+        .replace(/[۰-۹]/g, d => fa.indexOf(d));
+    }
+
+    function parseBirthdayDate(value) {
+      const raw = normalizeBirthdayDigits(value).trim();
+      if (!raw) return null;
+      const short = raw.split(/[ T]/)[0];
+      let m = short.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+      if (m) return { year: +m[1], month: +m[2], day: +m[3] };
+      m = short.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+      if (m) return { year: +m[3], month: +m[2], day: +m[1] };
+      m = short.match(/^(\d{1,2})[-/.](\d{1,2})$/);
+      if (m) return { year: null, month: +m[2], day: +m[1] };
+      const d = new Date(raw);
+      if (!Number.isNaN(d.getTime())) return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+      return null;
+    }
+
+    function getBirthdayAge(s) {
+      const b = parseBirthdayDate(s && s.birthday);
+      if (!b || !b.year) return null;
+      const now = new Date();
+      let age = now.getFullYear() - b.year;
+      if (now.getMonth() + 1 < b.month || (now.getMonth() + 1 === b.month && now.getDate() < b.day)) age--;
+      return age >= 0 ? age : null;
+    }
+
+    function isBirthdayToday(s) {
+      const b = parseBirthdayDate(s && s.birthday);
+      if (!b) return false;
+      const now = new Date();
+      return b.month === now.getMonth() + 1 && b.day === now.getDate();
+    }
+
+    function updateBirthdayGreetingButton(s) {
+      const btn = document.getElementById('birthdayGreetingBtn');
+      if (!btn) return;
+      const show = !!(s && isBirthdayToday(s));
+      birthdayGreetingStudent = show ? s : null;
+      btn.classList.toggle('show', show);
+    }
+
+    function fillRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function loadCanvasImage(src) {
+      return new Promise((resolve, reject) => {
+        if (!src) { reject(new Error('missing image')); return; }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function drawRoundedImage(ctx, img, x, y, w, h, r) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.clip();
+      const scale = Math.max(w / img.width, h / img.height);
+      const sw = w / scale, sh = h / scale;
+      ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h);
+      ctx.restore();
+    }
+
+    function drawBirthdayConfetti(ctx, w, h) {
+      const colors = ['#ef4444', '#f59e0b', '#10b981', '#2563eb', '#ec4899', '#7c3aed', '#14b8a6'];
+      for (let i = 0; i < 95; i++) {
+        const x = (Math.sin(i * 17.31) * .5 + .5) * w;
+        const y = 70 + (Math.cos(i * 9.71) * .5 + .5) * (h - 180);
+        const size = 8 + (i % 6) * 4;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate((i * 29 * Math.PI) / 180);
+        ctx.globalAlpha = .72;
+        ctx.fillStyle = colors[i % colors.length];
+        if (i % 3 === 0) {
+          ctx.beginPath(); ctx.arc(0, 0, size / 2, 0, Math.PI * 2); ctx.fill();
+        } else if (i % 3 === 1) {
+          ctx.fillRect(-size / 2, -size / 4, size, size / 2);
+        } else {
+          ctx.beginPath(); ctx.moveTo(0, -size / 2); ctx.lineTo(size / 2, size / 2); ctx.lineTo(-size / 2, size / 2); ctx.closePath(); ctx.fill();
+        }
+        ctx.restore();
+      }
+      for (let i = 0; i < 8; i++) {
+        ctx.save();
+        ctx.strokeStyle = colors[(i + 2) % colors.length];
+        ctx.globalAlpha = .45;
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        const startX = 70 + i * 135;
+        ctx.moveTo(startX, 120);
+        for (let t = 0; t < 6; t++) ctx.quadraticCurveTo(startX + 30, 170 + t * 35, startX, 195 + t * 35);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    async function drawBirthdayGreeting() {
+      const s = birthdayGreetingStudent || student;
+      const canvas = document.getElementById('birthdayGreetingCanvas');
+      if (!s || !canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, '#fff7ad');
+      bg.addColorStop(.35, '#ffd6e7');
+      bg.addColorStop(.7, '#bde7ff');
+      bg.addColorStop(1, '#d8ffd6');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      drawBirthdayConfetti(ctx, w, h);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,.86)';
+      ctx.shadowColor = 'rgba(30,41,59,.18)';
+      ctx.shadowBlur = 35;
+      fillRoundRect(ctx, 78, 150, w - 156, h - 235, 54);
+      ctx.restore();
+
+      try {
+        const logo = await loadCanvasImage('/logo.png');
+        drawRoundedImage(ctx, logo, w / 2 - 58, 185, 116, 116, 28);
+      } catch (e) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(w / 2, 243, 58, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.textAlign = 'center';
+      ctx.direction = 'rtl';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '800 36px Cairo, Tahoma, Arial';
+      ctx.fillText(s.church_name || 'Sunday School', w / 2, 340);
+      ctx.fillStyle = '#db2777';
+      ctx.font = '900 78px Cairo, Tahoma, Arial';
+      ctx.fillText('عيد ميلاد سعيد', w / 2, 455);
+      ctx.fillStyle = '#7c3aed';
+      ctx.font = '800 34px Cairo, Tahoma, Arial';
+      ctx.fillText('ربنا يفرح قلبك ويبارك سنينك', w / 2, 515);
+
+      const px = w / 2 - 185, py = 575, ps = 370;
+      ctx.save();
+      ctx.shadowColor = 'rgba(15,23,42,.25)';
+      ctx.shadowBlur = 35;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(w / 2, py + ps / 2, ps / 2 + 18, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      try {
+        const photo = await loadCanvasImage(s.image_url);
+        ctx.save();
+        ctx.beginPath(); ctx.arc(w / 2, py + ps / 2, ps / 2, 0, Math.PI * 2); ctx.clip();
+        const scale = Math.max(ps / photo.width, ps / photo.height);
+        const sw = ps / scale, sh = ps / scale;
+        ctx.drawImage(photo, (photo.width - sw) / 2, (photo.height - sh) / 2, sw, sh, px, py, ps, ps);
+        ctx.restore();
+      } catch (e) {
+        const av = ctx.createLinearGradient(px, py, px + ps, py + ps);
+        av.addColorStop(0, '#2563eb');
+        av.addColorStop(1, '#ec4899');
+        ctx.fillStyle = av;
+        ctx.beginPath(); ctx.arc(w / 2, py + ps / 2, ps / 2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '900 135px Cairo, Tahoma, Arial';
+        ctx.fillText((s.name || '?').trim().charAt(0), w / 2, py + ps / 2 + 48);
+      }
+
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 70px Cairo, Tahoma, Arial';
+      ctx.fillText(s.name || '', w / 2, 1030);
+
+      const age = getBirthdayAge(s);
+      if (age !== null) {
+        ctx.fillStyle = '#f97316';
+        fillRoundRect(ctx, w / 2 - 210, 1075, 420, 86, 43);
+        ctx.fillStyle = '#fff';
+        ctx.font = '900 40px Cairo, Tahoma, Arial';
+        ctx.fillText(`تم ${age} سنة`, w / 2, 1132);
+      }
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '700 31px Cairo, Tahoma, Arial';
+      ctx.fillText('كل سنة وأنت طيب', w / 2, 1218);
+    }
+
+    function openBirthdayGreeting() {
+      const s = birthdayGreetingStudent || student;
+      if (!s || !isBirthdayToday(s)) {
+        toast('الصورة تظهر في يوم عيد الميلاد فقط', 'info');
+        return;
+      }
+      birthdayGreetingStudent = s;
+      openOv('bdayGreetingOv');
+      setTimeout(drawBirthdayGreeting, 80);
+    }
+
+    function birthdayCanvasToBlob() {
+      const canvas = document.getElementById('birthdayGreetingCanvas');
+      return new Promise((resolve, reject) => {
+        try {
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('تعذر تجهيز الصورة')), 'image/png', 1);
+        } catch (e) { reject(e); }
+      });
+    }
+
+    async function saveBirthdayGreeting() {
+      try {
+        await drawBirthdayGreeting();
+        const blob = await birthdayCanvasToBlob();
+        const s = birthdayGreetingStudent || student || {};
+        const safeName = String(s.name || 'birthday').replace(/[^\p{L}\p{N}_-]+/gu, '_');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `birthday_${safeName}.png`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      } catch (e) {
+        toast('تعذر حفظ الصورة: ' + e.message, 'err');
+      }
+    }
+
+    async function shareBirthdayGreeting() {
+      try {
+        await drawBirthdayGreeting();
+        const blob = await birthdayCanvasToBlob();
+        const s = birthdayGreetingStudent || student || {};
+        const file = new File([blob], 'birthday-greeting.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'صورة عيد الميلاد', text: `كل سنة و${s.name || ''} طيب` });
+        } else {
+          await saveBirthdayGreeting();
+        }
+      } catch (e) {
+        toast('تعذر مشاركة الصورة: ' + e.message, 'err');
+      }
+    }
 
     function renderUncleStrip(uncles) {
       classUncles = uncles;
@@ -4508,6 +4862,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       // ── Name, class ───────────────────────────────────────────────
       document.getElementById('heroName').textContent = f.name;
+      updateBirthdayGreetingButton(f);
       document.getElementById('heroClassTxt').textContent = f.class || '—';
       const chip = document.getElementById('churchChip');
       if (chip && f.church_name) {
@@ -4588,6 +4943,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       // Restore hero text
       document.getElementById('heroName').textContent = s.name;
+      updateBirthdayGreetingButton(s);
       document.getElementById('heroClassTxt').textContent = s.class || '—';
       const chip = document.getElementById('churchChip');
       if (chip) { document.getElementById('churchName').textContent = s.church_name || ''; chip.style.display = s.church_name ? 'inline-flex' : 'none'; }
@@ -5867,6 +6223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           student.name = n; student.address = document.getElementById('eA').value.trim();
           student.phone = document.getElementById('eP').value.trim(); student.birthday = document.getElementById('eB').value.trim();
           document.getElementById('heroName').textContent = n;
+          updateBirthdayGreetingButton(student);
           renderInfo(student, false); closeOv('editOv'); toast('تم الحفظ ✓', 'ok');
         } else toast(d.message || 'فشل', 'err');
       } catch (e) { toast('خطأ في الاتصال', 'err'); }
