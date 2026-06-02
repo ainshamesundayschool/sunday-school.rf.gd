@@ -1005,47 +1005,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 700;
         }
 
-        .class-card.skeleton-card {
-            pointer-events: none;
-            user-select: none;
-            background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
-            border-color: transparent;
-            box-shadow: none;
-        }
-
-        .class-card.skeleton-card::before {
-            display: none;
-        }
-
-        .class-card.skeleton-card .class-icon,
-        .class-card.skeleton-card .class-name,
-        .class-card.skeleton-card .class-badge {
-            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
-            background-size: 200% 100%;
-            animation: shimmerSkeleton 1.4s ease infinite;
-            color: transparent;
-            border: 0;
-        }
-
-        .class-card.skeleton-card .class-icon {
-            color: transparent;
-            transform: none !important;
-        }
-
-        .class-card.skeleton-card .class-name {
-            width: 72%;
-            height: 16px;
-            margin: 0 auto 10px;
-            border-radius: 999px;
-        }
-
-        .class-card.skeleton-card .class-badge {
-            width: 58%;
-            height: 18px;
-            margin: 0 auto;
-            border-radius: 999px;
-        }
-
         /* Footer */
         .site-footer {
             background: var(--surface);
@@ -10506,13 +10465,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderClassesSkeleton() {
             const grid = document.getElementById('classesGrid');
             if (!grid) return;
-            grid.innerHTML = Array(8).fill(`
-                <div class="class-card skeleton-card" aria-hidden="true">
-                    <div class="class-icon"></div>
-                    <div class="class-name"></div>
-                    <div class="class-badge"></div>
-                </div>
-            `).join('');
+            grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
         }
 
         // ── DATA LOADING ──────────────────────────────────────────────
