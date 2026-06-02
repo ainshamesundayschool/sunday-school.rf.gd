@@ -8015,25 +8015,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="notif-panel-sheet">
             <div class="nps-header">
                 <div class="nps-header-icon"><i class="fas fa-bell"></i></div>
-                <div class="nps-title">الإشعارات<small>آخر التحديثات والتنبيهات</small></div>
-                <button onclick="markAllNotifsRead()" class="nps-mark-all" title="تعليم الكل كمقروء"><i
-                        class="fas fa-check-double"></i> الكل مقروء</button>
-                <button onclick="toggleNotifPanel()" class="nps-close" title="إغلاق"><i
+                <div class="nps-title">
+                    <span data-i18n="notifs_title">الإشعارات</span>
+                    <small data-i18n="notifs_subtitle">آخر التحديثات والتنبيهات</small>
+                </div>
+                <button onclick="markAllNotifsRead()" class="nps-mark-all" data-i18n-title="notifs_mark_all_read" title="تعليم الكل كمقروء"><i
+                        class="fas fa-check-double"></i> <span data-i18n="notifs_mark_all">الكل مقروء</span></button>
+                <button onclick="toggleNotifPanel()" class="nps-close" data-i18n-title="close" title="إغلاق"><i
                         class="fas fa-times"></i></button>
             </div>
             <div class="nps-body" id="notifPanelList">
                 <div class="nps-empty"><i class="fas fa-bell-slash"
-                        style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد إشعارات</div>
+                        style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:.4;"></i><span data-i18n="notifs_empty">لا توجد إشعارات</span></div>
             </div>
         </div>
     </div>
 
     <div id="offlineBanner">
         <i class="fas fa-wifi-slash"></i>
-        <span>أنت غير متصل بالإنترنت — التغييرات محفوظة محلياً وستُرفع عند الاتصال</span>
-        <button id="offlineNotifBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
+        <span data-i18n="offline_banner_text">أنت غير متصل بالإنترنت — التغييرات محفوظة محلياً وستُرفع عند الاتصال</span>
+        <button id="offlineNotifBtn" onclick="requestNotifPermission()" data-i18n-title="pwa_allow_notif" title="تفعيل الإشعارات"
             style="display:none;background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.5);color:#fff;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:700;font-family:Cairo,sans-serif;cursor:pointer;white-space:nowrap;gap:5px;align-items:center;flex-shrink:0">
-            <i class="fas fa-bell"></i> إشعارات
+            <i class="fas fa-bell"></i> <span data-i18n="offline_notif_btn">إشعارات</span>
         </button>
         <button onclick="document.getElementById('offlineBanner').classList.remove('show')"
             style="background:rgba(255,255,255,.2);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i
@@ -8047,20 +8050,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <img src="/logo.png" alt="مدارس الأحد" style="width:84px;height:84px;object-fit:cover;display:block"
                     onerror="this.outerHTML='<i class=\\'fas fa-cross\\'style=\\'font-size:2rem;color:#fff\\'></i>'">
             </div>
-            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تثبيت التطبيق</h3>
-            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px">ثبّت نظام مدارس الأحد على شاشتك الرئيسية
+            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px" data-i18n="pwa_title">تثبيت التطبيق</h3>
+            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px" data-i18n="pwa_desc">ثبّت نظام مدارس الأحد على شاشتك الرئيسية
                 للوصول السريع والعمل بدون إنترنت</p>
             <div class="pwa-steps" id="pwaSteps">
                 <!-- filled by JS based on OS -->
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
                 <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
-                    style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
+                    style="width:100%;justify-content:center"><i class="fas fa-download"></i> <span data-i18n="pwa_install_btn">تثبيت الآن</span></button>
                 <button class="btn btn-secondary" id="pwaNotifBtn" onclick="requestNotifPermission()"
-                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> السماح
-                    بالإشعارات</button>
-                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس
-                    الآن</button>
+                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> <span data-i18n="pwa_allow_notif">السماح بالإشعارات</span></button>
+                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center" data-i18n="pwa_not_now">ليس الآن</button>
             </div>
         </div>
     </div>
@@ -8073,7 +8074,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="image-modal" id="imageModal"
         onclick="if(event.target===this||event.target.id==='imageModalBody')hideImageModal()">
         <div class="image-modal-toolbar">
-            <button class="img-modal-btn" onclick="hideImageModal()" title="إغلاق"><i class="fas fa-times"></i></button>
+            <button class="img-modal-btn" onclick="hideImageModal()" data-i18n-title="close" title="إغلاق"><i class="fas fa-times"></i></button>
             <div style="display:flex;gap:8px;align-items:center">
                 <button class="img-modal-btn" onclick="_imgZoomChange(0.3)" title="تكبير"><i
                         class="fas fa-search-plus"></i></button>
@@ -8094,13 +8095,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="crop-modal" id="cropModal">
         <div class="crop-container">
             <div class="modal-header">
-                <h3>قص الصورة</h3>
+                <h3 data-i18n="crop_title">قص الصورة</h3>
                 <button class="close-btn" id="cropClose">&times;</button>
             </div>
             <div class="crop-image-container"><img id="cropImage" style="max-width:100%;max-height:360px"></div>
             <div class="crop-controls">
-                <button class="btn btn-danger" id="cropCancel"><i class="fas fa-times"></i> إلغاء</button>
-                <button class="btn btn-success" id="cropConfirm"><i class="fas fa-check"></i> تأكيد</button>
+                <button class="btn btn-danger" id="cropCancel"><i class="fas fa-times"></i> <span data-i18n="cancel">إلغاء</span></button>
+                <button class="btn btn-success" id="cropConfirm"><i class="fas fa-check"></i> <span data-i18n="confirm">تأكيد</span></button>
             </div>
         </div>
     </div>
@@ -8109,7 +8110,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="accountModal">
         <div class="modal" style="max-width:460px">
             <div class="modal-header">
-                <h3><i class="fas fa-user-circle"></i> الملف الشخصي</h3>
+                <h3><i class="fas fa-user-circle"></i> <span data-i18n="profile_title">الملف الشخصي</span></h3>
                 <button class="close-btn" onclick="hideAccountModal()">&times;</button>
             </div>
             <div class="account-avatar-section">
@@ -8132,84 +8133,87 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                     <a href="/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
-                        <i class="fas fa-crown"></i> الأوائل
+                        <i class="fas fa-crown"></i> <span data-i18n="leaderboard_title">الأوائل</span>
                     </a>
                 </div>
             </div>
             <div id="accountInfoView" style="margin-bottom:14px">
                 <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-user"></i> الاسم</span>
+                    <span class="account-info-label"><i class="fas fa-user"></i> <span data-i18n="info_name">الاسم</span></span>
                     <span class="account-info-value copy-holdable" id="aiName">---</span>
                 </div>
                 <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-at"></i> المستخدم</span>
+                    <span class="account-info-label"><i class="fas fa-at"></i> <span data-i18n="info_username">المستخدم</span></span>
                     <span class="account-info-value copy-holdable" id="aiUsername">---</span>
                 </div>
                 <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-shield-alt"></i> الدور</span>
+                    <span class="account-info-label"><i class="fas fa-shield-alt"></i> <span data-i18n="info_role">الدور</span></span>
                     <span class="account-info-value copy-holdable" id="aiRole">---</span>
                 </div>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:12px">
                 <button class="btn" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="showAccountEditForm()"><i
-                        class="fas fa-edit"></i> تعديل</button>
+                        class="fas fa-edit"></i> <span data-i18n="btn_edit">تعديل</span></button>
                 <button class="btn btn-secondary" style="flex:1;padding:10px 12px;font-size:.82rem"
-                    onclick="showUncleHistory()"><i class="fas fa-history"></i> السجل</button>
+                    onclick="showUncleHistory()"><i class="fas fa-history"></i> <span data-i18n="btn_history">السجل</span></button>
                 <button class="btn btn-danger" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="logout()"><i
-                        class="fas fa-sign-out-alt"></i> خروج</button>
+                        class="fas fa-sign-out-alt"></i> <span data-i18n="btn_logout">خروج</span></button>
             </div>
 
             <div class="account-edit-form" id="accountEditForm">
                 <form id="uncleProfileForm">
                     <div class="form-group">
-                        <label class="form-label">الاسم</label>
+                        <label class="form-label" data-i18n="info_name">الاسم</label>
                         <div class="input-icon-wrap"><i class="fas fa-user input-icon"></i><input type="text"
                                 class="form-input" id="uncleProfileName" required></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">اسم المستخدم</label>
+                        <label class="form-label" data-i18n="info_username">اسم المستخدم</label>
                         <div class="input-icon-wrap"><i class="fas fa-at input-icon"></i><input type="text"
                                 class="form-input" id="uncleProfileUsername" required></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">البريد الإلكتروني</label>
+                        <label class="form-label" data-i18n="info_email">البريد الإلكتروني</label>
                         <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
                                 class="form-input" id="uncleProfileEmail" ></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">الهاتف</label>
+                        <label class="form-label" data-i18n="info_phone">الهاتف</label>
                         <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
                                 class="form-input" id="uncleProfilePhone" ></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">النوع</label>
+                        <label class="form-label" data-i18n="info_gender">النوع</label>
                         <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i>
                             <select class="form-input" id="uncleProfileGender">
-                                <option value="male">ذكر</option>
-                                <option value="female">أنثى</option>
+                                <option value="male" data-i18n="gender_male">ذكر</option>
+                                <option value="female" data-i18n="gender_female">أنثى</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة المرور الحالية</label>
+                        <label class="form-label" data-i18n="field_current_pass">كلمة المرور الحالية</label>
                         <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
                                 class="form-input" id="uncleProfileCurrentPassword"></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة للإبقاء)</small></label>
+                        <label class="form-label">
+                            <span data-i18n="field_new_pass">كلمة مرور جديدة</span>
+                            <small style="color:var(--text-3)" data-i18n="field_new_pass_hint">(اتركها فارغة للإبقاء)</small>
+                        </label>
                         <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
                                 class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                        <label class="form-label" data-i18n="field_confirm_pass">تأكيد كلمة المرور الجديدة</label>
                         <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
                                 class="form-input" id="uncleProfileConfirmPassword" minlength="6"></div>
                     </div>
                     <div style="display:flex;gap:8px">
                         <button type="submit" class="btn btn-success" style="flex:1"><i class="fas fa-save"></i>
-                            حفظ</button>
+                            <span data-i18n="save">حفظ</span></button>
                         <button type="button" class="btn btn-secondary" style="flex:1"
-                            onclick="hideAccountEditForm()"><i class="fas fa-times"></i> إلغاء</button>
+                            onclick="hideAccountEditForm()"><i class="fas fa-times"></i> <span data-i18n="cancel">إلغاء</span></button>
                     </div>
                 </form>
             </div>
@@ -8221,96 +8225,101 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="uncleHistoryModal">
         <div class="modal modal-lg" style="max-width:640px">
             <div class="modal-header">
-                <h3><i class="fas fa-history" style="color:var(--brand)"></i> سجل نشاطي</h3>
+                <h3><i class="fas fa-history" style="color:var(--brand)"></i> <span data-i18n="history_title">سجل نشاطي</span></h3>
                 <button class="close-btn"
-                    onclick="document.getElementById('uncleHistoryModal').classList.remove('active');startAutoRefresh()">&times;</button>
-            </div>
-
-            <!-- Search + filter bar -->
-            <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;">
-                <div
-                    style="flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--r-md);padding:6px 10px;border:1.5px solid var(--border-solid)">
-                    <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
-                    <input id="historySearch" type="text" placeholder="بحث في السجل..."
-                        style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.82rem;color:var(--text);width:100%;outline:none"
-                        oninput="filterHistory()">
+            <a class="topbar-brand" href="#">
+                <div class="topbar-logo">
+                    <img src="/logo.png" alt="" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'">
                 </div>
-                <select id="historyFilter" onchange="filterHistory()"
-                    style="border:1.5px solid var(--border-solid);border-radius:var(--r-md);padding:6px 10px;font-family:Cairo,sans-serif;font-size:.82rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
-                    <option value="">كل الأنشطة</option>
-                    <option value="attendance">الحضور</option>
-                    <option value="student">الأطفال</option>
-                    <option value="coupon">الكوبونات</option>
-                    <option value="login">تسجيل الدخول</option>
-                    <option value="other">أخرى</option>
-                </select>
+                <div>
+                    <div class="topbar-title"><?php echo htmlspecialchars($churchName); ?></div>
+                    <div class="topbar-subtitle" data-i18n="footer_brand">نظام مدارس الأحد</div>
+                </div>
+            </a>
+            <div class="topbar-search-wrap">
+                <div class="inline-search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..." data-i18n-placeholder="search_kids_placeholder" data-i18n-placeholder="search_kids_placeholder"
+                        oninput="performInlineSearch(this.value, 'topbar')" autocomplete="off">
+                    <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
             </div>
-
-            <!-- Summary chips (filled dynamically) -->
-            <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-
-            <!-- Log list -->
-            <div id="uncleHistoryContent" style="max-height:55vh;overflow-y:auto;margin:0 -4px;padding:0 4px">
-                <div style="text-align:center;padding:2rem;color:var(--text-3)">
-                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
-                    <p style="margin-top:8px">جاري التحميل...</p>
+            <div class="topbar-actions">
+                <?php if ($showSettings): ?>
+                    <!-- Admin / Church settings -->
+                    <a class="topbar-btn" href="/uncle/church/" data-i18n-title="settings_title" title="لوحة الإدارة والإعدادات">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                    </a>
+                <?php endif; ?>
+                <!-- Unified notification bell (unread count + push permission) -->
+                <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" data-i18n-title="notifs_title" title="الإشعارات"
+                    style="position:relative;">
+                    <i class="fas fa-bell"></i>
+                    <span id="notifBellBadge"
+                        style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
+                </button>
+                <!-- Push permission button (only when not granted) -->
+                <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" data-i18n-title="pwa_allow_notif" title="تفعيل الإشعارات"
+                    style="display:none;position:relative">
+                    <i class="fas fa-bell-slash"></i>
+                    <span
+                        style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
+                </button>
+                <!-- PWA Install -->
+                <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" data-i18n-title="pwa_title" title="تثبيت التطبيق"
+                    style="display:none;position:relative">
+                    <i class="fas fa-download"></i>
+                    <span
+                        style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
+                </button>
+                <div class="topbar-avatar-btn" id="uncleChip"
+                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
+                    <img src="" alt="" id="uncleAvatar"
+                        onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">
+                    <span id="uncleInitials"
+                        style="display:none;font-size:.78rem;font-weight:800;color:var(--brand);letter-spacing:-.5px;line-height:1"></span>
                 </div>
             </div>
-
-            <!-- Empty / no-match state (hidden initially) -->
-            <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
-                <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                لا توجد نتائج
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="allToolsModal">
-        <div class="modal" style="max-width:760px">
-            <div class="modal-header">
-                <h3><i class="fas fa-grid-2"></i> كل الأدوات</h3>
-                <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
-            </div>
-            <div class="tools-grid">
-                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/withdraw/'">
-                    <span class="tool-card-icon"><i class="fas fa-star"></i></span>
-                    <span class="tool-card-name">سحب كوبونات</span>
-                    <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
-                </button>
-                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/tasks/'">
-                    <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
-                    <span class="tool-card-name">المهام</span>
-                    <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showAllKidsCustomExport()">
-                    <span class="tool-card-icon"><i class="fas fa-file-export"></i></span>
-                    <span class="tool-card-name">تصدير مخصص</span>
-                    <span class="tool-card-desc">صدّر البيانات بالطريقة المناسبة لك.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showAnnouncementsModal()">
-                    <span class="tool-card-icon"><i class="fas fa-bullhorn"></i></span>
-                    <span class="tool-card-name">الإعلانات</span>
-                    <span class="tool-card-desc">أرسل إعلانات عامة أو مخصصة للأطفال.</span>
-                </button>
-                <button class="tool-card" onclick="hideAllToolsModal();showBirthdayModal()">
-                    <span class="tool-card-icon"><i class="fas fa-birthday-cake"></i></span>
-                    <span class="tool-card-name">أعياد الميلاد</span>
-                    <span class="tool-card-desc">اعرف أعياد اليوم والشهر بسرعة.</span>
+        </header>
+ 
+        <!-- PAGE WRAP -->
+        <div class="page-wrap">
+ 
+            <!-- ═══ CLASSES VIEW ═══ -->
+            <div id="classesView">
+                <div class="home-tools-wrap">
+                    <div class="home-tools-rail">
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> <span data-i18n="tools_withdraw">سحب كوبونات</span></button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> <span data-i18n="sec_tasks_title">المهام</span></button>
+                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> <span data-i18n="tools_export_short">تصدير</span></button>
+                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> <span data-i18n="tools_announcements_short">الإعلانات</span></button>
+                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> <span data-i18n="tools_birthdays_short">أعياد الميلاد</span></button>
+                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> <span data-i18n="tools_all_kids_short">جميع الأطفال</span></button>
+                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="tools_siblings_short">اقتراحات الإخوات</span></button>
+                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> <span data-i18n="tools_bulk_short">إضافة مجموعة</span></button>
+                        <button class="home-tools-link" onclick="showAllToolsModal()">
+                            <span data-i18n="tools_all_link">كل الأدوات</span> <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>لاد</span>
+                    <span class="tool-card-desc" data-i18n="tools_birthdays_desc">اعرف أعياد اليوم والشهر بسرعة.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showAllStudentsModal()">
                     <span class="tool-card-icon"><i class="fas fa-list"></i></span>
-                    <span class="tool-card-name">جميع الأطفال</span>
-                    <span class="tool-card-desc">عرض كل الأطفال مع بحث وفرز شامل.</span>
+                    <span class="tool-card-name" data-i18n="tools_all_kids">جميع الأطفال</span>
+                    <span class="tool-card-desc" data-i18n="tools_all_kids_desc">عرض كل الأطفال مع بحث وفرز شامل.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();openSiblingSuggestionsView()">
                     <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
-                    <span class="tool-card-name">اقتراحات الإخوات</span>
-                    <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                    <span class="tool-card-name" data-i18n="tools_siblings">اقتراحات الإخوات</span>
+                    <span class="tool-card-desc" data-i18n="tools_siblings_desc">راجع اقتراحات الربط بين الإخوات.</span>
                 </button>
                 <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();showBulkAddModal()">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
-                    <span class="tool-card-name">إضافة مجموعة</span>
-                    <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
+                    <span class="tool-card-name" data-i18n="tools_bulk">إضافة مجموعة</span>
+                    <span class="tool-card-desc" data-i18n="tools_bulk_desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
                 </button>
             </div>
         </div>
@@ -8327,13 +8336,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div>
                     <div class="topbar-title"><?php echo htmlspecialchars($churchName); ?></div>
-                    <div class="topbar-subtitle">نظام مدارس الأحد</div>
+                    <div class="topbar-subtitle" data-i18n="footer_brand">نظام مدارس الأحد</div>
                 </div>
             </a>
             <div class="topbar-search-wrap">
                 <div class="inline-search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
+                    <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..." data-i18n-placeholder="search_kids_placeholder"
                         oninput="performInlineSearch(this.value, 'topbar')" autocomplete="off">
                     <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
                             class="fas fa-times"></i></button>
@@ -8343,26 +8352,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="topbar-actions">
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
+                    <a class="topbar-btn" href="/uncle/church/" data-i18n-title="settings_title" title="لوحة الإدارة والإعدادات">
                         <i class="fa-solid fa-screwdriver-wrench"></i>
                     </a>
                 <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
-                <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
+                <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" data-i18n-title="notifs_title" title="الإشعارات"
                     style="position:relative;">
                     <i class="fas fa-bell"></i>
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
-                <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
+                <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" data-i18n-title="pwa_allow_notif" title="تفعيل الإشعارات"
                     style="display:none;position:relative">
                     <i class="fas fa-bell-slash"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
                 <!-- PWA Install -->
-                <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" title="تثبيت التطبيق"
+                <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" data-i18n-title="pwa_title" title="تثبيت التطبيق"
                     style="display:none;position:relative">
                     <i class="fas fa-download"></i>
                     <span
@@ -8385,16 +8394,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
-                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
-                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> <span data-i18n="tools_withdraw">سحب كوبونات</span></button>
+                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> <span data-i18n="sec_tasks_title">المهام</span></button>
+                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> <span data-i18n="tools_export_short">تصدير</span></button>
+                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> <span data-i18n="tools_announcements_short">الإعلانات</span></button>
+                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> <span data-i18n="tools_birthdays_short">أعياد الميلاد</span></button>
+                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> <span data-i18n="tools_all_kids_short">جميع الأطفال</span></button>
+                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="tools_siblings_short">اقتراحات الإخوات</span></button>
+                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="showBulkAddModal()"><i class="fas fa-upload"></i> <span data-i18n="tools_bulk_short">إضافة مجموعة</span></button>
                         <button class="home-tools-link" onclick="showAllToolsModal()">
-                            كل الأدوات <i class="fas fa-arrow-left"></i>
+                            <span data-i18n="tools_all_link">كل الأدوات</span> <i class="fas fa-arrow-left"></i>
                         </button>
                     </div>
                 </div>
@@ -8403,7 +8412,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-wrap">
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
+                        <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..." data-i18n-placeholder="search_kids_placeholder" data-i18n-placeholder="search_kids_placeholder"
                             oninput="performInlineSearch(this.value)" autocomplete="off">
                         <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
@@ -8415,14 +8424,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="todayBirthdayBanner">
                     <div class="bday-banner-header">
                         <i class="fas fa-birthday-cake"></i>
-                        <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
+                        <span id="todayBirthdayTitle"><span data-i18n="birthdays_today">🎂 أعياد ميلاد اليوم!</span></span>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
                     style="display:none; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
+                    <span class="section-title" data-i18n="sec_trips_title">الرحلات / المؤتمرات المتاحة</span>
                     <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
                         style="font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
                         <i class="fas fa-th-large"></i>
@@ -8432,7 +8441,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
                 <div class="section-head" style="margin-top:8px;">
-                    <span class="section-title">الفصول</span>
+                    <span class="section-title" data-i18n="classes_title">الفصول</span>
                     <button id="toggleStatsBtn" onclick="toggleStats()">
                         <i class="fas fa-chart-line"></i> عرض الإحصائيات
                     </button>
@@ -8445,14 +8454,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="stat-tile-icon blue"><i class="fas fa-users"></i></div>
                         <div>
                             <div class="stat-tile-val" id="totalStudents">0</div>
-                            <div class="stat-tile-lbl">إجمالي الأطفال</div>
+                            <div class="stat-tile-lbl" data-i18n="stat_total_kids">إجمالي الأطفال</div>
                         </div>
                     </div>
                     <div class="stat-tile" style="cursor:default">
                         <div class="stat-tile-icon green"><i class="fas fa-door-open"></i></div>
                         <div>
                             <div class="stat-tile-val" id="totalClasses">0</div>
-                            <div class="stat-tile-lbl">الفصول</div>
+                            <div class="stat-tile-lbl" data-i18n="classes_title">الفصول</div>
                         </div>
                     </div>
                     <div class="stat-tile" onclick="showBirthdayModal()" style="cursor:pointer"
@@ -8460,14 +8469,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="stat-tile-icon pink"><i class="fas fa-birthday-cake"></i></div>
                         <div>
                             <div class="stat-tile-val" id="birthdaysThisMonth">0</div>
-                            <div class="stat-tile-lbl">أعياد هذا الشهر</div>
+                            <div class="stat-tile-lbl" data-i18n="stat_birthdays_month">أعياد هذا الشهر</div>
                         </div>
                     </div>
                     <div class="stat-tile" style="cursor:default">
                         <div class="stat-tile-icon purple"><i class="fas fa-star"></i></div>
                         <div>
                             <div class="stat-tile-val" id="averageCoupons">0</div>
-                            <div class="stat-tile-lbl">متوسط الكوبونات</div>
+                            <div class="stat-tile-lbl" data-i18n="stat_avg_coupons">متوسط الكوبونات</div>
                         </div>
                     </div>
                 </div>
@@ -8478,16 +8487,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <a href="https://sunday-school.rf.gd/" class="footer-brand">
                             <div class="footer-logo"><img src="/logo.png" alt="" onerror="this.style.display='none'">
                             </div>
-                            <span class="footer-name">نظام مدارس الأحد 2026</span>
+                            <span class="footer-name" data-i18n="footer_brand">نظام مدارس الأحد 2026</span>
                         </a>
                         <div class="footer-copy">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ<br><span>كُورِنْثُوسَ
                                 الأُولَى ١٥:‏٥٨</span></div>
                     </div>
                     <div class="footer-links">
-                        <a href="/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
+                        <a href="/help" class="footer-link"><i class="fas fa-question-circle"></i> <span data-i18n="help_title">المساعدة</span></a>
                         <a href="https://api.whatsapp.com/send?phone=201037011355" class="footer-link"><i
-                                class="fab fa-whatsapp"></i> تواصل</a>
-                        <a href="/about" class="footer-link"><i class="fas fa-info-circle"></i> حول</a>
+                                class="fab fa-whatsapp"></i> <span data-i18n="contact_title">تواصل</span></a>
+                        <a href="/about" class="footer-link"><i class="fas fa-info-circle"></i> <span data-i18n="about_title">حول</span></a>
                     </div>
                 </footer>
             </div>
@@ -8501,7 +8510,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="btn btn-ghost btn-sm" id="backBtn"
                             style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;"><i
                                 class="fas fa-arrow-right"></i></button>
-                        <h2 class="class-title-text" id="className">الفصل</h2>
+                        <h2 class="class-title-text" id="className" data-i18n="class_title_default">الفصل</h2>
                     </div>
                     <div class="date-chip" id="dateChip" onclick="showPastFridaysModal()">
                         <i class="fas fa-calendar-alt"></i>
@@ -8514,7 +8523,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
                     <!-- Uncles bar -->
                     <div class="uncles-bar" id="unclesBar" style="display:none">
-                        <span class="uncles-bar-label"><i class="fas fa-users"></i> الخدام:</span>
+                        <span class="uncles-bar-label"><i class="fas fa-users"></i> <span data-i18n="class_uncles_label">الخدام:</span></span>
                         <div class="uncles-list" id="unclesList"></div>
                     </div>
 
@@ -8536,21 +8545,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
                                 style="padding: 4px 10px; border-radius: var(--r-full); font-size: 0.69rem; height: auto; min-width: 108px; margin: 0; background-color: var(--surface-2); border: 1px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; transition: all var(--t) var(--ease); box-shadow: none;">
-                                <span id="customSortDropdownLabel">الاسم أ-ي</span>
+                                <span id="customSortDropdownLabel" data-i18n="sort_name_az">الاسم أ-ي</span>
                                 <i class="fas fa-chevron-down"
                                     style="font-size: 0.58rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
                                 <div class="custom-dropdown-item active" data-value="name_az"
-                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')" data-i18n="sort_name_az">الاسم أ-ي</div>
                                 <div class="custom-dropdown-item" data-value="name_za"
-                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')" data-i18n="sort_name_za">الاسم ي-أ</div>
                                 <div class="custom-dropdown-item" data-value="age_asc"
-                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')" data-i18n="sort_age_asc">الأصغر سناً</div>
                                 <div class="custom-dropdown-item" data-value="age_desc"
-                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')" data-i18n="sort_age_desc">الأكبر سناً</div>
                                 <div class="custom-dropdown-item" data-value="class_az"
-                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')" data-i18n="sort_class_az">الفصل</div>
                                 <div class="custom-dropdown-item" data-value="coupons_desc"
                                     onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
                                     كوبونات</div>
@@ -8558,7 +8567,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر
                                     حضوراً</div>
                                 <div class="custom-dropdown-item" data-value="top_desc"
-                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')" data-i18n="sort_top_desc">الأوائل</div>
                             </div>
                         </div>
                     </div>
@@ -8706,7 +8715,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="class-inline-search-wrap">
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" placeholder="اسم الطفل، الفصل، الهاتف..." autocomplete="off">
+                        <input type="text" id="searchInput" placeholder="اسم الطفل، الفصل، الهاتف..." data-i18n-placeholder="search_kids_placeholder" autocomplete="off">
                         <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display:none"
                             title="مسح البحث">
                             <i class="fas fa-times"></i>
@@ -10592,7 +10601,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!row || !btn) return;
             const isHidden = row.style.display === 'none';
             row.style.display = isHidden ? 'grid' : 'none';
-            btn.innerHTML = isHidden ? '<i class="fas fa-times"></i> إخفاء الإحصائيات' : '<i class="fas fa-chart-line"></i> عرض الإحصائيات';
+            const isEn = window.SundaySchoolI18n.lang === 'en';
+            btn.innerHTML = isHidden ? 
+                `<i class="fas fa-times"></i> ${isEn ? 'Hide Stats' : 'إخفاء الإحصائيات'}` : 
+                `<i class="fas fa-chart-line"></i> ${isEn ? 'Show Stats' : 'عرض الإحصائيات'}`;
         }
 
         function renderTodayBirthdayBanner() {
@@ -10603,7 +10615,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const kids = getTodayBirthdays();
             if (!kids.length) { banner.classList.remove('show'); return; }
             const label = window.IS_YOUTH ? 'شباب' : 'أطفال';
-            title.textContent = `🎂 أعياد ميلاد اليوم! (${kids.length} ${label})`;
+            const isEn = window.SundaySchoolI18n.lang === 'en';
+            title.textContent = isEn ? `🎂 Today's Birthdays! (${kids.length} ${isEn ? (window.IS_YOUTH ? 'youth' : 'kids') : label})` : `🎂 أعياد ميلاد اليوم! (${kids.length} ${label})`;
             list.innerHTML = kids.map(s => {
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '';
@@ -10668,7 +10681,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             } catch (e) { }
             if (!list.length) {
-                grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد فصول</div>';
+                grid.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">${window.SundaySchoolI18n.lang === 'en' ? 'No classes found' : 'لا توجد فصول'}</div>`;
                 return;
             }
 
@@ -10676,7 +10689,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const showAllCard = (churchViewMode === 'all' || churchViewMode === 'both');
             const showClassCards = (churchViewMode === 'classes' || churchViewMode === 'both' || !churchViewMode);
 
-            const allLabel = window.IS_YOUTH ? 'عرض كل الشباب معاً' : 'عرض كل الأطفال معاً';
+            const allLabel = window.SundaySchoolI18n.lang === 'en' ? (window.IS_YOUTH ? 'View All Youth Together' : 'View All Kids Together') : (window.IS_YOUTH ? 'عرض كل الشباب معاً' : 'عرض كل الأطفال معاً');
             const allIcon = window.IS_YOUTH ? 'fa-users' : 'fa-children';
             const allColor = window.IS_YOUTH ? '#8b5cf6' : '#4f46e5';
             const allBg = window.IS_YOUTH ? 'linear-gradient(135deg,#8b5cf6,#6d28d9)' : 'linear-gradient(135deg,#4f46e5,#6366f1)';
@@ -10688,7 +10701,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="class-badge" style="background:color-mix(in srgb,${allColor} 12%,white);color:${allColor}">
             <i class="fas fa-user" style="font-size:.6rem"></i> ${allCount} ${window.IS_YOUTH ? 'شاب' : 'طفل'}
         </div>
-        <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
+        <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">${window.SundaySchoolI18n.lang === 'en' ? 'All' : 'الكل'}</span>
     </div>` : '';
 
             // ── Combined class group cards ────────────────────────────
@@ -10701,9 +10714,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label}</div>
-                <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+                <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count} ${window.SundaySchoolI18n.lang === 'en' ? (window.IS_YOUTH ? 'youth' : 'kids') : (window.IS_YOUTH ? 'شاب' : 'طفل')}</div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
-                <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
+                <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">${window.SundaySchoolI18n.lang === 'en' ? 'Combined' : 'مدمج'}</span>
             </div>`;
                 }).join('');
             }
@@ -10717,7 +10730,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name}</div>
-            <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+            <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count} ${window.SundaySchoolI18n.lang === 'en' ? (window.IS_YOUTH ? 'youth' : 'kids') : (window.IS_YOUTH ? 'شاب' : 'طفل')}</div>
         </div>`;
             }).join('');
 
@@ -10725,6 +10738,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const visibleRegular = showClassCards ? regularHtml : '';
             grid.innerHTML = allTogetherHtml + visibleCombined + visibleRegular;
             renderTodayBirthdayBanner();
+            if (window.SundaySchoolI18n) window.SundaySchoolI18n.translateDOM();
         }
 
         // ── VIEW ALL TOGETHER ─────────────────────────────────────────
@@ -10893,20 +10907,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 container.classList.add('expanded');
                 container.style.display = '';
                 const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+                if (btn) btn.innerHTML = `<i class="fas fa-list"></i> <span>${window.SundaySchoolI18n.lang === 'en' ? 'List View' : 'عرض شريطي'}</span>`;
             } else {
                 container.classList.remove('expanded');
                 container.style.display = 'flex';
                 const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+                if (btn) btn.innerHTML = `<i class="fas fa-th-large"></i> <span>${window.SundaySchoolI18n.lang === 'en' ? 'Grid View' : 'عرض شبكي'}</span>`;
             }
 
             container.innerHTML = activeTrips.map(t => {
-                const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
+                const locale = window.SundaySchoolI18n.lang === 'en' ? 'en-US' : 'ar-EG';
+                const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : (window.SundaySchoolI18n.lang === 'en' ? 'Soon' : 'قريباً');
                 const img = t.image_url || '';
                 const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\'trip-slim-img\' style=\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\'><i class=\'fas fa-map-marked-alt\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
                 const registeredCount = t.registered_count || 0;
-                const kidsCountHtml = `<span class="trip-slim-kids-count"><i class="fas fa-users"></i> ${registeredCount} طفل</span>`;
+                const kidsCountHtml = `<span class="trip-slim-kids-count"><i class="fas fa-users"></i> ${registeredCount} ${window.SundaySchoolI18n.lang === 'en' ? 'kids' : 'طفل'}</span>`;
                 return `
                     <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
                         ${imgHtml}
@@ -10934,10 +10949,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (isExpanded) {
                 container.style.display = '';
-                btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+                btn.innerHTML = `<i class="fas fa-list"></i> <span>${window.SundaySchoolI18n.lang === 'en' ? 'List View' : 'عرض شريطي'}</span>`;
             } else {
                 container.style.display = 'flex';
-                btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+                btn.innerHTML = `<i class="fas fa-th-large"></i> <span>${window.SundaySchoolI18n.lang === 'en' ? 'Grid View' : 'عرض شبكي'}</span>`;
             }
         }
 

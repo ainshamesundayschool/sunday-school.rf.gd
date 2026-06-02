@@ -159,7 +159,85 @@
             
             // Friend Banner
             "friend_banner_title": "ملف {name}",
-            "btn_my_profile": "العودة لملفي الشخصي"
+            "btn_my_profile": "العودة لملفي الشخصي",
+
+            // Servant Dashboard
+            "notifs_title": "الإشعارات",
+            "notifs_subtitle": "آخر التحديثات والتنبيهات",
+            "notifs_mark_all_read": "تعليم الكل كمقروء",
+            "notifs_mark_all": "الكل مقروء",
+            "notifs_empty": "لا توجد إشعارات",
+            "offline_banner_text": "أنت غير متصل بالإنترنت — التغييرات محفوظة محلياً وستُرفع عند الاتصال",
+            "offline_notif_btn": "إشعارات",
+            "pwa_title": "تثبيت التطبيق",
+            "pwa_desc": "ثبّت نظام مدارس الأحد على شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت",
+            "pwa_install_btn": "تثبيت الآن",
+            "pwa_allow_notif": "السماح بالإشعارات",
+            "pwa_not_now": "ليس الآن",
+            "crop_title": "قص الصورة",
+            "profile_title": "الملف الشخصي",
+            "leaderboard_title": "الأوائل",
+            "info_username": "المستخدم",
+            "info_role": "الدور",
+            "btn_edit": "تعديل",
+            "btn_history": "السجل",
+            "info_gender": "النوع",
+            "gender_male": "ذكر",
+            "gender_female": "أنثى",
+            "field_new_pass_hint": "(اتركها فارغة للإبقاء)",
+            "history_title": "سجل نشاطي",
+            "history_search_placeholder": "بحث في السجل...",
+            "history_all": "كل الأنشطة",
+            "history_kids": "الأطفال",
+            "history_login": "تسجيل الدخول",
+            "history_other": "أخرى",
+            "tools_all": "كل الأدوات",
+            "tools_withdraw": "سحب كوبونات",
+            "tools_withdraw_desc": "اسحب جوائز الكوبونات بسرعة.",
+            "tools_tasks_desc": "إدارة الاختبارات والواجبات والتسليمات.",
+            "tools_export": "تصدير مخصص",
+            "tools_export_desc": "صدّر البيانات بالطريقة المناسبة لك.",
+            "tools_announcements": "الإعلانات",
+            "tools_announcements_desc": "أرسل إعلانات عامة أو مخصصة للأطفال.",
+            "tools_birthdays": "أعياد الميلاد",
+            "tools_birthdays_desc": "اعرف أعياد اليوم والشهر بسرعة.",
+            "tools_all_kids": "جميع الأطفال",
+            "tools_all_kids_desc": "عرض كل الأطفال مع بحث وفرز شامل.",
+            "tools_siblings": "اقتراحات الإخوات",
+            "tools_siblings_desc": "راجع اقتراحات الربط بين الإخوات.",
+            "tools_bulk": "إضافة مجموعة",
+            "tools_bulk_desc": "أضف أطفال كثيرين مرة واحدة من ملف.",
+            "tools_export_short": "تصدير",
+            "tools_announcements_short": "الإعلانات",
+            "tools_birthdays_short": "أعياد الميلاد",
+            "tools_all_kids_short": "جميع الأطفال",
+            "tools_siblings_short": "اقتراحات الإخوات",
+            "tools_bulk_short": "إضافة مجموعة",
+            "tools_all_link": "كل الأدوات",
+            "search_kids_placeholder": "اسم الطفل، الفصل، الهاتف...",
+            "birthdays_today": "🎂 أعياد ميلاد اليوم!",
+            "trips_view_grid": "عرض شبكي",
+            "trips_view_list": "عرض شريطي",
+            "classes_title": "الفصول",
+            "stats_show": "عرض الإحصائيات",
+            "stats_hide": "إخفاء الإحصائيات",
+            "stat_total_kids": "إجمالي الأطفال",
+            "stat_birthdays_month": "أعياد هذا الشهر",
+            "stat_avg_coupons": "متوسط الكوبونات",
+            "help_title": "المساعدة",
+            "contact_title": "تواصل",
+            "about_title": "حول",
+            "class_title_default": "الفصل",
+            "class_uncles_label": "الخدام:",
+            "sort_name_az": "الاسم أ-ي",
+            "sort_name_za": "الاسم ي-أ",
+            "sort_age_asc": "الأصغر سناً",
+            "sort_age_desc": "الأكبر سناً",
+            "sort_class_az": "الفصل",
+            "sort_coupons_desc": "الأكثر كوبونات",
+            "sort_attendance_desc": "الأكثر حضوراً",
+            "sort_top_desc": "الأوائل",
+            "search_kid_in_class": "بحث باسم الطفل..."
         },
         en: {
             // Shared & Common
@@ -310,7 +388,85 @@
 
             // Friend Banner
             "friend_banner_title": "{name}'s Profile",
-            "btn_my_profile": "Back to My Profile"
+            "btn_my_profile": "Back to My Profile",
+
+            // Servant Dashboard
+            "notifs_title": "Notifications",
+            "notifs_subtitle": "Latest updates and alerts",
+            "notifs_mark_all_read": "Mark all as read",
+            "notifs_mark_all": "All read",
+            "notifs_empty": "No notifications",
+            "offline_banner_text": "You are offline — changes are saved locally and will sync when online",
+            "offline_notif_btn": "Notifications",
+            "pwa_title": "Install App",
+            "pwa_desc": "Install Sunday School system on your home screen for quick access and offline work",
+            "pwa_install_btn": "Install Now",
+            "pwa_allow_notif": "Allow Notifications",
+            "pwa_not_now": "Not Now",
+            "crop_title": "Crop Image",
+            "profile_title": "Profile",
+            "leaderboard_title": "Leaderboard",
+            "info_username": "Username",
+            "info_role": "Role",
+            "btn_edit": "Edit",
+            "btn_history": "History",
+            "info_gender": "Gender",
+            "gender_male": "Male",
+            "gender_female": "Female",
+            "field_new_pass_hint": "(leave empty to keep current)",
+            "history_title": "My Activity History",
+            "history_search_placeholder": "Search history...",
+            "history_all": "All Activities",
+            "history_kids": "Kids",
+            "history_login": "Logins",
+            "history_other": "Others",
+            "tools_all": "All Tools",
+            "tools_withdraw": "Withdraw Coupons",
+            "tools_withdraw_desc": "Withdraw coupon prizes quickly.",
+            "tools_tasks_desc": "Manage exams, tasks and submissions.",
+            "tools_export": "Custom Export",
+            "tools_export_desc": "Export data in your preferred format.",
+            "tools_announcements": "Announcements",
+            "tools_announcements_desc": "Send general or custom announcements to kids.",
+            "tools_birthdays": "Birthdays",
+            "tools_birthdays_desc": "See today's and this month's birthdays.",
+            "tools_all_kids": "All Kids",
+            "tools_all_kids_desc": "View all kids with complete search and filter.",
+            "tools_siblings": "Sibling Suggestions",
+            "tools_siblings_desc": "Review suggested links between siblings.",
+            "tools_bulk": "Bulk Add",
+            "tools_bulk_desc": "Add multiple kids at once from a file.",
+            "tools_export_short": "Export",
+            "tools_announcements_short": "Announcements",
+            "tools_birthdays_short": "Birthdays",
+            "tools_all_kids_short": "All Kids",
+            "tools_siblings_short": "Siblings",
+            "tools_bulk_short": "Bulk Add",
+            "tools_all_link": "All Tools",
+            "search_kids_placeholder": "Kid name, class, phone...",
+            "birthdays_today": "🎂 Today's Birthdays!",
+            "trips_view_grid": "Grid View",
+            "trips_view_list": "List View",
+            "classes_title": "Classes",
+            "stats_show": "Show Stats",
+            "stats_hide": "Hide Stats",
+            "stat_total_kids": "Total Kids",
+            "stat_birthdays_month": "Birthdays This Month",
+            "stat_avg_coupons": "Average Coupons",
+            "help_title": "Help",
+            "contact_title": "Contact",
+            "about_title": "About",
+            "class_title_default": "Class",
+            "class_uncles_label": "Teachers:",
+            "sort_name_az": "Name A-Z",
+            "sort_name_za": "Name Z-A",
+            "sort_age_asc": "Youngest",
+            "sort_age_desc": "Oldest",
+            "sort_class_az": "Class",
+            "sort_coupons_desc": "Most Coupons",
+            "sort_attendance_desc": "Highest Attendance",
+            "sort_top_desc": "Leaderboard",
+            "search_kid_in_class": "Search kid's name..."
         }
     };
 
@@ -532,12 +688,51 @@
     }
 
     function toggleLanguage() {
-        const targetLang = lang === 'en' ? 'ar' : 'en';
-        setCookie('lang', targetLang, 365);
-        localStorage.setItem('lang', targetLang);
-        const url = new URL(window.location.href);
-        url.searchParams.set('lang', targetLang);
-        window.location.href = url.toString();
+        lang = lang === 'en' ? 'ar' : 'en';
+
+        // 1. Persist language choice safely
+        try {
+            setCookie('lang', lang, 365);
+        } catch (e) {
+            console.warn("Could not set cookie: ", e);
+        }
+        try {
+            localStorage.setItem('lang', lang);
+        } catch (e) {
+            console.warn("Could not write to localStorage: ", e);
+        }
+
+        // 2. Update URL query parameter silently without a full page reload
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', lang);
+            window.history.replaceState({}, '', url.toString());
+        } catch (e) {
+            console.warn("Could not update URL history state: ", e);
+        }
+
+        // 3. Update document language/direction attributes
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+
+        // 4. Update the exported I18n global reference
+        if (window.SundaySchoolI18n) {
+            window.SundaySchoolI18n.lang = lang;
+            window.SundaySchoolI18n.dict = translations[lang];
+        }
+
+        // 5. Instantly translate the DOM in real-time
+        translateDOM();
+
+        // 6. Update the floating widget button text if visible
+        const widgetBtn = document.getElementById('langSwitcherBtn');
+        if (widgetBtn) {
+            const displayLabel = lang === 'en' ? 'العربية' : 'English';
+            widgetBtn.innerHTML = `<i class="fas fa-globe"></i> <span>${displayLabel}</span>`;
+        }
+
+        // 7. Dispatch a custom event in case external scripts need to re-render dynamic content
+        window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
     }
     window.toggleLanguage = toggleLanguage;
 
