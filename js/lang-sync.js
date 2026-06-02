@@ -507,8 +507,12 @@
 
     // ─── SWITCHER FLOATING BUTTON ───
     function createSwitcherWidget() {
-        // Do not show the floating widget on internal dashboard/profile/trip/leaderboard/church pages
-        const isInternal = /\/(dashboard|profile|trip|leaderboard|church)\//i.test(window.location.pathname) || window.location.pathname.endsWith('profile/index.php') || window.location.pathname.endsWith('dashboard/index.php');
+        // Hide the floating widget on internal/authenticated pages.
+        // Uses a negative lookahead on /church/ so that /uncle/church/registration/
+        // (a public page) still shows the floating widget.
+        const path = window.location.pathname;
+        const isInternal = /\/(uncle\/dashboard|uncle\/trip|kids\/profile|leaderboard)\//i.test(path)
+            || /\/uncle\/church(?!\/registration)(\/|$)/i.test(path);
         if (isInternal || window.SundaySchoolHideLangWidget) {
             return;
         }
@@ -559,7 +563,8 @@
             }
             return val;
         },
-        translateDOM: translateDOM
+        translateDOM: translateDOM,
+        toggleLanguage: toggleLanguage
     };
 
 })();
