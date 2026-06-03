@@ -3626,12 +3626,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
     .bottom-nav-item.center-fab {
       position: relative;
-      height: auto;
-      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 6px;
     }
     .fab-btn {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: var(--r-full);
       background: linear-gradient(135deg, var(--brand) 0%, var(--cou) 100%);
       color: #fff;
@@ -3639,16 +3643,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       align-items: center;
       justify-content: center;
       box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
-      transform: translateY(-16px);
+      transform: translateY(-10px);
       transition: all var(--fast);
-      border: 4px solid var(--surf);
+      border: none;
     }
     .fab-btn i {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: #fff;
     }
     .bottom-nav-item.center-fab:hover .fab-btn {
-      transform: translateY(-18px) scale(1.05);
+      transform: translateY(-12px) scale(1.05);
       box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
     }
     
@@ -3699,18 +3703,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     /* ══ V3 TABS AND SEARCH STYLE ══════════════════════════════ */
-    .send-coupons-page {
+    .fullscreen-page-gradient {
       min-height: calc(100vh - 120px);
       margin: 0 !important;
       border-radius: 0 !important;
       border: none !important;
-      background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
+      background: linear-gradient(145deg, #1e1b4b 0%, #312e81 35%, #4f46e5 70%, #4338ca 100%) !important;
       position: relative;
       overflow: hidden;
       color: #fff;
       padding: 24px 18px 80px !important;
     }
-    .send-coupons-page::before {
+    .fullscreen-page-gradient::before {
       content: '';
       position: absolute;
       inset: 0;
@@ -3721,7 +3725,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       pointer-events: none;
       z-index: 0;
     }
-    .send-coupons-page::after {
+    .fullscreen-page-gradient::after {
       content: '';
       position: absolute;
       inset: 0;
@@ -3730,17 +3734,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background-size: 28px 28px;
       z-index: 0;
     }
-    .send-coupons-page > * {
+    .fullscreen-page-gradient > * {
       position: relative;
       z-index: 1;
     }
-    #scTasks.fullscreen-tab {
-      min-height: calc(100vh - 120px);
-      margin: 0 !important;
-      border-radius: 0 !important;
+    .fullscreen-page-gradient .task-card {
+      background: rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+    }
+    .fullscreen-page-gradient .task-title {
+      color: #fff !important;
+    }
+    .fullscreen-page-gradient .task-meta-chip {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: rgba(255, 255, 255, 0.8) !important;
       border: none !important;
-      background: var(--surf) !important;
-      padding: 20px 16px 80px !important;
+    }
+    .fullscreen-page-gradient .task-result {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border: 1px solid rgba(16, 185, 129, 0.25) !important;
+      color: #34d399 !important;
+    }
+    .fullscreen-page-gradient .task-result span,
+    .fullscreen-page-gradient .task-result strong {
+      color: #fff !important;
+    }
+    .fullscreen-page-gradient .task-coupon-row {
+      background: rgba(124, 58, 237, 0.15) !important;
+      border: 1px solid rgba(124, 58, 237, 0.25) !important;
+      color: #a78bfa !important;
     }
     .wizard-step-container {
       background: rgba(255, 255, 255, 0.12);
@@ -3957,7 +3982,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <!-- Tab Header -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
         <div style="width:44px; height:44px; border-radius:var(--r-md); background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
-          <i class="fas fa-paper-plane"></i>
+          <i class="fas fa-gift"></i>
         </div>
         <div>
           <div style="font-size:1.15rem; font-weight:800; color:#fff;">إرسال كوبونات</div>
@@ -3965,104 +3990,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         </div>
       </div>
 
-      <!-- Step Progress Dots -->
-      <div class="wizard-dots">
-         <div class="wizard-dot active" id="dot1"></div>
-         <div class="wizard-dot" id="dot2"></div>
-         <div class="wizard-dot" id="dot3"></div>
-      </div>
-
-      <!-- STEP 1: Select Recipient -->
-      <div class="wizard-step-container" id="sendStep1">
-         <div class="wizard-step-title"><i class="fas fa-user-plus"></i> اختر المستلم</div>
-         
-         <div id="siblingChipsContainer" style="display:none; margin-bottom:12px;">
-            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">إخوتك:</div>
-            <div id="sendSiblingChips" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
-         </div>
-
-         <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">ابحث عن صديق بالاسم:</div>
-         <div style="position:relative;">
-            <i class="fas fa-search" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:rgba(255,255,255,0.6); pointer-events:none;"></i>
-            <input type="text" id="sendFriendSearch" placeholder="اكتب اسم صديقك..." class="send-wizard-input" style="padding-right:36px; text-align:right;" oninput="onSendFriendSearch(this.value)" autocomplete="off">
-         </div>
-         <div id="sendFriendSearchResults" style="max-height:160px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:var(--r-sm); margin-top:6px; display:none; color:var(--t1);"></div>
-
-         <!-- Selected Tag -->
-         <div id="selectedRecipientTag" style="display:none; align-items:center; gap:8px; background:#fff; color:var(--brand); padding:10px 14px; border-radius:var(--r-sm); margin-top:14px; font-size:.85rem; font-weight:800; box-shadow:var(--sh-md);">
-            <i class="fas fa-user-check"></i>
-            <span id="selectedRecipientName">صديق محدد</span>
-            <button onclick="clearSelectedRecipient()" style="margin-right:auto; background:none; border:none; color:var(--err); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; padding:0;"><i class="fas fa-times-circle"></i></button>
-         </div>
-
-         <div class="wizard-btn-row">
-            <button class="btn btn-p" id="toStep2Btn" style="width:100%; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(2)" disabled>متابعة <i class="fas fa-chevron-left" style="margin-right:4px; font-size:.75rem;"></i></button>
-         </div>
-      </div>
-
-      <!-- STEP 2: Amount & Category -->
-      <div class="wizard-step-container" id="sendStep2" style="display:none;">
-         <div class="wizard-step-title"><i class="fas fa-star"></i> رصيد الإرسال والقيمة</div>
-
-         <!-- Available breakdown -->
-         <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
-            <div style="font-size:.74rem; color:rgba(255,255,255,0.7); margin-bottom:8px; text-align:center; font-weight:700;"><i class="fas fa-wallet"></i> رصيدك المتاح</div>
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;">
-               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">حضور</div>
-                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailAtt">0</div>
-               </div>
-               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">التزام</div>
-                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailCom">0</div>
-               </div>
-               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">مهام</div>
-                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailTsk">0</div>
-               </div>
+      <!-- Single card container -->
+      <div class="wizard-step-container">
+         <!-- Section 1: Choose Recipient -->
+         <div style="margin-bottom: 20px; border-bottom: 1.5px dashed rgba(255, 255, 255, 0.15); padding-bottom: 16px;">
+            <div class="wizard-step-title" style="margin-bottom: 12px;"><i class="fas fa-user-plus"></i> اختر المستلم</div>
+            
+            <div id="siblingChipsContainer" style="display:none; margin-bottom:12px;">
+               <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">إخوتك:</div>
+               <div id="sendSiblingChips" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
             </div>
-            <div style="text-align:center; font-size:.78rem; font-weight:800; margin-top:8px;">إجمالي رصيدك الكلي: <span id="sendAvailTotal" style="font-weight:900;">0</span></div>
-         </div>
 
-         <!-- Choose Category -->
-         <div style="margin-bottom:14px;">
-            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">أرسل من تصنيف:</div>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
-               <button class="send-cat-btn active" data-cat="all" onclick="selectSendCat(this)">الكل</button>
-               <button class="send-cat-btn" data-cat="att" onclick="selectSendCat(this)">حضور</button>
-               <button class="send-cat-btn" data-cat="com" onclick="selectSendCat(this)">التزام</button>
-               <button class="send-cat-btn" data-cat="task" onclick="selectSendCat(this)">مهام</button>
+            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">ابحث عن صديق بالاسم:</div>
+            <div style="position:relative;">
+               <i class="fas fa-search" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:rgba(255,255,255,0.6); pointer-events:none;"></i>
+               <input type="text" id="sendFriendSearch" placeholder="اكتب اسم صديقك..." class="send-wizard-input" style="padding-right:36px; text-align:right;" oninput="onSendFriendSearch(this.value)" autocomplete="off">
+            </div>
+            <div id="sendFriendSearchResults" style="max-height:160px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:var(--r-sm); margin-top:6px; display:none; color:var(--t1); z-index: 10; position: relative;"></div>
+
+            <!-- Selected Tag -->
+            <div id="selectedRecipientTag" style="display:none; align-items:center; gap:8px; background:#fff; color:var(--brand); padding:10px 14px; border-radius:var(--r-sm); margin-top:14px; font-size:.85rem; font-weight:800; box-shadow:var(--sh-md);">
+               <i class="fas fa-user-check"></i>
+               <span id="selectedRecipientName">صديق محدد</span>
+               <button onclick="clearSelectedRecipient()" style="margin-right:auto; background:none; border:none; color:var(--err); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; padding:0;"><i class="fas fa-times-circle"></i></button>
             </div>
          </div>
 
-         <!-- Enter Amount -->
-         <div style="margin-bottom:14px;">
-            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">عدد الكوبونات:</div>
-            <input type="number" id="sendAmount" placeholder="أدخل العدد..." class="send-wizard-input" min="1" oninput="checkStep2Valid()">
+         <!-- Section 2: Balance & Amount -->
+         <div style="margin-bottom: 20px; border-bottom: 1.5px dashed rgba(255, 255, 255, 0.15); padding-bottom: 16px;">
+            <div class="wizard-step-title" style="margin-bottom: 12px;"><i class="fas fa-star"></i> رصيد الإرسال والقيمة</div>
+
+            <!-- Available breakdown -->
+            <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
+               <div style="font-size:.74rem; color:rgba(255,255,255,0.7); margin-bottom:8px; text-align:center; font-weight:700;"><i class="fas fa-wallet"></i> رصيدك المتاح</div>
+               <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;">
+                  <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                     <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">حضور</div>
+                     <div style="font-size:.9rem; font-weight:900;" id="sendAvailAtt">0</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                     <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">التزام</div>
+                     <div style="font-size:.9rem; font-weight:900;" id="sendAvailCom">0</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                     <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">مهام</div>
+                     <div style="font-size:.9rem; font-weight:900;" id="sendAvailTsk">0</div>
+                  </div>
+               </div>
+               <div style="text-align:center; font-size:.78rem; font-weight:800; margin-top:8px;">إجمالي رصيدك الكلي: <span id="sendAvailTotal" style="font-weight:900;">0</span></div>
+            </div>
+
+            <!-- Choose Category -->
+            <div style="margin-bottom:14px;">
+               <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">أرسل من تصنيف:</div>
+               <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
+                  <button class="send-cat-btn active" data-cat="all" onclick="selectSendCat(this)">الكل</button>
+                  <button class="send-cat-btn" data-cat="att" onclick="selectSendCat(this)">حضور</button>
+                  <button class="send-cat-btn" data-cat="com" onclick="selectSendCat(this)">التزام</button>
+                  <button class="send-cat-btn" data-cat="task" onclick="selectSendCat(this)">مهام</button>
+               </div>
+            </div>
+
+            <!-- Enter Amount -->
+            <div>
+               <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">عدد الكوبونات:</div>
+               <input type="number" id="sendAmount" placeholder="أدخل العدد..." class="send-wizard-input" min="1" oninput="checkSendFormValid()">
+            </div>
          </div>
 
-         <div class="wizard-btn-row">
-            <button class="btn btn-g" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;" onclick="goToStep(1)"><i class="fas fa-chevron-right"></i> رجوع</button>
-            <button class="btn btn-p" id="toStep3Btn" style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(3)" disabled>التالي <i class="fas fa-chevron-left"></i></button>
-         </div>
-      </div>
+         <!-- Section 3: Confirm & Submit -->
+         <div>
+            <div class="wizard-step-title" style="margin-bottom: 12px;"><i class="fas fa-shield-alt"></i> تأكيد الهوية والإرسال</div>
 
-      <!-- STEP 3: Password & Confirm -->
-      <div class="wizard-step-container" id="sendStep3" style="display:none;">
-         <div class="wizard-step-title"><i class="fas fa-shield-alt"></i> تأكيد الهوية والإرسال</div>
+            <div style="margin-bottom:14px;">
+               <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">اكتب كلمة مرور حسابك لتأكيد العملية:</div>
+               <input type="password" id="sendPassword" placeholder="كلمة المرور الخاصة بك..." class="send-wizard-input" oninput="checkSendFormValid()">
+            </div>
 
-         <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:14px; text-align:center; font-size:.85rem; line-height:1.5; margin-bottom:14px;" id="sendSummaryMsg">
-            سوف تقوم بإرسال 0 كوبون إلى صديقك.
-         </div>
-
-         <div style="margin-bottom:14px;">
-            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">اكتب كلمة مرور حسابك لتأكيد العملية:</div>
-            <input type="password" id="sendPassword" placeholder="كلمة المرور الخاصة بك..." class="send-wizard-input" oninput="checkStep3Valid()">
-         </div>
-
-         <div class="wizard-btn-row">
-            <button class="btn btn-g" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;" onclick="goToStep(2)"><i class="fas fa-chevron-right"></i> رجوع</button>
-            <button class="btn btn-p" id="sendWizardSubmitBtn" style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="trySendCoupons()" disabled><i class="fas fa-paper-plane" style="margin-left:4px;"></i> أرسل الآن</button>
+            <div class="wizard-btn-row" style="margin-top: 20px;">
+               <button class="btn btn-p" id="sendWizardSubmitBtn" style="width:100%; padding:14px; background:#fff; color:var(--brand); font-weight:800; font-size: 1rem; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="trySendCoupons()" disabled>
+                 <i class="fas fa-paper-plane"></i>
+                 <span>أرسل الآن</span>
+               </button>
+            </div>
          </div>
       </div>
     </div>
@@ -4083,27 +4093,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <button onclick="returnToMyProfile()"
         style="margin-right:auto;background:none;border:none;color:#9333ea;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:5px;"><i
           class="fas fa-arrow-right"></i> <span>رجوع</span></button>
-    </div>
-    <!-- Search friends (private only) -->
-    <div class="sc" id="scSearch" style="display:none !important">
-      <div class="sc-head">
-        <div class="sc-ico" style="background:#fdf2f8;color:#9333ea;"><i class="fas fa-search"></i></div>
-        <div class="sc-label">
-          <div class="sc-title">ابحث عن صحبك في الكنيسة</div>
-        </div>
-      </div>
-      <div class="sc-body">
-        <div class="friend-search-bar">
-          <i class="fas fa-search" style="color:var(--t4);font-size:.85rem;"></i>
-          <input type="text" id="friendSearchInput" placeholder="ابحث بالاسم…" oninput="onFriendSearch(this.value)"
-            autocomplete="off">
-          <button
-            onclick="document.getElementById('friendSearchInput').value='';document.getElementById('friendSearchResults').innerHTML=''"
-            style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:.85rem;"><i
-              class="fas fa-times"></i></button>
-        </div>
-        <div id="friendSearchResults" style="margin-top:12px;"></div>
-      </div>
     </div>
 
     <!-- Info -->
@@ -4170,15 +4159,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
     <!-- Tasks -->
-    <div class="sc fullscreen-tab" id="scTasks" style="display:none">
-      <div class="sc-head">
-        <div class="sc-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-tasks"></i></div>
-        <div class="sc-label">
-          <div class="sc-title">الاختبارات والمهام</div>
-          <div class="sc-sub" id="taskSub"></div>
+    <div class="fullscreen-page-gradient" id="scTasks" style="display:none">
+      <!-- Tab Header -->
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+        <div style="width:44px; height:44px; border-radius:var(--r-md); background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff;">الاختبارات والمهام</div>
+          <div style="font-size:.78rem; color:rgba(255,255,255,0.75);" id="taskSub">0 مهمة</div>
         </div>
       </div>
-      <div class="sc-body">
+      <div>
         <div id="taskList"></div>
       </div>
     </div>
@@ -4575,8 +4567,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
     <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
       <div class="fab-btn">
-        <i class="fas fa-paper-plane"></i>
+        <i class="fas fa-gift"></i>
       </div>
+      <span>إرسال</span>
     </div>
     <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')">
       <i class="fas fa-tasks"></i>
@@ -4601,10 +4594,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         </div>
       </div>
       <div id="switchList" style="padding:10px 16px;"></div>
-      <div style="padding:8px 22px 0;">
-        <button class="btn btn-p" style="width:100%;padding:12px;" onclick="doSwitch()"><i
-            class="fas fa-exchange-alt"></i> <span>تبديل الحساب</span></button>
-      </div>
       <button class="ss-close-btn" onclick="closeOv('switchOv')">إغلاق</button>
     </div>
   </div>
@@ -4903,7 +4892,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('scAtt').style.display = 'block';
       document.getElementById('scTasks').style.display = 'block';
       document.getElementById('scTrips').style.display = 'block';
-      document.getElementById('scSearch').style.display = 'block';
       document.getElementById('settingsTop').style.display = 'flex';
       document.getElementById('avatarEdit').classList.add('show');
 
@@ -5269,7 +5257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
     <span class="uncle-strip-label"><i class="fas fa-user-tie" style="font-size:.6rem;opacity:.8;"></i> ${uncles.length === 1 ? esc(uncles[0].name) : ''}</span>`;
       strip.style.display = 'inline-flex';
-      strip.onclick = () => { const sec = document.getElementById('scUncles'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      strip.onclick = () => { switchTab('family'); };
       renderUncleCards(uncles);
     }
 
@@ -5405,7 +5393,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       // ── Hide private sections ─────────────────────────────────────
       document.getElementById('scTasks').style.display = 'none';
       document.getElementById('scTrips').style.display = 'none';
-      document.getElementById('scSearch').style.display = 'none';
       document.getElementById('pubBanner').style.display = 'none';
       document.getElementById('settingsTop').style.display = 'none';
       const scSendCoupons = document.getElementById('scSendCoupons');
@@ -5823,7 +5810,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       allTasks = tasks;
       const el = document.getElementById('taskList');
       document.getElementById('taskSub').textContent = tasks.length + ' مهمة';
-      if (!tasks.length) { document.getElementById('scTasks').style.display = 'none'; return; }
+      if (!tasks.length) {
+        el.innerHTML = `
+          <div style="text-align:center; padding:50px 20px; color:rgba(255,255,255,0.7);">
+            <div style="font-size:3rem; margin-bottom:15px; opacity:0.4;"><i class="fas fa-tasks"></i></div>
+            <div style="font-size:1.05rem; font-weight:800;">لا توجد مهام أو اختبارات حالياً</div>
+            <div style="font-size:0.8rem; margin-top:6px; opacity:0.8;">تابع مع مدرسك لمعرفة كل جديد</div>
+          </div>
+        `;
+        return;
+      }
       const stLbl = { done: 'مكتمل', open: 'مفتوح', upcoming: 'قادم', expired: 'منتهي' };
       const stBar = { done: 'done-bar', open: '', upcoming: 'up-bar', expired: 'exp-bar' };
       const stBadge = { done: 'tb-done', open: 'tb-open', upcoming: 'tb-up', expired: 'tb-exp' };
@@ -5852,7 +5848,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>`;
         } else if (maxCoupon > 0) {
           // Not submitted: show max possible coupons
-          couponRow = `<div style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:5px 9px;border-radius:var(--r-sm);background:var(--cou-bg);border:1px solid #c4b5fd;font-size:.74rem;">
+          couponRow = `<div class="task-coupon-row" style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:5px 9px;border-radius:var(--r-sm);background:var(--cou-bg);border:1px solid #c4b5fd;font-size:.74rem;">
         <i class="fas fa-star" style="color:var(--cou-l);"></i>
         <span style="color:var(--cou);font-weight:700;">حتى ${maxCoupon} كوبون</span>
         <span style="color:var(--t4);font-size:.68rem;">عند الإجابة</span>
@@ -6826,12 +6822,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>`).join('');
       openOv('switchOv');
     });
-    function pickAcc(id) { selAccId = id; document.querySelectorAll('#switchList .acc-item').forEach(el => el.classList.toggle('active', parseInt(el.dataset.id) === id)); }
-    function doSwitch() {
-      if (!selAccId || selAccId === student.id) { closeOv('switchOv'); return; }
-      const acc = allAccounts.find(a => a.id === selAccId); if (!acc) return;
+    function pickAcc(id) {
+      if (!id || id === student.id) { closeOv('switchOv'); return; }
+      const acc = allAccounts.find(a => a.id === id); if (!acc) return;
       student = acc;
-      // Persist selected account so next page load restores it
       localStorage.setItem('activeKidAccountId', String(acc.id));
       renderPrivate(student);
       switchTab('home');
@@ -7088,7 +7082,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
 
       if (hero) hero.style.display = 'none';
-      if (statsBar) statsBar.style.display = 'none';
+      if (statsBar) {
+        statsBar.style.display = 'none';
+        statsBar.style.marginTop = '0';
+      }
       if (scInfo) scInfo.style.display = 'none';
       if (scAnn) scAnn.style.display = 'none';
       if (homeSearchBar) homeSearchBar.style.display = 'none';
@@ -7116,7 +7113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
       } else if (tabName === 'attendance') {
         if (scAtt) scAtt.style.display = 'block';
-        if (statsBar) statsBar.style.display = 'flex';
+        if (statsBar) {
+          statsBar.style.display = 'flex';
+          statsBar.style.marginTop = '18px';
+        }
       } else if (tabName === 'send') {
         if (scSendCoupons) {
            scSendCoupons.style.display = 'block';
@@ -7124,7 +7124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
       } else if (tabName === 'tasks') {
         if (scTasks) {
-           scTasks.classList.add('fullscreen-tab');
            scTasks.style.display = 'block';
         }
       } else if (tabName === 'family') {
@@ -7350,39 +7349,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('sendAvailTsk').innerText = student.task_coupons || 0;
       document.getElementById('sendAvailTotal').innerText = student.coupons || 0;
 
-      goToStep(1);
       clearSelectedRecipient();
       document.getElementById('sendAmount').value = '';
       document.getElementById('sendPassword').value = '';
-    }
-
-    function goToStep(stepNum) {
-      wizardCurrentStep = stepNum;
-      
-      // Toggle views
-      document.getElementById('sendStep1').style.display = stepNum === 1 ? 'block' : 'none';
-      document.getElementById('sendStep2').style.display = stepNum === 2 ? 'block' : 'none';
-      document.getElementById('sendStep3').style.display = stepNum === 3 ? 'block' : 'none';
-
-      // Update dots
-      document.querySelectorAll('.wizard-dot').forEach((dot, idx) => {
-         dot.classList.remove('active');
-         if (idx + 1 === stepNum) dot.classList.add('active');
-      });
-
-      if (stepNum === 2) {
-         checkStep2Valid();
-      } else if (stepNum === 3) {
-         // Show summary message
-         let label = "الكل مدمج";
-         if (selectedSendCategory === 'att') label = "الحضور";
-         else if (selectedSendCategory === 'com') label = "الالتزام";
-         else if (selectedSendCategory === 'task') label = "المهام";
-         
-         const amount = parseInt(document.getElementById('sendAmount').value);
-         document.getElementById('sendSummaryMsg').innerHTML = `سوف تقوم بإرسال <strong style="font-size:1.15rem; color:#f59e0b;">${amount}</strong> كوبون من رصيد [${label}] إلى صديقك <strong style="color:#60a5fa;">(${selectedRecipientNameStr})</strong>.`;
-         checkStep3Valid();
-      }
+      checkSendFormValid();
     }
 
     function selectRecipient(id, name) {
@@ -7401,8 +7371,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('sendFriendSearch').value = '';
       document.getElementById('sendFriendSearchResults').style.display = 'none';
 
-      // Enable next step button
-      document.getElementById('toStep2Btn').disabled = false;
+      checkSendFormValid();
     }
 
     function clearSelectedRecipient() {
@@ -7410,7 +7379,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       selectedRecipientNameStr = "";
       document.querySelectorAll('.send-recipient-chip').forEach(chip => chip.classList.remove('active'));
       document.getElementById('selectedRecipientTag').style.display = 'none';
-      document.getElementById('toStep2Btn').disabled = true;
+      checkSendFormValid();
     }
 
     let _sendFriendSearchTimer = null;
@@ -7458,29 +7427,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.querySelectorAll('.send-cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedSendCategory = btn.getAttribute('data-cat');
-      checkStep2Valid();
+      checkSendFormValid();
     }
 
-    function checkStep2Valid() {
+    function checkSendFormValid() {
+      const recipientSelected = (selectedRecipientId !== null);
       const amount = parseInt(document.getElementById('sendAmount').value);
       let limit = student.coupons || 0;
       if (selectedSendCategory === 'att') limit = student.att_coupons || 0;
       else if (selectedSendCategory === 'com') limit = student.com_coupons || 0;
       else if (selectedSendCategory === 'task') limit = student.task_coupons || 0;
 
-      const isValid = (!isNaN(amount) && amount > 0 && amount <= limit);
-      document.getElementById('toStep3Btn').disabled = !isValid;
-    }
+      const amountValid = (!isNaN(amount) && amount > 0 && amount <= limit);
+      const password = document.getElementById('sendPassword').value.trim();
 
-    function checkStep3Valid() {
-      const password = document.getElementById('sendPassword').value;
-      document.getElementById('sendWizardSubmitBtn').disabled = !password;
+      const isValid = recipientSelected && amountValid && password !== '';
+      document.getElementById('sendWizardSubmitBtn').disabled = !isValid;
     }
 
     function trySendCoupons() {
       const amount = parseInt(document.getElementById('sendAmount').value);
-      const password = document.getElementById('sendPassword').value;
-      
       const msg = `تأكيد نهائي: هل أنت متأكد من إرسال ${amount} كوبون إلى (${selectedRecipientNameStr})؟`;
       document.getElementById('shareConfirmMsg').innerText = msg;
       openOv('shareConfirmModal');
