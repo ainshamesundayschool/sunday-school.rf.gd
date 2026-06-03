@@ -3746,7 +3746,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: none;
       border-radius: var(--r-lg);
       padding: 20px 16px;
       margin-top: 14px;
@@ -3943,20 +3943,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
     <!-- Top Search Bar (Home page search) -->
-    <div id="homeSearchBar" style="display:none; padding: 14px 16px 8px;">
+    <div id="homeSearchBar" style="display:none; padding: 14px 16px 8px; position:relative; z-index:99;">
       <div style="position:relative;">
         <i class="fas fa-search" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--t4); font-size:.95rem; pointer-events:none;"></i>
         <input type="text" id="homeFriendSearch" placeholder="ابحث عن أصحابك في الكنيسة..." style="width:100%; padding:12px 42px 12px 42px; border:2px solid var(--bdr); border-radius:var(--r-xl); font-family:inherit; font-size:.88rem; outline:none; background:var(--surf); color:var(--t1); box-shadow:var(--sh-sm); transition:all var(--fast);" oninput="onHomeSearch(this.value)" autocomplete="off">
         <button onclick="clearHomeSearch()" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--t4); cursor:pointer; font-size:.95rem; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
       </div>
-      <div id="homeSearchResults" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
+      <div id="homeSearchResults" class="inline-search-dropdown"></div>
     </div>
 
     <!-- ══ FULL PAGE SEND COUPONS WIZARD ══ -->
-    <div class="sc send-coupons-page" id="scSendCoupons" style="display:none">
-      <div style="text-align:center; margin-bottom:12px;">
-         <h2 style="font-size:1.4rem; font-weight:800; color:#fff;"><i class="fas fa-paper-plane" style="margin-left:6px;"></i> إرسال كوبونات</h2>
-         <p style="font-size:.78rem; color:rgba(255,255,255,0.75);">شارك كوبوناتك مع إخوتك وصديقك المقرب في ٣ خطوات بسيطة</p>
+    <div class="send-coupons-page" id="scSendCoupons" style="display:none">
+      <!-- Tab Header -->
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+        <div style="width:44px; height:44px; border-radius:var(--r-md); background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
+          <i class="fas fa-paper-plane"></i>
+        </div>
+        <div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff;">إرسال كوبونات</div>
+          <div style="font-size:.78rem; color:rgba(255,255,255,0.75);">شارك كوبوناتك مع إخوتك وصديقك المقرب</div>
+        </div>
       </div>
 
       <!-- Step Progress Dots -->
@@ -3968,7 +3974,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       <!-- STEP 1: Select Recipient -->
       <div class="wizard-step-container" id="sendStep1">
-         <div class="wizard-step-title"><i class="fas fa-user-plus"></i> الخطوة ١: اختر المستلم</div>
+         <div class="wizard-step-title"><i class="fas fa-user-plus"></i> اختر المستلم</div>
          
          <div id="siblingChipsContainer" style="display:none; margin-bottom:12px;">
             <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">إخوتك:</div>
@@ -3990,13 +3996,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
          </div>
 
          <div class="wizard-btn-row">
-            <button class="btn btn-p" id="toStep2Btn" style="width:100%; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(2)" disabled>الخطوة التالية <i class="fas fa-chevron-left" style="margin-right:4px; font-size:.75rem;"></i></button>
+            <button class="btn btn-p" id="toStep2Btn" style="width:100%; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(2)" disabled>متابعة <i class="fas fa-chevron-left" style="margin-right:4px; font-size:.75rem;"></i></button>
          </div>
       </div>
 
       <!-- STEP 2: Amount & Category -->
       <div class="wizard-step-container" id="sendStep2" style="display:none;">
-         <div class="wizard-step-title"><i class="fas fa-ticket-alt"></i> الخطوة ٢: رصيد الإرسال والقيمة</div>
+         <div class="wizard-step-title"><i class="fas fa-star"></i> رصيد الإرسال والقيمة</div>
 
          <!-- Available breakdown -->
          <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
@@ -4043,7 +4049,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       <!-- STEP 3: Password & Confirm -->
       <div class="wizard-step-container" id="sendStep3" style="display:none;">
-         <div class="wizard-step-title"><i class="fas fa-shield-alt"></i> الخطوة ٣: تأكيد الهوية والإرسال</div>
+         <div class="wizard-step-title"><i class="fas fa-shield-alt"></i> تأكيد الهوية والإرسال</div>
 
          <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:14px; text-align:center; font-size:.85rem; line-height:1.5; margin-bottom:14px;" id="sendSummaryMsg">
             سوف تقوم بإرسال 0 كوبون إلى صديقك.
@@ -4210,19 +4216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
 
-    <!-- Siblings Section -->
-    <div class="sc" id="scSiblings" style="display:none">
-      <div class="sc-head">
-        <div class="sc-ico" style="background:#e0f2fe;color:#0369a1;"><i class="fas fa-user-friends"></i></div>
-        <div class="sc-label">
-          <div class="sc-title">إخوتك</div>
-          <div class="sc-sub">اضغط على أي من إخوتك لزيارة حسابه مباشرة</div>
-        </div>
-      </div>
-      <div class="sc-body">
-        <div id="siblingsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;"></div>
-      </div>
-    </div>
+
 
     <!-- Uncles section -->
     <div class="sc" id="scUncles" style="display:none;">
@@ -5499,41 +5493,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ── Search friends ────────────────────────────────────────────────
-    let _searchTimer = null;
-    function onFriendSearch(val) {
-      clearTimeout(_searchTimer);
-      const res = document.getElementById('friendSearchResults');
-      if (!val || val.trim().length < 2) { res.innerHTML = ''; return; }
-      res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t4);font-size:.82rem;"><i class="fas fa-spinner fa-spin"></i></div>';
-      _searchTimer = setTimeout(() => doFriendSearch(val.trim()), 350);
-    }
-    async function doFriendSearch(q) {
-      const res = document.getElementById('friendSearchResults');
-      try {
-        const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
-        if (!d.success || !d.kids || !d.kids.length) {
-          res.innerHTML = '<div style="padding:16px;text-align:center;color:var(--t3);font-size:.82rem;">لم يُعثر على نتائج</div>';
-          return;
-        }
-        res.innerHTML = d.kids.map(k => {
-          const av = k.image_url
-            ? `<img src="${esc(k.image_url)}" alt="${esc(k.name)}">`
-            : `<span>${k.name.charAt(0)}</span>`;
-          const isSelf = student && k.id === student.id;
-          return `<div class="friend-result-card" onclick="${isSelf ? 'window.scrollTo({top:0,behavior:\'smooth\'})' : 'openFriendProfile(' + k.id + ')'}">
-        <div class="friend-result-av">${av}</div>
-        <div class="friend-result-info">
-          <div class="friend-result-name">${esc(k.name)}${isSelf ? ' <span style="font-size:.68rem;color:var(--cou);font-weight:700;">(أنت)</span>' : ''}</div>
-          <div class="friend-result-meta">${esc(k.class || '—')}${k.church_name ? ' · ' + esc(k.church_name) : ''}</div>
-        </div>
-        <div class="friend-result-cou"><i class="fas fa-ticket-alt" style="font-size:.72rem;margin-left:3px;"></i>${k.coupons}</div>
-      </div>`;
-        }).join('');
-      } catch (e) {
-        res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--err);font-size:.82rem;">خطأ في البحث</div>';
-      }
-    }
+
 
     function renderInfo(s, isPublic) {
       const el = document.getElementById('infoGrid');
@@ -5884,7 +5844,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <i class="fas fa-check-circle"></i>
         <span>${sub.score}/${t.total_degree} (${pct}%)</span>
         <span style="margin-right:auto;display:flex;align-items:center;gap:4px;">
-          <i class="fas fa-ticket-alt" style="color:var(--cou-l);font-size:.75rem;"></i>
+          <i class="fas fa-star" style="color:var(--cou-l);font-size:.75rem;"></i>
           <strong style="color:var(--cou);font-size:.82rem;">${sub.coupons_awarded}</strong>
           <span style="font-size:.7rem;color:var(--t3);margin-left:5px;">كوبون</span>
           ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
@@ -5893,7 +5853,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         } else if (maxCoupon > 0) {
           // Not submitted: show max possible coupons
           couponRow = `<div style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:5px 9px;border-radius:var(--r-sm);background:var(--cou-bg);border:1px solid #c4b5fd;font-size:.74rem;">
-        <i class="fas fa-ticket-alt" style="color:var(--cou-l);"></i>
+        <i class="fas fa-star" style="color:var(--cou-l);"></i>
         <span style="color:var(--cou);font-weight:700;">حتى ${maxCoupon} كوبون</span>
         <span style="color:var(--t4);font-size:.68rem;">عند الإجابة</span>
       </div>`;
@@ -6327,7 +6287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       const couponHtml = coupons > 0 ? `
     <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--cou-bg);color:var(--cou);border-radius:var(--r-full);font-weight:800;font-size:1.1rem;box-shadow:0 4px 15px rgba(124,58,237,.2);margin-top:15px;animation:bounce 2s infinite;">
-      <i class="fas fa-ticket-alt"></i> حصلت على ${coupons} كوبون!
+      <i class="fas fa-star"></i> حصلت على ${coupons} كوبون!
     </div>` : '';
 
       const pendingNote = hasOpenQs ? `
@@ -7114,6 +7074,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const scUncles = document.getElementById('scUncles');
       const scSiblings = document.getElementById('scSiblings');
       const scSendCoupons = document.getElementById('scSendCoupons');
+      const mainPage = document.getElementById('mainPage');
+
+      // Adjust mainPage padding/width for fullscreen tabs (send coupons & tasks)
+      if (mainPage) {
+        if (tabName === 'send' || tabName === 'tasks') {
+          mainPage.style.padding = '0';
+          mainPage.style.maxWidth = 'none';
+        } else {
+          mainPage.style.padding = '0 14px 90px';
+          mainPage.style.maxWidth = '860px';
+        }
+      }
 
       if (hero) hero.style.display = 'none';
       if (statsBar) statsBar.style.display = 'none';
@@ -7141,7 +7113,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         
         if (!IS_PUBLIC) {
            if (statsBar) statsBar.style.display = 'flex';
-           if (homeSearchBar) homeSearchBar.style.display = 'block';
         }
       } else if (tabName === 'attendance') {
         if (scAtt) scAtt.style.display = 'block';
@@ -7162,6 +7133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
            scSiblings.style.display = 'block';
         }
         if (scUncles) scUncles.style.display = 'block';
+        if (!IS_PUBLIC && homeSearchBar) {
+           homeSearchBar.style.display = 'block';
+        }
       }
     }
 
@@ -7225,7 +7199,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function onHomeSearch(val) {
       clearTimeout(_homeSearchTimer);
       const res = document.getElementById('homeSearchResults');
-      if (!val || val.trim().length < 2) { res.innerHTML = ''; return; }
+      if (!val || val.trim().length < 2) {
+        res.innerHTML = '';
+        res.style.display = 'none';
+        return;
+      }
+      res.style.display = 'flex';
       res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t4);font-size:.82rem;"><i class="fas fa-spinner fa-spin"></i></div>';
       _homeSearchTimer = setTimeout(() => doHomeSearch(val.trim()), 300);
     }
@@ -7236,6 +7215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
         if (!d.success || !d.kids || !d.kids.length) {
           res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t3);font-size:.82rem;">لم يُعثر على نتائج</div>';
+          res.style.display = 'flex';
           return;
         }
         
@@ -7252,24 +7232,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             : `<span>${k.name.charAt(0)}</span>`;
           const isSelf = student && k.id === student.id;
           return `
-            <div class="friend-result-card" onclick="${isSelf ? 'window.scrollTo({top:0,behavior:\'smooth\'})' : 'openFriendProfile(' + k.id + ')'}" style="margin-bottom:0;">
+            <div class="friend-result-card" onclick="${isSelf ? 'window.scrollTo({top:0,behavior:\'smooth\'})' : 'openFriendProfile(' + k.id + ')'}" style="margin-bottom:0; width:100%;">
               <div class="friend-result-av">${av}</div>
               <div class="friend-result-info">
                 <div class="friend-result-name">${esc(k.name)}${isSelf ? ' <span style="font-size:.68rem;color:var(--cou);font-weight:700;">(أنت)</span>' : ''}</div>
                 <div class="friend-result-meta">${esc(k.class || '—')}${k.church_name ? ' · ' + esc(k.church_name) : ''}</div>
               </div>
-              <div class="friend-result-cou"><i class="fas fa-ticket-alt" style="font-size:.72rem;margin-left:3px;"></i>${k.coupons}</div>
+              <div class="friend-result-cou"><i class="fas fa-star" style="font-size:.72rem;margin-left:3px;"></i>${k.coupons}</div>
             </div>`;
         }).join('');
+        res.style.display = 'flex';
       } catch (e) {
         res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--err);font-size:.82rem;">خطأ في البحث</div>';
+        res.style.display = 'flex';
       }
     }
 
     function clearHomeSearch() {
       document.getElementById('homeFriendSearch').value = '';
-      document.getElementById('homeSearchResults').innerHTML = '';
+      const res = document.getElementById('homeSearchResults');
+      res.innerHTML = '';
+      res.style.display = 'none';
     }
+
+    // Close genius search dropdown on click outside
+    document.addEventListener('click', function (e) {
+      const wrap = document.getElementById('homeSearchBar');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('homeSearchResults');
+        if (dropdown) dropdown.style.display = 'none';
+      }
+    });
+
+    // Show dropdown again on focus if input has value
+    window.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('homeFriendSearch');
+      if (input) {
+        input.addEventListener('focus', function () {
+          if (this.value.trim().length >= 2) {
+            const dropdown = document.getElementById('homeSearchResults');
+            if (dropdown) dropdown.style.display = 'flex';
+          }
+        });
+      }
+    });
 
     // ── Sibling loading overrides ──
     async function loadSiblings() {
@@ -7302,7 +7308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                 <div style="font-size:.82rem;font-weight:800;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">${esc(s.name)}</div>
                 <div style="font-size:.68rem;color:var(--t4);font-weight:700;">${esc(s.class || '—')}</div>
                 <div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:800;">
-                  <i class="fas fa-ticket-alt" style="font-size:.65rem;"></i> ${s.coupons}
+                  <i class="fas fa-star" style="font-size:.65rem;"></i> ${s.coupons}
                 </div>
               </div>
             `;
