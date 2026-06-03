@@ -4194,65 +4194,28 @@
       }
     }
 
-    /* CSV Export Dropdown Styling */
-    .trip-action-dropdown-wrap {
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-    .trip-action-dropdown-wrap .trip-action-btn {
-      width: 100%;
-      height: 100%;
-    }
-    .csv-dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      right: 0;
-      left: auto;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-lg);
-      z-index: 250;
-      padding: 6px 0;
-      margin-top: 6px;
-      min-width: 210px;
-      animation: dropdownFadeIn 0.15s var(--ease-out);
-    }
-    .csv-dropdown-item {
-      width: 100%;
+    /* CSV Export Modal Checkbox Styling */
+    #csvExportModal .form-checkbox-label {
+      cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 12px;
       padding: 10px 14px;
-      border: none;
-      background: transparent;
-      font-family: 'Cairo', sans-serif;
-      font-size: 0.8rem;
-      color: var(--text-2);
-      cursor: pointer;
-      text-align: right;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       transition: all var(--t-fast) var(--ease);
+      user-select: none;
+      background: var(--card);
     }
-    .csv-dropdown-item:hover {
-      background: var(--primary-light) !important;
-      color: var(--primary) !important;
+    #csvExportModal .form-checkbox-label:hover {
+      background: var(--primary-light);
+      border-color: var(--indigo-200);
     }
-    .csv-dropdown-item i.fa-check {
-      color: var(--primary);
-      font-size: 0.85rem;
-      transition: opacity 0.15s;
-    }
-    @keyframes dropdownFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    #csvExportModal input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
     }
   </style>
 </head>
@@ -5067,30 +5030,9 @@
           <button class="trip-action-btn" onclick="switchTripTab('regs')">
             <i class="fas fa-users"></i>المسجلون<br><span style="font-weight:800;font-size:0.9rem;">${regs.length}</span>
           </button>
-          <div class="trip-action-dropdown-wrap">
-            <button type="button" class="trip-action-btn" onclick="toggleCsvDropdown(event)">
-              <i class="fas fa-file-csv"></i>تصدير CSV <i class="fas fa-chevron-down" style="font-size:0.6rem;opacity:0.7;"></i>
-            </button>
-            <div id="csvExportDropdown" class="csv-dropdown-content">
-              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'regs', event)">
-                <span>قائمة المسجلين (Registrations)</span>
-                <i class="fas fa-check" style="opacity:0;"></i>
-              </button>
-              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'waitlist', event)">
-                <span>قائمة الانتظار (Waitlist)</span>
-                <i class="fas fa-check" style="opacity:0;"></i>
-              </button>
-              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'payments', event)">
-                <span>حركة المدفوعات (Payments)</span>
-                <i class="fas fa-check" style="opacity:0;"></i>
-              </button>
-              <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'all', event)" style="font-weight:700;color:var(--primary);">
-                <span>الكل في ملف واحد (All in One)</span>
-                <i class="fas fa-check" style="opacity:0;"></i>
-              </button>
-            </div>
-          </div>
+          <button type="button" class="trip-action-btn" onclick="openCsvExportModal(${trip.id})">
+            <i class="fas fa-file-csv"></i>تصدير CSV
+          </button>
           <button class="trip-action-btn" onclick="copyTripLink(${trip.id})">
             <i class="fas fa-link"></i>نسخ الرابط
           </button>
@@ -5260,40 +5202,43 @@
       switchTripTab('exp');
     }
 
-    function toggleCsvDropdown(event) {
-      if (event) event.stopPropagation();
-      const dropdown = document.getElementById('csvExportDropdown');
-      if (!dropdown) return;
-      const isOpen = dropdown.style.display === 'block';
-      closeAllDropdowns();
-      if (!isOpen) {
-        dropdown.style.display = 'block';
-        document.addEventListener('click', closeAllDropdowns);
-      }
-    }
-
-    function closeAllDropdowns() {
-      const dropdown = document.getElementById('csvExportDropdown');
-      if (dropdown) dropdown.style.display = 'none';
-      document.removeEventListener('click', closeAllDropdowns);
-    }
-
-    async function executeExport(id, type, event) {
-      if (event) event.stopPropagation();
-      const items = document.querySelectorAll('.csv-dropdown-item');
-      items.forEach(item => {
-        const check = item.querySelector('.fa-check');
-        if (check) check.style.opacity = '0';
+    function openCsvExportModal(tripId) {
+      document.getElementById('csvExportTripId').value = tripId;
+      // Reset checkboxes: registrations, waitlist, payments to checked, and all to unchecked.
+      document.getElementById('csvOptSelectAll').checked = false;
+      const opts = document.querySelectorAll('.csv-export-opt');
+      opts.forEach(opt => {
+        if (opt.value === 'all') {
+          opt.checked = false;
+        } else {
+          opt.checked = true;
+        }
       });
-      const clickedItem = event?.currentTarget;
-      if (clickedItem) {
-        const check = clickedItem.querySelector('.fa-check');
-        if (check) check.style.opacity = '1';
+      openModal('csvExportModal');
+    }
+
+    function toggleSelectAllCsvExport(master) {
+      const opts = document.querySelectorAll('.csv-export-opt');
+      opts.forEach(opt => {
+        opt.checked = master.checked;
+      });
+    }
+
+    async function triggerCsvExport() {
+      const tripId = document.getElementById('csvExportTripId').value;
+      const checkedOpts = Array.from(document.querySelectorAll('.csv-export-opt:checked')).map(el => el.value);
+      
+      if (checkedOpts.length === 0) {
+        showToast('برجاء اختيار بند واحد على الأقل للتصدير', 'error');
+        return;
       }
-      setTimeout(() => {
-        closeAllDropdowns();
-      }, 350);
-      await performExport(id, type);
+      
+      closeModal('csvExportModal');
+      
+      // Perform export for each checked item
+      for (const type of checkedOpts) {
+        await performExport(tripId, type);
+      }
     }
 
     async function performExport(id, type) {
@@ -5802,6 +5747,58 @@
               <button type="button" class="btn btn-outline" style="flex:1;"
                 onclick="closeModal('registerStudentModal')">إلغاء</button>
             </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV Export Modal -->
+  <div id="csvExportModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2><i class="fas fa-file-csv"></i> تصدير البيانات إلى ملف CSV</h2>
+        <button type="button" class="modal-close" onclick="closeModal('csvExportModal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="csvExportForm" onsubmit="event.preventDefault(); triggerCsvExport();">
+          <input type="hidden" id="csvExportTripId">
+          <p style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-3);">
+            اختر القوائم والبيانات التي ترغب في تصديرها. سيتم تحميل ملف CSV منفصل لكل اختيار، أو ملف واحد مجمع إذا تم اختيار الملف المجمع:
+          </p>
+          
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-checkbox-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem;">
+              <input type="checkbox" id="csvOptSelectAll" onchange="toggleSelectAllCsvExport(this)" style="width: 18px; height: 18px; cursor: pointer;">
+              <strong>تحديد الكل</strong>
+            </label>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <label class="form-checkbox-label">
+              <input type="checkbox" class="csv-export-opt" value="regs" checked>
+              <span>قائمة المسجلين (Registrations)</span>
+            </label>
+            <label class="form-checkbox-label">
+              <input type="checkbox" class="csv-export-opt" value="waitlist" checked>
+              <span>قائمة الانتظار (Waitlist)</span>
+            </label>
+            <label class="form-checkbox-label">
+              <input type="checkbox" class="csv-export-opt" value="payments" checked>
+              <span>حركة المدفوعات والمعاملات المالية (Payments)</span>
+            </label>
+            <div style="height:1px; background:var(--border); margin: 6px 0;"></div>
+            <label class="form-checkbox-label" style="font-weight: 700; color: var(--primary);">
+              <input type="checkbox" class="csv-export-opt" value="all">
+              <span>الكل في ملف واحد مجمع (All in One)</span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-primary" style="flex: 2;"><i class="fas fa-file-download"></i> تصدير وتحميل</button>
+            <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeModal('csvExportModal')">إلغاء</button>
           </div>
         </form>
       </div>
