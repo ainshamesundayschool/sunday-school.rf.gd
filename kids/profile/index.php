@@ -3697,6 +3697,236 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background: var(--brand-bg);
       color: var(--brand);
     }
+
+    /* ══ V3 TABS AND SEARCH STYLE ══════════════════════════════ */
+    .send-coupons-page {
+      min-height: calc(100vh - 120px);
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      padding: 24px 18px 80px !important;
+    }
+    .send-coupons-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .07) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, .05) 0%, transparent 35%);
+      animation: hero-pulse 6s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .send-coupons-page::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1px);
+      background-size: 28px 28px;
+      z-index: 0;
+    }
+    .send-coupons-page > * {
+      position: relative;
+      z-index: 1;
+    }
+    #scTasks.fullscreen-tab {
+      min-height: calc(100vh - 120px);
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background: var(--surf) !important;
+      padding: 20px 16px 80px !important;
+    }
+    .wizard-step-container {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-lg);
+      padding: 20px 16px;
+      margin-top: 14px;
+    }
+    .wizard-step-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wizard-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .send-wizard-input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      transition: all var(--fast);
+    }
+    .send-wizard-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .send-wizard-input:focus {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .send-cat-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-sm);
+      padding: 8px 4px;
+      font-size: .75rem;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--fast);
+      outline: none;
+    }
+    .send-cat-btn.active {
+      background: #fff;
+      color: var(--brand);
+      border-color: #fff;
+    }
+    .send-recipient-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-md);
+      font-size: .75rem;
+      font-weight: 800;
+      cursor: pointer;
+      min-width: 80px;
+      flex-shrink: 0;
+      gap: 4px;
+      transition: all var(--fast);
+      color: #fff;
+    }
+    .send-recipient-chip.active {
+      border-color: #fff;
+      background: #fff;
+      color: var(--brand);
+    }
+    
+    /* Sleek Home Search Bar */
+    .home-search-bar input {
+      border: 2px solid var(--bdr) !important;
+      box-shadow: var(--sh-sm) !important;
+    }
+    .home-search-bar input:focus {
+      border-color: var(--brand) !important;
+      box-shadow: 0 0 0 4px var(--brand-glow) !important;
+    }
+    
+    /* Step progress dots */
+    .wizard-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .wizard-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all var(--fast);
+    }
+    .wizard-dot.active {
+      background: #fff;
+      transform: scale(1.2);
+    }
+    
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1.5px solid var(--bdr2);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 490;
+      padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+    }
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--t3);
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--fast);
+      flex: 1;
+      height: 100%;
+      gap: 3px;
+    }
+    .bottom-nav-item i {
+      font-size: 1.2rem;
+      transition: transform var(--fast);
+    }
+    .bottom-nav-item.active {
+      color: var(--brand);
+    }
+    .bottom-nav-item.active i {
+      transform: translateY(-2px);
+    }
+    .bottom-nav-item.center-fab {
+      position: relative;
+      height: auto;
+      flex: 1;
+    }
+    .fab-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand) 0%, var(--cou) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+      transform: translateY(-16px);
+      transition: all var(--fast);
+      border: 4px solid var(--surf);
+    }
+    .fab-btn i {
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    .bottom-nav-item.center-fab:hover .fab-btn {
+      transform: translateY(-18px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+    }
+
   </style>
 </head>
 
@@ -3770,6 +4000,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <!-- Page -->
   <div class="page" id="mainPage" style="display:none">
 
+    <!-- Announcement notification banner -->
+    <div class="ann-banner-wrap" id="scAnn" style="display:none;">
+      <div style="padding: 12px 16px; background:var(--warn-bg); border: 1.5px solid var(--warn-l); border-radius: var(--r-md); display: flex; align-items: flex-start; gap: 10px; color: var(--warn); direction: rtl; box-shadow: var(--sh-sm);">
+        <div style="font-size: 1.25rem; color: var(--warn-l); flex-shrink: 0; margin-top: 2px;"><i class="fas fa-bell"></i></div>
+        <div style="flex: 1; min-width: 0;">
+           <div style="font-weight: 800; font-size: 0.82rem; margin-bottom: 2px; color:var(--warn);">إشعار هام:</div>
+           <div id="annList" style="font-size: 0.85rem; line-height: 1.4; color: var(--t1);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Search Bar (Home page search) -->
+    <div id="homeSearchBar" style="display:none; padding: 14px 16px 8px;">
+      <div style="position:relative;">
+        <i class="fas fa-search" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--t4); font-size:.95rem; pointer-events:none;"></i>
+        <input type="text" id="homeFriendSearch" placeholder="ابحث عن أصحابك في الكنيسة..." style="width:100%; padding:12px 42px 12px 42px; border:2px solid var(--bdr); border-radius:var(--r-xl); font-family:inherit; font-size:.88rem; outline:none; background:var(--surf); color:var(--t1); box-shadow:var(--sh-sm); transition:all var(--fast);" oninput="onHomeSearch(this.value)" autocomplete="off">
+        <button onclick="clearHomeSearch()" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--t4); cursor:pointer; font-size:.95rem; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="homeSearchResults" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <!-- ══ FULL PAGE SEND COUPONS WIZARD ══ -->
+    <div class="sc send-coupons-page" id="scSendCoupons" style="display:none">
+      <div style="text-align:center; margin-bottom:12px;">
+         <h2 style="font-size:1.4rem; font-weight:800; color:#fff;"><i class="fas fa-paper-plane" style="margin-left:6px;"></i> إرسال كوبونات</h2>
+         <p style="font-size:.78rem; color:rgba(255,255,255,0.75);">شارك كوبوناتك مع إخوتك وصديقك المقرب في ٣ خطوات بسيطة</p>
+      </div>
+
+      <!-- Step Progress Dots -->
+      <div class="wizard-dots">
+         <div class="wizard-dot active" id="dot1"></div>
+         <div class="wizard-dot" id="dot2"></div>
+         <div class="wizard-dot" id="dot3"></div>
+      </div>
+
+      <!-- STEP 1: Select Recipient -->
+      <div class="wizard-step-container" id="sendStep1">
+         <div class="wizard-step-title"><i class="fas fa-user-plus"></i> الخطوة ١: اختر المستلم</div>
+         
+         <div id="siblingChipsContainer" style="display:none; margin-bottom:12px;">
+            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">إخوتك:</div>
+            <div id="sendSiblingChips" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch;"></div>
+         </div>
+
+         <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">ابحث عن صديق بالاسم:</div>
+         <div style="position:relative;">
+            <i class="fas fa-search" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:rgba(255,255,255,0.6); pointer-events:none;"></i>
+            <input type="text" id="sendFriendSearch" placeholder="اكتب اسم صديقك..." class="send-wizard-input" style="padding-right:36px; text-align:right;" oninput="onSendFriendSearch(this.value)" autocomplete="off">
+         </div>
+         <div id="sendFriendSearchResults" style="max-height:160px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:var(--r-sm); margin-top:6px; display:none; color:var(--t1);"></div>
+
+         <!-- Selected Tag -->
+         <div id="selectedRecipientTag" style="display:none; align-items:center; gap:8px; background:#fff; color:var(--brand); padding:10px 14px; border-radius:var(--r-sm); margin-top:14px; font-size:.85rem; font-weight:800; box-shadow:var(--sh-md);">
+            <i class="fas fa-user-check"></i>
+            <span id="selectedRecipientName">صديق محدد</span>
+            <button onclick="clearSelectedRecipient()" style="margin-right:auto; background:none; border:none; color:var(--err); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; padding:0;"><i class="fas fa-times-circle"></i></button>
+         </div>
+
+         <div class="wizard-btn-row">
+            <button class="btn btn-p" id="toStep2Btn" style="width:100%; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(2)" disabled>الخطوة التالية <i class="fas fa-chevron-left" style="margin-right:4px; font-size:.75rem;"></i></button>
+         </div>
+      </div>
+
+      <!-- STEP 2: Amount & Category -->
+      <div class="wizard-step-container" id="sendStep2" style="display:none;">
+         <div class="wizard-step-title"><i class="fas fa-ticket-alt"></i> الخطوة ٢: رصيد الإرسال والقيمة</div>
+
+         <!-- Available breakdown -->
+         <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
+            <div style="font-size:.74rem; color:rgba(255,255,255,0.7); margin-bottom:8px; text-align:center; font-weight:700;"><i class="fas fa-wallet"></i> رصيدك المتاح</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;">
+               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">حضور</div>
+                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailAtt">0</div>
+               </div>
+               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">التزام</div>
+                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailCom">0</div>
+               </div>
+               <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
+                  <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">مهام</div>
+                  <div style="font-size:.9rem; font-weight:900;" id="sendAvailTsk">0</div>
+               </div>
+            </div>
+            <div style="text-align:center; font-size:.78rem; font-weight:800; margin-top:8px;">إجمالي رصيدك الكلي: <span id="sendAvailTotal" style="font-weight:900;">0</span></div>
+         </div>
+
+         <!-- Choose Category -->
+         <div style="margin-bottom:14px;">
+            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">أرسل من تصنيف:</div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
+               <button class="send-cat-btn active" data-cat="all" onclick="selectSendCat(this)">الكل</button>
+               <button class="send-cat-btn" data-cat="att" onclick="selectSendCat(this)">حضور</button>
+               <button class="send-cat-btn" data-cat="com" onclick="selectSendCat(this)">التزام</button>
+               <button class="send-cat-btn" data-cat="task" onclick="selectSendCat(this)">مهام</button>
+            </div>
+         </div>
+
+         <!-- Enter Amount -->
+         <div style="margin-bottom:14px;">
+            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">عدد الكوبونات:</div>
+            <input type="number" id="sendAmount" placeholder="أدخل العدد..." class="send-wizard-input" min="1" oninput="checkStep2Valid()">
+         </div>
+
+         <div class="wizard-btn-row">
+            <button class="btn btn-g" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;" onclick="goToStep(1)"><i class="fas fa-chevron-right"></i> رجوع</button>
+            <button class="btn btn-p" id="toStep3Btn" style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(3)" disabled>التالي <i class="fas fa-chevron-left"></i></button>
+         </div>
+      </div>
+
+      <!-- STEP 3: Password & Confirm -->
+      <div class="wizard-step-container" id="sendStep3" style="display:none;">
+         <div class="wizard-step-title"><i class="fas fa-shield-alt"></i> الخطوة ٣: تأكيد الهوية والإرسال</div>
+
+         <div style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:14px; text-align:center; font-size:.85rem; line-height:1.5; margin-bottom:14px;" id="sendSummaryMsg">
+            سوف تقوم بإرسال 0 كوبون إلى صديقك.
+         </div>
+
+         <div style="margin-bottom:14px;">
+            <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">اكتب كلمة مرور حسابك لتأكيد العملية:</div>
+            <input type="password" id="sendPassword" placeholder="كلمة المرور الخاصة بك..." class="send-wizard-input" oninput="checkStep3Valid()">
+         </div>
+
+         <div class="wizard-btn-row">
+            <button class="btn btn-g" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;" onclick="goToStep(2)"><i class="fas fa-chevron-right"></i> رجوع</button>
+            <button class="btn btn-p" id="sendWizardSubmitBtn" style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="trySendCoupons()" disabled><i class="fas fa-paper-plane" style="margin-left:4px;"></i> أرسل الآن</button>
+         </div>
+      </div>
+    </div>
+
+
     <!-- public banner -->
     <div class="public-banner" id="pubBanner" style="display:none">
       <i class="fas fa-eye"></i> عرض عام
@@ -3787,7 +4148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           class="fas fa-arrow-right"></i> <span>رجوع</span></button>
     </div>
     <!-- Search friends (private only) -->
-    <div class="sc" id="scSearch" style="display:none">
+    <div class="sc" id="scSearch" style="display:none !important">
       <div class="sc-head">
         <div class="sc-ico" style="background:#fdf2f8;color:#9333ea;"><i class="fas fa-search"></i></div>
         <div class="sc-label">
@@ -3820,6 +4181,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="info-grid" id="infoGrid"></div>
       </div>
     </div>
+
+
+    <!-- Trips -->
+    <div class="sc" id="scTrips" style="display:none">
+      <div class="sc-head">
+        <div class="sc-ico" style="background:var(--trip-bg);color:var(--trip-l);"><i class="fas fa-bus"></i></div>
+        <div class="sc-label">
+          <div class="sc-title">الرحلات / المؤتمرات</div>
+          <div class="sc-sub" id="tripSub"></div>
+        </div>
+      </div>
+      <div class="sc-body">
+        <div id="tripList"></div>
+      </div>
+    </div>
+
 
     <!-- Attendance -->
     <div class="sc" id="scAtt" style="display:none">
@@ -3856,7 +4233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
     <!-- Tasks -->
-    <div class="sc" id="scTasks" style="display:none">
+    <div class="sc fullscreen-tab" id="scTasks" style="display:none">
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-tasks"></i></div>
         <div class="sc-label">
@@ -3869,19 +4246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
     </div>
 
-    <!-- Trips -->
-    <div class="sc" id="scTrips" style="display:none">
-      <div class="sc-head">
-        <div class="sc-ico" style="background:var(--trip-bg);color:var(--trip-l);"><i class="fas fa-bus"></i></div>
-        <div class="sc-label">
-          <div class="sc-title">الرحلات / المؤتمرات</div>
-          <div class="sc-sub" id="tripSub"></div>
-        </div>
-      </div>
-      <div class="sc-body">
-        <div id="tripList"></div>
-      </div>
-    </div>
+
 
     <!-- Announcements -->
     <div class="sc" id="scAnn" style="display:none">
@@ -3895,6 +4260,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div class="sc-body">
         <div id="annList"></div>
+      </div>
+    </div>
+
+
+    <!-- Siblings Section -->
+    <div class="sc" id="scSiblings" style="display:none">
+      <div class="sc-head">
+        <div class="sc-ico" style="background:#e0f2fe;color:#0369a1;"><i class="fas fa-user-friends"></i></div>
+        <div class="sc-label">
+          <div class="sc-title">إخوتك</div>
+          <div class="sc-sub">اضغط على أي من إخوتك لزيارة حسابه مباشرة</div>
+        </div>
+      </div>
+      <div class="sc-body">
+        <div id="siblingsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;"></div>
       </div>
     </div>
 
@@ -4367,6 +4747,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
   </div>
 
+
+  <!-- Bottom Mobile Navigation Bar -->
+  <nav class="bottom-nav" id="bottomNavBar" style="display:none;">
+    <div class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
+      <i class="fas fa-home"></i>
+      <span>الرئيسية</span>
+    </div>
+    <div class="bottom-nav-item" data-tab="attendance" onclick="switchTab('attendance')">
+      <i class="fas fa-calendar-check"></i>
+      <span>الحضور</span>
+    </div>
+    <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
+      <div class="fab-btn">
+        <i class="fas fa-paper-plane"></i>
+      </div>
+    </div>
+    <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')">
+      <i class="fas fa-tasks"></i>
+      <span>المهام</span>
+    </div>
+    <div class="bottom-nav-item" data-tab="family" onclick="switchTab('family')">
+      <i class="fas fa-comments"></i>
+      <span>التواصل</span>
+    </div>
+  </nav>
+
   <!-- Account Switch -->
   <div class="overlay settings-overlay" id="switchOv">
     <div class="settings-sheet">
@@ -4588,7 +4994,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (d.success && d.student) {
           student = norm(d.student);
           await loadChurchSettings();
-          renderPublic(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
+          renderPublic(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
         } else noProfile('لم يُعثر على الملف الشخصي');
       } catch (e) { hideLoad(); noProfile('خطأ في الاتصال'); }
     }
@@ -4603,7 +5009,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           allAccounts = d.data.map(norm);
           student = allAccounts[0];
           await loadChurchSettings();
-          renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
+          renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
           if (allAccounts.length > 1) {
             document.getElementById('switchBtnTop').style.display = 'flex';
           }
@@ -6231,6 +6637,236 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background: var(--brand-bg);
       color: var(--brand);
     }
+
+    /* ══ V3 TABS AND SEARCH STYLE ══════════════════════════════ */
+    .send-coupons-page {
+      min-height: calc(100vh - 120px);
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      padding: 24px 18px 80px !important;
+    }
+    .send-coupons-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .07) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, .05) 0%, transparent 35%);
+      animation: hero-pulse 6s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .send-coupons-page::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1px);
+      background-size: 28px 28px;
+      z-index: 0;
+    }
+    .send-coupons-page > * {
+      position: relative;
+      z-index: 1;
+    }
+    #scTasks.fullscreen-tab {
+      min-height: calc(100vh - 120px);
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      background: var(--surf) !important;
+      padding: 20px 16px 80px !important;
+    }
+    .wizard-step-container {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-lg);
+      padding: 20px 16px;
+      margin-top: 14px;
+    }
+    .wizard-step-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wizard-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .send-wizard-input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      transition: all var(--fast);
+    }
+    .send-wizard-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .send-wizard-input:focus {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .send-cat-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-sm);
+      padding: 8px 4px;
+      font-size: .75rem;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--fast);
+      outline: none;
+    }
+    .send-cat-btn.active {
+      background: #fff;
+      color: var(--brand);
+      border-color: #fff;
+    }
+    .send-recipient-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--r-md);
+      font-size: .75rem;
+      font-weight: 800;
+      cursor: pointer;
+      min-width: 80px;
+      flex-shrink: 0;
+      gap: 4px;
+      transition: all var(--fast);
+      color: #fff;
+    }
+    .send-recipient-chip.active {
+      border-color: #fff;
+      background: #fff;
+      color: var(--brand);
+    }
+    
+    /* Sleek Home Search Bar */
+    .home-search-bar input {
+      border: 2px solid var(--bdr) !important;
+      box-shadow: var(--sh-sm) !important;
+    }
+    .home-search-bar input:focus {
+      border-color: var(--brand) !important;
+      box-shadow: 0 0 0 4px var(--brand-glow) !important;
+    }
+    
+    /* Step progress dots */
+    .wizard-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .wizard-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all var(--fast);
+    }
+    .wizard-dot.active {
+      background: #fff;
+      transform: scale(1.2);
+    }
+    
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1.5px solid var(--bdr2);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 490;
+      padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+    }
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--t3);
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--fast);
+      flex: 1;
+      height: 100%;
+      gap: 3px;
+    }
+    .bottom-nav-item i {
+      font-size: 1.2rem;
+      transition: transform var(--fast);
+    }
+    .bottom-nav-item.active {
+      color: var(--brand);
+    }
+    .bottom-nav-item.active i {
+      transform: translateY(-2px);
+    }
+    .bottom-nav-item.center-fab {
+      position: relative;
+      height: auto;
+      flex: 1;
+    }
+    .fab-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--r-full);
+      background: linear-gradient(135deg, var(--brand) 0%, var(--cou) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+      transform: translateY(-16px);
+      transition: all var(--fast);
+      border: 4px solid var(--surf);
+    }
+    .fab-btn i {
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    .bottom-nav-item.center-fab:hover .fab-btn {
+      transform: translateY(-18px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+    }
+
   </style>
   `;
     }
@@ -6698,7 +7334,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function doSwitch() {
       if (!selAccId || selAccId === student.id) { closeOv('switchOv'); return; }
       const acc = allAccounts.find(a => a.id === selAccId); if (!acc) return;
-      student = acc; renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; closeOv('switchOv'); toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
+      student = acc; renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; closeOv('switchOv'); toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
     }
 
     // ── Logout ────────────────────────────────────────────────────────
@@ -7168,6 +7804,465 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       } catch (e) {
         hideLoad();
         showToast('خطأ في الاتصال بالسيرفر', 'error');
+      }
+    }
+
+
+    // ── V3 MOBILE APP LOGIC & WIZARD STEPS & GENIUS SEARCH ──────────────
+    let selectedRecipientId = null;
+    let selectedRecipientNameStr = "";
+    let selectedSendCategory = "all";
+    let wizardCurrentStep = 1;
+    let hasSiblingsLoaded = false;
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      const activeItem = document.querySelector(`.bottom-nav-item[data-tab="${tabName}"]`);
+      if (activeItem) activeItem.classList.add('active');
+
+      const hero = document.querySelector('.hero');
+      const statsBar = document.getElementById('statsBar');
+      const scInfo = document.getElementById('scInfo');
+      const scAnn = document.getElementById('scAnn');
+      const homeSearchBar = document.getElementById('homeSearchBar');
+      const scAtt = document.getElementById('scAtt');
+      const scTasks = document.getElementById('scTasks');
+      const scTrips = document.getElementById('scTrips');
+      const scUncles = document.getElementById('scUncles');
+      const scSiblings = document.getElementById('scSiblings');
+      const scSendCoupons = document.getElementById('scSendCoupons');
+
+      if (hero) hero.style.display = 'none';
+      if (statsBar) statsBar.style.display = 'none';
+      if (scInfo) scInfo.style.display = 'none';
+      if (scAnn) scAnn.style.display = 'none';
+      if (homeSearchBar) homeSearchBar.style.display = 'none';
+      if (scAtt) scAtt.style.display = 'none';
+      if (scTasks) scTasks.style.display = 'none';
+      if (scTrips) scTrips.style.display = 'none';
+      if (scUncles) scUncles.style.display = 'none';
+      if (scSiblings) scSiblings.style.display = 'none';
+      if (scSendCoupons) scSendCoupons.style.display = 'none';
+
+      // Load correct tab contents
+      if (tabName === 'home') {
+        if (hero) hero.style.display = 'flex';
+        if (scInfo) scInfo.style.display = 'block';
+        if (scTrips) scTrips.style.display = 'block';
+        
+        // Show announcements banner at top if we have announcements
+        const annList = document.getElementById('annList');
+        if (annList && annList.textContent.trim().length > 0 && scAnn) {
+           scAnn.style.display = 'block';
+        }
+        
+        if (!IS_PUBLIC) {
+           if (statsBar) statsBar.style.display = 'flex';
+           if (homeSearchBar) homeSearchBar.style.display = 'block';
+        }
+      } else if (tabName === 'attendance') {
+        if (scAtt) scAtt.style.display = 'block';
+        if (statsBar) statsBar.style.display = 'flex';
+      } else if (tabName === 'send') {
+        if (scSendCoupons) {
+           scSendCoupons.style.display = 'block';
+           initSendWizard();
+        }
+      } else if (tabName === 'tasks') {
+        if (scTasks) {
+           scTasks.classList.add('fullscreen-tab');
+           scTasks.style.display = 'block';
+        }
+      } else if (tabName === 'family') {
+        // Display siblings only if they have siblings
+        if (hasSiblingsLoaded && scSiblings) {
+           scSiblings.style.display = 'block';
+        }
+        if (scUncles) scUncles.style.display = 'block';
+      }
+    }
+
+    // ── GENIUS SEARCH LOGIC (LIKE UNCLE DASHBOARD) ───────────────────────
+    function normalizeArabic(text) {
+      if (!text) return "";
+      return text
+        .replace(/[أإآٱ]/g, "ا")
+        .replace(/[ىئ]/g, "ي")
+        .replace(/ة/g, "ه")
+        .replace(/ؤ/g, "و")
+        .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
+        .toLowerCase()
+        .trim();
+    }
+
+    function getMatchScore(friend, query) {
+      const qNormalized = normalizeArabic(query);
+      const qRaw = query.trim().toLowerCase();
+      
+      let maxScore = 0;
+      const fields = [
+        { val: friend.name, weight: 1.0 },
+        { val: friend.class, weight: 0.7 },
+        { val: friend.id?.toString(), weight: 1.1 }
+      ];
+
+      fields.forEach(field => {
+        if (!field.val) return;
+        const target = field.val.toString();
+        const tNormalized = normalizeArabic(target);
+        const tRaw = target.toLowerCase();
+
+        let currentScore = 0;
+        if (tRaw === qRaw || tNormalized === qNormalized) {
+          currentScore = 100;
+        } else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) {
+          currentScore = 80;
+        } else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) {
+          currentScore = 60;
+        } else {
+          let score = 0;
+          let queryIdx = 0;
+          for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
+            if (tNormalized[i] === qNormalized[queryIdx]) {
+              queryIdx++;
+              score++;
+            }
+          }
+          if (queryIdx === qNormalized.length) {
+            currentScore = (score / tNormalized.length) * 40;
+          }
+        }
+        maxScore = Math.max(maxScore, currentScore * field.weight);
+      });
+      return maxScore;
+    }
+
+    // ── Home Genius Search ──
+    let _homeSearchTimer = null;
+    function onHomeSearch(val) {
+      clearTimeout(_homeSearchTimer);
+      const res = document.getElementById('homeSearchResults');
+      if (!val || val.trim().length < 2) { res.innerHTML = ''; return; }
+      res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t4);font-size:.82rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+      _homeSearchTimer = setTimeout(() => doHomeSearch(val.trim()), 300);
+    }
+
+    async function doHomeSearch(q) {
+      const res = document.getElementById('homeSearchResults');
+      try {
+        const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
+        if (!d.success || !d.kids || !d.kids.length) {
+          res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t3);font-size:.82rem;">لم يُعثر على نتائج</div>';
+          return;
+        }
+        
+        // Score and sort search results locally (Genius style)
+        let scored = d.kids.map(k => {
+           return { ...k, _score: getMatchScore(k, q) };
+        }).filter(k => k._score > 0);
+
+        scored.sort((a, b) => b._score - a._score);
+
+        res.innerHTML = scored.map(k => {
+          const av = k.image_url
+            ? `<img src="${esc(k.image_url)}" alt="${esc(k.name)}">`
+            : `<span>${k.name.charAt(0)}</span>`;
+          const isSelf = student && k.id === student.id;
+          return `
+            <div class="friend-result-card" onclick="${isSelf ? 'window.scrollTo({top:0,behavior:\'smooth\'})' : 'openFriendProfile(' + k.id + ')'}" style="margin-bottom:0;">
+              <div class="friend-result-av">${av}</div>
+              <div class="friend-result-info">
+                <div class="friend-result-name">${esc(k.name)}${isSelf ? ' <span style="font-size:.68rem;color:var(--cou);font-weight:700;">(أنت)</span>' : ''}</div>
+                <div class="friend-result-meta">${esc(k.class || '—')}${k.church_name ? ' · ' + esc(k.church_name) : ''}</div>
+              </div>
+              <div class="friend-result-cou"><i class="fas fa-ticket-alt" style="font-size:.72rem;margin-left:3px;"></i>${k.coupons}</div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--err);font-size:.82rem;">خطأ في البحث</div>';
+      }
+    }
+
+    function clearHomeSearch() {
+      document.getElementById('homeFriendSearch').value = '';
+      document.getElementById('homeSearchResults').innerHTML = '';
+    }
+
+    // ── Sibling loading overrides ──
+    async function loadSiblings() {
+      const container = document.getElementById('siblingsList');
+      const scSiblings = document.getElementById('scSiblings');
+      if (!student || !student.custom_info || !student.custom_info.sibling_group) {
+        hasSiblingsLoaded = false;
+        if (scSiblings) scSiblings.style.display = 'none';
+        return;
+      }
+      try {
+        const d = await api({ action: 'getSiblingGroupMembers', studentId: student.id });
+        if (d.success && d.siblings && d.siblings.length > 0) {
+          const others = d.siblings.filter(s => s.id != student.id);
+          if (others.length === 0) {
+            hasSiblingsLoaded = false;
+            if (scSiblings) scSiblings.style.display = 'none';
+            return;
+          }
+          hasSiblingsLoaded = true;
+          container.innerHTML = others.map(s => {
+            const photo = s.image_url 
+              ? `<img src="${esc(s.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-md);" alt="${esc(s.name)}">`
+              : `<i class="fas fa-user" style="font-size:1.8rem;color:var(--t4);"></i>`;
+            return `
+              <div class="sibling-card" onclick="openFriendProfile(${s.id})" style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all var(--fast);display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:var(--sh-sm);">
+                <div style="width:56px;height:56px;border-radius:var(--r-md);background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                  ${photo}
+                </div>
+                <div style="font-size:.82rem;font-weight:800;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">${esc(s.name)}</div>
+                <div style="font-size:.68rem;color:var(--t4);font-weight:700;">${esc(s.class || '—')}</div>
+                <div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:800;">
+                  <i class="fas fa-ticket-alt" style="font-size:.65rem;"></i> ${s.coupons}
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          // Set up chips in Wizard Step 1
+          const chipsContainer = document.getElementById('siblingChipsContainer');
+          const chipsList = document.getElementById('sendSiblingChips');
+          if (chipsContainer && chipsList) {
+            chipsContainer.style.display = 'block';
+            chipsList.innerHTML = others.map(s => `
+              <div class="send-recipient-chip" data-id="${s.id}" data-name="${esc(s.name)}" onclick="selectRecipient(${s.id}, '${esc(s.name)}')">
+                <div style="font-size:.8rem;font-weight:800;">${esc(s.name.split(' ')[0])}</div>
+                <div style="font-size:.62rem;color:rgba(255,255,255,0.7);">أخ / أخت</div>
+              </div>
+            `).join('');
+          }
+        } else {
+          hasSiblingsLoaded = false;
+          if (scSiblings) scSiblings.style.display = 'none';
+        }
+      } catch (e) {
+        hasSiblingsLoaded = false;
+        if (scSiblings) scSiblings.style.display = 'none';
+      }
+    }
+
+    // ── SEND COUPONS STEP WIZARD ──
+    function initSendWizard() {
+      if (IS_PUBLIC) {
+        showToast('يرجى تسجيل الدخول لتتمكن من إرسال الكوبونات', 'error');
+        switchTab('home');
+        return;
+      }
+      
+      // Update available values
+      document.getElementById('sendAvailAtt').innerText = student.att_coupons || 0;
+      document.getElementById('sendAvailCom').innerText = student.com_coupons || 0;
+      document.getElementById('sendAvailTsk').innerText = student.task_coupons || 0;
+      document.getElementById('sendAvailTotal').innerText = student.coupons || 0;
+
+      goToStep(1);
+      clearSelectedRecipient();
+      document.getElementById('sendAmount').value = '';
+      document.getElementById('sendPassword').value = '';
+    }
+
+    function goToStep(stepNum) {
+      wizardCurrentStep = stepNum;
+      
+      // Toggle views
+      document.getElementById('sendStep1').style.display = stepNum === 1 ? 'block' : 'none';
+      document.getElementById('sendStep2').style.display = stepNum === 2 ? 'block' : 'none';
+      document.getElementById('sendStep3').style.display = stepNum === 3 ? 'block' : 'none';
+
+      // Update dots
+      document.querySelectorAll('.wizard-dot').forEach((dot, idx) => {
+         dot.classList.remove('active');
+         if (idx + 1 === stepNum) dot.classList.add('active');
+      });
+
+      if (stepNum === 2) {
+         checkStep2Valid();
+      } else if (stepNum === 3) {
+         // Show summary message
+         let label = "الكل مدمج";
+         if (selectedSendCategory === 'att') label = "الحضور";
+         else if (selectedSendCategory === 'com') label = "الالتزام";
+         else if (selectedSendCategory === 'task') label = "المهام";
+         
+         const amount = parseInt(document.getElementById('sendAmount').value);
+         document.getElementById('sendSummaryMsg').innerHTML = `سوف تقوم بإرسال <strong style="font-size:1.15rem; color:#f59e0b;">${amount}</strong> كوبون من رصيد [${label}] إلى صديقك <strong style="color:#60a5fa;">(${selectedRecipientNameStr})</strong>.`;
+         checkStep3Valid();
+      }
+    }
+
+    function selectRecipient(id, name) {
+      selectedRecipientId = id;
+      selectedRecipientNameStr = name;
+
+      document.querySelectorAll('.send-recipient-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.getAttribute('data-id') == id) chip.classList.add('active');
+      });
+
+      document.getElementById('selectedRecipientName').innerText = name;
+      document.getElementById('selectedRecipientTag').style.display = 'flex';
+      
+      // Clear searches
+      document.getElementById('sendFriendSearch').value = '';
+      document.getElementById('sendFriendSearchResults').style.display = 'none';
+
+      // Enable next step button
+      document.getElementById('toStep2Btn').disabled = false;
+    }
+
+    function clearSelectedRecipient() {
+      selectedRecipientId = null;
+      selectedRecipientNameStr = "";
+      document.querySelectorAll('.send-recipient-chip').forEach(chip => chip.classList.remove('active'));
+      document.getElementById('selectedRecipientTag').style.display = 'none';
+      document.getElementById('toStep2Btn').disabled = true;
+    }
+
+    let _sendFriendSearchTimer = null;
+    function onSendFriendSearch(val) {
+      clearTimeout(_sendFriendSearchTimer);
+      const res = document.getElementById('sendFriendSearchResults');
+      if (!val || val.trim().length < 2) { res.innerHTML = ''; res.style.display = 'none'; return; }
+      res.style.display = 'block';
+      res.innerHTML = '<div style="padding:10px;text-align:center;color:var(--t4);font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+      _sendFriendSearchTimer = setTimeout(() => doSendFriendSearch(val.trim()), 300);
+    }
+
+    async function doSendFriendSearch(q) {
+      const res = document.getElementById('sendFriendSearchResults');
+      try {
+        const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
+        if (!d.success || !d.kids || !d.kids.length) {
+          res.innerHTML = '<div style="padding:10px;text-align:center;color:var(--t3);font-size:.78rem;">لم يُعثر على نتائج</div>';
+          return;
+        }
+
+        // Score results
+        let scored = d.kids.filter(k => k.id != student.id).map(k => {
+           return { ...k, _score: getMatchScore(k, q) };
+        }).filter(k => k._score > 0);
+        scored.sort((a, b) => b._score - a._score);
+
+        res.innerHTML = scored.map(k => `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--bdr2);cursor:pointer; color:var(--t1);" onclick="selectRecipient(${k.id}, '${esc(k.name)}')">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.75rem;overflow:hidden;">
+              ${k.image_url ? `<img src="${esc(k.image_url)}" style="width:100%;height:100%;object-fit:cover;">` : k.name.charAt(0)}
+            </div>
+            <div style="flex:1;min-width:0;text-align:right;">
+              <div style="font-size:.8rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(k.name)}</div>
+              <div style="font-size:.64rem;color:var(--t4);">${esc(k.class || '—')}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        res.innerHTML = '<div style="padding:10px;text-align:center;color:var(--err);font-size:.78rem;">خطأ في البحث</div>';
+      }
+    }
+
+    function selectSendCat(btn) {
+      document.querySelectorAll('.send-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedSendCategory = btn.getAttribute('data-cat');
+      checkStep2Valid();
+    }
+
+    function checkStep2Valid() {
+      const amount = parseInt(document.getElementById('sendAmount').value);
+      let limit = student.coupons || 0;
+      if (selectedSendCategory === 'att') limit = student.att_coupons || 0;
+      else if (selectedSendCategory === 'com') limit = student.com_coupons || 0;
+      else if (selectedSendCategory === 'task') limit = student.task_coupons || 0;
+
+      const isValid = (!isNaN(amount) && amount > 0 && amount <= limit);
+      document.getElementById('toStep3Btn').disabled = !isValid;
+    }
+
+    function checkStep3Valid() {
+      const password = document.getElementById('sendPassword').value;
+      document.getElementById('sendWizardSubmitBtn').disabled = !password;
+    }
+
+    function trySendCoupons() {
+      const amount = parseInt(document.getElementById('sendAmount').value);
+      const password = document.getElementById('sendPassword').value;
+      
+      const msg = `تأكيد نهائي: هل أنت متأكد من إرسال ${amount} كوبون إلى (${selectedRecipientNameStr})؟`;
+      document.getElementById('shareConfirmMsg').innerText = msg;
+      openOv('shareConfirmModal');
+    }
+
+    async function confirmSendCoupons() {
+      closeOv('shareConfirmModal');
+      showLoad('جاري إرسال الكوبونات…');
+      try {
+        const password = document.getElementById('sendPassword').value;
+        const amount = parseInt(document.getElementById('sendAmount').value);
+
+        const d = await api({
+          action: 'shareCoupons',
+          senderId: student.id,
+          password: password,
+          recipientId: selectedRecipientId,
+          amount: amount,
+          category: selectedSendCategory
+        });
+
+        hideLoad();
+        if (d.success) {
+          showToast(d.message || 'تم إرسال الكوبونات بنجاح!', 'success');
+          
+          // Refresh and redirect to home after 1 second
+          setTimeout(() => { location.reload(); }, 1200);
+        } else {
+          showToast(d.message || 'فشل إرسال الكوبونات', 'error');
+        }
+      } catch (e) {
+        hideLoad();
+        showToast('خطأ في الاتصال بالسيرفر', 'error');
+      }
+    }
+
+    // ── Announcement notification rendering update ──
+    async function loadAnn() {
+      if (!student) return;
+      try {
+        const d = await api({ action: 'getAnnouncementsForStudent', churchId: student.church_id || 1, studentClass: student.class, studentName: student.name });
+        const listEl = document.getElementById('annList');
+        const scAnn = document.getElementById('scAnn');
+        const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
+
+        if (!anns.length) {
+          if (scAnn) scAnn.style.display = 'none';
+          return;
+        }
+
+        const latest = anns[0];
+        if (scAnn && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
+           scAnn.style.display = 'block';
+        }
+        
+        let linkBtn = '';
+        if (latest.type === 'button' && latest.link) {
+          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
+        }
+
+        if (listEl) {
+          listEl.innerHTML = `
+            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
+            ${linkBtn}
+          `;
+        }
+      } catch (e) {
+        const scAnn = document.getElementById('scAnn');
+        if (scAnn) scAnn.style.display = 'none';
       }
     }
 
