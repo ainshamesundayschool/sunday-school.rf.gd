@@ -4193,6 +4193,67 @@
         overflow: hidden;
       }
     }
+
+    /* CSV Export Dropdown Styling */
+    .trip-action-dropdown-wrap {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .trip-action-dropdown-wrap .trip-action-btn {
+      width: 100%;
+      height: 100%;
+    }
+    .csv-dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      left: auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      z-index: 250;
+      padding: 6px 0;
+      margin-top: 6px;
+      min-width: 210px;
+      animation: dropdownFadeIn 0.15s var(--ease-out);
+    }
+    .csv-dropdown-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-2);
+      cursor: pointer;
+      text-align: right;
+      transition: all var(--t-fast) var(--ease);
+    }
+    .csv-dropdown-item:hover {
+      background: var(--primary-light) !important;
+      color: var(--primary) !important;
+    }
+    .csv-dropdown-item i.fa-check {
+      color: var(--primary);
+      font-size: 0.85rem;
+      transition: opacity 0.15s;
+    }
+    @keyframes dropdownFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
@@ -5006,9 +5067,30 @@
           <button class="trip-action-btn" onclick="switchTripTab('regs')">
             <i class="fas fa-users"></i>المسجلون<br><span style="font-weight:800;font-size:0.9rem;">${regs.length}</span>
           </button>
-          <button class="trip-action-btn" onclick="exportTripData(${trip.id},'csv')">
-            <i class="fas fa-file-csv"></i>تصدير CSV
-          </button>
+          <div class="trip-action-dropdown-wrap">
+            <button type="button" class="trip-action-btn" onclick="toggleCsvDropdown(event)">
+              <i class="fas fa-file-csv"></i>تصدير CSV <i class="fas fa-chevron-down" style="font-size:0.6rem;opacity:0.7;"></i>
+            </button>
+            <div id="csvExportDropdown" class="csv-dropdown-content">
+              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'regs', event)">
+                <span>قائمة المسجلين (Registrations)</span>
+                <i class="fas fa-check" style="opacity:0;"></i>
+              </button>
+              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'waitlist', event)">
+                <span>قائمة الانتظار (Waitlist)</span>
+                <i class="fas fa-check" style="opacity:0;"></i>
+              </button>
+              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'payments', event)">
+                <span>حركة المدفوعات (Payments)</span>
+                <i class="fas fa-check" style="opacity:0;"></i>
+              </button>
+              <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+              <button type="button" class="csv-dropdown-item" onclick="executeExport(${trip.id}, 'all', event)" style="font-weight:700;color:var(--primary);">
+                <span>الكل في ملف واحد (All in One)</span>
+                <i class="fas fa-check" style="opacity:0;"></i>
+              </button>
+            </div>
+          </div>
           <button class="trip-action-btn" onclick="copyTripLink(${trip.id})">
             <i class="fas fa-link"></i>نسخ الرابط
           </button>
@@ -5178,16 +5260,48 @@
       switchTripTab('exp');
     }
 
-    async function exportTripData(id, fmt) {
-      if (fmt !== 'csv') {
-        window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`;
-        return;
+    function toggleCsvDropdown(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('csvExportDropdown');
+      if (!dropdown) return;
+      const isOpen = dropdown.style.display === 'block';
+      closeAllDropdowns();
+      if (!isOpen) {
+        dropdown.style.display = 'block';
+        document.addEventListener('click', closeAllDropdowns);
       }
+    }
 
+    function closeAllDropdowns() {
+      const dropdown = document.getElementById('csvExportDropdown');
+      if (dropdown) dropdown.style.display = 'none';
+      document.removeEventListener('click', closeAllDropdowns);
+    }
+
+    async function executeExport(id, type, event) {
+      if (event) event.stopPropagation();
+      const items = document.querySelectorAll('.csv-dropdown-item');
+      items.forEach(item => {
+        const check = item.querySelector('.fa-check');
+        if (check) check.style.opacity = '0';
+      });
+      const clickedItem = event?.currentTarget;
+      if (clickedItem) {
+        const check = clickedItem.querySelector('.fa-check');
+        if (check) check.style.opacity = '1';
+      }
+      setTimeout(() => {
+        closeAllDropdowns();
+      }, 350);
+      await performExport(id, type);
+    }
+
+    async function performExport(id, type) {
       let trip = allTripsCache.find(t => t.id == id) || window.currentTripObj;
       let regs = tripRegistrationsCache[id] || trip?.registrations || [];
+      let waitlist = window.currentWaitlistCache || [];
 
-      if (!trip || !regs.length) {
+      if (!trip || (!regs.length && !waitlist.length)) {
         try {
           const fd = mkFd('getTripDetails');
           fd.append('trip_id', id);
@@ -5195,60 +5309,210 @@
           if (res?.success && res.trip) {
             trip = res.trip;
             regs = res.trip.registrations || [];
+            waitlist = res.trip.waitlist || [];
             tripRegistrationsCache[id] = regs;
+            window.currentWaitlistCache = waitlist;
           }
         } catch (e) {}
       }
 
-      if (!regs.length) {
-        showToast('لا يوجد مسجلون لتصديرهم', 'warning');
-        return;
+      if (!waitlist.length && trip?.id == id) {
+        try {
+          const fd2 = mkFd('getWaitlist'); fd2.append('trip_id', id);
+          const wd = await fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json());
+          if (wd.success) {
+            waitlist = wd.waitlist || [];
+            window.currentWaitlistCache = waitlist;
+          }
+        } catch (e) {}
       }
 
-      const headers = [
-        'Registration ID',
-        'Type',
-        'Student ID',
-        'Guest ID',
-        'Name',
-        'Class',
-        'Church',
-        'Phone',
-        'Guardian',
-        'Paid',
-        'Donation',
-        'Status',
-        'Added At',
-        'Notes'
-      ];
-
       const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
-      const rows = regs.map(r => [
-        r.id,
-        r.registration_type || (r.guest_id ? 'guest' : 'student'),
-        r.student_id || '',
-        r.guest_id || '',
-        r.student_name || r.guest_name || r.name || '',
-        r.student_class || r.guest_class || r.class_name || '',
-        r.church_name || r.student_church || '',
-        r.phone || r.guest_phone || '',
-        r.guardian_name || r.guest_guardian_name || '',
-        r.total_paid ?? r.deposit ?? '',
-        r.total_donation ?? r.donation ?? '',
-        r.payment_status || '',
-        r.added_at || r.created_at || '',
-        r.notes || ''
-      ].map(escapeCsv).join(','));
+      const totalPerKid = getCurrentTripTotalPerKid();
 
+      if (type === 'regs') {
+        if (!regs.length) {
+          showToast('لا يوجد مسجلون لتصديرهم', 'warning');
+          return;
+        }
+        const headers = [
+          'ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
+        ];
+        const rows = regs.map(r => {
+          const paid = parseFloat(r.total_paid) || 0;
+          const rem = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+          return [
+            r.id,
+            r.registration_type || (r.guest_id ? 'guest' : 'student'),
+            r.student_id || '',
+            r.guest_id || '',
+            r.student_name || r.guest_name || r.name || '',
+            r.student_class || r.guest_class || r.class_name || '',
+            r.church_name || r.student_church || '',
+            r.phone || r.guest_phone || '',
+            r.guardian_name || r.guest_guardian_name || '',
+            paid,
+            parseFloat(r.total_donation) || 0,
+            rem,
+            r.payment_status || '',
+            r.added_at || r.created_at || '',
+            r.notes || ''
+          ].map(escapeCsv).join(',');
+        });
+        downloadCsvBlob(headers, rows, `trip_${id}_registrations.csv`);
+
+      } else if (type === 'waitlist') {
+        if (!waitlist.length) {
+          showToast('قائمة الانتظار فارغة', 'warning');
+          return;
+        }
+        const headers = [
+          'ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
+        ];
+        const rows = waitlist.map(w => {
+          const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
+          const rem = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+          return [
+            w.id,
+            w.registration_type || (w.guest_id ? 'guest' : 'student'),
+            w.student_id || '',
+            w.guest_id || '',
+            w.student_name || w.guest_name || w.name || '',
+            w.student_class || w.guest_class || w.class_name || '',
+            w.church_name || w.student_church || '',
+            w.phone || w.guest_phone || '',
+            w.guardian_name || w.guest_guardian_name || '',
+            paid,
+            parseFloat(w.total_donation ?? w.donation) || 0,
+            rem,
+            w.payment_status || '',
+            w.added_at || w.created_at || '',
+            w.notes || ''
+          ].map(escapeCsv).join(',');
+        });
+        downloadCsvBlob(headers, rows, `trip_${id}_waitlist.csv`);
+
+      } else if (type === 'payments') {
+        const paymentRows = [];
+        const collectPayments = (list, isWaitlistText) => {
+          list.forEach(r => {
+            let history = [];
+            if (Array.isArray(r.payment_history)) {
+              history = r.payment_history;
+            } else {
+              try { history = JSON.parse(r.payment_history || '[]') || []; } catch (e) {}
+            }
+            history.forEach(p => {
+              paymentRows.push([
+                p.id || '',
+                r.id,
+                r.student_name || r.guest_name || r.name || '',
+                r.student_id || r.guest_id || '',
+                r.registration_type || (r.guest_id ? 'guest' : 'student'),
+                isWaitlistText,
+                parseFloat(p.amount) || 0,
+                p.timestamp ? new Date(p.timestamp).toLocaleString('ar-EG') : '',
+                p.type === 'deposit' ? 'مقدم' : 'دفعة',
+                p.notes || '',
+                p.is_deleted === 1 ? 'ملغية' : 'نشطة'
+              ]);
+            });
+          });
+        };
+
+        collectPayments(regs, 'لا');
+        collectPayments(waitlist, 'نعم');
+
+        if (!paymentRows.length) {
+          showToast('لا توجد عمليات دفع لتصديرها', 'warning');
+          return;
+        }
+
+        const headers = [
+          'Payment ID', 'Record ID', 'Name', 'Student/Guest ID', 'Type', 'Is Waitlist?', 'Amount', 'Date', 'Payment Type', 'Notes', 'Status'
+        ];
+        const rows = paymentRows.map(row => row.map(escapeCsv).join(','));
+        downloadCsvBlob(headers, rows, `trip_${id}_payments.csv`);
+
+      } else if (type === 'all') {
+        if (!regs.length && !waitlist.length) {
+          showToast('لا توجد بيانات لتصديرها', 'warning');
+          return;
+        }
+
+        const headers = [
+          'List Type', 'Record ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
+        ];
+        
+        const rows = [];
+        regs.forEach(r => {
+          const paid = parseFloat(r.total_paid) || 0;
+          const rem = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+          rows.push([
+            'مسجل (Registered)',
+            r.id,
+            r.registration_type || (r.guest_id ? 'guest' : 'student'),
+            r.student_id || '',
+            r.guest_id || '',
+            r.student_name || r.guest_name || r.name || '',
+            r.student_class || r.guest_class || r.class_name || '',
+            r.church_name || r.student_church || '',
+            r.phone || r.guest_phone || '',
+            r.guardian_name || r.guest_guardian_name || '',
+            paid,
+            parseFloat(r.total_donation) || 0,
+            rem,
+            r.payment_status || '',
+            r.added_at || r.created_at || '',
+            r.notes || ''
+          ].map(escapeCsv).join(','));
+        });
+
+        waitlist.forEach(w => {
+          const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
+          const rem = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+          rows.push([
+            'انتظار (Waitlist)',
+            w.id,
+            w.registration_type || (w.guest_id ? 'guest' : 'student'),
+            w.student_id || '',
+            w.guest_id || '',
+            w.student_name || w.guest_name || w.name || '',
+            w.student_class || w.guest_class || w.class_name || '',
+            w.church_name || w.student_church || '',
+            w.phone || w.guest_phone || '',
+            w.guardian_name || w.guest_guardian_name || '',
+            paid,
+            parseFloat(w.total_donation ?? w.donation) || 0,
+            rem,
+            w.payment_status || '',
+            w.added_at || w.created_at || '',
+            w.notes || ''
+          ].map(escapeCsv).join(','));
+        });
+
+        downloadCsvBlob(headers, rows, `trip_${id}_all_participants.csv`);
+      }
+    }
+
+    function downloadCsvBlob(headers, rows, filename) {
       const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `trip_${id}_registrations.csv`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
+    }
+
+    async function exportTripData(id, fmt) {
+      if (fmt !== 'csv') {
+        window.location.href = API_URL + `?action=exportTripData&trip_id=${id}&format=${fmt}`;
+        return;
+      }
+      await performExport(id, 'regs');
     }
     function copyTripLink(id) { const url = window.location.origin + window.location.pathname + `#trips?trip_id=${id}`; navigator.clipboard?.writeText(url).then(() => showToast?.('تم نسخ رابط الرحلة', 'success')).catch(() => showToast?.('فشل في نسخ الرابط', 'error')); }
 
