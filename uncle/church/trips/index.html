@@ -3152,7 +3152,7 @@
       overscroll-behavior: contain;
     }
 
-    @media (min-width: 1100px) {
+    @media (min-width: 1000px) {
       #tdTabsMobile {
         display: none;
       }
@@ -3219,7 +3219,7 @@
       }
     }
 
-    @media (max-width: 1099px) {
+    @media (max-width: 999px) {
       .trip-folder-shell {
         background: transparent;
         border: none;
@@ -3968,37 +3968,80 @@
 
     .main-wrapper {
       display: flex !important; /* Force override display:none */
+      margin-right: 0 !important;
+    }
+
+    /* Clean, highly visible styles for the tabs bar in trips page */
+    .trip-tabs-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #ffffff !important; /* Solid premium white background */
+      padding: 8px 24px !important;
+      margin: 0 -28px 14px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(15, 14, 26, 0.03); /* Soft shadow */
+    }
+
+    .trip-tabs-bar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Style both desktop and mobile tabs inside the tabs bar to be clearly visible */
+    .trip-tabs-bar .td-tabs {
+      border-bottom: none !important;
+      background: transparent !important;
+    }
+
+    .trip-tabs-bar .td-tab {
+      color: var(--text-2) !important; /* Dark grey-blue text */
+      background: transparent !important;
+      border-bottom: 3px solid transparent !important;
+      border-radius: 0 !important;
+      font-weight: 700 !important;
+      padding: 10px 16px !important;
+      min-height: auto !important;
+      box-shadow: none !important;
+      transition: all var(--t-fast) var(--ease);
+    }
+
+    .trip-tabs-bar .td-tab:hover {
+      color: var(--primary) !important;
+      background: rgba(99, 102, 241, 0.05) !important;
+    }
+
+    .trip-tabs-bar .td-tab.active {
+      color: var(--primary) !important; /* Premium purple/indigo */
+      border-bottom-color: var(--primary) !important;
+      background: transparent !important;
+    }
+
+    /* Badge colors inside tabs */
+    .trip-tabs-bar .td-tab .td-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      margin-right: 6px;
+    }
+    .trip-tabs-bar .td-tab .td-badge.warn {
+      background: var(--warning-light);
+      color: var(--warning);
     }
 
     @media (max-width: 999px) {
-      .sidebar {
-        display: none !important;
-      }
-      .main-wrapper {
-        margin-right: 0 !important;
-      }
-      .mobile-menu-btn {
-        display: inline-flex !important;
-      }
       #tdHeader {
         display: none !important;
+      }
+      .trip-tabs-bar {
+        padding: 8px 16px !important;
+        margin: 0 -16px 14px;
       }
     }
 
     @media (min-width: 1000px) {
-      .sidebar {
-        display: flex !important;
-      }
-      .main-wrapper {
-        margin-right: var(--sidebar-w) !important;
-      }
-      .main-wrapper.collapsed {
-        margin-right: var(--sidebar-collapsed) !important;
-      }
-      .mobile-menu-btn {
-        display: none !important;
-      }
-
       /* Make main-content and the inner modal container appear as a native page layout */
       .main-content {
         display: block !important;
@@ -4134,22 +4177,6 @@
         margin-top: 10px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
-      
-      /* Make tabs bar sticky in desktop dashboard view */
-      .trip-tabs-bar {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background: var(--bg);
-        padding: 14px 28px 10px;
-        margin: 0 -28px 14px;
-        border-bottom: 1px solid var(--border);
-      }
-      
-      .trip-tabs-bar-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
 
       /* Center contents inside workspace */
       .trip-workspace {
@@ -4171,66 +4198,8 @@
 
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar" id="tripSidebar">
-    <div class="sidebar-brand">
-      <div class="brand-icon">
-        <img src="/logo.png" alt="" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'">
-      </div>
-      <div class="brand-text">
-        <h2 id="sidebarChurchName">مدارس الأحد</h2>
-        <p id="sidebarTripName">تفاصيل الرحلة</p>
-      </div>
-      <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()">
-        <i class="fas fa-chevron-right"></i>
-      </button>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">الرحلة الحالية</div>
-      <button class="nav-item active" onclick="switchTripTab('info')" data-tooltip="ملخص الرحلة" id="sb-tab-info">
-        <i class="fas fa-info-circle"></i><span class="label">ملخص الرحلة</span>
-      </button>
-      <button class="nav-item" onclick="switchTripTab('regs')" data-tooltip="الأطفال المسجلون" id="sb-tab-regs">
-        <i class="fas fa-users"></i><span class="label">الأطفال المسجلون</span>
-      </button>
-      <button class="nav-item" onclick="switchTripTab('waitlist')" data-tooltip="قائمة الانتظار" id="sb-tab-waitlist">
-        <i class="fas fa-clock"></i><span class="label">قائمة الانتظار</span>
-      </button>
-      <button class="nav-item" onclick="switchTripTab('exp')" data-tooltip="المصروفات والحسابات" id="sb-tab-exp">
-        <i class="fas fa-receipt"></i><span class="label">المصروفات والحسابات</span>
-      </button>
-
-      <div class="nav-section-label">خيارات وأدوات</div>
-      <button class="nav-item" onclick="printQRCards(window.currentTripId)" data-tooltip="طباعة كروت QR" id="sb-action-print">
-        <i class="fas fa-print"></i><span class="label">طباعة كروت QR</span>
-      </button>
-      <button class="nav-item" onclick="openCustomFieldEditor(window.currentTripId)" data-tooltip="البيانات الإضافية" id="sb-action-fields">
-        <i class="fas fa-sliders-h"></i><span class="label">البيانات الإضافية</span>
-      </button>
-      <button class="nav-item" onclick="showTripCollaborationModal(window.currentTripId)" data-tooltip="التعاون مع الكنائس" id="sb-action-collab">
-        <i class="fas fa-handshake"></i><span class="label">التعاون والمشاركة</span>
-      </button>
-      
-      <div class="nav-section-label">عام</div>
-      <button class="nav-item" onclick="window.location.href='/uncle/church/#trips'" data-tooltip="العودة للوحة الكنيسة">
-        <i class="fas fa-arrow-left"></i><span class="label">لوحة التحكم الرئيسية</span>
-      </button>
-    </nav>
-  </aside>
-
   <!-- Minimal trips page content (keeps the page self-contained) -->
   <div class="main-wrapper">
-    <div class="topbar">
-      <div class="topbar-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <div>
-          <div class="topbar-title">إدارة الرحلة</div>
-          <div class="topbar-breadcrumb"><span>تفاصيل الرحلة</span></div>
-        </div>
-      </div>
-      <div class="topbar-right"></div>
-    </div>
-
     <main class="main-content">
       <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
       <div id="tripDetailsModal" class="modal" style="padding:0;">
@@ -4368,16 +4337,7 @@
 
   <script>
     // Standalone trip-detail integration. This page intentionally renders one selected trip only.
-    let sidebarCollapsed = false;
-    function toggleSidebar() {
-      sidebarCollapsed = !sidebarCollapsed;
-      document.getElementById('tripSidebar').classList.toggle('collapsed', sidebarCollapsed);
-      document.querySelector('.main-wrapper').classList.toggle('collapsed', sidebarCollapsed);
-      const icon = document.querySelector('#sidebarToggleBtn i');
-      if (icon) {
-        icon.className = sidebarCollapsed ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
-      }
-    }
+    // Sidebar toggle controls removed.
     const API_URL = '/api.php';
     let tripExpensesCache = {};
     let allTripsCache = [];
@@ -4900,8 +4860,10 @@
       const tripWordDef = trip.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
       
       // Dynamic DOM updates
-      document.querySelector('.topbar-title').textContent = 'إدارة ' + tripWordDef;
-      document.querySelector('.topbar-breadcrumb span').textContent = 'تفاصيل ' + tripWordDef;
+      const tTitle = document.querySelector('.topbar-title');
+      if (tTitle) tTitle.textContent = 'إدارة ' + tripWordDef;
+      const tBreadcrumb = document.querySelector('.topbar-breadcrumb span');
+      if (tBreadcrumb) tBreadcrumb.textContent = 'تفاصيل ' + tripWordDef;
       document.getElementById('tdModalTitle').textContent = 'تفاصيل ' + tripWordDef;
 
       // Update sidebar branding
