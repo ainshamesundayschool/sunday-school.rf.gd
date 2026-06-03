@@ -287,7 +287,7 @@
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
     }
 
-    .sidebar.collapsed .sidebar-toggle {}
+
 
     /* Nav */
     .sidebar-nav {
@@ -3957,16 +3957,272 @@
         min-height: 260px !important;
       }
     }
+
+    /* REDESIGN FOR DESKTOP VIEW - PREMIUM DASHBOARD LAYOUT OVERRIDES */
+    .td-title-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .main-wrapper {
+      display: flex !important; /* Force override display:none */
+    }
+
+    @media (max-width: 999px) {
+      .sidebar {
+        display: none !important;
+      }
+      .main-wrapper {
+        margin-right: 0 !important;
+      }
+      .mobile-menu-btn {
+        display: inline-flex !important;
+      }
+      #tdHeader {
+        display: none !important;
+      }
+    }
+
+    @media (min-width: 1000px) {
+      .sidebar {
+        display: flex !important;
+      }
+      .main-wrapper {
+        margin-right: var(--sidebar-w) !important;
+      }
+      .main-wrapper.collapsed {
+        margin-right: var(--sidebar-collapsed) !important;
+      }
+      .mobile-menu-btn {
+        display: none !important;
+      }
+
+      /* Make main-content and the inner modal container appear as a native page layout */
+      .main-content {
+        display: block !important;
+        padding: 0 !important;
+      }
+
+      #tripDetailsModal {
+        position: static !important;
+        display: block !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        z-index: auto !important;
+        padding: 0 !important;
+      }
+
+      #tripDetailsModal .modal-box {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        animation: none !important;
+      }
+
+      /* Premium Dashboard Header Styling */
+      #tdHeader {
+        display: grid !important;
+        grid-template-columns: 80px 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 12px 18px;
+        align-items: center;
+        padding: 24px 28px 20px;
+        background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid));
+        color: white;
+        border-bottom: 1px solid var(--border-sidebar);
+        position: relative;
+        overflow: hidden;
+      }
+
+      #tdHeader::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.18) 0%, transparent 60%);
+        pointer-events: none;
+      }
+
+      #tdCoverThumb {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.8rem;
+      }
+
+      #tdCoverThumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .td-title-badge-wrap {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      #tdModalTitle {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: white;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      #tdStatusBadge {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+      }
+
+      #tdSubtitle {
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.65);
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      .price-pills-wrap {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+      }
+
+      #tdTotalPricePill {
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: #10b981;
+        line-height: 1;
+      }
+
+      #tdPriceBreakPill {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.08);
+        padding: 3px 8px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      #tdQuickStats {
+        grid-column: 1 / span 3;
+        grid-row: 3;
+        margin-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      /* Make tabs bar sticky in desktop dashboard view */
+      .trip-tabs-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg);
+        padding: 14px 28px 10px;
+        margin: 0 -28px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .trip-tabs-bar-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* Center contents inside workspace */
+      .trip-workspace {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0;
+      }
+      
+      .trip-folder-shell {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        background: var(--card);
+        overflow: hidden;
+      }
+    }
   </style>
 </head>
 
 <body>
 
+  <!-- Sidebar -->
+  <aside class="sidebar" id="tripSidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'">
+      </div>
+      <div class="brand-text">
+        <h2 id="sidebarChurchName">مدارس الأحد</h2>
+        <p id="sidebarTripName">تفاصيل الرحلة</p>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">الرحلة الحالية</div>
+      <button class="nav-item active" onclick="switchTripTab('info')" data-tooltip="ملخص الرحلة" id="sb-tab-info">
+        <i class="fas fa-info-circle"></i><span class="label">ملخص الرحلة</span>
+      </button>
+      <button class="nav-item" onclick="switchTripTab('regs')" data-tooltip="الأطفال المسجلون" id="sb-tab-regs">
+        <i class="fas fa-users"></i><span class="label">الأطفال المسجلون</span>
+      </button>
+      <button class="nav-item" onclick="switchTripTab('waitlist')" data-tooltip="قائمة الانتظار" id="sb-tab-waitlist">
+        <i class="fas fa-clock"></i><span class="label">قائمة الانتظار</span>
+      </button>
+      <button class="nav-item" onclick="switchTripTab('exp')" data-tooltip="المصروفات والحسابات" id="sb-tab-exp">
+        <i class="fas fa-receipt"></i><span class="label">المصروفات والحسابات</span>
+      </button>
+
+      <div class="nav-section-label">خيارات وأدوات</div>
+      <button class="nav-item" onclick="printQRCards(window.currentTripId)" data-tooltip="طباعة كروت QR" id="sb-action-print">
+        <i class="fas fa-print"></i><span class="label">طباعة كروت QR</span>
+      </button>
+      <button class="nav-item" onclick="openCustomFieldEditor(window.currentTripId)" data-tooltip="البيانات الإضافية" id="sb-action-fields">
+        <i class="fas fa-sliders-h"></i><span class="label">البيانات الإضافية</span>
+      </button>
+      <button class="nav-item" onclick="showTripCollaborationModal(window.currentTripId)" data-tooltip="التعاون مع الكنائس" id="sb-action-collab">
+        <i class="fas fa-handshake"></i><span class="label">التعاون والمشاركة</span>
+      </button>
+      
+      <div class="nav-section-label">عام</div>
+      <button class="nav-item" onclick="window.location.href='/uncle/church/#trips'" data-tooltip="العودة للوحة الكنيسة">
+        <i class="fas fa-arrow-left"></i><span class="label">لوحة التحكم الرئيسية</span>
+      </button>
+    </nav>
+  </aside>
+
   <!-- Minimal trips page content (keeps the page self-contained) -->
   <div class="main-wrapper">
     <div class="topbar">
       <div class="topbar-left">
-        <button class="mobile-menu-btn">☰</button>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
         <div>
           <div class="topbar-title">إدارة الرحلة</div>
           <div class="topbar-breadcrumb"><span>تفاصيل الرحلة</span></div>
@@ -3975,21 +4231,22 @@
       <div class="topbar-right"></div>
     </div>
 
-    <main class="main-content" style="display:none;"></main>
-  </div>
-
-  <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
-  <div id="tripDetailsModal" class="modal" style="padding:0;">
+    <main class="main-content">
+      <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
+      <div id="tripDetailsModal" class="modal" style="padding:0;">
     <div class="modal-box"
       style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
-      <div id="tdHeader"
-        style="display:none;">
+      <div id="tdHeader">
         <div id="tdCoverThumb"></div>
-        <h2 id="tdModalTitle">تفاصيل الرحلة</h2>
-        <div id="tdStatusBadge"></div>
+        <div class="td-title-badge-wrap">
+          <h2 id="tdModalTitle">تفاصيل الرحلة</h2>
+          <div id="tdStatusBadge"></div>
+        </div>
         <div id="tdSubtitle"></div>
-        <div id="tdTotalPricePill">0 ج</div>
-        <div id="tdPriceBreakPill"></div>
+        <div class="price-pills-wrap">
+          <div id="tdTotalPricePill">0 ج</div>
+          <div id="tdPriceBreakPill"></div>
+        </div>
         <div id="tdQuickStats"></div>
       </div>
       <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:24px 28px;">
@@ -4105,10 +4362,22 @@
         </div>
       </div>
     </div>
+    </div>
+    </main>
   </div>
 
   <script>
     // Standalone trip-detail integration. This page intentionally renders one selected trip only.
+    let sidebarCollapsed = false;
+    function toggleSidebar() {
+      sidebarCollapsed = !sidebarCollapsed;
+      document.getElementById('tripSidebar').classList.toggle('collapsed', sidebarCollapsed);
+      document.querySelector('.main-wrapper').classList.toggle('collapsed', sidebarCollapsed);
+      const icon = document.querySelector('#sidebarToggleBtn i');
+      if (icon) {
+        icon.className = sidebarCollapsed ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+      }
+    }
     const API_URL = '/api.php';
     let tripExpensesCache = {};
     let allTripsCache = [];
@@ -4353,6 +4622,7 @@
       ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
         document.getElementById('tdtab-' + t)?.classList.toggle('active', t === tab);
         document.getElementById('tdtab-desktop-' + t)?.classList.toggle('active', t === tab);
+        document.getElementById('sb-tab-' + t)?.classList.toggle('active', t === tab);
         document.getElementById('tdpanel-' + t)?.classList.toggle('active', t === tab);
       });
       updateTripFolderHeader(tab);
@@ -4633,6 +4903,13 @@
       document.querySelector('.topbar-title').textContent = 'إدارة ' + tripWordDef;
       document.querySelector('.topbar-breadcrumb span').textContent = 'تفاصيل ' + tripWordDef;
       document.getElementById('tdModalTitle').textContent = 'تفاصيل ' + tripWordDef;
+
+      // Update sidebar branding
+      const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+      const sidebarChurchNameEl = document.getElementById('sidebarChurchName');
+      if (sidebarChurchNameEl) sidebarChurchNameEl.textContent = churchName;
+      const sidebarTripNameEl = document.getElementById('sidebarTripName');
+      if (sidebarTripNameEl) sidebarTripNameEl.textContent = trip.title;
 
       const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
       const isOwner = trip.church_id == cid || trip.is_owner == 1;
