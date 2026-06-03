@@ -1142,6 +1142,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             </div>
             <div class="action-box" style="padding-bottom:20px">
                 <div style="font-weight:900;margin-bottom:8px;padding-right:8px;font-size:0.9rem">سحب كوبونات</div>
+                <div style="margin-bottom:12px;">
+                    <select id="wCategory" onchange="checkAmount()" style="padding:8px 12px;border:1.5px solid var(--border-solid);border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:800;background:var(--surface);color:var(--text);outline:none;width:100%;">
+                        <option value="all">الكل مدمج (حضور ← التزام ← مهام)</option>
+                        <option value="att">الحضور فقط</option>
+                        <option value="com">الالتزام فقط</option>
+                        <option value="task">المهام فقط</option>
+                    </select>
+                </div>
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
                     <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
@@ -1164,11 +1172,21 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function checkAmount() {
             const input = document.getElementById('wAmount');
             const val = parseInt(input.value) || 0;
-            const max = selectedStudent ? (selectedStudent['كوبونات'] || 0) : 0;
+            const category = document.getElementById('wCategory') ? document.getElementById('wCategory').value : 'all';
+            
+            let max = 0;
+            if (selectedStudent) {
+                if (category === 'att') max = parseInt(selectedStudent['كوبونات الحضور'] || 0);
+                else if (category === 'com') max = parseInt(selectedStudent['كوبونات الالتزام'] || 0);
+                else if (category === 'task') max = parseInt(selectedStudent['كوبونات المهام'] || 0);
+                else max = parseInt(selectedStudent['كوبونات'] || 0);
+            }
+            
             const btn = document.getElementById('wBtn');
             const err = document.getElementById('wError');
 
             if (val > max) {
+                err.textContent = 'القيمة أكبر من الرصيد المتاح في هذا التصنيف!';
                 err.style.display = 'block';
                 btn.disabled = true;
                 input.style.borderColor = 'var(--danger)';
@@ -1214,7 +1232,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         async function submitWithdraw() {
             const val = parseInt(document.getElementById('wAmount').value);
             if (!val || val <= 0) { showToast('أدخل قيمة صحيحة', 'error'); return; }
-            if (val > (selectedStudent['كوبونات'] || 0)) { showToast('الرصيد غير كافٍ', 'error'); return; }
+            
+            const category = document.getElementById('wCategory').value;
+            let limit = selectedStudent ? (selectedStudent['كوبونات'] || 0) : 0;
+            if (category === 'att') limit = parseInt(selectedStudent['كوبونات الحضور'] || 0);
+            else if (category === 'com') limit = parseInt(selectedStudent['كوبونات الالتزام'] || 0);
+            else if (category === 'task') limit = parseInt(selectedStudent['كوبونات المهام'] || 0);
+
+            if (val > limit) { showToast('الرصيد غير كافٍ في هذا التصنيف', 'error'); return; }
 
             const btn = document.getElementById('wBtn');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -1223,14 +1248,37 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             fd.append('action', 'withdrawCoupons');
             fd.append('student_id', selectedStudent['_studentId']);
             fd.append('amount', val);
+            fd.append('category', category);
 
             try {
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (r.success) {
                     showToast('تم السحب بنجاح', 'success');
-                    selectedStudent['كوبونات'] = r.newTotal;
-                    document.getElementById('curTotal').textContent = r.newTotal;
                     document.getElementById('wAmount').value = '';
+                    
+                    // Soft refresh all data in background to update local categories cards
+                    const refreshFd = new FormData(); refreshFd.append('action', 'getData');
+                    const refreshR = await fetch(API_URL, { method: 'POST', body: refreshFd, credentials: 'include' }).then(r => r.json());
+                    if (refreshR.success) {
+                        allStudents = refreshR.data || refreshR.allStudents || [];
+                        if (selectedStudent) {
+                            const updated = allStudents.find(x => x['_studentId'] === selectedStudent['_studentId']);
+                            if (updated) {
+                                selectedStudent = updated;
+                                document.getElementById('curTotal').textContent = updated['كوبونات'];
+                                // Update breakdown card dynamically
+                                const breakdownDiv = document.querySelector('.breakdown-card');
+                                if (breakdownDiv) {
+                                    breakdownDiv.innerHTML = `
+                                        <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${updated['كوبونات الحضور'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${updated['كوبونات الالتزام'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${updated['كوبونات المهام'] || 0}</div></div>
+                                    `;
+                                }
+                            }
+                        }
+                    }
+                    
                     loadHistory(selectedStudent['_studentId']);
                 } else {
                     showToast(r.message || 'فشل السحب', 'error');
