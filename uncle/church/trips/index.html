@@ -5227,6 +5227,7 @@
     async function triggerCsvExport() {
       const tripId = document.getElementById('csvExportTripId').value;
       const checkedOpts = Array.from(document.querySelectorAll('.csv-export-opt:checked')).map(el => el.value);
+      const lang = document.querySelector('input[name="csvLanguage"]:checked')?.value || 'ar';
       
       if (checkedOpts.length === 0) {
         showToast('برجاء اختيار بند واحد على الأقل للتصدير', 'error');
@@ -5237,11 +5238,11 @@
       
       // Perform export for each checked item
       for (const type of checkedOpts) {
-        await performExport(tripId, type);
+        await performExport(tripId, type, lang);
       }
     }
 
-    async function performExport(id, type) {
+    async function performExport(id, type, lang = 'ar') {
       let trip = allTripsCache.find(t => t.id == id) || window.currentTripObj;
       let regs = tripRegistrationsCache[id] || trip?.registrations || [];
       let waitlist = window.currentWaitlistCache || [];
@@ -5275,20 +5276,36 @@
       const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
       const totalPerKid = getCurrentTripTotalPerKid();
 
+      const translateStatus = (s) => {
+        if (!s) return '';
+        if (lang === 'en') return s;
+        const map = { 'paid': 'مدفوع بالكامل', 'deposit': 'مقدم فقط', 'unpaid': 'غير مدفوع', 'refunded': 'مسترجع' };
+        return map[s.toLowerCase()] || s;
+      };
+
+      const translateType = (t) => {
+        if (lang === 'en') return t;
+        const map = { 'student': 'مخدوم', 'guest': 'زائر' };
+        return map[t.toLowerCase()] || t;
+      };
+
       if (type === 'regs') {
         if (!regs.length) {
           showToast('لا يوجد مسجلون لتصديرهم', 'warning');
           return;
         }
-        const headers = [
+        const headers = lang === 'ar' ? [
+          'المعرف (ID)', 'نوع التسجيل (Type)', 'كود المخدوم (Student ID)', 'كود الزائر (Guest ID)', 'الاسم (Name)', 'الفصل الدراسى (Class)', 'الكنيسة (Church)', 'رقم الهاتف (Phone)', 'ولي الأمر (Guardian)', 'المدفوع (Paid)', 'التبرع (Donation)', 'المتبقي (Remaining)', 'الحالة (Status)', 'تاريخ الإضافة (Added At)', 'ملاحظات (Notes)'
+        ] : [
           'ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
         ];
         const rows = regs.map(r => {
           const paid = parseFloat(r.total_paid) || 0;
           const rem = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+          const regType = r.registration_type || (r.guest_id ? 'guest' : 'student');
           return [
             r.id,
-            r.registration_type || (r.guest_id ? 'guest' : 'student'),
+            translateType(regType),
             r.student_id || '',
             r.guest_id || '',
             r.student_name || r.guest_name || r.name || '',
@@ -5299,7 +5316,7 @@
             paid,
             parseFloat(r.total_donation) || 0,
             rem,
-            r.payment_status || '',
+            translateStatus(r.payment_status),
             r.added_at || r.created_at || '',
             r.notes || ''
           ].map(escapeCsv).join(',');
@@ -5311,15 +5328,18 @@
           showToast('قائمة الانتظار فارغة', 'warning');
           return;
         }
-        const headers = [
+        const headers = lang === 'ar' ? [
+          'المعرف (ID)', 'نوع التسجيل (Type)', 'كود المخدوم (Student ID)', 'كود الزائر (Guest ID)', 'الاسم (Name)', 'الفصل الدراسى (Class)', 'الكنيسة (Church)', 'رقم الهاتف (Phone)', 'ولي الأمر (Guardian)', 'المدفوع (Paid)', 'التبرع (Donation)', 'المتبقي (Remaining)', 'الحالة (Status)', 'تاريخ الإضافة (Added At)', 'ملاحظات (Notes)'
+        ] : [
           'ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
         ];
         const rows = waitlist.map(w => {
           const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
           const rem = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+          const regType = w.registration_type || (w.guest_id ? 'guest' : 'student');
           return [
             w.id,
-            w.registration_type || (w.guest_id ? 'guest' : 'student'),
+            translateType(regType),
             w.student_id || '',
             w.guest_id || '',
             w.student_name || w.guest_name || w.name || '',
@@ -5330,7 +5350,7 @@
             paid,
             parseFloat(w.total_donation ?? w.donation) || 0,
             rem,
-            w.payment_status || '',
+            translateStatus(w.payment_status),
             w.added_at || w.created_at || '',
             w.notes || ''
           ].map(escapeCsv).join(',');
@@ -5339,7 +5359,7 @@
 
       } else if (type === 'payments') {
         const paymentRows = [];
-        const collectPayments = (list, isWaitlistText) => {
+        const collectPayments = (list, isWaitlist) => {
           list.forEach(r => {
             let history = [];
             if (Array.isArray(r.payment_history)) {
@@ -5348,32 +5368,39 @@
               try { history = JSON.parse(r.payment_history || '[]') || []; } catch (e) {}
             }
             history.forEach(p => {
+              const regType = r.registration_type || (r.guest_id ? 'guest' : 'student');
+              const isWaitlistVal = isWaitlist ? (lang === 'ar' ? 'نعم' : 'Yes') : (lang === 'ar' ? 'لا' : 'No');
+              const paymentTypeVal = p.type === 'deposit' ? (lang === 'ar' ? 'مقدم' : 'Deposit') : (lang === 'ar' ? 'دفعة' : 'Payment');
+              const paymentStatusVal = p.is_deleted === 1 ? (lang === 'ar' ? 'ملغية' : 'Deleted') : (lang === 'ar' ? 'نشطة' : 'Active');
+              
               paymentRows.push([
                 p.id || '',
                 r.id,
                 r.student_name || r.guest_name || r.name || '',
                 r.student_id || r.guest_id || '',
-                r.registration_type || (r.guest_id ? 'guest' : 'student'),
-                isWaitlistText,
+                translateType(regType),
+                isWaitlistVal,
                 parseFloat(p.amount) || 0,
-                p.timestamp ? new Date(p.timestamp).toLocaleString('ar-EG') : '',
-                p.type === 'deposit' ? 'مقدم' : 'دفعة',
+                p.timestamp ? new Date(p.timestamp).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') : '',
+                paymentTypeVal,
                 p.notes || '',
-                p.is_deleted === 1 ? 'ملغية' : 'نشطة'
+                paymentStatusVal
               ]);
             });
           });
         };
 
-        collectPayments(regs, 'لا');
-        collectPayments(waitlist, 'نعم');
+        collectPayments(regs, false);
+        collectPayments(waitlist, true);
 
         if (!paymentRows.length) {
           showToast('لا توجد عمليات دفع لتصديرها', 'warning');
           return;
         }
 
-        const headers = [
+        const headers = lang === 'ar' ? [
+          'رقم العملية (Payment ID)', 'رقم التسجيل (Record ID)', 'الاسم (Name)', 'كود الطفل/الزائر (Student/Guest ID)', 'النوع (Type)', 'قائمة انتظار؟ (Is Waitlist?)', 'المبلغ (Amount)', 'التاريخ (Date)', 'نوع الدفعة (Payment Type)', 'ملاحظات (Notes)', 'الحالة (Status)'
+        ] : [
           'Payment ID', 'Record ID', 'Name', 'Student/Guest ID', 'Type', 'Is Waitlist?', 'Amount', 'Date', 'Payment Type', 'Notes', 'Status'
         ];
         const rows = paymentRows.map(row => row.map(escapeCsv).join(','));
@@ -5385,7 +5412,9 @@
           return;
         }
 
-        const headers = [
+        const headers = lang === 'ar' ? [
+          'نوع القائمة (List Type)', 'رقم التسجيل (Record ID)', 'نوع الحساب (Type)', 'كود المخدوم (Student ID)', 'كود الزائر (Guest ID)', 'الاسم (Name)', 'الفصل (Class)', 'الكنيسة (Church)', 'رقم الهاتف (Phone)', 'ولي الأمر (Guardian)', 'المدفوع (Paid)', 'التبرع (Donation)', 'المتبقي (Remaining)', 'الحالة (Status)', 'تاريخ الإضافة (Added At)', 'ملاحظات (Notes)'
+        ] : [
           'List Type', 'Record ID', 'Type', 'Student ID', 'Guest ID', 'Name', 'Class', 'Church', 'Phone', 'Guardian', 'Paid', 'Donation', 'Remaining', 'Status', 'Added At', 'Notes'
         ];
         
@@ -5393,10 +5422,11 @@
         regs.forEach(r => {
           const paid = parseFloat(r.total_paid) || 0;
           const rem = r.remaining != null ? parseFloat(r.remaining) : Math.max(0, totalPerKid - paid);
+          const regType = r.registration_type || (r.guest_id ? 'guest' : 'student');
           rows.push([
-            'مسجل (Registered)',
+            lang === 'ar' ? 'مسجل' : 'Registered',
             r.id,
-            r.registration_type || (r.guest_id ? 'guest' : 'student'),
+            translateType(regType),
             r.student_id || '',
             r.guest_id || '',
             r.student_name || r.guest_name || r.name || '',
@@ -5407,7 +5437,7 @@
             paid,
             parseFloat(r.total_donation) || 0,
             rem,
-            r.payment_status || '',
+            translateStatus(r.payment_status),
             r.added_at || r.created_at || '',
             r.notes || ''
           ].map(escapeCsv).join(','));
@@ -5416,10 +5446,11 @@
         waitlist.forEach(w => {
           const paid = parseFloat(w.total_paid ?? w.deposit) || 0;
           const rem = w.remaining != null ? parseFloat(w.remaining) : Math.max(0, totalPerKid - paid);
+          const regType = w.registration_type || (w.guest_id ? 'guest' : 'student');
           rows.push([
-            'انتظار (Waitlist)',
+            lang === 'ar' ? 'انتظار' : 'Waitlist',
             w.id,
-            w.registration_type || (w.guest_id ? 'guest' : 'student'),
+            translateType(regType),
             w.student_id || '',
             w.guest_id || '',
             w.student_name || w.guest_name || w.name || '',
@@ -5430,7 +5461,7 @@
             paid,
             parseFloat(w.total_donation ?? w.donation) || 0,
             rem,
-            w.payment_status || '',
+            translateStatus(w.payment_status),
             w.added_at || w.created_at || '',
             w.notes || ''
           ].map(escapeCsv).join(','));
@@ -5794,6 +5825,20 @@
               <input type="checkbox" class="csv-export-opt" value="all">
               <span>الكل في ملف واحد مجمع (All in One)</span>
             </label>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label" style="font-weight:700; margin-bottom:6px; display:block; font-size:0.88rem;">لغة ملف التصدير (Export Language) *</label>
+            <div style="display: flex; gap: 20px; align-items: center; padding: 6px 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; user-select:none;">
+                <input type="radio" name="csvLanguage" value="ar" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
+                <span>العربية (Arabic)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; user-select:none;">
+                <input type="radio" name="csvLanguage" value="en" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
+                <span>الإنجليزية (English)</span>
+              </label>
+            </div>
           </div>
 
           <div style="display: flex; gap: 10px;">
