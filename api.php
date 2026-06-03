@@ -3214,6 +3214,11 @@ try {
             shareCoupons();
             break;
 
+        case 'changeStudentPassword':
+            changeStudentPassword();
+            break;
+
+
         case 'updateStudentInfo':
 
             updateStudentInfo();
@@ -15938,6 +15943,256 @@ function checkKidPasswordByPhone()
 
 }
 
+
+
+function setupStudentPassword()
+
+{
+
+    try {
+
+        $studentId = intval($_POST['studentId'] ?? 0);
+
+        $phone = sanitize($_POST['phone'] ?? '');
+
+        $password = $_POST['password'] ?? '';
+
+        $applyToAllSiblings = isset($_POST['applyToAllSiblings']) && $_POST['applyToAllSiblings'] === 'true';
+
+
+
+        if ($studentId === 0 || empty($phone) || empty($password)) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+
+        }
+
+
+
+        $passwordHash = hash('sha256', $password);
+
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+
+
+
+        $conn = getDBConnection();
+
+
+
+        if ($applyToAllSiblings) {
+
+            // Apply password to ALL students with this phone number
+
+            $updateStmt = $conn->prepare("
+
+                UPDATE students 
+
+                SET password_hash = ?, updated_at = NOW()
+
+                WHERE (phone LIKE CONCAT('%', ?) OR phone = ?)
+
+            ");
+
+            $updateStmt->bind_param("sss", $passwordHash, $cleanPhone, $cleanPhone);
+
+
+
+            if ($updateStmt->execute()) {
+
+                $affectedRows = $updateStmt->affected_rows;
+
+                sendJSON([
+
+                    'success' => true,
+
+                    'message' => "تم حفظ كلمة المرور لـ $affectedRows حساب",
+
+                    'updated_count' => $affectedRows
+
+                ]);
+
+            } else {
+
+                sendJSON(['success' => false, 'message' => 'فشل في حفظ كلمة المرور: ' . $conn->error]);
+
+            }
+
+        } else {
+
+            // Apply password only to selected student
+
+            $updateStmt = $conn->prepare("
+
+                UPDATE students 
+
+                SET password_hash = ?, updated_at = NOW()
+
+                WHERE id = ?
+
+            ");
+
+            $updateStmt->bind_param("si", $passwordHash, $studentId);
+
+
+
+            if ($updateStmt->execute()) {
+
+                sendJSON([
+
+                    'success' => true,
+
+                    'message' => 'تم حفظ كلمة المرور بنجاح'
+
+                ]);
+
+            } else {
+
+                sendJSON(['success' => false, 'message' => 'فشل في حفظ كلمة المرور: ' . $conn->error]);
+
+            }
+
+        }
+
+
+
+    } catch (Exception $e) {
+
+        error_log("setupStudentPassword error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في إعداد كلمة المرور: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+// ── Change/Set student password with old-password verification ───────────────
+
+function changeStudentPassword()
+
+{
+
+    try {
+
+        $studentId = intval($_POST['studentId'] ?? 0);
+
+        $phone     = sanitize($_POST['phone'] ?? '');
+
+        $oldPass   = $_POST['oldPassword'] ?? '';
+
+        $newPass   = $_POST['newPassword'] ?? '';
+
+        $isAdd     = ($_POST['isAdd'] ?? 'false') === 'true'; // true = no old pass needed
+
+
+
+        if ($studentId === 0 || empty($phone) || empty($newPass)) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+
+            return;
+
+        }
+
+        if (strlen($newPass) < 6) {
+
+            sendJSON(['success' => false, 'message' => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+
+
+        // Fetch current hash
+
+        $stmt = $conn->prepare("SELECT password_hash FROM students WHERE id = ? LIMIT 1");
+
+        $stmt->bind_param("i", $studentId);
+
+        $stmt->execute();
+
+        $row = $stmt->get_result()->fetch_assoc();
+
+        $currentHash = $row['password_hash'] ?? '';
+
+
+
+        if (!$isAdd) {
+
+            // Verify old password
+
+            if (empty($oldPass)) {
+
+                sendJSON(['success' => false, 'message' => 'يرجى إدخال كلمة المرور الحالية']);
+
+                return;
+
+            }
+
+            $oldHash = hash('sha256', $oldPass);
+
+            if ($oldHash !== $currentHash && !password_verify($oldPass, $currentHash)) {
+
+                sendJSON(['success' => false, 'message' => 'كلمة المرور الحالية غير صحيحة']);
+
+                return;
+
+            }
+
+        } else {
+
+            // isAdd mode — only allowed if account actually has no password yet
+
+            if (!empty($currentHash)) {
+
+                sendJSON(['success' => false, 'message' => 'الحساب لديه كلمة مرور بالفعل. استخدم تغيير كلمة المرور.']);
+
+                return;
+
+            }
+
+        }
+
+
+
+        $newHash = hash('sha256', $newPass);
+
+        $upd = $conn->prepare("UPDATE students SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+
+        $upd->bind_param("si", $newHash, $studentId);
+
+
+
+        if ($upd->execute()) {
+
+            sendJSON(['success' => true, 'message' => $isAdd ? 'تم إضافة كلمة المرور بنجاح' : 'تم تغيير كلمة المرور بنجاح']);
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'فشل في الحفظ: ' . $conn->error]);
+
+        }
+
+
+
+    } catch (Exception $e) {
+
+        error_log("changeStudentPassword error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
 function kidLoginByPhoneWithPassword()
 
 {
@@ -16316,6 +16571,7 @@ function kidLogin()
 
                 }
 
+                $student['has_password'] = !empty($storedHash); // tell the frontend
                 unset($student['password_hash']); // never expose hash
 
                 $authenticated[] = $student;
@@ -27591,6 +27847,12 @@ try {
         case 'setupStudentPassword':
 
             setupStudentPassword();
+
+            break;
+
+        case 'changeStudentPassword':
+
+            changeStudentPassword();
 
             break;
 

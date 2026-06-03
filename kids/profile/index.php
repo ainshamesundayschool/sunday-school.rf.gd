@@ -4461,9 +4461,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div class="ss-item-label">تعديل معلوماتي</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
-        <div class="ss-item" onclick="closeOv('settingsOv');setTimeout(()=>openOv('passOv'),180)">
+        <div class="ss-item" id="passMenuItem" onclick="closeOv('settingsOv');setTimeout(()=>openOv('passOv'),180)">
           <div class="ss-item-ico" style="background:#fef3c7;color:#92400e;"><i class="fas fa-lock"></i></div>
-          <div class="ss-item-label">تغيير كلمة المرور</div>
+          <div class="ss-item-label" id="passMenuLabel">تغيير كلمة المرور</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
         <div class="ss-item" onclick="closeOv('settingsOv');setTimeout(()=>openOv('photoOv'),180)">
@@ -4511,35 +4511,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
   </div>
 
-  <!-- Change Password -->
+  <!-- Add / Change Password -->
   <div class="overlay settings-overlay" id="passOv">
     <div class="settings-sheet">
       <div class="ss-handle"></div>
       <div style="padding:18px 22px 8px;border-bottom:1px solid var(--bdr2);">
         <div style="font-size:1.05rem;font-weight:800;color:var(--t1);display:flex;align-items:center;gap:10px;">
-          <div
-            style="width:36px;height:36px;border-radius:var(--r-sm);background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:36px;height:36px;border-radius:var(--r-sm);background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-lock"></i></div>
-          <span>تغيير كلمة المرور</span>
+          <span id="passOvTitle">تغيير كلمة المرور</span>
         </div>
       </div>
       <div style="padding:18px 22px;">
-        <div class="fg"><label class="flbl">الحالية</label>
-          <div class="pass-wrap"><input class="fi" id="po" type="password"><button type="button" class="pass-eye"
-              onclick="tPass('po',this)"><i class="fas fa-eye"></i></button></div>
+        <!-- Note for "add" mode -->
+        <div id="passAddNote" style="display:none;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;font-weight:700;margin-bottom:14px;line-height:1.5;">
+          <i class="fas fa-info-circle" style="margin-left:6px;"></i>
+          لا توجد كلمة مرور لحسابك بعد. أضف كلمة مرور الآن لتتمكن من إرسال الكوبونات والمزيد.
+        </div>
+        <!-- Old password (shown only in change mode) -->
+        <div class="fg" id="passOldWrap">
+          <label class="flbl">الحالية</label>
+          <div class="pass-wrap"><input class="fi" id="po" type="password"><button type="button" class="pass-eye" onclick="tPass('po',this)"><i class="fas fa-eye"></i></button></div>
         </div>
         <div class="fg"><label class="flbl">الجديدة (٦ أحرف+)</label>
-          <div class="pass-wrap"><input class="fi" id="pn" type="password"><button type="button" class="pass-eye"
-              onclick="tPass('pn',this)"><i class="fas fa-eye"></i></button></div>
+          <div class="pass-wrap"><input class="fi" id="pn" type="password"><button type="button" class="pass-eye" onclick="tPass('pn',this)"><i class="fas fa-eye"></i></button></div>
         </div>
         <div class="fg" style="margin-bottom:0;"><label class="flbl">تأكيد الجديدة</label>
-          <div class="pass-wrap"><input class="fi" id="pc" type="password"><button type="button" class="pass-eye"
-              onclick="tPass('pc',this)"><i class="fas fa-eye"></i></button></div>
+          <div class="pass-wrap"><input class="fi" id="pc" type="password"><button type="button" class="pass-eye" onclick="tPass('pc',this)"><i class="fas fa-eye"></i></button></div>
         </div>
       </div>
       <div style="padding:8px 22px 0;">
         <button class="btn btn-p" style="width:100%;padding:12px;" onclick="changePass()"><i class="fas fa-lock"></i>
-          <span>تغيير كلمة المرور</span></button>
+          <span id="passOvBtn">تغيير كلمة المرور</span></button>
       </div>
       <button class="ss-close-btn" onclick="closeOv('passOv')">إغلاق</button>
     </div>
@@ -5007,9 +5010,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         hideLoad();
         if (d.success && d.data && d.data.length > 0) {
           allAccounts = d.data.map(norm);
-          student = allAccounts[0];
+          // Restore last active account from localStorage
+          const savedId = parseInt(localStorage.getItem('activeKidAccountId') || '0');
+          const saved = savedId ? allAccounts.find(a => a.id === savedId) : null;
+          student = saved || allAccounts[0];
           await loadChurchSettings();
-          renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
+          renderPrivate(student);
+          switchTab('home');
+          loadSiblings();
+          document.getElementById('bottomNavBar').style.display = 'flex';
+          syncPassOverlay();
           if (allAccounts.length > 1) {
             document.getElementById('switchBtnTop').style.display = 'flex';
           }
@@ -5050,6 +5060,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         image_url: s.image_url || '',
         church_name: s.church_name || '',
         church_id: s.church_id || 0,
+        has_password: s.has_password === true || s.has_password === 1 || s.has_password === '1',
         custom_info: s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : null,
         trip_points: (function () { try { if (!s.trip_points) return {}; return (typeof s.trip_points === 'string' ? JSON.parse(s.trip_points) : s.trip_points) || {} } catch (e) { return {} } })(),
       };
@@ -5585,6 +5596,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('scSearch').style.display = 'none';
       document.getElementById('pubBanner').style.display = 'none';
       document.getElementById('settingsTop').style.display = 'none';
+      const scSendCoupons = document.getElementById('scSendCoupons');
+      if (scSendCoupons) scSendCoupons.style.display = 'none';
+      const homeSearchBar = document.getElementById('homeSearchBar');
+      if (homeSearchBar) homeSearchBar.style.display = 'none';
+      // Hide bottom nav while viewing friend — only the banner "return" button is available
+      document.getElementById('bottomNavBar').style.display = 'none';
 
       // ── Friend banner ─────────────────────────────────────────────
       document.getElementById('friendBannerName').textContent = 'ملف ' + f.name;
@@ -5602,6 +5619,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       // Clean the ?id= from the URL without reloading
       const clean = location.pathname;
       window.history.replaceState({}, '', clean);
+
+      // Restore student global first
+      student = s;
 
       // Restore own avatar
       const avInner = document.getElementById('avatarInner');
@@ -5632,7 +5652,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       renderCouponHero(s);
       document.getElementById('couponHero').style.display = 'grid';
 
-      // Restore stats bar
+      // Restore stats bar — show all cells
       document.getElementById('statsBar').style.display = 'grid';
       document.getElementById('sbC').textContent = s.coupons;
       ['sbP', 'sbA', 'sbR'].forEach(id => {
@@ -5640,21 +5660,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (el) el.closest('.sb-cell').style.display = '';
       });
 
-      // Restore sections
-      document.getElementById('scTasks').style.display = 'block';
-      document.getElementById('scTrips').style.display = 'block';
-      document.getElementById('scSearch').style.display = 'block';
-      document.getElementById('scAtt').style.display = 'block';
-      document.getElementById('settingsTop').style.display = 'flex';
+      // Hide friend banner
       document.getElementById('friendBanner').style.display = 'none';
       document.getElementById('pubBanner').style.display = 'none';
+      document.getElementById('settingsTop').style.display = 'flex';
+
+      // Restore nav bar and switch to home tab cleanly
+      document.getElementById('bottomNavBar').style.display = 'flex';
 
       // Reload own data
-      student = s;
       loadAtt();
       loadTasks();
       loadTrips(true);
       loadAnn();
+      loadSiblings();
+      syncPassOverlay();
+
+      // Switch to home tab — this handles all section show/hide
+      switchTab('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -7247,17 +7270,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         } else toast(d.message || 'فشل', 'err');
       } catch (e) { toast('خطأ في الاتصال', 'err'); }
     }
+    // ── Sync passOv between "add" and "change" modes ─────────────────────
+    function syncPassOverlay() {
+      if (!student) return;
+      const isAdd = !student.has_password;
+      const title   = document.getElementById('passOvTitle');
+      const btnLbl  = document.getElementById('passOvBtn');
+      const menuLbl = document.getElementById('passMenuLabel');
+      const note    = document.getElementById('passAddNote');
+      const oldWrap = document.getElementById('passOldWrap');
+      if (title)   title.textContent  = isAdd ? 'إضافة كلمة مرور'  : 'تغيير كلمة المرور';
+      if (btnLbl)  btnLbl.textContent  = isAdd ? 'إضافة كلمة المرور' : 'تغيير كلمة المرور';
+      if (menuLbl) menuLbl.textContent = isAdd ? 'إضافة كلمة مرور'  : 'تغيير كلمة المرور';
+      if (note)    note.style.display  = isAdd ? 'block' : 'none';
+      if (oldWrap) oldWrap.style.display = isAdd ? 'none' : 'block';
+    }
+
     async function changePass() {
-      const o = document.getElementById('po').value.trim(), n = document.getElementById('pn').value.trim(), c = document.getElementById('pc').value.trim();
-      if (!o || !n || !c) { toast('أكمل جميع الحقول', 'err'); return; }
+      const isAdd = !student.has_password;
+      const o = document.getElementById('po').value.trim();
+      const n = document.getElementById('pn').value.trim();
+      const c = document.getElementById('pc').value.trim();
+      if (!n || !c) { toast('أكمل الحقول المطلوبة', 'err'); return; }
+      if (!isAdd && !o) { toast('أدخل كلمة المرور الحالية', 'err'); return; }
       if (n !== c) { toast('كلمة المرور غير متطابقة', 'err'); return; }
       if (n.length < 6) { toast('٦ أحرف على الأقل', 'err'); return; }
       try {
-        const d = await api({ action: 'setupStudentPassword', phone: localStorage.getItem('savedUsername') || student.phone, studentId: student.id, password: o, newPassword: n });
-        if (d.success) { localStorage.setItem('savedPassword', n); closeOv('passOv'); toast('تم التغيير ✓', 'ok');['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = ''); }
-        else toast(d.message || 'فشل', 'err');
-      } catch (e) { toast('خطأ', 'err'); }
+        const d = await api({
+          action: 'changeStudentPassword',
+          phone: localStorage.getItem('savedUsername') || student.phone,
+          studentId: student.id,
+          oldPassword: o,
+          newPassword: n,
+          isAdd: isAdd ? 'true' : 'false'
+        });
+        if (d.success) {
+          // Update localStorage password so next auto-login works
+          localStorage.setItem('savedPassword', n);
+          // Mark student as having a password now
+          student.has_password = true;
+          // Update all account copies
+          const accRef = allAccounts.find(a => a.id === student.id);
+          if (accRef) accRef.has_password = true;
+          closeOv('passOv');
+          syncPassOverlay();
+          toast(d.message || 'تم ✓', 'ok');
+          ['po', 'pn', 'pc'].forEach(id => document.getElementById(id).value = '');
+        } else toast(d.message || 'فشل', 'err');
+      } catch (e) { toast('خطأ في الاتصال', 'err'); }
     }
+
     function onPhoto(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -7334,7 +7396,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function doSwitch() {
       if (!selAccId || selAccId === student.id) { closeOv('switchOv'); return; }
       const acc = allAccounts.find(a => a.id === selAccId); if (!acc) return;
-      student = acc; renderPrivate(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; closeOv('switchOv'); toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
+      student = acc;
+      // Persist selected account so next page load restores it
+      localStorage.setItem('activeKidAccountId', String(acc.id));
+      renderPrivate(student);
+      switchTab('home');
+      loadSiblings();
+      syncPassOverlay();
+      document.getElementById('bottomNavBar').style.display = 'flex';
+      closeOv('switchOv');
+      toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
     }
 
     // ── Logout ────────────────────────────────────────────────────────
@@ -7543,270 +7614,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       openModal(html);
     }
-
-    // ── MOBILE TAB MANAGEMENT & SIBLINGS & SHARING ───────────────────────
-    let selectedRecipientId = null;
-    let selectedRecipientNameStr = "";
-    let selectedSendCategory = "all";
-
-    function switchTab(tabName) {
-      document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      const activeItem = document.querySelector(`.bottom-nav-item[data-tab="${tabName}"]`);
-      if (activeItem) activeItem.classList.add('active');
-
-      const hero = document.querySelector('.hero');
-      const statsBar = document.getElementById('statsBar');
-      const scInfo = document.getElementById('scInfo');
-      const scAnn = document.getElementById('scAnn');
-      const scSearch = document.getElementById('scSearch');
-      const scAtt = document.getElementById('scAtt');
-      const scTasks = document.getElementById('scTasks');
-      const scTrips = document.getElementById('scTrips');
-      const scUncles = document.getElementById('scUncles');
-      const scSiblings = document.getElementById('scSiblings');
-
-      if (hero) hero.style.display = 'none';
-      if (statsBar) statsBar.style.display = 'none';
-      if (scInfo) scInfo.style.display = 'none';
-      if (scAnn) scAnn.style.display = 'none';
-      if (scSearch) scSearch.style.display = 'none';
-      if (scAtt) scAtt.style.display = 'none';
-      if (scTasks) scTasks.style.display = 'none';
-      if (scTrips) scTrips.style.display = 'none';
-      if (scUncles) scUncles.style.display = 'none';
-      if (scSiblings) scSiblings.style.display = 'none';
-
-      if (tabName === 'home') {
-        if (hero) hero.style.display = 'flex';
-        if (scInfo) scInfo.style.display = 'block';
-        if (scAnn) scAnn.style.display = 'block';
-        if (!IS_PUBLIC && statsBar) statsBar.style.display = 'flex';
-      } else if (tabName === 'attendance') {
-        if (scAtt) scAtt.style.display = 'block';
-        if (statsBar) statsBar.style.display = 'flex';
-      } else if (tabName === 'tasks') {
-        if (scTasks) scTasks.style.display = 'block';
-        if (scTrips) scTrips.style.display = 'block';
-      } else if (tabName === 'family') {
-        if (scSiblings) scSiblings.style.display = 'block';
-        if (scUncles) scUncles.style.display = 'block';
-        if (scSearch) scSearch.style.display = 'block';
-      }
-    }
-
-    async function loadSiblings() {
-      const container = document.getElementById('siblingsList');
-      const scSiblings = document.getElementById('scSiblings');
-      if (!student || !student.custom_info || !student.custom_info.sibling_group) {
-        if (scSiblings) scSiblings.style.display = 'none';
-        return;
-      }
-      try {
-        const d = await api({ action: 'getSiblingGroupMembers', studentId: student.id });
-        if (d.success && d.siblings && d.siblings.length > 0) {
-          const others = d.siblings.filter(s => s.id != student.id);
-          if (others.length === 0) {
-            if (scSiblings) scSiblings.style.display = 'none';
-            return;
-          }
-          container.innerHTML = others.map(s => {
-            const photo = s.image_url 
-              ? `<img src="${esc(s.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-md);" alt="${esc(s.name)}">`
-              : `<i class="fas fa-user" style="font-size:1.8rem;color:var(--t4);"></i>`;
-            return `
-              <div class="sibling-card" onclick="openFriendProfile(${s.id})" style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all var(--fast);display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:var(--sh-sm);">
-                <div style="width:56px;height:56px;border-radius:var(--r-md);background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
-                  ${photo}
-                </div>
-                <div style="font-size:.82rem;font-weight:800;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">${esc(s.name)}</div>
-                <div style="font-size:.68rem;color:var(--t4);font-weight:700;">${esc(s.class || '—')}</div>
-                <div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:800;">
-                  <i class="fas fa-ticket-alt" style="font-size:.65rem;"></i> ${s.coupons}
-                </div>
-              </div>
-            `;
-          }).join('');
-          
-          // Also set up chips in Send Coupons Modal
-          const chipsContainer = document.getElementById('siblingChipsContainer');
-          const chipsList = document.getElementById('sendSiblingChips');
-          if (chipsContainer && chipsList) {
-            chipsContainer.style.display = 'block';
-            chipsList.innerHTML = others.map(s => `
-              <div class="send-recipient-chip" data-id="${s.id}" data-name="${esc(s.name)}" onclick="selectRecipient(${s.id}, '${esc(s.name)}')">
-                <div style="font-size:.82rem;font-weight:800;">${esc(s.name.split(' ')[0])}</div>
-                <div style="font-size:.62rem;color:var(--t4);">أخ / أخت</div>
-              </div>
-            `).join('');
-          }
-        } else {
-          if (scSiblings) scSiblings.style.display = 'none';
-        }
-      } catch (e) {
-        if (scSiblings) scSiblings.style.display = 'none';
-      }
-    }
-
-    function openSendCouponsSheet() {
-      if (IS_PUBLIC) {
-        showToast('يرجى تسجيل الدخول لتتمكن من إرسال الكوبونات', 'error');
-        return;
-      }
-      // Populate available coupons
-      document.getElementById('sendAvailAtt').innerText = student.att_coupons || 0;
-      document.getElementById('sendAvailCom').innerText = student.com_coupons || 0;
-      document.getElementById('sendAvailTsk').innerText = student.task_coupons || 0;
-      document.getElementById('sendAvailTotal').innerText = student.coupons || 0;
-
-      // Reset fields
-      document.getElementById('sendAmount').value = '';
-      document.getElementById('sendPassword').value = '';
-      clearSelectedRecipient();
-
-      openOv('sendCouponsOv');
-    }
-
-    let _sendSearchTimer = null;
-    function onSendFriendSearch(val) {
-      clearTimeout(_sendSearchTimer);
-      const res = document.getElementById('sendFriendSearchResults');
-      if (!val || val.trim().length < 2) { res.innerHTML = ''; res.style.display = 'none'; return; }
-      res.style.display = 'block';
-      res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t4);font-size:.8rem;"><i class="fas fa-spinner fa-spin"></i></div>';
-      _sendSearchTimer = setTimeout(() => doSendFriendSearch(val.trim()), 350);
-    }
-
-    async function doSendFriendSearch(q) {
-      const res = document.getElementById('sendFriendSearchResults');
-      try {
-        const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
-        if (!d.success || !d.kids || !d.kids.length) {
-          res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t3);font-size:.8rem;">لم يُعثر على نتائج</div>';
-          return;
-        }
-        res.innerHTML = d.kids.filter(k => k.id != student.id).map(k => `
-          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--bdr2);cursor:pointer;" onclick="selectRecipient(${k.id}, '${esc(k.name)}')">
-            <div style="width:34px;height:34px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;overflow:hidden;">
-              ${k.image_url ? `<img src="${esc(k.image_url)}" style="width:100%;height:100%;object-fit:cover;">` : k.name.charAt(0)}
-            </div>
-            <div style="flex:1;min-width:0;text-align:right;">
-              <div style="font-size:.82rem;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(k.name)}</div>
-              <div style="font-size:.66rem;color:var(--t4);">${esc(k.class || '—')}</div>
-            </div>
-          </div>
-        `).join('');
-      } catch (e) {
-        res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--err);font-size:.8rem;">خطأ في البحث</div>';
-      }
-    }
-
-    function selectRecipient(id, name) {
-      selectedRecipientId = id;
-      selectedRecipientNameStr = name;
-
-      // Update active chip state
-      document.querySelectorAll('.send-recipient-chip').forEach(chip => {
-        chip.classList.remove('active');
-        if (chip.getAttribute('data-id') == id) chip.classList.add('active');
-      });
-
-      // Show Selected Recipient Tag
-      document.getElementById('selectedRecipientName').innerText = name;
-      document.getElementById('selectedRecipientTag').style.display = 'flex';
-
-      // Clear search
-      document.getElementById('sendFriendSearch').value = '';
-      document.getElementById('sendFriendSearchResults').innerHTML = '';
-      document.getElementById('sendFriendSearchResults').style.display = 'none';
-    }
-
-    function clearSelectedRecipient() {
-      selectedRecipientId = null;
-      selectedRecipientNameStr = "";
-      document.querySelectorAll('.send-recipient-chip').forEach(chip => chip.classList.remove('active'));
-      document.getElementById('selectedRecipientTag').style.display = 'none';
-    }
-
-    function selectSendCat(btn) {
-      document.querySelectorAll('.send-cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedSendCategory = btn.getAttribute('data-cat');
-    }
-
-    function trySendCoupons() {
-      if (!selectedRecipientId) {
-        showToast('يرجى اختيار المرسل إليه أولاً', 'error');
-        return;
-      }
-      const amtInput = document.getElementById('sendAmount');
-      const amount = parseInt(amtInput.value);
-      if (isNaN(amount) || amount <= 0) {
-        showToast('يرجى إدخال عدد كوبونات صحيح', 'error');
-        return;
-      }
-
-      // Check balance
-      let limit = student.coupons || 0;
-      let label = "الإجمالي";
-      if (selectedSendCategory === 'att') { limit = student.att_coupons || 0; label = "الحضور"; }
-      else if (selectedSendCategory === 'com') { limit = student.com_coupons || 0; label = "الالتزام"; }
-      else if (selectedSendCategory === 'task') { limit = student.task_coupons || 0; label = "المهام"; }
-
-      if (amount > limit) {
-        showToast(`رصيد كوبونات ${label} الخاص بك غير كافٍ`, 'error');
-        return;
-      }
-
-      const password = document.getElementById('sendPassword').value;
-      if (!password) {
-        showToast('يرجى كتابة كلمة المرور لتأكيد العملية', 'error');
-        return;
-      }
-
-      // Show confirmation dialog
-      const msg = `هل أنت متأكد أنك تريد إرسال ${amount} كوبون من رصيد [${label}] إلى صديقك (${selectedRecipientNameStr})؟`;
-      document.getElementById('shareConfirmMsg').innerText = msg;
-      openOv('shareConfirmModal');
-    }
-
-    async function confirmSendCoupons() {
-      closeOv('shareConfirmModal');
-      showLoad('جاري إرسال الكوبونات…');
-      try {
-        const password = document.getElementById('sendPassword').value;
-        const amount = parseInt(document.getElementById('sendAmount').value);
-
-        const d = await api({
-          action: 'shareCoupons',
-          senderId: student.id,
-          password: password,
-          recipientId: selectedRecipientId,
-          amount: amount,
-          category: selectedSendCategory
-        });
-
-        hideLoad();
-        if (d.success) {
-          showToast(d.message || 'تم إرسال الكوبونات بنجاح!', 'success');
-          closeOv('sendCouponsOv');
-          
-          // Refresh student stats and breakdown UI
-          if (typeof getStudentProfile !== 'undefined') {
-             // If getStudentProfile exists, call it to refresh
-          }
-          // Just reload page or re-init the profile securely
-          setTimeout(() => { location.reload(); }, 1200);
-        } else {
-          showToast(d.message || 'فشل إرسال الكوبونات', 'error');
-        }
-      } catch (e) {
-        hideLoad();
-        showToast('خطأ في الاتصال بالسيرفر', 'error');
-      }
-    }
-
 
     // ── V3 MOBILE APP LOGIC & WIZARD STEPS & GENIUS SEARCH ──────────────
     let selectedRecipientId = null;
