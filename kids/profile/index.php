@@ -6777,19 +6777,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const r = await fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd, headers: { Accept: 'application/json' } });
         const up = await r.json();
-        if (!up.success) throw new Error(up.message);
+        if (!up.success) throw new Error(up.message || 'فشل رفع الملف');
         const d = await api({ action: 'updateStudentImageAfterCreation', studentId: student.id, imageUrl: up.imageUrl });
+        if (!d.success) throw new Error(d.message || 'فشل حفظ الرابط');
+        const savedUrl = d.imageUrl || up.imageUrl;
+        // Refresh student data from server
+        const fresh = await api({ action: 'getStudentProfile', studentId: student.id });
+        if (fresh.success && fresh.student) student = norm(fresh.student);
         hideLoad();
-        if (d.success) {
-          const savedUrl = d.imageUrl || up.imageUrl;
-          const fresh = await api({ action: 'getStudentProfile', studentId: student.id });
-          if (!fresh.success || !fresh.student || fresh.student.image_url !== savedUrl) {
-            throw new Error('Photo uploaded but was not saved to the student profile');
-          }
-          student = norm(fresh.student);
-          document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
-          closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
-        } else throw new Error(d.message);
+        document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
+        closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
       } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
     }
     function resetPhoto() {

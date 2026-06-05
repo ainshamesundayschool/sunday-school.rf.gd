@@ -8711,7 +8711,7 @@ async function doDelete(reverseCoupons) {
 
   try {
 
-    const d = await api('deleteTask', {task_id: delId, reverse_coupons: reverseCoupons});
+    const d = await api('deleteTask', {task_id: delId, reverse_coupons: reverseCoupons ? '1' : '0'});
 
     if (d.success) {
 

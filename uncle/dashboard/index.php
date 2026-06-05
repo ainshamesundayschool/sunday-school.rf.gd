@@ -4910,10 +4910,77 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: 1px solid rgba(91, 108, 245, .15)
         }
 
+        .announcement-class-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .announcement-class-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: var(--r-full);
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text-2);
+            font-size: .76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .18s var(--ease);
+            user-select: none;
+        }
+
+        .announcement-class-chip:hover {
+            border-color: var(--brand);
+            background: rgba(255,255,255,.92);
+        }
+
+        .announcement-class-chip.selected {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(91, 108, 245, .2);
+        }
+
+        .announcement-class-chip.all-chip.selected {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
         .announcement-student-picker {
             display: grid;
             gap: 10px;
             margin-top: 8px;
+        }
+
+        .announcement-student-search {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            border-radius: var(--r-md);
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            font-family: inherit;
+            font-size: .8rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color .18s;
+        }
+        .announcement-student-search:focus {
+            border-color: var(--brand);
+        }
+        .announcement-student-search-wrap {
+            position: relative;
+        }
+        .announcement-student-search-wrap i {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-3);
+            font-size: .78rem;
+            pointer-events: none;
         }
 
         .announcement-picked-list {
@@ -4926,8 +4993,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .announcement-picked-card {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 10px;
+            gap: 6px;
+            padding: 4px 10px 4px 6px;
             border-radius: var(--r-full);
             background: var(--surface);
             color: var(--text);
@@ -4937,6 +5004,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 0 6px 14px rgba(15, 23, 42, .04);
             font-size: .76rem;
             font-weight: 700;
+        }
+
+        .announcement-picked-card .ann-pick-ava {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c7d2fe, #818cf8);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .55rem; color: #fff; font-weight: 700;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .announcement-picked-card .ann-pick-ava img {
+            width: 100%; height: 100%; object-fit: cover;
         }
 
         .announcement-picked-card button {
@@ -4956,27 +5035,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .announcement-student-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 8px;
-            max-height: 220px;
+            max-height: 260px;
             overflow-y: auto;
             padding: 2px;
         }
 
         .announcement-student-option {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 10px 8px;
+            padding: 10px 6px 8px;
             border-radius: var(--r-md);
             background: var(--surface);
-            border: 1px solid rgba(91, 108, 245, .12);
+            border: 1.5px solid rgba(91, 108, 245, .1);
             color: var(--text-2);
-            font-size: .76rem;
+            font-size: .74rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all var(--t) var(--ease);
+            transition: all .18s var(--ease);
+            gap: 5px;
+        }
+
+        .announcement-student-option .ann-stu-ava {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .82rem; color: #818cf8; font-weight: 700;
+            overflow: hidden; flex-shrink: 0;
+            border: 2px solid transparent;
+            transition: border-color .18s;
+        }
+        .announcement-student-option .ann-stu-ava img {
+            width: 100%; height: 100%; object-fit: cover;
         }
 
         .announcement-student-option:hover {
@@ -4991,6 +5086,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand);
             color: #fff;
             box-shadow: 0 8px 18px rgba(91, 108, 245, .18);
+        }
+        .announcement-student-option.selected .ann-stu-ava {
+            border-color: rgba(255,255,255,.7);
         }
 
         .announcement-student-helper {
@@ -9578,8 +9676,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="message">رسالة نصية</option>
                                     <option value="button">زر برابط</option>
                                 </select></div>
-                            <div class="form-group" style="margin:0"><label class="form-label">الفصل</label><select
-                                    class="form-input" id="announcementClass">
+                                <div class="form-group" style="margin:0"><label class="form-label">الفصل</label><select
+                                    class="form-input" id="announcementClass" multiple size="4">
                                     <option value="الجميع">جميع الفصول</option>
                                     <option value="حضانة">حضانة</option>
                                     <option value="أولى">أولى</option>
@@ -9599,6 +9697,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     style="color:var(--text-3)">(اختياري)</small></label><input type="text"
                                 class="form-input" id="announcementStudents" placeholder="اتركه فارغاً للجميع" readonly>
                             <div class="announcement-student-picker">
+                                <div class="announcement-student-search-wrap"><input type="text" id="announcementStudentSearch" class="announcement-student-search" placeholder="ابحث عن طفل أو رقم..."><i class="fas fa-search"></i></div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;"><label style="font-size:.82rem;"><input type="checkbox" id="announcementHasPhotoOnly" style="margin-left:6px"> الأطفال أصحاب صور فقط</label></div>
                                 <div class="announcement-picked-list" id="announcementPickedList"></div>
                                 <div class="announcement-student-helper" id="announcementStudentHelper">اختَر الأطفال بالضغط عليهم من القائمة التالية</div>
                                 <div class="announcement-student-grid" id="announcementStudentGrid"></div>
@@ -11371,9 +11471,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── COUPON TOGGLE ─────────────────────────────────────────────
         function toggleCouponValue(id) {
             const currentIdx = getCouponValueIdx(id);
-            couponValueIdxByStudent[id] = (currentIdx + 1) % couponPresetValues.length;
+            const newIdx = (currentIdx + 1) % couponPresetValues.length;
+            // Toggle ALL students to the same value, but only animate the clicked one
+            const list = getActiveViewStudents();
+            list.forEach(s => {
+                const sid = getStudentId(s);
+                couponValueIdxByStudent[sid] = newIdx;
+                setCouponValueDisplay(sid, sid === id);
+            });
             saveCouponDataForClass(currentClass);
-            setCouponValueDisplay(id, true);
         }
         function adjustStudentCoupons(studentId, dir) {
             const val = getCouponValueForStudent(studentId);
@@ -14718,9 +14824,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (cnt) cnt.textContent = active;
         }
         function getAnnouncementPickerStudents() {
-            const cls = document.getElementById('announcementClass')?.value || 'الجميع';
+            const classEl = document.getElementById('announcementClass');
+            let selected = [];
+            if (classEl) selected = Array.from(classEl.selectedOptions || []).map(o => o.value).filter(Boolean);
+            if (!selected.length) selected = ['الجميع'];
+            const hasPhotoOnly = document.getElementById('announcementHasPhotoOnly')?.checked;
+            const q = (document.getElementById('announcementStudentSearch')?.value || '').toLowerCase().trim();
             const source = (allStudentsData && allStudentsData.length) ? allStudentsData : students;
-            return source.filter(s => cls === 'الجميع' || (s['الفصل'] || '') === cls);
+            let pool = source.filter(s => {
+                if (selected.includes('الجميع')) return true;
+                return selected.includes((s['الفصل'] || '').toString());
+            });
+            if (hasPhotoOnly) pool = pool.filter(s => !!(s['صورة'] || s.image_url || s['الصورة']));
+            if (q) {
+                pool = pool.filter(s => {
+                    const name = (s['الاسم'] || s.name || '').toString().toLowerCase();
+                    const phone = (s['رقم التليفون'] || s.phone || '').toString().toLowerCase();
+                    return name.includes(q) || phone.includes(q) || (s['الفصل'] || '').toString().toLowerCase().includes(q);
+                });
+            }
+            return pool;
         }
         function syncAnnouncementStudentsInput() {
             const input = document.getElementById('announcementStudents');
@@ -14736,11 +14859,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 syncAnnouncementStudentsInput();
                 return;
             }
-            wrap.innerHTML = selectedAnnouncementStudents.map(s => `
-                <span class="announcement-picked-card">
-                    ${s.name}
-                    <button type="button" onclick="removeAnnouncementStudent('${s.id}')"><i class="fas fa-times"></i></button>
-                </span>`).join('');
+            wrap.innerHTML = selectedAnnouncementStudents.map(s => {
+                const stud = (allStudentsData && allStudentsData.length ? allStudentsData : students).find(x => String(getStudentId(x)) === String(s.id));
+                const photo = stud ? (stud['صورة'] || stud.image_url || '') : '';
+                const ava = photo ? `<span class="ann-pick-ava"><img src="${window.photoUrl ? window.photoUrl(photo) : photo}"/></span>` : `<span class="ann-pick-ava">${(s.name||'').charAt(0) || ''}</span>`;
+                return `<span class="announcement-picked-card">${ava}${s.name}<button type="button" onclick="removeAnnouncementStudent('${s.id}')"><i class="fas fa-times"></i></button></span>`;
+            }).join('');
             if (helper) helper.textContent = `تم اختيار ${selectedAnnouncementStudents.length} طفل`;
             syncAnnouncementStudentsInput();
         }
@@ -14758,7 +14882,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             grid.innerHTML = pool.map(s => {
                 const id = String(getStudentId(s));
                 const selected = selectedAnnouncementStudents.some(x => x.id === id);
-                return `<button type="button" class="announcement-student-option${selected ? ' selected' : ''}" onclick="toggleAnnouncementStudent('${id}')">${s['الاسم'] || '---'}</button>`;
+                const photo = s['صورة'] || s.image_url || s['الصورة'] || '';
+                const photoHtml = photo ? `<div class="ann-stu-ava"><img src="${window.photoUrl ? window.photoUrl(photo) : photo}" alt=""></div>` : `<div class="ann-stu-ava"><i class="fas fa-user"></i></div>`;
+                const name = s['الاسم'] || s.name || '---';
+                return `<button type="button" class="announcement-student-option${selected ? ' selected' : ''}" onclick="toggleAnnouncementStudent('${id}')">${photoHtml}<div style="font-size:.78rem;margin-top:6px">${name}</div></button>`;
             }).join('');
             if (!selectedAnnouncementStudents.length && helper) helper.textContent = 'اختَر الأطفال بالضغط عليهم من القائمة التالية';
             syncAnnouncementStudentsInput();
@@ -14957,10 +15084,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('rejectRegistrationBtn', 'click', () => { if (currentRegistrationDetails) document.getElementById('rejectionNoteContainer').style.display = 'block'; });
             on('addAnnouncementForm', 'submit', e => {
                 e.preventDefault();
-                const type = document.getElementById('announcementType').value, text = document.getElementById('announcementText').value.trim(), link = document.getElementById('announcementLink').value.trim(), cls = document.getElementById('announcementClass').value, stds = document.getElementById('announcementStudents').value.trim();
+                const type = document.getElementById('announcementType').value;
+                const text = document.getElementById('announcementText').value.trim();
+                const link = document.getElementById('announcementLink').value.trim();
+                const classEl = document.getElementById('announcementClass');
+                const cls = classEl ? Array.from(classEl.selectedOptions || []).map(o => o.value).filter(Boolean) : ['الجميع'];
+                let stds = document.getElementById('announcementStudents').value.trim();
+                // If no explicit students selected but "has photo only" is checked, auto-fill students list
+                if (!stds && document.getElementById('announcementHasPhotoOnly')?.checked) {
+                    const pool = getAnnouncementPickerStudents();
+                    stds = pool.map(s => s['الاسم'] || s.name || '').filter(Boolean).join(', ');
+                }
+                const hasPhotoOnly = document.getElementById('announcementHasPhotoOnly')?.checked ? '1' : '0';
                 if (!text) { showToast('أدخل نص الإعلان', 'error'); return; } if (type === 'button' && !link) { showToast('أدخل رابطاً للزر', 'error'); return; }
                 showLoading('...');
-                makeApiCall({ action: 'addAnnouncement', type, text, link, class: cls, students: stds }, r => { showToast(r.message, 'success'); document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); loadAnnouncements(); }, () => showToast('فشل', 'error'));
+                makeApiCall({ action: 'addAnnouncement', type, text, link, classes: cls, students: stds, hasPhotoOnly }, r => { showToast(r.message, 'success'); document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); loadAnnouncements(); }, () => showToast('فشل', 'error'));
             });
             on('clearAnnouncementForm', 'click', () => { document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); });
             on('announcementType', 'change', () => { document.getElementById('linkFieldContainer').style.display = document.getElementById('announcementType').value === 'button' ? 'block' : 'none'; });
@@ -14970,6 +15108,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 renderAnnouncementSelectedCards();
                 renderAnnouncementStudentGrid();
             });
+            on('announcementStudentSearch', 'input', () => { renderAnnouncementStudentGrid(); });
+            on('announcementHasPhotoOnly', 'change', () => { renderAnnouncementStudentGrid(); });
             on('actionsStripBtn', 'click', e => { e.stopPropagation(); toggleDropdown('actionsDropdownMenu', 'actionsStripBtn'); });
             on('couponsStripBtn', 'click', e => { e.stopPropagation(); toggleDropdown('couponsDropdownMenu', 'couponsStripBtn'); });
             // Overlay click & swipe-to-close

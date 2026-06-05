@@ -232,18 +232,18 @@ function processGameQRCode()
 
 {
 
-    try {
-
-        // Allow uncle or church admin
-
-        checkUncleAuth();
-
-        $churchId = getChurchId();
-
-        $uncleId = $_SESSION['uncle_id'] ?? null;
-
-
-
+            AND (
+                class = 'الجميع'
+                OR FIND_IN_SET(?, class) > 0
+                OR (
+                    student_names IS NOT NULL
+                    AND student_names != ''
+                    AND (
+                        student_names LIKE CONCAT('%', ?, '%')
+                        OR student_names = ?
+                    )
+                )
+            )
         $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
 
         $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
@@ -8621,23 +8621,39 @@ function addAnnouncement()
 
         $link = sanitize($_POST['link'] ?? '');
 
-        $class = sanitize($_POST['class'] ?? 'الجميع');
-
         $students = sanitize($_POST['students'] ?? '');
 
-
-
-        // Validate class
-
-        $allowedClasses = ['الجميع', 'حضانة', 'أولى', 'تانية', 'تالتة', 'رابعة', 'خامسة', 'سادسة'];
-
-        if (!in_array($class, $allowedClasses)) {
-
-            sendJSON(['success' => false, 'message' => 'الفصل غير صالح']);
-
-            return;
-
+        // Accept either `classes` (array/JSON/comma-list) or legacy `class` single value.
+        $classesRaw = $_POST['classes'] ?? $_POST['class'] ?? 'الجميع';
+        $classes = [];
+        if (is_array($classesRaw)) {
+            $classes = $classesRaw;
+        } else {
+            $str = trim((string) $classesRaw);
+            // Try JSON first
+            if ($str !== '' && ($str[0] === '[' || $str[0] === '{')) {
+                $decoded = json_decode($str, true);
+                if (is_array($decoded)) $classes = $decoded;
+            }
+            if (empty($classes)) {
+                // Fallback: split comma or pipe separated lists
+                $parts = preg_split('/[,|]+/', $str);
+                $parts = array_map('trim', $parts ?: []);
+                $classes = array_values(array_filter($parts, fn($v) => $v !== ''));
+            }
         }
+        if (empty($classes)) $classes = ['الجميع'];
+
+        // Validate classes list
+        $allowedClasses = ['الجميع', 'حضانة', 'أولى', 'تانية', 'تالتة', 'رابعة', 'خامسة', 'سادسة'];
+        foreach ($classes as $c) {
+            if (!in_array($c, $allowedClasses)) {
+                sendJSON(['success' => false, 'message' => 'الفصل غير صالح: ' . $c]);
+                return;
+            }
+        }
+        // Normalize stored class value: single 'الجميع' or comma-separated list
+        $class = in_array('الجميع', $classes, true) ? 'الجميع' : implode(',', array_unique($classes));
 
 
 

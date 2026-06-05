@@ -3285,6 +3285,15 @@
       flex: 1;
       min-height: 0;
     }
+    @media (max-width: 700px) {
+      .modal-box, .modal-box.wide, .modal-box.xl, .modal.modal-lg .modal-box {
+        max-width: calc(100vw - 24px) !important;
+        margin: 12px !important;
+        height: auto !important;
+        border-radius: 12px !important;
+      }
+      .modal-body { max-height: calc(100vh - 160px); }
+    }
 
     .modal-head {
       padding: 18px 22px;
