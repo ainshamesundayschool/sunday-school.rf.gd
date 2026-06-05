@@ -1,5 +1,11 @@
 RewriteEngine On
 
+# Strip injected host tracking query param `i=` (e.g. ?i=1, ?i=2) to avoid
+# provider interstitial redirects (sv101.ifastnet.com). This rewrites the URL
+# without the parameter so the request proceeds to your site.
+RewriteCond %{QUERY_STRING} (?:^|&)i=\d+(?:&|$) [NC]
+RewriteRule ^ %{REQUEST_URI}? [R=302,L]
+
 # Let the host serve the homepage directly. InfinityFree/iFastNet also uses
 # its own cookie/browser check before PHP runs, so don't rewrite its check URL.
 DirectoryIndex index.html index.php
