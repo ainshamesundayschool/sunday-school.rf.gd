@@ -34,30 +34,12 @@ const SHELL_URLS = [
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js',
 ];
 
-// Do not cache responses that clearly originate from the host/provider interstitial
-function _shouldCacheResponse(resp) {
-    if (!resp) return false;
-    try {
-        const url = new URL(resp.url || '');
-        // If the final response redirected to a known host-injected domain, skip caching
-        if (/sv101|ifastnet|infinityfree/i.test(url.host)) return false;
-    } catch (e) {
-        // ignore
-    }
-    return (resp.ok || resp.type === 'opaque');
-}
-
 // ── INSTALL ───────────────────────────────────────────────────
 self.addEventListener('install', e => {
     self.skipWaiting();
-    e.waitUntil(caches.open(CACHE_NAME).then(async cache => {
-        for (const url of SHELL_URLS) {
-            try {
-                const r = await fetch(url, { cache: 'no-store' });
-                if (_shouldCacheResponse(r)) await cache.put(url, r.clone());
-            } catch (err) { /* ignore individual failures */ }
-        }
-    }));
+    e.waitUntil(caches.open(CACHE_NAME).then(cache =>
+        Promise.allSettled(SHELL_URLS.map(url => cache.add(url).catch(() => {})))
+    ));
 });
 
 // ── ACTIVATE ──────────────────────────────────────────────────
@@ -210,10 +192,9 @@ self.addEventListener('fetch', e => {
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
-            return fetch(e.request).then(async r => {
-                if (r && e.request.method === 'GET' && _shouldCacheResponse(r)) {
-                    const cl = r.clone();
-                    try { await caches.open(CACHE_NAME).then(c => c.put(e.request, cl)); } catch (e) { /* ignore cache failures */ }
+            return fetch(e.request).then(r => {
+                if (r && r.ok && e.request.method === 'GET') {
+                    const cl = r.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, cl));
                 }
                 return r;
             }).catch(() => new Response('Offline', { status: 503 }));
