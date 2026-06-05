@@ -634,10 +634,31 @@ if (is_writable($sessionPath)) {
 
 
 
-ini_set('session.gc_maxlifetime', 315360000);
-
-ini_set('session.cookie_lifetime', 315360000);
-
+// Configure secure session cookie parameters so cookies work across browsers
+$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$host = preg_replace('/:\\d+$/', '', $host);
+$cookieDomain = (strpos($host, '.') === false) ? $host : ('.' . $host);
+$lifetime = 315360000; // 10 years
+ini_set('session.gc_maxlifetime', $lifetime);
+ini_set('session.cookie_lifetime', $lifetime);
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_secure', $secure ? '1' : '0');
+if (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 70300) {
+    session_set_cookie_params([
+        'lifetime' => $lifetime,
+        'path' => '/',
+        'domain' => $cookieDomain,
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'None'
+    ]);
+} else {
+    // Older PHP: append SameSite to path
+    session_set_cookie_params($lifetime, '/; SameSite=None', $cookieDomain, $secure, true);
+}
 session_start();
 
 
