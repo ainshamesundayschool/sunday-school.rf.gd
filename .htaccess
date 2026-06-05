@@ -1,5 +1,9 @@
 RewriteEngine On
 
+# Clean the host's successful cookie-check redirect URL after it reaches the app.
+RewriteCond %{QUERY_STRING} ^i=\d+$ [NC]
+RewriteRule ^ %{REQUEST_URI}? [R=302,L]
+
 # Let the host serve the homepage directly. InfinityFree/iFastNet also uses
 # its own cookie/browser check before PHP runs, so don't rewrite its check URL.
 DirectoryIndex index.html index.php

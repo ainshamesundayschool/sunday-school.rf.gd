@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v11                     ║
+// ║  Sunday School PWA — Service Worker v12                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v11';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v12';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -152,7 +152,7 @@ self.addEventListener('fetch', e => {
                 if (isOfflineShellFriendly && versionMismatch) {
                     try {
                         const fresh = await fetch(e.request, { cache: 'no-store' });
-                        if (fresh && fresh.ok) {
+                        if (await _isCacheableAppResponse(fresh)) {
                             const copy = fresh.clone();
                             caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
                         }
@@ -164,7 +164,7 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request, {
                         cache: (isSessionSensitive && !isOfflineShellFriendly) ? 'no-store' : 'default'
                     });
-                    if (r && r.ok && isOfflineShellFriendly) {
+                    if (isOfflineShellFriendly && await _isCacheableAppResponse(r)) {
                         const copy = r.clone();
                         caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
                     }
@@ -192,8 +192,8 @@ self.addEventListener('fetch', e => {
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
-            return fetch(e.request).then(r => {
-                if (r && r.ok && e.request.method === 'GET') {
+            return fetch(e.request).then(async r => {
+                if (e.request.method === 'GET' && await _isCacheableAppResponse(r)) {
                     const cl = r.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, cl));
                 }
                 return r;
@@ -231,6 +231,37 @@ async function _matchOfflineShell(request, url) {
     }
 
     return null;
+}
+
+function _isHostCookieCheckResponse(response) {
+    if (!response) return true;
+    const responseUrl = response.url || '';
+    const contentType = response.headers && response.headers.get('content-type') || '';
+
+    return responseUrl.indexOf('ifastnet.com/cookies.html') !== -1 ||
+        responseUrl.indexOf('/cookies.html') !== -1 ||
+        /text\/html/i.test(contentType) && responseUrl.indexOf('ifastnet.com') !== -1;
+}
+
+async function _isCacheableAppResponse(response) {
+    if (!response || !response.ok || _isHostCookieCheckResponse(response)) return false;
+    const copy = response.clone();
+    const contentType = copy.headers.get('content-type') || '';
+
+    if (!/text\/html/i.test(contentType)) return true;
+
+    try {
+        const text = await copy.text();
+        return text.indexOf('sv101.ifastnet.com/cookies.html') === -1 &&
+            text.indexOf('Cookies are not enabled') === -1 &&
+            text.indexOf('It appears your browser is not accepting cookies') === -1 &&
+            text.indexOf('document.cookie="__test="') === -1 &&
+            text.indexOf('document.cookie = "__test="') === -1 &&
+            text.indexOf('/aes.js') === -1 &&
+            text.indexOf('?i=1') === -1;
+    } catch (_) {
+        return false;
+    }
 }
 
 async function _getRemoteBuildVersion() {
