@@ -3654,8 +3654,6 @@
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      width: 260px;
-      height: 360px;
       margin: 0 auto;
       box-sizing: border-box;
       background: #fff;
@@ -3757,7 +3755,8 @@
 
       #printArea {
         display: grid !important;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(var(--card-print-width, 260px), max-content));
+        justify-content: center;
         justify-items: center;
         align-items: start;
         column-gap: var(--print-gap-x, 10mm);
@@ -8998,13 +8997,63 @@
         }
       }
 
-      function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap) {
+      function calculateCardLayout(baseWidth, baseHeight, scale, paddingVal) {
+        const isLandscape = baseWidth > baseHeight;
+        const scaledWidth = baseWidth * scale;
+        const scaledHeight = baseHeight * scale;
+        const padding = (parseFloat(paddingVal) || 0) * scale;
+
+        const availW = scaledWidth - 2 * padding;
+        const availH = scaledHeight - 2 * padding;
+
+        let qrSize, sAvatar, sTripImg, sLogo;
+        let fH2, fH3, fCustom, fChurch;
+
+        if (isLandscape) {
+          // Landscape scaling
+          qrSize = Math.max(40, Math.min(availW * 0.42, availH * 0.82));
+          sAvatar = Math.max(25, Math.min(availW * 0.25, availH * 0.35));
+          sTripImg = Math.max(20, Math.min(availW * 0.22, availH * 0.25));
+          sLogo = Math.max(10, Math.min(availW * 0.08, availH * 0.1));
+          
+          fH2 = Math.max(9, Math.min(availW * 0.06, availH * 0.085));
+          fH3 = Math.max(8, Math.min(availW * 0.05, availH * 0.065));
+          fCustom = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
+          fChurch = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
+        } else {
+          // Portrait scaling
+          qrSize = Math.max(40, Math.min(availW * 0.7, availH * 0.38));
+          sAvatar = Math.max(25, Math.min(availW * 0.32, availH * 0.22));
+          sTripImg = Math.max(20, Math.min(availW * 0.32, availH * 0.16));
+          sLogo = Math.max(10, Math.min(availW * 0.12, availH * 0.06));
+          
+          fH2 = Math.max(9, Math.min(availW * 0.09, availH * 0.055));
+          fH3 = Math.max(8, Math.min(availW * 0.07, availH * 0.045));
+          fCustom = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
+          fChurch = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
+        }
+
+        return {
+          isLandscape,
+          scaledWidth,
+          scaledHeight,
+          scaledPadding: padding,
+          qrSize,
+          sAvatar,
+          sTripImg,
+          sLogo,
+          fH2,
+          fH3,
+          fCustom,
+          fChurch
+        };
+      }
+
+      function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight) {
         const borderColor = '#000000';
         const borderRadius = 10;
         const strokeWidth = 2;
         const solidStrokeWidth = Math.max(1.5, 2 * scale);
-        const baseWidth = 260;
-        const baseHeight = 360;
 
         if (outlineStyle === 'solid') {
           return {
@@ -9031,18 +9080,23 @@
         trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
         showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
         tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-        fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+        fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+        baseWidth, baseHeight
       }) {
-        const scaledWidth = 260 * scale;
-        const scaledHeight = 360 * scale;
-        const fH3 = 13 * scale;
-        const fH2 = 18 * scale;
-        const fCustom = 11 * scale;
-        const fChurch = 11 * scale;
-        const sLogo = 20 * scale;
-        const sAvatar = 70 * scale;
-        const sTripImg = 55 * scale;
-        const qrSize = Math.max(80, 130 * scale);
+        const {
+          isLandscape,
+          scaledWidth,
+          scaledHeight,
+          scaledPadding,
+          qrSize,
+          sAvatar,
+          sTripImg,
+          sLogo,
+          fH2,
+          fH3,
+          fCustom,
+          fChurch
+        } = calculateCardLayout(baseWidth || 260, baseHeight || 360, scale, padding);
 
         const hasStudentImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
         // showAvatarFallback: show avatar even if no photo (with a default icon avatar)
@@ -9072,7 +9126,7 @@
         // Inline small trip image rounding & dimensions
         const inlineRadius = tripImgRounded ? `${8 * scale}px` : '0px';
         const tripImageHtml = (showTripImage && !tripImgAsBg && trip.image_url)
-          ? `<img src="${trip.image_url}" style="width:${80 * scale}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">`
+          ? `<img src="${trip.image_url}" style="width:${sTripImg * 1.45}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">`
           : '';
 
         // Set CSS Variables for the entire card
@@ -9090,10 +9144,10 @@
         `.replace(/\s+/g, ' ').trim();
         }
 
-        const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap);
+        const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
 
         // Card Background & Image Overlay HTML
-        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
         let bgHtml = '';
 
         if (showTripImage && tripImgAsBg && trip.image_url) {
@@ -9172,17 +9226,38 @@
           }
         }
 
-        return `
-      <div class="print-card" style="${bgStyles}">
-          ${bgHtml}
-          ${outlineOverlayHtml}
-          <!-- Card Content Wrapper (renders above BG image and overlay) -->
+        let innerContentHtml = '';
+        if (isLandscape) {
+          innerContentHtml = `
+          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:12px; direction:rtl; text-align:center;">
+              <!-- Details Column -->
+              <div style="display:flex; flex-direction:column; justify-content:space-between; align-items:center; flex:1; height:100%; min-width:0; gap:4px;">
+                  ${churchHeaderHtml}
+                  ${tripInfoGroupHtml}
+                  ${studentInfoGroupHtml}
+              </div>
+              <!-- QR Column -->
+              <div style="display:flex; justify-content:center; align-items:center; flex-shrink:0;">
+                  <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+              </div>
+          </div>
+          `;
+        } else {
+          innerContentHtml = `
           <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
               ${churchHeaderHtml}
               ${tripInfoGroupHtml}
               ${studentInfoGroupHtml}
               <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
           </div>
+          `;
+        }
+
+        return `
+      <div class="print-card" style="${bgStyles}">
+          ${bgHtml}
+          ${outlineOverlayHtml}
+          ${innerContentHtml}
       </div>
       `;
       }
@@ -9204,10 +9279,12 @@
 
         // Get settings
         const scale = parseFloat(document.getElementById('printScale').value) / 100;
+        const baseWidth = parseFloat(document.getElementById('printCardWidth').value) || 260;
+        const baseHeight = parseFloat(document.getElementById('printCardHeight').value) || 360;
         const previewScale = getPreviewRenderScale(scale);
         const gapX = document.getElementById('printGapX').value + 'px';
         const gapY = document.getElementById('printGapY').value + 'px';
-        const padding = document.getElementById('printPadding').value + 'px';
+        const padding = document.getElementById('printPadding').value;
         const showChurch = document.getElementById('printShowChurch').checked;
         const showTripImage = document.getElementById('printShowTripImage').checked;
         const showTripTitle = document.getElementById('printShowTripTitle').checked;
@@ -9237,11 +9314,14 @@
         }));
 
         previewWrapper.style.display = 'grid';
-        previewWrapper.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, max-content))';
+        previewWrapper.style.gridTemplateColumns = `repeat(auto-fit, minmax(${(baseWidth * previewScale)}px, max-content))`;
         previewWrapper.style.justifyContent = 'center';
         previewWrapper.style.alignItems = 'start';
         previewWrapper.style.columnGap = gapX;
         previewWrapper.style.rowGap = gapY;
+
+        const layout = calculateCardLayout(baseWidth, baseHeight, previewScale, padding);
+        const qrSize = layout.qrSize;
 
         previewWrapper.innerHTML = previewRegs.map((r, idx) => {
           const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
@@ -9249,11 +9329,11 @@
             trip, r, scale: previewScale, padding, showChurch, showTripImage, showTripTitle,
             showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId: `prev_qrcode_sample_${idx}`,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-            fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+            fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+            baseWidth, baseHeight
           });
         }).join('');
 
-        const qrSize = Math.max(80, 130 * previewScale);
         previewRegs.forEach((_, idx) => {
           const rawPreviewStudentId = previewRegs[idx].student_id || '';
           const previewStudentId = /^[0-9]+$/.test(String(rawPreviewStudentId)) ? rawPreviewStudentId : '1';
@@ -9315,9 +9395,11 @@
 
         // Get settings
         const scale = parseFloat(document.getElementById('printScale').value) / 100;
+        const baseWidth = parseFloat(document.getElementById('printCardWidth').value) || 260;
+        const baseHeight = parseFloat(document.getElementById('printCardHeight').value) || 360;
         const gapX = document.getElementById('printGapX').value + 'px';
         const gapY = document.getElementById('printGapY').value + 'px';
-        const padding = document.getElementById('printPadding').value + 'px';
+        const padding = document.getElementById('printPadding').value;
         const showChurch = document.getElementById('printShowChurch').checked;
         const showTripImage = document.getElementById('printShowTripImage').checked;
         const showTripTitle = document.getElementById('printShowTripTitle').checked;
@@ -9342,6 +9424,7 @@
         printArea.style.rowGap = gapY;
         printArea.style.setProperty('--print-gap-x', gapX);
         printArea.style.setProperty('--print-gap-y', gapY);
+        printArea.style.setProperty('--card-print-width', (baseWidth * scale) + 'px');
 
         let html = '';
         const qrTasks = [];
@@ -9359,7 +9442,8 @@
             trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
             showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-            fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+            fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+            baseWidth, baseHeight
           });
 
           qrTasks.push({ id: cardId, text: link });
@@ -9367,12 +9451,14 @@
 
         printArea.innerHTML = html;
 
-        const qrSize = Math.max(80, 130 * scale);
+        const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+        const qrSize = layout.qrSize;
+
         qrTasks.forEach(task => {
           new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
         });
 
-        setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.columnGap = ''; printArea.style.rowGap = ''; printArea.style.removeProperty('--print-gap-x'); printArea.style.removeProperty('--print-gap-y'); }, 1000); }, 1200);
+        setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.columnGap = ''; printArea.style.rowGap = ''; printArea.style.removeProperty('--print-gap-x'); printArea.style.removeProperty('--print-gap-y'); printArea.style.removeProperty('--card-print-width'); }, 1000); }, 1200);
       }
 
       let systemChurches = [];
@@ -9807,6 +9893,19 @@
                 oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
               <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">
                 100%</div>
+            </div>
+
+            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div>
+                <label class="form-label">عرض الكارت (بكسل)</label>
+                <input type="number" id="printCardWidth" class="form-input" value="260" min="100" max="800"
+                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              </div>
+              <div>
+                <label class="form-label">ارتفاع الكارت (بكسل)</label>
+                <input type="number" id="printCardHeight" class="form-input" value="360" min="100" max="800"
+                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              </div>
             </div>
 
             <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
