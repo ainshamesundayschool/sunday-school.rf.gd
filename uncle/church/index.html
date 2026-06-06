@@ -16904,7 +16904,7 @@
             let innerContentHtml = '';
             if (isLandscape) {
                 let detailsHtml = '';
-                if (textReadability === 'rect' && isUnified) {
+                if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                     detailsHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-width:0; min-height:0;">
                         ${churchHeaderHtml}
@@ -16964,7 +16964,7 @@
                 `;
             } else {
                 let detailsHtml = '';
-                if (textReadability === 'rect' && isUnified) {
+                if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                     detailsHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:1.2; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-height:0;">
                         ${churchHeaderHtml}
