@@ -15672,67 +15672,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Then paste the PUBLIC key string here:
         const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_KEY : (getenv("VAPID_PUBLIC_KEY") ?: ""); ?>';
 
-        // ── Show "new version" update toast ─────────────────────────
-        function _showUpdateToast() {
-            if (document.getElementById('sw-update-toast')) return; // already shown
-            const toast = document.createElement('div');
-            toast.id = 'sw-update-toast';
-            toast.style.cssText = `
-                position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-                background:#1e293b;color:#fff;padding:14px 20px;
-                border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);
-                display:flex;align-items:center;gap:14px;z-index:99999;
-                font-family:inherit;min-width:280px;justify-content:space-between;
-                border:1px solid rgba(255,255,255,.1);
-                animation:swToastSlideUp .35s cubic-bezier(.4,0,.2,1);
-            `;
-            toast.innerHTML = `
-                <div style="font-size:.9rem;font-weight:600;">🔄 يتوفر تحديث جديد</div>
-                <button onclick="window.location.reload()" style="
-                    background:#6366f1;border:none;color:#fff;
-                    padding:7px 16px;border-radius:9px;
-                    cursor:pointer;font-weight:700;font-size:.85rem;font-family:inherit;
-                    white-space:nowrap;
-                ">تحديث الآن</button>
-            `;
-            if (!document.getElementById('swToastKf')) {
-                const st = document.createElement('style');
-                st.id = 'swToastKf';
-                st.textContent = `@keyframes swToastSlideUp{from{transform:translate(-50%,60px);opacity:0}to{transform:translateX(-50%);opacity:1}}`;
-                document.head.appendChild(st);
-            }
-            document.body.appendChild(toast);
-        }
+        // Update toast disabled (removed to avoid automatic update prompts)
 
         // ── Register service worker ───────────────────────────────────
 
-        async function getBuildVersion() {
-            try {
-                const resp = await fetch('/version.php', { cache: 'no-store' });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    if (data && data.version) return data.version;
-                }
-            } catch (e) { }
-            return 'v12';
-        }
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                getBuildVersion().then(version => {
-                    navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(version)}`)
-                    .then(reg => {
-                        _initPushSubscription(reg);
-                        // ── Re-subscribe whenever SW becomes active after an update ──
-                        reg.addEventListener('updatefound', () => {
-                            const newSW = reg.installing;
-                            if (newSW) newSW.addEventListener('statechange', () => {
-                                if (newSW.state === 'activated') _initPushSubscription(reg);
-                            });
+                navigator.serviceWorker.register('/sw.js')
+                .then(reg => {
+                    _initPushSubscription(reg);
+                    // ── Re-subscribe whenever SW becomes active after an update ──
+                    reg.addEventListener('updatefound', () => {
+                        const newSW = reg.installing;
+                        if (newSW) newSW.addEventListener('statechange', () => {
+                            if (newSW.state === 'activated') _initPushSubscription(reg);
                         });
-                    })
-                    .catch(() => { });
-                });
+                    });
+                })
+                .catch(() => { });
             });
 
             // ── Re-subscribe + reload data when coming back online ───────
@@ -15750,11 +15707,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const d = e.data;
                 if (!d) return;
 
-                // New SW version activated — show update toast
-                if (d.type === 'NEW_VERSION_INSTALLED') {
-                    _showUpdateToast();
-                    return;
-                }
+                // NEW_VERSION_INSTALLED handling removed (update UI disabled)
 
                 // Silent reload requested by new service worker activation
                 if (d.type === 'RELOAD_NOW') {
