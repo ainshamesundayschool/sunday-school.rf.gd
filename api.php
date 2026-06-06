@@ -20968,6 +20968,32 @@ function getTripDetails()
 
 
 
+        // Self-healing: if a student is both registered and waitlisted, delete them from waitlist
+        $registeredStudentIds = array_column($registrations, 'student_id');
+        $cleanWaitlist = [];
+        $needWaitlistUpdate = false;
+        foreach ($waitlist as $w) {
+            $wStudentId = intval($w['student_id']);
+            if (in_array($wStudentId, $registeredStudentIds, true)) {
+                // Delete from DB waitlist table
+                $delW = $conn->prepare("DELETE FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
+                $delW->bind_param("ii", $tripId, $wStudentId);
+                $delW->execute();
+                $needWaitlistUpdate = true;
+            } else {
+                $cleanWaitlist[] = $w;
+            }
+        }
+        if ($needWaitlistUpdate) {
+            // Re-number remaining positions
+            $conn->query("SET @pos := 0");
+            $upd = $conn->prepare("UPDATE trip_waitlist SET position = (@pos := @pos + 1) WHERE trip_id = ? ORDER BY position ASC");
+            $upd->bind_param("i", $tripId);
+            $upd->execute();
+            // Fetch updated waitlist
+            $waitlist = getWaitlistData($tripId, $conn);
+        }
+
         $trip['registrations'] = $registrations;
 
         $trip['waitlist'] = $waitlist;
@@ -22722,12 +22748,34 @@ function rebalanceTripWaitlist()
 
 
 
-        if (count($regs) <= $max) {
-
-            sendJSON(['success' => true, 'message' => 'الرحلة لم تتخطى الحد الأقصى بعد', 'moved' => 0]);
-
+        if (count($regs) < $max) {
+            // Promote kids from waitlist to registrations
+            $slots = $max - count($regs);
+            $promoted = [];
+            for ($i = 0; $i < $slots; $i++) {
+                $p = promoteFirstFromWaitlist($conn, $tripId, $churchId);
+                if (!$p) {
+                    break;
+                }
+                $promoted[] = $p['student_name'];
+            }
+            if (!empty($promoted)) {
+                $namesStr = implode('، ', $promoted);
+                sendJSON([
+                    'success' => true, 
+                    'message' => "تم زيادة السعة وترقية الأطفال من قائمة الانتظار تلقائياً: $namesStr", 
+                    'promoted' => count($promoted),
+                    'moved' => 0
+                ]);
+            } else {
+                sendJSON(['success' => true, 'message' => 'السعة كافية ولا يوجد أطفال في قائمة الانتظار للتصعيد', 'moved' => 0]);
+            }
             return;
+        }
 
+        if (count($regs) == $max) {
+            sendJSON(['success' => true, 'message' => 'الرحلة مساوية تماماً للحد الأقصى، لا حاجة للموازنة', 'moved' => 0]);
+            return;
         }
 
 
