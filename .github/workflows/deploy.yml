@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          server-dir: /home/u430683844/domains/sunday-school.online/public_html
+          server-dir: /home/u430683844/domains/sunday-school.online/public_html/
           exclude: |
             **/.git*
             **/.git*/**
