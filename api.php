@@ -6571,7 +6571,7 @@ function addStudent()
 
 
 
-            $uploadDir = '/home/vol1000_8/infinityfree.com/if0_40860329/htdocs/uploads/students/';
+            $uploadDir = __DIR__ . '/uploads/students/';
 
 
 
@@ -6909,7 +6909,7 @@ function updateStudentImageAfterCreation()
 
                 // Use the correct upload directory
 
-                $uploadDir = '/home/vol1000_8/infinityfree.com/if0_40860329/htdocs/uploads/students/';
+                $uploadDir = __DIR__ . '/uploads/students/';
 
 
 
@@ -19880,7 +19880,7 @@ function addTrip()
 
         if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
 
-            $uploadDir = '/home/vol1000_8/infinityfree.com/if0_40860329/htdocs/uploads/trips/';
+            $uploadDir = __DIR__ . '/uploads/trips/';
 
 
 
@@ -25576,7 +25576,7 @@ function updateStudentFull()
 
         if (isset($_FILES['student_image']) && $_FILES['student_image']['error'] === UPLOAD_ERR_OK) {
 
-            $uploadDir = '/home/vol1000_8/infinityfree.com/if0_40860329/htdocs/uploads/students/';
+            $uploadDir = __DIR__ . '/uploads/students/';
 
 
 
