@@ -6615,7 +6615,7 @@ function addStudent()
 
                     }
 
-                    $photoUrl = "https://sunday-school.online/uploads/students/" . $photoFilename;
+                    $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
 
                 }
 
@@ -6949,7 +6949,7 @@ function updateStudentImageAfterCreation()
 
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
 
-                    $photoUrl = "https://sunday-school.online/uploads/students/" . $photoFilename;
+                    $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
 
                     error_log("Photo uploaded successfully: $photoUrl");
 
@@ -19914,7 +19914,7 @@ function addTrip()
 
                 if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
 
-                    $imageUrl = "https://sunday-school.online/uploads/trips/" . $filename;
+                    $imageUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/trips/" . $filename;
 
                 }
 
@@ -25700,7 +25700,7 @@ function updateStudentFull()
 
                 if (move_uploaded_file($_FILES['student_image']['tmp_name'], $uploadPath)) {
 
-                    $imageUrl = "https://sunday-school.online/uploads/students/" . $filename;
+                    $imageUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $filename;
 
                 }
 

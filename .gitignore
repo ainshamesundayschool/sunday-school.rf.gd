@@ -27,3 +27,4 @@ migrations/2026-05-22_student_sibling_groups.sql
 migrations/2026-05-22_students_graduates_and_transfers.sql
 db_migrations/20260527_add_guest_and_multichurch_trip_support.sql
 config.php.example
+db_migrations/20260606_migrate_domains.sql

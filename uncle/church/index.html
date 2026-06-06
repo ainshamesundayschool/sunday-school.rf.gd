@@ -8355,6 +8355,17 @@
 
                     <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                         <div>
+                            <label class="form-label">عرض الكارت (سم)</label>
+                            <input type="number" id="printCardWidth" class="form-input" value="7" min="2" max="30" step="0.1" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                        </div>
+                        <div>
+                            <label class="form-label">ارتفاع الكارت (سم)</label>
+                            <input type="number" id="printCardHeight" class="form-input" value="10" min="2" max="30" step="0.1" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
                             <label class="form-label">المسافة الأفقية بين البطاقات</label>
                             <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
                         </div>
@@ -8446,6 +8457,41 @@
                         </select>
                     </div>
 
+                    <!-- Custom Background Section -->
+                    <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1); display:flex; flex-direction:column; gap:10px;">
+                        <label class="form-label" style="margin-bottom:4px; font-weight:800;">خلفية مخصصة للبطاقة</label>
+                        
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="file" id="printCustomBgInput" accept="image/*" style="display:none;" onchange="handleCustomBgUpload(event)">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('printCustomBgInput').click()"><i class="fas fa-image"></i> اختر صورة خلفية</button>
+                            <button type="button" id="printRemoveCustomBgBtn" class="btn btn-outline btn-sm" style="display:none; color:#dc2626; border-color:#fca5a5; background:#fef2f2;" onclick="removeCustomBg()"><i class="fas fa-trash-alt"></i> إزالة</button>
+                        </div>
+                        
+                        <div id="printCustomBgThumbnailWrap" style="display:none; align-items:center; gap:8px;">
+                            <img id="printCustomBgThumbnail" src="" style="width:40px; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+                            <span style="font-size:0.75rem; color:var(--muted);">تم رفع الصورة بنجاح</span>
+                        </div>
+                        
+                        <div id="printCustomBgSubSettings" style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:8px; margin-top:4px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:0.8rem;">لون التظليل:</span>
+                                <input type="color" id="printCustomBgOverlayColor" value="#ffffff"
+                                    style="width:40px; height:24px; border:1px solid var(--border); padding:0; cursor:pointer; border-radius:4px;"
+                                    onchange="updatePrintPreview()">
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <span style="font-size:0.75rem;">درجة شفافية التظليل:</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <input type="range" id="printCustomBgOverlayOpacity" min="0" max="100" value="0"
+                                        style="padding:0; flex:1;"
+                                        oninput="updatePrintPreview(); document.getElementById('printCustomBgOverlayOpacityVal').textContent = this.value + '%'">
+                                    <span id="printCustomBgOverlayOpacityVal"
+                                        style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
                 </div>
 
@@ -8468,6 +8514,34 @@
 
     <!-- Print Area -->
     <div id="printArea" style="display:none;"></div>
+
+    <!-- Image Crop Modal -->
+    <div id="imageCropModal" class="modal" style="z-index:1100;">
+        <div class="modal-box" style="max-width:600px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-crop"></i> قص وتعديل الخلفية</h3>
+                <button type="button" class="modal-close" onclick="closeCropModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:16px; align-items:center;">
+                <div style="width:100%; max-height:380px; display:flex; justify-content:center; align-items:center; background:#f1f5f9; border-radius:8px; overflow:hidden; position:relative; border:1px solid var(--border);">
+                    <canvas id="cropCanvas" style="max-width:100%; max-height:380px; cursor:move; display:block;"></canvas>
+                </div>
+                
+                <div style="width:100%; display:flex; flex-direction:column; gap:8px;">
+                    <label class="form-label" style="font-weight:700;">حجم إطار القص (تغيير الأبعاد مع تثبيت النسبة)</label>
+                    <input type="range" id="cropSizeSlider" min="50" max="300" value="200" style="padding:0; width:100%;" oninput="handleCropSizeChange(this.value)">
+                </div>
+
+                <div style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px;">
+                    <span style="font-size:0.75rem; color:var(--muted);"><i class="fas fa-info-circle"></i> اسحب الإطار لتحديد الجزء المطلوب من الصورة</span>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn btn-outline" onclick="closeCropModal()">إلغاء</button>
+                        <button type="button" class="btn btn-primary" onclick="confirmCrop()">تأكيد القص</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ══════════════════ SCRIPT ══════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -16417,13 +16491,59 @@
             togglePrintDashControls();
         }
 
-        function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap) {
+        function calculateCardLayout(baseWidth, baseHeight, scale, paddingVal) {
+            const isLandscape = baseWidth > baseHeight;
+            const scaledWidth = baseWidth * scale;
+            const scaledHeight = baseHeight * scale;
+            const padding = (parseFloat(paddingVal) || 0) * scale;
+
+            const availW = scaledWidth - 2 * padding;
+            const availH = scaledHeight - 2 * padding;
+
+            let qrSize, sAvatar, sLogo;
+            let fH2, fH3, fChurch;
+
+            if (isLandscape) {
+                // Landscape scaling
+                qrSize = Math.max(40, Math.min(availW * 0.42, availH * 0.82));
+                sAvatar = Math.max(25, Math.min(availW * 0.25, availH * 0.35));
+                sLogo = Math.max(10, Math.min(availW * 0.08, availH * 0.1));
+                
+                fH2 = Math.max(9, Math.min(availW * 0.06, availH * 0.085));
+                fH3 = Math.max(8, Math.min(availW * 0.05, availH * 0.065));
+                fChurch = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
+            } else {
+                // Portrait scaling
+                qrSize = Math.max(40, Math.min(availW * 0.7, availH * 0.38));
+                sAvatar = Math.max(25, Math.min(availW * 0.32, availH * 0.22));
+                sLogo = Math.max(10, Math.min(availW * 0.12, availH * 0.06));
+                
+                fH2 = Math.max(9, Math.min(availW * 0.09, availH * 0.055));
+                fH3 = Math.max(8, Math.min(availW * 0.07, availH * 0.045));
+                fChurch = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
+            }
+
+            return {
+                isLandscape,
+                scaledWidth,
+                scaledHeight,
+                scaledPadding: padding,
+                qrSize,
+                sAvatar,
+                sLogo,
+                fH2,
+                fH3,
+                fChurch
+            };
+        }
+
+        function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight) {
             const borderColor = '#000000';
             const borderRadius = 10;
             const strokeWidth = 2;
             const solidStrokeWidth = Math.max(1.5, 2 * scale);
-            const baseWidth = 260;
-            const baseHeight = 360;
+            const w = baseWidth || 260;
+            const h = baseHeight || 360;
 
             if (outlineStyle === 'solid') {
                 return {
@@ -16435,8 +16555,8 @@
             const rectInset = strokeWidth / 2;
             const dashArray = `${Math.max(2, dashLength)} ${Math.max(0, dashGap)}`;
             const svgMarkup = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${baseWidth} ${baseHeight}" preserveAspectRatio="none">
-                    <rect x="${rectInset}" y="${rectInset}" width="${baseWidth - (rectInset * 2)}" height="${baseHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+                    <rect x="${rectInset}" y="${rectInset}" width="${w - (rectInset * 2)}" height="${h - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
                 </svg>
             `.trim();
 
@@ -16448,16 +16568,11 @@
 
         function generateCardMarkup({
             s, scale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId,
-            textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+            textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+            baseWidth, baseHeight
         }) {
-            const scaledWidth = 260 * scale;
-            const scaledHeight = 360 * scale;
-            const fH3 = 13 * scale;
-            const fH2 = 18 * scale;
-            const fChurch = 11 * scale;
-            const sLogo = 20 * scale;
-            const sAvatar = 70 * scale;
-            const qrSize = Math.max(80, 130 * scale);
+            const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+            const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
 
             const sid = s['_studentId'] || s.id || s.student_id;
             const imgUrl = s['صورة'] || s.image_url || s.photo || '';
@@ -16499,9 +16614,18 @@
                 `.replace(/\s+/g, ' ').trim();
             }
 
-            const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap);
+            const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
 
-            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+            let bgHtml = '';
+            if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
+                const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
+                const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
+                bgHtml = `
+                <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
+                <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
+                `;
+            }
 
             let churchHeaderHtml = '';
             if (showChurch) {
@@ -16555,17 +16679,43 @@
                 }
             }
 
-            return `
-            <div class="print-card" style="${bgStyles}">
+            if (isLandscape) {
+                return `
+                <div class="print-card print-card-landscape" style="${bgStyles}">
+                    ${bgHtml}
+                    ${outlineOverlayHtml}
+                    <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; gap:${10 * scale}px; align-items:center; justify-content:space-between; direction:rtl; text-align:right;">
+                        <div style="flex:1.2; display:flex; flex-direction:column; justify-content:space-between; height:100%; align-items:flex-start; width:calc(100% - ${qrSize + 10}px);">
+                            ${churchHeaderHtml}
+                            <div style="width:100%; display:flex; flex-direction:column; gap:${4 * scale}px;">
+                                ${studentInfoGroupHtml}
+                                ${classGroupHtml}
+                            </div>
+                        </div>
+                        <div style="flex:0.8; display:flex; justify-content:center; align-items:center;">
+                            <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                                <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            } else {
+                return `
+                <div class="print-card" style="${bgStyles}">
+                    ${bgHtml}
                     ${outlineOverlayHtml}
                     <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
-                            ${churchHeaderHtml}
-                            ${classGroupHtml}
-                            ${studentInfoGroupHtml}
-                            <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+                        ${churchHeaderHtml}
+                        ${classGroupHtml}
+                        ${studentInfoGroupHtml}
+                        <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                        </div>
                     </div>
-            </div>
-            `;
+                </div>
+                `;
+            }
         }
 
         function updatePrintPreview() {
@@ -16585,6 +16735,9 @@
 
             const scale = parseFloat(document.getElementById('printScale').value) / 100;
             const previewScale = getPreviewRenderScale(scale);
+            const baseWidth = (parseFloat(document.getElementById('printCardWidth')?.value) || 7) * 37.795;
+            const baseHeight = (parseFloat(document.getElementById('printCardHeight')?.value) || 10) * 37.795;
+
             const gapX = document.getElementById('printGapX').value + 'px';
             const gapY = document.getElementById('printGapY').value + 'px';
             const padding = document.getElementById('printPadding').value + 'px';
@@ -16603,7 +16756,7 @@
             const previewKids = kids.slice(0, 4);
 
             previewWrapper.style.display = 'grid';
-            previewWrapper.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, max-content))';
+            previewWrapper.style.gridTemplateColumns = `repeat(auto-fit, minmax(${baseWidth * previewScale}px, max-content))`;
             previewWrapper.style.justifyContent = 'center';
             previewWrapper.style.alignItems = 'start';
             previewWrapper.style.columnGap = gapX;
@@ -16612,11 +16765,13 @@
             previewWrapper.innerHTML = previewKids.map((s, idx) => {
                 return generateCardMarkup({
                     s, scale: previewScale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId: `prev_qrcode_sample_${idx}`,
-                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+                    baseWidth, baseHeight
                 });
             }).join('');
 
-            const qrSize = Math.max(80, 130 * previewScale);
+            const layout = calculateCardLayout(baseWidth, baseHeight, previewScale, padding);
+            const qrSize = layout.qrSize;
             previewKids.forEach((s, idx) => {
                 const sid = s['_studentId'] || s.id || s.student_id;
                 new QRCode(document.getElementById(`prev_qrcode_sample_${idx}`), {
@@ -16670,6 +16825,9 @@
             closeModal('printSettingsModal');
 
             const scale = parseFloat(document.getElementById('printScale').value) / 100;
+            const baseWidth = (parseFloat(document.getElementById('printCardWidth')?.value) || 7) * 37.795;
+            const baseHeight = (parseFloat(document.getElementById('printCardHeight')?.value) || 10) * 37.795;
+
             const gapX = document.getElementById('printGapX').value + 'px';
             const gapY = document.getElementById('printGapY').value + 'px';
             const padding = document.getElementById('printPadding').value + 'px';
@@ -16690,6 +16848,7 @@
             printArea.style.rowGap = gapY;
             printArea.style.setProperty('--print-gap-x', gapX);
             printArea.style.setProperty('--print-gap-y', gapY);
+            printArea.style.setProperty('--card-print-width', `${baseWidth * scale}px`);
             
             let html = '';
             const qrTasks = [];
@@ -16703,7 +16862,8 @@
 
                 html += generateCardMarkup({
                     s, scale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId,
-                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+                    baseWidth, baseHeight
                 });
                 
                 qrTasks.push({ id: cardId, text: link });
@@ -16711,7 +16871,8 @@
 
             printArea.innerHTML = html;
             
-            const qrSize = Math.max(80, 130 * scale);
+            const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+            const qrSize = layout.qrSize;
             qrTasks.forEach(task => {
                 new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             });
@@ -16724,6 +16885,7 @@
                     printArea.style.rowGap = ''; 
                     printArea.style.removeProperty('--print-gap-x'); 
                     printArea.style.removeProperty('--print-gap-y'); 
+                    printArea.style.removeProperty('--card-print-width'); 
                 }, 1000); 
             }, 1200);
         }
@@ -16851,6 +17013,245 @@
                     arrow.classList.remove('rotated');
                 }
             }
+        }
+
+        let customCardBackgroundDataUrl = null;
+        let cropImage = new Image();
+        let cropBox = { x: 0, y: 0, w: 0, h: 0 };
+        let isDraggingCropBox = false;
+        let dragStart = { x: 0, y: 0 };
+        let cropCanvas = null;
+        let cropCtx = null;
+        let targetAspect = 0.7; // default aspect ratio (7 / 10)
+
+        function handleCustomBgUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const wVal = parseFloat(document.getElementById('printCardWidth')?.value) || 7;
+                const hVal = parseFloat(document.getElementById('printCardHeight')?.value) || 10;
+                const aspect = wVal / hVal;
+                initImageCropper(event.target.result, aspect);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initImageCropper(dataUrl, aspect) {
+            targetAspect = aspect;
+            cropImage = new Image();
+            cropImage.src = dataUrl;
+            cropImage.onload = function() {
+                cropCanvas = document.getElementById('cropCanvas');
+                cropCtx = cropCanvas.getContext('2d');
+                
+                if (!cropCanvas.dataset.listenersBound) {
+                    cropCanvas.addEventListener('mousedown', startDrag);
+                    cropCanvas.addEventListener('mousemove', drag);
+                    cropCanvas.addEventListener('mouseup', endDrag);
+                    cropCanvas.addEventListener('mouseleave', endDrag);
+                    cropCanvas.addEventListener('touchstart', startDrag, { passive: false });
+                    cropCanvas.addEventListener('touchmove', drag, { passive: false });
+                    cropCanvas.addEventListener('touchend', endDrag);
+                    cropCanvas.dataset.listenersBound = "true";
+                }
+                
+                const maxDisplayW = 500;
+                const maxDisplayH = 340;
+                let displayW = cropImage.width;
+                let displayH = cropImage.height;
+                
+                if (displayW > maxDisplayW) {
+                    displayH = (maxDisplayW / displayW) * displayH;
+                    displayW = maxDisplayW;
+                }
+                if (displayH > maxDisplayH) {
+                    displayW = (maxDisplayH / displayH) * displayW;
+                    displayH = maxDisplayH;
+                }
+                
+                cropCanvas.width = displayW;
+                cropCanvas.height = displayH;
+                
+                let w = displayW;
+                let h = w / targetAspect;
+                if (h > displayH) {
+                    h = displayH;
+                    w = h * targetAspect;
+                }
+                
+                w = w * 0.95;
+                h = h * 0.95;
+                
+                cropBox.w = w;
+                cropBox.h = h;
+                cropBox.x = (displayW - w) / 2;
+                cropBox.y = (displayH - h) / 2;
+                
+                const sizeSlider = document.getElementById('cropSizeSlider');
+                if (sizeSlider) {
+                    sizeSlider.min = Math.round(Math.min(w * 0.2, 30));
+                    sizeSlider.max = Math.round(w);
+                    sizeSlider.value = Math.round(w);
+                }
+                
+                drawCropCanvas();
+                openModal('imageCropModal');
+            };
+        }
+
+        function drawCropCanvas() {
+            if (!cropCanvas || !cropCtx) return;
+            const cw = cropCanvas.width;
+            const ch = cropCanvas.height;
+            
+            cropCtx.clearRect(0, 0, cw, ch);
+            cropCtx.drawImage(cropImage, 0, 0, cw, ch);
+            
+            cropCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            cropCtx.fillRect(0, 0, cw, cropBox.y);
+            cropCtx.fillRect(0, cropBox.y + cropBox.h, cw, ch - (cropBox.y + cropBox.h));
+            cropCtx.fillRect(0, cropBox.y, cropBox.x, cropBox.h);
+            cropCtx.fillRect(cropBox.x + cropBox.w, cropBox.y, cw - (cropBox.x + cropBox.w), cropBox.h);
+            
+            cropCtx.strokeStyle = '#4f46e5';
+            cropCtx.lineWidth = 2.5;
+            cropCtx.setLineDash([6, 4]);
+            cropCtx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
+            cropCtx.setLineDash([]);
+            
+            cropCtx.fillStyle = '#ffffff';
+            cropCtx.strokeStyle = '#4f46e5';
+            cropCtx.lineWidth = 2;
+            const cornerSize = 10;
+            const corners = [
+                {x: cropBox.x, y: cropBox.y},
+                {x: cropBox.x + cropBox.w, y: cropBox.y},
+                {x: cropBox.x, y: cropBox.y + cropBox.h},
+                {x: cropBox.x + cropBox.w, y: cropBox.y + cropBox.h}
+            ];
+            corners.forEach(c => {
+                cropCtx.beginPath();
+                cropCtx.arc(c.x, c.y, cornerSize / 2, 0, 2 * Math.PI);
+                cropCtx.fill();
+                cropCtx.stroke();
+            });
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            if (pos.x >= cropBox.x && pos.x <= cropBox.x + cropBox.w &&
+                pos.y >= cropBox.y && pos.y <= cropBox.y + cropBox.h) {
+                isDraggingCropBox = true;
+                dragStart.x = pos.x - cropBox.x;
+                dragStart.y = pos.y - cropBox.y;
+            }
+        }
+
+        function drag(e) {
+            if (!isDraggingCropBox) return;
+            e.preventDefault();
+            const pos = getMousePos(e);
+            let newX = pos.x - dragStart.x;
+            let newY = pos.y - dragStart.y;
+            
+            const cw = cropCanvas.width;
+            const ch = cropCanvas.height;
+            
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + cropBox.w > cw) newX = cw - cropBox.w;
+            if (newY + cropBox.h > ch) newY = ch - cropBox.h;
+            
+            cropBox.x = newX;
+            cropBox.y = newY;
+            drawCropCanvas();
+        }
+
+        function endDrag() {
+            isDraggingCropBox = false;
+        }
+
+        function getMousePos(e) {
+            const rect = cropCanvas.getBoundingClientRect();
+            const clientX = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
+            return {
+                x: ((clientX - rect.left) / rect.width) * cropCanvas.width,
+                y: ((clientY - rect.top) / rect.height) * cropCanvas.height
+            };
+        }
+
+        function handleCropSizeChange(newVal) {
+            const w = parseFloat(newVal);
+            const h = w / targetAspect;
+            const cw = cropCanvas.width;
+            const ch = cropCanvas.height;
+            
+            const cx = cropBox.x + cropBox.w / 2;
+            const cy = cropBox.y + cropBox.h / 2;
+            
+            let newX = cx - w / 2;
+            let newY = cy - h / 2;
+            
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + w > cw) newX = cw - w;
+            if (newY + h > ch) newY = ch - h;
+            
+            if (w <= cw && h <= ch) {
+                cropBox.w = w;
+                cropBox.h = h;
+                cropBox.x = newX;
+                cropBox.y = newY;
+            }
+            drawCropCanvas();
+        }
+
+        function confirmCrop() {
+            const exportW = 1000;
+            const exportH = exportW / targetAspect;
+            
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = exportW;
+            exportCanvas.height = exportH;
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            const scaleX = cropImage.width / cropCanvas.width;
+            const scaleY = cropImage.height / cropCanvas.height;
+            
+            const sx = cropBox.x * scaleX;
+            const sy = cropBox.y * scaleY;
+            const sw = cropBox.w * scaleX;
+            const sh = cropBox.h * scaleY;
+            
+            exportCtx.drawImage(cropImage, sx, sy, sw, sh, 0, 0, exportW, exportH);
+            
+            customCardBackgroundDataUrl = exportCanvas.toDataURL('image/jpeg', 0.9);
+            
+            document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
+            document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
+            document.getElementById('printCustomBgSubSettings').style.display = 'flex';
+            document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
+            
+            closeCropModal();
+            updatePrintPreview();
+        }
+
+        function removeCustomBg() {
+            customCardBackgroundDataUrl = null;
+            document.getElementById('printCustomBgInput').value = '';
+            document.getElementById('printCustomBgThumbnail').src = '';
+            document.getElementById('printCustomBgThumbnailWrap').style.display = 'none';
+            document.getElementById('printCustomBgSubSettings').style.display = 'none';
+            document.getElementById('printRemoveCustomBgBtn').style.display = 'none';
+            updatePrintPreview();
+        }
+
+        function closeCropModal() {
+            closeModal('imageCropModal');
         }
     </script>
 
