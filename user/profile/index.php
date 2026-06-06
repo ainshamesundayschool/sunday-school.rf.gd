@@ -4792,6 +4792,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
+      if (IS_PUBLIC) {
+        // Hide private tabs in public mode
+        ['send', 'tasks', 'family'].forEach(tab => {
+          const el = document.querySelector(`.bottom-nav-item[data-tab="${tab}"]`);
+          if (el) el.style.display = 'none';
+        });
+      }
       if (_creds && URL_ID) {
         await initPrivate();
         const matchedAccount = allAccounts.find(a => Number(a.id) === Number(URL_ID));
@@ -4918,6 +4925,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       });
       loadTrips(false);
       loadAnn();
+      loadAtt();
       showMain();
     }
 
@@ -5354,6 +5362,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // ── Info grid ─────────────────────────────────────────────────────
     // ── Friend profile ────────────────────────────────────────────────
     let _myStudent = null; // snapshot of logged-in student while viewing a friend
+
+    function isViewingOther() {
+      return !!(IS_PUBLIC || _myStudent);
+    }
 
     async function openFriendProfile(friendId) {
       showLoad('جارٍ تحميل الملف…');
@@ -5917,6 +5929,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     let examTimeLimitSec = 0;      // seconds total
 
     async function openTask(id) {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       const t = allTasks.find(x => x.id == id); if (!t) return;
       const st = tSt(t);
       if (st === 'done' && t.my_submission) { showExamResult(t, t.my_submission); return; }
@@ -6379,6 +6395,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function closeExam() { examScreenClose(); }
 
     async function submitExam() {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       if (!curTask || examDone) return;
       const qs = curTask.questions || [];
       // Count unanswered questions of all types
@@ -6726,6 +6746,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── Edit / Password / Photo ───────────────────────────────────────
     async function saveProfile() {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       const n = document.getElementById('eN').value.trim();
       if (!n) { toast('أدخل الاسم', 'err'); return; }
       try {
@@ -6756,6 +6780,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     async function changePass() {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       const isAdd = !student.has_password;
       const o = document.getElementById('po').value.trim();
       const n = document.getElementById('pn').value.trim();
@@ -6816,6 +6844,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }, 'image/jpeg', .9);
     }
     async function uploadPhoto() {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       if (!croppedBlob) { toast('اختر صورة أولاً', 'err'); return; }
       showLoad('جارٍ رفع الصورة…');
       const fd = new FormData();
@@ -6882,6 +6914,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── UI helpers ────────────────────────────────────────────────────
     function openOv(id) {
+      if (['settingsOv', 'editOv', 'passOv', 'photoOv'].includes(id) && isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       const ov = document.getElementById(id);
       ov.classList.add('open');
       document.documentElement.classList.add('ov-open');
@@ -7377,8 +7413,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── SEND COUPONS STEP WIZARD ──
     function initSendWizard() {
-      if (IS_PUBLIC) {
-        showToast('يرجى تسجيل الدخول لتتمكن من إرسال الكوبونات', 'error');
+      if (isViewingOther()) {
+        toast('يرجى تسجيل الدخول لتتمكن من إرسال الكوبونات', 'err');
         switchTab('home');
         return;
       }
@@ -7525,6 +7561,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     async function confirmSendCoupons() {
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
       closeOv('shareConfirmModal');
       showLoad('جاري إرسال الكوبونات…');
       try {
@@ -7542,16 +7582,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         hideLoad();
         if (d.success) {
-          showToast(d.message || 'تم إرسال الكوبونات بنجاح!', 'success');
+          toast(d.message || 'تم إرسال الكوبونات بنجاح!', 'ok');
           
           // Refresh and redirect to home after 1 second
           setTimeout(() => { location.reload(); }, 1200);
         } else {
-          showToast(d.message || 'فشل إرسال الكوبونات', 'error');
+          toast(d.message || 'فشل إرسال الكوبونات', 'err');
         }
       } catch (e) {
         hideLoad();
-        showToast('خطأ في الاتصال بالسيرفر', 'error');
+        toast('خطأ في الاتصال بالسيرفر', 'err');
       }
     }
 
