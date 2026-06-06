@@ -3697,31 +3697,40 @@
     .print-card div[id^="prev_qrcode_"] {
       width: var(--qr-size, 130px) !important;
       height: var(--qr-size, 130px) !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
       display: flex !important;
       justify-content: center;
       align-items: center;
       margin: 0 auto;
-      overflow: visible !important;
+      overflow: hidden !important;
       border-radius: 0 !important;
+      box-sizing: border-box !important;
     }
 
     .print-card div[id^="qrcode_"] canvas,
     .print-card div[id^="prev_qrcode_"] canvas {
-      width: var(--qr-size, 130px) !important;
-      height: var(--qr-size, 130px) !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
       display: block !important;
       margin: 0 auto;
       image-rendering: pixelated;
+      object-fit: contain !important;
     }
 
     .print-card div[id^="qrcode_"] img,
     .print-card div[id^="prev_qrcode_"] img {
-      width: var(--qr-size, 130px) !important;
-      height: var(--qr-size, 130px) !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
       display: none !important;
       margin: 0 auto;
       overflow: visible !important;
       border-radius: 0 !important;
+      object-fit: contain !important;
     }
 
     @media print {
@@ -10623,7 +10632,7 @@
     </div>
 
     <!-- Image Crop Modal -->
-    <div id="imageCropModal" class="modal" style="z-index:1100;">
+    <div id="imageCropModal" class="modal" style="z-index:3000 !important;">
       <div class="modal-box" style="max-width:600px;">
         <div class="modal-head">
           <h2><i class="fas fa-crop"></i> قص وتعديل الخلفية</h2>
