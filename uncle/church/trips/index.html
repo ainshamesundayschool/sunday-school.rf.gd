@@ -11,7 +11,7 @@
   <style>
     /* Override: Desktop side-by-side layouts for print and registration modals.
        Ensures preview left + settings right on wide screens; mobile unchanged. */
-    @media (min-width: 1000px) {
+    @media (min-width: 800px) {
 
       /* Print modal: preview left, settings right */
       #printSettingsModal .modal-box {
@@ -23,28 +23,34 @@
 
       #printSettingsModal .modal-body {
         display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 18px !important;
+        grid-template-columns: 410px 1fr !important;
+        gap: 20px !important;
         align-items: stretch !important;
-        padding: 18px !important;
+        padding: 20px !important;
         height: calc(100% - 60px) !important;
         min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #printSettingsModal #printSettingsFormPanel {
+        grid-column: 1 !important;
+        overflow-y: auto !important;
+        max-height: 100% !important;
+        height: 100% !important;
+        padding-left: 10px;
       }
 
       #printSettingsModal #printPreviewPanel {
-        grid-column: 1 !important;
+        grid-column: 2 !important;
         overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
         height: 100% !important;
+        border-right: 1px solid var(--border) !important;
+        border-left: none !important;
+        padding-right: 20px !important;
+        padding-left: 0 !important;
         min-height: 0 !important;
-      }
-
-      #printSettingsModal #printSettingsFormPanel {
-        grid-column: 2 !important;
-        overflow-y: auto !important;
-        max-height: 100% !important;
-        height: 100% !important;
       }
 
       #printSettingsModal #printPreviewWrapper {
@@ -103,7 +109,7 @@
     }
 
     /* Mobile: keep stacked layout */
-    @media (max-width: 999px) {
+    @media (max-width: 799px) {
       #registerStudentModal #registerStudentForm {
         display: block !important;
       }
@@ -116,12 +122,32 @@
         margin-top: 12px !important;
       }
 
-      #printSettingsModal .modal-body {
-        display: block !important;
+      #printSettingsModal .modal-box {
+        height: 94vh !important;
+        max-height: 94vh !important;
+        margin: 3vh auto !important;
       }
-
+      #printSettingsModal .modal-body {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        height: calc(100% - 50px) !important;
+        gap: 20px !important;
+      }
+      #printSettingsModal #printSettingsFormPanel {
+        flex: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      #printSettingsModal #printPreviewPanel {
+        flex: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
       #printSettingsModal #printPreviewWrapper {
-        min-height: 260px !important;
+        min-height: 300px !important;
+        height: auto !important;
+        overflow: visible !important;
       }
     }
   </style>
@@ -9127,6 +9153,7 @@
           fChurch
         } = calculateCardLayout(baseWidth || 260, baseHeight || 360, scale, padding);
 
+        const sid = r.student_id || r.guest_id || r.id || '';
         const hasStudentImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
         // showAvatarFallback: show avatar even if no photo (with a default icon avatar)
         const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
@@ -10177,64 +10204,69 @@
           <!-- Settings Panel -->
           <div id="printSettingsFormPanel"
             style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:16px; max-height:75vh; overflow-y:auto; padding-left:5px;">
-            <div class="form-group">
-              <label class="form-label">حجم البطاقة (٪)</label>
-              <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;"
-                oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
-              <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">
-                100%</div>
-            </div>
+            
+            <!-- Section 1: Dimensions & Layout -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-arrows-alt"></i> أبعاد وتخطيط البطاقة
+              </h4>
+              
+              <div class="form-group">
+                <label class="form-label">حجم البطاقة (٪)</label>
+                <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;"
+                  oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
+                <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
+              </div>
 
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              <div>
-                <label class="form-label">عرض الكارت (سم)</label>
-                <input type="number" id="printCardWidth" class="form-input" value="7" min="2" max="30" step="0.1"
-                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                  <label class="form-label">عرض الكارت (سم)</label>
+                  <input type="number" id="printCardWidth" class="form-input" value="7" min="2" max="30" step="0.1"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ارتفاع الكارت (سم)</label>
+                  <input type="number" id="printCardHeight" class="form-input" value="10" min="2" max="30" step="0.1"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
               </div>
-              <div>
-                <label class="form-label">ارتفاع الكارت (سم)</label>
-                <input type="number" id="printCardHeight" class="form-input" value="10" min="2" max="30" step="0.1"
-                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
-              </div>
-            </div>
 
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              <div>
-                <label class="form-label">المسافة الأفقية بين البطاقات</label>
-                <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100"
-                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                  <label class="form-label">المسافة الأفقية بين الكروت</label>
+                  <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">المسافة الرأسية بين الكروت</label>
+                  <input type="number" id="printGapY" class="form-input" value="15" min="0" max="100"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
               </div>
-              <div>
-                <label class="form-label">المسافة الرأسية بين البطاقات</label>
-                <input type="number" id="printGapY" class="form-input" value="15" min="0" max="100"
-                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
-              </div>
-            </div>
 
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              <div>
-                <label class="form-label">المسافات الداخلية</label>
-                <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50"
-                  onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                  <label class="form-label">المسافات الداخلية (الهامش)</label>
+                  <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">شكل إطار الكارت</label>
+                  <select id="printCardOutlineStyle" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
+                    onchange="togglePrintDashControls(); updatePrintPreview()">
+                    <option value="dashed">متقطع</option>
+                    <option value="solid" selected>مصمت</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div class="form-group" style="display:flex; flex-direction:column; gap:12px;">
-              <div>
-                <label class="form-label">شكل إطار الكارت</label>
-                <select id="printCardOutlineStyle" class="form-select" style="width:100%;"
-                  onchange="togglePrintDashControls(); updatePrintPreview()">
-                  <option value="dashed">متقطع</option>
-                  <option value="solid" selected>مصمت</option>
-                </select>
-              </div>
-              <div id="printDashControls" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div>
+              <div id="printDashControls" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; display:none;">
+                <div class="form-group">
                   <label class="form-label">طول الشرطة</label>
                   <input type="number" id="printCardDashLength" class="form-input" value="12" min="2" max="60"
                     onchange="updatePrintPreview()" oninput="updatePrintPreview()">
                 </div>
-                <div>
+                <div class="form-group">
                   <label class="form-label">المسافة بين الشرطات</label>
                   <input type="number" id="printCardDashGap" class="form-input" value="8" min="0" max="60"
                     onchange="updatePrintPreview()" oninput="updatePrintPreview()">
@@ -10242,168 +10274,176 @@
               </div>
             </div>
 
-            <!-- Card Content Checklist -->
-            <div class="form-group"
-              style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1); display:flex; flex-direction:column; gap:8px;">
-              <label class="form-label" style="margin-bottom:4px; font-weight:800;">محتويات البطاقة</label>
-
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowChurch" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                <span>اسم الكنيسة والشعار</span>
-              </label>
-
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowTripImage"
-                  style="accent-color:var(--primary); width:16px; height:16px;"
-                  onchange="const show = this.checked; document.getElementById('printTripImageSubSettings').style.display = show ? 'flex' : 'none'; updatePrintPreview();">
-                <span>صورة الرحلة (إن وجدت)</span>
-              </label>
-
-              <!-- Trip Image Sub Settings (Hidden by default unless Show Trip Image is checked) -->
-              <div id="printTripImageSubSettings"
-                style="display:none; flex-direction:column; gap:10px; padding:8px 14px 8px 0; border-right:2px solid var(--primary); margin-right:6px; font-size:0.8rem; background:rgba(255,255,255,0.4); border-radius:4px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                  <input type="checkbox" id="printTripImgAsBg"
-                    style="accent-color:var(--primary); width:14px; height:14px;"
-                    onchange="const isBg = this.checked; document.getElementById('printImgBgOptions').style.display = isBg ? 'flex' : 'none'; document.getElementById('printImgInlineOptions').style.display = isBg ? 'none' : 'block'; updatePrintPreview();">
-                  <span>جعل الصورة خلفية كاملة للكارت</span>
+            <!-- Section 2: Card Contents Checklist -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-list-ul"></i> محتويات البطاقة
+              </h4>
+              
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowChurch" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>اسم الكنيسة والشعار</span>
                 </label>
 
-                <!-- If Checked: BG Overlay Options -->
-                <div id="printImgBgOptions" style="display:none; flex-direction:column; gap:8px;">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <span>لون التظليل:</span>
-                    <input type="color" id="printTripImgOverlayColor" value="#000000"
-                      style="width:40px; height:24px; border:1px solid var(--border); padding:0; cursor:pointer; border-radius:4px;"
-                      onchange="updatePrintPreview()">
-                  </div>
-                  <div style="display:flex; flex-direction:column; gap:2px;">
-                    <span style="font-size:0.75rem;">درجة شفافية التظليل:</span>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                      <input type="range" id="printTripImgOverlayOpacity" min="0" max="100" value="50"
-                        style="padding:0; flex:1;"
-                        oninput="updatePrintPreview(); document.getElementById('printTripImgOverlayOpacityVal').textContent = this.value + '%'">
-                      <span id="printTripImgOverlayOpacityVal"
-                        style="font-weight:bold; font-size:0.75rem; min-width:30px;">50%</span>
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowTripImage"
+                    style="accent-color:var(--primary); width:16px; height:16px;"
+                    onchange="const show = this.checked; document.getElementById('printTripImageSubSettings').style.display = show ? 'flex' : 'none'; updatePrintPreview();">
+                  <span>صورة الرحلة (إن وجدت)</span>
+                </label>
+
+                <!-- Trip Image Sub Settings -->
+                <div id="printTripImageSubSettings"
+                  style="display:none; flex-direction:column; gap:10px; padding:8px 14px 8px 0; border-right:2px solid var(--primary); margin-right:6px; font-size:0.8rem; background:var(--bg); border-radius:6px;">
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text);">
+                    <input type="checkbox" id="printTripImgAsBg"
+                      style="accent-color:var(--primary); width:14px; height:14px;"
+                      onchange="const isBg = this.checked; document.getElementById('printImgBgOptions').style.display = isBg ? 'flex' : 'none'; document.getElementById('printImgInlineOptions').style.display = isBg ? 'none' : 'block'; updatePrintPreview();">
+                    <span>جعل الصورة خلفية كاملة للكارت</span>
+                  </label>
+
+                  <!-- BG Overlay Options -->
+                  <div id="printImgBgOptions" style="display:none; flex-direction:column; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; color:var(--text);">
+                      <span>لون التظليل:</span>
+                      <input type="color" id="printTripImgOverlayColor" value="#000000"
+                        style="width:40px; height:24px; border:1px solid var(--border); padding:0; cursor:pointer; border-radius:4px;"
+                        onchange="updatePrintPreview()">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                      <span style="font-size:0.75rem;">درجة شفافية التظليل:</span>
+                      <div style="display:flex; align-items:center; gap:6px;">
+                        <input type="range" id="printTripImgOverlayOpacity" min="0" max="100" value="50"
+                          style="padding:0; flex:1;"
+                          oninput="updatePrintPreview(); document.getElementById('printTripImgOverlayOpacityVal').textContent = this.value + '%'">
+                        <span id="printTripImgOverlayOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:30px;">50%</span>
+                      </div>
                     </div>
                   </div>
+
+                  <!-- Inline Options -->
+                  <div id="printImgInlineOptions" style="display:block;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text);">
+                      <input type="checkbox" id="printTripImgRounded" checked
+                        style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                      <span>حواف دائرية للصورة الصغيرة</span>
+                    </label>
+                  </div>
                 </div>
 
-                <!-- If Unchecked: Inline Options -->
-                <div id="printImgInlineOptions" style="display:block;">
-                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <input type="checkbox" id="printTripImgRounded" checked
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowTripTitle" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>عنوان الرحلة</span>
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowStudentImg" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;"
+                    onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
+                  <span>صورة الطفل</span>
+                </label>
+
+                <!-- Avatar Fallback Sub-option -->
+                <div id="printAvatarFallbackRow"
+                  style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:var(--bg); border-radius:6px;">
+                  <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
+                    <input type="checkbox" id="printShowAvatarFallback" checked
                       style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
-                    <span>حواف دائرية للصورة الصغيرة</span>
+                    <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
                   </label>
                 </div>
-              </div>
 
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowTripTitle" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                <span>عنوان الرحلة</span>
-              </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowStudentName" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>اسم الطفل</span>
+                </label>
 
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowStudentImg" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;"
-                  onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
-                <span>صورة الطفل</span>
-              </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowStudentId" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>عرض كود الطفل (ID)</span>
+                </label>
 
-              <!-- Avatar Fallback Sub-option (visible when student image is checked) -->
-              <div id="printAvatarFallbackRow"
-                style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:rgba(255,255,255,0.4); border-radius:4px;">
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer;">
-                  <input type="checkbox" id="printShowAvatarFallback" checked
-                    style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
-                  <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printShowCustom" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>البيانات الإضافية</span>
                 </label>
               </div>
-
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowStudentName" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                <span>اسم الطفل</span>
-              </label>
-
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowStudentId" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                <span>عرض كود الطفل (ID)</span>
-              </label>
-
-              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
-                <input type="checkbox" id="printShowCustom" checked
-                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                <span>البيانات الإضافية</span>
-              </label>
             </div>
 
-            <!-- Text Colors Selection -->
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              <div>
-                <label class="form-label" style="font-weight:700;">لون الخط الموحد</label>
-                <input type="color" id="printFontColor" value="#000000"
-                  style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
-                  oninput="updatePrintPreview()" onchange="updatePrintPreview()">
-              </div>
-              <div>
-                <label class="form-label" style="font-weight:700;">لون إطار النصوص (Stroke)</label>
-                <input type="color" id="printStrokeColor" value="#dddddd"
-                  style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
-                  oninput="updatePrintPreview()" onchange="updatePrintPreview()">
-              </div>
-            </div>
-
-            <!-- Text Readability Selection -->
-            <div class="form-group">
-              <label class="form-label" style="font-weight:800;">تأثير وضوح نصوص الكارت</label>
-              <select id="printTextReadability" class="form-select" style="width:100%;" onchange="updatePrintPreview()">
-                <option value="none" selected>بدون تأثير إضافي (تلقائي)</option>
-                <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
-                <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
-              </select>
-            </div>
-
-            <!-- Custom Background Section -->
-            <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1); display:flex; flex-direction:column; gap:10px;">
-              <label class="form-label" style="margin-bottom:4px; font-weight:800;">خلفية مخصصة للبطاقة</label>
+            <!-- Section 3: Colors & Readability -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-palette"></i> الألوان وتأثيرات النصوص
+              </h4>
               
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div class="form-group">
+                <label class="form-label" style="font-weight:800;">تأثير وضوح نصوص الكارت</label>
+                <select id="printTextReadability" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="updatePrintPreview()">
+                  <option value="none" selected>بدون تأثير إضافي (تلقائي)</option>
+                  <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
+                  <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
+                </select>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;">لون الخط الموحد</label>
+                  <input type="color" id="printFontColor" value="#000000"
+                    style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
+                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;">لون إطار النصوص (Stroke)</label>
+                  <input type="color" id="printStrokeColor" value="#dddddd"
+                    style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
+                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 4: Custom Background -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-image"></i> خلفية الكارت المخصصة
+              </h4>
+              
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <input type="file" id="printCustomBgInput" accept="image/*" style="display:none;" onchange="handleCustomBgUpload(event)">
                 <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('printCustomBgInput').click()"><i class="fas fa-image"></i> اختر صورة خلفية</button>
                 <button type="button" id="printRemoveCustomBgBtn" class="btn btn-outline btn-sm" style="display:none; color:#dc2626; border-color:#fca5a5; background:#fef2f2;" onclick="removeCustomBg()"><i class="fas fa-trash-alt"></i> إزالة</button>
               </div>
               
-              <div id="printCustomBgThumbnailWrap" style="display:none; align-items:center; gap:8px;">
+              <div id="printCustomBgThumbnailWrap" style="display:none; align-items:center; gap:8px; background:var(--bg); padding:6px; border-radius:6px;">
                 <img id="printCustomBgThumbnail" src="" style="width:40px; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
                 <span style="font-size:0.75rem; color:var(--muted);">تم رفع الصورة بنجاح</span>
               </div>
               
               <div id="printCustomBgSubSettings" style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:8px; margin-top:4px;">
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; color:var(--text);">
                   <span style="font-size:0.8rem;">لون التظليل:</span>
                   <input type="color" id="printCustomBgOverlayColor" value="#ffffff"
                     style="width:40px; height:24px; border:1px solid var(--border); padding:0; cursor:pointer; border-radius:4px;"
                     onchange="updatePrintPreview()">
                 </div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
                   <span style="font-size:0.75rem;">درجة شفافية التظليل:</span>
                   <div style="display:flex; align-items:center; gap:6px;">
                     <input type="range" id="printCustomBgOverlayOpacity" min="0" max="100" value="0"
                       style="padding:0; flex:1;"
                       oninput="updatePrintPreview(); document.getElementById('printCustomBgOverlayOpacityVal').textContent = this.value + '%'">
-                    <span id="printCustomBgOverlayOpacityVal"
-                      style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
+                    <span id="printCustomBgOverlayOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px;"><i
+            <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px; height:44px; font-size:0.95rem; font-weight:800;"><i
                 class="fas fa-print"></i> تجهيز وطباعة</button>
           </div>
 
