@@ -18631,6 +18631,8 @@ function viewAnswers(taskId, studentId) {
 
 
   const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+  const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores) : (sub.open_scores || {});
+  const correctionNotes = typeof sub.correction_notes === 'string' ? JSON.parse(sub.correction_notes) : (sub.correction_notes || {});
 
 
 
@@ -18730,7 +18732,7 @@ function viewAnswers(taskId, studentId) {
 
 
 
-      const given = ans[q.id];
+      const given = ans[q.id] !== undefined ? ans[q.id] : ans[String(q.id)];
 
 
 
@@ -18784,27 +18786,35 @@ function viewAnswers(taskId, studentId) {
 
       if(qType === 'open') {
 
-
-
         const hasAns = given && String(given).trim().length > 0;
-
-
 
         html += `<div class="ans-open">
 
-
-
-          <div class="ans-open-label">إجابة الطفل:</div>
-
-
+          <div class="ans-open-label">إجابة الطفل (إجابة مفتوحة):</div>
 
           <div class="ans-open-text" style="${!hasAns?'color:var(--t4);font-style:italic;':''}">${hasAns ? esc(given) : '— لم يُجب على هذا السؤال —'}</div>
 
-
-
         </div>`;
 
-
+        if (sub.is_graded == 1 || openScores[q.id] !== undefined || openScores[String(q.id)] !== undefined) {
+          const openScoreVal = openScores[q.id] !== undefined ? openScores[q.id] : openScores[String(q.id)];
+          const corrNoteVal = correctionNotes[q.id] !== undefined ? correctionNotes[q.id] : correctionNotes[String(q.id)];
+          const scoreDisplay = openScoreVal !== undefined ? openScoreVal : 0;
+          html += `
+          <div style="margin-top: 10px; padding: 10px; border-radius: var(--r-md); background: var(--bg2); border: 1px solid var(--bdr);">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--ok); margin-bottom: 5px;">
+              <i class="fas fa-check-double"></i> درجة تصحيح السؤال: 
+              <span style="font-size: 1rem; color: var(--t1); font-weight: 900;">${scoreDisplay}</span> من <span>${q.degree}</span>
+            </div>`;
+          if (corrNoteVal && String(corrNoteVal).trim().length > 0) {
+            html += `
+            <div style="font-size: 0.8rem; color: var(--t2); margin-top: 5px;">
+              <strong style="color: var(--t3);"><i class="fas fa-comment-dots"></i> ملاحظات التصحيح:</strong> 
+              <span>${esc(corrNoteVal)}</span>
+            </div>`;
+          }
+          html += `</div>`;
+        }
 
       } else {
 

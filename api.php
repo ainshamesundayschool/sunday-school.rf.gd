@@ -32640,7 +32640,7 @@ function getTasks()
 
                 SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at,
 
-                       ts.answers, ts.open_scores, ts.is_graded,
+                       ts.answers, ts.open_scores, ts.correction_notes, ts.is_graded,
 
                        s.name AS student_name
 
@@ -33550,7 +33550,48 @@ function updateTask()
 
         }
 
+        // Send announcement to notify kids of the update
+        if ($status === 'published') {
+            $notifiedClass = '';
+            $notifiedStudents = '';
+            if ($assignTo === 'specific') {
+                $specArray = json_decode($specificIds, true) ?: [];
+                if (!empty($specArray)) {
+                    $specIdsStr = implode(',', array_map('intval', $specArray));
+                    $stuQ = $conn->query("SELECT name FROM students WHERE id IN ($specIdsStr) AND church_id = $churchId");
+                    $names = [];
+                    while ($sRow = $stuQ->fetch_assoc()) {
+                        $names[] = $sRow['name'];
+                    }
+                    $notifiedStudents = implode(',', $names);
+                }
+            } else {
+                if ($classId == 0) {
+                    $notifiedClass = 'الجميع';
+                } else {
+                    $classIdsArray = array_filter(array_map('intval', explode(',', $classIds)));
+                    if (!empty($classIdsArray)) {
+                        $classIdsStr = implode(',', $classIdsArray);
+                        $classQ = $conn->query("SELECT arabic_name FROM church_classes WHERE id IN ($classIdsStr) AND church_id = $churchId");
+                        $classNames = [];
+                        while ($cRow = $classQ->fetch_assoc()) {
+                            $classNames[] = $cRow['arabic_name'];
+                        }
+                        $notifiedClass = implode(',', $classNames);
+                    } else {
+                        $notifiedClass = $className; // fallback
+                    }
+                }
+            }
 
+            // Check if there's any target class or student
+            if ($notifiedClass !== '' || $notifiedStudents !== '') {
+                $annText = "تم تعديل المهمة: " . $title . " وتحديث الكوبونات الخاصة بها.";
+                $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, student_names, is_active, created_at) VALUES (?, 'task', ?, '', ?, ?, 1, NOW())");
+                $annStmt->bind_param('isss', $churchId, $annText, $notifiedClass, $notifiedStudents);
+                $annStmt->execute();
+            }
+        }
 
         $conn->commit();
 
@@ -36582,7 +36623,13 @@ function gradeOpenAnswer()
 
         // Load submission + task
 
-        $subStmt = $conn->prepare("SELECT ts.*, t.total_degree, t.coupon_matrix, t.class_id FROM task_submissions ts JOIN tasks t ON t.id=ts.task_id WHERE ts.id=? AND ts.church_id=?");
+        $subStmt = $conn->prepare("
+            SELECT ts.*, t.total_degree, t.coupon_matrix, t.class_id, t.title AS task_title, s.name AS student_name, s.class AS student_class
+            FROM task_submissions ts 
+            JOIN tasks t ON t.id=ts.task_id 
+            LEFT JOIN students s ON s.id=ts.student_id
+            WHERE ts.id=? AND ts.church_id=?
+        ");
 
         $subStmt->bind_param('ii', $subId, $churchId);
 
@@ -36738,7 +36785,17 @@ function gradeOpenAnswer()
 
         }
 
+        // Insert notification for the student
+        $studentName = $sub['student_name'] ?? '';
+        $studentClass = $sub['student_class'] ?? '';
+        $taskTitle = $sub['task_title'] ?? '';
 
+        if ($studentName !== '') {
+            $annText = "تم تصحيح المهمة: \"{$taskTitle}\" وحصلت على {$coupons} من الكوبونات!";
+            $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, student_names, is_active, created_at) VALUES (?, 'task', ?, '', ?, ?, 1, NOW())");
+            $annStmt->bind_param('isss', $churchId, $annText, $studentClass, $studentName);
+            $annStmt->execute();
+        }
 
         $conn->commit();
 

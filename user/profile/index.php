@@ -4589,9 +4589,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <span>إرسال</span>
     </div>
-    <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')">
+    <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')" style="position: relative;">
       <i class="fas fa-tasks"></i>
       <span>المهام</span>
+      <span id="tasksBadge" style="display:none; position:absolute; top:6px; right:calc(50% - 18px); width:8px; height:8px; background:var(--err); border-radius:50%; border:1px solid #fff;"></span>
     </div>
     <div class="bottom-nav-item" data-tab="family" onclick="switchTab('family')">
       <i class="fas fa-comments"></i>
@@ -7162,6 +7163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
            scTasks.classList.add('fullscreen-tab');
            scTasks.style.display = 'block';
         }
+        const badge = document.getElementById('tasksBadge');
+        if (badge) badge.style.display = 'none';
       } else if (tabName === 'family') {
         // Display siblings only if they have siblings
         if (hasSiblingsLoaded && scSiblings) {
@@ -7560,6 +7563,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const listEl = document.getElementById('annList');
         const scAnn = document.getElementById('scAnn');
         const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
+
+        const hasTaskAnn = anns.some(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
+        const badge = document.getElementById('tasksBadge');
+        if (badge && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
+          badge.style.display = hasTaskAnn ? 'block' : 'none';
+        }
 
         if (!anns.length) {
           if (scAnn) scAnn.style.display = 'none';
