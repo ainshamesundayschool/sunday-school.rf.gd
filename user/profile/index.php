@@ -4791,7 +4791,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
-      if (_creds && URL_ID) { await initPrivate(); await openFriendProfile(URL_ID); }
+      if (_creds && URL_ID) {
+        await initPrivate();
+        const matchedAccount = allAccounts.find(a => Number(a.id) === Number(URL_ID));
+        if (matchedAccount) {
+          student = matchedAccount;
+          localStorage.setItem('activeKidAccountId', String(matchedAccount.id));
+          renderPrivate(student);
+          switchTab('home');
+          loadSiblings();
+          document.getElementById('bottomNavBar').style.display = 'flex';
+          syncPassOverlay();
+          if (allAccounts.length > 1) {
+            document.getElementById('switchBtnTop').style.display = 'flex';
+          }
+        } else {
+          await openFriendProfile(URL_ID);
+        }
+      }
       else if (IS_PUBLIC && URL_ID) await initPublic(URL_ID);
       else if (_creds) await initPrivate();
       else if (URL_ID) await initPublic(URL_ID);

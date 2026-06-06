@@ -351,6 +351,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" media="print"
         onload="this.media='all'">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -8825,6 +8826,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-check-circle"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
                             </button>
+                            <div class="action-dropdown" style="flex:none;min-width:0;">
+                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');"
+                                    style="min-width:44px;padding:0 10px;">
+                                    <i class="fas fa-qrcode"></i>
+                                    <span class="save-btn-bottom"><span class="save-btn-label">QR</span></span>
+                                </button>
+                                <div class="dropdown-menu" id="kidQrScanMenu" style="left:auto;right:0;min-width:220px;">
+                                    <button class="dropdown-item success" onclick="startKidQrScan('attendance');closeAllDropdowns();">
+                                        <i class="fas fa-user-check"></i> مسح الحضور
+                                    </button>
+                                    <button class="dropdown-item coupon" onclick="startKidQrScan('coupons');closeAllDropdowns();">
+                                        <i class="fas fa-star"></i> مسح الكوبونات
+                                    </button>
+                                </div>
+                            </div>
                             <button class="save-btn save-btn-attendance" id="submitAttendance" disabled
                                 title="حفظ الحضور">
                                 <i class="fas fa-user-check"></i>
@@ -9450,6 +9466,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button class="search-btn" id="allStudentsSearchBtn"><i class="fas fa-search"></i></button>
                 </div>
                 <div class="table-export-btns">
+                    <button class="btn btn-secondary" id="allStudentsQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل">
+                        <i class="fas fa-qrcode"></i> QR
+                    </button>
                     <button class="btn btn-danger" id="exportAllAsPdfBtn"><i class="fas fa-file-pdf"></i> تصدير
                         PDF</button>
                     <button class="btn btn-success" id="exportAllAsCsvBtn"><i class="fas fa-file-csv"></i> تصدير
@@ -9471,6 +9490,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </thead>
                     <tbody id="allStudentsTableBody"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kid QR Scanner -->
+    <div class="modal-overlay" id="kidQrScannerModal" style="z-index:1000010">
+        <div class="modal" style="max-width:520px;width:92vw;">
+            <div class="modal-header" style="gap:8px;align-items:flex-start">
+                <div>
+                    <h3 id="kidQrScannerTitle"><i class="fas fa-qrcode"></i> مسح QR</h3>
+                    <div id="kidQrScannerSubtitle" style="font-size:.82rem;color:var(--text-3);margin-top:4px;line-height:1.4"></div>
+                </div>
+                <button class="close-btn" id="closeKidQrScannerBtn" onclick="stopKidQrScan()">&times;</button>
+            </div>
+            <div style="padding:0 2px 10px">
+                <div id="kidQrScannerNote" style="background:var(--brand-bg);border:1px solid rgba(79,70,229,.16);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin-bottom:12px">
+                    يمكنك طباعة QR الأطفال من صفحة الإدارة.
+                </div>
+                <div id="kidQrReader" style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
+                <div id="kidQrScanSummary" style="margin-top:12px"></div>
+                <div id="kidQrScanList" style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px"></div>
+                <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+                    <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:130px" onclick="finishKidQrScan()">
+                        <i class="fas fa-check"></i> تم
+                    </button>
+                    <button class="btn btn-secondary" style="flex:1;min-width:130px" onclick="stopKidQrScan()">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -9852,6 +9900,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
         let uncleClassNavPermission = 'all';
         let _uncleAssignedClassesLoaded = false;
+        let kidQrScanner = null;
+        let kidQrScanMode = '';
+        let kidQrScanAmount = 0;
+        let kidQrScanSeen = new Set();
+        let kidQrScanEntries = [];
 
         // ── NEVER LOGOUT — silent session restore ─────────────────────
         function silentSessionRestore() {
@@ -11597,6 +11650,260 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // ── SAVE BUTTONS ──────────────────────────────────────────────
+        function buildKidProfileQrLink(studentId) {
+            const id = String(studentId || '').trim();
+            if (!id) return '';
+            return `${window.location.origin}/user/profile/?id=${encodeURIComponent(id)}`;
+        }
+
+        function getKidIdFromQrText(decodedText) {
+            if (!decodedText) return '';
+            try {
+                const url = new URL(decodedText, window.location.origin);
+                return (
+                    url.searchParams.get('student_id') ||
+                    url.searchParams.get('studentId') ||
+                    url.searchParams.get('id') ||
+                    ''
+                ).trim();
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function findStudentById(studentId) {
+            const id = String(studentId || '').trim();
+            if (!id) return null;
+            const pool = isCombinedView ? combinedStudents : students;
+            return pool.find(s => String(getStudentId(s)) === id) || allStudentsData.find(s => String(getStudentId(s)) === id) || null;
+        }
+
+        function refreshKidQrScanUI() {
+            const title = document.getElementById('kidQrScannerTitle');
+            const subtitle = document.getElementById('kidQrScannerSubtitle');
+            const summary = document.getElementById('kidQrScanSummary');
+            const list = document.getElementById('kidQrScanList');
+            const doneBtn = document.getElementById('kidQrDoneBtn');
+
+            if (title) {
+                title.innerHTML = kidQrScanMode === 'coupons'
+                    ? '<i class="fas fa-qrcode"></i> مسح QR الكوبونات'
+                    : kidQrScanMode === 'attendance'
+                        ? '<i class="fas fa-qrcode"></i> مسح QR الحضور'
+                        : '<i class="fas fa-qrcode"></i> مسح QR الطفل';
+            }
+
+            if (subtitle) {
+                subtitle.textContent = kidQrScanMode === 'coupons'
+                    ? `ضع الكوبونات التي تريد إضافتها: ${kidQrScanAmount}`
+                    : kidQrScanMode === 'attendance'
+                        ? 'امسح أكواد الأطفال لتسجيل الحضور محلياً ثم احفظ من زر الحفظ.'
+                        : 'امسح QR الطفل لفتح ملفه مباشرة.';
+            }
+
+            if (summary) {
+                summary.innerHTML = kidQrScanMode === 'coupons'
+                    ? `<div style="background:var(--coupon-bg);border:1px solid rgba(124,58,237,.16);color:var(--coupon-dark);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">تم اختيار <strong>${kidQrScanAmount}</strong> كوبون لكل طفل ممسوح.</div>`
+                    : kidQrScanMode === 'attendance'
+                        ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
+                        : '';
+            }
+
+            if (doneBtn) {
+                doneBtn.innerHTML = kidQrScanMode === 'coupons'
+                    ? '<i class="fas fa-check"></i> تم إضافة الكوبونات'
+                    : kidQrScanMode === 'attendance'
+                        ? '<i class="fas fa-check"></i> تم تسجيل الحضور'
+                        : '<i class="fas fa-check"></i> إغلاق';
+            }
+
+            if (list) {
+                if (!kidQrScanEntries.length) {
+                    list.innerHTML = '<div style="text-align:center;padding:18px 12px;color:var(--text-3);font-size:.84rem;background:var(--surface-2);border:1px dashed var(--border);border-radius:12px">لم يتم مسح أي طفل بعد</div>';
+                } else {
+                    list.innerHTML = kidQrScanEntries.map(entry => `
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                            <div style="min-width:0">
+                                <div style="font-weight:800;color:var(--text);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${entry.name}</div>
+                                <div style="font-size:.74rem;color:var(--text-3);margin-top:2px">${entry.className || ''}</div>
+                            </div>
+                            <div style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${kidQrScanMode === 'coupons' ? 'var(--coupon-bg)' : 'var(--success-bg)'};color:${kidQrScanMode === 'coupons' ? 'var(--coupon-dark)' : 'var(--success)'};font-weight:800;font-size:.8rem">
+                                <i class="fas ${kidQrScanMode === 'coupons' ? 'fa-star' : 'fa-user-check'}"></i>
+                                ${kidQrScanMode === 'coupons' ? `+${entry.amount}` : 'حاضر'}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        function recordKidQrScan(studentId) {
+            const id = String(studentId || '').trim();
+            if (!id) return false;
+            if (kidQrScanSeen.has(id)) {
+                showToast('تمت إضافة هذا الطفل بالفعل', 'info');
+                return false;
+            }
+
+            const student = findStudentById(id);
+            if (!student) {
+                showToast('لم يتم العثور على الطفل في هذه الصفحة', 'warning');
+                return false;
+            }
+
+            if (kidQrScanMode !== 'profile') {
+                const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+                const inCurrentView = activePool.some(s => String(getStudentId(s)) === id);
+                if (!inCurrentView) {
+                    showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
+                    return false;
+                }
+            }
+
+            kidQrScanSeen.add(id);
+            const name = student['الاسم'] || student.name || 'طفل';
+            const className = student['الفصل'] || student.class || '';
+
+            if (kidQrScanMode === 'attendance') {
+                markStudentAttendance(id, 'present');
+                kidQrScanEntries.push({ id, name, className });
+                renderAttendanceList(currentClass);
+                updateClassStats();
+                updateSaveBtns();
+            } else if (kidQrScanMode === 'coupons') {
+                const amount = Math.max(1, parseInt(kidQrScanAmount, 10) || 1);
+                const cur = parseInt(couponData[id] || 0);
+                couponData[id] = cur + amount;
+                changedCouponStudents.add(id);
+                savedCouponStudents.delete(id);
+                kidQrScanEntries.push({ id, name, className, amount });
+                saveCouponDataForClass(currentClass);
+                renderAttendanceList(currentClass);
+                updateClassStats();
+                updateSaveBtns();
+            } else if (kidQrScanMode === 'profile') {
+                kidQrScanEntries.push({ id, name, className });
+                refreshKidQrScanUI();
+                return true;
+            }
+
+            refreshKidQrScanUI();
+            showToast(`تم مسح ${name}`, 'success');
+            return true;
+        }
+
+        function stopKidQrScan() {
+            const modal = document.getElementById('kidQrScannerModal');
+            if (kidQrScanner) {
+                try {
+                    const scanner = kidQrScanner;
+                    kidQrScanner = null;
+                    scanner.stop().then(() => {
+                        scanner.clear?.();
+                        if (modal) modal.classList.remove('active');
+                    }).catch(() => {
+                        if (modal) modal.classList.remove('active');
+                    });
+                } catch (e) {
+                    if (modal) modal.classList.remove('active');
+                }
+            } else if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function finishKidQrScan() {
+            if (kidQrScanMode === 'profile') {
+                stopKidQrScan();
+                return;
+            }
+            stopKidQrScan();
+            if (currentClass) {
+                renderAttendanceList(currentClass);
+                updateClassStats();
+                updateSaveBtns();
+            }
+        }
+
+        async function startKidQrScan(mode = 'profile') {
+            const normalizedMode = ['attendance', 'coupons', 'profile'].includes(mode) ? mode : 'profile';
+            if (normalizedMode !== 'profile' && !currentClass) {
+                showToast('اختر فصلًا أولًا', 'info');
+                return;
+            }
+
+            if (normalizedMode === 'coupons') {
+                const amountRaw = prompt('كم كوبون تريد إضافته لكل طفل ممسوح؟', '1');
+                if (amountRaw === null) return;
+                const amount = Math.max(1, parseInt(amountRaw, 10) || 0);
+                if (!amount) {
+                    showToast('أدخل رقمًا صحيحًا أكبر من صفر', 'warning');
+                    return;
+                }
+                kidQrScanAmount = amount;
+            } else {
+                kidQrScanAmount = 0;
+            }
+
+            kidQrScanMode = normalizedMode;
+            kidQrScanSeen = new Set();
+            kidQrScanEntries = [];
+            refreshKidQrScanUI();
+
+            const modal = document.getElementById('kidQrScannerModal');
+            if (modal) modal.classList.add('active');
+
+            if (normalizedMode === 'profile') {
+                if (!kidQrScanner) kidQrScanner = new Html5Qrcode('kidQrReader');
+                try {
+                    await kidQrScanner.start(
+                        { facingMode: 'environment' },
+                        { fps: 10, qrbox: { width: 240, height: 240 } },
+                        async (decodedText) => {
+                            const kidId = getKidIdFromQrText(decodedText);
+                            if (!kidId) {
+                                showToast('QR غير صالح', 'error');
+                                return;
+                            }
+                            const link = buildKidProfileQrLink(kidId);
+                            if (!link) {
+                                showToast('QR غير صالح', 'error');
+                                return;
+                            }
+                            stopKidQrScan();
+                            window.location.href = link;
+                        },
+                        () => { }
+                    );
+                } catch (err) {
+                    showToast('فشل تشغيل الكاميرا', 'error');
+                    stopKidQrScan();
+                }
+                return;
+            }
+
+            if (!kidQrScanner) kidQrScanner = new Html5Qrcode('kidQrReader');
+
+            try {
+                await kidQrScanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 240, height: 240 } },
+                    async (decodedText) => {
+                        const kidId = getKidIdFromQrText(decodedText);
+                        if (!kidId) {
+                            showToast('QR غير صالح', 'error');
+                            return;
+                        }
+                        recordKidQrScan(kidId);
+                    },
+                    () => { }
+                );
+            } catch (err) {
+                showToast('فشل تشغيل الكاميرا', 'error');
+                stopKidQrScan();
+            }
+        }
+
         function updateSaveBtns() {
             const at = document.getElementById('submitAttendance');
             const ct = document.getElementById('submitCoupons');

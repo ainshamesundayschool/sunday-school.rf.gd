@@ -8511,8 +8511,10 @@
 
       const qrSize = Math.max(80, 130 * previewScale);
       previewRegs.forEach((_, idx) => {
+        const rawPreviewStudentId = previewRegs[idx].student_id || '';
+        const previewStudentId = /^[0-9]+$/.test(String(rawPreviewStudentId)) ? rawPreviewStudentId : '1';
         new QRCode(document.getElementById(`prev_qrcode_sample_${idx}`), {
-          text: "https://sunday-school.online/",
+          text: `${window.location.origin}/user/profile/?id=${encodeURIComponent(previewStudentId)}`,
           width: qrSize,
           height: qrSize,
           colorDark: "#000000",
@@ -8604,8 +8606,9 @@
 
       regs.forEach(r => {
         const cardId = 'qrcode_' + r.id;
-        const qrParam = r.student_id ? `student_id=${encodeURIComponent(r.student_id)}` : `guest_id=${encodeURIComponent(r.guest_id || r.id)}`;
-        const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&${qrParam}`;
+        const link = r.student_id
+          ? `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`
+          : `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&guest_id=${encodeURIComponent(r.guest_id || r.id)}`;
         const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
         html += generateCardMarkup({

@@ -615,7 +615,7 @@
             <div class="topbar-search-results" id="topbarSearchResults"></div>
         </div>
         <div class="topbar-actions">
-            <button class="topbar-btn" onclick="startScanner()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+            <button class="topbar-btn" onclick="startScannerV2()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
                 <span class="fa-stack" style="font-size: 0.85rem; width: 1.5em; height: 1.5em; line-height: 1.5em; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
                     <i class="fas fa-expand fa-stack-2x" style="font-size: 1.3rem;"></i>
                     <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.75rem;"></i>
@@ -641,7 +641,7 @@
             </div>
 
             <!-- Big Camera Button -->
-            <button class="btn-camera-big" onclick="startScanner()" title="مسح كود QR للأطفال" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px;">
+            <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px;">
                 <span class="fa-stack" style="font-size: 1.1rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="fas fa-expand fa-stack-2x" style="font-size: 1.8rem; color: white;"></i>
                     <i class="fas fa-qrcode fa-stack-1x" style="font-size: 1.0rem; color: white;"></i>
@@ -995,6 +995,84 @@
 
             // QR Code Scanner Logic
             let html5QrcodeScanner = null;
+
+            function getKidIdFromQrText(decodedText) {
+                if (!decodedText) return '';
+                try {
+                    const url = new URL(decodedText, window.location.origin);
+                    return (
+                        url.searchParams.get('student_id') ||
+                        url.searchParams.get('studentId') ||
+                        url.searchParams.get('id') ||
+                        ''
+                    ).trim();
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            function startScannerV2() {
+                document.getElementById('scannerModal').style.display = 'flex';
+                if (!html5QrcodeScanner) {
+                    html5QrcodeScanner = new Html5Qrcode("reader");
+                }
+                const activeTripId = currentTrip?.id || tripId || '';
+                html5QrcodeScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    async (decodedText, decodedResult) => {
+                        html5QrcodeScanner.stop().then(async () => {
+                            document.getElementById('scannerModal').style.display = 'none';
+
+                            const scannedStudentId = getKidIdFromQrText(decodedText);
+                            if (!scannedStudentId) {
+                                alert('الكود الممسوح غير صحيح');
+                                return;
+                            }
+
+                            let parsedUrl = null;
+                            try {
+                                parsedUrl = new URL(decodedText, window.location.origin);
+                            } catch (e) { }
+                            const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
+
+                            if (activeTripId && String(scannedTripId || activeTripId) === String(activeTripId)) {
+                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+                                return;
+                            }
+
+                            if (!scannedTripId) {
+                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+                                return;
+                            }
+
+                            const fd = new FormData();
+                            fd.append('action', 'getTripDetails');
+                            fd.append('trip_id', scannedTripId);
+
+                            try {
+                                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                                const currentChurchId = currentTrip ? currentTrip.church_id : null;
+                                if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
+                                    if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
+                                        window.location.href = `/uncle/trip/points/?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
+                                    }
+                                } else {
+                                    await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                                }
+                            } catch (err) {
+                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                            }
+                        });
+                    },
+                    (errorMessage) => {
+                        // Ignore parse errors
+                    }
+                ).catch((err) => {
+                    alert("حدث خطأ في الوصول للكاميرا: " + err);
+                    stopScanner();
+                });
+            }
 
             function startScanner() {
                 document.getElementById('scannerModal').style.display = 'flex';

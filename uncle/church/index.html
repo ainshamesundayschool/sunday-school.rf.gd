@@ -6344,8 +6344,12 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
-                        <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
-                                class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-outline btn-sm" onclick="printAllKidsQRCards()"><i
+                                    class="fas fa-qrcode"></i> طباعة QR الكل</button>
+                            <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
+                                    class="fas fa-upload"></i> إضافة مجموعة</button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="toolbar">
@@ -16209,6 +16213,67 @@
             if (rd) rd.textContent = new Date().getFullYear();
         })();
 
+        async function printAllKidsQRCards() {
+            if (!Array.isArray(allStudents) || !allStudents.length) {
+                await loadStudents();
+            }
+            const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
+            if (!kids.length) {
+                showToast('لا يوجد أطفال لطباعة QR لهم', 'warning');
+                return;
+            }
+
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = '';
+
+            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+            const qrTasks = [];
+
+            printArea.innerHTML = kids.map((s, idx) => {
+                const sid = s['_studentId'] || s.id || s.student_id;
+                const name = s['الاسم'] || s.name || 'طفل';
+                const cls = s['الفصل'] || s.class || '';
+                const imgUrl = s['صورة'] || s.image_url || s.photo || '';
+                const hasImage = String(imgUrl || '').trim() !== '' && !String(imgUrl).includes('placeholder.com') && !String(imgUrl).includes('via.placeholder');
+                const cardId = `qrcode_kid_${sid}_${idx}`;
+                const link = `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
+                qrTasks.push({ id: cardId, text: link });
+
+                const avatarHtml = hasImage
+                    ? `<img src="${escHtml(imgUrl)}" class="avatar" onerror="this.style.display='none'">`
+                    : '';
+
+                return `
+        <div class="print-card">
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
+                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${escHtml(churchName)}</span>
+            </div>
+            <h3>${escHtml(cls || 'QR الطفل')}</h3>
+            ${avatarHtml}
+            <h2>${escHtml(name)}</h2>
+            <div class="custom-info">${escHtml(cls)}</div>
+            <div id="${cardId}"></div>
+        </div>`;
+            }).join('');
+
+            qrTasks.forEach(task => {
+                new QRCode(document.getElementById(task.id), {
+                    text: task.text,
+                    width: 130,
+                    height: 130,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            });
+
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+            }, 500);
+        }
+
         async function printQRCards(tripId) {
             let regs = tripRegistrationsCache[tripId] || [];
             let trip = allTripsCache.find(t => t.id == tripId);
@@ -16267,7 +16332,7 @@
                 }
 
                 const cardId = 'qrcode_' + r.id;
-                const link = `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&student_id=${r.student_id}`;
+                const link = `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`;
 
                 const avatarHtml = hasImage
                     ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">`
