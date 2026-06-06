@@ -16838,7 +16838,7 @@
 
             let churchHeaderHtml = '';
             if (showChurch) {
-                if (textReadability === 'rect' && !isUnified) {
+                if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     churchHeaderHtml = `
                         <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                                 <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
@@ -16857,7 +16857,7 @@
 
             let classGroupHtml = '';
             if (showClass && safeClass) {
-                if (textReadability === 'rect' && !isUnified) {
+                if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     classGroupHtml = `
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                                 <h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
@@ -16873,7 +16873,7 @@
                 const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
                 const hasAnyStudentContent = !!avatarHtml || showStudentName;
 
-                if (textReadability === 'rect' && !isUnified && hasAnyStudentContent) {
+                if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only' && hasAnyStudentContent) {
                     studentInfoGroupHtml = `
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                                 ${avatarHtml}
@@ -16890,7 +16890,7 @@
 
             let showStudentIdHtml = '';
             if (showStudentId) {
-                if (textReadability === 'rect' && !isUnified) {
+                if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     showStudentIdHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
                         <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${sid}</span>
