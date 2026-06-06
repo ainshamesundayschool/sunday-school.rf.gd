@@ -176,7 +176,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
     $ogDescription = ($churchType === 'youth')
         ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
         : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
-    $ogImage = 'https://sunday-school.online/imgs/Thumbnail-300x.png';
+    $ogImage = 'https://sunday-school.online/imgs/Sunday-School-Og.png';
+    $twitterImage = 'https://sunday-school.online/imgs/Sunday%20School%20App.png';
     $ogUrl = 'https://sunday-school.online/uncle/dashboard/';
     ?>
 
@@ -213,8 +214,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <meta property="og:title" content="<?php echo htmlspecialchars($ogTitle); ?>">
     <meta property="og:description" content="<?php echo htmlspecialchars($ogDescription); ?>">
     <meta property="og:image" content="<?php echo $ogImage; ?>">
-    <meta property="og:image:width" content="300">
-    <meta property="og:image:height" content="300">
+    <meta property="og:image:width" content="1000">
+    <meta property="og:image:height" content="1000">
     <meta property="og:image:type" content="image/png">
     <meta property="og:url" content="<?php echo $ogUrl; ?>">
     <meta property="og:locale" content="ar_AR">
@@ -223,7 +224,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?php echo htmlspecialchars($ogTitle); ?>">
     <meta name="twitter:description" content="<?php echo htmlspecialchars($ogDescription); ?>">
-    <meta name="twitter:image" content="<?php echo $ogImage; ?>">
+    <meta name="twitter:image" content="<?php echo $twitterImage; ?>">
 
     <!-- ═══ Standard fallback description ═══ -->
     <meta name="description" content="<?php echo htmlspecialchars($ogDescription); ?>">
