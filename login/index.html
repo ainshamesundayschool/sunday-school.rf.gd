@@ -823,6 +823,22 @@ position: absolute;
             fd.append('password', password);
         }
         const r = await fetch(API, { method: 'POST', body: fd, credentials: 'include' });
+
+        // Detect iFastNet cookie-check intercept
+        if (r.url && r.url.indexOf('ifastnet.com') !== -1) {
+            throw new Error('COOKIE_CHECK');
+        }
+
+        const contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            // The host may have returned its cookie-check HTML page
+            const text = await r.text();
+            if (text.indexOf('ifastnet.com') !== -1 || text.indexOf('Cookies are not enabled') !== -1) {
+                throw new Error('COOKIE_CHECK');
+            }
+            throw new Error('NOT_JSON');
+        }
+
         return r.json();
     }
 
@@ -853,6 +869,12 @@ position: absolute;
                     showForms();
                 }
             } catch (err) {
+                if (err.message === 'COOKIE_CHECK') {
+                    // iFastNet intercepted the request — reload the page to
+                    // let the cookie-check complete, then user can try again
+                    window.location.reload();
+                    return;
+                }
                 showError('خطأ في الاتصال بالخادم');
                 showForms();
             }
