@@ -41,18 +41,15 @@
     if (path.indexOf('/leaderboard') !== -1) return 'لوحة المتفوقين';
     if (path.indexOf('/help') !== -1) return 'المساعدة';
     if (path.indexOf('/about') !== -1) return 'حول النظام';
-    if (path.indexOf('/kids/profile') !== -1) return 'بوابة المستخدم';
-    if (path.indexOf('/kids') !== -1) return 'بوابة المستخدم';
+    if (path.indexOf('/user/profile') !== -1) return 'بوابة المستخدم';
+    if (path.indexOf('/user') !== -1) return 'بوابة المستخدم';
     return '';
   }
 
   function applyOgMeta() {
     var type = readChurchType();
-    var isYouth = type === 'youth';
-    var baseTitle = isYouth ? 'Sunday School' : 'نظام مدارس الأحد';
-    var description = isYouth
-      ? 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد'
-      : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
+    var baseTitle = 'Sunday School';
+    var description = 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد';
     var label = pageLabel(location.pathname);
     var fullTitle = label ? label + ' - ' + baseTitle : baseTitle;
     var url = absoluteUrl(location.pathname.replace(/\/index\.(html|php)$/i, '/') + location.search);

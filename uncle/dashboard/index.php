@@ -172,10 +172,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </script>
 
     <?php
-    $ogTitle = ($churchType === 'youth') ? 'Sunday School' : 'نظام مدارس الأحد';
-    $ogDescription = ($churchType === 'youth')
-        ? 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد'
-        : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
+    $ogTitle = 'Sunday School';
+    $ogDescription = 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد';
     $ogImage = 'https://sunday-school.online/imgs/Sunday-School-Og.png';
     $twitterImage = 'https://sunday-school.online/imgs/Sunday%20School%20App.png';
     $ogUrl = 'https://sunday-school.online/uncle/dashboard/';
@@ -964,6 +962,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .class-card:active {
             transform: scale(.97)
+        }
+
+        .class-unsaved-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, var(--danger, #ef4444), #f59e0b);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 3px 7px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 2;
+            animation: badgePulse 2s infinite ease-in-out;
+        }
+
+        @keyframes badgePulse {
+            0% { transform: scale(1); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 2px 10px rgba(239, 68, 68, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
         }
 
         .class-icon {
@@ -8165,7 +8187,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     onerror="this.outerHTML='<i class=\\'fas fa-cross\\'style=\\'font-size:2rem;color:#fff\\'></i>'">
             </div>
             <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تثبيت التطبيق</h3>
-            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px">ثبّت نظام مدارس الأحد على شاشتك الرئيسية
+            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px">ثبّت Sunday School على شاشتك الرئيسية
                 للوصول السريع والعمل بدون إنترنت</p>
             <div class="pwa-steps" id="pwaSteps">
                 <!-- filled by JS based on OS -->
@@ -8440,7 +8462,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div>
                     <div class="topbar-title"><?php echo htmlspecialchars($churchName); ?></div>
-                    <div class="topbar-subtitle">نظام مدارس الأحد</div>
+                    <div class="topbar-subtitle">Sunday School</div>
                 </div>
             </a>
             <div class="topbar-search-wrap">
@@ -8591,7 +8613,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <a href="https://sunday-school.online/" class="footer-brand">
                             <div class="footer-logo"><img src="/logo.png" alt="" onerror="this.style.display='none'">
                             </div>
-                            <span class="footer-name">نظام مدارس الأحد 2026</span>
+                            <span class="footer-name">Sunday School 2026</span>
                         </a>
                         <div class="footer-copy">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ<br><span>كُورِنْثُوسَ
                                 الأُولَى ١٥:‏٥٨</span></div>
@@ -10748,6 +10770,55 @@ if ($hasUncleId && $uncleRole === 'uncle')
             banner.classList.add('show');
         }
 
+        function getUnsavedChangesCount(clsName, isCombined = false, grpClasses = []) {
+            let count = 0;
+            const allKeys = Object.keys(localStorage);
+
+            if (clsName === '__ALL__') {
+                allKeys.forEach(k => {
+                    if (k.startsWith('changedStudents_') || k.startsWith('changedCouponStudents_')) {
+                        try {
+                            const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
+                            count += changedIds.length;
+                        } catch (e) {}
+                    }
+                });
+            } else if (isCombined && grpClasses && grpClasses.length) {
+                grpClasses.forEach(c => {
+                    allKeys.forEach(k => {
+                        const prefix = `changedStudents_${c}_`;
+                        if (k.startsWith(prefix)) {
+                            try {
+                                const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
+                                count += changedIds.length;
+                            } catch (e) {}
+                        }
+                    });
+                    try {
+                        const couponKey = `changedCouponStudents_${c}`;
+                        const couponIds = JSON.parse(localStorage.getItem(couponKey) || '[]');
+                        count += couponIds.length;
+                    } catch (e) {}
+                });
+            } else {
+                allKeys.forEach(k => {
+                    const prefix = `changedStudents_${clsName}_`;
+                    if (k.startsWith(prefix)) {
+                        try {
+                            const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
+                            count += changedIds.length;
+                        } catch (e) {}
+                    }
+                });
+                try {
+                    const couponKey = `changedCouponStudents_${clsName}`;
+                    const couponIds = JSON.parse(localStorage.getItem(couponKey) || '[]');
+                    count += couponIds.length;
+                } catch (e) {}
+            }
+            return count;
+        }
+
         function displayClasses() {
             const grid = document.getElementById('classesGrid');
             if (!grid) return;
@@ -10819,6 +10890,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const allColor = window.IS_YOUTH ? '#8b5cf6' : '#4f46e5';
             const allBg = window.IS_YOUTH ? 'linear-gradient(135deg,#8b5cf6,#6d28d9)' : 'linear-gradient(135deg,#4f46e5,#6366f1)';
             const allCount = students.length;
+            const allUnsaved = getUnsavedChangesCount('__ALL__');
+            const allUnsavedHtml = allUnsaved > 0 ? `
+                <div class="class-unsaved-badge" title="${allUnsaved} تغييرات غير محفوظة">
+                    <i class="fas fa-save"></i> ${allUnsaved}
+                </div>
+            ` : '';
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px dashed ${allColor};position:relative;">
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
@@ -10827,6 +10904,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <i class="fas fa-user" style="font-size:.6rem"></i> ${allCount} ${window.IS_YOUTH ? 'شاب' : 'طفل'}
         </div>
         <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
+        ${allUnsavedHtml}
     </div>` : '';
 
             // ── Combined class group cards ────────────────────────────
@@ -10836,12 +10914,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const label = g.label || 'مجموعة';
                     const grpClasses = Array.isArray(g.classes) ? g.classes : [];
                     const count = students.filter(s => grpClasses.includes(s['الفصل'])).length;
+                    const unsaved = getUnsavedChangesCount(label, true, grpClasses);
+                    const unsavedHtml = unsaved > 0 ? `
+                        <div class="class-unsaved-badge" title="${unsaved} تغييرات غير محفوظة">
+                            <i class="fas fa-save"></i> ${unsaved}
+                        </div>
+                    ` : '';
                     return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label}</div>
                 <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
                 <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
+                ${unsavedHtml}
             </div>`;
                 }).join('');
             }
@@ -10851,11 +10936,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const count = students.filter(s => s['الفصل'] === name).length;
                 const color = cls.color || '#4f46e5';
                 const iconHtml = getClassIcon(name, cls);
+                const unsaved = getUnsavedChangesCount(name);
+                const unsavedHtml = unsaved > 0 ? `
+                    <div class="class-unsaved-badge" title="${unsaved} تغييرات غير محفوظة">
+                        <i class="fas fa-save"></i> ${unsaved}
+                    </div>
+                ` : '';
                 return `<div class="class-card" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name}</div>
             <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+            ${unsavedHtml}
         </div>`;
             }).join('');
 

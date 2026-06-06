@@ -13,15 +13,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="نظام مدارس الأحد">
-    <meta property="og:title" content="لوحة تحكم مدارس الأحد">
+    <meta property="og:site_name" content="Sunday School">
+    <meta property="og:title" content="لوحة تحكم - Sunday School">
     <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta property="og:url" content="https://sunday-school.online/uncle/church/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
     <meta property="og:image:width" content="1000">
     <meta property="og:image:height" content="1000">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image:alt" content="نظام مدارس الأحد">
+    <meta property="og:image:alt" content="Sunday School">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="لوحة تحكم مدارس الأحد">
@@ -29,7 +29,7 @@
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
     <meta name="theme-color" content="#5b6cf5">
-    <title>لوحة تحكم مدارس الأحد</title>
+    <title>لوحة تحكم - Sunday School</title>
     <link rel="apple-touch-icon" href="/logo.png">
     <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap"
@@ -13613,7 +13613,7 @@
                     ? `<span class="badge" style="background:#ede9fe;color:#5b21b6;font-size:0.7rem;"><i class="fas fa-user-friends"></i> شباب</span>`
                     : `<span class="badge badge-info" style="font-size:0.7rem;"><i class="fas fa-child"></i> أطفال</span>`;
                 const typeColor = isYouth ? '#8b5cf6' : 'var(--primary)';
-                const kidRegUrl = baseUrl + '/kids/registration?church=' + encodeURIComponent(ch.church_code);
+                const kidRegUrl = baseUrl + '/user/registration?church=' + encodeURIComponent(ch.church_code);
                 const uncleRegUrl = baseUrl + '/uncle/registration?church=' + encodeURIComponent(ch.church_code);
                 // pre-escape for use inside onclick attributes inside template literals
                 const kidSafe = kidRegUrl.replace(/'/g, '%27');
@@ -15311,12 +15311,12 @@
         function getKidRegUrl() {
             const code = sessionChurchCode || localStorage.getItem('churchCode') || localStorage.getItem('church_code') || '';
             if (!code) return '';
-            return window.location.origin + '/kids/registration?church=' + encodeURIComponent(code);
+            return window.location.origin + '/user/registration?church=' + encodeURIComponent(code);
         }
 
         function renderKidRegLinks() {
             const code = sessionChurchCode || localStorage.getItem('churchCode') || localStorage.getItem('church_code') || '';
-            const url = code ? window.location.origin + '/kids/registration?church=' + encodeURIComponent(code) : '';
+            const url = code ? window.location.origin + '/user/registration?church=' + encodeURIComponent(code) : '';
             if (!url) return;
 
             // Overview banner

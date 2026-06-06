@@ -92,7 +92,7 @@ self.addEventListener('fetch', e => {
             url.pathname.includes('/login') ||
             url.pathname.includes('/uncle/dashboard') ||
             url.pathname.includes('/uncle/church') ||
-            url.pathname.includes('/kids/profile')
+            url.pathname.includes('/user/profile')
         );
 
     // Manifest must always return valid JSON (never plain "Offline")

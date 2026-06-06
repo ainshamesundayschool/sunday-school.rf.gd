@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="نظام مدارس الأحد">
+    <meta property="og:site_name" content="Sunday School">
     <meta property="og:title" content="تسجيل الدخول - بوابة الطفل">
     <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta property="og:url" content="https://sunday-school.online/kids/login/">
@@ -13,7 +13,7 @@
     <meta property="og:image:width" content="1000">
     <meta property="og:image:height" content="1000">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image:alt" content="نظام مدارس الأحد">
+    <meta property="og:image:alt" content="Sunday School">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="تسجيل الدخول - بوابة الطفل">
@@ -621,7 +621,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <a href="/kids/" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+            <a href="/user/" style="color: var(--primary); text-decoration: none; font-weight: 600;">
                 <i class="fas fa-arrow-right"></i>
                 العودة للصفحة الرئيسية
             </a>
@@ -850,7 +850,7 @@
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
-                    setTimeout(() => { window.location.href = '/kids/profile/'; }, 1500);
+                    setTimeout(() => { window.location.href = '/user/profile/'; }, 1500);
                 } else {
                     if (!isAutoLogin) showPhoneError(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
                     else {
@@ -932,7 +932,7 @@
                     // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/kids/profile/';
+                        window.location.href = '/user/profile/';
                     }, 1500);
                 } else {
                     showPhoneError(data.message || 'كلمة المرور غير صحيحة');
@@ -969,7 +969,7 @@
                     // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/kids/profile/';
+                        window.location.href = '/user/profile/';
                     }, 1500);
                 } else {
                     showPhoneError(data.message || 'رقم الهاتف غير مسجل');
@@ -1009,7 +1009,7 @@
                     // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/kids/profile/';
+                        window.location.href = '/user/profile/';
                     }, 1500);
                 } else {
                     if (!isAutoLogin) {
@@ -1197,7 +1197,7 @@
             // Just login with phone (no password)
             localStorage.setItem('userPhone', cleanPhoneNumber(phone));
             localStorage.setItem('loginType', 'phone');
-            window.location.href = '/kids/profile/';
+            window.location.href = '/user/profile/';
         }
 
         // ===== PASSWORD RECOVERY =====

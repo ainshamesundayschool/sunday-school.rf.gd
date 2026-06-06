@@ -25,7 +25,7 @@ session_start();
 $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
   session_destroy();
-  echo '<script>["savedUsername","savedPassword","rememberMe","userPhone","loginType"].forEach(k=>localStorage.removeItem(k));window.location.href="/kids/login";</script>';
+  echo '<script>["savedUsername","savedPassword","rememberMe","userPhone","loginType"].forEach(k=>localStorage.removeItem(k));window.location.href="/user/login";</script>';
   exit;
 }
 ?>
@@ -37,15 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="نظام مدارس الأحد">
+    <meta property="og:site_name" content="Sunday School">
     <meta property="og:title" content="بوابة الطفل">
     <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
-    <meta property="og:url" content="https://sunday-school.online/kids/profile/">
+    <meta property="og:url" content="https://sunday-school.online/user/profile/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
     <meta property="og:image:width" content="1000">
     <meta property="og:image:height" content="1000">
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image:alt" content="نظام مدارس الأحد">
+    <meta property="og:image:alt" content="Sunday School">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="بوابة الطفل">
@@ -4102,7 +4102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <!-- public banner -->
     <div class="public-banner" id="pubBanner" style="display:none">
       <i class="fas fa-eye"></i> عرض عام
-      <a href="/kids/login"
+      <a href="/user/login"
         style="margin-right:auto;color:var(--brand);text-decoration:none;font-size:.74rem;font-weight:800;"><i
           class="fas fa-sign-in-alt"></i> دخول</a>
     </div>
@@ -4246,7 +4246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
 
     <div style="text-align:center;padding:18px 0 0;font-size:.72rem;color:var(--t4);">
-      <span style="font-weight:700;">نظام مدارس الأحد ٢٠٢٦</span><br>
+      <span style="font-weight:700;">Sunday School 2026</span><br>
       <!-- مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ-->
     </div>
   </div>
@@ -4255,7 +4255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <i class="fas fa-user-slash"></i>
     <h2>لم يُعثر على ملف شخصي</h2>
     <p id="noMsg">يرجى تسجيل الدخول أو استخدام رابط المعرّف</p>
-    <a href="/kids/login" class="btn btn-p"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a>
+    <a href="/user/login" class="btn btn-p"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a>
   </div>
 
 
@@ -6859,7 +6859,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       closeOv('settingsOv');
       ['savedUsername', 'savedPassword', 'rememberMe', 'userPhone', 'loginType'].forEach(k => localStorage.removeItem(k));
       const fd = new FormData(); fd.append('action', 'logout');
-      fetch(location.href, { method: 'POST', body: fd }).finally(() => location.href = '/kids/login');
+      fetch(location.href, { method: 'POST', body: fd }).finally(() => location.href = '/user/login');
     }
 
     // ── UI helpers ────────────────────────────────────────────────────
