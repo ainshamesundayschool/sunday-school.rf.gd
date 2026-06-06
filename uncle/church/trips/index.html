@@ -23,25 +23,35 @@
 
       #printSettingsModal .modal-body {
         display: grid !important;
-        grid-template-columns: 1fr 420px !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 18px !important;
-        align-items: start !important;
+        align-items: stretch !important;
         padding: 18px !important;
+        height: calc(100% - 60px) !important;
+        min-height: 0 !important;
       }
 
       #printSettingsModal #printPreviewPanel {
         grid-column: 1 !important;
         overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        min-height: 0 !important;
       }
 
       #printSettingsModal #printSettingsFormPanel {
         grid-column: 2 !important;
-        overflow: auto !important;
-        max-height: calc(100vh - 160px) !important;
+        overflow-y: auto !important;
+        max-height: 100% !important;
+        height: 100% !important;
       }
 
       #printSettingsModal #printPreviewWrapper {
-        min-height: 420px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow: auto !important;
       }
 
       /* Registration modal: kid grid on left, settings on right */
@@ -3885,7 +3895,7 @@
     .trip-shell-page #printSettingsModal .modal-body,
     #printSettingsModal[data-shell-mounted="1"] .modal-body {
       display: grid !important;
-      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr) !important;
+      grid-template-columns: 1fr 1fr !important;
       gap: 24px !important;
       align-items: stretch !important;
       min-height: 0 !important;
@@ -9097,7 +9107,7 @@
 
       function generateCardMarkup({
         trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
-        showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
+        showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId,
         tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
         fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
         baseWidth, baseHeight
@@ -9123,10 +9133,10 @@
         let avatarHtml = '';
         if (showStudentImg) {
           if (hasStudentImg) {
-            avatarHtml = `<img src="${r.student_image}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">`;
+            avatarHtml = `<img src="${r.student_image}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
           } else if (showAvatarFallback) {
             // Render a default SVG avatar for kids without photos
-            avatarHtml = `<div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+            avatarHtml = `<div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center;">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px">
               <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
               <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
@@ -9252,6 +9262,8 @@
           }
         }
 
+        const showStudentIdHtml = showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>` : '';
+
         let innerContentHtml = '';
         if (isLandscape) {
           innerContentHtml = `
@@ -9263,8 +9275,9 @@
                   ${studentInfoGroupHtml}
               </div>
               <!-- QR Column -->
-              <div style="display:flex; justify-content:center; align-items:center; flex-shrink:0;">
+              <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex-shrink:0;">
                   <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+                  ${showStudentIdHtml}
               </div>
           </div>
           `;
@@ -9274,7 +9287,10 @@
               ${churchHeaderHtml}
               ${tripInfoGroupHtml}
               ${studentInfoGroupHtml}
-              <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                  <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+                  ${showStudentIdHtml}
+              </div>
           </div>
           `;
         }
@@ -9320,6 +9336,7 @@
         const showTripTitle = document.getElementById('printShowTripTitle').checked;
         const showStudentImg = document.getElementById('printShowStudentImg').checked;
         const showStudentName = document.getElementById('printShowStudentName').checked;
+        const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
         const showCustom = document.getElementById('printShowCustom').checked;
 
         const tripImgAsBg = document.getElementById('printTripImgAsBg')?.checked || false;
@@ -9357,7 +9374,7 @@
           const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
           return generateCardMarkup({
             trip, r, scale: previewScale, padding, showChurch, showTripImage, showTripTitle,
-            showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId: `prev_qrcode_sample_${idx}`,
+            showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId: `prev_qrcode_sample_${idx}`,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
             fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
             baseWidth, baseHeight
@@ -9439,6 +9456,7 @@
         const showTripTitle = document.getElementById('printShowTripTitle').checked;
         const showStudentImg = document.getElementById('printShowStudentImg').checked;
         const showStudentName = document.getElementById('printShowStudentName').checked;
+        const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
         const showCustom = document.getElementById('printShowCustom').checked;
 
         const tripImgAsBg = document.getElementById('printTripImgAsBg')?.checked || false;
@@ -9474,7 +9492,7 @@
 
           html += generateCardMarkup({
             trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
-            showStudentImg, showStudentName, showCustom, customHtml, churchName, cardId,
+            showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
             fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
             baseWidth, baseHeight
@@ -10309,6 +10327,12 @@
                 <input type="checkbox" id="printShowStudentName" checked
                   style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                 <span>اسم الطفل</span>
+              </label>
+
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+                <input type="checkbox" id="printShowStudentId" checked
+                  style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                <span>عرض كود الطفل (ID)</span>
               </label>
 
               <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
