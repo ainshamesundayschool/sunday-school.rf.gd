@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v13                     ║
+// ║  Sunday School PWA — Service Worker v14                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v13';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v14';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -68,6 +68,17 @@ self.addEventListener('activate', e => {
 // ── FETCH ─────────────────────────────────────────────────────
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
+
+    // Bypass Service Worker for security verification resources
+    // This prevents blocking aes.js (which contains decryption logic) and avoids redirect deadlocks
+    if (
+        url.pathname.includes('aes.js') || 
+        url.pathname.includes('cookies.html') || 
+        url.hostname.includes('ifastnet.com')
+    ) {
+        return;
+    }
+
     const isSameOrigin = url.origin === self.location.origin;
     const isOfflineShellFriendly =
         isSameOrigin && (
