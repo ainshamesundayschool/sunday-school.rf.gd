@@ -8826,9 +8826,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-check-circle"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
                             </button>
-                            <div class="action-dropdown" style="flex:none;min-width:0;">
-                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');"
-                                    style="min-width:44px;padding:0 10px;">
+<div class="action-dropdown save-btn" style="flex:none;min-width:0;">
+                                <button class="" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');" style="min-width:44px;padding:0 10px;background: none;border: none;justify-items: center;">
                                     <i class="fas fa-qrcode"></i>
                                     <span class="save-btn-bottom"><span class="save-btn-label">QR</span></span>
                                 </button>
