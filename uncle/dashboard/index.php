@@ -8521,6 +8521,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
+                        <button class="home-tool-chip" onclick="startKidQrScan('general')" style="background:var(--brand);color:white;border-color:var(--brand);font-weight:bold;"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
@@ -8827,8 +8828,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
                             </button>
                             <div class="action-dropdown" style="flex:none;min-width:0;">
-                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');"
-                                    style="min-width:44px;padding:0 10px;">
+                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
                                     <i class="fas fa-qrcode"></i>
                                     <span class="save-btn-bottom"><span class="save-btn-label">QR</span></span>
                                 </button>
@@ -9505,17 +9505,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeKidQrScannerBtn" onclick="stopKidQrScan()">&times;</button>
             </div>
             <div style="padding:0 2px 10px">
+                <!-- Navigation tabs inside the modal -->
+                <div class="modal-mode-tabs" style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
+                    <button type="button" id="modalTab_attendance" class="modal-mode-tab" onclick="switchModalScanMode('attendance')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                        <i class="fas fa-user-check"></i> حضور
+                    </button>
+                    <button type="button" id="modalTab_coupons" class="modal-mode-tab" onclick="switchModalScanMode('coupons')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                        <i class="fas fa-star"></i> كوبونات
+                    </button>
+                    <button type="button" id="modalTab_profile" class="modal-mode-tab" onclick="switchModalScanMode('profile')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                        <i class="fas fa-user"></i> الملف
+                    </button>
+                </div>
+
                 <div id="kidQrScannerNote" style="background:var(--brand-bg);border:1px solid rgba(79,70,229,.16);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin-bottom:12px">
                     يمكنك طباعة QR الأطفال من صفحة الإدارة.
                 </div>
+
+                <!-- Default coupon selection dropdown (only in coupons mode) -->
+                <div id="kidQrCouponSelectContainer" style="margin-bottom:12px; display:none;">
+                    <label class="form-label" style="font-size:0.85rem; font-weight: 700; margin-bottom: 6px; display: block;">قيمة الكوبونات لكل طفل ممسوح:</label>
+                    <select id="kidQrCouponSelect" class="form-input" style="width:100%; padding: 8px 12px;" onchange="kidQrScanAmount = parseInt(this.value, 10); refreshKidQrScanUI();">
+                        <option value="10">10 كوبونات</option>
+                        <option value="30">30 كوبون</option>
+                        <option value="50">50 كوبون</option>
+                        <option value="100">100 كوبون</option>
+                    </select>
+                </div>
+
                 <div id="kidQrReader" style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
                 <div id="kidQrScanSummary" style="margin-top:12px"></div>
                 <div id="kidQrScanList" style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px"></div>
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-                    <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:130px" onclick="finishKidQrScan()">
+                    <button class="btn btn-primary" id="kidQrSaveAllBtn" style="flex:1.5;min-width:140px;background:var(--brand);color:white;border-color:var(--brand);" onclick="saveAllGeneralChanges()">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                    <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:90px" onclick="finishKidQrScan()">
                         <i class="fas fa-check"></i> تم
                     </button>
-                    <button class="btn btn-secondary" style="flex:1;min-width:130px" onclick="stopKidQrScan()">
+                    <button class="btn btn-secondary" style="flex:1;min-width:90px" onclick="stopKidQrScan()">
                         <i class="fas fa-times"></i> إلغاء
                     </button>
                 </div>
@@ -11675,7 +11703,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = String(studentId || '').trim();
             if (!id) return null;
             const pool = isCombinedView ? combinedStudents : students;
-            return pool.find(s => String(getStudentId(s)) === id) || allStudentsData.find(s => String(getStudentId(s)) === id) || null;
+            return pool.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) || 
+                   allStudentsData.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) || null;
+        }
+
+        function switchModalScanMode(mode) {
+            if (['attendance', 'coupons', 'profile'].includes(mode)) {
+                kidQrScanMode = mode;
+                
+                // Update active tab style
+                document.querySelectorAll('.modal-mode-tab').forEach(btn => {
+                    btn.style.background = 'none';
+                    btn.style.color = 'var(--text-3)';
+                });
+                const activeBtn = document.getElementById('modalTab_' + mode);
+                if (activeBtn) {
+                    activeBtn.style.background = 'var(--surface)';
+                    activeBtn.style.color = 'var(--primary)';
+                }
+                
+                // Show/hide coupon select container
+                const container = document.getElementById('kidQrCouponSelectContainer');
+                if (container) {
+                    if (mode === 'coupons') {
+                        container.style.display = 'block';
+                        const selectEl = document.getElementById('kidQrCouponSelect');
+                        kidQrScanAmount = selectEl ? parseInt(selectEl.value, 10) || 10 : 10;
+                    } else {
+                        container.style.display = 'none';
+                        kidQrScanAmount = 0;
+                    }
+                }
+                
+                // Clear seen and entries for the new mode session
+                kidQrScanSeen = new Set();
+                kidQrScanEntries = [];
+                
+                refreshKidQrScanUI();
+            }
         }
 
         function refreshKidQrScanUI() {
@@ -11684,6 +11749,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const summary = document.getElementById('kidQrScanSummary');
             const list = document.getElementById('kidQrScanList');
             const doneBtn = document.getElementById('kidQrDoneBtn');
+            const saveBtn = document.getElementById('kidQrSaveAllBtn');
 
             if (title) {
                 title.innerHTML = kidQrScanMode === 'coupons'
@@ -11695,18 +11761,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (subtitle) {
                 subtitle.textContent = kidQrScanMode === 'coupons'
-                    ? `ضع الكوبونات التي تريد إضافتها: ${kidQrScanAmount}`
+                    ? `سيتم إضافة ${kidQrScanAmount} كوبون لكل طفل تقوم بمسحه`
                     : kidQrScanMode === 'attendance'
-                        ? 'امسح أكواد الأطفال لتسجيل الحضور محلياً ثم احفظ من زر الحفظ.'
+                        ? 'قم بمسح كود حضور الأطفال.'
                         : 'امسح QR الطفل لفتح ملفه مباشرة.';
             }
 
-            if (summary) {
-                summary.innerHTML = kidQrScanMode === 'coupons'
-                    ? `<div style="background:var(--coupon-bg);border:1px solid rgba(124,58,237,.16);color:var(--coupon-dark);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">تم اختيار <strong>${kidQrScanAmount}</strong> كوبون لكل طفل ممسوح.</div>`
-                    : kidQrScanMode === 'attendance'
-                        ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
-                        : '';
+            if (saveBtn) {
+                if (kidQrScanMode === 'profile') {
+                    saveBtn.style.display = 'none';
+                } else {
+                    saveBtn.style.display = 'block';
+                    const hasChanges = (changedStudents.size > 0 || changedCouponStudents.size > 0);
+                    saveBtn.disabled = !hasChanges;
+                    saveBtn.style.opacity = hasChanges ? '1' : '0.5';
+                }
             }
 
             if (doneBtn) {
@@ -11719,8 +11788,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (list) {
                 if (!kidQrScanEntries.length) {
+                    if (summary) summary.innerHTML = '';
                     list.innerHTML = '<div style="text-align:center;padding:18px 12px;color:var(--text-3);font-size:.84rem;background:var(--surface-2);border:1px dashed var(--border);border-radius:12px">لم يتم مسح أي طفل بعد</div>';
                 } else {
+                    if (summary) {
+                        summary.innerHTML = kidQrScanMode === 'coupons'
+                            ? `<div style="background:var(--coupon-bg);border:1px solid rgba(124,58,237,.16);color:var(--coupon-dark);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">تم اختيار <strong>${kidQrScanAmount}</strong> كوبون لكل طفل ممسوح.</div>`
+                            : kidQrScanMode === 'attendance'
+                                ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
+                                : '';
+                    }
                     list.innerHTML = kidQrScanEntries.map(entry => `
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
                             <div style="min-width:0">
@@ -11740,10 +11817,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function recordKidQrScan(studentId) {
             const id = String(studentId || '').trim();
             if (!id) return false;
-            if (kidQrScanSeen.has(id)) {
-                showToast('تمت إضافة هذا الطفل بالفعل', 'info');
-                return false;
-            }
 
             const student = findStudentById(id);
             if (!student) {
@@ -11751,39 +11824,60 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return false;
             }
 
+            const studentCompositeId = getStudentId(student);
+            const className = student['الفصل'] || student.class || '';
+
+            if (kidQrScanSeen.has(studentCompositeId)) {
+                showToast('تمت إضافة هذا الطفل بالفعل', 'info');
+                return false;
+            }
+
             if (kidQrScanMode !== 'profile') {
-                const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
-                const inCurrentView = activePool.some(s => String(getStudentId(s)) === id);
-                if (!inCurrentView) {
-                    showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
-                    return false;
+                if (currentClass) {
+                    const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+                    const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
+                    if (!inCurrentView) {
+                        showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
+                        return false;
+                    }
                 }
             }
 
-            kidQrScanSeen.add(id);
+            // Ensure class attendance data is loaded if scanning attendance
+            if (kidQrScanMode === 'attendance' && !(studentCompositeId in attendanceData)) {
+                loadAttendanceDataForClass(className);
+            }
+
+            kidQrScanSeen.add(studentCompositeId);
             const name = student['الاسم'] || student.name || 'طفل';
-            const className = student['الفصل'] || student.class || '';
 
             if (kidQrScanMode === 'attendance') {
-                markStudentAttendance(id, 'present');
-                kidQrScanEntries.push({ id, name, className });
-                renderAttendanceList(currentClass);
-                updateClassStats();
+                markStudentAttendance(studentCompositeId, 'present');
+                saveAttendanceDataForClass(className);
+                saveChangedStudentsToLocalStorage(className);
+                kidQrScanEntries.push({ id: studentCompositeId, name, className });
+                if (currentClass) {
+                    renderAttendanceList(currentClass);
+                    updateClassStats();
+                }
                 updateSaveBtns();
             } else if (kidQrScanMode === 'coupons') {
                 const amount = Math.max(1, parseInt(kidQrScanAmount, 10) || 1);
-                const cur = parseInt(couponData[id] || 0);
-                couponData[id] = cur + amount;
-                changedCouponStudents.add(id);
-                savedCouponStudents.delete(id);
-                kidQrScanEntries.push({ id, name, className, amount });
-                saveCouponDataForClass(currentClass);
-                renderAttendanceList(currentClass);
-                updateClassStats();
+                const cur = parseInt(couponData[studentCompositeId] || 0);
+                couponData[studentCompositeId] = cur + amount;
+                changedCouponStudents.add(studentCompositeId);
+                savedCouponStudents.delete(studentCompositeId);
+                saveCouponDataForClass(className);
+                kidQrScanEntries.push({ id: studentCompositeId, name, className, amount });
+                if (currentClass) {
+                    renderAttendanceList(currentClass);
+                    updateClassStats();
+                }
                 updateSaveBtns();
             } else if (kidQrScanMode === 'profile') {
-                kidQrScanEntries.push({ id, name, className });
-                refreshKidQrScanUI();
+                kidQrScanEntries.push({ id: studentCompositeId, name, className });
+                stopKidQrScan();
+                showStudentDetails(name);
                 return true;
             }
 
@@ -11813,10 +11907,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function finishKidQrScan() {
-            if (kidQrScanMode === 'profile') {
-                stopKidQrScan();
-                return;
-            }
             stopKidQrScan();
             if (currentClass) {
                 renderAttendanceList(currentClass);
@@ -11826,64 +11916,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function startKidQrScan(mode = 'profile') {
-            const normalizedMode = ['attendance', 'coupons', 'profile'].includes(mode) ? mode : 'profile';
-            if (normalizedMode !== 'profile' && !currentClass) {
+            const normalizedMode = ['attendance', 'coupons', 'profile', 'general'].includes(mode) ? mode : 'profile';
+            
+            let initialTabMode = normalizedMode;
+            if (normalizedMode === 'general') {
+                initialTabMode = 'attendance';
+            } else if (normalizedMode !== 'profile' && !currentClass) {
                 showToast('اختر فصلًا أولًا', 'info');
                 return;
             }
 
-            if (normalizedMode === 'coupons') {
-                const amountRaw = prompt('كم كوبون تريد إضافته لكل طفل ممسوح؟', '1');
-                if (amountRaw === null) return;
-                const amount = Math.max(1, parseInt(amountRaw, 10) || 0);
-                if (!amount) {
-                    showToast('أدخل رقمًا صحيحًا أكبر من صفر', 'warning');
-                    return;
-                }
-                kidQrScanAmount = amount;
-            } else {
-                kidQrScanAmount = 0;
-            }
-
-            kidQrScanMode = normalizedMode;
-            kidQrScanSeen = new Set();
-            kidQrScanEntries = [];
-            refreshKidQrScanUI();
-
+            // Open modal first so DOM elements exist
             const modal = document.getElementById('kidQrScannerModal');
             if (modal) modal.classList.add('active');
 
-            if (normalizedMode === 'profile') {
-                if (!kidQrScanner) kidQrScanner = new Html5Qrcode('kidQrReader');
-                try {
-                    await kidQrScanner.start(
-                        { facingMode: 'environment' },
-                        { fps: 10, qrbox: { width: 240, height: 240 } },
-                        async (decodedText) => {
-                            const kidId = getKidIdFromQrText(decodedText);
-                            if (!kidId) {
-                                showToast('QR غير صالح', 'error');
-                                return;
-                            }
-                            const link = buildKidProfileQrLink(kidId);
-                            if (!link) {
-                                showToast('QR غير صالح', 'error');
-                                return;
-                            }
-                            stopKidQrScan();
-                            window.location.href = link;
-                        },
-                        () => { }
-                    );
-                } catch (err) {
-                    showToast('فشل تشغيل الكاميرا', 'error');
-                    stopKidQrScan();
-                }
-                return;
-            }
+            // Switch to the mode
+            switchModalScanMode(initialTabMode);
 
             if (!kidQrScanner) kidQrScanner = new Html5Qrcode('kidQrReader');
-
             try {
                 await kidQrScanner.start(
                     { facingMode: 'environment' },
@@ -11902,6 +11952,103 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('فشل تشغيل الكاميرا', 'error');
                 stopKidQrScan();
             }
+        }
+
+        async function saveAllGeneralChanges() {
+            let date = currentFriday;
+            if (!date) { updateCurrentDateDisplay(); date = currentFriday; }
+
+            // Group changed attendance by class
+            const attByClass = {};
+            changedStudents.forEach(id => {
+                const s = students.find(s => getStudentId(s) === id);
+                if (!s) return;
+                const realClass = s['الفصل'];
+                if (!attByClass[realClass]) attByClass[realClass] = [];
+                attByClass[realClass].push({ studentName: s['الاسم'].trim(), status: attendanceData[id] || 'pending' });
+            });
+
+            // Group changed coupons by class
+            const coupByClass = {};
+            changedCouponStudents.forEach(id => {
+                const s = students.find(s => getStudentId(s) === id);
+                if (!s) return;
+                const realClass = s['الفصل'];
+                if (!coupByClass[realClass]) coupByClass[realClass] = [];
+                coupByClass[realClass].push({ studentName: s['الاسم'].trim(), coupons: Math.max(0, (parseInt(s['كوبونات الالتزام'] || 0)) + (parseInt(couponData[id] || 0))) });
+            });
+
+            const totalCalls = Object.keys(attByClass).length + Object.keys(coupByClass).length;
+            if (totalCalls === 0) {
+                showToast('لا توجد تغييرات للحفظ', 'info');
+                return;
+            }
+
+            const saveBtn = document.getElementById('kidQrSaveAllBtn');
+            const originalHtml = saveBtn ? saveBtn.innerHTML : '';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            }
+
+            let completedCalls = 0;
+            let errors = [];
+
+            const checkDone = () => {
+                completedCalls++;
+                if (completedCalls === totalCalls) {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalHtml;
+                    }
+                    if (errors.length > 0) {
+                        showToast('حدث خطأ أثناء حفظ بعض البيانات', 'error');
+                    } else {
+                        showToast('تم حفظ جميع التغييرات بنجاح', 'success');
+                        
+                        changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
+                        changedStudents.clear();
+                        
+                        changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
+                        changedCouponStudents.clear();
+                        couponData = {};
+
+                        const affectedClasses = new Set([...Object.keys(attByClass), ...Object.keys(coupByClass)]);
+                        affectedClasses.forEach(cn => {
+                            saveAttendanceDataForClass(cn);
+                            saveCouponDataForClass(cn);
+                        });
+
+                        if (currentClass) {
+                            renderAttendanceList(currentClass);
+                        }
+                        updateClassStats();
+                        updateSaveBtns();
+                        setTimeout(loadData, 1200);
+                        stopKidQrScan();
+                    }
+                }
+            };
+
+            // Fire API calls for attendance
+            Object.entries(attByClass).forEach(([cn, records]) => {
+                makeApiCall({ action: 'submitAttendance', className: cn, attendanceData: JSON.stringify(records), date }, r => {
+                    checkDone();
+                }, e => {
+                    errors.push(e);
+                    checkDone();
+                });
+            });
+
+            // Fire API calls for coupons
+            Object.entries(coupByClass).forEach(([cn, records]) => {
+                makeApiCall({ action: 'updateCoupons', className: cn, couponData: JSON.stringify(records) }, d => {
+                    checkDone();
+                }, e => {
+                    errors.push(e);
+                    checkDone();
+                });
+            });
         }
 
         function updateSaveBtns() {

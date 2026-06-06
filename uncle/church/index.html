@@ -5798,94 +5798,141 @@
                 display: none !important;
             }
 
+            html, body {
+                background: #fff !important;
+                color: #000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
             #printArea {
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-                padding: 10px;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
                 justify-items: center;
-                align-items: center;
+                align-items: start;
+                column-gap: var(--print-gap-x, 10mm);
+                row-gap: var(--print-gap-y, 10mm);
+                width: 100%;
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 2mm;
+                box-sizing: border-box;
+                background: #fff !important;
             }
 
             .print-card {
-                border: 2px dashed #000;
-                padding: 15px;
-                text-align: center;
-                border-radius: 10px;
                 break-inside: avoid;
                 page-break-inside: avoid;
-                display: flex !important;
-                flex-direction: column;
-                justify-content: space-between;
-                align-items: center;
-                width: 260px;
-                height: 360px;
                 margin: 0 auto;
-                box-sizing: border-box;
-                background: #fff;
+                background: #fff !important;
             }
 
             .print-card img.avatar {
-                width: 70px;
-                height: 70px;
-                border-radius: 50%;
-                margin: 0;
                 object-fit: cover;
                 display: block !important;
             }
 
-            .print-card h3 {
-                font-size: 13px;
-                font-weight: 700;
-                margin: 0;
-                color: #000 !important;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
-            }
-
-            .print-card h2 {
-                font-size: 18px;
-                font-weight: 800;
-                margin: 0;
-                color: #000 !important;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
-            }
-
-            .print-card .custom-info {
-                font-size: 11px;
-                font-weight: bold;
-                color: #000 !important;
-                margin: 0;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 6px;
-                width: 100%;
-            }
-
             .print-card div[id^="qrcode_"] {
-                width: 130px;
-                height: 130px;
                 display: flex !important;
                 justify-content: center;
                 align-items: center;
                 margin: 0 auto;
+                overflow: visible !important;
+                border-radius: 0 !important;
             }
 
-            .print-card div[id^="qrcode_"] img,
             .print-card div[id^="qrcode_"] canvas {
-                width: 130px !important;
-                height: 130px !important;
                 display: block !important;
+                margin: 0 auto;
+                image-rendering: pixelated;
+            }
+
+            .print-card div[id^="qrcode_"] img {
+                display: none !important;
+                margin: 0 auto;
+                overflow: visible !important;
+                border-radius: 0 !important;
+            }
+        }
+
+        /* ── PRINT SETTINGS MODAL STYLING ── */
+        #printSettingsModal .modal-box {
+            max-width: min(96vw, 1200px) !important;
+            width: 96vw !important;
+            height: min(92vh, 850px) !important;
+            max-height: 92vh !important;
+            margin: 2vh auto !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #printSettingsModal .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #printPreviewWrapper {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            border: 2px dashed var(--border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #printPreviewPanel.preview-collapsed #printPreviewWrapper {
+            display: none !important;
+        }
+
+        @media (min-width: 1000px) {
+            #printSettingsModal .modal-box {
+                max-width: 1200px !important;
+                margin: 36px auto !important;
+                height: calc(100vh - 72px) !important;
+                border-radius: 12px !important;
+            }
+            #printSettingsModal .modal-body {
+                display: grid !important;
+                grid-template-columns: 1fr 420px !important;
+                gap: 18px !important;
+                align-items: start !important;
+                padding: 18px !important;
+                overflow: hidden !important;
+            }
+            #printSettingsModal #printPreviewPanel {
+                grid-column: 1 !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                height: 100% !important;
+                border-left: 1px solid var(--border);
+                padding-left: 18px;
+            }
+            #printSettingsModal #printSettingsFormPanel {
+                grid-column: 2 !important;
+                overflow-y: auto !important;
+                max-height: calc(100vh - 160px) !important;
+            }
+            #printSettingsModal #printPreviewWrapper {
+                min-height: 420px !important;
+                flex: 1 !important;
+            }
+        }
+
+        @media (max-width: 999px) {
+            #printSettingsModal .modal-body {
+                display: block !important;
+            }
+            #printSettingsModal #printPreviewWrapper {
+                min-height: 260px !important;
             }
         }
     </style>
@@ -8289,6 +8336,135 @@
     </div>
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+
+    <!-- Print Settings Modal -->
+    <div id="printSettingsModal" class="modal">
+        <div class="modal-box wide">
+            <div class="modal-head">
+                <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
+                <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Settings Panel -->
+                <div id="printSettingsFormPanel" style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:16px; max-height:75vh; overflow-y:auto; padding-left:5px;">
+                    <div class="form-group">
+                        <label class="form-label">حجم البطاقة (٪)</label>
+                        <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;" oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
+                        <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
+                    </div>
+
+                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label class="form-label">المسافة الأفقية بين البطاقات</label>
+                            <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                        </div>
+                        <div>
+                            <label class="form-label">المسافة الرأسية بين البطاقات</label>
+                            <input type="number" id="printGapY" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label class="form-label">المسافات الداخلية</label>
+                            <input type="number" id="printPadding" class="form-input" value="15" min="0" max="50" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display:flex; flex-direction:column; gap:12px;">
+                        <div>
+                            <label class="form-label">شكل إطار الكارت</label>
+                            <select id="printCardOutlineStyle" class="form-select" style="width:100%;" onchange="togglePrintDashControls(); updatePrintPreview()">
+                                <option value="dashed">متقطع</option>
+                                <option value="solid" selected>مصمت</option>
+                            </select>
+                        </div>
+                        <div id="printDashControls" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; display:none;">
+                            <div>
+                                <label class="form-label">طول الشرطة</label>
+                                <input type="number" id="printCardDashLength" class="form-input" value="12" min="2" max="60" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                            </div>
+                            <div>
+                                <label class="form-label">المسافة بين الشرطات</label>
+                                <input type="number" id="printCardDashGap" class="form-input" value="8" min="0" max="60" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Content Checklist -->
+                    <div class="form-group" style="background:var(--primary-light); padding:12px; border-radius:10px; border:1px solid rgba(79,70,229,0.1); display:flex; flex-direction:column; gap:8px;">
+                        <label class="form-label" style="margin-bottom:4px; font-weight:800;">محتويات البطاقة</label>
+                        
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+                            <input type="checkbox" id="printShowChurch" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                            <span>اسم الكنيسة والشعار</span>
+                        </label>
+                        
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+                            <input type="checkbox" id="printShowStudentImg" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
+                            <span>صورة الطفل</span>
+                        </label>
+                        
+                        <!-- Avatar Fallback Sub-option (visible when student image is checked) -->
+                        <div id="printAvatarFallbackRow" style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:rgba(255,255,255,0.4); border-radius:4px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer;">
+                                <input type="checkbox" id="printShowAvatarFallback" checked style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                                <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
+                            </label>
+                        </div>
+                        
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+                            <input type="checkbox" id="printShowStudentName" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                            <span>اسم الطفل</span>
+                        </label>
+                        
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+                            <input type="checkbox" id="printShowClass" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                            <span>اسم الفصل</span>
+                        </label>
+                    </div>
+
+                    <!-- Text Colors Selection -->
+                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label class="form-label" style="font-weight:700;">لون الخط الموحد</label>
+                            <input type="color" id="printFontColor" value="#000000" style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;" oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-weight:700;">لون إطار النصوص (Stroke)</label>
+                            <input type="color" id="printStrokeColor" value="#dddddd" style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;" oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                        </div>
+                    </div>
+
+                    <!-- Text Readability Selection -->
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight:800;">تأثير وضوح نصوص الكارت</label>
+                        <select id="printTextReadability" class="form-select" style="width:100%;" onchange="updatePrintPreview()">
+                            <option value="none" selected>بدون تأثير إضافي (تلقائي)</option>
+                            <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
+                            <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
+                </div>
+
+                <!-- Preview Panel -->
+                <div id="printPreviewPanel" style="display:flex; flex-direction:column; gap:10px; justify-content:flex-start; align-items:stretch; min-width:0;">
+                    <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text);"><i class="fas fa-eye" style="color:var(--primary);"></i> معاينة حية (عينة لأول 4 أطفال)</h3>
+                        <button type="button" id="togglePreviewBtn" class="btn btn-outline btn-sm" onclick="togglePrintPreview()">
+                            <i class="fas fa-eye-slash"></i> إخفاء المعاينة
+                        </button>
+                    </div>
+                    <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden;">
+                        <div id="printPreviewContent" style="display:flex; align-items:center; justify-content:center;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <!-- Print Area -->
     <div id="printArea" style="display:none;"></div>
@@ -16213,6 +16389,264 @@
             if (rd) rd.textContent = new Date().getFullYear();
         })();
 
+        function getPrintBorderSettings() {
+            return {
+                outlineStyle: document.getElementById('printCardOutlineStyle')?.value === 'solid' ? 'solid' : 'dashed',
+                dashLength: Math.max(2, parseInt(document.getElementById('printCardDashLength')?.value || '12', 10) || 12),
+                dashGap: Math.max(0, parseInt(document.getElementById('printCardDashGap')?.value || '8', 10) || 8)
+            };
+        }
+
+        function getPreviewRenderScale(printScale) {
+            if (window.innerWidth <= 480) return Math.min(printScale, 0.58);
+            if (window.innerWidth <= 768) return Math.min(printScale, 0.68);
+            return printScale;
+        }
+
+        function togglePrintDashControls() {
+            const style = document.getElementById('printCardOutlineStyle')?.value;
+            const ctrl = document.getElementById('printDashControls');
+            if (ctrl) ctrl.style.display = style === 'dashed' ? 'grid' : 'none';
+        }
+
+        function syncPrintSettingsUI() {
+            const showStudentImgChecked = document.getElementById('printShowStudentImg')?.checked;
+            const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
+            if (avatarFallbackRow) avatarFallbackRow.style.display = showStudentImgChecked ? 'flex' : 'none';
+
+            togglePrintDashControls();
+        }
+
+        function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap) {
+            const borderColor = '#000000';
+            const borderRadius = 10;
+            const strokeWidth = 2;
+            const solidStrokeWidth = Math.max(1.5, 2 * scale);
+            const baseWidth = 260;
+            const baseHeight = 360;
+
+            if (outlineStyle === 'solid') {
+                return {
+                    cardBorderStyle: `border:${solidStrokeWidth}px solid ${borderColor};`,
+                    outlineOverlayHtml: ''
+                };
+            }
+
+            const rectInset = strokeWidth / 2;
+            const dashArray = `${Math.max(2, dashLength)} ${Math.max(0, dashGap)}`;
+            const svgMarkup = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${baseWidth} ${baseHeight}" preserveAspectRatio="none">
+                    <rect x="${rectInset}" y="${rectInset}" width="${baseWidth - (rectInset * 2)}" height="${baseHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
+                </svg>
+            `.trim();
+
+            return {
+                cardBorderStyle: 'border:none;',
+                outlineOverlayHtml: `<div aria-hidden="true" style="position:absolute; inset:0; pointer-events:none; z-index:4; border-radius:${borderRadius}px; overflow:hidden;"><img src="data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgMarkup)}" alt="" style="width:100%; height:100%; display:block;"></div>`
+            };
+        }
+
+        function generateCardMarkup({
+            s, scale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId,
+            textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+        }) {
+            const scaledWidth = 260 * scale;
+            const scaledHeight = 360 * scale;
+            const fH3 = 13 * scale;
+            const fH2 = 18 * scale;
+            const fChurch = 11 * scale;
+            const sLogo = 20 * scale;
+            const sAvatar = 70 * scale;
+            const qrSize = Math.max(80, 130 * scale);
+
+            const sid = s['_studentId'] || s.id || s.student_id;
+            const imgUrl = s['صورة'] || s.image_url || s.photo || '';
+            const hasStudentImg = imgUrl && imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
+            const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+            
+            let avatarHtml = '';
+            if (showStudentImg) {
+                if (hasStudentImg) {
+                    avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'">`;
+                } else if (showAvatarFallback) {
+                    avatarHtml = `<div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px">
+                            <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
+                            <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
+                        </svg>
+                    </div>`;
+                }
+            }
+
+            const safeStudentName = escHtml(s['الاسم'] || s.name || 'طفل');
+            const cls = s['الفصل'] || s.class || '';
+            const safeClass = escHtml(cls || '');
+            const qrWrapperStyles = textReadability === 'rect'
+                ? `background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px; border-radius:${10 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05);`
+                : '';
+
+            let textShadowStyle = 'none';
+            if (textReadability === 'stroke') {
+                textShadowStyle = `
+                    -1.5px -1.5px 0 ${strokeColor}, 
+                     1.5px -1.5px 0 ${strokeColor}, 
+                    -1.5px  1.5px 0 ${strokeColor}, 
+                     1.5px  1.5px 0 ${strokeColor},
+                    -1.5px  0px 0 ${strokeColor},
+                     1.5px  0px 0 ${strokeColor},
+                     0px   -1.5px 0 ${strokeColor},
+                     0px    1.5px 0 ${strokeColor}
+                `.replace(/\s+/g, ' ').trim();
+            }
+
+            const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap);
+
+            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${padding}; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+
+            let churchHeaderHtml = '';
+            if (showChurch) {
+                if (textReadability === 'rect') {
+                    churchHeaderHtml = `
+                        <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${4 * scale}px ${8 * scale}px; border-radius:${6 * scale}px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                        </div>
+                    `;
+                } else {
+                    churchHeaderHtml = `
+                        <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            let classGroupHtml = '';
+            if (showClass && safeClass) {
+                if (textReadability === 'rect') {
+                    classGroupHtml = `
+                        <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px ${10 * scale}px; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                                <h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
+                        </div>
+                    `;
+                } else {
+                    classGroupHtml = `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
+                }
+            }
+
+            let studentInfoGroupHtml = '';
+            if (showStudentImg || showStudentName) {
+                const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+                const hasAnyStudentContent = !!avatarHtml || showStudentName;
+
+                if (textReadability === 'rect' && hasAnyStudentContent) {
+                    studentInfoGroupHtml = `
+                        <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${8 * scale}px ${10 * scale}px; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                                ${avatarHtml}
+                                ${nameTag}
+                        </div>
+                    `;
+                } else {
+                    studentInfoGroupHtml = `
+                        ${avatarHtml}
+                        ${nameTag}
+                    `;
+                }
+            }
+
+            return `
+            <div class="print-card" style="${bgStyles}">
+                    ${outlineOverlayHtml}
+                    <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
+                            ${churchHeaderHtml}
+                            ${classGroupHtml}
+                            ${studentInfoGroupHtml}
+                            <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
+                    </div>
+            </div>
+            `;
+        }
+
+        function updatePrintPreview() {
+            syncPrintSettingsUI();
+
+            const previewWrapper = document.getElementById('printPreviewContent');
+            if (!Array.isArray(allStudents) || allStudents.length === 0) {
+                previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
+                return;
+            }
+
+            const kids = allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id));
+            if (kids.length === 0) {
+                previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
+                return;
+            }
+
+            const scale = parseFloat(document.getElementById('printScale').value) / 100;
+            const previewScale = getPreviewRenderScale(scale);
+            const gapX = document.getElementById('printGapX').value + 'px';
+            const gapY = document.getElementById('printGapY').value + 'px';
+            const padding = document.getElementById('printPadding').value + 'px';
+            const showChurch = document.getElementById('printShowChurch').checked;
+            const showStudentImg = document.getElementById('printShowStudentImg').checked;
+            const showStudentName = document.getElementById('printShowStudentName').checked;
+            const showClass = document.getElementById('printShowClass').checked;
+            const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
+
+            const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+            const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+            const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+            const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+
+            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+            const previewKids = kids.slice(0, 4);
+
+            previewWrapper.style.display = 'grid';
+            previewWrapper.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, max-content))';
+            previewWrapper.style.justifyContent = 'center';
+            previewWrapper.style.alignItems = 'start';
+            previewWrapper.style.columnGap = gapX;
+            previewWrapper.style.rowGap = gapY;
+
+            previewWrapper.innerHTML = previewKids.map((s, idx) => {
+                return generateCardMarkup({
+                    s, scale: previewScale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId: `prev_qrcode_sample_${idx}`,
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
+                });
+            }).join('');
+
+            const qrSize = Math.max(80, 130 * previewScale);
+            previewKids.forEach((s, idx) => {
+                const sid = s['_studentId'] || s.id || s.student_id;
+                new QRCode(document.getElementById(`prev_qrcode_sample_${idx}`), {
+                    text: `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`,
+                    width: qrSize,
+                    height: qrSize,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            });
+        }
+
+        let isPreviewCollapsed = false;
+        function togglePrintPreview() {
+            const panel = document.getElementById('printPreviewPanel');
+            const btn = document.getElementById('togglePreviewBtn');
+            if (!panel || !btn) return;
+            
+            isPreviewCollapsed = !isPreviewCollapsed;
+            if (isPreviewCollapsed) {
+                panel.classList.add('preview-collapsed');
+                btn.innerHTML = '<i class="fas fa-eye"></i> عرض المعاينة';
+            } else {
+                panel.classList.remove('preview-collapsed');
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> إخفاء المعاينة';
+                updatePrintPreview();
+            }
+        }
+
         async function printAllKidsQRCards() {
             if (!Array.isArray(allStudents) || !allStudents.length) {
                 await loadStudents();
@@ -16223,55 +16657,75 @@
                 return;
             }
 
+            openModal('printSettingsModal');
+            document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
+            
+            syncPrintSettingsUI();
+            updatePrintPreview();
+        }
+
+        async function executePrintQRCards() {
+            const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
+            if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
+            closeModal('printSettingsModal');
+
+            const scale = parseFloat(document.getElementById('printScale').value) / 100;
+            const gapX = document.getElementById('printGapX').value + 'px';
+            const gapY = document.getElementById('printGapY').value + 'px';
+            const padding = document.getElementById('printPadding').value + 'px';
+            const showChurch = document.getElementById('printShowChurch').checked;
+            const showStudentImg = document.getElementById('printShowStudentImg').checked;
+            const showStudentName = document.getElementById('printShowStudentName').checked;
+            const showClass = document.getElementById('printShowClass').checked;
+            const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
+
+            const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+            const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+            const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+            const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+
             const printArea = document.getElementById('printArea');
             printArea.innerHTML = '';
-
-            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+            printArea.style.columnGap = gapX;
+            printArea.style.rowGap = gapY;
+            printArea.style.setProperty('--print-gap-x', gapX);
+            printArea.style.setProperty('--print-gap-y', gapY);
+            
+            let html = '';
             const qrTasks = [];
 
-            printArea.innerHTML = kids.map((s, idx) => {
+            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+
+            kids.forEach((s, idx) => {
                 const sid = s['_studentId'] || s.id || s.student_id;
-                const name = s['الاسم'] || s.name || 'طفل';
-                const cls = s['الفصل'] || s.class || '';
-                const imgUrl = s['صورة'] || s.image_url || s.photo || '';
-                const hasImage = String(imgUrl || '').trim() !== '' && !String(imgUrl).includes('placeholder.com') && !String(imgUrl).includes('via.placeholder');
-                const cardId = `qrcode_kid_${sid}_${idx}`;
+                const cardId = 'qrcode_kid_' + sid + '_' + idx;
                 const link = `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
-                qrTasks.push({ id: cardId, text: link });
 
-                const avatarHtml = hasImage
-                    ? `<img src="${escHtml(imgUrl)}" class="avatar" onerror="this.style.display='none'">`
-                    : '';
-
-                return `
-        <div class="print-card">
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap;">
-                <img src="/logo.png" style="height:20px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                <span style="font-size:11px; font-weight:800; color:#000; text-align:center; line-height:1.2; word-break:break-word;">${escHtml(churchName)}</span>
-            </div>
-            <h3>${escHtml(cls || 'QR الطفل')}</h3>
-            ${avatarHtml}
-            <h2>${escHtml(name)}</h2>
-            <div class="custom-info">${escHtml(cls)}</div>
-            <div id="${cardId}"></div>
-        </div>`;
-            }).join('');
-
-            qrTasks.forEach(task => {
-                new QRCode(document.getElementById(task.id), {
-                    text: task.text,
-                    width: 130,
-                    height: 130,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
+                html += generateCardMarkup({
+                    s, scale, padding, showChurch, showStudentImg, showStudentName, showClass, churchName, cardId,
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto
                 });
+                
+                qrTasks.push({ id: cardId, text: link });
             });
 
-            setTimeout(() => {
-                window.print();
-                setTimeout(() => { printArea.innerHTML = ''; }, 1000);
-            }, 500);
+            printArea.innerHTML = html;
+            
+            const qrSize = Math.max(80, 130 * scale);
+            qrTasks.forEach(task => {
+                new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+            });
+
+            setTimeout(() => { 
+                window.print(); 
+                setTimeout(() => { 
+                    printArea.innerHTML = ''; 
+                    printArea.style.columnGap = ''; 
+                    printArea.style.rowGap = ''; 
+                    printArea.style.removeProperty('--print-gap-x'); 
+                    printArea.style.removeProperty('--print-gap-y'); 
+                }, 1000); 
+            }, 1200);
         }
 
         async function printQRCards(tripId) {
