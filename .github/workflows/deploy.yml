@@ -1,4 +1,4 @@
-name: Deploy to InfinityFree
+name: Deploy to Hostinger
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /htdocs/
+          server-dir: /public_html/
           exclude: |
             **/.git*
             **/.git*/**
