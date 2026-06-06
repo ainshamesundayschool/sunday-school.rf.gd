@@ -49,9 +49,9 @@
   function applyOgMeta() {
     var type = readChurchType();
     var isYouth = type === 'youth';
-    var baseTitle = isYouth ? 'خدمة الشباب' : 'نظام مدارس الأحد';
+    var baseTitle = isYouth ? 'Sunday School' : 'نظام مدارس الأحد';
     var description = isYouth
-      ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
+      ? 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد'
       : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
     var label = pageLabel(location.pathname);
     var fullTitle = label ? label + ' - ' + baseTitle : baseTitle;

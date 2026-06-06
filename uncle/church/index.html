@@ -7350,7 +7350,7 @@
                                                         class="fas fa-user-friends"
                                                         style="color:#8b5cf6;margin-left:6px;"></i> شباب</div>
                                                 <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
-                                                    الكلمات تتحول: شاب/شباب، عضو، خدمة الشباب</div>
+                                                    الكلمات تتحول: شاب/شباب، عضو، Sunday School</div>
                                             </div>
                                         </label>
                                     </div>
@@ -13307,7 +13307,7 @@
         async function editStudentFull(id) {
             const fd = new FormData(); fd.append('action', 'getStudentProfile'); fd.append('studentId', id);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success && d.student) showEditStudentModal(d.student);
+            if (d.success && (d.student || d.user)) showEditStudentModal(d.student || d.user);
             else showToast('خطأ في تحميل البيانات', 'error');
         }
 
@@ -13316,7 +13316,7 @@
             const wrap = document.createElement('div');
             wrap.innerHTML = `<div class="modal open" id="editStudentModal">
         <div class="modal-box wide">
-            <div class="modal-head"><h2><i class="fas fa-user-edit"></i> تعديل معلومات الطفل</h2><button class="modal-close" onclick="document.getElementById('editStudentModal').remove()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-head"><h2><i class="fas fa-user-edit"></i> تعديل معلومات المستخدم</h2><button class="modal-close" onclick="document.getElementById('editStudentModal').remove()"><i class="fas fa-times"></i></button></div>
             <div class="modal-body">
                 <form id="editStudentForm" onsubmit="updateStudentFull(event)">
                     <input type="hidden" id="editStudentId" value="${s.id}">

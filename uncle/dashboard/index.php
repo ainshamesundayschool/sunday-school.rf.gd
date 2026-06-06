@@ -172,9 +172,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </script>
 
     <?php
-    $ogTitle = ($churchType === 'youth') ? 'خدمة الشباب' : 'نظام مدارس الأحد';
+    $ogTitle = ($churchType === 'youth') ? 'Sunday School' : 'نظام مدارس الأحد';
     $ogDescription = ($churchType === 'youth')
-        ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
+        ? 'منصة متكاملة لإدارة Sunday School — الحضور، الكوبونات، الإعلانات والمزيد'
         : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
     $ogImage = 'https://sunday-school.online/imgs/Sunday-School-Og.png';
     $twitterImage = 'https://sunday-school.online/imgs/Sunday%20School%20App.png';
@@ -245,8 +245,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         window.VOCAB_MAP = window.IS_YOUTH ? [
             // ── Longest / most-specific phrases first ──────────────────
-            ['مدارس الأحد', 'خدمة الشباب'],
-            ['مدرسة الأحد', 'خدمة الشباب'],
+            ['مدارس الأحد', 'Sunday School'],
+            ['مدرسة الأحد', 'Sunday School'],
             ['قائمة الأطفال', 'قائمة الشباب'],
             ['إجمالي الأطفال', 'إجمالي الشباب'],
             ['عدد الأطفال', 'عدد الشباب'],
@@ -291,7 +291,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (s !== el.placeholder) el.placeholder = s;
             });
             if (document.title.includes('مدارس الأحد'))
-                document.title = document.title.replace('مدارس الأحد', 'خدمة الشباب');
+                document.title = document.title.replace('مدارس الأحد', 'Sunday School');
         };
 
         window.t = function (str) {

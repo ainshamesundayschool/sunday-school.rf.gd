@@ -816,6 +816,7 @@ let cachedChurches = null; // cache from loadStats
         `;
         container.appendChild(p);
     }
+    .stat-sub { display:block; font-size:.66rem; color:var(--t4); font-weight:600; }
 })();
 
 /* ══ BUILD ATTENDANCE GRID ══ */
@@ -995,7 +996,7 @@ function renderChurchList(churches){
     churches.forEach(ch => {
         const a = document.createElement('a');
         a.className = 'church-row';
-        a.href = `/kids/registration?church=${encodeURIComponent(ch.code || ch.id)}`;
+        a.href = `/registration?church=${encodeURIComponent(ch.code || ch.id)}`;
         a.innerHTML = `
             <span class="church-row-name">${ch.name}</span>
             <i class="fas fa-chevron-left church-row-arrow"></i>`;
@@ -1021,9 +1022,14 @@ async function loadStats(){
     fd.append('action', 'getPublicStats');
     const { ok, data } = await apiFetch(fd);
     if (ok && data && data.success) {
-        animateCount('statKids',     data.kids_count);
+        animateCount('statKids',     (typeof data.users_count !== 'undefined') ? data.users_count : data.kids_count);
         animateCount('statServants', data.servants_count);
         animateCount('statChurches', data.churches_count);
+        // Ensure label shows generic 'مستخدم' and example subtypes
+        try {
+            const lbl = document.querySelector('#statKids').parentNode.querySelector('.stat-lbl');
+            if (lbl) lbl.innerHTML = 'مستخدم<br><span class="stat-sub">شباب · شابات · طفل</span>';
+        } catch (e) {}
     } else {
         ['statKids','statChurches','statServants'].forEach(id => {
             document.getElementById(id).textContent = '—';

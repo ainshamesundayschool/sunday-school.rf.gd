@@ -15625,7 +15625,7 @@ function getKidsData()
 
 
 
-        sendJSON(['success' => true, 'kids' => $kids]);
+        sendJSON(['success' => true, 'kids' => $kids, 'users' => $kids]);
 
 
 
@@ -15688,6 +15688,7 @@ function handleKidLogin()
                 s.custom_info, s.trip_points,
 
                 c.church_name,
+                COALESCE(c.church_type, 'kids') AS church_type,
 
                 COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
 
@@ -16606,15 +16607,18 @@ function kidLogin()
 
         if (count($authenticated) > 0) {
 
+            $vals = array_values($authenticated);
             sendJSON([
 
                 'success' => true,
 
-                'data' => array_values($authenticated),
+                'data' => $vals,
+                'users' => $vals,
+                'user' => count($vals) === 1 ? $vals[0] : null,
 
-                'message' => count($authenticated) > 1
+                'message' => count($vals) > 1
 
-                    ? 'تم تسجيل الدخول بنجاح - ' . count($authenticated) . ' أطفال مرتبطين'
+                    ? 'تم تسجيل الدخول بنجاح - ' . count($vals) . ' أطفال مرتبطين'
 
                     : 'تم تسجيل الدخول بنجاح'
 
@@ -16808,6 +16812,8 @@ function getStudentProfile()
 
                 'student' => $row,
 
+                'user' => $row,
+
                 'message' => 'تم تحميل الملف الشخصي'
 
             ]);
@@ -16964,7 +16970,7 @@ function searchKidsByName()
 
 
 
-        sendJSON(['success' => true, 'kids' => $kids, 'count' => count($kids)]);
+        sendJSON(['success' => true, 'kids' => $kids, 'users' => $kids, 'count' => count($kids)]);
 
 
 

@@ -1982,6 +1982,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       color: var(--t4);
     }
 
+    .user-tile {
+      /* alias for .kid-tile so both classes share styles */
+    }
+
+    .user-role {
+      font-size: .58rem;
+      color: var(--t4);
+    }
+
     /* ══ EXAM / QUESTIONS ════════════════════════════════ */
     .qcard,
     .qcard-inner {
@@ -4804,8 +4813,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const d = await api({ action: 'getStudentProfile', studentId: id });
         hideLoad();
-        if (d.success && d.student) {
-          student = norm(d.student);
+        if (d.success && (d.student || d.user)) {
+          student = norm(d.student || d.user);
           await loadChurchSettings();
           renderPublic(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
         } else noProfile('لم يُعثر على الملف الشخصي');
@@ -4870,6 +4879,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         image_url: s.image_url || '',
         church_name: s.church_name || '',
         church_id: s.church_id || 0,
+        church_type: s.church_type || localStorage.getItem('churchType') || 'kids',
+        gender: s.gender || '',
         has_password: s.has_password === true || s.has_password === 1 || s.has_password === '1',
         custom_info: s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : null,
         trip_points: (function () { try { if (!s.trip_points) return {}; return (typeof s.trip_points === 'string' ? JSON.parse(s.trip_points) : s.trip_points) || {} } catch (e) { return {} } })(),
@@ -5334,8 +5345,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           api({ action: 'getStudentAttendance', studentId: friendId })
         ]);
         hideLoad();
-        if (!profD.success || !profD.student) return; // friend not found — stay on own profile
-        const f = norm(profD.student);
+        if (!profD.success || !(profD.student || profD.user)) return; // friend not found — stay on own profile
+        const f = norm(profD.student || profD.user);
         f._friendAtt = attD.success ? (attD.attendance || []) : [];
         renderFriend(f);
       } catch (e) { hideLoad(); }
@@ -6409,8 +6420,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           // so coupons (task + total) reflect the real DB values
           try {
             const sd = await api({ action: 'getStudentProfile', studentId: student.id });
-            if (sd.success && sd.student) {
-              const fresh = norm(sd.student);
+            if (sd.success && (sd.student || sd.user)) {
+              const fresh = norm(sd.student || sd.user);
               // preserve fields not returned by getStudentProfile
               student.coupons = fresh.coupons;
               student.task_coupons = fresh.task_coupons;
@@ -6528,14 +6539,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const canSeeKids = String(t.show_registered_kids ?? 1) === '1';
       const kids = canSeeKids ? (t.registered_kids || []) : [];
       const kidsHtml = !canSeeKids ? '' : (kids.length ? `
-    <div style="margin-bottom:5px;font-size:.78rem;font-weight:700;color:var(--t2);">${kids.length} طفل مسجّل</div>
+    <div style="margin-bottom:5px;font-size:.78rem;font-weight:700;color:var(--t2);">${kids.length} مستخدم مسجّل</div>
     <div class="kids-grid">
-      ${kids.map(k => `<div class="kid-tile">
+      ${kids.map(k => `<div class="kid-tile user-tile">
         <div class="kid-tile-av">${k.image_url ? `<img src="${esc(k.image_url)}" alt="${esc(k.name)}">` : k.name.charAt(0)}</div>
         <div class="kid-tile-name">${esc(k.name)}</div>
         <div class="kid-tile-cls">${esc(k.class || '')}</div>
+        <div class="user-role">${esc(((k.church_type||t.church_type||localStorage.getItem('churchType')||'kids')==='youth')?((k.gender||'').toString().toLowerCase()==='female'?'شابة':'شاب'):'طفل')}</div>
       </div>`).join('')}
-    </div>`: `<div class="empty-st"><i class="fas fa-user-slash"></i><p>لا يوجد أطفال مسجّلون بعد</p></div>`);
+    </div>`: `<div class="empty-st"><i class="fas fa-user-slash"></i><p>لا يوجد مستخدمون مسجّلون بعد</p></div>`);
       document.getElementById('tripOvBody').innerHTML = `
     ${t.image_url ? `<img class="trip-detail-thumb" src="${esc(t.image_url)}" alt="">` :
           `<div class="trip-detail-ph"><i class="fas fa-bus"></i></div>`}
@@ -6801,7 +6813,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const savedUrl = d.imageUrl || up.imageUrl;
         // Refresh student data from server
         const fresh = await api({ action: 'getStudentProfile', studentId: student.id });
-        if (fresh.success && fresh.student) student = norm(fresh.student);
+        if (fresh.success && (fresh.student || fresh.user)) student = norm(fresh.student || fresh.user);
         hideLoad();
         document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
         closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
@@ -7219,14 +7231,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const res = document.getElementById('homeSearchResults');
       try {
         const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
-        if (!d.success || !d.kids || !d.kids.length) {
+        const list = d.users || d.kids || [];
+        if (!d.success || !list.length) {
           res.innerHTML = '<div style="padding:12px;text-align:center;color:var(--t3);font-size:.82rem;">لم يُعثر على نتائج</div>';
           res.style.display = 'flex';
           return;
         }
-        
+
         // Score and sort search results locally (Genius style)
-        let scored = d.kids.map(k => {
+        let scored = list.map(k => {
            return { ...k, _score: getMatchScore(k, q) };
         }).filter(k => k._score > 0);
 
@@ -7433,13 +7446,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const res = document.getElementById('sendFriendSearchResults');
       try {
         const d = await api({ action: 'searchKidsByName', query: q, church_id: student?.church_id || 0 });
-        if (!d.success || !d.kids || !d.kids.length) {
+        const list = d.users || d.kids || [];
+        if (!d.success || !list.length) {
           res.innerHTML = '<div style="padding:10px;text-align:center;color:var(--t3);font-size:.78rem;">لم يُعثر على نتائج</div>';
           return;
         }
 
         // Score results
-        let scored = d.kids.filter(k => k.id != student.id).map(k => {
+        let scored = list.filter(k => k.id != student.id).map(k => {
            return { ...k, _score: getMatchScore(k, q) };
         }).filter(k => k._score > 0);
         scored.sort((a, b) => b._score - a._score);
