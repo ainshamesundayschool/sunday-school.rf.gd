@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v12                     ║
+// ║  Sunday School PWA — Service Worker v13                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v12';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v13';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -37,9 +37,22 @@ const SHELL_URLS = [
 // ── INSTALL ───────────────────────────────────────────────────
 self.addEventListener('install', e => {
     self.skipWaiting();
-    e.waitUntil(caches.open(CACHE_NAME).then(cache =>
-        Promise.allSettled(SHELL_URLS.map(url => cache.add(url).catch(() => {})))
-    ));
+    e.waitUntil(caches.open(CACHE_NAME).then(async cache => {
+        for (const url of SHELL_URLS) {
+            try {
+                const response = await fetch(url, { cache: 'no-store' });
+                if (response.ok) {
+                    const isCookieCheck = await _isCookieCheckResponse(response);
+                    if (!isCookieCheck) {
+                        const copy = response.clone();
+                        await cache.put(url, copy);
+                    }
+                }
+            } catch (err) {
+                // Ignore precache failures for individual URLs
+            }
+        }
+    }));
 });
 
 // ── ACTIVATE ──────────────────────────────────────────────────
@@ -75,26 +88,33 @@ self.addEventListener('fetch', e => {
     if (url.pathname === '/manifest.json' || url.pathname === '/manifest.webmanifest') {
         const manifestPath = url.pathname === '/manifest.webmanifest' ? '/manifest.webmanifest' : '/manifest.json';
         e.respondWith(
-            fetch(e.request).then(r => {
-                if (r && r.ok) {
-                    const copy = r.clone();
-                    caches.open(CACHE_NAME).then(c => c.put(manifestPath, copy)).catch(() => {});
+            (async () => {
+                try {
+                    const r = await fetch(e.request, { cache: 'no-store' });
+                    if (r && r.ok) {
+                        const isCookieCheck = await _isCookieCheckResponse(r);
+                        if (!isCookieCheck) {
+                            const copy = r.clone();
+                            const cache = await caches.open(CACHE_NAME);
+                            await cache.put(manifestPath, copy);
+                        }
+                    }
+                    return r;
+                } catch (err) {
+                    const cached = await caches.match(manifestPath);
+                    if (cached) return cached;
+                    return new Response(JSON.stringify({
+                        name: 'Sunday School',
+                        short_name: 'Sunday School',
+                        start_url: '/uncle/dashboard/',
+                        display: 'standalone',
+                        icons: []
+                    }), {
+                        headers: { 'Content-Type': 'application/manifest+json; charset=utf-8' },
+                        status: 200
+                    });
                 }
-                return r;
-            }).catch(async () => {
-                const cached = await caches.match(manifestPath);
-                if (cached) return cached;
-                return new Response(JSON.stringify({
-                    name: 'Sunday School',
-                    short_name: 'Sunday School',
-                    start_url: '/uncle/dashboard/',
-                    display: 'standalone',
-                    icons: []
-                }), {
-                    headers: { 'Content-Type': 'application/manifest+json; charset=utf-8' },
-                    status: 200
-                });
-            })
+            })()
         );
         return;
     }
@@ -115,21 +135,45 @@ self.addEventListener('fetch', e => {
     // API / POST calls
     if (e.request.method === 'POST' || url.pathname.includes('api.php')) {
         e.respondWith(
-            fetch(e.request.clone()).catch(async () => {
-                if (e.request.method === 'POST') {
-                    // Only queue attendance/coupon actions — not login, photos, etc.
-                    const queued = await _maybeQueueRequest(e.request.clone());
-                    if (queued) {
+            (async () => {
+                try {
+                    const r = await fetch(e.request.clone());
+                    const isCookieCheck = await _isCookieCheckResponse(r);
+                    if (isCookieCheck) {
+                        // Force reload the client window(s) to let the cookie check complete
+                        const clientsList = await self.clients.matchAll({ type: 'window' });
+                        for (const client of clientsList) {
+                            if (client.url) {
+                                client.navigate(client.url).catch(() => {});
+                            }
+                        }
                         return new Response(JSON.stringify({
-                            success: false, offline: true,
-                            message: 'محفوظ محلياً — سيُرفع عند الاتصال'
-                        }), { headers: { 'Content-Type': 'application/json' } });
+                            success: false,
+                            offline: true,
+                            cookie_check: true,
+                            message: 'Checking cookies...'
+                        }), {
+                            status: 503,
+                            headers: { 'Content-Type': 'application/json; charset=utf-8' }
+                        });
                     }
+                    return r;
+                } catch (err) {
+                    if (e.request.method === 'POST') {
+                        // Only queue attendance/coupon actions — not login, photos, etc.
+                        const queued = await _maybeQueueRequest(e.request.clone());
+                        if (queued) {
+                            return new Response(JSON.stringify({
+                                success: false, offline: true,
+                                message: 'محفوظ محلياً — سيُرفع عند الاتصال'
+                            }), { headers: { 'Content-Type': 'application/json' } });
+                        }
+                    }
+                    return new Response(JSON.stringify({
+                        success: false, offline: true, message: 'غير متصل'
+                    }), { headers: { 'Content-Type': 'application/json' }, status: 503 });
                 }
-                return new Response(JSON.stringify({
-                    success: false, offline: true, message: 'غير متصل'
-                }), { headers: { 'Content-Type': 'application/json' }, status: 503 });
-            })
+            })()
         );
         return;
     }
@@ -154,9 +198,8 @@ self.addEventListener('fetch', e => {
                 }
 
                 try {
-                    const r = await fetch(e.request, {
-                        cache: (isSessionSensitive && !isOfflineShellFriendly) ? 'no-store' : 'default'
-                    });
+                    // Force no-store for all navigations to prevent browser caching the cookie-check pages
+                    const r = await fetch(e.request, { cache: 'no-store' });
                     if (isOfflineShellFriendly && await _isCacheableAppResponse(r)) {
                         const copy = r.clone();
                         caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
@@ -185,12 +228,28 @@ self.addEventListener('fetch', e => {
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
-            return fetch(e.request).then(async r => {
-                if (e.request.method === 'GET' && await _isCacheableAppResponse(r)) {
-                    const cl = r.clone(); caches.open(CACHE_NAME).then(c => c.put(e.request, cl));
+            return (async () => {
+                try {
+                    const r = await fetch(e.request, { cache: 'no-store' });
+                    const isCookieCheck = await _isCookieCheckResponse(r);
+                    if (isCookieCheck) {
+                        const clientsList = await self.clients.matchAll({ type: 'window' });
+                        for (const client of clientsList) {
+                            if (client.url) {
+                                client.navigate(client.url).catch(() => {});
+                            }
+                        }
+                        return new Response('Cookie check required', { status: 503 });
+                    }
+                    if (e.request.method === 'GET' && await _isCacheableAppResponse(r)) {
+                        const cl = r.clone();
+                        caches.open(CACHE_NAME).then(c => c.put(e.request, cl)).catch(() => {});
+                    }
+                    return r;
+                } catch (err) {
+                    return new Response('Offline', { status: 503 });
                 }
-                return r;
-            }).catch(() => new Response('Offline', { status: 503 }));
+            })();
         })
     );
 });
@@ -226,18 +285,37 @@ async function _matchOfflineShell(request, url) {
     return null;
 }
 
-function _isHostCookieCheckResponse(response) {
+async function _isCookieCheckResponse(response) {
     if (!response) return true;
-    const responseUrl = response.url || '';
-    const contentType = response.headers && response.headers.get('content-type') || '';
+    if (!response.ok) return false;
 
-    return responseUrl.indexOf('ifastnet.com/cookies.html') !== -1 ||
-        responseUrl.indexOf('/cookies.html') !== -1 ||
-        /text\/html/i.test(contentType) && responseUrl.indexOf('ifastnet.com') !== -1;
+    const responseUrl = response.url || '';
+    if (responseUrl.indexOf('ifastnet.com/cookies.html') !== -1 || responseUrl.indexOf('/cookies.html') !== -1) {
+        return true;
+    }
+
+    const contentType = response.headers && response.headers.get('content-type') || '';
+    if (/text\/html|javascript|json|plain/i.test(contentType) || responseUrl === '' || !contentType) {
+        try {
+            const copy = response.clone();
+            const text = await copy.text();
+            if (
+                text.indexOf('__test') !== -1 ||
+                text.indexOf('slowAES') !== -1 ||
+                text.indexOf('aes.js') !== -1 ||
+                text.indexOf('cookies.html') !== -1 ||
+                text.indexOf('Cookies are not enabled') !== -1 ||
+                text.indexOf('browser is not accepting cookies') !== -1
+            ) {
+                return true;
+            }
+        } catch (_) {}
+    }
+    return false;
 }
 
 async function _isCacheableAppResponse(response) {
-    if (!response || !response.ok || _isHostCookieCheckResponse(response)) return false;
+    if (!response || !response.ok || await _isCookieCheckResponse(response)) return false;
     const copy = response.clone();
     const contentType = copy.headers.get('content-type') || '';
 
