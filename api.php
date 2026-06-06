@@ -33434,6 +33434,16 @@ function updateTask()
 
 
 
+        // Load old question IDs mapping to sort_order before deleting them
+        $oldQsStmt = $conn->prepare("SELECT id, sort_order FROM task_questions WHERE task_id=?");
+        $oldQsStmt->bind_param('i', $taskId);
+        $oldQsStmt->execute();
+        $oldQs = $oldQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $oldQidToOrder = [];
+        foreach ($oldQs as $oq) {
+            $oldQidToOrder[$oq['id']] = (int)$oq['sort_order'];
+        }
+
         $delQ = $conn->prepare("DELETE FROM task_questions WHERE task_id=?");
 
         $delQ->bind_param('i', $taskId);
@@ -33452,7 +33462,7 @@ function updateTask()
 
         // Load the newly inserted questions
 
-        $newQsStmt = $conn->prepare("SELECT id, question_type, correct_index, degree FROM task_questions WHERE task_id=?");
+        $newQsStmt = $conn->prepare("SELECT id, question_type, correct_index, degree, sort_order FROM task_questions WHERE task_id=?");
 
         $newQsStmt->bind_param('i', $taskId);
 
@@ -33460,11 +33470,15 @@ function updateTask()
 
         $newQs = $newQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        $orderToNewQid = [];
+        foreach ($newQs as $nq) {
+            $orderToNewQid[(int)$nq['sort_order']] = $nq['id'];
+        }
 
 
         // Load all submissions for this task
 
-        $allSubsStmt = $conn->prepare("SELECT id, student_id, answers, score AS old_score, coupons_awarded AS old_coupons, open_scores FROM task_submissions WHERE task_id=?");
+        $allSubsStmt = $conn->prepare("SELECT id, student_id, answers, score AS old_score, coupons_awarded AS old_coupons, open_scores, correction_notes FROM task_submissions WHERE task_id=?");
 
         $allSubsStmt->bind_param('i', $taskId);
 
@@ -33484,6 +33498,46 @@ function updateTask()
 
             $openScores = json_decode($sub['open_scores'] ?? '{}', true) ?: [];
 
+            $corrNotes = json_decode($sub['correction_notes'] ?? '{}', true) ?: [];
+
+
+            // Map old question IDs to new question IDs based on sort_order
+            $newAnswers = [];
+            foreach ($answers as $oldQid => $ansVal) {
+                if (isset($oldQidToOrder[$oldQid])) {
+                    $order = $oldQidToOrder[$oldQid];
+                    if (isset($orderToNewQid[$order])) {
+                        $newQid = $orderToNewQid[$order];
+                        $newAnswers[$newQid] = $ansVal;
+                    }
+                }
+            }
+
+            $newOpenScores = [];
+            foreach ($openScores as $oldQid => $scoreVal) {
+                if (isset($oldQidToOrder[$oldQid])) {
+                    $order = $oldQidToOrder[$oldQid];
+                    if (isset($orderToNewQid[$order])) {
+                        $newQid = $orderToNewQid[$order];
+                        $newOpenScores[$newQid] = $scoreVal;
+                    }
+                }
+            }
+
+            $newCorrNotes = [];
+            foreach ($corrNotes as $oldQid => $noteVal) {
+                if (isset($oldQidToOrder[$oldQid])) {
+                    $order = $oldQidToOrder[$oldQid];
+                    if (isset($orderToNewQid[$order])) {
+                        $newQid = $orderToNewQid[$order];
+                        $newCorrNotes[$newQid] = $noteVal;
+                    }
+                }
+            }
+
+            $answersJson = json_encode($newAnswers, JSON_UNESCAPED_UNICODE);
+            $openScoresJson = json_encode($newOpenScores, JSON_UNESCAPED_UNICODE);
+            $corrNotesJson = !empty($newCorrNotes) ? json_encode($newCorrNotes, JSON_UNESCAPED_UNICODE) : null;
 
 
             $mcqScore = 0;
@@ -33494,7 +33548,7 @@ function updateTask()
 
                 if ($q['question_type'] === 'open') {
 
-                    $openScore += (int) ($openScores[$q['id']] ?? $openScores[(string) $q['id']] ?? 0);
+                    $openScore += (int) ($newOpenScores[$q['id']] ?? $newOpenScores[(string) $q['id']] ?? 0);
 
                 } else {
 
@@ -33502,7 +33556,7 @@ function updateTask()
 
                         continue;
 
-                    $given = $answers[$q['id']] ?? $answers[(string) $q['id']] ?? null;
+                    $given = $newAnswers[$q['id']] ?? $newAnswers[(string) $q['id']] ?? null;
 
                     if ($given !== null && (int) $given === (int) $q['correct_index']) {
 
@@ -33546,11 +33600,11 @@ function updateTask()
 
 
 
-            // Update submission score and coupons
+            // Update submission score, coupons, and rewritten answers/scores/notes
 
-            $updSub = $conn->prepare("UPDATE task_submissions SET score=?, coupons_awarded=? WHERE id=?");
+            $updSub = $conn->prepare("UPDATE task_submissions SET score=?, coupons_awarded=?, answers=?, open_scores=?, correction_notes=? WHERE id=?");
 
-            $updSub->bind_param('iii', $newScore, $newCoupons, $sub['id']);
+            $updSub->bind_param('iisssi', $newScore, $newCoupons, $answersJson, $openScoresJson, $corrNotesJson, $sub['id']);
 
             $updSub->execute();
 
