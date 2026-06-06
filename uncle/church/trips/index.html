@@ -4565,6 +4565,23 @@
         height: auto !important;
       }
     }
+
+    #tripDetailsScroll {
+      padding: 0 !important;
+    }
+    .td-scroll-body {
+      padding: 24px 28px;
+    }
+    @media (min-width: 1000px) {
+      .td-scroll-body {
+        padding: 18px 28px 24px !important;
+      }
+    }
+    @media (max-width: 999px) {
+      .td-scroll-body {
+        padding: 18px 16px 24px !important;
+      }
+    }
   </style>
   </head>
 
@@ -4577,20 +4594,21 @@
         <div id="tripDetailsModal" class="modal" style="padding:0;">
           <div class="modal-box"
             style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
-            <div id="tdHeader">
-              <div id="tdCoverThumb"></div>
-              <div class="td-title-badge-wrap">
-                <h2 id="tdModalTitle">تفاصيل الرحلة</h2>
-                <div id="tdStatusBadge"></div>
+            <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:0;">
+              <div id="tdHeader">
+                <div id="tdCoverThumb"></div>
+                <div class="td-title-badge-wrap">
+                  <h2 id="tdModalTitle">تفاصيل الرحلة</h2>
+                  <div id="tdStatusBadge"></div>
+                </div>
+                <div id="tdSubtitle"></div>
+                <div class="price-pills-wrap">
+                  <div id="tdTotalPricePill">0 ج</div>
+                  <div id="tdPriceBreakPill"></div>
+                </div>
+                <div id="tdQuickStats"></div>
               </div>
-              <div id="tdSubtitle"></div>
-              <div class="price-pills-wrap">
-                <div id="tdTotalPricePill">0 ج</div>
-                <div id="tdPriceBreakPill"></div>
-              </div>
-              <div id="tdQuickStats"></div>
-            </div>
-            <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:24px 28px;">
+              <div class="td-scroll-body">
               <div class="trip-tabs-bar">
                 <div class="trip-tabs-bar-inner">
                   <div class="td-tabs trip-header-tabs" id="tdTabsDesktop"
@@ -4719,6 +4737,7 @@
                   </div>
                   <div class="trip-shell-pages" id="tripShellPages"></div>
                 </section>
+              </div>
               </div>
             </div>
           </div>
