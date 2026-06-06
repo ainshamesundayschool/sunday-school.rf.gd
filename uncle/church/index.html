@@ -8523,6 +8523,11 @@
                                 <input type="checkbox" id="printShowStudentId" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                                 <span>عرض كود الطفل (ID)</span>
                             </label>
+
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                                <input type="checkbox" id="printCardRounded" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                                <span>حواف دائرية للكارت (Rounded Corners)</span>
+                            </label>
                         </div>
                     </div>
 
@@ -8577,6 +8582,7 @@
                                     <option value="same-fitted">كل المستطيلات بنفس عرض أكبر محتوى (Same Fitted)</option>
                                     <option value="full">عرض كامل لنصف الكارت (Full Width)</option>
                                     <option value="unified">مستطيل موحد كامل لنصف البيانات ونصف الـ QR (Unified)</option>
+                                    <option value="unified-qr-only">مستطيل موحد للـ QR والـ ID فقط (Unified QR & ID Only)</option>
                                 </select>
                             </div>
 
@@ -16697,7 +16703,8 @@
             }
 
             const borderColor = '#000000';
-            const borderRadius = 10;
+            const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
+            const borderRadius = isCardRounded ? 10 : 0;
             const strokeWidth = 2;
             const solidStrokeWidth = Math.max(1.5, 2 * scale);
             const w = baseWidth || 260;
@@ -16816,7 +16823,9 @@
 
             const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
 
-            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+            const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
+            const cardRadius = isCardRounded ? 10 : 0;
+            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
             let bgHtml = '';
             if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
                 const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
@@ -16916,7 +16925,7 @@
                 }
 
                 let qrHalfHtml = '';
-                if (textReadability === 'rect' && isUnified) {
+                if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
@@ -16967,7 +16976,7 @@
                 }
 
                 let qrHalfHtml = '';
-                if (textReadability === 'rect' && isUnified) {
+                if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
