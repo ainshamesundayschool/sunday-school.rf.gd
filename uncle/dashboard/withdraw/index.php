@@ -35,6 +35,23 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- ═══ Social Preview Defaults ═══ -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="نظام مدارس الأحد">
+    <meta property="og:title" content="سحب الكوبونات | مدارس الأحد">
+    <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta property="og:url" content="https://sunday-school.online/uncle/dashboard/withdraw/">
+    <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
+    <meta property="og:image:width" content="1000">
+    <meta property="og:image:height" content="1000">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="نظام مدارس الأحد">
+    <meta property="og:locale" content="ar_AR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="سحب الكوبونات | مدارس الأحد">
+    <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
+
     <title>سحب الكوبونات | مدارس الأحد</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -761,6 +778,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             }
         }
     </style>
+    <script src="/js/og-meta.js"></script>
 </head>
 
 <body>

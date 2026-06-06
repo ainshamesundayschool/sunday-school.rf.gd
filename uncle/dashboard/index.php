@@ -8119,6 +8119,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
     </style>
+    <script src="/js/og-meta.js"></script>
 </head>
 
 <body>

@@ -35,6 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <!-- ═══ Social Preview Defaults ═══ -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="نظام مدارس الأحد">
+    <meta property="og:title" content="بوابة الطفل">
+    <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta property="og:url" content="https://sunday-school.online/kids/profile/">
+    <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
+    <meta property="og:image:width" content="1000">
+    <meta property="og:image:height" content="1000">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="نظام مدارس الأحد">
+    <meta property="og:locale" content="ar_AR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="بوابة الطفل">
+    <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
@@ -3863,6 +3880,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
 
   </style>
+    <script src="/js/og-meta.js"></script>
 </head>
 
 <body>
