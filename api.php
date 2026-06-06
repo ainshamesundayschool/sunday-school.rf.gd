@@ -116,7 +116,7 @@ function ensureChurchTypeColumn(mysqli $conn): void
 
  * Safely deletes an uploaded image file from the server.
 
- * Handles both full URLs (https://sunday-school.rf.gd/uploads/...)
+ * Handles both full URLs (https://sunday-school.online/uploads/...)
 
  * and relative paths (/uploads/...).
 
@@ -6615,7 +6615,7 @@ function addStudent()
 
                     }
 
-                    $photoUrl = "https://sunday-school.rf.gd/uploads/students/" . $photoFilename;
+                    $photoUrl = "https://sunday-school.online/uploads/students/" . $photoFilename;
 
                 }
 
@@ -6949,7 +6949,7 @@ function updateStudentImageAfterCreation()
 
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
 
-                    $photoUrl = "https://sunday-school.rf.gd/uploads/students/" . $photoFilename;
+                    $photoUrl = "https://sunday-school.online/uploads/students/" . $photoFilename;
 
                     error_log("Photo uploaded successfully: $photoUrl");
 
@@ -19908,7 +19908,7 @@ function addTrip()
 
                 if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
 
-                    $imageUrl = "https://sunday-school.rf.gd/uploads/trips/" . $filename;
+                    $imageUrl = "https://sunday-school.online/uploads/trips/" . $filename;
 
                 }
 
@@ -25604,7 +25604,7 @@ function updateStudentFull()
 
                 if (move_uploaded_file($_FILES['student_image']['tmp_name'], $uploadPath)) {
 
-                    $imageUrl = "https://sunday-school.rf.gd/uploads/students/" . $filename;
+                    $imageUrl = "https://sunday-school.online/uploads/students/" . $filename;
 
                 }
 
@@ -36310,7 +36310,7 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
 
                 'VAPID' => [
 
-                    'subject' => 'mailto:admin@sunday-school.rf.gd',
+                    'subject' => 'mailto:admin@sunday-school.online',
 
                     'publicKey' => $vapidPub,
 

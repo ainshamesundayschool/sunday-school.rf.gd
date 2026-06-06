@@ -176,8 +176,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
     $ogDescription = ($churchType === 'youth')
         ? 'منصة متكاملة لإدارة خدمة الشباب — الحضور، الكوبونات، الإعلانات والمزيد'
         : 'منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد';
-    $ogImage = 'https://sunday-school.rf.gd/imgs/Thumbnail-300x.png';
-    $ogUrl = 'https://sunday-school.rf.gd/uncle/dashboard/';
+    $ogImage = 'https://sunday-school.online/imgs/Thumbnail-300x.png';
+    $ogUrl = 'https://sunday-school.online/uncle/dashboard/';
     ?>
 
     <!-- ── Font-ready guard: hide body until Cairo is loaded (or 300ms max).
@@ -8586,7 +8586,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <footer class="site-footer">
                     <div class="footer-inner">
-                        <a href="https://sunday-school.rf.gd/" class="footer-brand">
+                        <a href="https://sunday-school.online/" class="footer-brand">
                             <div class="footer-logo"><img src="/logo.png" alt="" onerror="this.style.display='none'">
                             </div>
                             <span class="footer-name">نظام مدارس الأحد 2026</span>
@@ -10420,7 +10420,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('uncleProfileUsername').value = u.username || '';
             document.getElementById('uncleProfileNewPassword').value = '';
             const av = document.getElementById('accountBigAvatar');
-            av.src = window.photoUrl(u.image_url || 'https://sunday-school.rf.gd/profile_default..webp');
+            av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
             hideAccountEditForm();
             document.getElementById('accountModal').classList.add('active');
             stopAutoRefresh();
@@ -14575,7 +14575,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function uploadUnclePhoto(blob) {
             showLoading('جاري رفع الصورة...');
             const fd = new FormData(); fd.append('photo', new File([blob], `uncle_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('username', window.currentUncle?.username || 'user');
-            fetch('https://sunday-school.rf.gd/upload_uncle.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+            fetch('https://sunday-school.online/upload_uncle.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     makeApiCall({ action: 'updateUncleImage', imageUrl: d.imageUrl }, () => {
                         showToast('تم التحديث', 'success');
@@ -14606,8 +14606,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (r.uncles && r.uncles.length) {
                     list.innerHTML = r.uncles.map(u =>
                         `<div class="uncle-avatar-wrap">` +
-                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || 'https://sunday-school.rf.gd/profile_default..webp')}"` +
-                        ` alt="${u.name}" onerror="this.src='https://sunday-school.rf.gd/profile_default..webp'">` +
+                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp')}"` +
+                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">` +
                         `<div class="uncle-tooltip">${u.name}</div>` +
                         `</div>`
                     ).join('');
