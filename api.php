@@ -20782,7 +20782,27 @@ function getTripDetails()
 
                 COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
 
-                tr.payment_history
+                tr.payment_history,
+
+                s.birthday as student_birthday,
+
+                s.emergency_phone as student_emergency_phone,
+
+                s.medical_notes as student_medical_notes,
+
+                s.address as student_address,
+
+                s.coupons as student_coupons,
+
+                s.attendance_coupons as student_attendance_coupons,
+
+                s.commitment_coupons as student_commitment_coupons,
+
+                s.task_coupons as student_task_coupons,
+
+                s.custom_info as student_custom_info,
+
+                s.church_id as student_church_id
 
             FROM trip_registrations tr
 
@@ -21960,7 +21980,29 @@ function getWaitlistData($tripId, $conn)
 
         SELECT tw.*, s.name AS student_name, s.phone AS student_phone, s.image_url AS student_image,
 
-               COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS student_class
+               COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS student_class,
+
+               s.gender AS student_gender,
+
+               s.birthday as student_birthday,
+
+               s.emergency_phone as student_emergency_phone,
+
+               s.medical_notes as student_medical_notes,
+
+               s.address as student_address,
+
+               s.coupons as student_coupons,
+
+               s.attendance_coupons as student_attendance_coupons,
+
+               s.commitment_coupons as student_commitment_coupons,
+
+               s.task_coupons as student_task_coupons,
+
+               s.custom_info as student_custom_info,
+
+               s.church_id as student_church_id
 
         FROM trip_waitlist tw
 
