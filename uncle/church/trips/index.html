@@ -9,56 +9,8 @@
 
 <body>
   <style>
-    /* Override: Desktop side-by-side layouts for print and registration modals.
-       Ensures preview left + settings right on wide screens; mobile unchanged. */
+    /* Override: Desktop side-by-side layouts for registration modals. */
     @media (min-width: 800px) {
-
-      /* Print modal: preview left, settings right */
-      #printSettingsModal .modal-box {
-        max-width: 1200px !important;
-        margin: 36px auto !important;
-        height: calc(100vh - 72px) !important;
-        border-radius: var(--r-lg) !important;
-      }
-
-      #printSettingsModal .modal-body {
-        display: grid !important;
-        grid-template-columns: 410px 1fr !important;
-        gap: 20px !important;
-        align-items: stretch !important;
-        padding: 20px !important;
-        height: calc(100% - 60px) !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
-      }
-
-      #printSettingsModal #printSettingsFormPanel {
-        grid-column: 1 !important;
-        overflow-y: auto !important;
-        max-height: 100% !important;
-        height: 100% !important;
-        padding-left: 10px;
-      }
-
-      #printSettingsModal #printPreviewPanel {
-        grid-column: 2 !important;
-        overflow: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-        border-right: 1px solid var(--border) !important;
-        border-left: none !important;
-        padding-right: 20px !important;
-        padding-left: 0 !important;
-        min-height: 0 !important;
-      }
-
-      #printSettingsModal #printPreviewWrapper {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        height: 100% !important;
-        overflow: auto !important;
-      }
 
       /* Registration modal: kid grid on left, settings on right */
       #registerStudentModal .modal-box {
@@ -121,34 +73,6 @@
         overflow: visible !important;
         margin-top: 12px !important;
       }
-
-      #printSettingsModal .modal-box {
-        height: 94vh !important;
-        max-height: 94vh !important;
-        margin: 3vh auto !important;
-      }
-      #printSettingsModal .modal-body {
-        display: flex !important;
-        flex-direction: column !important;
-        overflow-y: auto !important;
-        height: calc(100% - 50px) !important;
-        gap: 20px !important;
-      }
-      #printSettingsModal #printSettingsFormPanel {
-        flex: none !important;
-        max-height: none !important;
-        overflow: visible !important;
-      }
-      #printSettingsModal #printPreviewPanel {
-        flex: none !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
-      #printSettingsModal #printPreviewWrapper {
-        min-height: 300px !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
     }
   </style>
 
@@ -160,6 +84,33 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+    #printSettingsModal input[type="color"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      border: 2px solid var(--border, #ddd) !important;
+      padding: 0 !important;
+      cursor: pointer;
+      background: none !important;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    #printSettingsModal input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0 !important;
+    }
+    #printSettingsModal input[type="color"]::-webkit-color-swatch {
+      border: none !important;
+      border-radius: 50% !important;
+    }
+    #printSettingsModal input[type="color"]::-moz-color-swatch {
+      border: none !important;
+      border-radius: 50% !important;
+    }
+
 
     /* ── RESET ──────────────────────────────────────────────────────── */
     *,
@@ -3863,48 +3814,52 @@
 
       #printSettingsModal .modal-body {
         display: grid !important;
-        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-        align-items: stretch;
-        gap: 24px;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
-        padding: 20px 24px 24px;
+        grid-template-columns: 410px 1fr !important;
+        align-items: stretch !important;
+        gap: 24px !important;
+        flex: 1 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        padding: 20px 24px 24px !important;
       }
 
       #printSettingsModal #printSettingsFormPanel {
+        grid-column: 1 !important;
         min-width: 0 !important;
         width: 100% !important;
         max-width: none !important;
         max-height: none !important;
-        height: 100%;
-        overflow-y: auto;
-        padding-left: 8px;
-        order: 2;
+        height: 100% !important;
+        overflow-y: auto !important;
+        padding-left: 8px !important;
       }
 
       #printPreviewPanel {
+        grid-column: 2 !important;
         width: 100% !important;
-        min-width: 0;
-        border-right: 1px solid var(--border);
-        padding-right: 24px;
-        overflow: hidden;
+        min-width: 0 !important;
+        border-right: 1px solid var(--border) !important;
+        border-left: none !important;
+        padding-right: 24px !important;
+        padding-left: 0 !important;
+        overflow: hidden !important;
         align-items: stretch !important;
-        height: 100%;
-        order: 1;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
 
       #printSettingsModal #printPreviewWrapper {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: 100%;
-        overflow: auto;
-        padding: 28px;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow: auto !important;
+        padding: 28px !important;
       }
 
       #printPreviewContent {
-        min-height: 100%;
-        width: 100%;
+        min-height: 100% !important;
+        width: 100% !important;
       }
     }
 
@@ -3921,7 +3876,7 @@
     .trip-shell-page #printSettingsModal .modal-body,
     #printSettingsModal[data-shell-mounted="1"] .modal-body {
       display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
+      grid-template-columns: 410px 1fr !important;
       gap: 24px !important;
       align-items: stretch !important;
       min-height: 0 !important;
@@ -3932,18 +3887,19 @@
 
     .trip-shell-page #printSettingsModal #printSettingsFormPanel,
     #printSettingsModal[data-shell-mounted="1"] #printSettingsFormPanel {
-      order: 2;
+      grid-column: 1 !important;
       width: 100% !important;
       min-width: 0 !important;
       max-width: none !important;
       max-height: none !important;
       height: 100% !important;
       overflow-y: auto !important;
+      padding-left: 10px !important;
     }
 
     .trip-shell-page #printSettingsModal #printPreviewPanel,
     #printSettingsModal[data-shell-mounted="1"] #printPreviewPanel {
-      order: 1;
+      grid-column: 2 !important;
       width: 100% !important;
       min-width: 0 !important;
       height: 100% !important;
@@ -3952,7 +3908,9 @@
       align-items: stretch !important;
       overflow: hidden !important;
       border-right: 1px solid var(--border) !important;
+      border-left: none !important;
       padding-right: 24px !important;
+      padding-left: 0 !important;
       margin: 0 !important;
     }
 
@@ -4063,44 +4021,45 @@
     /* ── Mobile: stacked — settings first, preview below ────── */
     @media (max-width: 768px) {
       #printSettingsModal .modal-box {
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-        height: 100% !important;
-        max-height: 100vh !important;
+        height: 94vh !important;
+        max-height: 94vh !important;
+        margin: 3vh auto !important;
+        width: 96vw !important;
+        max-width: 96vw !important;
       }
 
       #printSettingsModal .modal-body {
         display: flex !important;
         flex-direction: column !important;
-        gap: 0 !important;
+        overflow-y: auto !important;
+        height: calc(100% - 50px) !important;
+        gap: 20px !important;
         padding: 16px !important;
       }
 
       #printSettingsModal #printSettingsFormPanel {
-        min-width: unset !important;
+        flex: none !important;
         max-height: none !important;
-        overflow-y: visible !important;
+        overflow: visible !important;
         width: 100% !important;
       }
 
       #printSettingsModal #printPreviewPanel {
+        flex: none !important;
+        display: flex !important;
+        flex-direction: column !important;
         width: 100% !important;
-        min-width: unset !important;
         border-right: none !important;
-        border-top: none !important;
-        border-bottom: 1px solid var(--border) !important;
+        border-top: 1px solid var(--border) !important;
         padding-right: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 16px !important;
-        margin-top: 0 !important;
-        margin-bottom: 16px !important;
-        order: -1;
+        padding-top: 20px !important;
+        margin-top: 10px !important;
       }
 
       #printSettingsModal #printPreviewWrapper {
-        min-height: 320px !important;
+        min-height: 300px !important;
+        height: auto !important;
+        overflow: visible !important;
         padding: 12px !important;
       }
     }
@@ -9025,8 +8984,13 @@
         const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
         if (avatarFallbackRow) avatarFallbackRow.style.display = showStudentImgChecked ? 'flex' : 'none';
 
+        const readabilityVal = document.getElementById('printTextReadability')?.value || 'none';
+        const readabilitySubSettings = document.getElementById('printReadabilitySubSettings');
+        if (readabilitySubSettings) readabilitySubSettings.style.display = (readabilityVal === 'rect') ? 'flex' : 'none';
+
         togglePrintDashControls();
       }
+
 
       function buildCustomDataMarkup(customDataRaw, trip) {
         if (!customDataRaw) return '';
@@ -9131,12 +9095,21 @@
         };
       }
 
+      function hexToRgba(hex, opacity) {
+        hex = (hex || '#ffffff').replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      }
+
       function generateCardMarkup({
         trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
         showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId,
         tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
         fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-        baseWidth, baseHeight
+        baseWidth, baseHeight,
+        readabilityBgColor = '#ffffff', readabilityBgOpacity = '92', readabilityPadding = 6, readabilityWidth = 'fitted'
       }) {
         const {
           isLandscape,
@@ -9175,8 +9148,27 @@
         const safeStudentName = escHtml(r.student_name || r.guest_name || '؟');
         const safeTripTitle = escHtml(trip.title || '');
         const hasCustomContent = showCustom && !!String(customHtml || '').trim();
-        const qrWrapperStyles = textReadability === 'rect'
-          ? `background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px; border-radius:${10 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05);`
+
+        const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
+        const readPadding = `${readabilityPadding * scale}px`;
+        const isUnified = readabilityWidth === 'unified';
+        const isFullWidth = readabilityWidth === 'full';
+        const isSameFitted = readabilityWidth === 'same-fitted';
+
+        let infoBlockWidthStyle = 'width: fit-content; margin: 0 auto;';
+        if (isFullWidth || isSameFitted) {
+          infoBlockWidthStyle = 'width: 100%;';
+        }
+
+        const infoWrapperWidthStyle = isSameFitted ? 'width: fit-content; max-width: 100%;' : 'width: 100%;';
+
+        let qrWidthStyle = 'width: fit-content;';
+        if (isFullWidth) {
+          qrWidthStyle = 'width: 100%; box-sizing: border-box;';
+        }
+        
+        const qrWrapperStyles = textReadability === 'rect' && !isUnified
+          ? `background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05); ${qrWidthStyle}`
           : '';
 
         // Inline small trip image rounding & dimensions
@@ -9203,7 +9195,7 @@
         const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
 
         // Card Background & Image Overlay HTML
-        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:10px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
         let bgHtml = '';
 
         if (customCardBackgroundDataUrl) {
@@ -9223,9 +9215,9 @@
         // Church Header Group
         let churchHeaderHtml = '';
         if (showChurch) {
-          if (textReadability === 'rect') {
+          if (textReadability === 'rect' && !isUnified) {
             churchHeaderHtml = `
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${4 * scale}px ${8 * scale}px; border-radius:${6 * scale}px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
             </div>
@@ -9246,9 +9238,9 @@
           const titleTag = showTripTitle && safeTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeTripTitle}</h3>` : '';
           const hasTripImgContent = showTripImage && !tripImgAsBg && trip.image_url;
           const hasAnyTripContent = hasTripImgContent || !!titleTag;
-          if (textReadability === 'rect' && hasAnyTripContent) {
+          if (textReadability === 'rect' && !isUnified && hasAnyTripContent) {
             tripInfoGroupHtml = `
-            <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${6 * scale}px ${10 * scale}px; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 ${tripImageHtml}
                 ${titleTag}
             </div>
@@ -9272,9 +9264,9 @@
           const hasNameContent = showStudentName;
           const hasAnyStudentContent = hasAvatarContent || hasNameContent || hasCustomContent;
 
-          if (textReadability === 'rect' && hasAnyStudentContent) {
+          if (textReadability === 'rect' && !isUnified && hasAnyStudentContent) {
             studentInfoGroupHtml = `
-            <div style="background:rgba(255,255,255,0.92); border:1px solid ${strokeColor}; padding:${8 * scale}px ${10 * scale}px; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 ${avatarHtml}
                 ${nameTag}
                 ${customTag}
@@ -9293,31 +9285,105 @@
 
         let innerContentHtml = '';
         if (isLandscape) {
+          let detailsHtml = '';
+          if (textReadability === 'rect' && isUnified) {
+            detailsHtml = `
+            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; box-sizing:border-box; gap:${6 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05); min-width:0; min-height:0;">
+                ${churchHeaderHtml}
+                ${tripInfoGroupHtml}
+                ${studentInfoGroupHtml}
+            </div>
+            `;
+          } else {
+            detailsHtml = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; min-width:0; min-height:0;">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
+                    ${churchHeaderHtml}
+                    ${tripInfoGroupHtml}
+                    ${studentInfoGroupHtml}
+                </div>
+            </div>
+            `;
+          }
+
+          let qrHalfHtml = '';
+          if (textReadability === 'rect' && isUnified) {
+            qrHalfHtml = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:0 2px 4px rgba(0,0,0,0.05); overflow:visible; width:100%; flex:1; min-height:0;">
+                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                </div>
+                ${showStudentIdHtml}
+            </div>
+            `;
+          } else {
+            qrHalfHtml = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                </div>
+                ${showStudentIdHtml}
+            </div>
+            `;
+          }
+
           innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:12px; direction:rtl; text-align:center;">
+          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:${12 * scale}px; direction:rtl; text-align:center;">
               <!-- Details Column -->
-              <div style="display:flex; flex-direction:column; justify-content:space-between; align-items:center; flex:1; height:100%; min-width:0; gap:4px;">
-                  ${churchHeaderHtml}
-                  ${tripInfoGroupHtml}
-                  ${studentInfoGroupHtml}
-              </div>
+              ${detailsHtml}
               <!-- QR Column -->
-              <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex-shrink:0;">
-                  <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
-                  ${showStudentIdHtml}
-              </div>
+              ${qrHalfHtml}
           </div>
           `;
         } else {
+          let detailsHtml = '';
+          if (textReadability === 'rect' && isUnified) {
+            detailsHtml = `
+            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:1.2; box-sizing:border-box; gap:${6 * scale}px; box-shadow:0 2px 4px rgba(0,0,0,0.05); min-height:0;">
+                ${churchHeaderHtml}
+                ${tripInfoGroupHtml}
+                ${studentInfoGroupHtml}
+            </div>
+            `;
+          } else {
+            detailsHtml = `
+            <div style="flex:1.2; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
+                    ${churchHeaderHtml}
+                    ${tripInfoGroupHtml}
+                    ${studentInfoGroupHtml}
+                </div>
+            </div>
+            `;
+          }
+
+          let qrHalfHtml = '';
+          if (textReadability === 'rect' && isUnified) {
+            qrHalfHtml = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
+                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:0 2px 4px rgba(0,0,0,0.05); overflow:visible; width:100%; flex:1; min-height:0;">
+                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                </div>
+                ${showStudentIdHtml}
+            </div>
+            `;
+          } else {
+            qrHalfHtml = `
+            <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+                <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                </div>
+                ${showStudentIdHtml}
+            </div>
+            `;
+          }
+
           innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center;">
-              ${churchHeaderHtml}
-              ${tripInfoGroupHtml}
-              ${studentInfoGroupHtml}
-              <div style="display:flex; flex-direction:column; align-items:center;">
-                  <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;"><div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div></div>
-                  ${showStudentIdHtml}
-              </div>
+          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${8 * scale}px;">
+              <!-- Details Row -->
+              ${detailsHtml}
+              <!-- QR Row -->
+              ${qrHalfHtml}
           </div>
           `;
         }
@@ -9329,6 +9395,7 @@
           ${innerContentHtml}
       </div>
       `;
+
       }
 
       function updatePrintPreview() {
@@ -9377,6 +9444,11 @@
         const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
         const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
 
+        const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
+        const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
+        const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
+        const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
+
         const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
         const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => ({
           ...sourceReg,
@@ -9404,9 +9476,11 @@
             showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId: `prev_qrcode_sample_${idx}`,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
             fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-            baseWidth, baseHeight
+            baseWidth, baseHeight,
+            readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth
           });
         }).join('');
+
 
         previewRegs.forEach((_, idx) => {
           const rawPreviewStudentId = previewRegs[idx].student_id || '';
@@ -9491,6 +9565,10 @@
         const tripImgOverlayOpacity = parseFloat(document.getElementById('printTripImgOverlayOpacity')?.value || '50') / 100;
         const tripImgRounded = document.getElementById('printTripImgRounded')?.checked || false;
         const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+        const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
+        const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
+        const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
+        const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
 
         const fontColor = document.getElementById('printFontColor')?.value || '#000000';
         const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
@@ -9522,8 +9600,10 @@
             showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId,
             tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
             fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-            baseWidth, baseHeight
+            baseWidth, baseHeight,
+            readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth
           });
+
 
           qrTasks.push({ id: cardId, text: link });
         });
@@ -10391,21 +10471,61 @@
                 </select>
               </div>
 
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div class="form-group">
-                  <label class="form-label" style="font-weight:700;">لون الخط الموحد</label>
-                  <input type="color" id="printFontColor" value="#000000"
-                    style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
-                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+              <!-- Readability Rect Sub-settings -->
+              <div id="printReadabilitySubSettings" style="display:none; flex-direction:column; gap:12px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:10px; margin-top:4px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                  <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input type="color" id="printTextReadabilityBgColor" value="#ffffff"
+                      oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                    <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printTextReadabilityBgColor">لون خلفية المستطيل</label>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label" style="font-weight:700;">لون إطار النصوص (Stroke)</label>
-                  <input type="color" id="printStrokeColor" value="#dddddd"
-                    style="width:100%; height:38px; border:1px solid var(--border); padding:2px; cursor:pointer; border-radius:6px; background:#fff;"
+
+                <div style="display:flex; flex-direction:column; gap:4px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">شفافية الخلفية:</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printTextReadabilityBgOpacity" min="0" max="100" value="92"
+                      style="padding:0; flex:1;"
+                      oninput="updatePrintPreview(); document.getElementById('printTextReadabilityBgOpacityVal').textContent = this.value + '%'">
+                    <span id="printTextReadabilityBgOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:35px;">92%</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                  <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:0.75rem; font-weight:700;">حجم حواف المستطيل (Padding):</span>
+                    <input type="number" id="printTextReadabilityPadding" value="6" min="0" max="50"
+                      style="width:100%; height:36px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
+                      oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:0.75rem; font-weight:700;">عرض المستطيلات الخلفية:</span>
+                  <select id="printTextReadabilityWidth" class="form-select" style="width:100%; height:36px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="updatePrintPreview()">
+                    <option value="fitted" selected>كل مستطيل يناسب محتواه (Fitted)</option>
+                    <option value="same-fitted">كل المستطيلات بنفس عرض أكبر محتوى (Same Fitted)</option>
+                    <option value="full">عرض كامل لنصف الكارت (Full Width)</option>
+                    <option value="unified">مستطيل موحد كامل لنصف البيانات ونصف الـ QR (Unified)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Wide color pickers turned into neat circular ones in a row -->
+              <div style="display:flex; flex-direction:row; justify-content:space-around; align-items:center; gap:12px; flex-wrap:wrap; margin-top:4px; border-top:1px dashed var(--border); padding-top:10px;">
+                <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
+                  <input type="color" id="printFontColor" value="#000000"
                     oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printFontColor">لون الخط الموحد</label>
+                </div>
+                <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
+                  <input type="color" id="printStrokeColor" value="#dddddd"
+                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
+                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printStrokeColor">لون إطار النصوص (Stroke)</label>
                 </div>
               </div>
             </div>
+
 
             <!-- Section 4: Custom Background -->
             <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
