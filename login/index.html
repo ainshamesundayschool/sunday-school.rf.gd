@@ -833,7 +833,12 @@ position: absolute;
         if (!contentType.includes('application/json')) {
             // The host may have returned its cookie-check HTML page
             const text = await r.text();
-            if (text.indexOf('ifastnet.com') !== -1 || text.indexOf('Cookies are not enabled') !== -1) {
+            console.error("Non-JSON response from API:", r.status, contentType, text);
+            if (
+                text.indexOf('ifastnet.com') !== -1 || 
+                text.indexOf('Cookies are not enabled') !== -1 || 
+                text.indexOf('__test') !== -1
+            ) {
                 throw new Error('COOKIE_CHECK');
             }
             throw new Error('NOT_JSON');
