@@ -2061,6 +2061,13 @@
             });
         })();
 
+        // ── Clean iFastNet cookie-check ?i= from URL bar ──
+        (function() {
+            if (/^\?i=\d+$/.test(location.search)) {
+                history.replaceState(null, '', location.pathname);
+            }
+        })();
+
         // ── SERVICE WORKER REGISTRATION (no update UI) ──
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

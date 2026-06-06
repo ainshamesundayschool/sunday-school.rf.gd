@@ -1,11 +1,13 @@
 RewriteEngine On
 
-# Clean the host's successful cookie-check redirect URL after it reaches the app.
-RewriteCond %{QUERY_STRING} ^i=\d+$ [NC]
-RewriteRule ^ %{REQUEST_URI}? [R=302,L]
+# ── InfinityFree / iFastNet cookie-check compatibility ──────────
+# The host appends ?i=<number> after its cookie verification redirect.
+# We must NOT strip or redirect that parameter server-side — doing so
+# breaks the cookie-check flow and shows "Cookies are not enabled".
+# Instead, we clean it client-side with JavaScript (see below) so the
+# host can complete its verification first.
 
-# Let the host serve the homepage directly. InfinityFree/iFastNet also uses
-# its own cookie/browser check before PHP runs, so don't rewrite its check URL.
+# Let the host serve the homepage directly.
 DirectoryIndex index.html index.php
 
 <IfModule mod_mime.c>
@@ -35,7 +37,12 @@ DirectoryIndex index.html index.php
     </FilesMatch>
 </IfModule>
 
-# Fix 1: Remove trailing slashes
+# Skip trailing-slash removal when the host's cookie-check param is present
+RewriteCond %{QUERY_STRING} ^i=\d+$ [NC]
+RewriteRule ^ - [L]
+
+# Remove trailing slashes (only for non-directories, and only when NOT
+# in the middle of the host cookie-check flow)
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)/$ /$1 [L,R=301]
 
