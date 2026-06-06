@@ -231,19 +231,7 @@ function deleteUploadedFile(?string $imageUrl): bool {
 function processGameQRCode()
 
 {
-
-            AND (
-                class = 'الجميع'
-                OR FIND_IN_SET(?, class) > 0
-                OR (
-                    student_names IS NOT NULL
-                    AND student_names != ''
-                    AND (
-                        student_names LIKE CONCAT('%', ?, '%')
-                        OR student_names = ?
-                    )
-                )
-            )
+        $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
         $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
 
         $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
