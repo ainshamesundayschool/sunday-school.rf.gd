@@ -11004,29 +11004,22 @@ function getAnnouncementsForStudent()
             AND is_active = 1
 
             AND (
-
-                class = 'الجميع' 
-
-                OR class = ?
-
-                OR FIND_IN_SET(?, class) > 0
-
-                OR (
-
-                    student_names IS NOT NULL 
-
-                    AND student_names != ''
-
+                (
+                    (student_names IS NULL OR student_names = '')
                     AND (
-
-                        student_names LIKE CONCAT('%', ?, '%')
-
-                        OR student_names = ?
-
+                        class = 'الجميع' 
+                        OR class = ?
+                        OR FIND_IN_SET(?, class) > 0
                     )
-
                 )
-
+                OR (
+                    student_names IS NOT NULL 
+                    AND student_names != ''
+                    AND (
+                        FIND_IN_SET(?, student_names) > 0
+                        OR student_names = ?
+                    )
+                )
             )
 
             ORDER BY created_at DESC

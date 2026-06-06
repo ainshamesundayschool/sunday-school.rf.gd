@@ -4789,6 +4789,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     let allTrips = [], allTasks = [];
     let curTask = null, taskAnswers = {}, examDone = false;
     let birthdayGreetingStudent = null;
+    let maxFetchedTaskAnnId = 0;
+
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
@@ -7201,6 +7203,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
         const badge = document.getElementById('tasksBadge');
         if (badge) badge.style.display = 'none';
+        if (maxFetchedTaskAnnId > 0 && student) {
+           localStorage.setItem('tasksLastViewedAnnId_' + student.id, String(maxFetchedTaskAnnId));
+        }
       } else if (tabName === 'family') {
         // Display siblings only if they have siblings
         if (hasSiblingsLoaded && scSiblings) {
@@ -7604,11 +7609,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const scAnn = document.getElementById('scAnn');
         const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
 
-        const hasTaskAnn = anns.some(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
         const badge = document.getElementById('tasksBadge');
-        if (badge && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
-          badge.style.display = hasTaskAnn ? 'block' : 'none';
+        if (badge && !isViewingOther() && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
+          const taskAnns = anns.filter(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
+          maxFetchedTaskAnnId = taskAnns.length ? Math.max(...taskAnns.map(ann => parseInt(ann.id) || 0)) : 0;
+          const lastViewedId = parseInt(localStorage.getItem('tasksLastViewedAnnId_' + student.id) || '0');
+          const hasNewTaskAnn = taskAnns.some(ann => (parseInt(ann.id) || 0) > lastViewedId);
+          badge.style.display = hasNewTaskAnn ? 'block' : 'none';
         }
+
 
         if (!anns.length) {
           if (scAnn) scAnn.style.display = 'none';
