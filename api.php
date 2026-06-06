@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 
 
@@ -231,7 +231,19 @@ function deleteUploadedFile(?string $imageUrl): bool {
 function processGameQRCode()
 
 {
-        $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
+
+    try {
+
+        // Allow uncle or church admin
+
+        checkUncleAuth();
+
+        $churchId = getChurchId();
+
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+
+
         $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
 
         $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
@@ -10997,6 +11009,8 @@ function getAnnouncementsForStudent()
 
                 OR class = ?
 
+                OR FIND_IN_SET(?, class) > 0
+
                 OR (
 
                     student_names IS NOT NULL 
@@ -11021,7 +11035,7 @@ function getAnnouncementsForStudent()
 
 
 
-        $stmt->bind_param("isss", $churchId, $studentClass, $studentName, $studentName);
+        $stmt->bind_param("issss", $churchId, $studentClass, $studentClass, $studentName, $studentName);
 
         $stmt->execute();
 
