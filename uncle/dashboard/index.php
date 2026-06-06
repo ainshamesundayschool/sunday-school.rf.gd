@@ -14461,7 +14461,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fd.append('studentName', currentStudentForEdit['الاسم']);
                     fd.append('studentClass', currentStudentForEdit['الفصل']);
                     fd.append('enhanceImage', 'false');
-                    fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+                    fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                         if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                         else showToast('فشل الرفع: ' + (d.message || ''), 'error');
                     }).catch(() => showToast('خطأ في الاتصال', 'error'));
@@ -14483,7 +14483,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showLoading('جاري الرفع...');
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
             fd.append('enhanceImage', 'false');
-            fetch('https://sunday-school.rf.gd/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+                    fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { makeApiCall({ action: 'updateStudentImage', studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                 else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
