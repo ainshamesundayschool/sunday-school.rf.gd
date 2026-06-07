@@ -2851,6 +2851,98 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-right: 3px solid var(--primary) !important;
         }
 
+        .attendance-list.bulk-active .attendance-actions {
+            display: none !important;
+        }
+        .attendance-list.bulk-active .attendance-item {
+            min-height: 80px;
+            align-items: center;
+        }
+
+        /* ── Undo Toast ── */
+        .undo-toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #ffffff;
+            min-width: 300px;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            direction: rtl;
+            transition: all 0.3s ease;
+        }
+        .undo-toast.show {
+            display: flex;
+            animation: undoToastIn 0.3s var(--ease-spring);
+        }
+        .undo-btn {
+            background: var(--warning);
+            color: #1e293b;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .undo-btn:hover {
+            transform: scale(1.05);
+            background: #f59e0b;
+        }
+        .undo-timer-circle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .undo-toast-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .undo-toast-close:hover {
+            color: #ffffff;
+        }
+        @keyframes undoToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .bulk-actions-bar {
             position: sticky;
             top: 66px;
@@ -8361,6 +8453,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="toastStack"></div>
     <div id="toast" style="display:none"></div><!-- legacy stub -->
 
+    <!-- Undo Toast -->
+    <div class="undo-toast" id="undoToast">
+        <div class="undo-timer-circle" id="undoTimerCircle">10</div>
+        <span style="flex:1;" id="undoToastText">تم تنفيذ العملية بنجاح</span>
+        <button class="undo-btn" id="undoToastActionBtn"><i class="fas fa-undo"></i> تراجع</button>
+        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i class="fas fa-times"></i></button>
+    </div>
+
     <!-- IMAGE MODAL -->
     <div class="image-modal" id="imageModal"
         onclick="if(event.target===this||event.target.id==='imageModalBody')hideImageModal()">
@@ -8949,6 +9049,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="action-strip-row-2">
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-select" id="bulkSelectToggleBtn"
+                        onclick="toggleBulkSelectMode()" title="تحديد متعدد">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="strip-btn-label">تحديد</span>
+                    </button>
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-swipe"
                         onclick="startSwipeMode()" title="وضع السحب السريع">
                         <i class="fas fa-hand-pointer swipe-hand-icon"></i>
@@ -8963,11 +9068,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         onclick="showAddPersonModal()" title="إضافة طفل جديد">
                         <i class="fas fa-user-plus"></i>
                         <span class="strip-btn-label">إضافة</span>
-                    </button>
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-select" id="bulkSelectToggleBtn"
-                        onclick="toggleBulkSelectMode()" title="تحديد متعدد">
-                        <i class="fas fa-tasks"></i>
-                        <span class="strip-btn-label">تحديد</span>
                     </button>
                 </div>
 
@@ -9029,14 +9129,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Bulk Actions Bar -->
-                <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none; margin-bottom: 12px; margin-top: 4px;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex;">
+                <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none; margin-bottom: 12px; margin-top: 4px; justify-content: space-between; align-items: center; padding: 10px 16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
                             <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="action-dropdown" style="flex:none;">
-                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem; display:flex; align-items:center; gap:6px; background:transparent;">
-                                <i class="fas fa-filter"></i> تحديد حسب... <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:#ffffff; border-color:rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0; background:transparent;" title="تحديد حسب">
+                                <i class="fas fa-filter"></i>
                             </button>
                             <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
                                 <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
@@ -9047,26 +9147,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
                             </div>
                         </div>
-                        <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">تم تحديد 0 أطفال</span>
+                        <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">0</span>
                     </div>
-                    <div class="bulk-actions-btns">
-                        <button class="btn btn-success btn-sm" onclick="bulkMarkAttendance('present')" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-check"></i> حضور للمحددين
+                    <div class="bulk-actions-btns" style="display:flex; gap:6px; flex-wrap:nowrap; align-items:center;">
+                        <button class="btn btn-success btn-sm" onclick="bulkMarkAttendance('present')" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="حضور">
+                            <i class="fas fa-check"></i>
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="bulkMarkAttendance('absent')" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-times"></i> غياب للمحددين
+                        <button class="btn btn-danger btn-sm" onclick="bulkMarkAttendance('absent')" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="غياب">
+                            <i class="fas fa-times"></i>
                         </button>
-                        <button class="btn btn-warning btn-sm" onclick="triggerBulkCoupons()" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-coins"></i> تعديل الكوبونات
+                        
+                        <div class="action-dropdown" style="flex:none;">
+                            <button class="btn btn-warning btn-sm" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="تعديل الكوبونات">
+                                <i class="fas fa-coins"></i>
+                            </button>
+                            <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
+                                <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
+                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
+                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
+                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
+                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
+                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
+                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
+                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
+                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="تغيير الفصل">
+                            <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-edit"></i> تغيير الفصل
+                        <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="حذف">
+                            <i class="fas fa-trash"></i>
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()" style="display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                        <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()" style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem;">
-                            إلغاء
+                        <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()" style="color:#ffffff; border-color:rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="إلغاء">
+                            <i class="fas fa-ban"></i>
                         </button>
                     </div>
                 </div>
@@ -9892,33 +10009,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Bulk Edit Coupons Modal -->
-    <div class="modal-overlay" id="bulkEditCouponsModal" style="z-index:1000007">
-        <div class="modal modal-sm" style="max-width:400px">
-            <div class="modal-header">
-                <h3><i class="fas fa-coins"></i> تعديل الكوبونات للمجموعة</h3>
-                <button class="close-btn" onclick="closeModal('bulkEditCouponsModal')">&times;</button>
-            </div>
-            <div style="padding:15px 0">
-                <form id="bulkEditCouponsForm" onsubmit="executeBulkCoupons(event)">
-                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);" id="bulkCouponCountLabel"></div>
-                    <div class="form-group" style="margin-bottom:14px; display: flex; flex-direction: column; gap: 6px;">
-                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">القيمة المراد إضافتها أو خصمها</label>
-                        <input type="number" id="bulkCouponChangeAmount" required class="form-input" placeholder="مثال: 10 أو -5" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text);">
-                        <small style="color:var(--text-3); font-size:0.75rem;">استخدم أرقاماً موجبة للإضافة وأرقاماً سالبة للخصم.</small>
-                    </div>
-                    <div class="form-group" style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
-                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">السبب</label>
-                        <textarea id="bulkCouponReason" required class="form-textarea" rows="2" placeholder="السبب..." style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text); resize: none;"></textarea>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
-                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkEditCouponsModal')">إلغاء</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Bulk Edit Class Modal -->
     <div class="modal-overlay" id="bulkEditClassModal" style="z-index:1000007">
@@ -10211,6 +10302,107 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!document.hidden) silentSessionRestore();
         });
 
+        let undoToastTimer = null;
+        let undoCountdownInterval = null;
+
+        function triggerUndoToastChecking() {
+            setTimeout(async () => {
+                const fd = new FormData();
+                fd.append('action', 'getLastAuditLog');
+                try {
+                    const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
+                    if (d.success && d.log) {
+                        showUndoToast(d.log);
+                    }
+                } catch (e) {
+                    console.error("Error checking last audit log:", e);
+                }
+            }, 500);
+        }
+
+        function getActionMeta(act) {
+            const m = {
+                'submitAttendance': { label: 'تسجيل الحضور/الغياب' },
+                'bulkDeleteStudents': { label: 'حذف جماعي للأطفال' },
+                'bulkUpdateStudentsClass': { label: 'نقل جماعي للفصول' },
+                'bulkUpdateStudentsCoupons': { label: 'تعديل جماعي للكوبونات' },
+                'deleteStudent': { label: 'حذف طفل' }
+            };
+            return m[act] || { label: act };
+        }
+
+        function showUndoToast(log) {
+            const toastEl = document.getElementById('undoToast');
+            const timerEl = document.getElementById('undoTimerCircle');
+            const textEl = document.getElementById('undoToastText');
+            const actionBtn = document.getElementById('undoToastActionBtn');
+
+            if (!toastEl || !timerEl || !textEl || !actionBtn) return;
+
+            hideUndoToast();
+
+            const actionLabel = getActionMeta(log.action || '').label || log.action;
+            const entityName = log.entity_name || log.description || '';
+            const logNotes = log.notes || `${actionLabel}: ${entityName}`;
+            
+            textEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-weight:700;">تمت العملية: ${logNotes}</span>
+                    <span style="font-size:0.7rem; opacity:0.8; font-weight:normal;">تراجع عن العملية بكبسة زر واحدة.</span>
+                </div>
+            `;
+
+            actionBtn.onclick = async () => {
+                hideUndoToast();
+                showLoading('جاري التراجع عن العملية...');
+                const fd = new FormData();
+                fd.append('action', 'restoreAuditLog');
+                fd.append('log_id', log.id);
+                try {
+                    const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
+                    if (d.success) {
+                        showToast(d.message || 'تم التراجع عن العملية بنجاح', 'success');
+                        loadData();
+                    } else {
+                        showToast(d.message || 'فشل في التراجع عن العملية', 'error');
+                    }
+                } catch (e) {
+                    showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+                }
+            };
+
+            let secondsLeft = 10;
+            timerEl.textContent = secondsLeft;
+            toastEl.classList.add('show');
+
+            undoCountdownInterval = setInterval(() => {
+                secondsLeft--;
+                timerEl.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    hideUndoToast();
+                }
+            }, 1000);
+
+            undoToastTimer = setTimeout(() => {
+                hideUndoToast();
+            }, 10000);
+        }
+
+        function hideUndoToast() {
+            const toastEl = document.getElementById('undoToast');
+            if (toastEl) {
+                toastEl.classList.remove('show');
+            }
+            if (undoToastTimer) {
+                clearTimeout(undoToastTimer);
+                undoToastTimer = null;
+            }
+            if (undoCountdownInterval) {
+                clearInterval(undoCountdownInterval);
+                undoCountdownInterval = null;
+            }
+        }
+
         // ── API ───────────────────────────────────────────────────────
         function makeApiCall(params, ok, err) {
             const fd = new FormData();
@@ -10223,6 +10415,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 .then(d => {
                     if (d.success || d.offline) {
                         if (ok) ok(d);
+                        
+                        // Check if this was a critical restorable action
+                        const criticalActions = [
+                            'bulkDeleteStudents', 'bulkUpdateStudentsClass', 
+                            'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent'
+                        ];
+                        if (criticalActions.includes(params.action)) {
+                            triggerUndoToastChecking();
+                        }
                     } else {
                         const m = d.message || 'فشل';
                         if (err) err(m);
@@ -11761,6 +11962,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderAttendanceList(className) {
             if (isCombinedView) { renderCombinedAttendanceList(); return; }
             const list = document.getElementById('attendanceList'); if (!list) return;
+            if (isBulkSelectMode) list.classList.add('bulk-active');
+            else list.classList.remove('bulk-active');
             let cs = filterAndSortActiveStudents();
             if (searchQuery && !cs.length) {
                 list.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1"><i class="fas fa-search" style="font-size:2rem;color:var(--text-3);margin-bottom:1rem;display:block"></i><p style="color:var(--text-3)">لا نتائج لـ "${searchQuery}"</p><button class="btn btn-sm btn-ghost" onclick="clearSearch()" style="margin-top:10px"><i class="fas fa-times"></i> عرض الكل</button></div>`;
@@ -11854,6 +12057,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Update only the affected row — no full list re-render (avoids blink)
             _updateAttendanceRow(studentId);
             updateClassStats(); updateSaveBtns();
+        }
+
+        function executeBulkCouponsDirect(amount) {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            showLoading('جاري حفظ الكوبونات...');
+            makeApiCall({
+                action: 'bulkUpdateStudentsCoupons',
+                student_ids: Array.from(selectedStudentIds).join(','),
+                change_amount: amount,
+                reason: 'تعديل جماعي'
+            }, d => {
+                showToast(d.message || 'تم تعديل الكوبونات بنجاح', 'success');
+                disableBulkSelectMode();
+                loadData();
+            }, err => {
+                showToast(err || 'فشل التعديل', 'error');
+            });
         }
 
         function _updateAttendanceRow(studentId) {
@@ -11994,6 +12218,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             isBulkSelectMode = !isBulkSelectMode;
             const toggleBtn = document.getElementById('bulkSelectToggleBtn');
             const actionsBar = document.getElementById('bulkActionsBar');
+            const list = document.getElementById('attendanceList');
             
             if (isBulkSelectMode) {
                 if (toggleBtn) {
@@ -12004,14 +12229,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     actionsBar.style.display = 'flex';
                     actionsBar.classList.add('show');
                 }
+                if (list) {
+                    list.classList.add('bulk-active');
+                }
             } else {
                 if (toggleBtn) {
                     toggleBtn.classList.remove('active');
-                    toggleBtn.innerHTML = '<i class="fas fa-tasks"></i> تحديد';
+                    toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i> تحديد';
                 }
                 if (actionsBar) {
                     actionsBar.style.display = 'none';
                     actionsBar.classList.remove('show');
+                }
+                if (list) {
+                    list.classList.remove('bulk-active');
                 }
                 selectedStudentIds.clear();
                 updateBulkUI();
@@ -12173,43 +12404,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
         }
 
-        function triggerBulkCoupons() {
-            if (selectedStudentIds.size === 0) {
-                showToast('الرجاء تحديد أطفال أولاً', 'warning');
-                return;
-            }
-            
-            document.getElementById('bulkCouponCountLabel').textContent = `تعديل الكوبونات لـ ${selectedStudentIds.size} من الأطفال المحددين`;
-            document.getElementById('bulkCouponChangeAmount').value = '';
-            document.getElementById('bulkCouponReason').value = '';
-            openModal('bulkEditCouponsModal');
-        }
 
-        async function executeBulkCoupons(e) {
-            e.preventDefault();
-            const changeAmount = parseInt(document.getElementById('bulkCouponChangeAmount').value);
-            const reason = document.getElementById('bulkCouponReason').value;
-
-            if (isNaN(changeAmount) || changeAmount === 0) {
-                showToast('الرجاء إدخال قيمة صحيحة غير الصفر', 'warning');
-                return;
-            }
-
-            showLoading('جاري الحفظ...');
-            makeApiCall({
-                action: 'bulkUpdateStudentsCoupons',
-                student_ids: Array.from(selectedStudentIds).join(','),
-                change_amount: changeAmount,
-                reason: reason
-            }, d => {
-                showToast(d.message || 'تم تعديل الكوبونات بنجاح', 'success');
-                closeModal('bulkEditCouponsModal');
-                disableBulkSelectMode();
-                loadData();
-            }, err => {
-                showToast(err || 'فشل التعديل', 'error');
-            });
-        }
 
         function triggerBulkClass() {
             if (selectedStudentIds.size === 0) {
