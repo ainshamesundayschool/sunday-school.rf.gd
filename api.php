@@ -2642,6 +2642,36 @@ try {
 
 
 
+        case 'addStudentNote':
+
+            checkAuth();
+
+            addStudentNote();
+
+            break;
+
+
+
+        case 'deleteStudentNote':
+
+            checkAuth();
+
+            deleteStudentNote();
+
+            break;
+
+
+
+        case 'bulkAddStudentNotes':
+
+            checkAuth();
+
+            bulkAddStudentNotes();
+
+            break;
+
+
+
         case 'bulkDeleteStudents':
 
             checkAuth();
@@ -31691,23 +31721,16 @@ function deleteAuditLog()
 
 function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentId = 0)
 {
-
-
     try {
-
-        $churchId = getChurchId();
-
-        $logId = intval($_POST['log_id'] ?? 0);
-
         if (!$logId) {
-
             return ['success' => false, 'message' => 'معرف السجل مطلوب'];
-
         }
-
-
-
-        $conn = getDBConnection();
+        if (!$churchId) {
+            $churchId = getChurchId();
+        }
+        if (!$conn) {
+            $conn = getDBConnection();
+        }
 
 
 
@@ -31754,7 +31777,9 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
         $reverted = false;
         $msg = "تم استرجاع العملية بنجاح";
 
-        $targetStudentId = intval($_POST['target_student_id'] ?? 0);
+        if (!$targetStudentId) {
+            $targetStudentId = intval($_POST['target_student_id'] ?? 0);
+        }
 
         if ($entity === 'bulk_action') {
             if (!is_array($oldData)) {
@@ -31816,6 +31841,32 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         $ins->bind_param($types, ...$params);
                         if ($ins->execute()) {
                             $revertedCount++;
+
+                            // Restore related attendance from snapshot if present
+                            if (isset($snapshot['_attendance_history']) && is_array($snapshot['_attendance_history'])) {
+                                $insAtt = $conn->prepare("
+                                    INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id, created_at)
+                                    VALUES (?, ?, ?, ?, ?, NOW())
+                                    ON DUPLICATE KEY UPDATE status = VALUES(status), uncle_id = VALUES(uncle_id)
+                                ");
+                                foreach ($snapshot['_attendance_history'] as $att) {
+                                    $uId = $att['uncle_id'] ?? null;
+                                    $insAtt->bind_param("iissi", $sid, $churchId, $att['attendance_date'], $att['status'], $uId);
+                                    $insAtt->execute();
+                                }
+                            } else {
+                                // Fallback: Reconstruct attendance from audit logs
+                                recoverStudentAttendanceFromAuditLogs($sid, $churchId, $conn);
+                            }
+
+                            // Restore sibling groups if present
+                            if (isset($snapshot['_sibling_groups']) && is_array($snapshot['_sibling_groups'])) {
+                                $insSib = $conn->prepare("INSERT INTO student_sibling_group_members (student_id, group_id) VALUES (?, ?)");
+                                foreach ($snapshot['_sibling_groups'] as $groupId) {
+                                    $insSib->bind_param("ii", $sid, $groupId);
+                                    $insSib->execute();
+                                }
+                            }
                         }
                     }
                 } elseif ($action === 'bulk_student_class_update') {
@@ -31913,6 +31964,33 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                             $revertedCount++;
                         }
                     }
+                } elseif ($action === 'bulk_note_add') {
+                    $chk = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+                    $chk->bind_param("ii", $sid, $churchId);
+                    $chk->execute();
+                    $student = $chk->get_result()->fetch_assoc();
+                    if ($student) {
+                        $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+                        if (is_array($customInfo) && isset($customInfo['_notes']) && is_array($customInfo['_notes'])) {
+                            $foundIdx = -1;
+                            $targetNoteId = $item['note']['id'] ?? '';
+                            foreach ($customInfo['_notes'] as $idx => $note) {
+                                if (($note['id'] ?? '') === $targetNoteId) {
+                                    $foundIdx = $idx;
+                                    break;
+                                }
+                            }
+                            if ($foundIdx !== -1) {
+                                array_splice($customInfo['_notes'], $foundIdx, 1);
+                                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                                $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                                $upd->bind_param("sii", $customInfoJson, $sid, $churchId);
+                                if ($upd->execute()) {
+                                    $revertedCount++;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -31947,7 +32025,65 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
         if ($entity === 'student') {
 
-            if ($action === 'student_edit') {
+            if ($action === 'note_add') {
+                $chk = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+                $chk->bind_param("ii", $entityId, $churchId);
+                $chk->execute();
+                $student = $chk->get_result()->fetch_assoc();
+                if ($student) {
+                    $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+                    if (is_array($customInfo) && isset($customInfo['_notes']) && is_array($customInfo['_notes'])) {
+                        $foundIdx = -1;
+                        foreach ($customInfo['_notes'] as $idx => $note) {
+                            if (($note['id'] ?? '') === ($newData['id'] ?? '')) {
+                                $foundIdx = $idx;
+                                break;
+                            }
+                        }
+                        if ($foundIdx !== -1) {
+                            array_splice($customInfo['_notes'], $foundIdx, 1);
+                            $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                            $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                            $upd->bind_param("sii", $customInfoJson, $entityId, $churchId);
+                            if ($upd->execute()) {
+                                $reverted = true;
+                                $msg = "تم التراجع عن إضافة الملاحظة وحذفها بنجاح";
+                            }
+                        }
+                    }
+                }
+            } elseif ($action === 'note_delete') {
+                $chk = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+                $chk->bind_param("ii", $entityId, $churchId);
+                $chk->execute();
+                $student = $chk->get_result()->fetch_assoc();
+                if ($student) {
+                    $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+                    if (!is_array($customInfo)) {
+                        $customInfo = [];
+                    }
+                    if (!isset($customInfo['_notes']) || !is_array($customInfo['_notes'])) {
+                        $customInfo['_notes'] = [];
+                    }
+                    $duplicate = false;
+                    foreach ($customInfo['_notes'] as $note) {
+                        if (($note['id'] ?? '') === ($oldData['id'] ?? '')) {
+                            $duplicate = true;
+                            break;
+                        }
+                    }
+                    if (!$duplicate && !empty($oldData)) {
+                        $customInfo['_notes'][] = $oldData;
+                        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+                        $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                        $upd->bind_param("sii", $customInfoJson, $entityId, $churchId);
+                        if ($upd->execute()) {
+                            $reverted = true;
+                            $msg = "تم استرجاع الملاحظة المحذوفة بنجاح";
+                        }
+                    }
+                }
+            } elseif ($action === 'student_edit') {
 
                 if (empty($oldData)) {
 
@@ -32094,11 +32230,34 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                     $ins->bind_param($types, ...$params);
 
                     if ($ins->execute()) {
-
                         $reverted = true;
-
                         $msg = "تم إعادة تسجيل الطفل المحذوف بنجاح";
 
+                        // Restore related attendance from snapshot if present
+                        if (isset($oldData['_attendance_history']) && is_array($oldData['_attendance_history'])) {
+                            $insAtt = $conn->prepare("
+                                INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id, created_at)
+                                VALUES (?, ?, ?, ?, ?, NOW())
+                                ON DUPLICATE KEY UPDATE status = VALUES(status), uncle_id = VALUES(uncle_id)
+                            ");
+                            foreach ($oldData['_attendance_history'] as $att) {
+                                $uId = $att['uncle_id'] ?? null;
+                                $insAtt->bind_param("iissi", $entityId, $churchId, $att['attendance_date'], $att['status'], $uId);
+                                $insAtt->execute();
+                            }
+                        } else {
+                            // Fallback: Reconstruct attendance from audit logs
+                            recoverStudentAttendanceFromAuditLogs($entityId, $churchId, $conn);
+                        }
+
+                        // Restore sibling groups if present
+                        if (isset($oldData['_sibling_groups']) && is_array($oldData['_sibling_groups'])) {
+                            $insSib = $conn->prepare("INSERT INTO student_sibling_group_members (student_id, group_id) VALUES (?, ?)");
+                            foreach ($oldData['_sibling_groups'] as $groupId) {
+                                $insSib->bind_param("ii", $entityId, $groupId);
+                                $insSib->execute();
+                            }
+                        }
                     }
 
                 } else {
@@ -32960,6 +33119,219 @@ function bulkUpdateStudentsCoupons()
 
     }
 
+}
+
+
+function addStudentNote()
+{
+    try {
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $date = trim($_POST['date'] ?? '');
+
+        if (!$studentId || empty($title) || empty($description)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        if (empty($date)) {
+            $date = date('Y-m-d');
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT name, custom_info FROM students WHERE id = ? AND church_id = ?");
+        $stmt->bind_param("ii", $studentId, $churchId);
+        $stmt->execute();
+        $student = $stmt->get_result()->fetch_assoc();
+
+        if (!$student) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+            return;
+        }
+
+        $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+        if (!is_array($customInfo)) {
+            $customInfo = [];
+        }
+
+        if (!isset($customInfo['_notes']) || !is_array($customInfo['_notes'])) {
+            $customInfo['_notes'] = [];
+        }
+
+        $noteId = uniqid('note_', true);
+        $newNote = [
+            'id' => $noteId,
+            'title' => sanitize($title),
+            'description' => sanitize($description),
+            'date' => sanitize($date),
+            'created_by' => $_SESSION['uncle_name'] ?? 'خادم',
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        $customInfo['_notes'][] = $newNote;
+        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+        $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+        $upd->bind_param("sii", $customInfoJson, $studentId, $churchId);
+
+        if ($upd->execute()) {
+            writeAuditLog('note_add', 'student', $studentId, $student['name'], null, $newNote, "إضافة ملاحظة: " . $title);
+            sendJSON(['success' => true, 'message' => 'تم إضافة الملاحظة بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حفظ الملاحظة']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+function deleteStudentNote()
+{
+    try {
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        $noteId = trim($_POST['noteId'] ?? '');
+
+        if (!$studentId || empty($noteId)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT name, custom_info FROM students WHERE id = ? AND church_id = ?");
+        $stmt->bind_param("ii", $studentId, $churchId);
+        $stmt->execute();
+        $student = $stmt->get_result()->fetch_assoc();
+
+        if (!$student) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+            return;
+        }
+
+        $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+        if (!is_array($customInfo) || !isset($customInfo['_notes']) || !is_array($customInfo['_notes'])) {
+            sendJSON(['success' => false, 'message' => 'لا توجد ملاحظات لحذفها']);
+            return;
+        }
+
+        $foundIdx = -1;
+        foreach ($customInfo['_notes'] as $idx => $note) {
+            if (($note['id'] ?? '') === $noteId) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+
+        if ($foundIdx === -1) {
+            sendJSON(['success' => false, 'message' => 'الملاحظة غير موجودة']);
+            return;
+        }
+
+        $oldNote = $customInfo['_notes'][$foundIdx];
+        array_splice($customInfo['_notes'], $foundIdx, 1);
+        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+        $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+        $upd->bind_param("sii", $customInfoJson, $studentId, $churchId);
+
+        if ($upd->execute()) {
+            writeAuditLog('note_delete', 'student', $studentId, $student['name'], $oldNote, null, "حذف ملاحظة: " . ($oldNote['title'] ?? ''));
+            sendJSON(['success' => true, 'message' => 'تم حذف الملاحظة بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حذف الملاحظة']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+function bulkAddStudentNotes()
+{
+    try {
+        $churchId = getChurchId();
+        $studentIdsRaw = $_POST['student_ids'] ?? '';
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $date = trim($_POST['date'] ?? '');
+
+        if (empty($studentIdsRaw) || empty($title) || empty($description)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        if (empty($date)) {
+            $date = date('Y-m-d');
+        }
+
+        $studentIds = array_filter(array_map('intval', explode(',', $studentIdsRaw)));
+        if (empty($studentIds)) {
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $conn->begin_transaction();
+
+        $successCount = 0;
+        $auditData = [];
+
+        foreach ($studentIds as $studentId) {
+            $stmt = $conn->prepare("SELECT name, custom_info FROM students WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("ii", $studentId, $churchId);
+            $stmt->execute();
+            $student = $stmt->get_result()->fetch_assoc();
+
+            if ($student) {
+                $customInfo = !empty($student['custom_info']) ? json_decode($student['custom_info'], true) : [];
+                if (!is_array($customInfo)) {
+                    $customInfo = [];
+                }
+
+                if (!isset($customInfo['_notes']) || !is_array($customInfo['_notes'])) {
+                    $customInfo['_notes'] = [];
+                }
+
+                $noteId = uniqid('note_', true);
+                $newNote = [
+                    'id' => $noteId,
+                    'title' => sanitize($title),
+                    'description' => sanitize($description),
+                    'date' => sanitize($date),
+                    'created_by' => $_SESSION['uncle_name'] ?? 'خادم',
+                    'created_at' => date('Y-m-d H:i:s')
+                ];
+
+                $customInfo['_notes'][] = $newNote;
+                $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+                $upd = $conn->prepare("UPDATE students SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                $upd->bind_param("sii", $customInfoJson, $studentId, $churchId);
+
+                if ($upd->execute()) {
+                    $auditData[] = [
+                        'id' => $studentId,
+                        'name' => $student['name'],
+                        'note' => $newNote
+                    ];
+                    $successCount++;
+                }
+            }
+        }
+
+        if ($successCount > 0) {
+            $conn->commit();
+            writeAuditLog('bulk_note_add', 'bulk_action', null, null, null, $auditData, "إضافة ملاحظة جماعية: " . $title);
+            sendJSON(['success' => true, 'message' => "تم إضافة الملاحظة لـ $successCount من الأطفال بنجاح"]);
+        } else {
+            $conn->rollback();
+            sendJSON(['success' => false, 'message' => 'فشل إضافة الملاحظة الجماعية']);
+        }
+    } catch (Exception $e) {
+        if (isset($conn)) $conn->rollback();
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
 }
 
 

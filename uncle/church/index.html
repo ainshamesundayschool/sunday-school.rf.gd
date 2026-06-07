@@ -2701,26 +2701,27 @@
             }
         }
 
-        /* ── Undo Toast ── */
+        /* ── Undo Toast (Minimal & Light) ── */
         .undo-toast {
             position: fixed;
-            bottom: 28px;
-            right: 28px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 12px 18px;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 16px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
             display: none;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 9999;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #ffffff;
-            min-width: 300px;
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text);
+            min-width: 280px;
+            max-width: 420px;
+            border: 1px solid var(--border-solid);
             direction: rtl;
             transition: all 0.3s ease;
         }
@@ -2729,50 +2730,50 @@
             animation: undoToastIn 0.3s var(--ease-spring);
         }
         .undo-btn {
-            background: var(--warning);
-            color: #1e293b;
-            border: none;
-            padding: 5px 12px;
+            background: rgba(91, 108, 245, 0.08);
+            color: var(--brand);
+            border: 1px solid rgba(91, 108, 245, 0.15);
+            padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             display: flex;
             align-items: center;
             gap: 6px;
             transition: all 0.2s ease;
         }
         .undo-btn:hover {
-            transform: scale(1.05);
-            background: #f59e0b;
+            transform: scale(1.03);
+            background: rgba(91, 108, 245, 0.15);
         }
         .undo-timer-circle {
             position: relative;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.72rem;
-            color: #ffffff;
+            font-size: 0.68rem;
+            color: var(--text-2);
             font-weight: 700;
         }
         .undo-toast-close {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-3);
             cursor: pointer;
             padding: 4px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: color 0.2s;
         }
         .undo-toast-close:hover {
-            color: #ffffff;
+            color: var(--danger);
         }
         @keyframes undoToastIn {
             from {
@@ -14798,7 +14799,7 @@
         }
 
         function toggleSelectAllAuditBulk() {
-            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
+            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'note_add', 'note_delete', 'bulk_note_add'];
             const start = (auditPage - 1) * AUDIT_PAGE_SIZE;
             const pageItems = (_filteredAuditLogs || auditLogsCache).slice(start, start + AUDIT_PAGE_SIZE);
             const restorablePageItems = pageItems.filter(l => restorableActions.includes(l.action));
@@ -14820,7 +14821,7 @@
                 countLabel.textContent = `تم تحديد ${selectedAuditLogIds.size} سجلات`;
             }
 
-            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
+            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'note_add', 'note_delete', 'bulk_note_add'];
             const start = (auditPage - 1) * AUDIT_PAGE_SIZE;
             const pageItems = (_filteredAuditLogs || auditLogsCache).slice(start, start + AUDIT_PAGE_SIZE);
             const restorablePageItems = pageItems.filter(l => restorableActions.includes(l.action));
@@ -14914,6 +14915,9 @@
             bulk_student_class_update: { icon: 'users', cls: 'badge-warning', label: 'نقل صفوف جماعي' },
             bulk_student_coupon_update: { icon: 'coins', cls: 'badge-warning', label: 'تعديل كوبونات جماعي' },
             bulk_attendance_save: { icon: 'calendar-check', cls: 'badge-primary', label: 'تسجيل حضور جماعي' },
+            note_add: { icon: 'sticky-note', cls: 'badge-success', label: 'إضافة ملاحظة' },
+            note_delete: { icon: 'trash-alt', cls: 'badge-danger', label: 'حذف ملاحظة' },
+            bulk_note_add: { icon: 'sticky-note', cls: 'badge-primary', label: 'إضافة ملاحظات جماعية' },
             add: { icon: 'plus-circle', cls: 'badge-success', label: 'إضافة' },
             insert: { icon: 'plus-circle', cls: 'badge-success', label: 'إضافة' },
             create: { icon: 'plus-circle', cls: 'badge-success', label: 'إنشاء' },
@@ -15014,7 +15018,7 @@
                 }
 
                 const logJson = JSON.stringify(l).replace(/"/g, '&quot;');
-                const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
+                const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'note_add', 'note_delete', 'bulk_note_add'];
                 const isRestorable = restorableActions.includes(l.action);
                 const isSelected = selectedAuditLogIds.has(l.id);
 
@@ -16275,6 +16279,10 @@
                             const newSLabel = newS === 'present' ? 'حاضر' : (newS === 'absent' ? 'غائب' : 'غير مسجل');
                             const dateStr = item.date || '';
                             changeSummary = `حضور ${dateStr ? `(${dateStr})` : ''}: <span style="color:var(--text-3);">${oldSLabel}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="font-weight:600; color:${newS === 'present' ? 'var(--success)' : 'var(--danger)'};">${newSLabel}</span>`;
+                        } else if (log.action === 'bulk_note_add') {
+                            const nTitle = item.note?.title || 'ملاحظة';
+                            const nDesc = item.note?.description || '';
+                            changeSummary = `إضافة ملاحظة: <strong style="color:var(--primary);">${escHtml(nTitle)}</strong> - <span style="font-size:0.8rem; color:var(--text-2);">${escHtml(nDesc)}</span>`;
                         }
 
                         itemsHtml += `

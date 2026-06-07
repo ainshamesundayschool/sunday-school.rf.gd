@@ -69,7 +69,34 @@ function getStudentSnapshot($studentId) {
     $stmt->bind_param("i", $studentId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $student = $result->fetch_assoc();
+    if (!$student) return null;
+
+    // Fetch related attendance records
+    $attStmt = $conn->prepare("SELECT attendance_date, status, uncle_id FROM attendance WHERE student_id = ?");
+    $attStmt->bind_param("i", $studentId);
+    $attStmt->execute();
+    $attResult = $attStmt->get_result();
+    $attendance = [];
+    while ($row = $attResult->fetch_assoc()) {
+        $attendance[] = $row;
+    }
+    $student['_attendance_history'] = $attendance;
+
+    // Fetch related sibling group members
+    if ($conn->query("SHOW TABLES LIKE 'student_sibling_group_members'")->num_rows > 0) {
+        $sibStmt = $conn->prepare("SELECT group_id FROM student_sibling_group_members WHERE student_id = ?");
+        $sibStmt->bind_param("i", $studentId);
+        $sibStmt->execute();
+        $sibResult = $sibStmt->get_result();
+        $siblings = [];
+        while ($row = $sibResult->fetch_assoc()) {
+            $siblings[] = intval($row['group_id']);
+        }
+        $student['_sibling_groups'] = $siblings;
+    }
+
+    return $student;
 }
 
 // ── Helper: fetch an uncle snapshot ──────────────────────────
@@ -420,4 +447,97 @@ function auditChurchPasswordChange(int $churchId, string $churchName): void {
 
 function auditLogin(string $type, int $id, string $name): void {
     writeAuditLog("login_$type", $type, $id, $name, null, null, "تسجيل دخول: $name");
+}
+
+function recoverStudentAttendanceFromAuditLogs($studentId, $churchId, $conn) {
+    try {
+        $history = []; // date => [status, uncle_id]
+
+        // 1. Get individual attendance logs, ordered by ID ascending (chronological)
+        $stmt = $conn->prepare("
+            SELECT action, new_data, old_data, uncle_id 
+            FROM audit_logs 
+            WHERE church_id = ? 
+              AND entity = 'attendance' 
+              AND entity_id = ? 
+              AND action IN ('attendance_add', 'attendance_edit', 'attendance_delete')
+            ORDER BY id ASC
+        ");
+        $stmt->bind_param("ii", $churchId, $studentId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $action = $row['action'];
+            $newData = !empty($row['new_data']) ? json_decode($row['new_data'], true) : null;
+            $oldData = !empty($row['old_data']) ? json_decode($row['old_data'], true) : null;
+
+            if ($action === 'attendance_delete') {
+                $date = $oldData['attendance_date'] ?? null;
+                if ($date) {
+                    unset($history[$date]);
+                }
+            } else {
+                $date = $newData['date'] ?? null;
+                $status = $newData['status'] ?? null;
+                if ($date && $status) {
+                    $history[$date] = [
+                        'status' => $status,
+                        'uncle_id' => $row['uncle_id']
+                    ];
+                }
+            }
+        }
+
+        // 2. Get bulk attendance logs
+        $stmt2 = $conn->prepare("
+            SELECT new_data, uncle_id 
+            FROM audit_logs 
+            WHERE church_id = ? 
+              AND entity = 'bulk_action' 
+              AND action = 'bulk_attendance_save'
+            ORDER BY id ASC
+        ");
+        $stmt2->bind_param("i", $churchId);
+        $stmt2->execute();
+        $res2 = $stmt2->get_result();
+        while ($row = $res2->fetch_assoc()) {
+            $items = !empty($row['new_data']) ? json_decode($row['new_data'], true) : null;
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $sid = intval($item['id'] ?? 0);
+                    if ($sid === $studentId) {
+                        $date = $item['date'] ?? null;
+                        $status = $item['new_data']['status'] ?? null;
+                        if ($date && $status) {
+                            $history[$date] = [
+                                'status' => $status,
+                                'uncle_id' => $row['uncle_id']
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Re-insert the recovered attendance records
+        if (!empty($history)) {
+            $ins = $conn->prepare("
+                INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE status = VALUES(status), uncle_id = VALUES(uncle_id)
+            ");
+            foreach ($history as $date => $info) {
+                if ($info['status'] === 'pending') {
+                    $del = $conn->prepare("DELETE FROM attendance WHERE student_id = ? AND attendance_date = ?");
+                    $del->bind_param("is", $studentId, $date);
+                    $del->execute();
+                } else {
+                    $ins->bind_param("iissi", $studentId, $churchId, $date, $info['status'], $info['uncle_id']);
+                    $ins->execute();
+                }
+            }
+        }
+    } catch (Exception $e) {
+        error_log("recoverStudentAttendanceFromAuditLogs error: " . $e->getMessage());
+    }
 }

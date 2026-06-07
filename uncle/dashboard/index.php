@@ -2883,26 +2883,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
         }
 
-        /* ── Undo Toast ── */
+        /* ── Undo Toast (Minimal & Light) ── */
         .undo-toast {
             position: fixed;
-            bottom: 28px;
-            right: 28px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 12px 18px;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 16px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
             display: none;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 9999;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #ffffff;
-            min-width: 300px;
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text);
+            min-width: 280px;
+            max-width: 420px;
+            border: 1px solid var(--border-solid);
             direction: rtl;
             transition: all 0.3s ease;
         }
@@ -2911,50 +2912,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
             animation: undoToastIn 0.3s var(--ease-spring);
         }
         .undo-btn {
-            background: var(--warning);
-            color: #1e293b;
-            border: none;
-            padding: 5px 12px;
+            background: rgba(91, 108, 245, 0.08);
+            color: var(--brand);
+            border: 1px solid rgba(91, 108, 245, 0.15);
+            padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             display: flex;
             align-items: center;
             gap: 6px;
             transition: all 0.2s ease;
         }
         .undo-btn:hover {
-            transform: scale(1.05);
-            background: #f59e0b;
+            transform: scale(1.03);
+            background: rgba(91, 108, 245, 0.15);
         }
         .undo-timer-circle {
             position: relative;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.72rem;
-            color: #ffffff;
+            font-size: 0.68rem;
+            color: var(--text-2);
             font-weight: 700;
         }
         .undo-toast-close {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-3);
             cursor: pointer;
             padding: 4px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: color 0.2s;
         }
         .undo-toast-close:hover {
-            color: #ffffff;
+            color: var(--danger);
         }
         @keyframes undoToastIn {
             from {
@@ -3068,6 +3069,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .btn-bulk-action.bulk-class i { color: var(--brand) !important; }
         .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; }
         .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
+        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-note i { color: #3b82f6 !important; }
         
         .bulk-close-x-btn {
             background: transparent;
@@ -9299,6 +9302,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button class="btn-bulk-action bulk-note" onclick="openBulkNoteModal()" title="إضافة ملاحظة جماعية">
+                                <i class="fas fa-sticky-note"></i>
+                            </button>
                             <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -10187,7 +10193,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </div>
 
     <!-- Custom Confirm Modal -->
-    <div class="modal-overlay" id="customConfirmModal" style="z-index:1000010">
+    <div class="modal-overlay" id="customConfirmModal" style="z-index:100010">
         <div class="modal modal-sm" style="max-width:380px; text-align: center; border: 1.5px solid var(--border-solid);">
             <div style="padding: 20px 16px 16px;">
                 <div style="font-size: 3rem; margin-bottom: 12px; color: var(--danger);" id="customConfirmIcon">
@@ -10199,6 +10205,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button type="button" id="customConfirmYesBtn" class="btn btn-danger" style="flex:1;"><i class="fas fa-check"></i> نعم، متأكد</button>
                     <button type="button" id="customConfirmNoBtn" class="btn btn-secondary" style="flex:1;" onclick="closeModal('customConfirmModal')">إلغاء</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Note Modal -->
+    <div class="modal-overlay" id="bulkNoteModal" style="z-index:1000007">
+        <div class="modal" style="max-width:500px">
+            <div class="modal-header">
+                <h3><i class="fas fa-sticky-note"></i> إضافة ملاحظة جماعية</h3>
+                <button class="close-btn" onclick="closeModal('bulkNoteModal')">&times;</button>
+            </div>
+            <div class="mbody" style="padding:16px;">
+                <form id="bulkNoteForm" onsubmit="submitBulkNotes(event)">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">نوع الملاحظة (العنوان)</label>
+                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; direction:rtl;">
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('زيارة منزلية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">زيارة منزلية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('متابعة تلفونية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">متابعة تلفونية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('احتياج مالي')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">احتياج مالي</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('مستلزمات مدرسية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">مستلزمات مدرسية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('طلب صلاة')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">طلب صلاة</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('أخرى')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">أخرى</span>
+                        </div>
+                        <input type="text" id="bulkNoteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">تفاصيل الملاحظة (الوصف)</label>
+                        <textarea id="bulkNoteDescInput" class="form-input" rows="4" placeholder="اكتب تفاصيل الملاحظة هنا..." required style="font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label class="form-label">التاريخ (اختياري)</label>
+                        <input type="date" id="bulkNoteDateInput" class="form-input">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ للجميع</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkNoteModal')">إلغاء</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -11014,6 +11058,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Render attendance list for combined view
         function renderCombinedAttendanceList() {
             const list = document.getElementById('attendanceList'); if (!list) return;
+            if (isBulkSelectMode) list.classList.add('bulk-active');
+            else list.classList.remove('bulk-active');
             let cs = filterAndSortActiveStudents();
             if (!cs.length) {
                 list.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:var(--text-3)">لا يوجد أطفال</div>';
@@ -11047,13 +11093,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
-                return `<div class="attendance-item ${st}${localClass}${bdayClass2}" id="ai-${id}"
+                const dbId = getStudentDbId(s);
+                const isSelected = selectedStudentIds.has(dbId);
+                const selectClass = isSelected ? ' selected' : '';
+                return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}"
             ontouchstart="_holdStart(event,'${safeName2}')"
             ontouchmove="_holdMove(event)"
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName2}')">
-            <div class="student-info" onclick="showStudentDetails('${safeName2}')" style="cursor:pointer">
+            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})" style="${isBulkSelectMode ? 'display: flex;' : 'display: none;'}">
+                <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName2}')" style="cursor:pointer">
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
@@ -14270,7 +14322,77 @@ if ($hasUncleId && $uncleRole === 'uncle')
             else tpHtml += tpKeys.map(k => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id || full.id})">تعديل</button></div></div>`).join('');
             tpHtml += '</div></div>';
 
-            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml;
+            // Render Notes Section
+            const notesList = info._notes || [];
+            let notesHtml = `
+            <div class="student-notes-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-sticky-note"></i> الملاحظات (${notesList.length})
+                    </h4>
+                    <button class="btn btn-ghost" onclick="toggleAddNoteArea()" style="font-size:0.75rem; padding:4px 10px; border-radius:6px;">
+                        <i class="fas fa-plus"></i> إضافة ملاحظة
+                    </button>
+                </div>
+                
+                <!-- Add Note Area (Hidden by default) -->
+                <div id="addNoteArea" class="glass-card" style="display:none; margin-bottom:14px; padding:12px; border: 1px solid var(--border-solid); border-radius:10px;">
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">نوع الملاحظة (العنوان)</label>
+                        
+                        <!-- Suggestions pills -->
+                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; direction:rtl;">
+                            ${['زيارة منزلية', 'متابعة تلفونية', 'احتياج مالي', 'مستلزمات مدرسية', 'طلب صلاة', 'أخرى'].map(sugg => `
+                                <span class="badge" onclick="selectNoteTitleSuggestion('${sugg}')" style="cursor:pointer; font-size:0.68rem; padding:4px 8px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">
+                                    ${sugg}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <input type="text" id="noteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">تفاصيل الملاحظة (الوصف)</label>
+                        <textarea id="noteDescInput" class="form-input" rows="3" placeholder="تفاصيل الملاحظة..." style="font-size:0.8rem; padding:6px 10px; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">التاريخ (اختياري)</label>
+                        <input type="date" id="noteDateInput" class="form-input" style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                        <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
+                        <button class="btn" onclick="submitStudentNote(${full.id || full.id})" style="font-size:0.75rem; padding:4px 12px; background:var(--primary); color:#fff;">حفظ</button>
+                    </div>
+                </div>
+
+                <!-- Notes List -->
+                <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
+                    ${notesList.length === 0 ? `
+                        <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
+                            لا توجد ملاحظات مسجلة لهذا الطفل.
+                        </div>
+                    ` : notesList.map(note => {
+                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) : '---';
+                        return `
+                            <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                                    <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
+                                    <button onclick="deleteStudentNote(${full.id || full.id}, '${note.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px;" title="حذف الملاحظة">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 6px 0; line-height:1.4; white-space:pre-wrap;">${escHtml(note.description)}</p>
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-3); font-weight:600;">
+                                    <span>بواسطة: ${escHtml(note.created_by || 'خادم')}</span>
+                                    <span>التاريخ: ${noteDateStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml + notesHtml;
         }
 
         // Open a small prompt to update points for a given trip and student
@@ -18661,6 +18783,144 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 loadUnifiedNotifications();
             }
         });
+
+        window.selectNoteTitleSuggestion = function(sugg) {
+            const inp = document.getElementById('noteTitleInput');
+            if (inp) inp.value = sugg;
+        };
+
+        window.toggleAddNoteArea = function(show = true) {
+            const area = document.getElementById('addNoteArea');
+            if (area) {
+                area.style.display = (show && area.style.display === 'none') ? 'block' : 'none';
+                if (area.style.display === 'block') {
+                    const dt = document.getElementById('noteDateInput');
+                    if (dt) dt.value = new Date().toISOString().split('T')[0];
+                }
+            }
+        };
+
+        window.submitStudentNote = function(studentId) {
+            const title = document.getElementById('noteTitleInput').value.trim();
+            const desc = document.getElementById('noteDescInput').value.trim();
+            const date = document.getElementById('noteDateInput').value;
+
+            if (!title || !desc) {
+                showToast('يرجى ملء العنوان والتفاصيل', 'warning');
+                return;
+            }
+
+            showLoading('جاري حفظ الملاحظة...');
+            const fd = new FormData();
+            fd.append('action', 'addStudentNote');
+            fd.append('studentId', studentId);
+            fd.append('title', title);
+            fd.append('description', desc);
+            fd.append('date', date);
+
+            fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .then(d => {
+                    hideLoading();
+                    if (d.success) {
+                        showToast(d.message || 'تم حفظ الملاحظة بنجاح', 'success');
+                        showStudentDetails(currentStudentForEdit['الاسم']);
+                    } else {
+                        showToast(d.message || 'فشل حفظ الملاحظة', 'error');
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
+        };
+
+        window.deleteStudentNote = function(studentId, noteId) {
+            if (!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
+
+            showLoading('جاري حذف الملاحظة...');
+            const fd = new FormData();
+            fd.append('action', 'deleteStudentNote');
+            fd.append('studentId', studentId);
+            fd.append('noteId', noteId);
+
+            fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .then(d => {
+                    hideLoading();
+                    if (d.success) {
+                        showToast(d.message || 'تم حذف الملاحظة بنجاح', 'success');
+                        showStudentDetails(currentStudentForEdit['الاسم']);
+                    } else {
+                        showToast(d.message || 'فشل حذف الملاحظة', 'error');
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
+        window.openBulkNoteModal = function() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            const dt = document.getElementById('bulkNoteDateInput');
+            if (dt) dt.value = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('bulkNoteTitleInput').value = '';
+            document.getElementById('bulkNoteDescInput').value = '';
+            
+            openModal('bulkNoteModal');
+        };
+
+        window.selectBulkNoteTitleSuggestion = function(sugg) {
+            const inp = document.getElementById('bulkNoteTitleInput');
+            if (inp) inp.value = sugg;
+        };
+
+        window.submitBulkNotes = function(event) {
+            if (event) event.preventDefault();
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            const title = document.getElementById('bulkNoteTitleInput').value.trim();
+            const desc = document.getElementById('bulkNoteDescInput').value.trim();
+            const date = document.getElementById('bulkNoteDateInput').value;
+
+            if (!title || !desc) {
+                showToast('يرجى ملء العنوان والتفاصيل', 'warning');
+                return;
+            }
+
+            showLoading('جاري حفظ الملاحظات...');
+            const fd = new FormData();
+            fd.append('action', 'bulkAddStudentNotes');
+            fd.append('student_ids', Array.from(selectedStudentIds).join(','));
+            fd.append('title', title);
+            fd.append('description', desc);
+            fd.append('date', date);
+
+            fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .then(d => {
+                    hideLoading();
+                    if (d.success) {
+                        showToast(d.message || 'تم حفظ الملاحظات الجماعية بنجاح', 'success');
+                        closeModal('bulkNoteModal');
+                        selectedStudentIds.clear();
+                        updateBulkUI();
+                        loadData();
+                    } else {
+                        showToast(d.message || 'فشل حفظ الملاحظات الجماعية', 'error');
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
+        };
 
     </script>
 </body>
