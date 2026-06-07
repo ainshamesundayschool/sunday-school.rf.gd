@@ -2834,8 +2834,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             min-height: 20px;
             flex-shrink: 0;
             border-radius: 50%;
-            border: 2.2px solid var(--border-solid);
-            background: var(--surface);
+            border: 1.8px solid var(--border);
+            background: var(--surface-2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2845,24 +2845,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         .bulk-check-circle.checked,
         #bulkBarSelectAllCircle.checked {
-            border-color: var(--primary) !important;
-            background: var(--primary) !important;
+            border: none !important;
+            background: var(--brand) !important;
             color: #ffffff !important;
         }
         .attendance-item.selected {
-            background-color: var(--primary-light) !important;
-            border-color: var(--primary) !important;
-            border-right: 4px solid var(--primary) !important;
+            background-color: var(--brand-bg) !important;
+            border-color: transparent !important;
+            border-right: 4px solid var(--brand) !important;
         }
         .attendance-item.selected .bulk-check-wrap {
-            background-color: var(--primary-light) !important;
+            background-color: var(--brand-bg) !important;
             border-radius: 8px;
         }
         .attendance-item.selected .bulk-check-circle {
-            border-color: var(--primary) !important;
-            background: var(--primary) !important;
+            border: none !important;
+            background: var(--brand) !important;
             color: #ffffff !important;
-            box-shadow: 0 0 8px var(--primary);
+            box-shadow: none !important;
         }
 
         .attendance-list.bulk-active .attendance-actions {
@@ -2988,7 +2988,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
         }
         .selected-count-chip {
-            background: var(--primary);
+            background: var(--brand);
             color: #ffffff;
             padding: 2px 8px;
             border-radius: 20px;
@@ -3007,22 +3007,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 36px;
             height: 36px;
             border-radius: var(--r-md) !important;
-            border: 1.5px solid var(--border-solid) !important;
-            background: var(--surface-2) !important;
+            border: none !important;
             color: var(--text) !important;
             padding: 0 !important;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .btn-bulk-action:hover {
-            background: var(--bg-hover) !important;
-            border-color: var(--primary) !important;
+        .btn-bulk-action i {
+            color: var(--text) !important;
+            font-size: 0.95rem;
         }
-        .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
-        .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
-        .btn-bulk-action.bulk-class i { color: var(--primary) !important; }
-        .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
+        .btn-bulk-action:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; }
+        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; }
+        .btn-bulk-action.bulk-class { background: rgba(59, 130, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; }
         
         .bulk-close-x-btn {
             background: transparent;
@@ -12593,7 +12596,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const activeBtn = document.getElementById('modalTab_' + mode);
                 if (activeBtn) {
                     activeBtn.style.background = 'var(--surface)';
-                    activeBtn.style.color = 'var(--primary)';
+                    activeBtn.style.color = 'var(--brand)';
                 }
                 
                 // Show/hide coupon select container
