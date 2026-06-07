@@ -31701,7 +31701,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
         if (!$logId) {
 
-            return ['success' => false, 'message' => 'معرف السجل مطلوب']);
+            return ['success' => false, 'message' => 'معرف السجل مطلوب'];
 
         }
 
@@ -31725,7 +31725,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
         if (!$log) {
 
-            return ['success' => false, 'message' => 'لم يتم العثور على السجل']);
+            return ['success' => false, 'message' => 'لم يتم العثور على السجل'];
 
         }
 
@@ -31745,7 +31745,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
         if (empty($oldData) && empty($newData)) {
 
-            return ['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل']);
+            return ['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل'];
 
         }
 
@@ -31758,7 +31758,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
         if ($entity === 'bulk_action') {
             if (!is_array($oldData)) {
-                return ['success' => false, 'message' => 'بيانات السجل الجماعي غير صالحة']);
+                return ['success' => false, 'message' => 'بيانات السجل الجماعي غير صالحة'];
             }
 
             if ($targetStudentId > 0) {
@@ -31770,7 +31770,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                     }
                 }
                 if (empty($filtered)) {
-                    return ['success' => false, 'message' => 'الطفل المحدد غير موجود في هذه العملية الجماعية']);
+                    return ['success' => false, 'message' => 'الطفل المحدد غير موجود في هذه العملية الجماعية'];
                 }
                 $oldData = $filtered;
             }
@@ -31938,10 +31938,10 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                     $notes
                 );
 
-                return ['success' => true, 'message' => $msg]);
+                return ['success' => true, 'message' => $msg];
             } else {
                 $conn->rollback();
-                return ['success' => false, 'message' => 'لم يتم استرجاع أي طفل. ربما تم استرجاعهم بالفعل أو غير موجودين.']);
+                return ['success' => false, 'message' => 'لم يتم استرجاع أي طفل. ربما تم استرجاعهم بالفعل أو غير موجودين.'];
             }
         }
 
@@ -31951,7 +31951,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if (empty($oldData)) {
 
-                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها']);
+                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها'];
 
                 }
 
@@ -31965,7 +31965,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if ($chk->get_result()->num_rows === 0) {
 
-                    return ['success' => false, 'message' => 'لا يمكن الاسترجاع: الطفل غير موجود حالياً']);
+                    return ['success' => false, 'message' => 'لا يمكن الاسترجاع: الطفل غير موجود حالياً'];
 
                 }
 
@@ -32023,7 +32023,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 } else {
 
-                    return ['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث']);
+                    return ['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث'];
 
                 }
 
@@ -32031,7 +32031,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if (empty($oldData)) {
 
-                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال']);
+                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال'];
 
                 }
 
@@ -32045,7 +32045,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if ($chk->get_result()->num_rows > 0) {
 
-                    return ['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه']);
+                    return ['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه'];
 
                 }
 
@@ -32103,7 +32103,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 } else {
 
-                    return ['success' => false, 'message' => 'لم يتم العثور على بيانات صالحة لإعادة الإدخال']);
+                    return ['success' => false, 'message' => 'لم يتم العثور على بيانات صالحة لإعادة الإدخال'];
 
                 }
 
@@ -32119,7 +32119,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if ($chkAtt->get_result()->num_rows > 0) {
 
-                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود سجلات حضور مسجلة له']);
+                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود سجلات حضور مسجلة له'];
 
                 }
 
@@ -32133,7 +32133,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if ($chkReg->get_result()->num_rows > 0) {
 
-                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود تسجيلات رحلات مسجلة له']);
+                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود تسجيلات رحلات مسجلة له'];
 
                 }
 
@@ -32151,7 +32151,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 } else {
 
-                    return ['success' => false, 'message' => 'لم يتم العثور على الطفل لحذفه']);
+                    return ['success' => false, 'message' => 'لم يتم العثور على الطفل لحذفه'];
 
                 }
 
@@ -32175,7 +32175,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if (!$stu) {
 
-                    return ['success' => false, 'message' => 'الطفل غير موجود']);
+                    return ['success' => false, 'message' => 'الطفل غير موجود'];
 
                 }
 
@@ -32239,7 +32239,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if (!$attDate) {
 
-                    return ['success' => false, 'message' => 'تاريخ الغياب غير محدد في السجل']);
+                    return ['success' => false, 'message' => 'تاريخ الغياب غير محدد في السجل'];
 
                 }
 
@@ -32309,7 +32309,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 if (!$attDate) {
 
-                    return ['success' => false, 'message' => 'بيانات الحضور غير كاملة']);
+                    return ['success' => false, 'message' => 'بيانات الحضور غير كاملة'];
 
                 }
 
@@ -32355,11 +32355,11 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
             );
 
-            return ['success' => true, 'message' => $msg]);
+            return ['success' => true, 'message' => $msg];
 
         } else {
 
-            return ['success' => false, 'message' => 'نوع العملية غير مدعوم حالياً للاسترجاع التلقائي']);
+            return ['success' => false, 'message' => 'نوع العملية غير مدعوم حالياً للاسترجاع التلقائي'];
 
         }
 
@@ -32367,7 +32367,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
     } catch (Exception $e) {
 
-        return ['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()]);
+        return ['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()];
 
     }
 

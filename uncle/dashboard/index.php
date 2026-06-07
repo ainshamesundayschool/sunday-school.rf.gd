@@ -2830,6 +2830,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bulk-check-circle {
             width: 20px;
             height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            flex-shrink: 0;
             border-radius: 50%;
             border: 2.2px solid var(--border-solid);
             background: var(--surface);
