@@ -2973,19 +2973,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 16px 12px 8px;
+            padding: 8px 12px;
             border-radius: var(--r-md);
             margin-top: 8px;
             margin-bottom: 0;
             display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
             color: var(--text);
             border: 1.5px solid var(--border-solid);
             direction: rtl;
             box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
+        }
+        .bulk-actions-bar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
         }
         .bulk-actions-bar.show {
             display: flex;
@@ -3045,23 +3051,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
         
         .bulk-close-x-btn {
-            position: absolute;
-            top: 4px;
-            left: 8px;
             background: transparent;
             border: none;
             color: var(--text-3);
-            font-size: 1.35rem;
+            font-size: 1.5rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             line-height: 1;
             padding: 0;
             transition: color 0.2s ease;
-            z-index: 5;
+            margin: 0;
         }
         .bulk-close-x-btn:hover {
             color: var(--danger);
@@ -9211,27 +9214,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
                     <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
-                        <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
-                            &times;
-                        </button>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
-                                <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="action-dropdown" style="flex:none;">
-                                <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
-                                    <i class="fas fa-filter"></i>
-                                </button>
-                                <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
-                                    <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
-                                    <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
-                                    <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
-                                    <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
-                                    <div class="dropdown-divider"></div>
-                                    <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
+                        <div class="bulk-actions-bar-header">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
+                                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                                 </div>
+                                <div class="action-dropdown" style="flex:none;">
+                                    <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                    <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
+                                        <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
+                                        <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
+                                        <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                                        <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                                        <div class="dropdown-divider"></div>
+                                        <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
+                                    </div>
+                                </div>
+                                <span id="bulkSelectedCount" class="selected-count-chip">0</span>
                             </div>
-                            <span id="bulkSelectedCount" class="selected-count-chip">0</span>
+                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
+                                &times;
+                            </button>
                         </div>
                         <div class="bulk-actions-btns">
                             <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
@@ -10146,6 +10151,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     نعم، احذف</button>
                 <button class="btn btn-secondary" id="cancelDeleteStudentBtn" style="flex:1"><i
                         class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div class="modal-overlay" id="customConfirmModal" style="z-index:1000010">
+        <div class="modal modal-sm" style="max-width:380px; text-align: center; border: 1.5px solid var(--border-solid);">
+            <div style="padding: 20px 16px 16px;">
+                <div style="font-size: 3rem; margin-bottom: 12px; color: var(--danger);" id="customConfirmIcon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="margin-bottom: 8px; font-weight: 800; color: var(--text);" id="customConfirmTitle">تأكيد الإجراء</h3>
+                <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-2); margin-bottom: 20px;" id="customConfirmMessage"></p>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" id="customConfirmYesBtn" class="btn btn-danger" style="flex:1;"><i class="fas fa-check"></i> نعم، متأكد</button>
+                    <button type="button" id="customConfirmNoBtn" class="btn btn-secondary" style="flex:1;" onclick="closeModal('customConfirmModal')">إلغاء</button>
+                </div>
             </div>
         </div>
     </div>
@@ -12438,7 +12460,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             
             const actionLabel = status === 'present' ? 'حضور' : 'غياب';
-            if (!confirm(`تسجيل ${actionLabel} لـ ${selectedStudentIds.size} من الأطفال المحددين؟`)) return;
 
             // Iterate and mark attendance locally for all selected
             const allList = isCombinedView ? combinedStudents : students;
@@ -12479,6 +12500,42 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        let customConfirmCallback = null;
+        function showCustomConfirm(options) {
+            const title = options.title || 'تأكيد الإجراء';
+            const message = options.message || '';
+            const iconHtml = options.icon || '<i class="fas fa-exclamation-triangle"></i>';
+            const btnText = options.btnText || 'تأكيد';
+            const btnClass = options.btnClass || 'btn-primary';
+            customConfirmCallback = options.onConfirm || null;
+
+            const titleEl = document.getElementById('customConfirmTitle');
+            const msgEl = document.getElementById('customConfirmMessage');
+            const iconEl = document.getElementById('customConfirmIcon');
+            const yesBtn = document.getElementById('customConfirmYesBtn');
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+            if (iconEl) {
+                iconEl.innerHTML = iconHtml;
+                iconEl.style.color = options.iconColor || 'var(--danger)';
+            }
+            if (yesBtn) {
+                yesBtn.innerHTML = '';
+                if (options.btnIconClass) {
+                    yesBtn.innerHTML = `<i class="${options.btnIconClass}"></i> `;
+                }
+                yesBtn.innerHTML += btnText;
+                yesBtn.className = 'btn ' + btnClass;
+                yesBtn.onclick = function() {
+                    closeModal('customConfirmModal');
+                    if (customConfirmCallback) customConfirmCallback();
+                };
+            }
+
+            openModal('customConfirmModal');
+        }
+
         // Bulk operations triggers for class uncle
         async function triggerBulkDelete() {
             if (selectedStudentIds.size === 0) {
@@ -12487,19 +12544,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             
             const msg = `هل أنت متأكد من حذف ${selectedStudentIds.size} من الأطفال المحددين؟\nلا يمكن التراجع عن هذا الإجراء وسيتم مسح سجلاتهم تماماً.`;
-            if (!confirm(msg)) return;
-
-            showLoading('جاري الحذف...');
-            makeApiCall({
-                action: 'bulkDeleteStudents',
-                student_ids: Array.from(selectedStudentIds).join(',')
-            }, d => {
-                showToast(d.message || 'تم حذف الأطفال بنجاح', 'success');
-                selectedStudentIds.clear();
-                updateBulkUI();
-                loadData();
-            }, err => {
-                showToast(err || 'فشل في الحذف الجماعي', 'error');
+            
+            showCustomConfirm({
+                title: 'تأكيد الحذف الجماعي',
+                message: msg,
+                icon: '<i class="fas fa-exclamation-triangle"></i>',
+                iconColor: 'var(--danger)',
+                btnText: 'نعم، احذف',
+                btnClass: 'btn-danger',
+                btnIconClass: 'fas fa-trash-alt',
+                onConfirm: () => {
+                    showLoading('جاري الحذف...');
+                    makeApiCall({
+                        action: 'bulkDeleteStudents',
+                        student_ids: Array.from(selectedStudentIds).join(',')
+                    }, d => {
+                        showToast(d.message || 'تم حذف الأطفال بنجاح', 'success');
+                        selectedStudentIds.clear();
+                        updateBulkUI();
+                        loadData();
+                    }, err => {
+                        showToast(err || 'فشل في الحذف الجماعي', 'error');
+                    });
+                }
             });
         }
 
