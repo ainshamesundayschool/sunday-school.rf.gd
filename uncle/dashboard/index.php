@@ -13495,7 +13495,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Fetch full student profile (includes trip_points)
             (async function () {
                 try {
-                    const fd = new FormData(); fd.append('action', 'getStudentProfile'); fd.append('studentId', s['id'] || s['معرف'] || s['id_student'] || 0);
+                    const fd = new FormData(); fd.append('action', 'getStudentProfile'); fd.append('studentId', getStudentDbId(s));
                     const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
                     if (!resp.success || !resp.student) {
                         // fallback to cached details
@@ -14260,7 +14260,76 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const avatar = s['صورة']
                 ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${escStr(s['الاسم'] || '')}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
-            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml;
+
+            // Render Notes Section for Cache (Offline fallback)
+            const notesList = info._notes || [];
+            let notesHtml = `
+            <div class="student-notes-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-sticky-note"></i> الملاحظات (${notesList.length})
+                    </h4>
+                    <button class="btn btn-ghost" onclick="toggleAddNoteArea()" style="font-size:0.75rem; padding:4px 10px; border-radius:6px;">
+                        <i class="fas fa-plus"></i> إضافة ملاحظة
+                    </button>
+                </div>
+                
+                <!-- Add Note Area (Hidden by default) -->
+                <div id="addNoteArea" class="glass-card" style="display:none; margin-bottom:14px; padding:12px; border: 1px solid var(--border-solid); border-radius:10px;">
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">نوع الملاحظة (العنوان)</label>
+                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; direction:rtl;">
+                            ${['زيارة منزلية', 'متابعة تلفونية', 'احتياج مالي', 'مستلزمات مدرسية', 'طلب صلاة', 'أخرى'].map(sugg => `
+                                <span class="badge" onclick="selectNoteTitleSuggestion('${sugg}')" style="cursor:pointer; font-size:0.68rem; padding:4px 8px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">
+                                    ${sugg}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <input type="text" id="noteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">تفاصيل الملاحظة (الوصف)</label>
+                        <textarea id="noteDescInput" class="form-input" rows="3" placeholder="تفاصيل الملاحظة..." style="font-size:0.8rem; padding:6px 10px; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">التاريخ (اختياري)</label>
+                        <input type="date" id="noteDateInput" class="form-input" style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                        <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
+                        <button class="btn" onclick="submitStudentNote(${getStudentDbId(s)})" style="font-size:0.75rem; padding:4px 12px; background:var(--primary); color:#fff;">حفظ</button>
+                    </div>
+                </div>
+
+                <!-- Notes List -->
+                <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
+                    ${notesList.length === 0 ? `
+                        <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
+                            لا توجد ملاحظات مسجلة لهذا الطفل.
+                        </div>
+                    ` : notesList.map(note => {
+                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) : '---';
+                        return `
+                            <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                                    <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
+                                    <button onclick="deleteStudentNote(${getStudentDbId(s)}, '${note.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px;" title="حذف الملاحظة">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 6px 0; line-height:1.4; white-space:pre-wrap;">${escHtml(note.description)}</p>
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-3); font-weight:600;">
+                                    <span>بواسطة: ${escHtml(note.created_by || 'خادم')}</span>
+                                    <span>التاريخ: ${noteDateStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml + notesHtml;
         }
 
         function buildStudentDetailsFromProfile(full) {
