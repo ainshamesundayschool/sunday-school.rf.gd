@@ -18859,6 +18859,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     hideLoading();
                     showToast('حدث خطأ في الاتصال بالخادم', 'error');
                 });
+        };
+
         window.openBulkNoteModal = function() {
             if (selectedStudentIds.size === 0) {
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
