@@ -2295,6 +2295,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn:not(:disabled):hover {
             transform: translateY(-2px);
         }
+        .save-btn-select.active {
+            background: var(--brand) !important;
+            color: #ffffff !important;
+            border-color: var(--brand-dark) !important;
+            box-shadow: 0 0 10px rgba(91, 108, 245, 0.4) !important;
+        }
+        .save-btn-select.active i,
+        .save-btn-select.active .save-btn-label {
+            color: #ffffff !important;
+        }
 
         /* ── Mobile (<520px): two rows, stats centered ────────────── */
         @media (max-width:519px) {
@@ -2958,15 +2968,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bulk-actions-bar {
-            position: sticky;
-            top: 118px;
-            z-index: 190;
+            position: relative;
+            z-index: 10;
             background: var(--surface);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             padding: 8px 16px;
             border-radius: var(--r-md);
-            margin-bottom: 12px;
+            margin-top: 8px;
+            margin-bottom: 0;
             display: none;
             align-items: center;
             justify-content: space-between;
@@ -3004,8 +3014,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: var(--r-md) !important;
             border: none !important;
             padding: 0 !important;
@@ -3013,7 +3023,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all 0.2s ease;
         }
         .btn-bulk-action i {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .btn-bulk-action:hover {
             opacity: 0.85;
@@ -9127,11 +9141,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="action-strip-row-2">
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-select" id="bulkSelectToggleBtn"
-                        onclick="toggleBulkSelectMode()" title="تحديد متعدد">
-                        <i class="fas fa-check-circle"></i>
-                        <span class="strip-btn-label">تحديد</span>
-                    </button>
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-swipe"
                         onclick="startSwipeMode()" title="وضع السحب السريع">
                         <i class="fas fa-hand-pointer swipe-hand-icon"></i>
@@ -9163,6 +9172,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="stat-lbl">متوسط</span></span>
                         </div>
                         <div class="save-row">
+                            <button class="save-btn save-btn-select" id="bulkSelectToggleBtn" onclick="toggleBulkSelectMode()" title="تحديد متعدد">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>
+                            </button>
                             <div class="action-dropdown" style="flex:none;min-width:0;">
                                 <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
                                     <i class="fas fa-qrcode"></i>
@@ -9193,6 +9206,65 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </button>
                         </div>
                     </div>
+                    <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
+                    <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
+                                <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="action-dropdown" style="flex:none;">
+                                <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                                <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
+                                    <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
+                                    <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
+                                    <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                                    <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
+                                </div>
+                            </div>
+                            <span id="bulkSelectedCount" class="selected-count-chip">0</span>
+                        </div>
+                        <div class="bulk-actions-btns">
+                            <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            
+                            <div class="action-dropdown" style="flex:none;">
+                                <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
+                                    <i class="fas fa-coins"></i>
+                                </button>
+                                <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
+                                    <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
+                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
+                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
+                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
+                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
+                                    <div class="dropdown-divider"></div>
+                                    <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
+                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
+                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
+                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
+                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
+                                </div>
+                            </div>
+
+                            <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="class-inline-search-wrap">
@@ -9206,65 +9278,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <!-- Bulk Actions Bar -->
-                <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none; margin-bottom: 12px; margin-top: 4px; justify-content: space-between; align-items: center; padding: 10px 16px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
-                            <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="action-dropdown" style="flex:none;">
-                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                            <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
-                                <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
-                                <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
-                                <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
-                                <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
-                                <div class="dropdown-divider"></div>
-                                <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
-                            </div>
-                        </div>
-                        <span id="bulkSelectedCount" class="selected-count-chip">0</span>
-                    </div>
-                    <div class="bulk-actions-btns">
-                        <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        
-                        <div class="action-dropdown" style="flex:none;">
-                            <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
-                                <i class="fas fa-coins"></i>
-                            </button>
-                            <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
-                                <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
-                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
-                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
-                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
-                                <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
-                                <div class="dropdown-divider"></div>
-                                <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
-                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
-                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
-                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
-                                <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
-                            </div>
-                        </div>
 
-                        <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
-                            &times;
-                        </button>
-                    </div>
-                </div>
 
                 <div class="attendance-list" id="attendanceList"></div>
             </div>
@@ -12301,7 +12315,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (isBulkSelectMode) {
                 if (toggleBtn) {
                     toggleBtn.classList.add('active');
-                    toggleBtn.innerHTML = '<i class="fas fa-times"></i> إلغاء';
+                    toggleBtn.innerHTML = '<i class="fas fa-times"></i><span class="save-btn-bottom"><span class="save-btn-label">إلغاء</span></span>';
                 }
                 if (actionsBar) {
                     actionsBar.style.display = 'flex';
@@ -12313,7 +12327,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else {
                 if (toggleBtn) {
                     toggleBtn.classList.remove('active');
-                    toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i> تحديد';
+                    toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i><span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>';
                 }
                 if (actionsBar) {
                     actionsBar.style.display = 'none';
