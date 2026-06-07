@@ -8157,6 +8157,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 animation: none !important;
             }
         }
+
+        #kidQrReader video {
+            transform: scaleX(1) !important;
+            -webkit-transform: scaleX(1) !important;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -8487,6 +8492,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
                         oninput="performInlineSearch(this.value, 'topbar')" autocomplete="off">
+                    <button type="button" id="topbarSearchQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                        <i class="fas fa-qrcode"></i>
+                    </button>
                     <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
                             class="fas fa-times"></i></button>
                 </div>

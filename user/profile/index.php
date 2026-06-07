@@ -3988,8 +3988,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <div class="send-coupons-page" id="scSendCoupons" style="display:none">
       <!-- Tab Header -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-        <div style="width:44px; height:44px; border-radius:var(--r-md); background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
-          <i class="fas fa-ticket-alt"></i>
+        <div style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0; box-shadow: var(--sh-md);">
+          <i class="fas fa-star"></i>
         </div>
         <div>
           <div style="font-size:1.15rem; font-weight:800; color:#fff;">إرسال كوبونات</div>
@@ -4094,7 +4094,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
          <div class="wizard-btn-row" style="align-items: center; justify-content: center; gap: 16px;">
             <button class="btn btn-g" style="padding: 12px 20px; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius: var(--r-md); height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 800;" onclick="goToStep(2)"><i class="fas fa-chevron-right" style="margin-left: 6px;"></i> رجوع</button>
-            <button class="btn btn-p" id="sendWizardSubmitBtn" style="width: 50px; height: 50px; border-radius: 50%; background:#fff; color:var(--brand); border: none; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-md); font-size: 1.3rem; flex-shrink: 0; padding: 0; margin: 0 auto;" onclick="trySendCoupons()" disabled><i class="fas fa-ticket-alt"></i></button>
+            <button class="btn btn-p" id="sendWizardSubmitBtn" style="width: 50px; height: 50px; border-radius: 50%; background:#fff; color:var(--brand); border: none; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-md); font-size: 1.3rem; flex-shrink: 0; padding: 0; margin: 0 auto;" onclick="trySendCoupons()" disabled><i class="fas fa-star"></i></button>
          </div>
       </div>
     </div>
@@ -4586,7 +4586,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
     <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
       <div class="fab-btn">
-        <i class="fas fa-ticket-alt"></i>
+        <i class="fas fa-star"></i>
       </div>
       <span>إرسال</span>
     </div>
