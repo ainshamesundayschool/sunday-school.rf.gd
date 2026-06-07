@@ -2701,8 +2701,92 @@
             }
         }
 
+        /* ── Undo Toast ── */
+        .undo-toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #ffffff;
+            min-width: 300px;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            direction: rtl;
+            transition: all 0.3s ease;
+        }
+        .undo-toast.show {
+            display: flex;
+            animation: undoToastIn 0.3s var(--ease-spring);
+        }
+        .undo-btn {
+            background: var(--warning);
+            color: #1e293b;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .undo-btn:hover {
+            transform: scale(1.05);
+            background: #f59e0b;
+        }
+        .undo-timer-circle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .undo-toast-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .undo-toast-close:hover {
+            color: #ffffff;
+        }
+        @keyframes undoToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         /* ═══════════════════════════════════════════════════════════════════
-   EMPTY STATE
+    EMPTY STATE
 ═══════════════════════════════════════════════════════════════════ */
         .empty-state {
             text-align: center;
@@ -8411,6 +8495,14 @@
     </div>
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+
+    <!-- Undo Toast -->
+    <div class="undo-toast" id="undoToast">
+        <div class="undo-timer-circle" id="undoTimerCircle">10</div>
+        <span style="flex:1;" id="undoToastText">تم تنفيذ العملية بنجاح</span>
+        <button class="undo-btn" id="undoToastActionBtn"><i class="fas fa-undo"></i> تراجع</button>
+        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i class="fas fa-times"></i></button>
+    </div>
 
     <!-- Print Settings Modal -->
     <div id="printSettingsModal" class="modal">
@@ -14509,10 +14601,17 @@
                 }
 
                 const logJson = JSON.stringify(l).replace(/"/g, '&quot;');
-                const actKey = stashRowActions(entityName || meta.label, [
-                    { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showAuditDetail(l) },
-                    { label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAuditLogEntry(l.id) },
-                ]);
+                const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete'];
+                const isRestorable = restorableActions.includes(l.action);
+                const rowActions = [
+                    { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showAuditDetail(l) }
+                ];
+                if (isRestorable) {
+                    rowActions.push({ label: 'استرجاع العملية', icon: 'fa-undo', handler: () => restoreAuditLogEntry(l) });
+                }
+                rowActions.push({ label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAuditLogEntry(l.id) });
+
+                const actKey = stashRowActions(entityName || meta.label, rowActions);
                 return `<div class="data-row data-cols-audit" role="button" tabindex="0"
                     onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
                     <span style="color:var(--text-3);font-size:0.78rem;">${start + i + 1}</span>
@@ -14694,6 +14793,161 @@
                 showToast(d.message || 'فشل في الحذف', 'error');
             }
         }
+
+        async function restoreAuditLogEntry(log) {
+            if (!log || !log.id) return;
+            const actionLabel = getActionMeta(log.action || '').label || log.action;
+            const entityName = log.entity_name || log.description || '';
+            const msg = `هل أنت متأكد من استرجاع (التراجع عن) العملية "${actionLabel}" الخاصة بـ "${entityName}"؟`;
+            if (!(await showConfirm({
+                title: 'استرجاع العملية',
+                message: msg,
+                confirmText: 'استرجاع'
+            }))) return;
+
+            const fd = mkFd('restoreAuditLog');
+            fd.append('log_id', log.id);
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) {
+                    showToast(d.message || 'تم استرجاع العملية بنجاح', 'success');
+                    loadAuditLogs();
+                } else {
+                    showToast(d.message || 'فشل في استرجاع العملية', 'error');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        let undoToastTimer = null;
+        let undoCountdownInterval = null;
+
+        async function triggerUndoToastChecking() {
+            setTimeout(async () => {
+                const fd = mkFd('getLastAuditLog');
+                try {
+                    const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                    if (d.success && d.log) {
+                        showUndoToast(d.log);
+                    }
+                } catch (e) {
+                    console.error("Error checking last audit log:", e);
+                }
+            }, 500);
+        }
+
+        function showUndoToast(log) {
+            const toastEl = document.getElementById('undoToast');
+            const timerEl = document.getElementById('undoTimerCircle');
+            const textEl = document.getElementById('undoToastText');
+            const actionBtn = document.getElementById('undoToastActionBtn');
+
+            if (!toastEl || !timerEl || !textEl || !actionBtn) return;
+
+            hideUndoToast();
+
+            const actionLabel = getActionMeta(log.action || '').label || log.action;
+            const entityName = log.entity_name || log.description || '';
+            const logNotes = log.notes || `${actionLabel}: ${entityName}`;
+            
+            textEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-weight:700;">تمت العملية: ${logNotes}</span>
+                    <span style="font-size:0.7rem; opacity:0.8; font-weight:normal;">ملاحظة: يمكنك دائماً استرجاع أي عملية لاحقاً من سجل العمليات.</span>
+                </div>
+            `;
+
+            actionBtn.onclick = async () => {
+                hideUndoToast();
+                const fd = mkFd('restoreAuditLog');
+                fd.append('log_id', log.id);
+                try {
+                    const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                    if (d.success) {
+                        showToast(d.message || 'تم التراجع عن العملية بنجاح', 'success');
+                        if (typeof loadStudents === 'function') loadStudents();
+                        if (typeof loadStatistics === 'function') loadStatistics();
+                        if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                        if (typeof loadPendingRegistrations === 'function') loadPendingRegistrations();
+                        if (typeof currentAttendanceDate !== 'undefined' && currentAttendanceDate && typeof loadAttendanceForDate === 'function') {
+                            loadAttendanceForDate(currentAttendanceDate);
+                        }
+                    } else {
+                        showToast(d.message || 'فشل في التراجع عن العملية', 'error');
+                    }
+                } catch (e) {
+                    showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+                }
+            };
+
+            let secondsLeft = 10;
+            timerEl.textContent = secondsLeft;
+            toastEl.classList.add('show');
+
+            undoCountdownInterval = setInterval(() => {
+                secondsLeft--;
+                timerEl.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    hideUndoToast();
+                }
+            }, 1000);
+
+            undoToastTimer = setTimeout(() => {
+                hideUndoToast();
+            }, 10000);
+        }
+
+        function hideUndoToast() {
+            const toastEl = document.getElementById('undoToast');
+            if (toastEl) {
+                toastEl.classList.remove('show');
+            }
+            if (undoToastTimer) {
+                clearTimeout(undoToastTimer);
+                undoToastTimer = null;
+            }
+            if (undoCountdownInterval) {
+                clearInterval(undoCountdownInterval);
+                undoCountdownInterval = null;
+            }
+        }
+
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const url = args[0];
+                const options = args[1];
+                let isCriticalAction = false;
+
+                if (url === API_URL && options && options.method === 'POST' && options.body instanceof FormData) {
+                    const action = options.body.get('action');
+                    const criticalActions = [
+                        'addStudent', 'updateStudent', 'deleteStudent', 
+                        'submitAttendance', 'updateCouponsKids'
+                    ];
+                    if (criticalActions.includes(action)) {
+                        isCriticalAction = true;
+                    }
+                }
+
+                const response = await originalFetch.apply(this, args);
+
+                if (isCriticalAction) {
+                    try {
+                        const responseClone = response.clone();
+                        const json = await responseClone.json();
+                        if (json && json.success) {
+                            triggerUndoToastChecking();
+                        }
+                    } catch (e) {
+                        console.error("Fetch intercept error:", e);
+                    }
+                }
+
+                return response;
+            };
+        })();
 
         async function showClearHistoryModal() {
             const from = document.getElementById('auditDateFrom')?.value || '';

@@ -2602,6 +2602,26 @@ try {
 
 
 
+        case 'restoreAuditLog':
+
+            checkAuth();
+
+            restoreAuditLog();
+
+            break;
+
+
+
+        case 'getLastAuditLog':
+
+            checkAuth();
+
+            getLastAuditLog();
+
+            break;
+
+
+
         case 'clearAllAuditLogs':
 
             checkAuth();
@@ -31609,6 +31629,606 @@ function deleteAuditLog()
     } catch (Exception $e) {
 
         sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+// ── Restore an action from the audit log (admin only) ─────────
+
+function restoreAuditLog()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $logId = intval($_POST['log_id'] ?? 0);
+
+        if (!$logId) {
+
+            sendJSON(['success' => false, 'message' => 'معرف السجل مطلوب']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+
+
+        // 1. Fetch the log entry
+
+        $stmt = $conn->prepare("SELECT * FROM audit_logs WHERE id = ? AND church_id = ?");
+
+        $stmt->bind_param("ii", $logId, $churchId);
+
+        $stmt->execute();
+
+        $log = $stmt->get_result()->fetch_assoc();
+
+
+
+        if (!$log) {
+
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على السجل']);
+
+            return;
+
+        }
+
+
+
+        $action = $log['action'];
+
+        $entity = $log['entity'];
+
+        $entityId = $log['entity_id'];
+
+        $oldData = !empty($log['old_data']) ? json_decode($log['old_data'], true) : null;
+
+        $newData = !empty($log['new_data']) ? json_decode($log['new_data'], true) : null;
+
+
+
+        if (empty($oldData) && empty($newData)) {
+
+            sendJSON(['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل']);
+
+            return;
+
+        }
+
+
+
+        $reverted = false;
+
+        $msg = "تم استرجاع العملية بنجاح";
+
+
+
+        if ($entity === 'student') {
+
+            if ($action === 'student_edit') {
+
+                if (empty($oldData)) {
+
+                    sendJSON(['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها']);
+
+                    return;
+
+                }
+
+                // Check if student still exists
+
+                $chk = $conn->prepare("SELECT id FROM students WHERE id = ?");
+
+                $chk->bind_param("i", $entityId);
+
+                $chk->execute();
+
+                if ($chk->get_result()->num_rows === 0) {
+
+                    sendJSON(['success' => false, 'message' => 'لا يمكن الاسترجاع: الطفل غير موجود حالياً']);
+
+                    return;
+
+                }
+
+
+
+                // Update using whitelisted columns
+
+                $whitelist = ['name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
+
+                $updates = [];
+
+                $types = '';
+
+                $params = [];
+
+                foreach ($oldData as $key => $val) {
+
+                    if (in_array($key, $whitelist, true)) {
+
+                        $updates[] = "`$key` = ?";
+
+                        $params[] = $val;
+
+                        if (is_int($val)) $types .= 'i';
+
+                        elseif (is_float($val)) $types .= 'd';
+
+                        else $types .= 's';
+
+                    }
+
+                }
+
+
+
+                if (!empty($updates)) {
+
+                    $sql = "UPDATE students SET " . implode(', ', $updates) . ", updated_at = NOW() WHERE id = ?";
+
+                    $types .= 'i';
+
+                    $params[] = $entityId;
+
+                    $upd = $conn->prepare($sql);
+
+                    $upd->bind_param($types, ...$params);
+
+                    if ($upd->execute()) {
+
+                        $reverted = true;
+
+                        $msg = "تم استرجاع بيانات الطفل بنجاح";
+
+                    }
+
+                } else {
+
+                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث']);
+
+                    return;
+
+                }
+
+            } elseif ($action === 'student_delete') {
+
+                if (empty($oldData)) {
+
+                    sendJSON(['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال']);
+
+                    return;
+
+                }
+
+                // Check if student ID already exists
+
+                $chk = $conn->prepare("SELECT id FROM students WHERE id = ?");
+
+                $chk->bind_param("i", $entityId);
+
+                $chk->execute();
+
+                if ($chk->get_result()->num_rows > 0) {
+
+                    sendJSON(['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه']);
+
+                    return;
+
+                }
+
+
+
+                // Re-insert using whitelisted columns + id + church_id
+
+                $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
+
+                $fields = [];
+
+                $placeholders = [];
+
+                $types = '';
+
+                $params = [];
+
+                foreach ($oldData as $key => $val) {
+
+                    if (in_array($key, $whitelist, true)) {
+
+                        $fields[] = "`$key`";
+
+                        $placeholders[] = "?";
+
+                        $params[] = $val;
+
+                        if (is_int($val)) $types .= 'i';
+
+                        elseif (is_float($val)) $types .= 'd';
+
+                        else $types .= 's';
+
+                    }
+
+                }
+
+
+
+                if (!empty($fields)) {
+
+                    $sql = "INSERT INTO students (" . implode(', ', $fields) . ", created_at) VALUES (" . implode(', ', $placeholders) . ", NOW())";
+
+                    $ins = $conn->prepare($sql);
+
+                    $ins->bind_param($types, ...$params);
+
+                    if ($ins->execute()) {
+
+                        $reverted = true;
+
+                        $msg = "تم إعادة تسجيل الطفل المحذوف بنجاح";
+
+                    }
+
+                } else {
+
+                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على بيانات صالحة لإعادة الإدخال']);
+
+                    return;
+
+                }
+
+            } elseif ($action === 'student_add') {
+
+                // Undoing a student add is deleting the student, but only if they have no other registrations/attendance to avoid issues
+
+                $chkAtt = $conn->prepare("SELECT id FROM attendance WHERE student_id = ?");
+
+                $chkAtt->bind_param("i", $entityId);
+
+                $chkAtt->execute();
+
+                if ($chkAtt->get_result()->num_rows > 0) {
+
+                    sendJSON(['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود سجلات حضور مسجلة له']);
+
+                    return;
+
+                }
+
+
+
+                $chkReg = $conn->prepare("SELECT id FROM trip_registrations WHERE student_id = ?");
+
+                $chkReg->bind_param("i", $entityId);
+
+                $chkReg->execute();
+
+                if ($chkReg->get_result()->num_rows > 0) {
+
+                    sendJSON(['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود تسجيلات رحلات مسجلة له']);
+
+                    return;
+
+                }
+
+
+
+                $del = $conn->prepare("DELETE FROM students WHERE id = ? AND church_id = ?");
+
+                $del->bind_param("ii", $entityId, $churchId);
+
+                if ($del->execute() && $del->affected_rows > 0) {
+
+                    $reverted = true;
+
+                    $msg = "تم التراجع عن إضافة الطفل وحذفه بنجاح";
+
+                } else {
+
+                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل لحذفه']);
+
+                    return;
+
+                }
+
+            }
+
+        } elseif ($entity === 'coupon') {
+
+            if ($action === 'coupon_edit') {
+
+                // coupons: oldTotal -> newTotal
+
+                // We should read the student's current coupon count
+
+                $chk = $conn->prepare("SELECT coupons, commitment_coupons FROM students WHERE id = ?");
+
+                $chk->bind_param("i", $entityId);
+
+                $chk->execute();
+
+                $stu = $chk->get_result()->fetch_assoc();
+
+                if (!$stu) {
+
+                    sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+
+                    return;
+
+                }
+
+
+
+                $oldTotal = intval($oldData['coupons'] ?? 0);
+
+                $newTotal = intval($newData['coupons'] ?? 0);
+
+                $diff = $oldTotal - $newTotal; // Reversing difference
+
+
+
+                $newCommitment = intval($stu['commitment_coupons']) + $diff;
+
+
+
+                $upd = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ?");
+
+                $upd->bind_param("iii", $oldTotal, $newCommitment, $entityId);
+
+                if ($upd->execute()) {
+
+                    // Insert a reverse coupon log
+
+                    $uncleId = $_SESSION['uncle_id'] ?? null;
+
+                    $logStmt = $conn->prepare("
+
+                        INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type)
+
+                        VALUES (?, ?, ?, ?, ?, 'manual')
+
+                    ");
+
+                    $logStmt->bind_param("iiiii", $entityId, $uncleId, $newTotal, $oldTotal, $diff);
+
+                    $logStmt->execute();
+
+
+
+                    $reverted = true;
+
+                    $msg = "تم استرجاع رصيد الكوبونات بنجاح";
+
+                }
+
+            }
+
+        } elseif ($entity === 'attendance') {
+
+            // Restore attendance
+
+            if ($action === 'attendance_add' || $action === 'attendance_edit') {
+
+                $attDate = $oldData['date'] ?? $newData['date'] ?? null;
+
+                $oldStatus = $oldData['status'] ?? 'pending';
+
+
+
+                if (!$attDate) {
+
+                    sendJSON(['success' => false, 'message' => 'تاريخ الغياب غير محدد في السجل']);
+
+                    return;
+
+                }
+
+
+
+                if ($oldStatus === 'pending') {
+
+                    // If it was pending (or cleared), we delete the record
+
+                    $del = $conn->prepare("DELETE FROM attendance WHERE student_id = ? AND attendance_date = ?");
+
+                    $del->bind_param("is", $entityId, $attDate);
+
+                    $del->execute();
+
+                    $reverted = true;
+
+                    $msg = "تم إلغاء سجل الحضور بنجاح";
+
+                } else {
+
+                    // Upsert status
+
+                    $chk = $conn->prepare("SELECT id FROM attendance WHERE student_id = ? AND attendance_date = ?");
+
+                    $chk->bind_param("is", $entityId, $attDate);
+
+                    $chk->execute();
+
+                    $res = $chk->get_result();
+
+
+
+                    if ($res->num_rows > 0) {
+
+                        $attId = $res->fetch_assoc()['id'];
+
+                        $upd = $conn->prepare("UPDATE attendance SET status = ?, updated_at = NOW() WHERE id = ?");
+
+                        $upd->bind_param("si", $oldStatus, $attId);
+
+                        $upd->execute();
+
+                    } else {
+
+                        $ins = $conn->prepare("INSERT INTO attendance (student_id, attendance_date, status, created_at) VALUES (?, ?, ?, NOW())");
+
+                        $ins->bind_param("iss", $entityId, $attDate, $oldStatus);
+
+                        $ins->execute();
+
+                    }
+
+                    $reverted = true;
+
+                    $msg = "تم استرجاع حالة الحضور بنجاح";
+
+                }
+
+            } elseif ($action === 'attendance_delete') {
+
+                // Re-insert row from oldData
+
+                $attDate = $oldData['attendance_date'] ?? null;
+
+                $status = $oldData['status'] ?? 'present';
+
+                if (!$attDate) {
+
+                    sendJSON(['success' => false, 'message' => 'بيانات الحضور غير كاملة']);
+
+                    return;
+
+                }
+
+
+
+                $ins = $conn->prepare("INSERT INTO attendance (student_id, attendance_date, status, created_at) VALUES (?, ?, ?, NOW())");
+
+                $ins->bind_param("iss", $entityId, $attDate, $status);
+
+                if ($ins->execute()) {
+
+                    $reverted = true;
+
+                    $msg = "تم استرجاع سجل الحضور المحذوف بنجاح";
+
+                }
+
+            }
+
+        }
+
+
+
+        if ($reverted) {
+
+            // Write audit log for the restore action
+
+            writeAuditLog(
+
+                'audit_restore',
+
+                'audit_logs',
+
+                $logId,
+
+                $action,
+
+                null,
+
+                null,
+
+                "استرجاع العملية: " . ($log['notes'] ?? $action)
+
+            );
+
+            sendJSON(['success' => true, 'message' => $msg]);
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'نوع العملية غير مدعوم حالياً للاسترجاع التلقائي']);
+
+        }
+
+
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function getLastAuditLog()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        if (!$uncleId) {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+
+            return;
+
+        }
+
+        $conn = getDBConnection();
+
+        // Get the latest log entry created by this uncle in the last 10 seconds
+
+        // Restorable actions: student_add, student_edit, student_delete, coupon_edit, attendance_add, attendance_edit, attendance_delete
+
+        $stmt = $conn->prepare("
+
+            SELECT id, action, entity, entity_name, notes 
+
+            FROM audit_logs 
+
+            WHERE church_id = ? 
+
+              AND uncle_id = ? 
+
+              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete')
+
+              AND created_at >= NOW() - INTERVAL 10 SECOND
+
+            ORDER BY id DESC LIMIT 1
+
+        ");
+
+        $stmt->bind_param("ii", $churchId, $uncleId);
+
+        $stmt->execute();
+
+        $res = $stmt->get_result();
+
+        if ($res->num_rows > 0) {
+
+            $log = $res->fetch_assoc();
+
+            sendJSON(['success' => true, 'log' => $log]);
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'لا توجد عمليات مؤخرة']);
+
+        }
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
 
     }
 
