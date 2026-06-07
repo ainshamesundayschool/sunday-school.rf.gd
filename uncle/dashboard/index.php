@@ -2973,7 +2973,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 8px 16px;
+            padding: 16px 12px 8px;
             border-radius: var(--r-md);
             margin-top: 8px;
             margin-bottom: 0;
@@ -3045,20 +3045,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
         
         .bulk-close-x-btn {
+            position: absolute;
+            top: 4px;
+            left: 8px;
             background: transparent;
             border: none;
             color: var(--text-3);
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             line-height: 1;
             padding: 0;
             transition: color 0.2s ease;
-            margin-right: auto;
+            z-index: 5;
         }
         .bulk-close-x-btn:hover {
             color: var(--danger);
@@ -9208,6 +9211,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
                     <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+                        <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
+                            &times;
+                        </button>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
                                 <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
@@ -9259,9 +9265,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </button>
                             <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                                 <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
-                                &times;
                             </button>
                         </div>
                     </div>
@@ -12165,7 +12168,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 reason: 'تعديل جماعي'
             }, d => {
                 showToast(d.message || 'تم تعديل الكوبونات بنجاح', 'success');
-                disableBulkSelectMode();
+                selectedStudentIds.clear();
+                updateBulkUI();
                 loadData();
             }, err => {
                 showToast(err || 'فشل التعديل', 'error');
@@ -12447,7 +12451,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
 
             showToast(`تم تسجيل ${actionLabel} للمحددين محلياً`, 'success');
-            disableBulkSelectMode();
+            selectedStudentIds.clear();
+            updateBulkUI();
+            renderAttendanceList(currentClass);
         }
 
         function updateBulkUI() {
@@ -12489,7 +12495,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 student_ids: Array.from(selectedStudentIds).join(',')
             }, d => {
                 showToast(d.message || 'تم حذف الأطفال بنجاح', 'success');
-                disableBulkSelectMode();
+                selectedStudentIds.clear();
+                updateBulkUI();
                 loadData();
             }, err => {
                 showToast(err || 'فشل في الحذف الجماعي', 'error');
@@ -12537,7 +12544,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }, d => {
                 showToast(d.message || 'تم تغيير الفصل بنجاح', 'success');
                 closeModal('bulkEditClassModal');
-                disableBulkSelectMode();
+                selectedStudentIds.clear();
+                updateBulkUI();
                 loadData();
             }, err => {
                 showToast(err || 'فشل نقل الأطفال', 'error');
