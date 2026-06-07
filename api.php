@@ -32449,9 +32449,11 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                     } else {
 
-                        $ins = $conn->prepare("INSERT INTO attendance (student_id, attendance_date, status, created_at) VALUES (?, ?, ?, NOW())");
+                        $ins = $conn->prepare("INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
 
-                        $ins->bind_param("iss", $entityId, $attDate, $oldStatus);
+                        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+                        $ins->bind_param("iissi", $entityId, $churchId, $attDate, $oldStatus, $uncleId);
 
                         $ins->execute();
 
@@ -32479,9 +32481,11 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
 
 
-                $ins = $conn->prepare("INSERT INTO attendance (student_id, attendance_date, status, created_at) VALUES (?, ?, ?, NOW())");
+                $ins = $conn->prepare("INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
 
-                $ins->bind_param("iss", $entityId, $attDate, $status);
+                $uncleId = $_SESSION['uncle_id'] ?? null;
+
+                $ins->bind_param("iissi", $entityId, $churchId, $attDate, $status, $uncleId);
 
                 if ($ins->execute()) {
 
