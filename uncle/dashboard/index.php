@@ -8158,7 +8158,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        #kidQrReader video {
+        #kidQrReader video, #kidQrReader canvas {
             transform: scaleX(1) !important;
             -webkit-transform: scaleX(1) !important;
         }
@@ -11972,6 +11972,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     },
                     () => { }
                 );
+
+                // Forcibly unmirror webcam preview in JS as well, checking periodically during startup
+                let forceCount = 0;
+                const forceInterval = setInterval(() => {
+                    const videoEl = document.querySelector('#kidQrReader video');
+                    if (videoEl) {
+                        videoEl.style.setProperty('transform', 'scaleX(1)', 'important');
+                        videoEl.style.setProperty('-webkit-transform', 'scaleX(1)', 'important');
+                    }
+                    forceCount++;
+                    if (forceCount > 20) clearInterval(forceInterval);
+                }, 100);
             } catch (err) {
                 showToast('فشل تشغيل الكاميرا', 'error');
                 stopKidQrScan();
