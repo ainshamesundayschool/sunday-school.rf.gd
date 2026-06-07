@@ -8156,6 +8156,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 padding: 10px 16px 16px;
                 animation: none !important;
             }
+            #kidQrScannerModal .modal::before {
+                display: none !important;
+            }
         }
 
         #kidQrReader video, #kidQrReader canvas {
@@ -9569,9 +9572,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                     <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:90px" onclick="finishKidQrScan()">
                         <i class="fas fa-check"></i> تم
-                    </button>
-                    <button class="btn btn-secondary" style="flex:1;min-width:90px" onclick="stopKidQrScan()">
-                        <i class="fas fa-times"></i> إلغاء
                     </button>
                 </div>
             </div>
@@ -11459,6 +11459,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
         function initSwipeToClose(overlay) {
+            if (overlay.id === 'kidQrScannerModal') return;
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
