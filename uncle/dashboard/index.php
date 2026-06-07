@@ -8161,7 +8161,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        #kidQrReader video, #kidQrReader canvas {
+        #kidQrReader video {
+            object-fit: cover !important;
+            transform: scaleX(1) !important;
+            -webkit-transform: scaleX(1) !important;
+        }
+        #kidQrReader canvas {
             transform: scaleX(1) !important;
             -webkit-transform: scaleX(1) !important;
         }
@@ -9563,7 +9568,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </select>
                 </div>
 
-                <div id="kidQrReader" style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
+                <div id="kidQrReader" style="width:100%; max-width:280px; aspect-ratio:1/1; margin:0 auto 12px; border-radius:16px; overflow:hidden; background:#000"></div>
                 <div id="kidQrScanSummary" style="margin-top:12px"></div>
                 <div id="kidQrScanList" style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px"></div>
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
