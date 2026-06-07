@@ -2883,27 +2883,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
         }
 
-        /* ── Undo Toast (Minimal & Light) ── */
+        /* ── Undo Toast (Dark & Bold) ── */
         .undo-toast {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 10px 16px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+            background: rgba(22, 28, 45, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 12px 18px;
+            border-radius: 14px;
+            box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
             display: none;
             align-items: center;
             gap: 10px;
             z-index: 9999;
+            font-family: 'Cairo', sans-serif;
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text);
+            color: #f1f5f9;
             min-width: 280px;
             max-width: 420px;
-            border: 1px solid var(--border-solid);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             direction: rtl;
             transition: all 0.3s ease;
         }
@@ -2912,12 +2913,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             animation: undoToastIn 0.3s var(--ease-spring);
         }
         .undo-btn {
-            background: rgba(91, 108, 245, 0.08);
-            color: var(--brand);
-            border: 1px solid rgba(91, 108, 245, 0.15);
-            padding: 4px 10px;
-            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 5px 12px;
+            border-radius: 8px;
             cursor: pointer;
+            font-family: 'Cairo', sans-serif;
             font-weight: 700;
             font-size: 0.78rem;
             display: flex;
@@ -2926,26 +2928,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all 0.2s ease;
         }
         .undo-btn:hover {
-            transform: scale(1.03);
-            background: rgba(91, 108, 245, 0.15);
+            transform: scale(1.05);
+            background: rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
         }
         .undo-timer-circle {
             position: relative;
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.68rem;
-            color: var(--text-2);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
             font-weight: 700;
         }
         .undo-toast-close {
             background: transparent;
             border: none;
-            color: var(--text-3);
+            color: rgba(255, 255, 255, 0.35);
             cursor: pointer;
             padding: 4px;
             font-size: 0.85rem;
@@ -2955,7 +2959,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: color 0.2s;
         }
         .undo-toast-close:hover {
-            color: var(--danger);
+            color: #f87171;
         }
         @keyframes undoToastIn {
             from {
