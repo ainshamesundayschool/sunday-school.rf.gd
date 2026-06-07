@@ -2602,11 +2602,31 @@ try {
 
 
 
+        case 'bulkDeleteAuditLogs':
+
+            checkAuth();
+
+            bulkDeleteAuditLogs();
+
+            break;
+
+
+
         case 'restoreAuditLog':
 
             checkAuth();
 
             restoreAuditLog();
+
+            break;
+
+
+
+        case 'bulkRestoreAuditLogs':
+
+            checkAuth();
+
+            bulkRestoreAuditLogs();
 
             break;
 
@@ -31668,9 +31688,10 @@ function deleteAuditLog()
 
 // ── Restore an action from the audit log (admin only) ─────────
 
-function restoreAuditLog()
 
+function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentId = 0)
 {
+
 
     try {
 
@@ -31680,9 +31701,7 @@ function restoreAuditLog()
 
         if (!$logId) {
 
-            sendJSON(['success' => false, 'message' => 'معرف السجل مطلوب']);
-
-            return;
+            return ['success' => false, 'message' => 'معرف السجل مطلوب']);
 
         }
 
@@ -31706,9 +31725,7 @@ function restoreAuditLog()
 
         if (!$log) {
 
-            sendJSON(['success' => false, 'message' => 'لم يتم العثور على السجل']);
-
-            return;
+            return ['success' => false, 'message' => 'لم يتم العثور على السجل']);
 
         }
 
@@ -31728,9 +31745,7 @@ function restoreAuditLog()
 
         if (empty($oldData) && empty($newData)) {
 
-            sendJSON(['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل']);
-
-            return;
+            return ['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل']);
 
         }
 
@@ -31743,8 +31758,7 @@ function restoreAuditLog()
 
         if ($entity === 'bulk_action') {
             if (!is_array($oldData)) {
-                sendJSON(['success' => false, 'message' => 'بيانات السجل الجماعي غير صالحة']);
-                return;
+                return ['success' => false, 'message' => 'بيانات السجل الجماعي غير صالحة']);
             }
 
             if ($targetStudentId > 0) {
@@ -31756,8 +31770,7 @@ function restoreAuditLog()
                     }
                 }
                 if (empty($filtered)) {
-                    sendJSON(['success' => false, 'message' => 'الطفل المحدد غير موجود في هذه العملية الجماعية']);
-                    return;
+                    return ['success' => false, 'message' => 'الطفل المحدد غير موجود في هذه العملية الجماعية']);
                 }
                 $oldData = $filtered;
             }
@@ -31925,12 +31938,10 @@ function restoreAuditLog()
                     $notes
                 );
 
-                sendJSON(['success' => true, 'message' => $msg]);
-                return;
+                return ['success' => true, 'message' => $msg]);
             } else {
                 $conn->rollback();
-                sendJSON(['success' => false, 'message' => 'لم يتم استرجاع أي طفل. ربما تم استرجاعهم بالفعل أو غير موجودين.']);
-                return;
+                return ['success' => false, 'message' => 'لم يتم استرجاع أي طفل. ربما تم استرجاعهم بالفعل أو غير موجودين.']);
             }
         }
 
@@ -31940,9 +31951,7 @@ function restoreAuditLog()
 
                 if (empty($oldData)) {
 
-                    sendJSON(['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها']);
 
                 }
 
@@ -31956,9 +31965,7 @@ function restoreAuditLog()
 
                 if ($chk->get_result()->num_rows === 0) {
 
-                    sendJSON(['success' => false, 'message' => 'لا يمكن الاسترجاع: الطفل غير موجود حالياً']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لا يمكن الاسترجاع: الطفل غير موجود حالياً']);
 
                 }
 
@@ -32016,9 +32023,7 @@ function restoreAuditLog()
 
                 } else {
 
-                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث']);
 
                 }
 
@@ -32026,9 +32031,7 @@ function restoreAuditLog()
 
                 if (empty($oldData)) {
 
-                    sendJSON(['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال']);
 
                 }
 
@@ -32042,9 +32045,7 @@ function restoreAuditLog()
 
                 if ($chk->get_result()->num_rows > 0) {
 
-                    sendJSON(['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه']);
-
-                    return;
+                    return ['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه']);
 
                 }
 
@@ -32102,9 +32103,7 @@ function restoreAuditLog()
 
                 } else {
 
-                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على بيانات صالحة لإعادة الإدخال']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لم يتم العثور على بيانات صالحة لإعادة الإدخال']);
 
                 }
 
@@ -32120,9 +32119,7 @@ function restoreAuditLog()
 
                 if ($chkAtt->get_result()->num_rows > 0) {
 
-                    sendJSON(['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود سجلات حضور مسجلة له']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود سجلات حضور مسجلة له']);
 
                 }
 
@@ -32136,9 +32133,7 @@ function restoreAuditLog()
 
                 if ($chkReg->get_result()->num_rows > 0) {
 
-                    sendJSON(['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود تسجيلات رحلات مسجلة له']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لا يمكن التراجع عن إضافة الطفل لوجود تسجيلات رحلات مسجلة له']);
 
                 }
 
@@ -32156,9 +32151,7 @@ function restoreAuditLog()
 
                 } else {
 
-                    sendJSON(['success' => false, 'message' => 'لم يتم العثور على الطفل لحذفه']);
-
-                    return;
+                    return ['success' => false, 'message' => 'لم يتم العثور على الطفل لحذفه']);
 
                 }
 
@@ -32182,9 +32175,7 @@ function restoreAuditLog()
 
                 if (!$stu) {
 
-                    sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
-
-                    return;
+                    return ['success' => false, 'message' => 'الطفل غير موجود']);
 
                 }
 
@@ -32248,9 +32239,7 @@ function restoreAuditLog()
 
                 if (!$attDate) {
 
-                    sendJSON(['success' => false, 'message' => 'تاريخ الغياب غير محدد في السجل']);
-
-                    return;
+                    return ['success' => false, 'message' => 'تاريخ الغياب غير محدد في السجل']);
 
                 }
 
@@ -32320,9 +32309,7 @@ function restoreAuditLog()
 
                 if (!$attDate) {
 
-                    sendJSON(['success' => false, 'message' => 'بيانات الحضور غير كاملة']);
-
-                    return;
+                    return ['success' => false, 'message' => 'بيانات الحضور غير كاملة']);
 
                 }
 
@@ -32368,11 +32355,11 @@ function restoreAuditLog()
 
             );
 
-            sendJSON(['success' => true, 'message' => $msg]);
+            return ['success' => true, 'message' => $msg]);
 
         } else {
 
-            sendJSON(['success' => false, 'message' => 'نوع العملية غير مدعوم حالياً للاسترجاع التلقائي']);
+            return ['success' => false, 'message' => 'نوع العملية غير مدعوم حالياً للاسترجاع التلقائي']);
 
         }
 
@@ -32380,11 +32367,116 @@ function restoreAuditLog()
 
     } catch (Exception $e) {
 
-        sendJSON(['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()]);
+        return ['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()]);
 
     }
 
+
 }
+
+
+function restoreAuditLog()
+{
+    try {
+        $churchId = getChurchId();
+        $logId = intval($_POST['log_id'] ?? 0);
+        if (!$logId) {
+            sendJSON(['success' => false, 'message' => 'معرف السجل مطلوب']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $res = restoreSingleAuditLogInternal($logId, $churchId, $conn, intval($_POST['target_student_id'] ?? 0));
+        sendJSON($res);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ أثناء الاسترجاع: ' . $e->getMessage()]);
+    }
+}
+
+
+function bulkRestoreAuditLogs()
+{
+    try {
+        $churchId = getChurchId();
+        $logIdsStr = sanitize($_POST['log_ids'] ?? '');
+        if (empty($logIdsStr)) {
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أي سجلات لاسترجاعها']);
+            return;
+        }
+
+        $logIds = array_map('intval', explode(',', $logIdsStr));
+        $logIds = array_filter($logIds);
+        if (empty($logIds)) {
+            sendJSON(['success' => false, 'message' => 'سجلات غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        // Sort descending to restore in reverse chronological order
+        rsort($logIds);
+
+        $successCount = 0;
+        $failedLogs = [];
+
+        foreach ($logIds as $logId) {
+            $res = restoreSingleAuditLogInternal($logId, $churchId, $conn);
+            if ($res['success']) {
+                $successCount++;
+            } else {
+                $failedLogs[] = "السجل #$logId: " . $res['message'];
+            }
+        }
+
+        if ($successCount > 0) {
+            $msg = "تم استرجاع $successCount من العمليات بنجاح";
+            if (!empty($failedLogs)) {
+                $msg .= ". وفشل: " . implode(', ', $failedLogs);
+            }
+            sendJSON(['success' => true, 'message' => $msg]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل استرجاع العمليات: ' . implode(', ', $failedLogs)]);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+
+function bulkDeleteAuditLogs()
+{
+    try {
+        $churchId = getChurchId();
+        $logIdsStr = sanitize($_POST['log_ids'] ?? '');
+        if (empty($logIdsStr)) {
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أي سجلات لحذفها']);
+            return;
+        }
+
+        $logIds = array_map('intval', explode(',', $logIdsStr));
+        $logIds = array_filter($logIds);
+        if (empty($logIds)) {
+            sendJSON(['success' => false, 'message' => 'سجلات غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $placeholders = implode(',', array_fill(0, count($logIds), '?'));
+        $types = str_repeat('i', count($logIds)) . 'i';
+        $bindValues = array_merge($logIds, [$churchId]);
+
+        $stmt = $conn->prepare("DELETE FROM audit_logs WHERE id IN ($placeholders) AND church_id = ?");
+        $stmt->bind_param($types, ...$bindValues);
+        if ($stmt->execute()) {
+            $deletedCount = $stmt->affected_rows;
+            sendJSON(['success' => true, 'message' => "تم حذف $deletedCount من السجلات بنجاح"]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حذف السجلات']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
 
 
 

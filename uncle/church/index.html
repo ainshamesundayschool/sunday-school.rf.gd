@@ -2844,6 +2844,29 @@
             grid-template-columns: 40px 1fr 88px 88px 108px 64px 80px !important;
         }
 
+        /* ── Bulk Audit Selection ── */
+        .audit-list-container.bulk-active .bulk-check-wrap {
+            display: flex !important;
+        }
+        .audit-list-container.bulk-active .data-row-actions-cell {
+            display: none !important;
+        }
+        .audit-list-container.bulk-active .data-row {
+            background-color: var(--bg-hover) !important;
+        }
+        .audit-list-container.bulk-active .data-row.selected {
+            background-color: var(--primary-light) !important;
+            border-right: 3px solid var(--primary) !important;
+        }
+        .audit-list-container.bulk-active .data-cols-audit {
+            grid-template-columns: 40px 36px 130px 100px 1fr 80px 1fr 1fr !important;
+        }
+        @media (min-width: 992px) {
+            .audit-list-container.bulk-active .data-cols-audit {
+                grid-template-columns: 40px 36px 130px 100px 1fr 80px 1fr 1fr 120px !important;
+            }
+        }
+
         .bulk-actions-bar {
             position: sticky;
             top: 0;
@@ -7771,6 +7794,7 @@
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-scroll"></i> سجل العمليات</div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-outline btn-sm" id="bulkSelectAuditToggleBtn" onclick="toggleAuditBulkSelectMode()"><i class="fas fa-check-circle"></i> تحديد متعدد</button>
                             <button class="btn btn-outline btn-sm" onclick="exportAuditCSV()"><i
                                     class="fas fa-file-csv"></i> تصدير CSV</button>
                             <button class="btn btn-outline btn-sm" onclick="loadAuditLogs()"><i
@@ -7784,7 +7808,7 @@
                             <div class="search-wrap" style="min-width:200px;flex:1;">
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="auditSearch" placeholder="بحث في السجل..."
-                                    oninput="filterAuditLogs()">
+                                     oninput="filterAuditLogs()">
                             </div>
                             <select id="auditEntityFilter" class="form-select" onchange="filterAuditLogs()">
                                 <option value="">جميع الكيانات</option>
@@ -7823,8 +7847,31 @@
                         <div id="auditStatsRow"
                             style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0;">
                         </div>
-                        <div class="data-list">
+
+                        <!-- Sticky bulk actions bar for Audit Logs -->
+                        <div class="bulk-actions-bar" id="auditBulkActionsBar" style="display:none; margin-bottom: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px); padding: 12px 20px; align-items: center; justify-content: space-between; gap: 16px; color: #ffffff; direction: rtl; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="bulk-check-wrap" onclick="toggleSelectAllAuditBulk()" style="display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;">
+                                    <div class="bulk-check-circle" id="auditBulkBarSelectAllCircle" style="width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; color:transparent; font-size:0.65rem;">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <span style="font-size:0.85rem; font-weight:700;">تحديد الكل</span>
+                                </div>
+                                <span id="auditBulkSelectCount" style="font-size:0.85rem; font-weight:700; opacity:0.8; margin-right:12px;">تم تحديد 0 سجلات</span>
+                            </div>
+                            <div class="bulk-actions-btns" style="display:flex; gap:8px;">
+                                <button class="btn btn-warning btn-sm" onclick="executeBulkAuditRestore()"><i class="fas fa-undo"></i> استرجاع المحدد</button>
+                                <button class="btn btn-danger btn-sm" onclick="executeBulkAuditDelete()"><i class="fas fa-trash"></i> حذف المحدد</button>
+                            </div>
+                        </div>
+
+                        <div class="data-list audit-list-container" id="auditLogsListContainer">
                             <div class="data-list-head data-cols-audit">
+                                <span class="bulk-check-wrap" style="display:none; justify-content:center; align-items:center; cursor:pointer;" onclick="toggleSelectAllAuditBulk()">
+                                    <div class="bulk-check-circle" id="auditBulkSelectAllHeadCircle" style="width:20px; height:20px; border-radius:50%; border:2px solid rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; color:transparent; font-size:0.65rem;">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </span>
                                 <span>#</span><span>التاريخ</span><span>بواسطة</span><span>الحدث</span><span>الكيان</span><span>الاسم</span><span>التفاصيل</span><span></span>
                             </div>
                             <div class="data-list-body" id="auditTable"></div>
@@ -14692,6 +14739,173 @@
             filterAuditLogs();
         }
 
+        let isAuditBulkSelectMode = false;
+        let selectedAuditLogIds = new Set();
+
+        function toggleAuditBulkSelectMode() {
+            isAuditBulkSelectMode = !isAuditBulkSelectMode;
+            const toggleBtn = document.getElementById('bulkSelectAuditToggleBtn');
+            const actionsBar = document.getElementById('auditBulkActionsBar');
+            const listContainer = document.getElementById('auditLogsListContainer');
+            const headCheckWrap = document.querySelector('#auditLogsListContainer .data-list-head .bulk-check-wrap');
+
+            selectedAuditLogIds.clear();
+
+            if (isAuditBulkSelectMode) {
+                if (toggleBtn) {
+                    toggleBtn.classList.add('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-times"></i> إلغاء التحديد';
+                }
+                if (actionsBar) {
+                    actionsBar.style.display = 'flex';
+                }
+                if (listContainer) {
+                    listContainer.classList.add('bulk-active');
+                }
+                if (headCheckWrap) {
+                    headCheckWrap.style.display = 'flex';
+                }
+            } else {
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i> تحديد متعدد';
+                }
+                if (actionsBar) {
+                    actionsBar.style.display = 'none';
+                }
+                if (listContainer) {
+                    listContainer.classList.remove('bulk-active');
+                }
+                if (headCheckWrap) {
+                    headCheckWrap.style.display = 'none';
+                }
+            }
+            updateAuditBulkUI();
+            renderAuditTable(_filteredAuditLogs || auditLogsCache);
+        }
+
+        function toggleAuditLogSelection(id) {
+            if (selectedAuditLogIds.has(id)) {
+                selectedAuditLogIds.delete(id);
+            } else {
+                selectedAuditLogIds.add(id);
+            }
+            updateAuditBulkUI();
+            renderAuditTable(_filteredAuditLogs || auditLogsCache);
+        }
+
+        function toggleSelectAllAuditBulk() {
+            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
+            const start = (auditPage - 1) * AUDIT_PAGE_SIZE;
+            const pageItems = (_filteredAuditLogs || auditLogsCache).slice(start, start + AUDIT_PAGE_SIZE);
+            const restorablePageItems = pageItems.filter(l => restorableActions.includes(l.action));
+            
+            const allSelected = restorablePageItems.length > 0 && restorablePageItems.every(l => selectedAuditLogIds.has(l.id));
+
+            if (allSelected) {
+                restorablePageItems.forEach(l => selectedAuditLogIds.delete(l.id));
+            } else {
+                restorablePageItems.forEach(l => selectedAuditLogIds.add(l.id));
+            }
+            updateAuditBulkUI();
+            renderAuditTable(_filteredAuditLogs || auditLogsCache);
+        }
+
+        function updateAuditBulkUI() {
+            const countLabel = document.getElementById('auditBulkSelectCount');
+            if (countLabel) {
+                countLabel.textContent = `تم تحديد ${selectedAuditLogIds.size} سجلات`;
+            }
+
+            const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
+            const start = (auditPage - 1) * AUDIT_PAGE_SIZE;
+            const pageItems = (_filteredAuditLogs || auditLogsCache).slice(start, start + AUDIT_PAGE_SIZE);
+            const restorablePageItems = pageItems.filter(l => restorableActions.includes(l.action));
+
+            const isAllSelected = restorablePageItems.length > 0 && restorablePageItems.every(l => selectedAuditLogIds.has(l.id));
+
+            const headCircle = document.getElementById('auditBulkSelectAllHeadCircle');
+            const barCircle = document.getElementById('auditBulkBarSelectAllCircle');
+
+            [headCircle, barCircle].forEach(circle => {
+                if (circle) {
+                    if (isAllSelected) {
+                        circle.style.background = 'var(--primary)';
+                        circle.style.borderColor = 'var(--primary)';
+                        circle.style.color = '#fff';
+                    } else {
+                        circle.style.background = 'transparent';
+                        circle.style.borderColor = circle === headCircle ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)';
+                        circle.style.color = 'transparent';
+                    }
+                }
+            });
+        }
+
+        function executeBulkAuditRestore() {
+            if (selectedAuditLogIds.size === 0) {
+                showToast('الرجاء تحديد سجلات أولاً', 'warning');
+                return;
+            }
+
+            if (!confirm(`هل أنت متأكد من استرجاع ${selectedAuditLogIds.size} من العمليات المحددة؟`)) {
+                return;
+            }
+
+            showLoading('جاري استرجاع العمليات المحددة...');
+            const fd = mkFd('bulkRestoreAuditLogs');
+            fd.append('log_ids', Array.from(selectedAuditLogIds).join(','));
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    hideLoading();
+                    if (d.success) {
+                        showToast(d.message || 'تم استرجاع العمليات بنجاح', 'success');
+                        toggleAuditBulkSelectMode();
+                        loadAuditLogs();
+                    } else {
+                        showToast(d.message || 'فشل استرجاع بعض العمليات', 'error');
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
+        }
+
+        function executeBulkAuditDelete() {
+            if (selectedAuditLogIds.size === 0) {
+                showToast('الرجاء تحديد سجلات أولاً', 'warning');
+                return;
+            }
+
+            if (!confirm(`هل أنت متأكد من حذف ${selectedAuditLogIds.size} من السجلات المحددة نهائياً؟`)) {
+                return;
+            }
+
+            showLoading('جاري حذف السجلات المحددة...');
+            const fd = mkFd('bulkDeleteAuditLogs');
+            fd.append('log_ids', Array.from(selectedAuditLogIds).join(','));
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    hideLoading();
+                    if (d.success) {
+                        showToast(d.message || 'تم حذف السجلات بنجاح', 'success');
+                        toggleAuditBulkSelectMode();
+                        loadAuditLogs();
+                    } else {
+                        showToast(d.message || 'فشل حذف بعض السجلات', 'error');
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
+        }
+
         const auditActionMeta = {
             bulk_student_delete: { icon: 'trash-alt', cls: 'badge-danger', label: 'حذف جماعي' },
             bulk_student_class_update: { icon: 'users', cls: 'badge-warning', label: 'نقل صفوف جماعي' },
@@ -14799,6 +15013,8 @@
                 const logJson = JSON.stringify(l).replace(/"/g, '&quot;');
                 const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
                 const isRestorable = restorableActions.includes(l.action);
+                const isSelected = selectedAuditLogIds.has(l.id);
+
                 const rowActions = [
                     { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showAuditDetail(l) }
                 ];
@@ -14808,8 +15024,20 @@
                 rowActions.push({ label: 'حذف السجل', icon: 'fa-trash', danger: true, handler: () => deleteAuditLogEntry(l.id) });
 
                 const actKey = stashRowActions(entityName || meta.label, rowActions);
-                return `<div class="data-row data-cols-audit" role="button" tabindex="0"
-                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+
+                const checkboxHtml = isAuditBulkSelectMode ? `
+                    <span class="bulk-check-wrap" style="display:flex; justify-content:center; align-items:center;" onclick="event.stopPropagation(); if (${isRestorable}) toggleAuditLogSelection(${l.id});">
+                        <div class="bulk-check-circle ${isSelected ? 'checked' : ''} ${!isRestorable ? 'disabled' : ''}" style="width:20px; height:20px; border-radius:50%; border:2px solid ${isSelected ? 'var(--primary)' : 'rgba(0,0,0,0.25)'}; background: ${isSelected ? 'var(--primary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; color: ${isSelected ? '#fff' : 'transparent'}; font-size:0.65rem; opacity: ${!isRestorable ? '0.4' : '1'}; cursor: ${!isRestorable ? 'not-allowed' : 'pointer'};">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </span>
+                ` : '';
+
+                const rowClickHtml = isAuditBulkSelectMode ? `if (${isRestorable}) toggleAuditLogSelection(${l.id})` : `openRowActionsByKey('${actKey}')`;
+
+                return `<div class="data-row data-cols-audit ${isSelected ? 'selected' : ''}" role="button" tabindex="0"
+                    onclick="${rowClickHtml}" onkeydown="if(event.key==='Enter')this.click()">
+                    ${checkboxHtml}
                     <span style="color:var(--text-3);font-size:0.78rem;">${start + i + 1}</span>
                     <span style="white-space:nowrap;font-size:0.78rem;color:var(--text-3);">${dateStr}</span>
                     <strong style="font-size:0.82rem;">${escHtml(actor)}</strong>
@@ -14826,6 +15054,9 @@
 
             // Render pagination
             renderAuditPagination(logs.length);
+            if (isAuditBulkSelectMode) {
+                updateAuditBulkUI();
+            }
         }
 
         // Separate function for pagination
