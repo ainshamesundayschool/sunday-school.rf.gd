@@ -14846,6 +14846,14 @@
             });
         }
 
+        function showLoading(msg) {
+            showToast(msg || 'جاري التحميل...', 'info');
+        }
+
+        function hideLoading() {
+            // No-op
+        }
+
         function executeBulkAuditRestore() {
             if (selectedAuditLogIds.size === 0) {
                 showToast('الرجاء تحديد سجلات أولاً', 'warning');
