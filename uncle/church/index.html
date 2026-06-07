@@ -14693,6 +14693,10 @@
         }
 
         const auditActionMeta = {
+            bulk_student_delete: { icon: 'trash-alt', cls: 'badge-danger', label: 'حذف جماعي' },
+            bulk_student_class_update: { icon: 'users', cls: 'badge-warning', label: 'نقل صفوف جماعي' },
+            bulk_student_coupon_update: { icon: 'coins', cls: 'badge-warning', label: 'تعديل كوبونات جماعي' },
+            bulk_attendance_save: { icon: 'calendar-check', cls: 'badge-primary', label: 'تسجيل حضور جماعي' },
             add: { icon: 'plus-circle', cls: 'badge-success', label: 'إضافة' },
             insert: { icon: 'plus-circle', cls: 'badge-success', label: 'إضافة' },
             create: { icon: 'plus-circle', cls: 'badge-success', label: 'إنشاء' },
@@ -14793,7 +14797,7 @@
                 }
 
                 const logJson = JSON.stringify(l).replace(/"/g, '&quot;');
-                const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete'];
+                const restorableActions = ['student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'];
                 const isRestorable = restorableActions.includes(l.action);
                 const rowActions = [
                     { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showAuditDetail(l) }
@@ -16000,6 +16004,124 @@
             const dateStr = log.created_at ? new Date(log.created_at).toLocaleString('ar-EG') : '---';
             const actor = log.actor_name || log.performed_by || log.uncle_name || '---';
 
+            // Check if this is a bulk action
+            const isBulk = ['bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save'].includes(log.action) || log.entity === 'bulk_action';
+
+            if (isBulk) {
+                let items = [];
+                try {
+                    items = typeof log.old_data === 'string' ? JSON.parse(log.old_data) : (log.old_data || []);
+                } catch (e) {
+                    items = [];
+                }
+
+                let itemsHtml = '';
+                if (items.length > 0) {
+                    items.forEach(item => {
+                        const sid = item.id;
+                        const sName = item.name || '---';
+                        let changeSummary = '';
+
+                        if (log.action === 'bulk_student_delete') {
+                            changeSummary = '<span style="color:var(--danger); font-weight:600;">حذف كامل للطفل</span>';
+                        } else if (log.action === 'bulk_student_class_update') {
+                            const oldC = item.old_data?.class || '---';
+                            const newC = item.new_data?.class || '---';
+                            changeSummary = `<span style="color:var(--danger);">${oldC}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="color:var(--success); font-weight:600;">${newC}</span>`;
+                        } else if (log.action === 'bulk_student_coupon_update') {
+                            const oldC = item.old_data?.coupons ?? 0;
+                            const newC = item.new_data?.coupons ?? 0;
+                            const diff = newC - oldC;
+                            const sign = diff >= 0 ? `+${diff}` : `${diff}`;
+                            changeSummary = `كوبونات: <span>${oldC}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="font-weight:600; color:${diff >= 0 ? 'var(--success)' : 'var(--danger)'};">${newC} (${sign})</span>`;
+                        } else if (log.action === 'bulk_attendance_save') {
+                            const oldS = item.old_data?.status || 'pending';
+                            const newS = item.new_data?.status || 'pending';
+                            const oldSLabel = oldS === 'present' ? 'حاضر' : (oldS === 'absent' ? 'غائب' : 'غير مسجل');
+                            const newSLabel = newS === 'present' ? 'حاضر' : (newS === 'absent' ? 'غائب' : 'غير مسجل');
+                            const dateStr = item.date || '';
+                            changeSummary = `حضور ${dateStr ? `(${dateStr})` : ''}: <span style="color:var(--text-3);">${oldSLabel}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="font-weight:600; color:${newS === 'present' ? 'var(--success)' : 'var(--danger)'};">${newSLabel}</span>`;
+                        }
+
+                        itemsHtml += `
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding:12px; font-weight:600;">${escHtml(sName)}</td>
+                                <td style="padding:12px; font-size:0.85rem;">${changeSummary}</td>
+                                <td style="padding:12px; text-align:left;">
+                                    <button class="btn btn-outline btn-xs" onclick="restoreBulkItem(${log.id}, ${sid})" style="font-size:0.75rem; padding:4px 8px;">
+                                        <i class="fas fa-undo" style="margin-left:4px;"></i> استرجاع الطفل فقط
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    itemsHtml = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--muted);">لا توجد تفاصيل أطفال مسجلة لهذه العملية</td></tr>';
+                }
+
+                let html = `
+                    <div style="margin-bottom:20px; padding:16px; background:var(--bg); border-radius:10px;">
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px;">
+                            <div>
+                                <div style="color:var(--muted); font-size:0.75rem;">التاريخ والوقت</div>
+                                <div style="font-weight:600;">${dateStr}</div>
+                            </div>
+                            <div>
+                                <div style="color:var(--muted); font-size:0.75rem;">بواسطة</div>
+                                <div style="font-weight:600;">${escHtml(actor)}</div>
+                            </div>
+                            <div>
+                                <div style="color:var(--muted); font-size:0.75rem;">نوع الحدث</div>
+                                <div><span class="badge ${meta.cls}"><i class="fas fa-${meta.icon}"></i> ${meta.label}</span></div>
+                            </div>
+                            <div>
+                                <div style="color:var(--muted); font-size:0.75rem;">الكيان</div>
+                                <div><span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-${entityIcon}" style="color:var(--primary);"></i> ${escHtml(entityType)}</span></div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <div style="color:var(--muted); font-size:0.75rem;">ملاحظات</div>
+                                <div style="font-weight:600;">${escHtml(log.notes || '')}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px; flex-wrap:wrap; gap:10px;">
+                        <h4 style="margin:0;">أطفال العملية الجماعية (${items.length})</h4>
+                        <button class="btn btn-primary btn-sm" onclick="restoreBulkAll(${log.id})">
+                            <i class="fas fa-undo-alt" style="margin-left:4px;"></i> استرجاع العملية بالكامل
+                        </button>
+                    </div>
+
+                    <div style="overflow-x:auto; background:white; border:1px solid var(--border); border-radius:10px; margin-top:10px;">
+                        <table style="width:100%; border-collapse:collapse; text-align:right;">
+                            <thead>
+                                <tr style="background:var(--bg); border-bottom:2px solid var(--border);">
+                                    <th style="padding:12px; font-weight:600; color:var(--text-1);">الاسم</th>
+                                    <th style="padding:12px; font-weight:600; color:var(--text-1);">التفاصيل قبل العملية ← بعد العملية</th>
+                                    <th style="padding:12px; font-weight:600; color:var(--text-1); text-align:left;">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                if (log.ip_address || log.user_agent) {
+                    html += `
+                        <div style="margin-top:20px; padding:12px; background:var(--bg); border-radius:8px; font-size:0.75rem; color:var(--muted);">
+                            ${log.ip_address ? `<div><strong>IP:</strong> ${log.ip_address}</div>` : ''}
+                            ${log.user_agent ? `<div><strong>المتصفح:</strong> ${log.user_agent.substring(0, 100)}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                content.innerHTML = html;
+                openModal('auditDetailModal');
+                return;
+            }
+
             // Parse old and new data
             let oldData = {};
             let newData = {};
@@ -16099,6 +16221,53 @@
 
             content.innerHTML = html;
             openModal('auditDetailModal');
+        }
+
+        async function restoreBulkItem(logId, studentId) {
+            const confirmed = confirm("هل أنت متأكد من استرجاع هذا الطفل فقط من العملية؟");
+            if (!confirmed) return;
+
+            const fd = mkFd('restoreAuditLog');
+            fd.append('log_id', logId);
+            fd.append('target_student_id', studentId);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (d.success) {
+                    showToast(d.message || 'تم استرجاع الطفل بنجاح', 'success');
+                    closeModal('auditDetailModal');
+                    if (typeof loadStudents === 'function') loadStudents();
+                    if (typeof loadStatistics === 'function') loadStatistics();
+                    if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                } else {
+                    showToast(d.message || 'فشل في استرجاع الطفل', 'error');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function restoreBulkAll(logId) {
+            const confirmed = confirm("هل أنت متأكد من استرجاع العملية الجماعية بالكامل لجميع الأطفال؟");
+            if (!confirmed) return;
+
+            const fd = mkFd('restoreAuditLog');
+            fd.append('log_id', logId);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (d.success) {
+                    showToast(d.message || 'تم استرجاع العملية بنجاح', 'success');
+                    closeModal('auditDetailModal');
+                    if (typeof loadStudents === 'function') loadStudents();
+                    if (typeof loadStatistics === 'function') loadStatistics();
+                    if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                } else {
+                    showToast(d.message || 'فشل في استرجاع العملية', 'error');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
         }
         // Modified loadUncles function to include class data
         function loadUncles() {

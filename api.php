@@ -31737,10 +31737,202 @@ function restoreAuditLog()
 
 
         $reverted = false;
-
         $msg = "تم استرجاع العملية بنجاح";
 
+        $targetStudentId = intval($_POST['target_student_id'] ?? 0);
 
+        if ($entity === 'bulk_action') {
+            if (!is_array($oldData)) {
+                sendJSON(['success' => false, 'message' => 'بيانات السجل الجماعي غير صالحة']);
+                return;
+            }
+
+            if ($targetStudentId > 0) {
+                $filtered = [];
+                foreach ($oldData as $item) {
+                    if (intval($item['id'] ?? 0) === $targetStudentId) {
+                        $filtered[] = $item;
+                        break;
+                    }
+                }
+                if (empty($filtered)) {
+                    sendJSON(['success' => false, 'message' => 'الطفل المحدد غير موجود في هذه العملية الجماعية']);
+                    return;
+                }
+                $oldData = $filtered;
+            }
+
+            $conn->begin_transaction();
+            $revertedCount = 0;
+
+            foreach ($oldData as $item) {
+                $sid = intval($item['id'] ?? 0);
+                $sName = $item['name'] ?? '';
+                if (!$sid) continue;
+
+                if ($action === 'bulk_student_delete') {
+                    $snapshot = $item['old_data'] ?? null;
+                    if (!$snapshot) continue;
+
+                    $chk = $conn->prepare("SELECT id FROM students WHERE id = ?");
+                    $chk->bind_param("i", $sid);
+                    $chk->execute();
+                    if ($chk->get_result()->num_rows > 0) {
+                        continue;
+                    }
+
+                    $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
+                    $fields = [];
+                    $placeholders = [];
+                    $types = '';
+                    $params = [];
+                    foreach ($snapshot as $key => $val) {
+                        if (in_array($key, $whitelist, true)) {
+                            $fields[] = "`$key`";
+                            $placeholders[] = "?";
+                            $params[] = $val;
+                            if (is_int($val)) $types .= 'i';
+                            elseif (is_float($val)) $types .= 'd';
+                            else $types .= 's';
+                        }
+                    }
+
+                    if (!empty($fields)) {
+                        $sql = "INSERT INTO students (" . implode(', ', $fields) . ", created_at) VALUES (" . implode(', ', $placeholders) . ", NOW())";
+                        $ins = $conn->prepare($sql);
+                        $ins->bind_param($types, ...$params);
+                        if ($ins->execute()) {
+                            $revertedCount++;
+                        }
+                    }
+                } elseif ($action === 'bulk_student_class_update') {
+                    $oldClassId = intval($item['old_data']['class_id'] ?? 0);
+                    $oldClass = $item['old_data']['class'] ?? '';
+                    
+                    $chk = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
+                    $chk->bind_param("ii", $sid, $churchId);
+                    $chk->execute();
+                    if ($chk->get_result()->num_rows === 0) {
+                        continue;
+                    }
+
+                    $upd = $conn->prepare("UPDATE students SET class_id = ?, class = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                    $upd->bind_param("isii", $oldClassId, $oldClass, $sid, $churchId);
+                    if ($upd->execute()) {
+                        $revertedCount++;
+                    }
+                } elseif ($action === 'bulk_student_coupon_update') {
+                    $chk = $conn->prepare("SELECT coupons, commitment_coupons FROM students WHERE id = ? AND church_id = ?");
+                    $chk->bind_param("ii", $sid, $churchId);
+                    $chk->execute();
+                    $stu = $chk->get_result()->fetch_assoc();
+                    if (!$stu) continue;
+
+                    $oldTotal = intval($item['old_data']['coupons'] ?? 0);
+                    $newTotal = intval($item['new_data']['coupons'] ?? 0);
+                    $diff = $oldTotal - $newTotal;
+                    $newCommitment = intval($stu['commitment_coupons']) + $diff;
+                    if ($newCommitment < 0) $newCommitment = 0;
+
+                    $upd = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+                    $upd->bind_param("iiii", $oldTotal, $newCommitment, $sid, $churchId);
+                    if ($upd->execute()) {
+                        $uncleId = $_SESSION['uncle_id'] ?? null;
+                        $logStmt = $conn->prepare("
+                            INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type)
+                            VALUES (?, ?, ?, ?, ?, 'manual')
+                        ");
+                        $logStmt->bind_param("iiiii", $sid, $uncleId, $newTotal, $oldTotal, $diff);
+                        $logStmt->execute();
+                        $revertedCount++;
+                    }
+                } elseif ($action === 'bulk_attendance_save') {
+                    $oldStatus = $item['old_data']['status'] ?? 'pending';
+                    $newStatus = $item['new_data']['status'] ?? 'pending';
+                    $attDate = $item['date'] ?? null;
+                    if (!$attDate) continue;
+
+                    $chkStu = $conn->prepare("SELECT id, name, coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? AND church_id = ?");
+                    $chkStu->bind_param("ii", $sid, $churchId);
+                    $chkStu->execute();
+                    $student = $chkStu->get_result()->fetch_assoc();
+                    if (!$student) continue;
+
+                    $currentAttCoupons = intval($student['attendance_coupons']);
+                    $commitmentCoupons = intval($student['commitment_coupons']);
+                    $taskCoupons = intval($student['task_coupons']);
+
+                    if ($oldStatus === 'pending') {
+                        $del = $conn->prepare("DELETE FROM attendance WHERE student_id = ? AND attendance_date = ?");
+                        $del->bind_param("is", $sid, $attDate);
+                        $del->execute();
+                        
+                        if ($newStatus === 'present') {
+                            $newAtt = max(0, $currentAttCoupons - 100);
+                            $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
+                            $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
+                            $upd->bind_param("iii", $newAtt, $newTotal, $sid);
+                            $upd->execute();
+                        }
+                        $revertedCount++;
+                    } else {
+                        $ins = $conn->prepare("
+                            INSERT INTO attendance (student_id, church_id, attendance_date, status, uncle_id)
+                            VALUES (?, ?, ?, ?, ?)
+                            ON DUPLICATE KEY UPDATE status = VALUES(status), uncle_id = VALUES(uncle_id)
+                        ");
+                        $uncleId = $_SESSION['uncle_id'] ?? null;
+                        $ins->bind_param("iissi", $sid, $churchId, $attDate, $oldStatus, $uncleId);
+                        if ($ins->execute()) {
+                            if ($oldStatus === 'present' && $newStatus !== 'present') {
+                                $newAtt = $currentAttCoupons + 100;
+                                $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
+                                $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
+                                $upd->bind_param("iii", $newAtt, $newTotal, $sid);
+                                $upd->execute();
+                            } elseif ($oldStatus !== 'present' && $newStatus === 'present') {
+                                $newAtt = max(0, $currentAttCoupons - 100);
+                                $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
+                                $upd = $conn->prepare("UPDATE students SET attendance_coupons=?, coupons=? WHERE id=?");
+                                $upd->bind_param("iii", $newAtt, $newTotal, $sid);
+                                $upd->execute();
+                            }
+                            $revertedCount++;
+                        }
+                    }
+                }
+            }
+
+            if ($revertedCount > 0) {
+                $conn->commit();
+                $reverted = true;
+                
+                if ($targetStudentId > 0) {
+                    $msg = "تم استرجاع العملية للطفل بنجاح";
+                    $notes = "استرجاع الطفل " . ($oldData[0]['name'] ?? '') . " فقط من العملية: " . ($log['notes'] ?? $action);
+                } else {
+                    $msg = "تم استرجاع العملية الجماعية بالكامل لـ $revertedCount من الأطفال بنجاح";
+                    $notes = "استرجاع العملية الجماعية بالكامل: " . ($log['notes'] ?? $action);
+                }
+                
+                writeAuditLog(
+                    'audit_restore',
+                    'audit_logs',
+                    $logId,
+                    $action,
+                    null,
+                    null,
+                    $notes
+                );
+
+                sendJSON(['success' => true, 'message' => $msg]);
+                return;
+            } else {
+                $conn->rollback();
+                sendJSON(['success' => false, 'message' => 'لم يتم استرجاع أي طفل. ربما تم استرجاعهم بالفعل أو غير موجودين.']);
+                return;
+            }
+        }
 
         if ($entity === 'student') {
 
@@ -32230,7 +32422,7 @@ function getLastAuditLog()
 
               AND uncle_id = ? 
 
-              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete')
+              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save')
 
               AND created_at >= NOW() - INTERVAL 10 SECOND
 
