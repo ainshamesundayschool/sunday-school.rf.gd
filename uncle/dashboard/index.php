@@ -9260,14 +9260,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
                                     </div>
                                 </div>
-
-                                <!-- Selected Count Chip -->
-                                <span id="bulkSelectedCount" class="selected-count-chip" style="flex: none;">0</span>
                             </div>
-                            <!-- Close X Button -->
-                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="flex: none; margin: 0 4px 0 0;">
-                                &times;
-                            </button>
+                            <!-- Left Stack: Close Button & Selected Count Badge underneath -->
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
+                                <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
+                                    &times;
+                                </button>
+                                <span id="bulkSelectedCount" class="selected-count-chip" style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
+                            </div>
                         </div>
                         <div class="bulk-actions-btns">
                             <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
