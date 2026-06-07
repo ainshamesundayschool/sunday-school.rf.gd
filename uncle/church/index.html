@@ -2785,6 +2785,94 @@
             }
         }
 
+        /* ── Bulk Student Selection ── */
+        .bulk-check-wrap {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+        }
+        .bulk-check-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.25);
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+            font-size: 0.65rem;
+            transition: all 0.2s ease;
+        }
+        .data-row.selected .bulk-check-circle,
+        #bulkSelectAllHeadCircle.checked,
+        #bulkBarSelectAllCircle.checked {
+            border-color: var(--primary) !important;
+            background: var(--primary) !important;
+            color: #ffffff !important;
+        }
+        
+        .bulk-active .bulk-check-wrap {
+            display: flex;
+        }
+        .bulk-active .data-row-actions-cell {
+            display: none !important;
+        }
+        .bulk-active .data-row {
+            background-color: var(--bg-hover) !important;
+        }
+        .bulk-active .data-row.selected {
+            background-color: var(--primary-light) !important;
+            border-right: 3px solid var(--primary) !important;
+        }
+        
+        .bulk-active .data-cols-students {
+            grid-template-columns: 40px 1fr 88px 108px 64px 80px !important;
+        }
+        .bulk-active .data-cols-students.dev {
+            grid-template-columns: 40px 1fr 88px 88px 108px 64px 80px !important;
+        }
+        .bulk-active .data-list-head.data-cols-students {
+            grid-template-columns: 40px 1fr 88px 108px 64px 80px !important;
+        }
+        .bulk-active .data-list-head.data-cols-students.dev {
+            grid-template-columns: 40px 1fr 88px 88px 108px 64px 80px !important;
+        }
+
+        .bulk-actions-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            direction: rtl;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .bulk-actions-bar.show {
+            display: flex;
+            animation: slideDown 0.3s var(--ease-spring);
+        }
+        .bulk-actions-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         /* ═══════════════════════════════════════════════════════════════════
     EMPTY STATE
 ═══════════════════════════════════════════════════════════════════ */
@@ -6555,9 +6643,35 @@
                                     class="fas fa-qrcode"></i> طباعة QR الكل</button>
                             <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
                                     class="fas fa-upload"></i> إضافة مجموعة</button>
+                            <button class="btn btn-outline btn-sm" id="bulkSelectToggleBtn" onclick="toggleBulkSelectMode()"><i
+                                    class="fas fa-tasks"></i> تحديد متعدد</button>
                         </div>
                     </div>
                     <div class="card-body">
+                        <!-- Bulk Actions Bar -->
+                        <div class="bulk-actions-bar" id="bulkActionsBar">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()" style="display: flex;">
+                                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
+                                </div>
+                                <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">تم تحديد 0 أطفال</span>
+                            </div>
+                            <div class="bulk-actions-btns">
+                                <button class="btn btn-warning btn-sm" onclick="triggerBulkCoupons()" style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-coins"></i> تعديل الكوبونات
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()" style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-edit"></i> تغيير الفصل
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()" style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()" style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem;">
+                                    إلغاء
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="toolbar">
                             <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="studentSearch"
                                     placeholder="بحث بالاسم أو الهاتف..." oninput="searchStudents()"></div>
@@ -6572,8 +6686,11 @@
                                 <option value="attendance">نسبة الحضور</option>
                             </select>
                         </div>
-                        <div class="data-list">
+                        <div class="data-list" id="studentsDataListContainer">
                             <div class="data-list-head data-cols-students" id="studentsListHead">
+                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()">
+                                    <div class="bulk-check-circle" id="bulkSelectAllHeadCircle"><i class="fas fa-check"></i></div>
+                                </div>
                                 <span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>
                             </div>
                             <div class="data-list-body" id="studentsTable"></div>
@@ -8305,6 +8422,57 @@
                             حفظ</button>
                         <button type="button" class="btn btn-outline" style="flex:1;"
                             onclick="closeModal('editCouponsModal')">إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Coupons Modal -->
+    <div id="bulkEditCouponsModal" class="modal" style="z-index:2000;">
+        <div class="modal-box" style="max-width:400px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-coins"></i> تعديل الكوبونات للمجموعة</h2>
+                <button class="modal-close" onclick="closeModal('bulkEditCouponsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkEditCouponsForm" onsubmit="executeBulkCoupons(event)">
+                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--muted);" id="bulkCouponCountLabel"></div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label class="form-label">القيمة المراد إضافتها أو خصمها</label>
+                        <input type="number" id="bulkCouponChangeAmount" required class="form-input" placeholder="مثال: 10 أو -5">
+                        <small style="color:var(--muted); font-size:0.75rem;">استخدم أرقاماً موجبة للإضافة وأرقاماً سالبة للخصم.</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label class="form-label">السبب</label>
+                        <textarea id="bulkCouponReason" required class="form-textarea" rows="2" placeholder="السبب..."></textarea>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkEditCouponsModal')">إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Class Modal -->
+    <div id="bulkEditClassModal" class="modal" style="z-index:2000;">
+        <div class="modal-box" style="max-width:400px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-edit"></i> تغيير الفصل للمجموعة</h2>
+                <button class="modal-close" onclick="closeModal('bulkEditClassModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkEditClassForm" onsubmit="executeBulkClass(event)">
+                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--muted);" id="bulkClassCountLabel"></div>
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label class="form-label">الفصل المستهدف</label>
+                        <select id="bulkClassSelect" required class="form-select"></select>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkEditClassModal')">إلغاء</button>
                     </div>
                 </form>
             </div>
@@ -10588,11 +10756,31 @@
             const tb = document.getElementById('studentsTable');
             const head = document.getElementById('studentsListHead');
             const showChurch = devViewChurchId === -1;
+
+            const listContainer = document.getElementById('studentsDataListContainer');
+            if (listContainer) {
+                if (isBulkSelectMode) {
+                    listContainer.classList.add('bulk-active');
+                } else {
+                    listContainer.classList.remove('bulk-active');
+                }
+            }
+
             if (head) {
                 head.className = showChurch ? 'data-list-head data-cols-students dev' : 'data-list-head data-cols-students';
-                head.innerHTML = showChurch
-                    ? '<span>الاسم</span><span>الكنيسة</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>'
-                    : '<span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>';
+                const isAllSel = students.length && students.every(s => selectedStudentIds.has(s['_studentId']));
+                head.innerHTML = `
+                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)">
+                        <div class="bulk-check-circle ${isAllSel ? 'checked' : ''}" id="bulkSelectAllHeadCircle"><i class="fas fa-check"></i></div>
+                    </div>
+                    <span>الاسم</span>
+                    ${showChurch ? '<span>الكنيسة</span>' : ''}
+                    <span>الفصل</span>
+                    <span>الهاتف</span>
+                    <span>كوبونات</span>
+                    <span>حضور</span>
+                    <span></span>
+                `;
             }
             if (!students.length) {
                 tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-child"></i><h3>لا يوجد أطفال</h3></div>`;
@@ -10612,8 +10800,12 @@
                     { label: 'سجل الكوبونات', icon: 'fa-history', handler: () => showCouponLogs(sid) },
                     { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteStudentConfirm(sid, s['الاسم']) },
                 ]);
-                return `<div class="data-row ${showChurch ? 'data-cols-students dev' : 'data-cols-students'}" role="button" tabindex="0"
-                    onclick="openRowActionsByKey('${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                const isSelected = selectedStudentIds.has(sid);
+                return `<div class="data-row ${showChurch ? 'data-cols-students dev' : 'data-cols-students'} ${isSelected ? 'selected' : ''}" data-student-id="${sid}" role="button" tabindex="0"
+                    onclick="handleStudentRowClick(event, ${sid}, '${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                    <div class="bulk-check-wrap" data-student-id="${sid}">
+                        <div class="bulk-check-circle"><i class="fas fa-check"></i></div>
+                    </div>
                     <div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(s['الاسم'])}</div></div></div>
                     ${showChurch ? churchCell : ''}
                     <span class="badge badge-primary">${escHtml(s['الفصل'] || '')}</span>
@@ -14816,6 +15008,360 @@
                     showToast(d.message || 'فشل في استرجاع العملية', 'error');
                 }
             } catch (e) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        // ── Bulk Student Selection State ──────────────────────────────
+        let isBulkSelectMode = false;
+        const selectedStudentIds = new Set();
+        
+        // Drag select state
+        let isSwipingSelection = false;
+        let swipeModeType = 'select'; // 'select' or 'deselect'
+        const swipedStudentIds = new Set();
+        let autoscrollInterval = null;
+
+        function toggleBulkSelectMode() {
+            isBulkSelectMode = !isBulkSelectMode;
+            const toggleBtn = document.getElementById('bulkSelectToggleBtn');
+            const actionsBar = document.getElementById('bulkActionsBar');
+            
+            if (isBulkSelectMode) {
+                if (toggleBtn) {
+                    toggleBtn.classList.add('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-times"></i> إلغاء التحديد';
+                }
+                if (actionsBar) actionsBar.classList.add('show');
+            } else {
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-tasks"></i> تحديد متعدد';
+                }
+                if (actionsBar) actionsBar.classList.remove('show');
+                selectedStudentIds.clear();
+                updateBulkUI();
+            }
+            
+            searchStudents();
+        }
+
+        function disableBulkSelectMode() {
+            if (isBulkSelectMode) {
+                toggleBulkSelectMode();
+            }
+        }
+
+        function handleStudentRowClick(event, sid, actKey) {
+            if (isBulkSelectMode) {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleStudentSelection(sid);
+            } else {
+                openRowActionsByKey(actKey);
+            }
+        }
+
+        function toggleStudentSelection(sid) {
+            if (selectedStudentIds.has(sid)) {
+                selectedStudentIds.delete(sid);
+            } else {
+                selectedStudentIds.add(sid);
+            }
+            updateBulkUI();
+            
+            const row = document.querySelector(`.data-row[data-student-id="${sid}"]`);
+            if (row) {
+                if (selectedStudentIds.has(sid)) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            }
+            
+            updateSelectAllHeaderCheckbox();
+        }
+
+        function updateSelectAllHeaderCheckbox() {
+            const displayed = getCurrentlyDisplayedStudents();
+            const headCircle = document.getElementById('bulkSelectAllHeadCircle');
+            const barCircle = document.getElementById('bulkBarSelectAllCircle');
+            
+            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(s['_studentId']));
+            
+            [headCircle, barCircle].forEach(circle => {
+                if (circle) {
+                    if (isAllSel) {
+                        circle.classList.add('checked');
+                    } else {
+                        circle.classList.remove('checked');
+                    }
+                }
+            });
+        }
+
+        function getCurrentlyDisplayedStudents() {
+            const q = document.getElementById('studentSearch')?.value.toLowerCase() || '';
+            const cls = document.getElementById('classFilter')?.value || '';
+            return allStudents.filter(s => (!q || s['الاسم'].toLowerCase().includes(q) || (s['رقم التليفون'] || '').includes(q)) && (!cls || s['الفصل'] === cls));
+        }
+
+        function toggleSelectAllBulk(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const displayed = getCurrentlyDisplayedStudents();
+            if (!displayed.length) return;
+            
+            const isAllSel = displayed.every(s => selectedStudentIds.has(s['_studentId']));
+            
+            displayed.forEach(s => {
+                const sid = s['_studentId'];
+                if (isAllSel) {
+                    selectedStudentIds.delete(sid);
+                } else {
+                    selectedStudentIds.add(sid);
+                }
+            });
+            
+            updateBulkUI();
+            searchStudents();
+        }
+
+        function updateBulkUI() {
+            const countEl = document.getElementById('bulkSelectedCount');
+            if (countEl) {
+                countEl.textContent = `تم تحديد ${selectedStudentIds.size} أطفال`;
+            }
+            updateSelectAllHeaderCheckbox();
+        }
+
+        // Drag selection
+        function initDragSelection() {
+            const container = document.getElementById('studentsTable');
+            if (!container) return;
+
+            container.addEventListener('pointerdown', (e) => {
+                if (!isBulkSelectMode) return;
+                
+                const checkWrap = e.target.closest('.bulk-check-wrap');
+                const row = e.target.closest('.data-row');
+                
+                if (checkWrap && row) {
+                    e.preventDefault();
+                    isSwipingSelection = true;
+                    swipedStudentIds.clear();
+                    
+                    const sid = parseInt(row.getAttribute('data-student-id'));
+                    if (!isNaN(sid)) {
+                        swipeModeType = selectedStudentIds.has(sid) ? 'deselect' : 'select';
+                        toggleStudentSelection(sid);
+                        swipedStudentIds.add(sid);
+                        
+                        if (navigator.vibrate) {
+                            navigator.vibrate(10);
+                        }
+                    }
+                    
+                    container.setPointerCapture(e.pointerId);
+                }
+            });
+
+            container.addEventListener('pointermove', (e) => {
+                if (!isSwipingSelection) return;
+                
+                e.preventDefault();
+                
+                const targetEl = document.elementFromPoint(e.clientX, e.clientY);
+                if (targetEl) {
+                    const row = targetEl.closest('.data-row');
+                    if (row) {
+                        const sid = parseInt(row.getAttribute('data-student-id'));
+                        if (!isNaN(sid) && !swipedStudentIds.has(sid)) {
+                            swipedStudentIds.add(sid);
+                            
+                            const currentlySelected = selectedStudentIds.has(sid);
+                            if (swipeModeType === 'select' && !currentlySelected) {
+                                toggleStudentSelection(sid);
+                            } else if (swipeModeType === 'deselect' && currentlySelected) {
+                                toggleStudentSelection(sid);
+                            }
+                        }
+                    }
+                }
+                
+                handleAutoscroll(e.clientY);
+            });
+
+            const stopSwiping = (e) => {
+                if (isSwipingSelection) {
+                    isSwipingSelection = false;
+                    swipedStudentIds.clear();
+                    stopAutoscroll();
+                    try {
+                        container.releasePointerCapture(e.pointerId);
+                    } catch(err) {}
+                }
+            };
+
+            container.addEventListener('pointerup', stopSwiping);
+            container.addEventListener('pointercancel', stopSwiping);
+        }
+
+        function handleAutoscroll(clientY) {
+            stopAutoscroll();
+            
+            const scrollThreshold = 140;
+            const maxScrollSpeed = 15;
+            
+            let speed = 0;
+            if (clientY < scrollThreshold) {
+                speed = -Math.round((scrollThreshold - clientY) / scrollThreshold * maxScrollSpeed);
+            } else if (clientY > window.innerHeight - scrollThreshold) {
+                const bottomDist = clientY - (window.innerHeight - scrollThreshold);
+                speed = Math.round(bottomDist / scrollThreshold * maxScrollSpeed);
+            }
+            
+            if (speed !== 0) {
+                autoscrollInterval = setInterval(() => {
+                    window.scrollBy(0, speed);
+                }, 20);
+            }
+        }
+
+        function stopAutoscroll() {
+            if (autoscrollInterval) {
+                clearInterval(autoscrollInterval);
+                autoscrollInterval = null;
+            }
+        }
+
+        setTimeout(initDragSelection, 1000);
+
+        // Bulk operations triggers
+        async function triggerBulkDelete() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            const msg = `هل أنت متأكد من حذف ${selectedStudentIds.size} من الأطفال المحددين؟\nلا يمكن التراجع عن هذا الإجراء وسيتم مسح سجلاتهم تماماً.`;
+            if (!(await showConfirm({
+                title: 'حذف جماعي',
+                message: msg,
+                danger: true
+            }))) return;
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'bulkDeleteStudents');
+            fd.append('student_ids', Array.from(selectedStudentIds).join(','));
+            
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) {
+                    showToast(d.message || 'تم حذف الأطفال بنجاح', 'success');
+                    disableBulkSelectMode();
+                    loadStudents();
+                    loadStatistics();
+                } else {
+                    showToast(d.message || 'فشل في الحذف الجماعي', 'error');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        function triggerBulkCoupons() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            document.getElementById('bulkCouponCountLabel').textContent = `تعديل الكوبونات لـ ${selectedStudentIds.size} من الأطفال المحددين`;
+            document.getElementById('bulkCouponChangeAmount').value = '';
+            document.getElementById('bulkCouponReason').value = '';
+            openModal('bulkEditCouponsModal');
+        }
+
+        async function executeBulkCoupons(e) {
+            e.preventDefault();
+            const changeAmount = parseInt(document.getElementById('bulkCouponChangeAmount').value);
+            const reason = document.getElementById('bulkCouponReason').value;
+
+            if (isNaN(changeAmount) || changeAmount === 0) {
+                showToast('الرجاء إدخال قيمة صحيحة غير الصفر', 'warning');
+                return;
+            }
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'bulkUpdateStudentsCoupons');
+            fd.append('student_ids', Array.from(selectedStudentIds).join(','));
+            fd.append('change_amount', changeAmount);
+            fd.append('reason', reason);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) {
+                    showToast(d.message || 'تم تعديل الكوبونات بنجاح', 'success');
+                    closeModal('bulkEditCouponsModal');
+                    disableBulkSelectMode();
+                    loadStudents();
+                } else {
+                    showToast(d.message || 'فشل التعديل', 'error');
+                }
+            } catch (err) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        function triggerBulkClass() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+
+            document.getElementById('bulkClassCountLabel').textContent = `تغيير الفصل لـ ${selectedStudentIds.size} من الأطفال المحددين`;
+            
+            const selectEl = document.getElementById('bulkClassSelect');
+            if (selectEl) {
+                selectEl.innerHTML = '';
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.arabic_name;
+                    selectEl.appendChild(opt);
+                });
+            }
+            
+            openModal('bulkEditClassModal');
+        }
+
+        async function executeBulkClass(e) {
+            e.preventDefault();
+            const classId = parseInt(document.getElementById('bulkClassSelect').value);
+
+            if (isNaN(classId) || classId <= 0) {
+                showToast('الرجاء تحديد فصل صالح', 'warning');
+                return;
+            }
+
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'bulkUpdateStudentsClass');
+            fd.append('student_ids', Array.from(selectedStudentIds).join(','));
+            fd.append('class_id', classId);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) {
+                    showToast(d.message || 'تم تغيير الفصل بنجاح', 'success');
+                    closeModal('bulkEditClassModal');
+                    disableBulkSelectMode();
+                    loadStudents();
+                } else {
+                    showToast(d.message || 'فشل نقل الأطفال', 'error');
+                }
+            } catch (err) {
                 showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
             }
         }

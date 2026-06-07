@@ -2622,6 +2622,36 @@ try {
 
 
 
+        case 'bulkDeleteStudents':
+
+            checkAuth();
+
+            bulkDeleteStudents();
+
+            break;
+
+
+
+        case 'bulkUpdateStudentsClass':
+
+            checkAuth();
+
+            bulkUpdateStudentsClass();
+
+            break;
+
+
+
+        case 'bulkUpdateStudentsCoupons':
+
+            checkAuth();
+
+            bulkUpdateStudentsCoupons();
+
+            break;
+
+
+
         case 'clearAllAuditLogs':
 
             checkAuth();
@@ -32229,6 +32259,420 @@ function getLastAuditLog()
     } catch (Exception $e) {
 
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function bulkDeleteStudents()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $studentIdsRaw = $_POST['student_ids'] ?? '';
+
+        if (empty($studentIdsRaw)) {
+
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أطفال']);
+
+            return;
+
+        }
+
+
+
+        $studentIds = array_filter(array_map('intval', explode(',', $studentIdsRaw)));
+
+        if (empty($studentIds)) {
+
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+        $conn->begin_transaction();
+
+
+
+        $successCount = 0;
+
+        foreach ($studentIds as $studentId) {
+
+            // Check existence and ownership
+
+            $getStmt = $conn->prepare("SELECT name, image_url FROM students WHERE id = ? AND church_id = ?");
+
+            $getStmt->bind_param("ii", $studentId, $churchId);
+
+            $getStmt->execute();
+
+            $student = $getStmt->get_result()->fetch_assoc();
+
+
+
+            if ($student) {
+
+                $studentName = $student['name'];
+
+                $studentImageUrl = $student['image_url'];
+
+
+
+                // Get snapshot before deleting
+
+                $studentSnapshot = getStudentSnapshot($studentId);
+
+
+
+                // Purge relationships
+
+                purgeStudentRelatedRows($conn, $studentId);
+
+
+
+                // Delete student
+
+                $del = $conn->prepare("DELETE FROM students WHERE id = ? AND church_id = ?");
+
+                $del->bind_param("ii", $studentId, $churchId);
+
+                if ($del->execute() && $del->affected_rows > 0) {
+
+                    // Clean image file
+
+                    if ($studentImageUrl) {
+
+                        deleteUploadedFile($studentImageUrl);
+
+                    }
+
+
+
+                    // Audit deletion
+
+                    auditStudentDelete($studentId, $studentSnapshot ?? ['id' => $studentId, 'name' => $studentName]);
+
+                    $successCount++;
+
+                }
+
+            }
+
+        }
+
+
+
+        $conn->commit();
+
+        sendJSON(['success' => true, 'message' => "تم حذف $successCount من الأطفال بنجاح"]);
+
+    } catch (Exception $e) {
+
+        if (isset($conn)) $conn->rollback();
+
+        sendJSON(['success' => false, 'message' => 'خطأ أثناء الحذف الجماعي: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function bulkUpdateStudentsClass()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $studentIdsRaw = $_POST['student_ids'] ?? '';
+
+        $classId = intval($_POST['class_id'] ?? 0);
+
+
+
+        if (empty($studentIdsRaw) || !$classId) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+
+            return;
+
+        }
+
+
+
+        $studentIds = array_filter(array_map('intval', explode(',', $studentIdsRaw)));
+
+        if (empty($studentIds)) {
+
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+
+
+        // Resolve class name
+
+        // Check custom church classes first
+
+        $classRow = null;
+
+        $cChk = $conn->prepare("SELECT id, arabic_name FROM church_classes WHERE id = ? AND church_id = ? AND is_active = 1 LIMIT 1");
+
+        $cChk->bind_param("ii", $classId, $churchId);
+
+        $cChk->execute();
+
+        $classRow = $cChk->get_result()->fetch_assoc();
+
+
+
+        if (!$classRow) {
+
+            // Check global classes
+
+            $gChk = $conn->prepare("SELECT id, arabic_name FROM classes WHERE id = ? LIMIT 1");
+
+            $gChk->bind_param("i", $classId);
+
+            $gChk->execute();
+
+            $classRow = $gChk->get_result()->fetch_assoc();
+
+        }
+
+
+
+        if (!$classRow) {
+
+            sendJSON(['success' => false, 'message' => 'الفصل المحدد غير موجود']);
+
+            return;
+
+        }
+
+
+
+        $className = $classRow['arabic_name'];
+
+
+
+        $conn->begin_transaction();
+
+        $successCount = 0;
+
+
+
+        foreach ($studentIds as $studentId) {
+
+            // Verify student in church
+
+            $chk = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
+
+            $chk->bind_param("ii", $studentId, $churchId);
+
+            $chk->execute();
+
+            if ($chk->get_result()->num_rows > 0) {
+
+                // Get before snapshot
+
+                $beforeSnapshot = getStudentSnapshot($studentId);
+
+
+
+                // Update student class
+
+                $upd = $conn->prepare("UPDATE students SET class_id = ?, class = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+
+                $upd->bind_param("isii", $classId, $className, $studentId, $churchId);
+
+                if ($upd->execute()) {
+
+                    // Get after snapshot
+
+                    $afterSnapshot = getStudentSnapshot($studentId);
+
+
+
+                    // Audit
+
+                    auditStudentEdit($studentId, $beforeSnapshot ?? [], $afterSnapshot ?? []);
+
+                    $successCount++;
+
+                }
+
+            }
+
+        }
+
+
+
+        $conn->commit();
+
+        sendJSON(['success' => true, 'message' => "تم نقل $successCount من الأطفال إلى فصل \"$className\" بنجاح"]);
+
+    } catch (Exception $e) {
+
+        if (isset($conn)) $conn->rollback();
+
+        sendJSON(['success' => false, 'message' => 'خطأ أثناء نقل الأطفال: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function bulkUpdateStudentsCoupons()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $studentIdsRaw = $_POST['student_ids'] ?? '';
+
+        $changeAmount = intval($_POST['change_amount'] ?? 0);
+
+        $reason = trim($_POST['reason'] ?? 'تعديل جماعي');
+
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+
+
+        if (empty($studentIdsRaw) || !$changeAmount) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+
+            return;
+
+        }
+
+
+
+        $studentIds = array_filter(array_map('intval', explode(',', $studentIdsRaw)));
+
+        if (empty($studentIds)) {
+
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+        $conn->begin_transaction();
+
+
+
+        $successCount = 0;
+
+        foreach ($studentIds as $studentId) {
+
+            // Verify and load current coupons
+
+            $chk = $conn->prepare("SELECT name, coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? AND church_id = ?");
+
+            $chk->bind_param("ii", $studentId, $churchId);
+
+            $chk->execute();
+
+            $student = $chk->get_result()->fetch_assoc();
+
+
+
+            if ($student) {
+
+                $oldCount = intval($student['coupons']);
+
+                $currentAttendance = intval($student['attendance_coupons']);
+
+                $currentTask = intval($student['task_coupons'] ?? 0);
+
+                
+
+                $newCount = max(0, $oldCount + $changeAmount);
+
+                $newCommitment = $newCount - $currentAttendance - $currentTask;
+
+                if ($newCommitment < 0) {
+
+                    $newCommitment = 0;
+
+                }
+
+
+
+                $upd = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+
+                $upd->bind_param("iiii", $newCount, $newCommitment, $studentId, $churchId);
+
+                if ($upd->execute()) {
+
+                    // Log coupon history
+
+                    $logStmt = $conn->prepare("
+
+                        INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type)
+
+                        VALUES (?, ?, ?, ?, ?, 'manual')
+
+                    ");
+
+                    $actualChange = $newCount - $oldCount;
+
+                    $logStmt->bind_param("iiiii", $studentId, $uncleId, $oldCount, $newCount, $actualChange);
+
+                    $logStmt->execute();
+
+
+
+                    // Audit
+
+                    auditCouponChange($studentId, $student['name'], $oldCount, $newCount, $reason);
+
+                    $successCount++;
+
+                }
+
+            }
+
+        }
+
+
+
+        $conn->commit();
+
+        sendJSON(['success' => true, 'message' => "تم تعديل الكوبونات لـ $successCount من الأطفال بنجاح"]);
+
+    } catch (Exception $e) {
+
+        if (isset($conn)) $conn->rollback();
+
+        sendJSON(['success' => false, 'message' => 'خطأ أثناء تعديل الكوبونات: ' . $e->getMessage()]);
 
     }
 
