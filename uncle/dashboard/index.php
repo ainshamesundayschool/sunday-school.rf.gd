@@ -14297,7 +14297,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div style="display:flex; gap:6px; justify-content:flex-end;">
                         <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
-                        <button class="btn" onclick="submitStudentNote(${getStudentDbId(s)})" style="font-size:0.75rem; padding:4px 12px; background:var(--primary); color:#fff;">حفظ</button>
+                        <button class="btn" onclick="submitStudentNote(${getStudentDbId(s)})" style="font-size:0.75rem; padding:4px 12px; background:var(--brand); color:#fff;">حفظ</button>
                     </div>
                 </div>
 
@@ -14429,7 +14429,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div style="display:flex; gap:6px; justify-content:flex-end;">
                         <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
-                        <button class="btn" onclick="submitStudentNote(${full.id || full.id})" style="font-size:0.75rem; padding:4px 12px; background:var(--primary); color:#fff;">حفظ</button>
+                        <button class="btn" onclick="submitStudentNote(${full.id || full.id})" style="font-size:0.75rem; padding:4px 12px; background:var(--brand); color:#fff;">حفظ</button>
                     </div>
                 </div>
 

@@ -250,7 +250,7 @@ function getEntityAuditHistory(): void {
     checkAuth();
     try {
         $churchId = getChurchId();
-        $entity   = sanitize($_POST['entity']    ?? '');
+        $entity   = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['entity'] ?? '');
         $entityId = intval($_POST['entity_id']   ?? 0);
 
         if (empty($entity) || $entityId === 0) {
