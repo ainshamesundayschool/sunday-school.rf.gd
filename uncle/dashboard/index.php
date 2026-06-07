@@ -3008,24 +3008,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 36px;
             border-radius: var(--r-md) !important;
             border: none !important;
-            color: var(--text) !important;
             padding: 0 !important;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .btn-bulk-action i {
-            color: var(--text) !important;
-            font-size: 0.95rem;
+            font-size: 0.8rem;
         }
         .btn-bulk-action:hover {
             opacity: 0.85;
             transform: scale(1.05);
         }
         .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; }
+        .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
         .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
         .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; }
-        .btn-bulk-action.bulk-class { background: rgba(59, 130, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
+        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; }
+        .btn-bulk-action.bulk-class i { color: var(--brand) !important; }
         .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
         
         .bulk-close-x-btn {
             background: transparent;
