@@ -2990,8 +2990,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bulk-actions-bar-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
+            position: relative;
         }
         .bulk-actions-bar.show {
             display: flex;
@@ -3002,6 +3003,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: center;
+        }
+        .filter-chip {
+            background: rgba(120, 120, 120, 0.12);
+            color: var(--text-2);
+            border: none;
+            border-radius: 50px;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover {
+            transform: scale(1.08);
+            background: rgba(120, 120, 120, 0.2);
+            color: var(--text);
         }
         .selected-count-chip {
             background: var(--brand);
@@ -9215,26 +9235,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
                     <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
                         <div class="bulk-actions-bar-header">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 4px;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center; width:100%; padding:0 30px;">
+                                <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-3); margin-left: 2px;">تحديد:</span>
+                                
+                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 2px;" title="تحديد الكل">
                                     <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                                 </div>
-                                <div class="action-dropdown" style="flex:none;">
-                                    <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
-                                    <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
-                                        <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
-                                        <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
-                                        <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
-                                        <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
-                                        <div class="dropdown-divider"></div>
-                                        <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
-                                    </div>
-                                </div>
-                                <span id="bulkSelectedCount" class="selected-count-chip">0</span>
+                                
+                                <button class="filter-chip" onclick="bulkSelectByFilter('pending')" title="بدون حضور">
+                                    <i class="fas fa-minus" style="font-size: 0.72rem;"></i>
+                                </button>
+                                <button class="filter-chip" onclick="bulkSelectByFilter('present')" title="الحاضرين (حضور)">
+                                    <i class="fas fa-check-circle" style="font-size: 0.72rem;"></i>
+                                </button>
+                                <button class="filter-chip" onclick="bulkSelectByFilter('absent')" title="الغائبين (غياب)">
+                                    <i class="fas fa-times-circle" style="font-size: 0.72rem;"></i>
+                                </button>
+                                <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل">
+                                    <i class="fas fa-eraser" style="font-size: 0.72rem;"></i>
+                                </button>
+
+                                <span id="bulkSelectedCount" class="selected-count-chip" style="margin-right: 4px;">0</span>
                             </div>
-                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
+                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);">
                                 &times;
                             </button>
                         </div>
