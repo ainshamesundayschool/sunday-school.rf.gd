@@ -2847,8 +2847,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: #ffffff !important;
         }
         .attendance-item.selected {
-            background-color: var(--bg-hover) !important;
-            border-right: 3px solid var(--primary) !important;
+            background-color: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+            border-right: 4px solid var(--primary) !important;
+        }
+        .attendance-item.selected .bulk-check-wrap {
+            background-color: var(--primary-light) !important;
+            border-radius: 8px;
+        }
+        .attendance-item.selected .bulk-check-circle {
+            border-color: var(--primary) !important;
+            background: var(--primary) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 8px var(--primary);
         }
 
         .attendance-list.bulk-active .attendance-actions {
@@ -2945,21 +2956,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .bulk-actions-bar {
             position: sticky;
-            top: 66px;
-            z-index: 100;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 16px;
+            top: 118px;
+            z-index: 190;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: var(--r-md);
+            margin-bottom: 12px;
             display: none;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 12px;
+            color: var(--text);
+            border: 1.5px solid var(--border-solid);
             direction: rtl;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
         .bulk-actions-bar.show {
@@ -2968,8 +2980,65 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         .bulk-actions-btns {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+        .selected-count-chip {
+            background: var(--primary);
+            color: #ffffff;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            min-width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-bulk-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-md) !important;
+            border: 1.5px solid var(--border-solid) !important;
+            background: var(--surface-2) !important;
+            color: var(--text) !important;
+            padding: 0 !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-bulk-action:hover {
+            background: var(--bg-hover) !important;
+            border-color: var(--primary) !important;
+        }
+        .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
+        .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
+        .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
+        .btn-bulk-action.bulk-class i { color: var(--primary) !important; }
+        .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
+        
+        .bulk-close-x-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-3);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            line-height: 1;
+            padding: 0;
+            transition: color 0.2s ease;
+            margin-right: auto;
+        }
+        .bulk-close-x-btn:hover {
+            color: var(--danger);
         }
 
         .coupon-delta-badge {
@@ -9135,7 +9204,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="action-dropdown" style="flex:none;">
-                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:#ffffff; border-color:rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0; background:transparent;" title="تحديد حسب">
+                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:var(--text); border-color:var(--border-solid); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:var(--r-md); padding:0; background:transparent;" title="تحديد حسب">
                                 <i class="fas fa-filter"></i>
                             </button>
                             <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
@@ -9147,18 +9216,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
                             </div>
                         </div>
-                        <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">0</span>
+                        <span id="bulkSelectedCount" class="selected-count-chip">0</span>
                     </div>
-                    <div class="bulk-actions-btns" style="display:flex; gap:6px; flex-wrap:nowrap; align-items:center;">
-                        <button class="btn btn-success btn-sm" onclick="bulkMarkAttendance('present')" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="حضور">
+                    <div class="bulk-actions-btns">
+                        <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
                             <i class="fas fa-check"></i>
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="bulkMarkAttendance('absent')" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="غياب">
+                        <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
                             <i class="fas fa-times"></i>
                         </button>
                         
                         <div class="action-dropdown" style="flex:none;">
-                            <button class="btn btn-warning btn-sm" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="تعديل الكوبونات">
+                            <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
                                 <i class="fas fa-coins"></i>
                             </button>
                             <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
@@ -9176,14 +9245,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
 
-                        <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="تغيير الفصل">
+                        <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()" style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="حذف">
+                        <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()" style="color:#ffffff; border-color:rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; padding:0;" title="إلغاء">
-                            <i class="fas fa-ban"></i>
+                        <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد">
+                            &times;
                         </button>
                     </div>
                 </div>
@@ -10023,7 +10092,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);" id="bulkClassCountLabel"></div>
                     <div class="form-group" style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
                         <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">الفصل المستهدف</label>
-                        <select id="bulkClassSelect" required class="form-select" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text);"></select>
+                        <select id="bulkClassSelect" required class="form-select" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text); font-family: inherit; font-weight: inherit;"></select>
                     </div>
                     <div style="display:flex; gap:10px;">
                         <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
@@ -12361,7 +12430,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function updateBulkUI() {
             const countEl = document.getElementById('bulkSelectedCount');
             if (countEl) {
-                countEl.textContent = `تم تحديد ${selectedStudentIds.size} أطفال`;
+                countEl.textContent = selectedStudentIds.size;
             }
             updateSelectAllHeaderCheckbox();
         }
@@ -12458,13 +12527,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const couponsEl = row.querySelector('.student-coupons');
             if (!couponsEl) return;
             
+            const rect = couponsEl.getBoundingClientRect();
+            
             // Create a floating badge element
             const badge = document.createElement('div');
             badge.className = 'coupon-delta-badge' + (delta >= 0 ? ' plus' : ' minus');
             badge.textContent = (delta >= 0 ? '+' : '') + delta;
             
-            couponsEl.style.position = 'relative';
-            couponsEl.appendChild(badge);
+            // Position absolutely on document.body using page coordinates
+            badge.style.position = 'absolute';
+            badge.style.left = (rect.left + window.scrollX + rect.width / 2) + 'px';
+            badge.style.top = (rect.top + window.scrollY - 10) + 'px';
+            badge.style.zIndex = '100000';
+            badge.style.pointerEvents = 'none'; // click-through
+            
+            document.body.appendChild(badge);
             
             setTimeout(() => {
                 badge.remove();
