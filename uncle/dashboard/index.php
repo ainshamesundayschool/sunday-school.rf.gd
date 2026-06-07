@@ -2811,6 +2811,116 @@ if ($hasUncleId && $uncleRole === 'uncle')
             opacity: .5
         }
 
+        /* ── Bulk Student Selection ── */
+        .bulk-check-wrap {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            margin-left: 8px; /* space in RTL */
+            flex-shrink: 0;
+        }
+        .bulk-active .bulk-check-wrap {
+            display: flex;
+        }
+        .bulk-check-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2.2px solid var(--border-solid);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+            font-size: 0.65rem;
+            transition: all 0.2s ease;
+        }
+        .bulk-check-circle.checked,
+        #bulkBarSelectAllCircle.checked {
+            border-color: var(--primary) !important;
+            background: var(--primary) !important;
+            color: #ffffff !important;
+        }
+        .attendance-item.selected {
+            background-color: var(--bg-hover) !important;
+            border-right: 3px solid var(--primary) !important;
+        }
+
+        .bulk-actions-bar {
+            position: sticky;
+            top: 66px;
+            z-index: 100;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            direction: rtl;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .bulk-actions-bar.show {
+            display: flex;
+            animation: slideUp 0.3s var(--ease-spring);
+        }
+        .bulk-actions-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .coupon-delta-badge {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: var(--r-md);
+            pointer-events: none;
+            z-index: 10;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: floatUpAndFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .coupon-delta-badge.plus {
+            background: #22c55e;
+            color: #ffffff;
+        }
+        .coupon-delta-badge.minus {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        @keyframes floatUpAndFade {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, 10px) scale(0.6);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -5px) scale(1.1);
+            }
+            40% {
+                transform: translate(-50%, -10px) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -35px) scale(0.8);
+            }
+        }
+
         .attend-btn-row {
             display: flex;
             gap: 3px;
@@ -8854,6 +8964,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-user-plus"></i>
                         <span class="strip-btn-label">إضافة</span>
                     </button>
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-select" id="bulkSelectToggleBtn"
+                        onclick="toggleBulkSelectMode()" title="تحديد متعدد">
+                        <i class="fas fa-tasks"></i>
+                        <span class="strip-btn-label">تحديد</span>
+                    </button>
                 </div>
 
                 <!-- Sticky attendance toolbar -->
@@ -8913,6 +9028,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
+                <!-- Bulk Actions Bar -->
+                <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none; margin-bottom: 12px; margin-top: 4px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex;">
+                            <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="action-dropdown" style="flex:none;">
+                            <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem; display:flex; align-items:center; gap:6px; background:transparent;">
+                                <i class="fas fa-filter"></i> تحديد حسب... <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                            </button>
+                            <div class="dropdown-menu" id="bulkFilterMenu" style="left:0; right:auto; min-width:185px;">
+                                <button class="dropdown-item" onclick="bulkSelectByFilter('all');closeAllDropdowns()"><i class="fas fa-users"></i> الكل</button>
+                                <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
+                                <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                                <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                                <div class="dropdown-divider"></div>
+                                <button class="dropdown-item" onclick="bulkSelectByFilter('none');closeAllDropdowns()"><i class="fas fa-eraser"></i> إلغاء تحديد الكل</button>
+                            </div>
+                        </div>
+                        <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">تم تحديد 0 أطفال</span>
+                    </div>
+                    <div class="bulk-actions-btns">
+                        <button class="btn btn-success btn-sm" onclick="bulkMarkAttendance('present')" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-check"></i> حضور للمحددين
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkMarkAttendance('absent')" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-times"></i> غياب للمحددين
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="triggerBulkCoupons()" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-coins"></i> تعديل الكوبونات
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-edit"></i> تغيير الفصل
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()" style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem;">
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
 
                 <div class="attendance-list" id="attendanceList"></div>
             </div>
@@ -9735,6 +9892,57 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <!-- Bulk Edit Coupons Modal -->
+    <div class="modal-overlay" id="bulkEditCouponsModal" style="z-index:1000007">
+        <div class="modal modal-sm" style="max-width:400px">
+            <div class="modal-header">
+                <h3><i class="fas fa-coins"></i> تعديل الكوبونات للمجموعة</h3>
+                <button class="close-btn" onclick="closeModal('bulkEditCouponsModal')">&times;</button>
+            </div>
+            <div style="padding:15px 0">
+                <form id="bulkEditCouponsForm" onsubmit="executeBulkCoupons(event)">
+                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);" id="bulkCouponCountLabel"></div>
+                    <div class="form-group" style="margin-bottom:14px; display: flex; flex-direction: column; gap: 6px;">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">القيمة المراد إضافتها أو خصمها</label>
+                        <input type="number" id="bulkCouponChangeAmount" required class="form-input" placeholder="مثال: 10 أو -5" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text);">
+                        <small style="color:var(--text-3); font-size:0.75rem;">استخدم أرقاماً موجبة للإضافة وأرقاماً سالبة للخصم.</small>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">السبب</label>
+                        <textarea id="bulkCouponReason" required class="form-textarea" rows="2" placeholder="السبب..." style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text); resize: none;"></textarea>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkEditCouponsModal')">إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Class Modal -->
+    <div class="modal-overlay" id="bulkEditClassModal" style="z-index:1000007">
+        <div class="modal modal-sm" style="max-width:400px">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> تغيير الفصل للمجموعة</h3>
+                <button class="close-btn" onclick="closeModal('bulkEditClassModal')">&times;</button>
+            </div>
+            <div style="padding:15px 0">
+                <form id="bulkEditClassForm" onsubmit="executeBulkClass(event)">
+                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);" id="bulkClassCountLabel"></div>
+                    <div class="form-group" style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
+                        <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">الفصل المستهدف</label>
+                        <select id="bulkClassSelect" required class="form-select" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text);"></select>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkEditClassModal')">إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Student Modal -->
     <div class="modal-overlay" id="deleteStudentModal" style="z-index:1000007">
         <div class="modal modal-sm" style="max-width:380px">
@@ -10540,6 +10748,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function showClassesViewInternal() {
+            disableBulkSelectMode();
             isCombinedView = false;
             combinedGroupLabel = '';
             combinedStudents = [];
@@ -11587,13 +11796,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
-                return `<div class="attendance-item ${st}${localClass}${bdayClass}" id="ai-${id}"
+                const dbId = getStudentDbId(s);
+                const isSelected = selectedStudentIds.has(dbId);
+                const selectClass = isSelected ? ' selected' : '';
+                return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}"
             ontouchstart="_holdStart(event,'${safeName}')"
             ontouchmove="_holdMove(event)"
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName}')">
-            <div class="student-info" onclick="showStudentDetails('${safeName}')" style="cursor:pointer">
+            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})" style="${isBulkSelectMode ? 'display: flex;' : 'display: none;'}">
+                <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')" style="cursor:pointer">
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
@@ -11601,7 +11816,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             </div>
             <div class="attendance-actions">
-                <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : ''}</span>
+                <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span>
                 <div class="coupon-toggle-row">
                     <button class="coupon-toggle-btn minus" onclick="adjustStudentCoupons('${id}',-1)"><i class="fas fa-minus"></i></button>
                     <div class="coupon-value-display" id="cv-${id}" data-idx="${getCouponValueIdx(id)}" onclick="toggleCouponValue('${id}')">${getCouponValueForStudent(id)}</div>
@@ -11677,6 +11892,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const indicator = row.querySelector('.status-indicator');
             if (indicator) indicator.innerHTML = badges;
+
+            // Update coupons display in-place
+            const couponsEl = row.querySelector('.student-coupons');
+            if (couponsEl) {
+                const baseC = parseInt(s ? s['كوبونات'] || 0 : 0);
+                const totC = baseC + addC;
+                couponsEl.innerHTML = `<i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}`;
+            }
+
+            // Update bulk checkbox checked state
+            const dbId = s ? getStudentDbId(s) : 0;
+            const isSelected = selectedStudentIds.has(dbId);
+            const checkCircle = row.querySelector('.bulk-check-circle');
+            if (checkCircle) {
+                if (isSelected) {
+                    checkCircle.classList.add('checked');
+                    row.classList.add('selected');
+                } else {
+                    checkCircle.classList.remove('checked');
+                    row.classList.remove('selected');
+                }
+            }
         }
         function markAllPresent() {
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
@@ -11707,12 +11944,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const cur = parseInt(couponData[studentId] || 0);
             couponData[studentId] = cur + dir * val;
             if (couponData[studentId] !== 0) { changedCouponStudents.add(studentId); savedCouponStudents.delete(studentId); } else changedCouponStudents.delete(studentId);
-            saveCouponDataForClass(currentClass); renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns();
+            saveCouponDataForClass(currentClass);
+            _updateAttendanceRow(studentId);
+            updateClassStats(); updateSaveBtns();
+            animateCouponDelta(studentId, dir * val);
             showToast(`${dir > 0 ? 'تم إضافة' : 'تم خصم'} ${val} كوبون`, 'success');
         }
         function addCouponsToAll(amount) {
-            students.filter(s => s['الفصل'] === currentClass).forEach(s => { const id = getStudentId(s); couponData[id] = (couponData[id] || 0) + amount; changedCouponStudents.add(id); savedCouponStudents.delete(id); });
-            saveCouponDataForClass(currentClass); renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns();
+            const list = students.filter(s => s['الفصل'] === currentClass);
+            list.forEach(s => {
+                const id = getStudentId(s);
+                couponData[id] = (couponData[id] || 0) + amount;
+                changedCouponStudents.add(id);
+                savedCouponStudents.delete(id);
+                _updateAttendanceRow(id);
+                animateCouponDelta(id, amount);
+            });
+            saveCouponDataForClass(currentClass); updateClassStats(); updateSaveBtns();
             showToast(`تم إضافة ${amount} كوبون للجميع`, 'success');
         }
         function resetCouponDataForClass(className) {
@@ -11721,6 +11969,311 @@ if ($hasUncleId && $uncleRole === 'uncle')
             localStorage.removeItem(`couponData_${className}`); localStorage.removeItem(`changedCouponStudents_${className}`); localStorage.removeItem(`savedCoupons_${className}`);
             localStorage.removeItem(`couponValueIdx_${className}`);
             renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns(); showToast('تم إعادة تعيين الكوبونات', 'info');
+        }
+
+        let isBulkSelectMode = false;
+        const selectedStudentIds = new Set();
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.add('active');
+                stopAutoRefresh();
+            }
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) {
+                m.classList.remove('active');
+                startAutoRefresh();
+            }
+        }
+
+        function toggleBulkSelectMode() {
+            isBulkSelectMode = !isBulkSelectMode;
+            const toggleBtn = document.getElementById('bulkSelectToggleBtn');
+            const actionsBar = document.getElementById('bulkActionsBar');
+            
+            if (isBulkSelectMode) {
+                if (toggleBtn) {
+                    toggleBtn.classList.add('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-times"></i> إلغاء';
+                }
+                if (actionsBar) {
+                    actionsBar.style.display = 'flex';
+                    actionsBar.classList.add('show');
+                }
+            } else {
+                if (toggleBtn) {
+                    toggleBtn.classList.remove('active');
+                    toggleBtn.innerHTML = '<i class="fas fa-tasks"></i> تحديد';
+                }
+                if (actionsBar) {
+                    actionsBar.style.display = 'none';
+                    actionsBar.classList.remove('show');
+                }
+                selectedStudentIds.clear();
+                updateBulkUI();
+            }
+            
+            renderAttendanceList(currentClass);
+        }
+
+        function disableBulkSelectMode() {
+            if (isBulkSelectMode) {
+                toggleBulkSelectMode();
+            }
+        }
+
+        function toggleStudentSelection(event, dbId) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            if (selectedStudentIds.has(dbId)) {
+                selectedStudentIds.delete(dbId);
+            } else {
+                selectedStudentIds.add(dbId);
+            }
+            
+            // Find student node and update row class/checkbox in-place
+            const allList = isCombinedView ? combinedStudents : students;
+            const s = allList.find(x => getStudentDbId(x) === dbId);
+            if (s) {
+                const sid = getStudentId(s);
+                _updateAttendanceRow(sid);
+            }
+            
+            updateBulkUI();
+        }
+
+        function toggleSelectAllBulk(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const displayed = filterAndSortActiveStudents();
+            if (!displayed.length) return;
+            
+            const isAllSel = displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            
+            displayed.forEach(s => {
+                const dbId = getStudentDbId(s);
+                if (isAllSel) {
+                    selectedStudentIds.delete(dbId);
+                } else {
+                    selectedStudentIds.add(dbId);
+                }
+                _updateAttendanceRow(getStudentId(s));
+            });
+            
+            updateBulkUI();
+        }
+
+        function bulkSelectByFilter(filter) {
+            const displayed = filterAndSortActiveStudents();
+            if (!displayed.length) return;
+            
+            // Clear current selections first
+            selectedStudentIds.clear();
+            
+            displayed.forEach(s => {
+                const dbId = getStudentDbId(s);
+                const sid = getStudentId(s);
+                const st = attendanceData[sid] || 'pending';
+                
+                let select = false;
+                if (filter === 'all') {
+                    select = true;
+                } else if (filter === 'pending' && st === 'pending') {
+                    select = true;
+                } else if (filter === 'present' && st === 'present') {
+                    select = true;
+                } else if (filter === 'absent' && st === 'absent') {
+                    select = true;
+                }
+                
+                if (select) {
+                    selectedStudentIds.add(dbId);
+                }
+                _updateAttendanceRow(sid);
+            });
+            
+            updateBulkUI();
+            showToast('تم تحديث التحديد', 'info');
+        }
+
+        function bulkMarkAttendance(status) {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            const actionLabel = status === 'present' ? 'حضور' : 'غياب';
+            if (!confirm(`تسجيل ${actionLabel} لـ ${selectedStudentIds.size} من الأطفال المحددين؟`)) return;
+
+            // Iterate and mark attendance locally for all selected
+            const allList = isCombinedView ? combinedStudents : students;
+            selectedStudentIds.forEach(dbId => {
+                const s = allList.find(x => getStudentDbId(x) === dbId);
+                if (s) {
+                    const sid = getStudentId(s);
+                    markStudentAttendance(sid, status, true);
+                }
+            });
+
+            showToast(`تم تسجيل ${actionLabel} للمحددين محلياً`, 'success');
+            disableBulkSelectMode();
+        }
+
+        function updateBulkUI() {
+            const countEl = document.getElementById('bulkSelectedCount');
+            if (countEl) {
+                countEl.textContent = `تم تحديد ${selectedStudentIds.size} أطفال`;
+            }
+            updateSelectAllHeaderCheckbox();
+        }
+
+        function updateSelectAllHeaderCheckbox() {
+            const displayed = filterAndSortActiveStudents();
+            const barCircle = document.getElementById('bulkBarSelectAllCircle');
+            
+            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            
+            if (barCircle) {
+                if (isAllSel) {
+                    barCircle.classList.add('checked');
+                } else {
+                    barCircle.classList.remove('checked');
+                }
+            }
+        }
+
+        // Bulk operations triggers for class uncle
+        async function triggerBulkDelete() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            const msg = `هل أنت متأكد من حذف ${selectedStudentIds.size} من الأطفال المحددين؟\nلا يمكن التراجع عن هذا الإجراء وسيتم مسح سجلاتهم تماماً.`;
+            if (!confirm(msg)) return;
+
+            showLoading('جاري الحذف...');
+            makeApiCall({
+                action: 'bulkDeleteStudents',
+                student_ids: Array.from(selectedStudentIds).join(',')
+            }, d => {
+                showToast(d.message || 'تم حذف الأطفال بنجاح', 'success');
+                disableBulkSelectMode();
+                loadData();
+            }, err => {
+                showToast(err || 'فشل في الحذف الجماعي', 'error');
+            });
+        }
+
+        function triggerBulkCoupons() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+            
+            document.getElementById('bulkCouponCountLabel').textContent = `تعديل الكوبونات لـ ${selectedStudentIds.size} من الأطفال المحددين`;
+            document.getElementById('bulkCouponChangeAmount').value = '';
+            document.getElementById('bulkCouponReason').value = '';
+            openModal('bulkEditCouponsModal');
+        }
+
+        async function executeBulkCoupons(e) {
+            e.preventDefault();
+            const changeAmount = parseInt(document.getElementById('bulkCouponChangeAmount').value);
+            const reason = document.getElementById('bulkCouponReason').value;
+
+            if (isNaN(changeAmount) || changeAmount === 0) {
+                showToast('الرجاء إدخال قيمة صحيحة غير الصفر', 'warning');
+                return;
+            }
+
+            showLoading('جاري الحفظ...');
+            makeApiCall({
+                action: 'bulkUpdateStudentsCoupons',
+                student_ids: Array.from(selectedStudentIds).join(','),
+                change_amount: changeAmount,
+                reason: reason
+            }, d => {
+                showToast(d.message || 'تم تعديل الكوبونات بنجاح', 'success');
+                closeModal('bulkEditCouponsModal');
+                disableBulkSelectMode();
+                loadData();
+            }, err => {
+                showToast(err || 'فشل التعديل', 'error');
+            });
+        }
+
+        function triggerBulkClass() {
+            if (selectedStudentIds.size === 0) {
+                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                return;
+            }
+
+            document.getElementById('bulkClassCountLabel').textContent = `تغيير الفصل لـ ${selectedStudentIds.size} من الأطفال المحددين`;
+            
+            const selectEl = document.getElementById('bulkClassSelect');
+            if (selectEl) {
+                selectEl.innerHTML = '';
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.arabic_name;
+                    selectEl.appendChild(opt);
+                });
+            }
+            
+            openModal('bulkEditClassModal');
+        }
+
+        async function executeBulkClass(e) {
+            e.preventDefault();
+            const classId = parseInt(document.getElementById('bulkClassSelect').value);
+
+            if (isNaN(classId) || classId <= 0) {
+                showToast('الرجاء تحديد فصل صالح', 'warning');
+                return;
+            }
+
+            showLoading('جاري الحفظ...');
+            makeApiCall({
+                action: 'bulkUpdateStudentsClass',
+                student_ids: Array.from(selectedStudentIds).join(','),
+                class_id: classId
+            }, d => {
+                showToast(d.message || 'تم تغيير الفصل بنجاح', 'success');
+                closeModal('bulkEditClassModal');
+                disableBulkSelectMode();
+                loadData();
+            }, err => {
+                showToast(err || 'فشل نقل الأطفال', 'error');
+            });
+        }
+
+        function animateCouponDelta(studentId, delta) {
+            const row = document.getElementById('ai-' + studentId);
+            if (!row) return;
+            const couponsEl = row.querySelector('.student-coupons');
+            if (!couponsEl) return;
+            
+            // Create a floating badge element
+            const badge = document.createElement('div');
+            badge.className = 'coupon-delta-badge' + (delta >= 0 ? ' plus' : ' minus');
+            badge.textContent = (delta >= 0 ? '+' : '') + delta;
+            
+            couponsEl.style.position = 'relative';
+            couponsEl.appendChild(badge);
+            
+            setTimeout(() => {
+                badge.remove();
+            }, 800);
         }
 
         // ── SAVE BUTTONS ──────────────────────────────────────────────
