@@ -6195,6 +6195,8 @@ function submitAttendance()
 
                     if ($existing) {
 
+                        $oldStatus = $existing['status'];
+
                         $del = $conn->prepare("DELETE FROM attendance WHERE student_id = ? AND attendance_date = ?");
 
                         $del->bind_param("is", $sid, $dbDate);
@@ -6203,7 +6205,7 @@ function submitAttendance()
 
                         // Reverse coupon if was present
 
-                        if ($existing['status'] === 'present') {
+                        if ($oldStatus === 'present') {
 
                             $newAtt = max(0, intval($student['attendance_coupons']) - 100);
 
@@ -6216,6 +6218,9 @@ function submitAttendance()
                             $upd->execute();
 
                         }
+
+                        // Audit the pending/clear operation
+                        auditAttendanceSave($sid, $student['name'], $dbDate, $oldStatus, 'pending', false);
 
                         $successCount++;
 
