@@ -2990,9 +2990,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bulk-actions-bar-header {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             width: 100%;
-            position: relative;
         }
         .bulk-actions-bar.show {
             display: flex;
@@ -9235,12 +9234,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
                     <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
                         <div class="bulk-actions-bar-header">
-                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center; width:100%; padding:0 30px;">
-                                <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-3); margin-left: 2px;">تحديد:</span>
-                                
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; margin-left: 2px;" title="تحديد الكل">
                                     <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                                 </div>
+                                
+                                <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-3); margin-left: 4px;">تحديد:</span>
                                 
                                 <button class="filter-chip" onclick="bulkSelectByFilter('pending')" title="بدون حضور">
                                     <i class="fas fa-minus" style="font-size: 0.72rem;"></i>
@@ -9257,7 +9256,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                                 <span id="bulkSelectedCount" class="selected-count-chip" style="margin-right: 4px;">0</span>
                             </div>
-                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);">
+                            <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="">
                                 &times;
                             </button>
                         </div>
