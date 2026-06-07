@@ -21848,6 +21848,11 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
         $pDon = floatval($p['donation'] ?? 0);
 
         $pMethod = $p['payment_method'] ?? 'cash';
+        // Normalize payment method to standard enum values allowed by trip_payments table
+        $validMethods = ['cash', 'card', 'bank_transfer', 'other'];
+        if (!in_array($pMethod, $validMethods)) {
+            $pMethod = 'cash';
+        }
 
         $pNotes = $p['notes'] ?? '';
 
