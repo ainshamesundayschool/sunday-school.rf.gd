@@ -3963,13 +3963,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <div class="page" id="mainPage" style="display:none">
 
     <!-- Announcement notification banner -->
-    <div class="ann-banner-wrap" id="scAnn" style="display:none;">
+    <div class="ann-banner-wrap" id="scAnnBanner" style="display:none;">
       <div style="padding: 12px 16px; background:var(--warn-bg); border: 1.5px solid var(--warn-l); border-radius: var(--r-md); display: flex; align-items: flex-start; gap: 10px; color: var(--warn); direction: rtl; box-shadow: var(--sh-sm);">
         <div style="font-size: 1.25rem; color: var(--warn-l); flex-shrink: 0; margin-top: 2px;"><i class="fas fa-bell"></i></div>
         <div style="flex: 1; min-width: 0;">
            <div style="font-weight: 800; font-size: 0.82rem; margin-bottom: 2px; color:var(--warn);">إشعار هام:</div>
-           <div id="annList" style="font-size: 0.85rem; line-height: 1.4; color: var(--t1);"></div>
+           <div id="annBannerList" style="font-size: 0.85rem; line-height: 1.4; color: var(--t1);"></div>
         </div>
+        <button onclick="dismissAnnBanner()" style="background:none; border:none; color:var(--warn); opacity: 0.7; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; padding: 2px; margin-top: 2px; transition: opacity var(--fast);" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7" title="إغلاق"><i class="fas fa-times"></i></button>
       </div>
     </div>
 
@@ -3988,7 +3989,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <!-- Tab Header -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
         <div style="width:44px; height:44px; border-radius:var(--r-md); background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
-          <i class="fas fa-paper-plane"></i>
+          <i class="fas fa-ticket-alt"></i>
         </div>
         <div>
           <div style="font-size:1.15rem; font-weight:800; color:#fff;">إرسال كوبونات</div>
@@ -4091,9 +4092,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <input type="password" id="sendPassword" placeholder="كلمة المرور الخاصة بك..." class="send-wizard-input" oninput="checkStep3Valid()">
          </div>
 
-         <div class="wizard-btn-row">
-            <button class="btn btn-g" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;" onclick="goToStep(2)"><i class="fas fa-chevron-right"></i> رجوع</button>
-            <button class="btn btn-p" id="sendWizardSubmitBtn" style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="trySendCoupons()" disabled><i class="fas fa-paper-plane" style="margin-left:4px;"></i> أرسل الآن</button>
+         <div class="wizard-btn-row" style="align-items: center; justify-content: center; gap: 16px;">
+            <button class="btn btn-g" style="padding: 12px 20px; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius: var(--r-md); height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 800;" onclick="goToStep(2)"><i class="fas fa-chevron-right" style="margin-left: 6px;"></i> رجوع</button>
+            <button class="btn btn-p" id="sendWizardSubmitBtn" style="width: 50px; height: 50px; border-radius: 50%; background:#fff; color:var(--brand); border: none; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-md); font-size: 1.3rem; flex-shrink: 0; padding: 0; margin: 0 auto;" onclick="trySendCoupons()" disabled><i class="fas fa-ticket-alt"></i></button>
          </div>
       </div>
     </div>
@@ -4585,7 +4586,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
     <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
       <div class="fab-btn">
-        <i class="fas fa-paper-plane"></i>
+        <i class="fas fa-ticket-alt"></i>
       </div>
       <span>إرسال</span>
     </div>
@@ -5303,7 +5304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       ${show.map(u => `<div class="ua" title="${esc(u.name)}">${u.image_url ? `<img src="${esc(u.image_url)}" alt="${esc(u.name)}">` : u.name.charAt(0)}</div>`).join('')}
       ${extra > 0 ? `<div class="ua-more">+${extra}</div>` : ''}
     </div>
-    <span class="uncle-strip-label"><i class="fas fa-user-tie" style="font-size:.6rem;opacity:.8;"></i> ${uncles.length === 1 ? esc(uncles[0].name) : ''}</span>`;
+    <span class="uncle-strip-label">${uncles.length === 1 ? esc(uncles[0].name) : ''}</span>`;
       strip.style.display = 'inline-flex';
       strip.onclick = () => { switchTab('family'); };
       renderUncleCards(uncles);
@@ -5936,6 +5937,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         return;
       }
       const t = allTasks.find(x => x.id == id); if (!t) return;
+
+      // Automatically dismiss task announcements when the task is opened
+      const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+      let changed = false;
+      allAnnouncements.forEach(ann => {
+        const isTaskAnn = ann.type === 'task' || (ann.text && (ann.text.includes(t.title) || ann.text.includes('مهمة')));
+        if (isTaskAnn && !dismissedIds.includes(parseInt(ann.id))) {
+          dismissedIds.push(parseInt(ann.id));
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
+        // Refresh announcement banner
+        const banner = document.getElementById('scAnnBanner');
+        const bannerList = document.getElementById('annBannerList');
+        const dismissedIdsNew = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+        const activeAnns = allAnnouncements.filter(ann => !dismissedIdsNew.includes(parseInt(ann.id)));
+        if (activeAnns.length > 0) {
+          const latest = activeAnns[0];
+          latestBannerAnnId = parseInt(latest.id);
+          let linkBtn = '';
+          if (latest.type === 'button' && latest.link) {
+            linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
+          }
+          if (bannerList) {
+            bannerList.innerHTML = `
+              <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
+              ${linkBtn}
+            `;
+          }
+          if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
+            banner.style.display = 'block';
+          }
+        } else {
+          if (banner) banner.style.display = 'none';
+        }
+      }
       const st = tSt(t);
       if (st === 'done' && t.my_submission) { showExamResult(t, t.my_submission); return; }
       if (st === 'upcoming') { toast('هذه المهمة لم تُفتح بعد', 'info'); return; }
@@ -6530,7 +6569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const contactBtn = notRegistered && classUncles.length
           ? `<div class="trip-contact-bar" onclick="event.stopPropagation();openTripContactUncle(${t.id})">
           <i class="fas fa-exclamation-circle"></i>
-          <span>اسمك غير موجود في القائمة</span>
+          <span>اسمك غير موجود في قائمة الرحلة</span>
           <span class="trip-contact-action"><i class="fas fa-comments"></i> تواصل مع المدرّس</span>
          </div>`
           : notRegistered
@@ -6655,95 +6694,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     // ── Announcements ─────────────────────────────────────────────────
+    let allAnnouncements = [];
+    let latestBannerAnnId = 0;
+
     async function loadAnn() {
       if (!student) return;
       try {
         const d = await api({ action: 'getAnnouncementsForStudent', churchId: student.church_id || 1, studentClass: student.class, studentName: student.name });
-        const listEl = document.getElementById('annList');
-        const scAnn = document.getElementById('scAnn');
+        const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
+        allAnnouncements = anns;
+
+        // 1. Handle navigation tab badge for tasks
+        const badge = document.getElementById('tasksBadge');
+        if (badge && !isViewingOther() && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
+          const taskAnns = anns.filter(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
+          maxFetchedTaskAnnId = taskAnns.length ? Math.max(...taskAnns.map(ann => parseInt(ann.id) || 0)) : 0;
+          const lastViewedId = parseInt(localStorage.getItem('tasksLastViewedAnnId_' + student.id) || '0');
+          const hasNewTaskAnn = taskAnns.some(ann => (parseInt(ann.id) || 0) > lastViewedId);
+          badge.style.display = hasNewTaskAnn ? 'block' : 'none';
+        }
+
+        const banner = document.getElementById('scAnnBanner');
+        const bannerList = document.getElementById('annBannerList');
+        const card = document.getElementById('scAnn');
+        const cardList = document.getElementById('annList');
         const annSub = document.getElementById('annSub');
         const annBadge = document.getElementById('annBadge');
-        const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
 
-        if (!anns.length) {
-          if (listEl) {
-            listEl.innerHTML = `
-        <div class="ann-empty">
-          <i class="fas fa-bullhorn"></i>
-          <strong>لا توجد إعلانات حالياً</strong>
-          <span>أول ما ينزل إعلان جديد من الخدام أو الكنيسة هتلاقيه هنا.</span>
-        </div>`;
+        // 2. Render the Announcements Section Card (if present)
+        if (anns.length > 0) {
+          if (annSub) annSub.textContent = `${anns.length} إعلان${anns.length > 1 ? 'ات' : ''} موجه ليك`;
+          if (annBadge) annBadge.textContent = String(anns.length);
+
+          const latestCard = anns[0];
+          const buttonCount = anns.filter(a => a.type === 'button' && a.link).length;
+          const messageCount = anns.length - buttonCount;
+
+          if (cardList) {
+            cardList.innerHTML = `
+          <div class="ann-shell">
+            <div class="ann-summary">
+              <div class="ann-highlight">
+                <div class="ann-highlight-badge"><i class="fas fa-sparkles"></i> أحدث إعلان</div>
+                <div class="ann-highlight-title">${latestCard.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك'}</div>
+                <div class="ann-highlight-text">${esc(latestCard.text)}</div>
+                <div class="ann-highlight-meta">
+                  <span class="ann-type ${latestCard.type === 'button' ? 'link' : ''}">
+                    <i class="fas fa-${latestCard.type === 'button' ? 'link' : 'comment-dots'}"></i>
+                    ${latestCard.type === 'button' ? 'رابط سريع' : 'رسالة'}
+                  </span>
+                  <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latestCard.created_at)}</span>
+                  ${latestCard.type === 'button' && latestCard.link ? `<a href="${esc(latestCard.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> فتح الرابط</a>` : ''}
+                </div>
+              </div>
+              <div class="ann-summary-card">
+                <div class="ann-stat-grid">
+                  <div class="ann-stat">
+                    <span class="ann-stat-val">${anns.length}</span>
+                    <span class="ann-stat-lbl">إجمالي الإعلانات</span>
+                  </div>
+                  <div class="ann-stat">
+                    <span class="ann-stat-val">${buttonCount}</span>
+                    <span class="ann-stat-lbl">روابط سريعة</span>
+                  </div>
+                  <div class="ann-stat">
+                    <span class="ann-stat-val">${messageCount}</span>
+                    <span class="ann-stat-lbl">رسائل</span>
+                  </div>
+                  <div class="ann-stat">
+                    <span class="ann-stat-val">${student.class ? esc(student.class) : 'عام'}</span>
+                    <span class="ann-stat-lbl">الفصل الحالي</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ann-list">
+              ${anns.map(a => `
+                <div class="ann-item">
+                  <div class="ann-top">
+                    <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
+                      <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
+                      ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
+                    </span>
+                    <span class="ann-date">${fmtDate(a.created_at)}</span>
+                  </div>
+                  <div class="ann-text">${esc(a.text)}</div>
+                  <div class="ann-footer">
+                    <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
+                    ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>`;
+          }
+          if (card && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
+            card.style.display = 'block';
+          }
+        } else {
+          if (cardList) {
+            cardList.innerHTML = `
+            <div class="ann-empty">
+              <i class="fas fa-bullhorn"></i>
+              <strong>لا توجد إعلانات حالياً</strong>
+              <span>أول ما ينزل إعلان جديد من الخدام أو الكنيسة هتلاقيه هنا.</span>
+            </div>`;
           }
           if (annSub) annSub.textContent = 'لا توجد تحديثات جديدة الآن';
           if (annBadge) annBadge.textContent = '0';
-          if (scAnn) scAnn.style.display = 'block';
+          if (card) card.style.display = 'none';
+        }
+
+        // 3. Handle top announcement notification banner
+        const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+        const activeAnns = anns.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
+
+        if (!activeAnns.length) {
+          if (banner) banner.style.display = 'none';
           return;
         }
 
-        const latest = anns[0];
-        const buttonCount = anns.filter(a => a.type === 'button' && a.link).length;
-        const messageCount = anns.length - buttonCount;
+        const latest = activeAnns[0];
+        latestBannerAnnId = parseInt(latest.id);
 
-        if (annSub) annSub.textContent = `${anns.length} إعلان${anns.length > 1 ? 'ات' : ''} موجه ليك`;
-        if (annBadge) annBadge.textContent = String(anns.length);
+        let linkBtn = '';
+        if (latest.type === 'button' && latest.link) {
+          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
+        }
 
-        listEl.innerHTML = `
-      <div class="ann-shell">
-        <div class="ann-summary">
-          <div class="ann-highlight">
-            <div class="ann-highlight-badge"><i class="fas fa-sparkles"></i> أحدث إعلان</div>
-            <div class="ann-highlight-title">${latest.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك'}</div>
-            <div class="ann-highlight-text">${esc(latest.text)}</div>
-            <div class="ann-highlight-meta">
-              <span class="ann-type ${latest.type === 'button' ? 'link' : ''}">
-                <i class="fas fa-${latest.type === 'button' ? 'link' : 'comment-dots'}"></i>
-                ${latest.type === 'button' ? 'رابط سريع' : 'رسالة'}
-              </span>
-              <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latest.created_at)}</span>
-              ${latest.type === 'button' && latest.link ? `<a href="${esc(latest.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> فتح الرابط</a>` : ''}
-            </div>
-          </div>
-          <div class="ann-summary-card">
-            <div class="ann-stat-grid">
-              <div class="ann-stat">
-                <span class="ann-stat-val">${anns.length}</span>
-                <span class="ann-stat-lbl">إجمالي الإعلانات</span>
-              </div>
-              <div class="ann-stat">
-                <span class="ann-stat-val">${buttonCount}</span>
-                <span class="ann-stat-lbl">روابط سريعة</span>
-              </div>
-              <div class="ann-stat">
-                <span class="ann-stat-val">${messageCount}</span>
-                <span class="ann-stat-lbl">رسائل</span>
-              </div>
-              <div class="ann-stat">
-                <span class="ann-stat-val">${student.class ? esc(student.class) : 'عام'}</span>
-                <span class="ann-stat-lbl">الفصل الحالي</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="ann-list">
-          ${anns.map(a => `
-            <div class="ann-item">
-              <div class="ann-top">
-                <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
-                  <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
-                  ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
-                </span>
-                <span class="ann-date">${fmtDate(a.created_at)}</span>
-              </div>
-              <div class="ann-text">${esc(a.text)}</div>
-              <div class="ann-footer">
-                <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
-                ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-        if (scAnn) scAnn.style.display = 'block';
-      } catch (e) { }
+        if (bannerList) {
+          bannerList.innerHTML = `
+            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
+            ${linkBtn}
+          `;
+        }
+
+        if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
+          banner.style.display = 'block';
+        }
+      } catch (e) {
+        const banner = document.getElementById('scAnnBanner');
+        if (banner) banner.style.display = 'none';
+      }
+    }
+
+    function dismissAnnBanner() {
+      if (!student) return;
+      const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+      if (latestBannerAnnId && !dismissedIds.includes(latestBannerAnnId)) {
+        dismissedIds.push(latestBannerAnnId);
+        localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
+      }
+      // Re-evaluate the banner
+      const banner = document.getElementById('scAnnBanner');
+      const bannerList = document.getElementById('annBannerList');
+      const activeAnns = allAnnouncements.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
+      if (activeAnns.length > 0) {
+        const latest = activeAnns[0];
+        latestBannerAnnId = parseInt(latest.id);
+        let linkBtn = '';
+        if (latest.type === 'button' && latest.link) {
+          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
+        }
+        if (bannerList) {
+          bannerList.innerHTML = `
+            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
+            ${linkBtn}
+          `;
+        }
+        if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
+          banner.style.display = 'block';
+        }
+      } else {
+        if (banner) banner.style.display = 'none';
+      }
     }
 
     // ── Edit / Password / Photo ───────────────────────────────────────
@@ -7134,6 +7257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const hero = document.querySelector('.hero');
       const statsBar = document.getElementById('statsBar');
       const scInfo = document.getElementById('scInfo');
+      const scAnnBanner = document.getElementById('scAnnBanner');
       const scAnn = document.getElementById('scAnn');
       const homeSearchBar = document.getElementById('homeSearchBar');
       const scAtt = document.getElementById('scAtt');
@@ -7161,6 +7285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         statsBar.style.marginTop = '0';
       }
       if (scInfo) scInfo.style.display = 'none';
+      if (scAnnBanner) scAnnBanner.style.display = 'none';
       if (scAnn) scAnn.style.display = 'none';
       if (homeSearchBar) homeSearchBar.style.display = 'none';
       if (scAtt) scAtt.style.display = 'none';
@@ -7176,9 +7301,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (scInfo) scInfo.style.display = 'block';
         if (scTrips) scTrips.style.display = 'block';
         
-        // Show announcements banner at top if we have announcements
-        const annList = document.getElementById('annList');
-        if (annList && annList.textContent.trim().length > 0 && scAnn) {
+        // Show announcements banner at top if we have active announcements
+        const bannerList = document.getElementById('annBannerList');
+        if (bannerList && bannerList.textContent.trim().length > 0 && scAnnBanner) {
+           scAnnBanner.style.display = 'block';
+        }
+        // Show announcements section card if we have any announcements
+        if (allAnnouncements && allAnnouncements.length > 0 && scAnn) {
            scAnn.style.display = 'block';
         }
         
@@ -7600,51 +7729,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
-    // ── Announcement notification rendering update ──
-    async function loadAnn() {
-      if (!student) return;
-      try {
-        const d = await api({ action: 'getAnnouncementsForStudent', churchId: student.church_id || 1, studentClass: student.class, studentName: student.name });
-        const listEl = document.getElementById('annList');
-        const scAnn = document.getElementById('scAnn');
-        const anns = (d.success && Array.isArray(d.announcements)) ? d.announcements : [];
-
-        const badge = document.getElementById('tasksBadge');
-        if (badge && !isViewingOther() && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
-          const taskAnns = anns.filter(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
-          maxFetchedTaskAnnId = taskAnns.length ? Math.max(...taskAnns.map(ann => parseInt(ann.id) || 0)) : 0;
-          const lastViewedId = parseInt(localStorage.getItem('tasksLastViewedAnnId_' + student.id) || '0');
-          const hasNewTaskAnn = taskAnns.some(ann => (parseInt(ann.id) || 0) > lastViewedId);
-          badge.style.display = hasNewTaskAnn ? 'block' : 'none';
-        }
-
-
-        if (!anns.length) {
-          if (scAnn) scAnn.style.display = 'none';
-          return;
-        }
-
-        const latest = anns[0];
-        if (scAnn && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
-           scAnn.style.display = 'block';
-        }
-        
-        let linkBtn = '';
-        if (latest.type === 'button' && latest.link) {
-          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
-        }
-
-        if (listEl) {
-          listEl.innerHTML = `
-            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
-            ${linkBtn}
-          `;
-        }
-      } catch (e) {
-        const scAnn = document.getElementById('scAnn');
-        if (scAnn) scAnn.style.display = 'none';
-      }
-    }
+    // loadAnn was combined and moved to the primary section above.
 
   </script>
 </body>

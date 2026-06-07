@@ -8141,6 +8141,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 margin-left: 8px;
             }
         }
+
+        @media (max-width: 600px) {
+            #kidQrScannerModal.modal-overlay {
+                justify-content: center;
+                align-items: center;
+            }
+            #kidQrScannerModal .modal {
+                width: 100vw !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 10px 16px 16px;
+                animation: none !important;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -8542,6 +8558,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
                             oninput="performInlineSearch(this.value)" autocomplete="off">
+                        <button type="button" id="inlineSearchQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                            <i class="fas fa-qrcode"></i>
+                        </button>
                         <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
                     </div>
@@ -8822,11 +8841,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="stat-lbl">متوسط</span></span>
                         </div>
                         <div class="save-row">
-                            <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
-                                onclick="showUnsavedModal()">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
-                            </button>
                             <div class="action-dropdown" style="flex:none;min-width:0;">
                                 <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
                                     <i class="fas fa-qrcode"></i>
@@ -8841,6 +8855,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </button>
                                 </div>
                             </div>
+                            <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
+                                onclick="showUnsavedModal()">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
+                            </button>
                             <button class="save-btn save-btn-attendance" id="submitAttendance" disabled
                                 title="حفظ الحضور">
                                 <i class="fas fa-user-check"></i>
@@ -11576,11 +11595,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // ── ATTENDANCE ACTIONS ────────────────────────────────────────
-        function markStudentAttendance(studentId, status) {
+        function markStudentAttendance(studentId, status, force = false) {
             const cur = attendanceData[studentId] || 'pending';
             const srv = originalAttendanceData[studentId] || 'pending';
 
-            if (cur === status) {
+            if (cur === status && !force) {
                 attendanceData[studentId] = 'pending';
                 if (srv === 'pending') changedStudents.delete(studentId);
                 else changedStudents.add(studentId);
@@ -11735,10 +11754,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                 }
                 
-                // Clear seen and entries for the new mode session
-                kidQrScanSeen = new Set();
-                kidQrScanEntries = [];
-                
                 refreshKidQrScanUI();
             }
         }
@@ -11804,9 +11819,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <div style="font-weight:800;color:var(--text);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${entry.name}</div>
                                 <div style="font-size:.74rem;color:var(--text-3);margin-top:2px">${entry.className || ''}</div>
                             </div>
-                            <div style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${kidQrScanMode === 'coupons' ? 'var(--coupon-bg)' : 'var(--success-bg)'};color:${kidQrScanMode === 'coupons' ? 'var(--coupon-dark)' : 'var(--success)'};font-weight:800;font-size:.8rem">
-                                <i class="fas ${kidQrScanMode === 'coupons' ? 'fa-star' : 'fa-user-check'}"></i>
-                                ${kidQrScanMode === 'coupons' ? `+${entry.amount}` : 'حاضر'}
+                            <div style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${entry.scanType === 'coupons' ? 'var(--coupon-bg)' : 'var(--success-bg)'};color:${entry.scanType === 'coupons' ? 'var(--coupon-dark)' : 'var(--success)'};font-weight:800;font-size:.8rem">
+                                <i class="fas ${entry.scanType === 'coupons' ? 'fa-star' : 'fa-user-check'}"></i>
+                                ${entry.scanType === 'coupons' ? `+${entry.amount}` : 'حاضر'}
                             </div>
                         </div>
                     `).join('');
@@ -11827,8 +11842,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const studentCompositeId = getStudentId(student);
             const className = student['الفصل'] || student.class || '';
 
-            if (kidQrScanSeen.has(studentCompositeId)) {
-                showToast('تمت إضافة هذا الطفل بالفعل', 'info');
+            const seenKey = studentCompositeId + '_' + kidQrScanMode;
+            if (kidQrScanSeen.has(seenKey)) {
+                showToast('تمت إضافة هذا الطفل بالفعل في هذا الوضع', 'info');
                 return false;
             }
 
@@ -11848,14 +11864,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 loadAttendanceDataForClass(className);
             }
 
-            kidQrScanSeen.add(studentCompositeId);
+            kidQrScanSeen.add(seenKey);
             const name = student['الاسم'] || student.name || 'طفل';
 
             if (kidQrScanMode === 'attendance') {
-                markStudentAttendance(studentCompositeId, 'present');
+                markStudentAttendance(studentCompositeId, 'present', true);
                 saveAttendanceDataForClass(className);
                 saveChangedStudentsToLocalStorage(className);
-                kidQrScanEntries.push({ id: studentCompositeId, name, className });
+                kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'attendance' });
                 if (currentClass) {
                     renderAttendanceList(currentClass);
                     updateClassStats();
@@ -11868,14 +11884,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 changedCouponStudents.add(studentCompositeId);
                 savedCouponStudents.delete(studentCompositeId);
                 saveCouponDataForClass(className);
-                kidQrScanEntries.push({ id: studentCompositeId, name, className, amount });
+                kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'coupons', amount });
                 if (currentClass) {
                     renderAttendanceList(currentClass);
                     updateClassStats();
                 }
                 updateSaveBtns();
             } else if (kidQrScanMode === 'profile') {
-                kidQrScanEntries.push({ id: studentCompositeId, name, className });
+                kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'profile' });
                 stopKidQrScan();
                 showStudentDetails(name);
                 return true;
