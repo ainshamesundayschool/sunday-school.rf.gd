@@ -17,7 +17,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           security: loose
-          server-dir: /public_html/testing/ # Adjust this path to match your subdomain folder on Hostinger
+          server-dir: /testing/
           exclude: |
             **/.git*
             **/.git*/**
