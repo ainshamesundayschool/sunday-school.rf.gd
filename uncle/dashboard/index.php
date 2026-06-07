@@ -8159,16 +8159,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             #kidQrScannerModal .modal::before {
                 display: none !important;
             }
+            #kidQrReader {
+                width: 100% !important;
+                max-width: 280px !important;
+                height: auto !important;
+                min-height: unset !important;
+                aspect-ratio: 1 / 1 !important;
+                margin: 0 auto 12px !important;
+            }
         }
 
         #kidQrReader video {
             object-fit: cover !important;
             transform: scaleX(1) !important;
             -webkit-transform: scaleX(1) !important;
+            width: 100% !important;
+            height: 100% !important;
         }
         #kidQrReader canvas {
+            object-fit: cover !important;
             transform: scaleX(1) !important;
             -webkit-transform: scaleX(1) !important;
+            width: 100% !important;
+            height: 100% !important;
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -9568,7 +9581,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </select>
                 </div>
 
-                <div id="kidQrReader" style="width:100%; max-width:280px; aspect-ratio:1/1; margin:0 auto 12px; border-radius:16px; overflow:hidden; background:#000"></div>
+                <div id="kidQrReader" style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
                 <div id="kidQrScanSummary" style="margin-top:12px"></div>
                 <div id="kidQrScanList" style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px"></div>
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
@@ -11967,7 +11980,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 await kidQrScanner.start(
                     { facingMode: 'environment' },
-                    { fps: 10, qrbox: { width: 240, height: 240 } },
+                    { fps: 10, qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; } },
                     async (decodedText) => {
                         const kidId = getKidIdFromQrText(decodedText);
                         if (!kidId) {
