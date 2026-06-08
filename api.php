@@ -3254,6 +3254,14 @@ try {
 
             break;
 
+        case 'bulkSaveImportedKids':
+
+            checkAuth();
+
+            bulkSaveImportedKids();
+
+            break;
+
 
 
         case 'getKidsData':
@@ -15601,6 +15609,241 @@ function bulkAddKids()
 
 }
 
+function bulkSaveImportedKids()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        $conn->begin_transaction();
+
+        $tripId = isset($_POST['trip_id']) ? intval($_POST['trip_id']) : 0;
+        $kidsJson = $_POST['kids'] ?? '';
+        $kids = json_decode($kidsJson, true);
+
+        if (!is_array($kids)) {
+            sendJSON(['success' => false, 'message' => 'بيانات الأطفال غير صالحة']);
+            return;
+        }
+
+        $churchClasses = getClassesForChurch($churchId);
+        $classMap = [];
+        foreach ($churchClasses as $cls) {
+            $key = mb_strtolower(trim($cls['arabic_name']));
+            $classMap[$key] = ['id' => $cls['id'], 'arabic_name' => $cls['arabic_name']];
+        }
+
+        $addedCount = 0;
+        $updatedCount = 0;
+        $registeredCount = 0;
+        $errors = [];
+
+        if ($tripId > 0) {
+            $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ?");
+            $tripStmt->bind_param("i", $tripId);
+            $tripStmt->execute();
+            $trip = $tripStmt->get_result()->fetch_assoc();
+            if (!$trip) {
+                sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+                return;
+            }
+            ensureWaitlistTable($conn);
+            $maxParticipants = intval($trip['max_participants'] ?? 0);
+        }
+
+        foreach ($kids as $kid) {
+            $studentId = isset($kid['student_id']) ? intval($kid['student_id']) : 0;
+            $name = sanitize($kid['name'] ?? '');
+            $classRaw = sanitize($kid['class'] ?? '');
+            $phone = sanitize($kid['phone'] ?? '');
+            $gender = sanitize($kid['gender'] ?? '');
+            $address = sanitize($kid['address'] ?? '');
+            $birthday = sanitize($kid['birthday'] ?? '');
+            $customInfoInput = $kid['custom_info'] ?? [];
+
+            if (empty($name)) {
+                continue;
+            }
+
+            $classId = 0;
+            $className = $classRaw;
+            if (!empty($classRaw)) {
+                $lookupKey = mb_strtolower(trim($classRaw));
+                if (isset($classMap[$lookupKey])) {
+                    $classId = $classMap[$lookupKey]['id'];
+                    $className = $classMap[$lookupKey]['arabic_name'];
+                }
+            }
+
+            $formattedBirthday = null;
+            if (!empty($birthday)) {
+                $formattedBirthday = formatDateToDB($birthday);
+            }
+
+            $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+            if (!empty($cleanPhone)) {
+                $len = strlen($cleanPhone);
+                if ($len === 10 && $cleanPhone[0] === '1') $cleanPhone = '0' . $cleanPhone;
+                elseif ($len === 11 && substr($cleanPhone, 0, 2) !== '01') $cleanPhone = '0' . substr($cleanPhone, 0, 10);
+                elseif ($len < 10) $cleanPhone = '';
+                elseif ($len > 11) $cleanPhone = substr($cleanPhone, -11);
+            }
+            if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
+                $cleanPhone = '';
+            }
+
+            if ($gender !== 'male' && $gender !== 'female') {
+                $gender = detectGenderFromName($name);
+            }
+
+            $existingCustomInfo = [];
+            if ($studentId > 0) {
+                $getStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
+                $getStmt->bind_param("ii", $studentId, $churchId);
+                $getStmt->execute();
+                $existingRow = $getStmt->get_result()->fetch_assoc();
+                if ($existingRow && !empty($existingRow['custom_info'])) {
+                    $existingCustomInfo = json_decode($existingRow['custom_info'], true) ?: [];
+                }
+            }
+
+            $infoObj = $existingCustomInfo;
+            if (is_array($customInfoInput)) {
+                foreach ($customInfoInput as $k => $v) {
+                    $cleanK = strip_tags(trim((string)$k));
+                    $cleanV = strip_tags(trim((string)$v));
+                    if ($cleanK !== '') {
+                        $infoObj[$cleanK] = $cleanV;
+                    }
+                }
+            }
+            $customInfoJson = !empty($infoObj) ? json_encode($infoObj, JSON_UNESCAPED_UNICODE) : null;
+
+            if ($studentId > 0) {
+                $setParts = ["name = ?", "gender = ?", "updated_at = NOW()"];
+                $setTypes = "ss";
+                $setValues = [$name, $gender];
+
+                if ($classId > 0) {
+                    $setParts[] = "class_id = ?";
+                    $setParts[] = "class = ?";
+                    $setTypes .= "is";
+                    $setValues[] = $classId;
+                    $setValues[] = $className;
+                }
+                if ($address !== '') {
+                    $setParts[] = "address = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $address;
+                }
+                if ($cleanPhone !== '') {
+                    $setParts[] = "phone = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $cleanPhone;
+                }
+                if ($formattedBirthday !== null) {
+                    $setParts[] = "birthday = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $formattedBirthday;
+                }
+                if ($customInfoJson !== null) {
+                    $setParts[] = "custom_info = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $customInfoJson;
+                }
+
+                $setTypes .= "ii";
+                $setValues[] = $studentId;
+                $setValues[] = $churchId;
+
+                $updateSql = "UPDATE students SET " . implode(', ', $setParts) . " WHERE id = ? AND church_id = ?";
+                $updateStmt = $conn->prepare($updateSql);
+                $updateStmt->bind_param($setTypes, ...$setValues);
+                if ($updateStmt->execute()) {
+                    $updatedCount++;
+                } else {
+                    $errors[] = "فشل تحديث الطفل " . $name . ": " . $updateStmt->error;
+                    continue;
+                }
+            } else {
+                $insStmt = $conn->prepare("
+                    INSERT INTO students 
+                    (church_id, name, class_id, class, address, phone, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                ");
+                $insStmt->bind_param("isissssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $formattedBirthday, $gender, $customInfoJson);
+                if ($insStmt->execute()) {
+                    $studentId = $conn->insert_id;
+                    $addedCount++;
+                } else {
+                    $errors[] = "فشل إضافة الطفل " . $name . ": " . $insStmt->error;
+                    continue;
+                }
+            }
+
+            if ($tripId > 0 && $studentId > 0) {
+                $chkReg = $conn->prepare("SELECT id, cancelled FROM trip_registrations WHERE trip_id = ? AND student_id = ?");
+                $chkReg->bind_param("ii", $tripId, $studentId);
+                $chkReg->execute();
+                $chkRegRes = $chkReg->get_result();
+
+                if ($chkRegRes->num_rows > 0) {
+                    $existingReg = $chkRegRes->fetch_assoc();
+                    if ($existingReg['cancelled'] == 1) {
+                        $reactivate = $conn->prepare("UPDATE trip_registrations SET cancelled = 0, registered_by = ? WHERE id = ?");
+                        $reactivate->bind_param("si", $_SESSION['username'], $existingReg['id']);
+                        $reactivate->execute();
+                        $registeredCount++;
+                    }
+                } else {
+                    $countStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
+                    $countStmt->bind_param("i", $tripId);
+                    $countStmt->execute();
+                    $activeCount = (int) $countStmt->get_result()->fetch_assoc()['cnt'];
+
+                    if ($maxParticipants > 0 && $activeCount >= $maxParticipants) {
+                        $checkWait = $conn->prepare("SELECT id FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
+                        $checkWait->bind_param("ii", $tripId, $studentId);
+                        $checkWait->execute();
+                        if ($checkWait->get_result()->num_rows === 0) {
+                            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, registered_by) VALUES (?, ?, ?)");
+                            $insW->bind_param("iis", $tripId, $studentId, $_SESSION['username']);
+                            $insW->execute();
+                        }
+                    } else {
+                        $regStmt = $conn->prepare("
+                            INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type)
+                            VALUES (?, ?, ?, 'student')
+                        ");
+                        $regStmt->bind_param("iis", $tripId, $studentId, $_SESSION['username']);
+                        if ($regStmt->execute()) {
+                            $registeredCount++;
+                        } else {
+                            $errors[] = "فشل تسجيل الطفل " . $name . " في الرحلة: " . $regStmt->error;
+                        }
+                    }
+                }
+            }
+        }
+
+        $conn->commit();
+        sendJSON([
+            'success' => true,
+            'message' => "تم الاستيراد بنجاح! الإضافات: $addedCount، التحديثات: $updatedCount، التسجيلات في الرحلة: $registeredCount",
+            'errors' => $errors,
+            'added' => $addedCount,
+            'updated' => $updatedCount,
+            'registered' => $registeredCount
+        ]);
+
+    } catch (Exception $e) {
+        if (isset($conn)) {
+            $conn->rollback();
+        }
+        sendJSON(['success' => false, 'message' => 'خطأ في الاستيراد: ' . $e->getMessage()]);
+    }
+}
+
 function getKidsData()
 
 {
@@ -27894,6 +28137,14 @@ try {
             checkAuth();
 
             bulkAddKids();
+
+            break;
+
+        case 'bulkSaveImportedKids':
+
+            checkAuth();
+
+            bulkSaveImportedKids();
 
             break;
 

@@ -7095,6 +7095,17 @@
                                     </div>
                                     <div class="form-group"><label class="form-label">صورة الرحلة</label><input
                                             type="file" id="tripImage" class="form-input" accept="image/*"></div>
+                                    <div class="form-group" style="grid-column:1/-1;">
+                                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                            <input type="checkbox" id="enableTripBulkCsv" onchange="document.getElementById('tripBulkCsvWrap').style.display = this.checked ? 'block' : 'none'">
+                                            <label for="enableTripBulkCsv" class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل لديك ملف ببيانات الأطفال؟ استيراد جماعي تلقائي للرحلة</label>
+                                        </div>
+                                        <div id="tripBulkCsvWrap" style="display:none; padding:10px; background:var(--bg); border:1.5px dashed var(--primary); border-radius:10px;">
+                                            <label class="form-label" style="font-size:0.8rem; color:var(--primary-dark); margin-bottom:4px;"><i class="fas fa-file-csv"></i> اختر ملف CSV للأطفال</label>
+                                            <input type="file" id="tripBulkCsvInput" accept=".csv" class="form-input">
+                                            <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">ملاحظة: سيتم استيراد الأطفال ومطابقتهم بعد إنشاء الرحلة مباشرة.</div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i
                                         class="fas fa-plus"></i> إضافة رحلة</button>
@@ -8622,6 +8633,58 @@
         </div>
     </div>
 
+    <!-- Bulk Match Review Modal -->
+    <div id="bulkMatchReviewModal" class="modal">
+        <div class="modal-box wide" style="max-width: 95vw; width: 1200px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-tasks"></i> مراجعة مطابقة الأسماء والاستيراد الجماعي</h2>
+                <button class="modal-close" onclick="closeModal('bulkMatchReviewModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="background: var(--primary-light); padding: 12px; border-radius: 10px; border: 1px solid var(--primary-dark); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px; color: var(--primary-dark); direction: rtl; text-align: right;">
+                    <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام تلقائياً بالبحث عن أفضل مطابقة لأسماء الأطفال في قاعدة البيانات الحالية. يمكنك تعديل حالة أي طفل أو اختيار ربطه بطفل آخر، أو إضافته كطفل جديد بالكنيسة، أو استبعاده من عملية الاستيراد.
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; direction: rtl; text-align: right;">
+                    <div style="display: flex; gap: 8px;">
+                        <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;" id="reviewMatchCount">مطابقة مؤكدة: 0</span>
+                        <span class="badge" style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a;" id="reviewPossibleCount">مطابقة محتملة: 0</span>
+                        <span class="badge" style="background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5;" id="reviewNewCount">أطفال جدد: 0</span>
+                    </div>
+                    <div>
+                        <input type="text" id="reviewSearchInput" class="form-input form-input-sm" style="width: 200px; display: inline-block;" placeholder="البحث في القائمة..." oninput="filterReviewTable()">
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="max-height: 55vh; overflow-y: auto; direction: rtl; text-align: right;">
+                    <table class="table" style="width: 100%; min-width: 800px; text-align: right; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: var(--surface-2); z-index: 10;">
+                            <tr>
+                                <th style="width: 50px; text-align: right; padding: 10px;">#</th>
+                                <th style="text-align: right; padding: 10px;">الاسم بالملف</th>
+                                <th style="text-align: right; padding: 10px;">الفصل / الهاتف بالملف</th>
+                                <th style="text-align: right; padding: 10px; width: 220px;">حالة المطابقة المقترحة</th>
+                                <th style="text-align: right; padding: 10px; width: 320px;">الطفل المستهدف</th>
+                                <th style="text-align: center; padding: 10px; width: 80px;">استيراد؟</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkReviewTableBody">
+                            <!-- Rows dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; direction: rtl;">
+                    <button class="btn btn-success" id="btnConfirmBulkImport" onclick="submitBulkImport()">
+                        <i class="fas fa-check-double"></i> تأكيد وحفظ الاستيراد
+                    </button>
+                    <button class="btn btn-outline" onclick="closeModal('bulkMatchReviewModal')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Add Attendance -->
     <div id="addAttendanceModal" class="modal">
         <div class="modal-box wide">
@@ -10043,6 +10106,15 @@
             const joinTripId = _urlP.get('joinTrip');
             if (joinTripId) {
                 handleJoinTrip(parseInt(joinTripId));
+            }
+
+            // 15. Handle ?action=bulkAdd routing to open bulk add modal
+            if (_urlP.get('action') === 'bulkAdd') {
+                setTimeout(() => {
+                    const stBtn = document.getElementById('nav-students') || document.querySelector(`.nav-item[onclick*="'students'"]`);
+                    if (stBtn) switchTab('students', stBtn);
+                    showBulkAddModal();
+                }, 500);
             }
         });
 
@@ -12588,10 +12660,16 @@
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) {
                 showToast('تم إضافة الرحلة', 'success');
+                const isBulk = document.getElementById('enableTripBulkCsv').checked;
+                const bulkFile = document.getElementById('tripBulkCsvInput').files[0];
+                const newTripId = d.trip_id;
+
                 e.target.reset();
                 document.getElementById('tripFieldsContainer').innerHTML = '';
                 toggleTripDates();
                 recalcTripPrice();
+                document.getElementById('tripBulkCsvWrap').style.display = 'none';
+
                 // Close add form
                 const tw = document.getElementById('addTripFormWrap');
                 if (tw) tw.style.display = 'none';
@@ -12599,7 +12677,14 @@
                 const tl = document.getElementById('addTripToggleLbl');
                 if (ti) ti.className = 'fas fa-plus';
                 if (tl) tl.textContent = 'رحلة جديدة';
+
                 await loadTrips();
+
+                if (isBulk && bulkFile) {
+                    const reader = new FileReader();
+                    reader.onload = ev => parseCSVIntelligent(ev.target.result, newTripId);
+                    reader.readAsText(bulkFile, 'UTF-8');
+                }
             }
             else showToast(d.message || 'فشل في الإضافة', 'error');
             btn.innerHTML = '<i class="fas fa-plus"></i> إضافة رحلة'; btn.disabled = false;
@@ -13857,116 +13942,109 @@
             window.location.href = API_URL + '?action=exportKidsData';
         }
 
-        function handleFileSelect(e) {
+        let currentReviewRows = [];
+        let currentReviewTripId = null;
+
+        function handleFileSelect(e, tripId = null) {
             const f = e.target.files[0]; if (!f) return;
             const r = new FileReader();
-            r.onload = ev => parseCSV(ev.target.result);
+            r.onload = ev => parseCSVIntelligent(ev.target.result, tripId);
             r.readAsText(f, 'UTF-8');
         }
 
-        function parseCSV(csv) {
-            csv = csv.replace(/^\uFEFF/, '');
-            const lines = csv.split(/\r?\n/);
-            const data = [], warnings = [];
+        function normalizeArabicName(str) {
+            if (!str) return '';
+            return str
+                .trim()
+                .toLowerCase()
+                .replace(/[\u064B-\u0652]/g, '')
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/\s+/g, ' ');
+        }
 
-            const headerCells = parseCSVLine(lines[0] || '');
-            const header = headerCells.map(h => h.replace(/"/g, '').trim().toLowerCase());
-
-            // Detect mode: update mode when student_id column exists
-            const colStudentId = header.indexOf('student_id');
-            _bulkIsUpdateMode = colStudentId >= 0;
-
-            // Locate standard columns (flexible)
-            const colClass = header.indexOf('class') >= 0 ? header.indexOf('class') : (_bulkIsUpdateMode ? 1 : 0);
-            const colName = header.indexOf('name') >= 0 ? header.indexOf('name') : (_bulkIsUpdateMode ? 2 : 1);
-            const colAddress = header.indexOf('address') >= 0 ? header.indexOf('address') : (_bulkIsUpdateMode ? 3 : 2);
-            const colPhone = header.indexOf('phone') >= 0 ? header.indexOf('phone') : (_bulkIsUpdateMode ? 4 : 3);
-            const colBirthday = header.indexOf('birthday') >= 0 ? header.indexOf('birthday') : (_bulkIsUpdateMode ? 5 : 4);
-
-            // Custom column headers (everything except known fixed cols)
-            const fixedCols = new Set(['student_id', 'class', 'name', 'address', 'phone', 'birthday']);
-            const customCols = header
-                .map((h, i) => ({ h, i }))
-                .filter(({ h }) => !fixedCols.has(h) && h !== '');
-
-            for (let i = 1; i < lines.length; i++) {
-                const raw = lines[i].trim(); if (!raw) continue;
-                const v = parseCSVLine(raw);
-                const cell = idx => (v[idx] || '').replace(/"/g, '').trim();
-
-                const studentId = _bulkIsUpdateMode ? (parseInt(cell(colStudentId)) || 0) : 0;
-                const cls = cell(colClass);
-                const name = cell(colName);
-                if (!name) continue;
-
-                if (!_bulkIsUpdateMode && _bulkAvailableClasses.length > 0 && cls && !_bulkAvailableClasses.includes(cls)) {
-                    warnings.push('السطر ' + (i + 1) + ': الفصل "' + cls + '" غير موجود في قائمة الفصول');
+        function levenshteinDistance(s1, s2) {
+            const len1 = s1.length, len2 = s2.length;
+            const matrix = [];
+            for (let i = 0; i <= len1; i++) matrix[i] = [i];
+            for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+            for (let i = 1; i <= len1; i++) {
+                for (let j = 1; j <= len2; j++) {
+                    const cost = (s1[i - 1] === s2[j - 1]) ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,      // deletion
+                        matrix[i][j - 1] + 1,      // insertion
+                        matrix[i - 1][j - 1] + cost // substitution
+                    );
                 }
-
-                const row = {
-                    student_id: studentId,
-                    class: cls,
-                    name,
-                    address: cell(colAddress),
-                    phone: cell(colPhone),
-                    birthday: cell(colBirthday),
-                };
-                customCols.forEach(({ h, i: ci }) => { row['cf_' + h] = cell(ci); });
-
-                data.push(row);
             }
+            return matrix[len1][len2];
+        }
 
-            currentFileData = data;
-            if (!data.length) {
-                document.getElementById('bulkPreview').innerHTML = '<p style="color:var(--danger)">لا توجد بيانات صالحة في الملف</p>';
-                return;
+        function calculateFuzzyScore(name1, name2) {
+            const n1 = normalizeArabicName(name1);
+            const n2 = normalizeArabicName(name2);
+            if (n1 === n2) return 1.0;
+            const w1 = n1.split(' ').filter(Boolean);
+            const w2 = n2.split(' ').filter(Boolean);
+            if (w1.length === 0 || w2.length === 0) return 0.0;
+            let matches = 0;
+            for (const word1 of w1) {
+                if (w2.includes(word1)) {
+                    matches++;
+                } else {
+                    let bestWordScore = 0;
+                    for (const word2 of w2) {
+                        const d = levenshteinDistance(word1, word2);
+                        const maxL = Math.max(word1.length, word2.length);
+                        const score = 1.0 - (d / maxL);
+                        if (score > bestWordScore) bestWordScore = score;
+                    }
+                    if (bestWordScore > 0.8) {
+                        matches += bestWordScore;
+                    }
+                }
             }
+            const wordScore = matches / Math.max(w1.length, w2.length);
+            const dist = levenshteinDistance(n1, n2);
+            const maxLen = Math.max(n1.length, n2.length);
+            const strScore = 1.0 - (dist / maxLen);
+            return Math.max(wordScore, strScore);
+        }
 
-            // Mode badge
-            const badge = document.getElementById('bulkModeBadge');
-            badge.style.display = 'block';
-            if (_bulkIsUpdateMode) {
-                badge.innerHTML = '<div style="padding:8px 14px;background:#dbeafe;color:#1e40af;border-radius:8px;font-weight:700;font-size:0.85rem;">' +
-                    '<i class="fas fa-sync-alt"></i> وضع التحديث — سيتم تحديث ' + data.filter(r => r.student_id > 0).length + ' طفل بناءً على student_id</div>';
-                document.getElementById('bulkSubmitLabel').textContent = 'رفع وتحديث';
-            } else {
-                badge.innerHTML = '<div style="padding:8px 14px;background:#d1fae5;color:#065f46;border-radius:8px;font-weight:700;font-size:0.85rem;">' +
-                    '<i class="fas fa-plus-circle"></i> وضع الإضافة — سيتم إضافة ' + data.length + ' طفل (الأطفال المكررون يُتجاهلون)</div>';
-                document.getElementById('bulkSubmitLabel').textContent = 'رفع وإضافة';
-            }
-
-            // Preview table
-            const byClass = {};
-            data.forEach(r => {
-                const k = r.class || '(بدون فصل)';
-                if (!byClass[k]) byClass[k] = [];
-                byClass[k].push(r);
+        function detectColumns(headers) {
+            const mapping = {
+                student_id: -1,
+                name: -1,
+                phone: -1,
+                gender: -1,
+                class: -1,
+                address: -1,
+                birthday: -1
+            };
+            const patterns = {
+                student_id: [/student_id/, /id/, /معرف/, /مسلسل/],
+                name: [/الاسم/, /اسم/, /name/],
+                phone: [/هاتف/, /تليفون/, /موبايل/, /phone/, /mobile/],
+                gender: [/النوع/, /الجنس/, /ذكر/, /gender/, /sex/],
+                class: [/الفصل/, /فصل/, /الكلاس/, /الصف/, /class/, /grade/],
+                address: [/العنوان/, /عنوان/, /السكن/, /address/],
+                birthday: [/الميلاد/, /ميلاد/, /birthday/, /birth/, /dob/]
+            };
+            headers.forEach((h, idx) => {
+                const cleanH = h.trim().toLowerCase();
+                for (const [key, regexes] of Object.entries(patterns)) {
+                    if (mapping[key] !== -1) continue;
+                    for (const regex of regexes) {
+                        if (regex.test(cleanH)) {
+                            mapping[key] = idx;
+                            break;
+                        }
+                    }
+                }
             });
-            let p = '<div class="table-wrap"><table><thead><tr>';
-            p += '<th>الفصل</th><th>العدد</th><th>أمثلة</th>';
-            if (customCols.length) p += '<th>البيانات الإضافية</th>';
-            p += '</tr></thead><tbody>';
-            Object.entries(byClass).forEach(([cls, kids]) => {
-                const examples = kids.slice(0, 3).map(k => escHtml(k.name)).join('، ');
-                const isUnknown = !_bulkIsUpdateMode && _bulkAvailableClasses.length > 0 && !_bulkAvailableClasses.includes(cls) && cls !== '(بدون فصل)';
-                const rowStyle = isUnknown ? ' style="color:#dc2626;background:#fee2e2"' : '';
-                p += '<tr' + rowStyle + '>';
-                p += '<td>' + escHtml(cls) + (isUnknown ? ' <i class="fas fa-exclamation-triangle" style="color:#d97706;margin-right:4px;"></i>' : '') + '</td>';
-                p += '<td>' + kids.length + '</td>';
-                p += '<td style="color:var(--muted)">' + examples + (kids.length > 3 ? '...' : '') + '</td>';
-                if (customCols.length) p += '<td style="font-size:.75rem;color:var(--muted)">' + customCols.map(c => c.h).join(', ') + '</td>';
-                p += '</tr>';
-            });
-            p += '</tbody></table></div>';
-            document.getElementById('bulkPreview').innerHTML = p;
-            document.getElementById('bulkAddBtn').disabled = false;
-
-            if (warnings.length) {
-                document.getElementById('bulkErrors').style.display = 'block';
-                document.getElementById('bulkErrors').innerHTML = '<strong><i class="fas fa-exclamation-triangle" style="color:var(--warning);margin-left:6px;"></i> تحذيرات:</strong><br>' + warnings.slice(0, 10).join('<br>');
-            } else {
-                document.getElementById('bulkErrors').style.display = 'none';
-            }
+            return mapping;
         }
 
         function parseCSVLine(line) {
@@ -13981,67 +14059,268 @@
             return result;
         }
 
-        function bulkSubmit() {
-            if (!currentFileData.length) { showToast('لا توجد بيانات', 'warning'); return; }
+        function parseCSVIntelligent(csv, tripId = null) {
+            csv = csv.replace(/^\uFEFF/, '');
+            const lines = csv.split(/\r?\n/);
+            if (!lines.length) { showToast('الملف فارغ', 'warning'); return; }
+            
+            const headerCells = parseCSVLine(lines[0] || '');
+            const mapping = detectColumns(headerCells);
+            
+            const standardIndices = new Set(Object.values(mapping).filter(i => i !== -1));
+            const customCols = headerCells
+                .map((h, i) => ({ h: h.replace(/"/g, '').trim(), i }))
+                .filter(({ i }) => !standardIndices.has(i) && headerCells[i] !== '');
 
-            // Re-serialise to CSV preserving all columns including student_id and custom fields
-            const rows = currentFileData;
-            const customKeys = rows.length ? Object.keys(rows[0]).filter(k => k.startsWith('cf_')) : [];
-            let headerCols = _bulkIsUpdateMode ? 'student_id,class,name,address,phone,birthday' : 'class,name,address,phone,birthday';
-            if (customKeys.length) headerCols += ',' + customKeys.map(k => k.replace('cf_', '')).join(',');
+            const parsedRows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const raw = lines[i].trim(); if (!raw) continue;
+                const v = parseCSVLine(raw);
+                const cell = idx => (idx !== -1 && v[idx] !== undefined) ? v[idx].replace(/"/g, '').trim() : '';
 
-            const esc = v => '"' + String(v || '').replace(/"/g, '""') + '"';
-            let csv = '\uFEFF' + headerCols + '\n';
-            rows.forEach(r => {
-                let cols = _bulkIsUpdateMode
-                    ? [r.student_id, esc(r.class), esc(r.name), esc(r.address || ''), esc(r.phone || ''), esc(r.birthday || '')]
-                    : [esc(r.class), esc(r.name), esc(r.address || ''), esc(r.phone || ''), esc(r.birthday || '')];
-                customKeys.forEach(k => cols.push(esc(r[k] || '')));
-                csv += cols.join(',') + '\n';
-            });
+                const studentId = parseInt(cell(mapping.student_id)) || 0;
+                const name = cell(mapping.name);
+                if (!name) continue;
 
-            const file = new File([new Blob([csv], { type: 'text/csv;charset=utf-8' })], 'kids.csv', { type: 'text/csv' });
-            const fd = new FormData(); fd.append('action', 'bulkAddKids'); fd.append('csvFile', file);
-            const btn = document.getElementById('bulkAddBtn');
-            const label = document.getElementById('bulkSubmitLabel');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...'; btn.disabled = true;
-
-            fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) {
-                    showToast(d.message, 'success');
-                    if (d.errors && d.errors.length) {
-                        document.getElementById('bulkErrors').style.display = 'block';
-                        document.getElementById('bulkErrors').innerHTML = '<strong>ملاحظات:</strong><br>' + d.errors.join('<br>');
-                        btn.innerHTML = '<i class="fas fa-check"></i> تم مع ملاحظات'; btn.disabled = false;
-                    } else {
-                        closeModal('bulkAddModal');
-                    }
-                    loadStudents(); loadStatistics();
-                } else {
-                    showToast(d.message || 'فشل في الاستيراد', 'error');
-                    if (d.errors && d.errors.length) {
-                        document.getElementById('bulkErrors').style.display = 'block';
-                        document.getElementById('bulkErrors').innerHTML = '<strong>أخطاء:</strong><br>' + d.errors.join('<br>');
-                    }
-                    if (d.availableClasses) {
-                        _bulkAvailableClasses = d.availableClasses;
-                        document.getElementById('bulkClassesList').innerHTML = d.availableClasses.map(n =>
-                            '<span style="background:white;padding:2px 10px;border-radius:20px;border:1px solid var(--primary)">' + escHtml(n) + '</span>'
-                        ).join('');
-                        document.getElementById('bulkAvailableClasses').style.display = 'block';
-                    }
-                    btn.innerHTML = '<i class="fas fa-upload"></i> '; btn.disabled = false;
-                    label.textContent = _bulkIsUpdateMode ? 'رفع وتحديث' : 'رفع وإضافة';
+                const phone = cell(mapping.phone);
+                const classRaw = cell(mapping.class);
+                const address = cell(mapping.address);
+                const birthday = cell(mapping.birthday);
+                
+                // Gender normalization
+                let genderRaw = cell(mapping.gender).toLowerCase();
+                let gender = '';
+                if (genderRaw.includes('female') || genderRaw.includes('بنت') || genderRaw.includes('انثى') || genderRaw.includes('أنثى') || genderRaw === 'f') {
+                    gender = 'female';
+                } else if (genderRaw.includes('male') || genderRaw.includes('ولد') || genderRaw.includes('ذكر') || genderRaw === 'm') {
+                    gender = 'male';
                 }
-            }).catch(() => {
-                showToast('خطأ في الاتصال', 'error');
-                btn.innerHTML = '<i class="fas fa-upload"></i> '; btn.disabled = false;
-                label.textContent = _bulkIsUpdateMode ? 'رفع وتحديث' : 'رفع وإضافة';
-            });
+
+                const customInfo = {};
+                customCols.forEach(({ h, i: ci }) => {
+                    const val = cell(ci);
+                    if (val !== '') customInfo[h] = val;
+                });
+
+                // Match against allStudents
+                const matches = [];
+                allStudents.forEach(s => {
+                    const sid = s['_studentId'] || s['id'] || s['student_id'];
+                    const sName = s['الاسم'] || s['name'];
+                    const sClass = s['الفصل'] || s['class'] || '';
+                    const score = calculateFuzzyScore(name, sName);
+                    if (score >= 0.5) {
+                        matches.push({ id: sid, name: sName, class: sClass, score });
+                    }
+                });
+                matches.sort((a, b) => b.score - a.score);
+
+                let targetId = 0;
+                let matchType = 'new'; // 'new', 'possible', 'confident'
+                if (studentId > 0) {
+                    targetId = studentId;
+                    matchType = 'confident';
+                } else if (matches.length > 0) {
+                    if (matches[0].score >= 0.75) {
+                        targetId = matches[0].id;
+                        matchType = 'confident';
+                    } else {
+                        targetId = matches[0].id;
+                        matchType = 'possible';
+                    }
+                }
+
+                parsedRows.push({
+                    student_id: studentId,
+                    name,
+                    phone,
+                    gender,
+                    class: classRaw,
+                    address,
+                    birthday,
+                    custom_info: customInfo,
+                    matches,
+                    targetId,
+                    matchType,
+                    import: true
+                });
+            }
+
+            if (!parsedRows.length) {
+                showToast('لم يتم العثور على أطفال صالحين بالملف', 'warning');
+                return;
+            }
+
+            closeModal('bulkAddModal');
+            showBulkMatchReview(parsedRows, tripId);
         }
 
-        // Keep old name as alias so any existing onclick="bulkAddKids()" still works
-        function bulkAddKids() { bulkSubmit(); }
+        function showBulkMatchReview(rows, tripId = null) {
+            currentReviewRows = rows;
+            currentReviewTripId = tripId;
+            document.getElementById('reviewSearchInput').value = '';
+            openModal('bulkMatchReviewModal');
+            filterReviewTable();
+        }
+
+        function filterReviewTable() {
+            const search = document.getElementById('reviewSearchInput').value.toLowerCase().trim();
+            const body = document.getElementById('bulkReviewTableBody');
+            
+            let confidentCount = 0;
+            let possibleCount = 0;
+            let newCount = 0;
+
+            currentReviewRows.forEach(r => {
+                if (r.import) {
+                    if (r.targetId === 0) newCount++;
+                    else if (r.matchType === 'possible') possibleCount++;
+                    else confidentCount++;
+                }
+            });
+
+            document.getElementById('reviewMatchCount').textContent = `مطابقة مؤكدة: ${confidentCount}`;
+            document.getElementById('reviewPossibleCount').textContent = `مطابقة محتملة: ${possibleCount}`;
+            document.getElementById('reviewNewCount').textContent = `أطفال جدد: ${newCount}`;
+
+            // Sort allStudents alphabetically for remaining options
+            const allStudentsSorted = [...allStudents].sort((a, b) => (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar'));
+
+            let html = '';
+            currentReviewRows.forEach((r, idx) => {
+                const sName = r.name.toLowerCase();
+                const sClass = r.class.toLowerCase();
+                if (search && !sName.includes(search) && !sClass.includes(search)) return;
+
+                let badgeHtml = '';
+                if (r.targetId === 0) {
+                    badgeHtml = `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">طفل جديد بالكنيسة</span>`;
+                } else if (r.matchType === 'possible') {
+                    badgeHtml = `<span class="badge" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;">مطابقة محتملة</span>`;
+                } else {
+                    badgeHtml = `<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;">مطابقة مؤكدة</span>`;
+                }
+
+                // Match Dropdown
+                let selectHtml = `<select class="form-select form-select-sm" style="width:100%;font-size:0.8rem;" onchange="updateRowMatch(${idx}, this.value)">`;
+                selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>➕ إضافة كطفل جديد بالكنيسة</option>`;
+                
+                if (r.matches.length > 0) {
+                    selectHtml += `<optgroup label="مطابقات مقترحة">`;
+                    r.matches.forEach(m => {
+                        const pct = Math.round(m.score * 100);
+                        selectHtml += `<option value="${m.id}" ${r.targetId === m.id ? 'selected' : ''}>🔗 (${pct}%) ${m.name} [${m.class || 'بدون فصل'}]</option>`;
+                    });
+                    selectHtml += `</optgroup>`;
+                }
+
+                selectHtml += `<optgroup label="باقي أطفال الكنيسة">`;
+                const potentialIds = new Set(r.matches.map(m => m.id));
+                allStudentsSorted.forEach(s => {
+                    const sid = s['_studentId'] || s['id'];
+                    if (!potentialIds.has(sid)) {
+                        selectHtml += `<option value="${sid}" ${r.targetId === sid ? 'selected' : ''}>👤 ${s['الاسم']} [${s['الفصل'] || 'بدون فصل'}]</option>`;
+                    }
+                });
+                selectHtml += `</optgroup></select>`;
+
+                const phoneClassText = [r.class ? `فصل: ${r.class}` : '', r.phone ? `هاتف: ${r.phone}` : ''].filter(Boolean).join(' | ');
+
+                html += `
+                <tr style="border-bottom:1px solid var(--border); ${!r.import ? 'opacity:0.5;background:#f9fafb;' : ''}">
+                    <td style="padding:10px;">${idx + 1}</td>
+                    <td style="padding:10px;font-weight:700;">${escHtml(r.name)}</td>
+                    <td style="padding:10px;color:var(--muted);font-size:0.8rem;">${escHtml(phoneClassText)}</td>
+                    <td style="padding:10px;">${badgeHtml}</td>
+                    <td style="padding:10px;">${selectHtml}</td>
+                    <td style="padding:10px;text-align:center;">
+                        <input type="checkbox" ${r.import ? 'checked' : ''} onchange="toggleRowImport(${idx}, this.checked)">
+                    </td>
+                </tr>
+                `;
+            });
+
+            body.innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">لا توجد نتائج مطابقة للبحث</td></tr>';
+        }
+
+        function updateRowMatch(idx, val) {
+            const targetId = parseInt(val) || 0;
+            currentReviewRows[idx].targetId = targetId;
+            if (targetId === 0) {
+                currentReviewRows[idx].matchType = 'new';
+            } else {
+                const origMatch = currentReviewRows[idx].matches.find(m => m.id === targetId);
+                if (origMatch && origMatch.score >= 0.75) {
+                    currentReviewRows[idx].matchType = 'confident';
+                } else {
+                    currentReviewRows[idx].matchType = 'possible';
+                }
+            }
+            filterReviewTable();
+        }
+
+        function toggleRowImport(idx, checked) {
+            currentReviewRows[idx].import = checked;
+            filterReviewTable();
+        }
+
+        function submitBulkImport() {
+            const toImport = currentReviewRows.filter(r => r.import);
+            if (!toImport.length) {
+                showToast('يرجى تحديد طفل واحد على الأقل للاستيراد', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmBulkImport');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري استيراد وحفظ البيانات...';
+            btn.disabled = true;
+
+            const payload = toImport.map(r => ({
+                student_id: r.targetId,
+                name: r.name,
+                class: r.class,
+                phone: r.phone,
+                gender: r.gender,
+                address: r.address,
+                birthday: r.birthday,
+                custom_info: r.custom_info
+            }));
+
+            const fd = new FormData();
+            fd.append('action', 'bulkSaveImportedKids');
+            fd.append('kids', JSON.stringify(payload));
+            if (currentReviewTripId) {
+                fd.append('trip_id', currentReviewTripId);
+            }
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    if (d.success) {
+                        showToast(d.message, 'success');
+                        closeModal('bulkMatchReviewModal');
+                        loadStudents();
+                        loadStatistics();
+                        if (typeof loadTrips === 'function') loadTrips();
+                    } else {
+                        showToast(d.message || 'فشل في الاستيراد', 'error');
+                        if (d.errors && d.errors.length) {
+                            alert(d.errors.join('\n'));
+                        }
+                    }
+                })
+                .catch(e => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    showToast('خطأ في الاتصال بالسيرفر', 'error');
+                });
+        }
+
+        function bulkSubmit() {}
+        function bulkAddKids() {}
 
         // ── Edit Student Full ──────────────────────────────────────────
         async function editStudentFull(id) {
