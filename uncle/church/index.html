@@ -8797,6 +8797,21 @@
                 <!-- Settings Panel -->
                 <div id="printSettingsFormPanel" style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:16px; max-height:75vh; overflow-y:auto; padding-left:5px;">
                     
+                    <!-- Section: Templates Presets -->
+                    <div style="background:var(--card, #fff); border:1.5px solid var(--primary); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                        <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                            <i class="fas fa-magic"></i> القوالب الجاهزة
+                        </h4>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="applyRecommendedQRTemplate()" style="flex:2; justify-content:center; gap:6px; font-weight:800; font-size:0.8rem; height:34px;">
+                                <i class="fas fa-star" style="color:#fbbf24;"></i> تطبيق القالب الموصى به
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="flex:1; justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border);">
+                                <i class="fas fa-undo"></i> إعادة تعيين
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Section 1: Dimensions & Layout -->
                     <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
                         <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
@@ -19282,6 +19297,189 @@
 
         function closeCropModal() {
             closeModal('imageCropModal');
+        }
+
+        function applyRecommendedQRTemplate() {
+            // Apply scale
+            const scaleInput = document.getElementById('printScale');
+            if (scaleInput) {
+                scaleInput.value = 90;
+                document.getElementById('printScaleVal').textContent = '90%';
+            }
+
+            // Dimensions: Height = 10, Width = 7
+            const widthInput = document.getElementById('printCardWidth');
+            if (widthInput) widthInput.value = 7;
+            const heightInput = document.getElementById('printCardHeight');
+            if (heightInput) heightInput.value = 10;
+
+            // Gaps
+            const gapXInput = document.getElementById('printGapX');
+            if (gapXInput) gapXInput.value = 60;
+            const gapYInput = document.getElementById('printGapY');
+            if (gapYInput) gapYInput.value = 70;
+
+            // Padding & Border
+            const paddingInput = document.getElementById('printPadding');
+            if (paddingInput) paddingInput.value = 13;
+            
+            const borderInput = document.getElementById('printCardOutlineStyle');
+            if (borderInput) borderInput.value = 'none';
+
+            // Contents Checklist
+            const showChurch = document.getElementById('printShowChurch');
+            if (showChurch) showChurch.checked = true;
+            
+            const showStudentImg = document.getElementById('printShowStudentImg');
+            if (showStudentImg) showStudentImg.checked = true;
+            
+            const showAvatarFallback = document.getElementById('printShowAvatarFallback');
+            if (showAvatarFallback) showAvatarFallback.checked = false;
+            
+            const showStudentName = document.getElementById('printShowStudentName');
+            if (showStudentName) showStudentName.checked = true;
+            
+            const showClass = document.getElementById('printShowClass');
+            if (showClass) showClass.checked = true;
+            
+            const showStudentId = document.getElementById('printShowStudentId');
+            if (showStudentId) showStudentId.checked = true;
+            
+            const cardRounded = document.getElementById('printCardRounded');
+            if (cardRounded) cardRounded.checked = false;
+
+            // Colors & Readability
+            const readability = document.getElementById('printTextReadability');
+            if (readability) readability.value = 'rect';
+
+            const readabilityBgColor = document.getElementById('printTextReadabilityBgColor');
+            if (readabilityBgColor) readabilityBgColor.value = '#ffffff';
+
+            const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity');
+            if (readabilityBgOpacity) {
+                readabilityBgOpacity.value = 65;
+                document.getElementById('printTextReadabilityBgOpacityVal').textContent = '65%';
+            }
+
+            const readabilityPadding = document.getElementById('printTextReadabilityPadding');
+            if (readabilityPadding) readabilityPadding.value = 4;
+
+            const readabilityWidth = document.getElementById('printTextReadabilityWidth');
+            if (readabilityWidth) readabilityWidth.value = 'unified-qr-only';
+
+            const readabilityShadow = document.getElementById('printTextReadabilityShadow');
+            if (readabilityShadow) readabilityShadow.checked = false;
+
+            const fontColor = document.getElementById('printFontColor');
+            if (fontColor) fontColor.value = '#3c3a82';
+
+            const strokeColor = document.getElementById('printStrokeColor');
+            if (strokeColor) strokeColor.value = '#ffffff';
+
+            // Background Image
+            customCardBackgroundDataUrl = '/imgs/Card-Back.png';
+            document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
+            document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
+            document.getElementById('printCustomBgSubSettings').style.display = 'flex';
+            document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
+
+            // Overlay Color & Opacity
+            const overlayColor = document.getElementById('printCustomBgOverlayColor');
+            if (overlayColor) overlayColor.value = '#ffffff';
+
+            const overlayOpacity = document.getElementById('printCustomBgOverlayOpacity');
+            if (overlayOpacity) {
+                overlayOpacity.value = 35;
+                document.getElementById('printCustomBgOverlayOpacityVal').textContent = '35%';
+            }
+
+            // Sync UI and Update Preview
+            syncPrintSettingsUI();
+            updatePrintPreview();
+        }
+
+        function resetQRPrintSettings() {
+            const scaleInput = document.getElementById('printScale');
+            if (scaleInput) {
+                scaleInput.value = 100;
+                document.getElementById('printScaleVal').textContent = '100%';
+            }
+
+            const widthInput = document.getElementById('printCardWidth');
+            if (widthInput) widthInput.value = 7;
+            const heightInput = document.getElementById('printCardHeight');
+            if (heightInput) heightInput.value = 10;
+
+            const gapXInput = document.getElementById('printGapX');
+            if (gapXInput) gapXInput.value = 15;
+            const gapYInput = document.getElementById('printGapY');
+            if (gapYInput) gapYInput.value = 15;
+
+            const paddingInput = document.getElementById('printPadding');
+            if (paddingInput) paddingInput.value = 15;
+            
+            const borderInput = document.getElementById('printCardOutlineStyle');
+            if (borderInput) borderInput.value = 'solid';
+
+            const showChurch = document.getElementById('printShowChurch');
+            if (showChurch) showChurch.checked = true;
+            
+            const showStudentImg = document.getElementById('printShowStudentImg');
+            if (showStudentImg) showStudentImg.checked = true;
+            
+            const showAvatarFallback = document.getElementById('printShowAvatarFallback');
+            if (showAvatarFallback) showAvatarFallback.checked = true;
+            
+            const showStudentName = document.getElementById('printShowStudentName');
+            if (showStudentName) showStudentName.checked = true;
+            
+            const showClass = document.getElementById('printShowClass');
+            if (showClass) showClass.checked = true;
+            
+            const showStudentId = document.getElementById('printShowStudentId');
+            if (showStudentId) showStudentId.checked = true;
+            
+            const cardRounded = document.getElementById('printCardRounded');
+            if (cardRounded) cardRounded.checked = true;
+
+            const readability = document.getElementById('printTextReadability');
+            if (readability) readability.value = 'none';
+
+            const readabilityBgColor = document.getElementById('printTextReadabilityBgColor');
+            if (readabilityBgColor) readabilityBgColor.value = '#ffffff';
+
+            const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity');
+            if (readabilityBgOpacity) {
+                readabilityBgOpacity.value = 92;
+                document.getElementById('printTextReadabilityBgOpacityVal').textContent = '92%';
+            }
+
+            const readabilityPadding = document.getElementById('printTextReadabilityPadding');
+            if (readabilityPadding) readabilityPadding.value = 6;
+
+            const readabilityWidth = document.getElementById('printTextReadabilityWidth');
+            if (readabilityWidth) readabilityWidth.value = 'fitted';
+
+            const readabilityShadow = document.getElementById('printTextReadabilityShadow');
+            if (readabilityShadow) readabilityShadow.checked = true;
+
+            const fontColor = document.getElementById('printFontColor');
+            if (fontColor) fontColor.value = '#000000';
+
+            const strokeColor = document.getElementById('printStrokeColor');
+            if (strokeColor) strokeColor.value = '#dddddd';
+
+            // Reset background
+            customCardBackgroundDataUrl = null;
+            document.getElementById('printCustomBgInput').value = '';
+            document.getElementById('printCustomBgThumbnail').src = '';
+            document.getElementById('printCustomBgThumbnailWrap').style.display = 'none';
+            document.getElementById('printCustomBgSubSettings').style.display = 'none';
+            document.getElementById('printRemoveCustomBgBtn').style.display = 'none';
+
+            // Sync UI and Update Preview
+            syncPrintSettingsUI();
+            updatePrintPreview();
         }
     </script>
 
