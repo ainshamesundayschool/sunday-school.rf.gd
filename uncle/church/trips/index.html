@@ -10236,6 +10236,13 @@
       async function executePrintQRCards() {
         const tripId = document.getElementById('printTripId').value;
         if (!tripId) return;
+
+        const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
+        const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
+        if (wValInput === 10 && hValInput === 7) {
+          alert("Recommended to use A3 Landscape Mode while printing\nيُنصح باستخدام وضع A3 بالاتجاه الأفقي (Landscape) عند الطباعة");
+        }
+
         closeModal('printSettingsModal');
 
         let regs = tripRegistrationsCache[tripId] || [];

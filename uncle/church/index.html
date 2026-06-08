@@ -18867,6 +18867,13 @@
         async function executePrintQRCards() {
             const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
             if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
+
+            const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
+            const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
+            if (wValInput === 10 && hValInput === 7) {
+                alert("Recommended to use A3 Landscape Mode while printing\nيُنصح باستخدام وضع A3 بالاتجاه الأفقي (Landscape) عند الطباعة");
+            }
+
             closeModal('printSettingsModal');
 
             const scale = parseFloat(document.getElementById('printScale').value) / 100;
