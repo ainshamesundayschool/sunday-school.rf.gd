@@ -13982,9 +13982,119 @@
             return matrix[len1][len2];
         }
 
+        function transliterateEnglishToArabic(englishName) {
+            if (!englishName) return '';
+            const dict = {
+                'peter': 'بيتر', 'mina': 'مينا', 'girgis': 'جرجس', 'gerges': 'جرجس', 'george': 'جرجس',
+                'kirollos': 'كيرلس', 'kirolos': 'كيرلس', 'kyrollos': 'كيرلس', 'cyril': 'كيرلس',
+                'mark': 'مرقص', 'marcos': 'مرقص', 'john': 'يوحنا', 'yohanna': 'يوحنا', 'fayez': 'فايز',
+                'michael': 'ميخائيل', 'mikhail': 'ميخائيل', 'abanoub': 'ابانوب', 'bishoy': 'بيشوي',
+                'fady': 'فادي', 'fadi': 'فادي', 'marina': 'مارينا', 'veronia': 'فيرونيا', 'david': 'داود',
+                'youssef': 'يوسف', 'joseph': 'يوسف', 'tony': 'توني', 'shenouda': 'شنوده', 'shenoda': 'شنوده',
+                'mario': 'ماريو', 'thomas': 'توماس', 'toma': 'توما', 'andrew': 'اندرو', 'andrawes': 'اندراوس',
+                'paul': 'بولس', 'paula': 'بولا', 'paulos': 'بولس', 'antony': 'انطون', 'antonios': 'انطونيوس',
+                'abram': 'ابرام', 'ibram': 'ابرام', 'samuel': 'صموئيل', 'danial': 'دانيال', 'daniel': 'دانيال',
+                'mariam': 'مريم', 'mary': 'مريم', 'demiana': 'دميانه', 'justina': 'يوستينه', 'yostina': 'يوستينه',
+                'martina': 'مارتينا', 'monica': 'مونيكا', 'sandra': 'ساندرا', 'irene': 'ايريني', 'eriny': 'ايريني',
+                'sherry': 'شيري', 'cheri': 'شيري', 'romany': 'روماني', 'safwat': 'صفوت', 'tharwat': 'ثروت',
+                'medhat': 'مدحت', 'nashat': 'نشأت', 'nashaat': 'نشأت', 'raafat': 'رأفت', 'maged': 'ماجد',
+                'magdy': 'مجدي', 'wagdy': 'وجدي', 'waged': 'وجد', 'wagih': 'وجيه', 'nabil': 'نبيل',
+                'nady': 'نادي', 'adel': 'عادل', 'emad': 'عماد', 'ayman': 'ايمن', 'ashraf': 'اشرف',
+                'amir': 'امير', 'sherif': 'شريف', 'hany': 'هاني', 'mounir': 'منير', 'monir': 'منير',
+                'samir': 'سمير', 'magued': 'ماجد', 'sameh': 'سامح', 'bassem': 'باسم', 'basim': 'باسم',
+                'bahaa': 'بهاء', 'milad': 'ميلاد', 'moris': 'موريس', 'mouris': 'موريس', 'naser': 'ناصر',
+                'nassif': 'نصيف', 'nazaer': 'نظير', 'sobhy': 'صبحي', 'shawky': 'شوقي', 'shaker': 'شاكر',
+                'shokry': 'شكري', 'said': 'سعيد', 'saad': 'سعد', 'soliman': 'سليمان', 'samy': 'سامي',
+                'hassan': 'حسن', 'hussein': 'حسين', 'ibrahim': 'ابراهيم', 'mourad': 'مراد', 'murad': 'مراد',
+                'ramzy': 'رمزي', 'refaat': 'رفعت', 'rizk': 'رزق', 'rezk': 'رزق', 'zaki': 'زكي',
+                'kamal': 'كمال', 'kamel': 'كامل', 'gamal': 'جمال', 'gamil': 'جميل', 'jalal': 'جلال',
+                'salah': 'صلاح', 'farag': 'فرج', 'fag': 'فرج', 'fouad': 'فؤاد', 'foad': 'فؤاد',
+                'fakhry': 'فخري', 'fahmy': 'فهمي', 'wasim': 'وسيم', 'waseem': 'وسيم', 'waheed': 'وحيد',
+                'wahid': 'وحيد', 'yasser': 'ياسر', 'zakaria': 'زكريا'
+            };
+
+            const charMap = {
+                'sh': 'ش', 'ch': 'ش', 'kh': 'خ', 'gh': 'غ', 'th': 'ث', 'ph': 'ف',
+                'a': 'ا', 'e': 'ي', 'i': 'ي', 'o': 'و', 'u': 'و', 'y': 'ي',
+                'b': 'ب', 'c': 'ك', 'd': 'د', 'f': 'ف', 'g': 'ج', 'h': 'ه',
+                'j': 'ج', 'k': 'ك', 'l': 'ل', 'm': 'م', 'n': 'ن', 'p': 'ب',
+                'q': 'ق', 'r': 'ر', 's': 'س', 't': 'ت', 'v': 'ف', 'w': 'و',
+                'x': 'كس', 'z': 'ز'
+            };
+
+            const words = englishName.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(Boolean);
+            const converted = words.map(w => {
+                if (dict[w]) return dict[w];
+                let ar = '';
+                let i = 0;
+                while (i < w.length) {
+                    let matched = false;
+                    if (i < w.length - 1) {
+                        const doubleChar = w.substr(i, 2);
+                        if (charMap[doubleChar]) {
+                            ar += charMap[doubleChar];
+                            i += 2;
+                            matched = true;
+                        }
+                    }
+                    if (!matched) {
+                        const singleChar = w[i];
+                        if (charMap[singleChar]) {
+                            ar += charMap[singleChar];
+                        }
+                        i++;
+                    }
+                }
+                return ar;
+            });
+            return converted.join(' ');
+        }
+
+        function normalizeDate(dStr) {
+            if (!dStr) return '';
+            let clean = dStr.replace(/[^\d\-\/]/g, '').trim();
+            if (!clean) return '';
+            if (clean.includes('/')) {
+                const parts = clean.split('/');
+                if (parts.length === 3) {
+                    let day = parts[0].padStart(2, '0');
+                    let month = parts[1].padStart(2, '0');
+                    let year = parts[2];
+                    if (year.length === 2) {
+                        year = '20' + year;
+                    }
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            if (clean.includes('-')) {
+                const parts = clean.split('-');
+                if (parts.length === 3) {
+                    let year = parts[0];
+                    let month = parts[1].padStart(2, '0');
+                    let day = parts[2].padStart(2, '0');
+                    if (year.length === 2) {
+                        if (parts[2].length === 4) {
+                            year = parts[2];
+                            day = parts[0].padStart(2, '0');
+                        } else {
+                            year = '20' + year;
+                        }
+                    }
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            return clean;
+        }
+
         function calculateFuzzyScore(name1, name2) {
-            const n1 = normalizeArabicName(name1);
-            const n2 = normalizeArabicName(name2);
+            let n1 = normalizeArabicName(name1);
+            let n2 = normalizeArabicName(name2);
+            if (/[a-z]/i.test(name1)) {
+                n1 = normalizeArabicName(transliterateEnglishToArabic(name1));
+            }
+            if (/[a-z]/i.test(name2)) {
+                n2 = normalizeArabicName(transliterateEnglishToArabic(name2));
+            }
             if (n1 === n2) return 1.0;
             const w1 = n1.split(' ').filter(Boolean);
             const w2 = n2.split(' ').filter(Boolean);
@@ -14013,24 +14123,90 @@
             return Math.max(wordScore, strScore);
         }
 
+        function calculateCombinedScore(r, s) {
+            const nameScore = calculateFuzzyScore(r.name || '', s.name || s['الاسم'] || '');
+            let score = nameScore;
+            
+            const rPhone = r.phone || '';
+            const rEmerg = r.emergency_phone || '';
+            const sPhone = s.phone || s['الهاتف'] || s['رقم التليفون'] || s['تليفون'] || '';
+            const sEmerg = s.emergency_phone || s['تليفون الطوارئ'] || s['هاتف الطوارئ'] || '';
+            
+            const cleanCsvPhone = rPhone ? rPhone.replace(/[^\d]/g, '') : '';
+            const cleanCsvEmerg = rEmerg ? rEmerg.replace(/[^\d]/g, '') : '';
+            const cleanDbPhone = sPhone ? sPhone.replace(/[^\d]/g, '') : '';
+            const cleanDbEmerg = sEmerg ? sEmerg.replace(/[^\d]/g, '') : '';
+            
+            let phoneMatch = false;
+            if (cleanCsvPhone && (cleanCsvPhone === cleanDbPhone || cleanCsvPhone === cleanDbEmerg)) {
+                phoneMatch = true;
+            }
+            if (cleanCsvEmerg && (cleanCsvEmerg === cleanDbPhone || cleanCsvEmerg === cleanDbEmerg)) {
+                phoneMatch = true;
+            }
+            
+            if (phoneMatch) {
+                if (nameScore >= 0.3) {
+                    score = Math.max(score, 0.95);
+                } else {
+                    score += 0.3;
+                }
+            }
+            
+            const rBirth = r.birthday || '';
+            const sBirth = s.birthday || s['عيد الميلاد'] || s['تاريخ الميلاد'] || '';
+            if (rBirth && sBirth) {
+                const normCsvBirth = normalizeDate(rBirth);
+                const normDbBirth = normalizeDate(sBirth);
+                if (normCsvBirth && normCsvBirth === normDbBirth) {
+                    if (nameScore >= 0.5) {
+                        score = Math.max(score, 0.9);
+                    } else {
+                        score += 0.2;
+                    }
+                }
+            }
+            
+            // Siblings auto-match prevention: if first names are different but father names match
+            const n1 = normalizeArabicName(r.name || '');
+            const n2 = normalizeArabicName(s.name || s['الاسم'] || '');
+            if (nameScore > 0.4 && nameScore < 0.8) {
+                const w1 = n1.split(' ').filter(Boolean);
+                const w2 = n2.split(' ').filter(Boolean);
+                if (w1.length > 1 && w2.length > 1) {
+                    if (w1[0] !== w2[0]) {
+                        score = Math.min(score, 0.45);
+                    }
+                }
+            }
+            
+            return Math.min(score, 1.0);
+        }
+
         function detectColumns(headers) {
             const mapping = {
                 student_id: -1,
                 name: -1,
                 phone: -1,
+                emergency_phone: -1,
                 gender: -1,
                 class: -1,
                 address: -1,
-                birthday: -1
+                birthday: -1,
+                siblings: -1,
+                medical_notes: -1
             };
             const patterns = {
                 student_id: [/student_id/, /id/, /معرف/, /مسلسل/],
                 name: [/الاسم/, /اسم/, /name/],
-                phone: [/هاتف/, /تليفون/, /موبايل/, /phone/, /mobile/],
+                phone: [/هاتف(?!.*طوارئ)/, /تليفون(?!.*طوارئ)/, /موبايل(?!.*طوارئ)/, /phone(?!.*emergency)/, /mobile(?!.*emergency)/],
+                emergency_phone: [/طوارئ/, /ولي/, /emergency/, /guard/],
                 gender: [/النوع/, /الجنس/, /ذكر/, /gender/, /sex/],
                 class: [/الفصل/, /فصل/, /الكلاس/, /الصف/, /class/, /grade/],
                 address: [/العنوان/, /عنوان/, /السكن/, /address/],
-                birthday: [/الميلاد/, /ميلاد/, /birthday/, /birth/, /dob/]
+                birthday: [/الميلاد/, /ميلاد/, /birthday/, /birth/, /dob/],
+                siblings: [/الإخوة/, /اخوة/, /أخ/, /اخ/, /sibling/, /brother/, /siblings/, /brothers/],
+                medical_notes: [/طبي/, /حالة/, /مرض/, /medical/, /health/, /disease/]
             };
             headers.forEach((h, idx) => {
                 const cleanH = h.trim().toLowerCase();
@@ -14082,10 +14258,16 @@
                 const name = cell(mapping.name);
                 if (!name) continue;
 
+                // Skip instruction/example rows
+                if (name.includes('الاسم الكامل') || name.includes('مثال:')) continue;
+
                 const phone = cell(mapping.phone);
+                const emergency_phone = cell(mapping.emergency_phone);
+                const medical_notes = cell(mapping.medical_notes);
                 const classRaw = cell(mapping.class);
                 const address = cell(mapping.address);
                 const birthday = cell(mapping.birthday);
+                const siblings = cell(mapping.siblings);
                 
                 // Gender normalization
                 let genderRaw = cell(mapping.gender).toLowerCase();
@@ -14108,7 +14290,9 @@
                     const sid = s['_studentId'] || s['id'] || s['student_id'];
                     const sName = s['الاسم'] || s['name'];
                     const sClass = s['الفصل'] || s['class'] || '';
-                    const score = calculateFuzzyScore(name, sName);
+                    const score = calculateCombinedScore({
+                        name, phone, emergency_phone, birthday, class: classRaw
+                    }, s);
                     if (score >= 0.5) {
                         matches.push({ id: sid, name: sName, class: sClass, score });
                     }
@@ -14134,10 +14318,13 @@
                     student_id: studentId,
                     name,
                     phone,
+                    emergency_phone,
+                    medical_notes,
                     gender,
                     class: classRaw,
                     address,
                     birthday,
+                    siblings,
                     custom_info: customInfo,
                     matches,
                     targetId,
@@ -14224,7 +14411,14 @@
                 });
                 selectHtml += `</optgroup></select>`;
 
-                const phoneClassText = [r.class ? `فصل: ${r.class}` : '', r.phone ? `هاتف: ${r.phone}` : ''].filter(Boolean).join(' | ');
+                const details = [];
+                if (r.class) details.push(`فصل: ${r.class}`);
+                if (r.phone) details.push(`هاتف: ${r.phone}`);
+                if (r.emergency_phone) details.push(`طوارئ: ${r.emergency_phone}`);
+                if (r.gender) details.push(`النوع: ${r.gender === 'female' ? 'بنت' : 'ولد'}`);
+                if (r.siblings) details.push(`الإخوة: ${r.siblings}`);
+                if (r.medical_notes) details.push(`طبياً: ${r.medical_notes}`);
+                const phoneClassText = details.join(' | ');
 
                 html += `
                 <tr style="border-bottom:1px solid var(--border); ${!r.import ? 'opacity:0.5;background:#f9fafb;' : ''}">
@@ -14281,9 +14475,12 @@
                 name: r.name,
                 class: r.class,
                 phone: r.phone,
+                emergency_phone: r.emergency_phone,
+                medical_notes: r.medical_notes,
                 gender: r.gender,
                 address: r.address,
                 birthday: r.birthday,
+                siblings: r.siblings,
                 custom_info: r.custom_info
             }));
 

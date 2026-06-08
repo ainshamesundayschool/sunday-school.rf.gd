@@ -14496,33 +14496,24 @@ function generateKidsTemplate()
         }, $customFields);
 
         $headerCols = $customFields
-
-            ? 'class,name,address,phone,birthday,' . implode(',', $quotedCustomHeaders) . "\n"
-
-            : "class,name,address,phone,birthday\n";
+            ? 'class,name,address,phone,emergency_phone,medical_notes,birthday,gender,siblings,' . implode(',', $quotedCustomHeaders) . "\n"
+            : "class,name,address,phone,emergency_phone,medical_notes,birthday,gender,siblings\n";
 
         $csvContent = $headerCols;
+        $emptyCols = str_repeat(',""', count($customFields));
+        
+        // Add a sample instruction/example row for users
+        $csvContent .= "\"الفصل (مثال: أولى بنين)\",\"الاسم الكامل للطفل (مثال: أحمد محمد جرجس)\",\"العنوان (مثال: شبرا)\",\"الهاتف (مثال: 01234567890)\",\"هاتف الطوارئ/ولي الأمر (مثال: 01200000000)\",\"ملاحظات طبية/الحالة الصحية (مثال: حساسية من البنسلين)\",\"تاريخ الميلاد (مثال: 15/05/2015)\",\"النوع (ذكر أو أنثى)\",\"الإخوة (هام: لربط الإخوة، اكتب اسم الأخ الأول كاملاً ومتطابقاً في خانة الإخوة للأخ الثاني، والعكس صحيح)\"{$emptyCols}\n";
 
         $lastIdx = count($churchClasses) - 1;
 
-
-
         foreach ($churchClasses as $idx => $cls) {
-
             $cn = $cls['arabic_name'];
-
-            $emptyCols = str_repeat(',""', count($customFields));
-
             for ($i = 1; $i <= 10; $i++) {
-
-                $csvContent .= "\"$cn\",\"\",\"\",\"\",\"\"{$emptyCols}\n";
-
+                $csvContent .= "\"$cn\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"{$emptyCols}\n";
             }
-
             if ($idx < $lastIdx)
-
                 $csvContent .= "\n";
-
         }
 
 
@@ -14751,7 +14742,7 @@ function exportKidsData()
 
         $stmt = $conn->prepare("
 
-            SELECT s.id, s.name, s.address, s.phone, s.birthday, s.custom_info,
+            SELECT s.id, s.name, s.address, s.phone, s.emergency_phone, s.medical_notes, s.birthday, s.gender, s.custom_info,
 
                    COALESCE(cc.arabic_name, gc.arabic_name, s.class) AS class_name
 
@@ -14777,9 +14768,51 @@ function exportKidsData()
 
 
 
+        // ── Fetch Sibling Names ───────────────────────────────────
+
+        $siblingsMap = [];
+
+        $sibStmt = $conn->prepare("
+
+            SELECT ssgm.student_id, s_sib.name AS sibling_name
+
+            FROM student_sibling_group_members ssgm
+
+            INNER JOIN student_sibling_group_members ssgm2 
+
+                ON ssgm.group_id = ssgm2.group_id AND ssgm.student_id != ssgm2.student_id
+
+            INNER JOIN students s_sib 
+
+                ON ssgm2.student_id = s_sib.id
+
+            WHERE ssgm.church_id = ?
+
+        ");
+
+        if ($sibStmt) {
+
+            $sibStmt->bind_param("i", $churchId);
+
+            $sibStmt->execute();
+
+            $sibRes = $sibStmt->get_result();
+
+            while ($sibRow = $sibRes->fetch_assoc()) {
+
+                $sid = (int) $sibRow['student_id'];
+
+                $siblingsMap[$sid][] = $sibRow['sibling_name'];
+
+            }
+
+        }
+
+
+
         // ── Build CSV ─────────────────────────────────────────────
 
-        // Columns: student_id, class, name, address, phone, birthday [, custom_fields...]
+        // Columns: student_id, class, name, address, phone, emergency_phone, medical_notes, birthday, gender, siblings [, custom_fields...]
 
         // Quote custom field names to handle commas/special characters safely
 
@@ -14791,7 +14824,7 @@ function exportKidsData()
 
         }, $customFieldDefs);
 
-        $headerLine = 'student_id,class,name,address,phone,birthday';
+        $headerLine = 'student_id,class,name,address,phone,emergency_phone,medical_notes,birthday,gender,siblings';
 
         if ($customHeadersQuoted)
 
@@ -14815,7 +14848,27 @@ function exportKidsData()
 
             $phone = $r['phone'] ?? '';
 
+            $emergencyPhone = $r['emergency_phone'] ?? '';
+
+            $medicalNotes = $r['medical_notes'] ?? '';
+
             $birthday = $r['birthday'] ? date('d/m/Y', strtotime($r['birthday'])) : '';
+
+            $gender = $r['gender'] ?? '';
+
+            $genderLabel = '';
+
+            if ($gender === 'female') {
+
+                $genderLabel = 'أنثى';
+
+            } elseif ($gender === 'male') {
+
+                $genderLabel = 'ذكر';
+
+            }
+
+            $studentSiblings = isset($siblingsMap[$id]) ? implode(', ', $siblingsMap[$id]) : '';
 
 
 
@@ -14831,7 +14884,9 @@ function exportKidsData()
 
             $line = $id . ',' . $esc($class) . ',' . $esc($name) . ',' .
 
-                $esc($address) . ',' . $esc($phone) . ',' . $esc($birthday);
+                $esc($address) . ',' . $esc($phone) . ',' . $esc($emergencyPhone) . ',' .
+
+                $esc($medicalNotes) . ',' . $esc($birthday) . ',' . $esc($genderLabel) . ',' . $esc($studentSiblings);
 
 
 
@@ -15656,9 +15711,12 @@ function bulkSaveImportedKids()
             $name = sanitize($kid['name'] ?? '');
             $classRaw = sanitize($kid['class'] ?? '');
             $phone = sanitize($kid['phone'] ?? '');
+            $emergencyPhone = sanitize($kid['emergency_phone'] ?? '');
+            $medicalNotes = sanitize($kid['medical_notes'] ?? '');
             $gender = sanitize($kid['gender'] ?? '');
             $address = sanitize($kid['address'] ?? '');
             $birthday = sanitize($kid['birthday'] ?? '');
+            $siblings = sanitize($kid['siblings'] ?? '');
             $customInfoInput = $kid['custom_info'] ?? [];
 
             if (empty($name)) {
@@ -15690,6 +15748,18 @@ function bulkSaveImportedKids()
             }
             if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
                 $cleanPhone = '';
+            }
+
+            $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $emergencyPhone);
+            if (!empty($cleanEmergencyPhone)) {
+                $len = strlen($cleanEmergencyPhone);
+                if ($len === 10 && $cleanEmergencyPhone[0] === '1') $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
+                elseif ($len === 11 && substr($cleanEmergencyPhone, 0, 2) !== '01') $cleanEmergencyPhone = '0' . substr($cleanEmergencyPhone, 0, 10);
+                elseif ($len < 10) $cleanEmergencyPhone = '';
+                elseif ($len > 11) $cleanEmergencyPhone = substr($cleanEmergencyPhone, -11);
+            }
+            if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
+                $cleanEmergencyPhone = '';
             }
 
             if ($gender !== 'male' && $gender !== 'female') {
@@ -15741,6 +15811,16 @@ function bulkSaveImportedKids()
                     $setTypes .= "s";
                     $setValues[] = $cleanPhone;
                 }
+                if ($cleanEmergencyPhone !== '') {
+                    $setParts[] = "emergency_phone = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $cleanEmergencyPhone;
+                }
+                if ($medicalNotes !== '') {
+                    $setParts[] = "medical_notes = ?";
+                    $setTypes .= "s";
+                    $setValues[] = $medicalNotes;
+                }
                 if ($formattedBirthday !== null) {
                     $setParts[] = "birthday = ?";
                     $setTypes .= "s";
@@ -15768,10 +15848,10 @@ function bulkSaveImportedKids()
             } else {
                 $insStmt = $conn->prepare("
                     INSERT INTO students 
-                    (church_id, name, class_id, class, address, phone, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                    (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
                 ");
-                $insStmt->bind_param("isissssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $formattedBirthday, $gender, $customInfoJson);
+                $insStmt->bind_param("isissssssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $medicalNotes, $formattedBirthday, $gender, $customInfoJson);
                 if ($insStmt->execute()) {
                     $studentId = $conn->insert_id;
                     $addedCount++;
@@ -15779,6 +15859,10 @@ function bulkSaveImportedKids()
                     $errors[] = "فشل إضافة الطفل " . $name . ": " . $insStmt->error;
                     continue;
                 }
+            }
+
+            if ($studentId > 0 && !empty($siblings)) {
+                linkSiblingsByName($conn, $churchId, $studentId, $siblings);
             }
 
             if ($tripId > 0 && $studentId > 0) {
@@ -15829,7 +15913,7 @@ function bulkSaveImportedKids()
         $conn->commit();
         sendJSON([
             'success' => true,
-            'message' => "تم الاستيراد بنجاح! الإضافات: $addedCount، التحديثات: $updatedCount، التسجيلات في الرحلة: $registeredCount",
+            'message' => "تم الاستيراد بنجاح! الإضافات: {$addedCount}، التحديثات: {$updatedCount}، التسجيلات في الرحلة: {$registeredCount}",
             'errors' => $errors,
             'added' => $addedCount,
             'updated' => $updatedCount,
@@ -15842,6 +15926,62 @@ function bulkSaveImportedKids()
         }
         sendJSON(['success' => false, 'message' => 'خطأ في الاستيراد: ' . $e->getMessage()]);
     }
+}
+
+function linkSiblingsByName($conn, $churchId, $studentId, $siblingName) {
+    if (empty($siblingName)) return;
+    
+    // Normalize sibling name
+    $cleanSiblingName = trim($siblingName);
+    
+    // Search for the sibling student in the church database
+    $stmt = $conn->prepare("SELECT id FROM students WHERE name = ? AND church_id = ? AND COALESCE(enrollment_status, 'active') = 'active' LIMIT 1");
+    $stmt->bind_param("si", $cleanSiblingName, $churchId);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    
+    if (!$res) {
+        return;
+    }
+    
+    $siblingId = intval($res['id']);
+    if ($siblingId === $studentId) return; // Cannot link to self
+    
+    // Check sibling groups
+    $group1 = getStudentSiblingGroupMeta($conn, $studentId);
+    $group2 = getStudentSiblingGroupMeta($conn, $siblingId);
+    
+    $groupId = '';
+    if ($group1) {
+        $groupId = $group1['id'];
+    } elseif ($group2) {
+        $groupId = $group2['id'];
+    } else {
+        $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
+        
+        // Insert new sibling group
+        $label = 'عائلة ' . $cleanSiblingName;
+        $status = 'approved';
+        $linkedBy = $_SESSION['username'] ?? 'bulk_import';
+        $linkedById = intval($_SESSION['uncle_id'] ?? 0);
+        
+        $grpStmt = $conn->prepare("INSERT INTO student_sibling_groups (id, church_id, label, status, linked_by_id, linked_by_name) VALUES (?, ?, ?, ?, ?, ?)");
+        $grpStmt->bind_param("sissis", $groupId, $churchId, $label, $status, $linkedById, $linkedBy);
+        $grpStmt->execute();
+    }
+    
+    // Insert members if not already there
+    $insMember = $conn->prepare("INSERT IGNORE INTO student_sibling_group_members (student_id, group_id, church_id) VALUES (?, ?, ?)");
+    
+    $insMember->bind_param("isi", $studentId, $groupId, $churchId);
+    $insMember->execute();
+    
+    $insMember->bind_param("isi", $siblingId, $groupId, $churchId);
+    $insMember->execute();
+    
+    // Sync custom info json
+    syncSiblingGroupToStudentCustomInfo($conn, $studentId);
+    syncSiblingGroupToStudentCustomInfo($conn, $siblingId);
 }
 
 function getKidsData()
