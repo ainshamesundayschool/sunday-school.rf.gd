@@ -15963,24 +15963,121 @@ function bulkSaveImportedKids()
     }
 }
 
+function normalizeArabicNamePHP($str) {
+    if (empty($str)) return '';
+    $s = trim($str);
+    $s = mb_strtolower($s, 'UTF-8');
+    
+    // Remove Arabic diacritics (harakat)
+    $diacritics = [
+        "\xd9\x8b", "\xd9\x8c", "\xd9\x8d", "\xd9\x8e", 
+        "\xd9\x8f", "\xd9\x90", "\xd9\x91", "\xd9\x92"
+    ];
+    $s = str_replace($diacritics, '', $s);
+    
+    // Normalize Hamzas to bare Alif
+    $s = preg_replace('/[أإآا]/u', 'ا', $s);
+    // Normalize Ya/Alif Maqsura
+    $s = preg_replace('/[ىي]/u', 'ي', $s);
+    // Normalize Ta Marbuta to Ha
+    $s = preg_replace('/ة/u', 'ه', $s);
+    
+    return $s;
+}
+
+function calculateFuzzyScorePHP($name1, $name2) {
+    $n1 = normalizeArabicNamePHP($name1);
+    $n2 = normalizeArabicNamePHP($name2);
+    if ($n1 === $n2) return 1.0;
+    
+    $w1 = array_filter(explode(' ', $n1));
+    $w2 = array_filter(explode(' ', $n2));
+    if (empty($w1) || empty($w2)) return 0.0;
+    
+    $matches = 0;
+    foreach ($w1 as $word1) {
+        if (in_array($word1, $w2)) {
+            $matches++;
+        } else {
+            $bestWordScore = 0;
+            foreach ($w2 as $word2) {
+                $d = levenshtein($word1, $word2);
+                $maxL = max(mb_strlen($word1, 'UTF-8'), mb_strlen($word2, 'UTF-8'));
+                if ($maxL > 0) {
+                    $score = 1.0 - ($d / $maxL);
+                    if ($score > $bestWordScore) {
+                        $bestWordScore = $score;
+                    }
+                }
+            }
+            if ($bestWordScore > 0.8) {
+                $matches += $bestWordScore;
+            }
+        }
+    }
+    
+    $wordScore = $matches / max(count($w1), count($w2));
+    $dist = levenshtein($n1, $n2);
+    $maxLen = max(mb_strlen($n1, 'UTF-8'), mb_strlen($n2, 'UTF-8'));
+    $strScore = $maxLen > 0 ? (1.0 - ($dist / $maxLen)) : 0;
+    
+    return max($wordScore, $strScore);
+}
+
 function linkSiblingsByName($conn, $churchId, $studentId, $siblingName) {
     if (empty($siblingName)) return;
     
-    // Normalize sibling name
     $cleanSiblingName = trim($siblingName);
+    if (empty($cleanSiblingName)) return;
     
-    // Search for the sibling student in the church database
+    // 1. Try exact query match first
     $stmt = $conn->prepare("SELECT id FROM students WHERE name = ? AND church_id = ? AND COALESCE(enrollment_status, 'active') = 'active' LIMIT 1");
     $stmt->bind_param("si", $cleanSiblingName, $churchId);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
     
-    if (!$res) {
-        return;
+    $siblingId = 0;
+    if ($res) {
+        $siblingId = intval($res['id']);
+    } else {
+        // 2. Fetch all active kids in this church to do normalized & fuzzy match
+        $allStmt = $conn->prepare("SELECT id, name FROM students WHERE church_id = ? AND COALESCE(enrollment_status, 'active') = 'active'");
+        $allStmt->bind_param("i", $churchId);
+        $allStmt->execute();
+        $studentsResult = $allStmt->get_result();
+        
+        $normSibling = normalizeArabicNamePHP($cleanSiblingName);
+        $bestMatchId = 0;
+        $bestMatchScore = 0;
+        
+        while ($row = $studentsResult->fetch_assoc()) {
+            $dbName = $row['name'];
+            $dbId = intval($row['id']);
+            if ($dbId === $studentId) continue;
+            
+            // Normalized exact match
+            $normDbName = normalizeArabicNamePHP($dbName);
+            if ($normSibling === $normDbName) {
+                $siblingId = $dbId;
+                break;
+            }
+            
+            // Fuzzy match score
+            $score = calculateFuzzyScorePHP($cleanSiblingName, $dbName);
+            if ($score > $bestMatchScore) {
+                $bestMatchScore = $score;
+                $bestMatchId = $dbId;
+            }
+        }
+        
+        if ($siblingId === 0 && $bestMatchScore >= 0.85) {
+            $siblingId = $bestMatchId;
+        }
     }
     
-    $siblingId = intval($res['id']);
-    if ($siblingId === $studentId) return; // Cannot link to self
+    if ($siblingId === 0 || $siblingId === $studentId) {
+        return; // No match found or same student
+    }
     
     // Check sibling groups
     $group1 = getStudentSiblingGroupMeta($conn, $studentId);
@@ -15995,7 +16092,13 @@ function linkSiblingsByName($conn, $churchId, $studentId, $siblingName) {
         $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
         
         // Insert new sibling group
-        $label = 'عائلة ' . $cleanSiblingName;
+        $stmtName = $conn->prepare("SELECT name FROM students WHERE id = ?");
+        $stmtName->bind_param("i", $siblingId);
+        $stmtName->execute();
+        $sRow = $stmtName->get_result()->fetch_assoc();
+        $groupLabelName = $sRow ? $sRow['name'] : $cleanSiblingName;
+        
+        $label = 'عائلة ' . $groupLabelName;
         $status = 'approved';
         $linkedBy = $_SESSION['username'] ?? 'bulk_import';
         $linkedById = intval($_SESSION['uncle_id'] ?? 0);
@@ -17286,7 +17389,7 @@ function getStudentProfile()
 
                 s.task_coupons, s.image_url, s.church_id, s.class_id,
 
-                s.custom_info, s.gender, s.emergency_phone, s.medical_notes,
+                s.custom_info, s.trip_points, s.gender, s.emergency_phone, s.medical_notes,
 
                 c.church_name,
 
