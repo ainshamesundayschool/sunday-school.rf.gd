@@ -14316,12 +14316,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             // Trip points summary
-            let tp = {};
-            try { tp = typeof full.trip_points === 'string' ? JSON.parse(full.trip_points || '{}') : (full.trip_points || {}); } catch (e) { tp = {}; }
-            const tpKeys = Object.keys(tp || {});
+            let tpList = [];
+            if (Array.isArray(full.trip_points_details)) {
+                tpList = full.trip_points_details;
+            } else {
+                let tp = {};
+                try { tp = typeof full.trip_points === 'string' ? JSON.parse(full.trip_points || '{}') : (full.trip_points || {}); } catch (e) { tp = {}; }
+                tpList = Object.keys(tp).map(k => ({
+                    id: parseInt(k, 10),
+                    title: `رحلة رقم ${k}`,
+                    points: tp[k]
+                }));
+            }
             let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات / المؤتمرات</div><div class="detail-val">';
-            if (!tpKeys.length) tpHtml += 'لا توجد نقاط مسجّلة';
-            else tpHtml += tpKeys.map(k => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${k} → <strong>${tp[k]}</strong></div><div><button class="action-strip-btn" onclick="openPointsEditor('${k}', ${full.id || full.id})">تعديل</button></div></div>`).join('');
+            if (!tpList.length) tpHtml += 'لا توجد نقاط مسجّلة';
+            else tpHtml += tpList.map(item => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${escHtml(item.title)} → <strong>${item.points}</strong></div><div><button class="action-strip-btn" onclick="window.location.href='/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" style="background:var(--brand);color:white;border-radius:4px;padding:3px 8px;font-size:0.75rem;border:none;cursor:pointer;"><i class="fas fa-chevron-left"></i> عرض صفحة النقاط</button></div></div>`).join('');
             tpHtml += '</div></div>';
 
             // Render Notes Section

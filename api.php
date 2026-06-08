@@ -17423,6 +17423,30 @@ function getStudentProfile()
 
             $row['class'] = $row['class'] ?? '---';
 
+            $tripPoints = [];
+            $tripPointsDetails = [];
+            if (!empty($row['trip_points'])) {
+                $tripPoints = json_decode($row['trip_points'], true) ?: [];
+            }
+            if (!empty($tripPoints)) {
+                $tripIds = array_map('intval', array_keys($tripPoints));
+                if (!empty($tripIds)) {
+                    $inPlaceholder = implode(',', $tripIds);
+                    $tripStmt = $conn->prepare("SELECT id, title FROM trips WHERE id IN ($inPlaceholder)");
+                    $tripStmt->execute();
+                    $tripResult = $tripStmt->get_result();
+                    while ($tRow = $tripResult->fetch_assoc()) {
+                        $tId = intval($tRow['id']);
+                        $tripPointsDetails[] = [
+                            'id' => $tId,
+                            'title' => $tRow['title'],
+                            'points' => intval($tripPoints[$tId] ?? 0)
+                        ];
+                    }
+                }
+            }
+            $row['trip_points_details'] = $tripPointsDetails;
+
 
 
             sendJSON([
