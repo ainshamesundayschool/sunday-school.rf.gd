@@ -2636,6 +2636,16 @@
             padding: 22px;
         }
 
+        .modal-footer {
+            padding: 16px 22px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            background: #f8fafc;
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        }
+
         /* ═══════════════════════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════════════════════ */
@@ -9068,8 +9078,8 @@
     <!-- Image Crop Modal -->
     <div id="imageCropModal" class="modal" style="z-index:3000 !important;">
         <div class="modal-box" style="max-width:600px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-crop"></i> قص وتعديل الخلفية</h3>
+            <div class="modal-head">
+                <h2><i class="fas fa-crop"></i> قص وتعديل الخلفية</h2>
                 <button type="button" class="modal-close" onclick="closeCropModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px; align-items:center;">
@@ -18864,16 +18874,18 @@
             updatePrintPreview();
         }
 
-        async function executePrintQRCards() {
+        async function executePrintQRCards(force = false) {
             const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
             if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
 
             const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
             const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
-            if (wValInput === 10 && hValInput === 7) {
-                alert("Recommended to use A3 Landscape Mode while printing\nيُنصح باستخدام وضع A3 بالاتجاه الأفقي (Landscape) عند الطباعة");
+            if (!force && wValInput === 10 && hValInput === 7) {
+                openModal('printWarningModal');
+                return;
             }
 
+            closeModal('printWarningModal');
             closeModal('printSettingsModal');
 
             const scale = parseFloat(document.getElementById('printScale').value) / 100;
@@ -19545,19 +19557,41 @@
         </div>
     </div>
 
+    <!-- Print Warning Modal -->
+    <div id="printWarningModal" class="modal app-dialog" style="z-index: 9999;">
+        <div class="modal-overlay" onclick="closeModal('printWarningModal')"></div>
+        <div class="modal-box">
+            <div class="modal-head">
+                <h2>تنبيه الطباعة (Print Warning)</h2>
+                <button type="button" class="modal-close" onclick="closeModal('printWarningModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="app-dialog-message" style="text-align: center; font-weight: 700; font-size: 0.95rem;">
+                    يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.
+                    <br><br>
+                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted);">Recommended to use A3 Landscape Mode while printing.</span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('printWarningModal')">إلغاء (Cancel)</button>
+                <button type="button" class="btn btn-primary" onclick="executePrintQRCards(true)">طباعة (Print)</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm dialog -->
     <div id="confirmDialog" class="modal app-dialog">
         <div class="modal-overlay" onclick="resolveConfirm(false)"></div>
         <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="confirmDialogTitle">تأكيد</h3>
+            <div class="modal-head">
+                <h2 id="confirmDialogTitle">تأكيد</h2>
                 <button type="button" class="modal-close" onclick="resolveConfirm(false)"><i
                         class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <p class="app-dialog-message" id="confirmDialogMessage"></p>
             </div>
-            <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="resolveConfirm(false)">إلغاء</button>
                 <button type="button" class="btn btn-primary" id="confirmDialogOk"
                     onclick="resolveConfirm(true)">تأكيد</button>
@@ -19569,8 +19603,8 @@
     <div id="debugDialog" class="modal app-dialog">
         <div class="modal-overlay" onclick="closeModal('debugDialog')"></div>
         <div class="modal-box" style="max-width:520px;">
-            <div class="modal-header">
-                <h3>تشخيص الجلسة</h3>
+            <div class="modal-head">
+                <h2>تشخيص الجلسة</h2>
                 <button type="button" class="modal-close" onclick="closeModal('debugDialog')"><i
                         class="fas fa-times"></i></button>
             </div>
@@ -19588,8 +19622,8 @@
     <div id="promptDialog" class="modal app-dialog">
         <div class="modal-overlay" onclick="resolvePrompt(null)"></div>
         <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="promptDialogTitle">إدخال</h3>
+            <div class="modal-head">
+                <h2 id="promptDialogTitle">إدخال</h2>
                 <button type="button" class="modal-close" onclick="resolvePrompt(null)"><i
                         class="fas fa-times"></i></button>
             </div>
@@ -19597,7 +19631,7 @@
                 <p class="app-dialog-message" id="promptDialogMessage" style="margin-bottom:12px;"></p>
                 <input type="text" id="promptDialogInput" class="form-input" autocomplete="off">
             </div>
-            <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="resolvePrompt(null)">إلغاء</button>
                 <button type="button" class="btn btn-primary" id="promptDialogOk"
                     onclick="resolvePrompt(document.getElementById('promptDialogInput').value)">موافق</button>
