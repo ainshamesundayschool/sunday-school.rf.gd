@@ -15681,20 +15681,10 @@ function bulkSaveImportedKids()
             return;
         }
 
-        $churchClasses = getClassesForChurch($churchId);
-        $classMap = [];
-        foreach ($churchClasses as $cls) {
-            $key = mb_strtolower(trim($cls['arabic_name']));
-            $classMap[$key] = ['id' => $cls['id'], 'arabic_name' => $cls['arabic_name']];
-        }
-
-        $addedCount = 0;
-        $updatedCount = 0;
-        $registeredCount = 0;
-        $errors = [];
-
+        $allowedChurches = [$churchId];
+        $maxParticipants = 0;
         if ($tripId > 0) {
-            $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ?");
+            $tripStmt = $conn->prepare("SELECT church_id, max_participants, title, collaborating_churches FROM trips WHERE id = ?");
             $tripStmt->bind_param("i", $tripId);
             $tripStmt->execute();
             $trip = $tripStmt->get_result()->fetch_assoc();
@@ -15704,7 +15694,33 @@ function bulkSaveImportedKids()
             }
             ensureWaitlistTable($conn);
             $maxParticipants = intval($trip['max_participants'] ?? 0);
+            
+            $participants = [intval($trip['church_id'])];
+            $collabRaw = $trip['collaborating_churches'] ?? '';
+            if (!empty($collabRaw)) {
+                $collab = json_decode($collabRaw, true);
+                if (is_array($collab)) {
+                    $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
+                }
+            }
+            if (in_array($churchId, $participants)) {
+                $allowedChurches = $participants;
+            }
         }
+
+        $classMap = [];
+        foreach ($allowedChurches as $cId) {
+            $churchClasses = getClassesForChurch($cId);
+            foreach ($churchClasses as $cls) {
+                $key = mb_strtolower(trim($cls['arabic_name']));
+                $classMap[$key] = ['id' => $cls['id'], 'arabic_name' => $cls['arabic_name']];
+            }
+        }
+
+        $addedCount = 0;
+        $updatedCount = 0;
+        $registeredCount = 0;
+        $errors = [];
 
         foreach ($kids as $kid) {
             $studentId = isset($kid['student_id']) ? intval($kid['student_id']) : 0;
@@ -15740,11 +15756,15 @@ function bulkSaveImportedKids()
 
             $cleanPhone = preg_replace('/[^\d]/', '', $phone);
             if (!empty($cleanPhone)) {
-                $len = strlen($cleanPhone);
-                if ($len === 10 && $cleanPhone[0] === '1') $cleanPhone = '0' . $cleanPhone;
-                elseif ($len === 11 && substr($cleanPhone, 0, 2) !== '01') $cleanPhone = '0' . substr($cleanPhone, 0, 10);
-                elseif ($len < 10) $cleanPhone = '';
-                elseif ($len > 11) $cleanPhone = substr($cleanPhone, -11);
+                if (strpos($cleanPhone, '002') === 0) {
+                    $cleanPhone = substr($cleanPhone, 2);
+                }
+                if (strpos($cleanPhone, '20') === 0) {
+                    $cleanPhone = substr($cleanPhone, 2);
+                }
+                if (strlen($cleanPhone) === 10 && $cleanPhone[0] === '1') {
+                    $cleanPhone = '0' . $cleanPhone;
+                }
             }
             if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
                 $cleanPhone = '';
@@ -15752,11 +15772,15 @@ function bulkSaveImportedKids()
 
             $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $emergencyPhone);
             if (!empty($cleanEmergencyPhone)) {
-                $len = strlen($cleanEmergencyPhone);
-                if ($len === 10 && $cleanEmergencyPhone[0] === '1') $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
-                elseif ($len === 11 && substr($cleanEmergencyPhone, 0, 2) !== '01') $cleanEmergencyPhone = '0' . substr($cleanEmergencyPhone, 0, 10);
-                elseif ($len < 10) $cleanEmergencyPhone = '';
-                elseif ($len > 11) $cleanEmergencyPhone = substr($cleanEmergencyPhone, -11);
+                if (strpos($cleanEmergencyPhone, '002') === 0) {
+                    $cleanEmergencyPhone = substr($cleanEmergencyPhone, 2);
+                }
+                if (strpos($cleanEmergencyPhone, '20') === 0) {
+                    $cleanEmergencyPhone = substr($cleanEmergencyPhone, 2);
+                }
+                if (strlen($cleanEmergencyPhone) === 10 && $cleanEmergencyPhone[0] === '1') {
+                    $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
+                }
             }
             if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
                 $cleanEmergencyPhone = '';
@@ -15766,14 +15790,25 @@ function bulkSaveImportedKids()
                 $gender = detectGenderFromName($name);
             }
 
+            $targetChurchId = $churchId;
             $existingCustomInfo = [];
             if ($studentId > 0) {
-                $getStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ?");
-                $getStmt->bind_param("ii", $studentId, $churchId);
+                $getStmt = $conn->prepare("SELECT church_id, custom_info FROM students WHERE id = ?");
+                $getStmt->bind_param("i", $studentId);
                 $getStmt->execute();
                 $existingRow = $getStmt->get_result()->fetch_assoc();
-                if ($existingRow && !empty($existingRow['custom_info'])) {
-                    $existingCustomInfo = json_decode($existingRow['custom_info'], true) ?: [];
+                if ($existingRow) {
+                    $actualChurchId = intval($existingRow['church_id']);
+                    if (in_array($actualChurchId, $allowedChurches)) {
+                        $targetChurchId = $actualChurchId;
+                        if (!empty($existingRow['custom_info'])) {
+                            $existingCustomInfo = json_decode($existingRow['custom_info'], true) ?: [];
+                        }
+                    } else {
+                        $studentId = 0;
+                    }
+                } else {
+                    $studentId = 0;
                 }
             }
 
@@ -15834,7 +15869,7 @@ function bulkSaveImportedKids()
 
                 $setTypes .= "ii";
                 $setValues[] = $studentId;
-                $setValues[] = $churchId;
+                $setValues[] = $targetChurchId;
 
                 $updateSql = "UPDATE students SET " . implode(', ', $setParts) . " WHERE id = ? AND church_id = ?";
                 $updateStmt = $conn->prepare($updateSql);
@@ -15851,7 +15886,7 @@ function bulkSaveImportedKids()
                     (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
                 ");
-                $insStmt->bind_param("isissssssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $medicalNotes, $formattedBirthday, $gender, $customInfoJson);
+                $insStmt->bind_param("isissssssss", $targetChurchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $medicalNotes, $formattedBirthday, $gender, $customInfoJson);
                 if ($insStmt->execute()) {
                     $studentId = $conn->insert_id;
                     $addedCount++;
@@ -15862,7 +15897,7 @@ function bulkSaveImportedKids()
             }
 
             if ($studentId > 0 && !empty($siblings)) {
-                linkSiblingsByName($conn, $churchId, $studentId, $siblings);
+                linkSiblingsByName($conn, $targetChurchId, $studentId, $siblings);
             }
 
             if ($tripId > 0 && $studentId > 0) {
