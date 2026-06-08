@@ -3439,7 +3439,7 @@
       gap: 10px;
       justify-content: flex-end;
       background: #f8fafc;
-      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      border-radius: 0;
     }
 
     /* ═══════════════════════════════════════════════════════════════════
@@ -11570,11 +11570,8 @@
                 <button type="button" class="modal-close" onclick="closeModal('printWarningModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <p class="app-dialog-message" style="text-align: center; font-weight: 700; font-size: 0.95rem;">
-                    يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.
-                    <br><br>
-                    <span style="font-size: 0.82rem; font-weight: 600; color: var(--muted);">Recommended to use A3 Landscape Mode while printing.</span>
-                </p>
+                <p style="text-align: center; font-weight: 700; font-size: 0.95rem; color: var(--text-2); line-height: 1.65; margin: 0;">يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.</p>
+                <p style="text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin: 8px 0 0 0;">Recommended to use A3 Landscape Mode while printing.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closeModal('printWarningModal')">إلغاء (Cancel)</button>
