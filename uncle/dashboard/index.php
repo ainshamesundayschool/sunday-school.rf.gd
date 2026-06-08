@@ -8863,21 +8863,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
-                    style="position:relative;">
+                    style="position:relative; overflow:visible;">
                     <i class="fas fa-bell"></i>
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
-                    style="display:none;position:relative">
+                    style="display:none;position:relative; overflow:visible;">
                     <i class="fas fa-bell-slash"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
                 <!-- PWA Install -->
                 <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" title="تثبيت التطبيق"
-                    style="display:none;position:relative">
+                    style="display:none;position:relative; overflow:visible;">
                     <i class="fas fa-download"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
@@ -14328,9 +14328,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     points: tp[k]
                 }));
             }
-            let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات / المؤتمرات</div><div class="detail-val">';
+            let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات / المؤتمرات</div><div class="detail-val" style="display:flex;flex-direction:column;gap:6px;width:100%;">';
             if (!tpList.length) tpHtml += 'لا توجد نقاط مسجّلة';
-            else tpHtml += tpList.map(item => `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;"><div>${escHtml(item.title)} → <strong>${item.points}</strong></div><div><button class="action-strip-btn" onclick="window.location.href='/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" style="background:var(--brand);color:white;border-radius:4px;padding:3px 8px;font-size:0.75rem;border:none;cursor:pointer;"><i class="fas fa-chevron-left"></i> عرض صفحة النقاط</button></div></div>`).join('');
+            else tpHtml += tpList.map(item => `
+                <div onclick="window.location.href='/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" 
+                     style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-3);border:1px solid var(--border-solid);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" 
+                     onmouseover="this.style.background='var(--surface-4)';this.style.borderColor='var(--brand)'" 
+                     onmouseout="this.style.background='var(--surface-3)';this.style.borderColor='var(--border-solid)'">
+                    <div style="font-weight:700;color:var(--text);font-size:0.82rem;">${escHtml(item.title)}</div>
+                    <div style="font-weight:800;color:var(--brand);font-size:0.85rem;display:flex;align-items:center;gap:4px;">
+                        ${item.points} <i class="fas fa-star" style="color:var(--coupon);font-size:0.8rem;"></i>
+                    </div>
+                </div>
+            `).join('');
             tpHtml += '</div></div>';
 
             // Render Notes Section
