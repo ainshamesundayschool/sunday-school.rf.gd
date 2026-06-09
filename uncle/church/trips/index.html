@@ -4636,6 +4636,8 @@
                     <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i
                         class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span
                         class="td-badge warn" id="tdExpCountDesktop"></span></div>
+                    <div class="td-tab" id="tdtab-desktop-rooms" onclick="switchTripTab('rooms')" style="display:none;"><i
+                        class="fas fa-bed"></i><span class="trip-nav-tab-label">الغرف والسكن</span></div>
                   </div>
                   <div class="td-tabs" id="tdTabsMobile"
                     style="margin:0;padding:0;border-bottom:none;background:transparent;flex:1;">
@@ -4658,6 +4660,10 @@
                       data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
                       style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
                       المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
+                    <div class="td-tab" id="tdtab-rooms" data-title="الغرف والسكن"
+                      data-desc="توزيع الغرف وتسكين الأطفال والمشرفين." onclick="switchTripTab('rooms')"
+                      style="color:var(--text-2);border-bottom-color:transparent;display:none;"><i class="fas fa-bed"></i>
+                      الغرف والسكن</div>
                   </div>
                   <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'"
                     title="إغلاق">
@@ -4746,6 +4752,9 @@
                       <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;">قائمة المصروفات</h4>
                       <div id="expensesList"></div>
                     </div>
+                    <div class="td-panel" id="tdpanel-rooms">
+                      <div id="tripRoomsContent"></div>
+                    </div>
                   </div>
                   <div class="trip-shell-pages" id="tripShellPages"></div>
                 </section>
@@ -4808,7 +4817,7 @@
         const parts = hash.substring(1).split('?');
         const params = new URLSearchParams(parts[1] || '');
         const tab = params.get('trip_tab') || 'info';
-        return ['info', 'regs', 'waitlist', 'exp'].includes(tab) ? tab : 'info';
+        return ['info', 'regs', 'waitlist', 'exp', 'rooms'].includes(tab) ? tab : 'info';
       }
 
       function updateHashParam(key, value) {
@@ -5001,7 +5010,7 @@
       function switchTripTab(tab, updateUrl = true) {
         currentTripTab = tab;
         closeAllShellPages();
-        ['info', 'regs', 'waitlist', 'exp'].forEach(t => {
+        ['info', 'regs', 'waitlist', 'exp', 'rooms'].forEach(t => {
           document.getElementById('tdtab-' + t)?.classList.toggle('active', t === tab);
           document.getElementById('tdtab-desktop-' + t)?.classList.toggle('active', t === tab);
           document.getElementById('sb-tab-' + t)?.classList.toggle('active', t === tab);
@@ -5009,6 +5018,7 @@
         });
         updateTripFolderHeader(tab);
         if (tab === 'waitlist') loadWaitlist(window.currentTripId);
+        if (tab === 'rooms' && typeof renderRoomsPanel === 'function') renderRoomsPanel(window.currentTripId);
         if (updateUrl && window.currentTripId) updateHashParam('trip_tab', tab);
       }
 
@@ -5085,6 +5095,8 @@
           document.getElementById('tdtab-' + t)?.removeAttribute('style');
           document.getElementById('tdtab-desktop-' + t)?.removeAttribute('style');
         });
+        document.getElementById('tdtab-rooms')?.setAttribute('style', 'display: none;');
+        document.getElementById('tdtab-desktop-rooms')?.setAttribute('style', 'display: none;');
         const targetTab = opts.tab || getSelectedTripTab() || currentTripTab;
         document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
         document.getElementById('tripRegsContent').innerHTML = '';
@@ -5116,7 +5128,18 @@
           allTripsCache = [tripResp.trip];
           window.currentWaitlistCache = tripResp.trip.waitlist || [];
           renderTripDetailsFull(tripResp.trip);
-          switchTripTab(targetTab, false);
+          
+          const hasRooms = tripResp.trip.has_rooms == 1;
+          const desktopTab = document.getElementById('tdtab-desktop-rooms');
+          const mobileTab = document.getElementById('tdtab-rooms');
+          if (desktopTab) desktopTab.style.display = hasRooms ? '' : 'none';
+          if (mobileTab) mobileTab.style.display = hasRooms ? '' : 'none';
+
+          let targetTabResolved = targetTab;
+          if (targetTabResolved === 'rooms' && !hasRooms) {
+            targetTabResolved = 'info';
+          }
+          switchTripTab(targetTabResolved, false);
           // Auto-print if action=print is in the URL hash
           const _hashParams = new URLSearchParams((location.hash.includes('?') ? location.hash.split('?')[1] : ''));
           if (_hashParams.get('action') === 'print') {
@@ -8542,6 +8565,7 @@
       }
     </script>
 
+    <script src="/js/rooms_helpers.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -8715,6 +8739,41 @@
           ${sfInput}
         </div>`;
         }).join('');
+
+        if (parentField === 'السكن' && trip.has_rooms == 1) {
+          setTimeout(() => {
+            const floorSelect = container.querySelector(`[data-field="السكن__sf__الدور"]`);
+            const roomSelect = container.querySelector(`[data-field="السكن__sf__الغرفة"]`);
+            if (floorSelect && roomSelect) {
+              const bldName = parentVal;
+              let roomsConfig = [];
+              try { roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config; } catch (e) {}
+              const bld = (roomsConfig || []).find(b => b.name === bldName);
+              if (bld && bld.has_floors) {
+                const updateRooms = () => {
+                  const floorVal = floorSelect.value;
+                  const currentRoomVal = roomSelect.value || allValues['السكن__sf__الغرفة'] || '';
+                  roomSelect.innerHTML = '<option value="">— اختر —</option>';
+                  if (!floorVal) return;
+                  const fl = bld.floors.find(f => f.name === floorVal);
+                  if (fl) {
+                    fl.rooms.forEach(r => {
+                      const opt = document.createElement('option');
+                      opt.value = r.name;
+                      opt.textContent = r.name;
+                      if (currentRoomVal === r.name) {
+                        opt.selected = true;
+                      }
+                      roomSelect.appendChild(opt);
+                    });
+                  }
+                };
+                floorSelect.addEventListener('change', updateRooms);
+                updateRooms();
+              }
+            }
+          }, 0);
+        }
       }
 
       function onTableParentFieldChange(selectEl, parentField, regId) {
@@ -8885,7 +8944,7 @@
         }).join('');
       }
 
-      function renderRegisterCustomFields(tripId) {
+      function renderRegisterCustomFields(tripId, preData = {}) {
         const section = document.getElementById('registerCustomFieldsSection');
         if (!section) return;
         section.innerHTML = '';
@@ -8899,6 +8958,10 @@
           const meta = icons[name] || {};
           section.innerHTML += renderRegisterField(name, meta, '');
         });
+
+        if (trip.has_rooms == 1 && typeof handleRoomsRegistrationFormInject === 'function') {
+          handleRoomsRegistrationFormInject(trip, preData);
+        }
       }
 
       function collectRegisterCustomData() {
@@ -9543,6 +9606,20 @@
         document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
         document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
 
+        document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
+        toggleTripRoomsConfigurator('edit').then(() => {
+            if (t.has_rooms == 1 && t.rooms_config) {
+                try {
+                    const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        document.getElementById('editTripRoomsTemplate').value = 'custom';
+                        onRoomsTemplateChange('edit');
+                        populateRoomsWizardFromConfig('edit', parsed);
+                    }
+                } catch (e) { console.error(e); }
+            }
+        });
+
         toggleEditTripDates();
         recalcEditTripPrice();
         openModal('editTripModal');
@@ -9571,9 +9648,33 @@
         fd.append('description', document.getElementById('editTripDescription').value);
         fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
         fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
+        let customFields = t ? (t.custom_fields || '') : '';
+        let customFieldIcons = {};
+        try {
+            customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
+        } catch (e) { }
 
-        fd.append('custom_fields', t ? (t.custom_fields || '') : '');
-        fd.append('custom_field_icons', t ? (typeof t.custom_field_icons === 'object' ? JSON.stringify(t.custom_field_icons) : (t.custom_field_icons || '{}')) : '{}');
+        const hasRooms = document.getElementById('editTripHasRooms').value === '1';
+        let roomsConfig = null;
+        if (hasRooms) {
+            const config = compileRoomsConfig('edit');
+            roomsConfig = JSON.stringify(config);
+            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
+            if (!fieldsList.includes('السكن')) {
+                fieldsList.push('السكن');
+            }
+            customFields = fieldsList.join(',');
+            customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
+        } else {
+            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
+            customFields = fieldsList.join(',');
+            delete customFieldIcons['السكن'];
+        }
+
+        fd.append('custom_fields', customFields);
+        fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
+        fd.append('has_rooms', hasRooms ? '1' : '0');
+        fd.append('rooms_config', roomsConfig || '');
 
         const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (d.success) {
@@ -11379,6 +11480,1195 @@
         syncPrintSettingsUI();
         updatePrintPreview();
       }
+
+      // =========================================================================
+      // ROOMS & ACCOMMODATION WORKSPACE LOGIC
+      // =========================================================================
+
+      // Inject Rooms Stylesheet
+      (function() {
+        const style = document.createElement('style');
+        style.textContent = `
+          .rooms-ws-container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; direction: rtl; margin-top: 15px; }
+          .rooms-sidebar { background: var(--surface-1); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; }
+          .rooms-main { display: flex; flex-direction: column; gap: 15px; }
+          .rooms-stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+          .rooms-stat-card { text-align: center; }
+          .rooms-stat-val { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+          .rooms-stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+          .rooms-actions-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+          .rooms-grid { display: flex; flex-direction: column; gap: 20px; }
+          .ws-building-card { background: var(--surface-1); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+          .ws-building-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 8px; margin-bottom: 12px; }
+          .ws-building-name { font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+          .ws-floor-group { background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+          .ws-floor-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+          .ws-rooms-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+          .ws-room-card { background: var(--bg); border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; position: relative; }
+          .ws-room-card:hover { border-color: var(--primary); }
+          .ws-room-card.rooms-swap-active { border-color: var(--success) !important; animation: roomsPulse 1.5s infinite; }
+          .ws-room-card.rooms-gender-boy { border-top: 3px solid #3b82f6; }
+          .ws-room-card.rooms-gender-girl { border-top: 3px solid #ec4899; }
+          .ws-room-header { display: flex; justify-content: space-between; align-items: center; }
+          .ws-room-name { font-weight: 800; font-size: 0.82rem; }
+          .ws-room-cap { font-size: 0.75rem; color: var(--muted); font-weight: 700; }
+          .ws-room-progress { width: 100%; height: 4px; background: var(--border-solid); border-radius: 2px; overflow: hidden; }
+          .ws-room-progress-fill { height: 100%; transition: width 0.3s; }
+          .ws-room-progress-fill.green { background: #10b981; }
+          .ws-room-progress-fill.orange { background: #f59e0b; }
+          .ws-room-progress-fill.red { background: #ef4444; }
+          .ws-room-kids-list { display: flex; flex-direction: column; gap: 5px; }
+          .ws-kid-badge { display: flex; justify-content: space-between; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; font-size: 0.72rem; font-weight: 600; transition: all 0.2s; }
+          .ws-kid-badge.draft-assigned { border-style: dashed !important; border-color: var(--primary) !important; background: var(--primary-light) !important; }
+          .ws-kid-badge:hover { background: var(--surface-3); }
+          .ws-kid-badge.boy { border-right: 3px solid #3b82f6; }
+          .ws-kid-badge.girl { border-right: 3px solid #ec4899; }
+          .ws-kid-name { font-weight: 700; color: var(--text); }
+          .ws-kid-sub { font-size: 0.62rem; color: var(--muted); }
+          .ws-kid-actions { display: flex; gap: 4px; }
+          .ws-kid-action-btn { background: none; border: none; padding: 2px; cursor: pointer; color: var(--muted); font-size: 0.7rem; transition: color 0.2s; }
+          .ws-kid-action-btn:hover { color: var(--danger); }
+          .ws-unassigned-card { border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 8px 10px; background: var(--bg); display: flex; flex-direction: column; gap: 3px; cursor: pointer; transition: all 0.2s; }
+          .ws-unassigned-card:hover { border-color: var(--primary); background: var(--surface-3); }
+          .ws-unassigned-card.selected { border-color: var(--primary); background: #eff6ff; }
+          .ws-unassigned-card.boy { border-right: 3px solid #3b82f6; }
+          .ws-unassigned-card.girl { border-right: 3px solid #ec4899; }
+          .ws-room-uncles { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+          .ws-uncle-tag { display: inline-flex; align-items: center; gap: 4px; background: #fef3c7; color: #d97706; padding: 2px 5px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
+          .ws-uncle-tag i { cursor: pointer; }
+          .ws-uncle-tag i:hover { color: #ef4444; }
+          .ws-room-assign-uncle { width: 100%; border: 1px dashed var(--border); background: none; border-radius: 4px; padding: 3px; font-size: 0.65rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+          .ws-room-assign-uncle:hover { border-color: var(--primary); color: var(--primary); }
+          @keyframes roomsPulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+          }
+        `;
+        document.head.appendChild(style);
+      })();
+
+      // Global Workspace State
+      window.selectedKidForAllocation = null;
+      window.roomsSwapSource = null; // { regId, bldName, floorName, roomName }
+      window.roomsDraftAllocations = null; // Map regId -> { bldName, floorName, roomName }
+      window.allUnclesCache = [];
+
+      /**
+       * Main Entrypoint for rendering the Rooms panel
+       */
+      async function renderRoomsPanel(tripId) {
+        const wrap = document.getElementById('tripRoomsContent');
+        if (!wrap) return;
+        wrap.innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري تحميل السكن...</div>`;
+
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip || trip.has_rooms != 1) {
+          wrap.innerHTML = '<div class="empty-state">نظام السكن غير مفعل في هذه الرحلة.</div>';
+          return;
+        }
+
+        // Fetch registrations
+        let regs = tripRegistrationsCache[tripId] || [];
+        if (!regs.length) {
+          const fd = new FormData();
+          fd.append('action', 'getTripDetails');
+          fd.append('trip_id', tripId);
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({}));
+          if (res.success && res.trip && res.trip.registrations) {
+            regs = res.trip.registrations;
+            tripRegistrationsCache[tripId] = regs;
+          }
+        }
+
+        // Fetch Uncles if not cached
+        if (!window.allUnclesCache.length) {
+          try {
+            const fd = new FormData();
+            fd.append('action', 'getAllUncles');
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            if (res.success) {
+              window.allUnclesCache = res.uncles || [];
+            }
+          } catch(e) {}
+        }
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
+          wrap.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-home" style="font-size:3rem; color:var(--muted); margin-bottom:12px;"></i>
+              <h3>لم يتم ضبط هيكل السكن بعد</h3>
+              <p style="margin-top:6px; font-size:0.85rem; color:var(--muted);">يرجى النقر على زر "تعديل الرحلة" لتشغيل معالج ضبط الغرف والمباني.</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Render Workspace structure
+        wrap.innerHTML = `
+          <div class="rooms-ws-container">
+            <div class="rooms-sidebar" id="roomsUnassignedSidebar">
+              <!-- Rendered Dynamically -->
+            </div>
+            <div class="rooms-main">
+              <!-- Stats Bar -->
+              <div class="rooms-stats-bar" id="roomsStatsBar"></div>
+
+              <!-- Actions Row -->
+              <div class="rooms-actions-row">
+                <div style="display:flex; gap:8px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
+                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="roomsSearchFilter" class="form-input" placeholder="بحث باسم الطفل أو الغرفة..." style="font-size:0.75rem; height:30px; padding:4px 10px; width:200px;" oninput="onRoomsSearchChange()">
+                </div>
+              </div>
+
+              <!-- Draft Confirmation Header if draft is present -->
+              <div id="roomsDraftBanner" style="display:none; background:linear-gradient(135deg, var(--primary), #4f46e5); color:#fff; border-radius:10px; padding:12px 16px; align-items:center; justify-content:space-between; gap:10px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">
+                <div>
+                  <div style="font-weight:800; font-size:0.88rem;"><i class="fas fa-sparkles"></i> معاينة التوزيع التلقائي الذكي</div>
+                  <div style="font-size:0.72rem; opacity:0.85; margin-top:2px;">يرجى مراجعة الغرف. اضغط على حفظ لاعتماد التوزيع نهائياً أو تراجع للتراجع.</div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="btn btn-success btn-sm" onclick="saveDraftAllocations()" style="background:#10b981; border:none;"><i class="fas fa-check"></i> حفظ التوزيع</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="discardDraftAllocations()" style="color:#fff; border-color:rgba(255,255,255,0.4);"><i class="fas fa-times"></i> تراجع</button>
+                </div>
+              </div>
+
+              <!-- Buildings Grid -->
+              <div class="rooms-grid" id="roomsBuildingsGrid"></div>
+            </div>
+          </div>
+        `;
+
+        renderRoomsWorkspaceData();
+      }
+
+      /**
+       * Core function rendering stats, sidebar, and building layout grid
+       */
+      function renderRoomsWorkspaceData() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const query = document.getElementById('roomsSearchFilter')?.value || '';
+
+        // Extract assignments
+        const allocatedMap = {}; // kidRegId -> roomObj
+        let totalCapacity = 0;
+
+        roomsConfig.forEach(bld => {
+          if (bld.has_floors) {
+            bld.floors.forEach(fl => {
+              fl.rooms.forEach(r => {
+                totalCapacity += r.capacity;
+              });
+            });
+          } else {
+            bld.rooms.forEach(r => {
+              totalCapacity += r.capacity;
+            });
+          }
+        });
+
+        // Parse children allocations from registrations custom_data
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+          if (cData['السكن']) {
+            allocatedMap[r.id] = {
+              bldName: cData['السكن'],
+              floorName: cData['السكن__sf__الدور'] || '',
+              roomName: cData['السكن__sf__الغرفة'] || ''
+            };
+          }
+        });
+
+        // Apply draft allocations if any
+        if (window.roomsDraftAllocations) {
+          document.getElementById('roomsDraftBanner').style.display = 'flex';
+          Object.entries(window.roomsDraftAllocations).forEach(([kidId, roomObj]) => {
+            allocatedMap[kidId] = roomObj;
+          });
+        } else {
+          const banner = document.getElementById('roomsDraftBanner');
+          if (banner) banner.style.display = 'none';
+        }
+
+        // Count stats
+        const assignedKids = Object.keys(allocatedMap);
+        const assignedCount = assignedKids.length;
+        const totalKids = regs.length;
+        const remainingCapacity = Math.max(0, totalCapacity - assignedCount);
+
+        // Stats Bar HTML
+        const statsBar = document.getElementById('roomsStatsBar');
+        if (statsBar) {
+          statsBar.innerHTML = `
+            <div class="rooms-stat-card">
+              <div class="rooms-stat-val">${totalKids}</div>
+              <div class="rooms-stat-lbl">إجمالي المشاركين</div>
+            </div>
+            <div class="rooms-stat-card">
+              <div class="rooms-stat-val" style="color:#10b981;">${assignedCount}</div>
+              <div class="rooms-stat-lbl">المسكنين</div>
+            </div>
+            <div class="rooms-stat-card">
+              <div class="rooms-stat-val" style="color:#f59e0b;">${totalKids - assignedCount}</div>
+              <div class="rooms-stat-lbl">غير المسكنين</div>
+            </div>
+            <div class="rooms-stat-card">
+              <div class="rooms-stat-val">${totalCapacity}</div>
+              <div class="rooms-stat-lbl">السعة الكلية</div>
+            </div>
+            <div class="rooms-stat-card">
+              <div class="rooms-stat-val" style="color:#3b82f6;">${remainingCapacity}</div>
+              <div class="rooms-stat-lbl">الأماكن الشاغرة</div>
+            </div>
+          `;
+        }
+
+        // Render Sidebar
+        const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
+        renderUnassignedSidebar(unassignedKids, query);
+
+        // Render Buildings Grid
+        const gridContainer = document.getElementById('roomsBuildingsGrid');
+        if (!gridContainer) return;
+
+        let gridHtml = '';
+        roomsConfig.forEach((bld, bldIdx) => {
+          const bldAllocatedKids = regs.filter(r => allocatedMap[r.id] && allocatedMap[r.id].bldName === bld.name);
+          
+          let bldSubHtml = '';
+          if (bld.has_floors) {
+            bld.floors.forEach((fl, fIdx) => {
+              const flRoomsHtml = fl.rooms.map(r => renderRoomCardHTML(tripId, bld.name, fl.name, r, regs, allocatedMap, query)).join('');
+              bldSubHtml += `
+                <div class="ws-floor-group">
+                  <div class="ws-floor-title"><i class="fas fa-layer-group" style="color:var(--primary);"></i> ${escHtml(fl.name)}</div>
+                  <div class="ws-floor-rooms-list ws-rooms-list">${flRoomsHtml}</div>
+                </div>
+              `;
+            });
+          } else {
+            const bldRoomsHtml = bld.rooms.map(r => renderRoomCardHTML(tripId, bld.name, '', r, regs, allocatedMap, query)).join('');
+            bldSubHtml = `<div class="ws-rooms-list">${bldRoomsHtml}</div>`;
+          }
+
+          gridHtml += `
+            <div class="ws-building-card">
+              <div class="ws-building-header">
+                <div class="ws-building-name"><i class="fas fa-hotel"></i> ${escHtml(bld.name)}</div>
+                <div style="font-size:0.72rem; color:var(--muted); font-weight:700;">المسكنين في المبنى: ${bldAllocatedKids.length}</div>
+              </div>
+              <div class="ws-building-body">${bldSubHtml}</div>
+            </div>
+          `;
+        });
+
+        gridContainer.innerHTML = gridHtml;
+      }
+
+      /**
+       * HTML Generator for a single Room Card
+       */
+      function renderRoomCardHTML(tripId, bldName, floorName, room, allRegs, allocatedMap, query = '') {
+        const roomKids = allRegs.filter(r => {
+          const alloc = allocatedMap[r.id];
+          return alloc && alloc.bldName === bldName && alloc.floorName === floorName && alloc.roomName === room.name;
+        });
+
+        // Determine room gender
+        let boyCount = 0;
+        let girlCount = 0;
+        roomKids.forEach(k => {
+          if (k.student_gender === 'female') girlCount++;
+          else boyCount++;
+        });
+        const assignedGender = room.gender_filter || (boyCount > 0 ? 'male' : (girlCount > 0 ? 'female' : null));
+        const genderClass = assignedGender === 'male' ? 'rooms-gender-boy' : (assignedGender === 'female' ? 'rooms-gender-girl' : '');
+
+        // Capacity calculation
+        const occupied = roomKids.length;
+        const capacity = room.capacity;
+        const fillPercent = Math.min(100, (occupied / capacity) * 100);
+        let progressColorClass = 'green';
+        if (fillPercent >= 100) progressColorClass = 'red';
+        else if (fillPercent >= 75) progressColorClass = 'orange';
+
+        // Check Swap status
+        const isSwapActive = window.roomsSwapSource !== null;
+        const swapBtnLabel = isSwapActive ? '<i class="fas fa-arrow-down"></i> نقل هنا' : '';
+
+        // Search highlight
+        let isSearchMatch = false;
+        if (query) {
+          const lQuery = query.toLowerCase();
+          if (room.name.toLowerCase().includes(lQuery)) isSearchMatch = true;
+          roomKids.forEach(k => {
+            if (k.student_name.toLowerCase().includes(lQuery)) isSearchMatch = true;
+          });
+        }
+
+        // Uncles rendering
+        const unclesHtml = (room.uncles || []).map((u, uIdx) => `
+          <span class="ws-uncle-tag">
+            <i class="fas fa-user-shield"></i> ${escHtml(u.name)}
+            <i class="fas fa-times" onclick="removeUncleFromRoom(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${uIdx})"></i>
+          </span>
+        `).join('');
+
+        const availableUncles = window.allUnclesCache.filter(u => !(room.uncles || []).some(x => x.id == u.id));
+
+        return `
+          <div class="ws-room-card ${genderClass} ${isSwapActive ? 'rooms-swap-active' : ''} ${isSearchMatch ? 'search-match' : ''}" 
+               style="${isSearchMatch ? 'box-shadow:0 0 10px rgba(99,102,241,0.25); border-color:var(--primary);' : ''}"
+               onclick="onRoomCardClick(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+            <div class="ws-room-header">
+              <div class="ws-room-name"><i class="fas fa-door-closed"></i> غرفة ${escHtml(room.name)}</div>
+              <div class="ws-room-cap">${occupied} / ${capacity}</div>
+            </div>
+            <div class="ws-room-progress">
+              <div class="ws-room-progress-fill ${progressColorClass}" style="width: ${fillPercent}%;"></div>
+            </div>
+            <div class="ws-room-kids-list">
+              ${roomKids.map(k => {
+                const isDraft = window.roomsDraftAllocations && window.roomsDraftAllocations[k.id];
+                return `
+                  <div class="ws-kid-badge ${k.student_gender === 'female' ? 'girl' : 'boy'} ${isDraft ? 'draft-assigned' : ''}" 
+                       title="${escHtml(k.student_class)} - ${escHtml(k._churchName || '')}">
+                    <div class="ws-kid-info">
+                      <div class="ws-kid-name">${escHtml(k.student_name)}</div>
+                      <div class="ws-kid-sub">${escHtml(k.student_class)} - ${escHtml(k._churchName || '')}</div>
+                    </div>
+                    <div class="ws-kid-actions">
+                      <button type="button" class="ws-kid-action-btn" title="تغيير الغرفة / مبادلة" onclick="onKidSwapClick(event, ${k.id}, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                        <i class="fas fa-exchange-alt"></i>
+                      </button>
+                      <button type="button" class="ws-kid-action-btn" title="حذف التسكين" onclick="unassignKidFromRoom(event, ${k.id})">
+                        <i class="fas fa-times-circle"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+              ${occupied === 0 ? `<div style="text-align:center; font-size:0.68rem; color:var(--muted); padding:4px 0;">شريحة فارغة</div>` : ''}
+            </div>
+            
+            <!-- Uncles section -->
+            <div class="ws-room-uncles">
+              <div style="display:flex; flex-wrap:wrap; gap:4px;">${unclesHtml}</div>
+              <select class="ws-room-assign-uncle" onchange="onUncleAssignSelect(this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                <option value="">+ تعيين مشرف...</option>
+                ${availableUncles.map(u => `<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+      }
+
+      /**
+       * Render Sidebar containing unassigned children list
+       */
+      function renderUnassignedSidebar(unassignedKids, query = '') {
+        const sidebar = document.getElementById('roomsUnassignedSidebar');
+        if (!sidebar) return;
+
+        let kidsFiltered = unassignedKids;
+        if (query) {
+          const lQuery = query.toLowerCase();
+          kidsFiltered = unassignedKids.filter(k => k.student_name.toLowerCase().includes(lQuery) || k.student_class.toLowerCase().includes(lQuery));
+        }
+
+        sidebar.innerHTML = `
+          <h4 style="font-weight:800; font-size:0.88rem; display:flex; align-items:center; gap:8px; border-bottom:1.5px solid var(--border-solid); padding-bottom:6px; margin-bottom:8px;">
+            <i class="fas fa-user-clock" style="color:var(--primary);"></i> غير المسكنين (${unassignedKids.length})
+          </h4>
+          <div style="display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1; padding-right:2px;">
+            ${kidsFiltered.map(k => `
+              <div class="ws-unassigned-card ${k.student_gender === 'female' ? 'girl' : 'boy'} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
+                   onclick="selectKidForAllocation(${k.id})">
+                <div class="ws-kid-name" style="font-size:0.75rem;">${escHtml(k.student_name)}</div>
+                <div class="ws-kid-sub" style="font-size:0.62rem; display:flex; justify-content:space-between; margin-top:2px;">
+                  <span>${escHtml(k.student_class)}</span>
+                  <span>${escHtml(k._churchName || '')}</span>
+                </div>
+              </div>
+            `).join('')}
+            ${kidsFiltered.length === 0 ? `<div style="text-align:center; font-size:0.75rem; color:var(--muted); padding:15px 0;">لا يوجد أطفال غير مسكنين</div>` : ''}
+          </div>
+        `;
+      }
+
+      /**
+       * Handle click selecting a kid in sidebar for manual allocation
+       */
+      function selectKidForAllocation(kidId) {
+        if (window.selectedKidForAllocation == kidId) {
+          window.selectedKidForAllocation = null;
+        } else {
+          window.selectedKidForAllocation = kidId;
+          showToast('انقر فوق أي غرفة لنقل الطفل إليها مباشرة', 'info');
+        }
+        renderRoomsWorkspaceData();
+      }
+
+      /**
+       * Handle clicking a room card (allocates selected kid or executes swap/move target)
+       */
+      async function onRoomCardClick(event, bldName, floorName, roomName) {
+        // Skip if clicking sub-elements inside the card
+        if (event.target.closest('.ws-kid-badge') || event.target.closest('.ws-room-uncles') || event.target.closest('select')) return;
+
+        // Mode 1: Manual allocation from Sidebar Selection
+        if (window.selectedKidForAllocation) {
+          const kidId = window.selectedKidForAllocation;
+          window.selectedKidForAllocation = null;
+          await executeDirectMove(kidId, { bldName, floorName, roomName });
+          return;
+        }
+
+        // Mode 2: Swap/Move Target Selection
+        if (window.roomsSwapSource) {
+          await executeRoomMoveOrSwap(null, { bldName, floorName, roomName });
+        }
+      }
+
+      /**
+       * Handle clicking Kid Swap button
+       */
+      function onKidSwapClick(event, regId, bldName, floorName, roomName) {
+        event.stopPropagation();
+        
+        if (window.roomsSwapSource) {
+          if (window.roomsSwapSource.regId == regId) {
+            cancelRoomsSwapMode();
+            return;
+          }
+          // Perform swap between source and target kid
+          executeRoomMoveOrSwap(regId, null);
+        } else {
+          window.roomsSwapSource = { regId, bldName, floorName, roomName };
+          showToast('اختر الطفل الآخر للمبادلة، أو اختر أي غرفة لنقله إليها', 'info');
+          renderRoomsWorkspaceData();
+        }
+      }
+
+      function cancelRoomsSwapMode() {
+        window.roomsSwapSource = null;
+        renderRoomsWorkspaceData();
+      }
+
+      /**
+       * Directly assign a kid to room
+       */
+      async function executeDirectMove(kidId, targetRoomObj) {
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const r = regs.find(x => x.id == kidId);
+        if (!r) return;
+
+        let customData = {};
+        try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+
+        const nextRoom = {
+          'السكن': targetRoomObj.bldName,
+          'السكن__sf__الدور': targetRoomObj.floorName || '',
+          'السكن__sf__الغرفة': targetRoomObj.roomName
+        };
+
+        const payload = [
+          { registration_id: r.id, custom_data: { ...customData, ...nextRoom } }
+        ];
+
+        // If in Draft mode, save in draft state only
+        if (window.roomsDraftAllocations) {
+          window.roomsDraftAllocations[r.id] = targetRoomObj;
+          renderRoomsWorkspaceData();
+          return;
+        }
+
+        const success = await saveCustomDataPayload(tripId, payload);
+        if (success) {
+          showToast('تم تسكين الطفل بنجاح!', 'success');
+          r.custom_data = JSON.stringify({ ...customData, ...nextRoom });
+          renderRoomsWorkspaceData();
+        }
+      }
+
+      /**
+       * Swap or Move execution helper
+       */
+      async function executeRoomMoveOrSwap(targetRegId, targetRoomObj) {
+        const source = window.roomsSwapSource;
+        if (!source) return;
+
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const sourceReg = regs.find(r => r.id == source.regId);
+        if (!sourceReg) return;
+
+        let sourceData = {};
+        try { sourceData = JSON.parse(sourceReg.custom_data || '{}'); } catch(e) {}
+
+        if (targetRegId) {
+          // SWAP
+          const targetReg = regs.find(r => r.id == targetRegId);
+          if (!targetReg) return;
+          let targetData = {};
+          try { targetData = JSON.parse(targetReg.custom_data || '{}'); } catch(e) {}
+
+          const nextSourceRoom = {
+            'السكن': targetData['السكن'] || '',
+            'السكن__sf__الدور': targetData['السكن__sf__الدور'] || '',
+            'السكن__sf__الغرفة': targetData['السكن__sf__الغرفة'] || ''
+          };
+          const nextTargetRoom = {
+            'السكن': sourceData['السكن'] || '',
+            'السكن__sf__الدور': sourceData['السكن__sf__الدور'] || '',
+            'السكن__sf__الغرفة': sourceData['السكن__sf__الغرفة'] || ''
+          };
+
+          if (window.roomsDraftAllocations) {
+            window.roomsDraftAllocations[sourceReg.id] = {
+              bldName: nextSourceRoom['السكن'],
+              floorName: nextSourceRoom['السكن__sf__الدور'],
+              roomName: nextSourceRoom['السكن__sf__الغرفة']
+            };
+            window.roomsDraftAllocations[targetReg.id] = {
+              bldName: nextTargetRoom['السكن'],
+              floorName: nextTargetRoom['السكن__sf__الدور'],
+              roomName: nextTargetRoom['السكن__sf__الغرفة']
+            };
+            cancelRoomsSwapMode();
+            return;
+          }
+
+          const payload = [
+            { registration_id: sourceReg.id, custom_data: { ...sourceData, ...nextSourceRoom } },
+            { registration_id: targetReg.id, custom_data: { ...targetData, ...nextTargetRoom } }
+          ];
+
+          const success = await saveCustomDataPayload(tripId, payload);
+          if (success) {
+            showToast('تمت المبادلة بنجاح!', 'success');
+            sourceReg.custom_data = JSON.stringify({ ...sourceData, ...nextSourceRoom });
+            targetReg.custom_data = JSON.stringify({ ...targetData, ...nextTargetRoom });
+            renderRoomsPanel(tripId);
+          }
+        } else {
+          // MOVE
+          const nextRoom = {
+            'السكن': targetRoomObj.bldName,
+            'السكن__sf__الدور': targetRoomObj.floorName || '',
+            'السكن__sf__الغرفة': targetRoomObj.roomName
+          };
+
+          if (window.roomsDraftAllocations) {
+            window.roomsDraftAllocations[sourceReg.id] = targetRoomObj;
+            cancelRoomsSwapMode();
+            return;
+          }
+
+          const payload = [
+            { registration_id: sourceReg.id, custom_data: { ...sourceData, ...nextRoom } }
+          ];
+
+          const success = await saveCustomDataPayload(tripId, payload);
+          if (success) {
+            showToast('تم نقل الطفل بنجاح!', 'success');
+            sourceReg.custom_data = JSON.stringify({ ...sourceData, ...nextRoom });
+            renderRoomsPanel(tripId);
+          }
+        }
+        cancelRoomsSwapMode();
+      }
+
+      /**
+       * Unassign a kid from rooms
+       */
+      async function unassignKidFromRoom(event, regId) {
+        if (event) event.stopPropagation();
+
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const r = regs.find(x => x.id == regId);
+        if (!r) return;
+
+        let customData = {};
+        try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+
+        delete customData['السكن'];
+        delete customData['السكن__sf__الدور'];
+        delete customData['السكن__sf__الغرفة'];
+
+        if (window.roomsDraftAllocations) {
+          delete window.roomsDraftAllocations[r.id];
+          renderRoomsWorkspaceData();
+          return;
+        }
+
+        const payload = [
+          { registration_id: r.id, custom_data: customData }
+        ];
+
+        const success = await saveCustomDataPayload(tripId, payload);
+        if (success) {
+          showToast('تم إخراج الطفل من الغرفة', 'info');
+          r.custom_data = JSON.stringify(customData);
+          renderRoomsWorkspaceData();
+        }
+      }
+
+      /**
+       * Clear all allocations inside the trip
+       */
+      async function clearAllRoomsAllocations() {
+        if (!(await showConfirm({ message: 'تنبيه: هل أنت متأكد من مسح جميع بيانات السكن والغرف لجميع الأطفال في هذه الرحلة؟' }))) return;
+
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const payload = [];
+
+        regs.forEach(r => {
+          let customData = {};
+          try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+          if (customData['السكن']) {
+            delete customData['السكن'];
+            delete customData['السكن__sf__الدور'];
+            delete customData['السكن__sf__الغرفة'];
+            payload.push({ registration_id: r.id, custom_data: customData });
+          }
+        });
+
+        if (window.roomsDraftAllocations) {
+          window.roomsDraftAllocations = null;
+          showToast('تم مسح التوزيع المؤقت', 'info');
+          renderRoomsWorkspaceData();
+          return;
+        }
+
+        if (!payload.length) {
+          showToast('لا توجد غرف مسكنة بالفعل لمسحها', 'warning');
+          return;
+        }
+
+        const success = await saveCustomDataPayload(tripId, payload);
+        if (success) {
+          showToast('تم تفريغ جميع الغرف السكنية بنجاح!', 'success');
+          regs.forEach(r => {
+            let customData = {};
+            try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            delete customData['السكن'];
+            delete customData['السكن__sf__الدور'];
+            delete customData['السكن__sf__الغرفة'];
+            r.custom_data = JSON.stringify(customData);
+          });
+          renderRoomsWorkspaceData();
+        }
+      }
+
+      /**
+       * Save draft allocations list
+       */
+      async function saveDraftAllocations() {
+        if (!window.roomsDraftAllocations) return;
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const payload = [];
+
+        Object.entries(window.roomsDraftAllocations).forEach(([kidId, roomObj]) => {
+          const r = regs.find(x => x.id == kidId);
+          if (r) {
+            let customData = {};
+            try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            customData['السكن'] = roomObj.bldName;
+            customData['السكن__sf__الدور'] = roomObj.floorName || '';
+            customData['السكن__sf__الغرفة'] = roomObj.roomName;
+            payload.push({ registration_id: r.id, custom_data: customData });
+          }
+        });
+
+        const success = await saveCustomDataPayload(tripId, payload);
+        if (success) {
+          showToast('تم اعتماد وحفظ توزيع الغرف بنجاح! 💾', 'success');
+          // Merge to cache
+          payload.forEach(item => {
+            const r = regs.find(x => x.id == item.registration_id);
+            if (r) r.custom_data = JSON.stringify(item.custom_data);
+          });
+          window.roomsDraftAllocations = null;
+          renderRoomsWorkspaceData();
+        }
+      }
+
+      function discardDraftAllocations() {
+        window.roomsDraftAllocations = null;
+        showToast('تم تجاهل المسودة التلقائية', 'info');
+        renderRoomsWorkspaceData();
+      }
+
+      /**
+       * API persistence wrapper
+       */
+      async function saveCustomDataPayload(tripId, payload) {
+        const fd = new FormData();
+        fd.append('action', 'bulkUpdateCustomData');
+        fd.append('trip_id', tripId);
+        fd.append('data', JSON.stringify(payload));
+        try {
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          return !!res.success;
+        } catch(e) {
+          showToast('عفواً، فشل الاتصال بالخادم لحفظ التسكين', 'error');
+          return false;
+        }
+      }
+
+      /**
+       * Handle searches and filtering in the workspace view
+       */
+      function onRoomsSearchChange() {
+        renderRoomsWorkspaceData();
+      }
+
+      // =========================================================================
+      // UNCLE ROOM ASSIGNMENT PERSISTENCE
+      // =========================================================================
+      async function onUncleAssignSelect(selectEl, bldName, floorName, roomName) {
+        const uncleId = selectEl.value;
+        if (!uncleId) return;
+
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        
+        // Find room and assign uncle
+        let assignedName = '';
+        const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
+        if (selectedUncle) assignedName = selectedUncle.name;
+
+        roomsConfig.forEach(bld => {
+          if (bld.name === bldName) {
+            if (bld.has_floors) {
+              bld.floors.forEach(fl => {
+                if (fl.name === floorName) {
+                  fl.rooms.forEach(r => {
+                    if (r.name === roomName) {
+                      if (!r.uncles) r.uncles = [];
+                      r.uncles.push({ id: uncleId, name: assignedName });
+                    }
+                  });
+                }
+              });
+            } else {
+              bld.rooms.forEach(r => {
+                if (r.name === roomName) {
+                  if (!r.uncles) r.uncles = [];
+                  r.uncles.push({ id: uncleId, name: assignedName });
+                }
+              });
+            }
+          }
+        });
+
+        selectEl.disabled = true;
+        const success = await saveRoomsConfig(tripId, roomsConfig);
+        selectEl.disabled = false;
+        selectEl.value = '';
+
+        if (success) {
+          showToast('تم تعيين المشرف بنجاح! 👮', 'success');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل تعيين المشرف', 'error');
+        }
+      }
+
+      async function removeUncleFromRoom(event, bldName, floorName, roomName, uncleIdx) {
+        if (event) event.stopPropagation();
+
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        roomsConfig.forEach(bld => {
+          if (bld.name === bldName) {
+            if (bld.has_floors) {
+              bld.floors.forEach(fl => {
+                if (fl.name === floorName) {
+                  fl.rooms.forEach(r => {
+                    if (r.name === roomName && r.uncles) {
+                      r.uncles.splice(uncleIdx, 1);
+                    }
+                  });
+                }
+              });
+            } else {
+              bld.rooms.forEach(r => {
+                if (r.name === roomName && r.uncles) {
+                  r.uncles.splice(uncleIdx, 1);
+                }
+              });
+            }
+          }
+        });
+
+        const success = await saveRoomsConfig(tripId, roomsConfig);
+        if (success) {
+          showToast('تم إزالة المشرف من الغرفة', 'info');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل إزالة المشرف', 'error');
+        }
+      }
+
+      async function saveRoomsConfig(tripId, config) {
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return false;
+        const fd = new FormData();
+        fd.append('action', 'updateTrip');
+        fd.append('trip_id', tripId);
+        fd.append('title', trip.title);
+        fd.append('type', trip.type);
+        fd.append('start_date', trip.start_date?.split('T')[0] || trip.start_date || '');
+        fd.append('end_date', trip.end_date?.split('T')[0] || trip.end_date || '');
+        fd.append('price', Math.round(trip.price));
+        fd.append('discount', Math.round(trip.discount || 0));
+        fd.append('discount_type', trip.discount_type || 'percentage');
+        fd.append('max_participants', trip.max_participants || 0);
+        fd.append('status', trip.status);
+        fd.append('description', trip.description || '');
+        fd.append('show_registered_kids', String(trip.show_registered_kids ?? 1));
+        fd.append('has_points_game', String(trip.has_points_game ?? 0));
+        fd.append('custom_fields', trip.custom_fields || '');
+        fd.append('custom_field_icons', typeof trip.custom_field_icons === 'object' ? JSON.stringify(trip.custom_field_icons) : (trip.custom_field_icons || '{}'));
+        fd.append('has_rooms', '1');
+        fd.append('rooms_config', JSON.stringify(config));
+
+        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+        if (res.success) {
+          trip.rooms_config = config; // Update cache
+          return true;
+        }
+        return false;
+      }
+
+      // =========================================================================
+      // DYNAMIC ROOMS AUTO-FILL OPTIMIZER WIZARD
+      // =========================================================================
+
+      // Inject Auto-Fill Settings Modal Markup into DOM
+      (function() {
+        if (document.getElementById('autoFillRoomsModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'autoFillRoomsModal';
+        modal.className = 'modal app-dialog';
+        modal.innerHTML = `
+          <div class="modal-overlay" onclick="closeModal('autoFillRoomsModal')"></div>
+          <div class="modal-box" style="max-width:550px;">
+            <div class="modal-head">
+              <h2><i class="fas fa-magic"></i> معالج التوزيع التلقائي الذكي (Auto-Fill)</h2>
+              <button class="modal-close" onclick="closeModal('autoFillRoomsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">من يتم تسكينهم تلقائياً؟</label>
+                <select id="afScope" class="form-select" style="width:100%;">
+                  <option value="unassigned" selected>توزيع الأطفال غير المسكنين فقط</option>
+                  <option value="all">إعادة تسكين جميع الأطفال (سيتم تفريغ الغرف الحالية)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">أقصى عدد مشرفين في الغرفة الواحدة</label>
+                <input type="number" id="afUncleLimit" class="form-input" value="1" min="0" max="4">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">تصفية النوع (أين يبيت الأولاد وأين تبيت البنات؟)</label>
+                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:6px; background:var(--surface-3); padding:8px 12px; border-radius:8px; border:1.5px solid var(--border-solid);">
+                  <!-- Loaded dynamically based on Buildings -->
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">استبعاد أطفال من التوزيع التلقائي (اختر الأطفال المستبعدين)</label>
+                <div id="afExclusionsWrap" style="max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:6px; background:#fff;">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer" style="display:flex; gap:10px; margin-top:8px;">
+              <button type="button" class="btn btn-primary" style="flex:2;" onclick="executeAutoFillAlgorithm()"><i class="fas fa-play"></i> تشغيل خوارزمية التوزيع</button>
+              <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('autoFillRoomsModal')">إلغاء</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      })();
+
+      /**
+       * Open Auto-Fill Wizard and populate filters dynamically
+       */
+      function openAutoFillWizardModal() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        // Populate Gender filters based on buildings list
+        const genderWrap = document.getElementById('afGenderFiltersWrap');
+        if (genderWrap) {
+          genderWrap.innerHTML = roomsConfig.map((b, idx) => `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom: 1px solid var(--border); padding-bottom:5px; margin-bottom:5px;">
+              <span style="font-size:0.8rem; font-weight:700;"><i class="fas fa-hotel"></i> ${escHtml(b.name)}:</span>
+              <select class="form-select af-bld-gender-filter" data-bld="${escHtml(b.name)}" style="width:130px; font-size:0.75rem; height:28px; padding:2px 6px;">
+                <option value="all" selected>مشترك (حسب الحاجة)</option>
+                <option value="male">أولاد فقط (Boys Only)</option>
+                <option value="female">بنات فقط (Girls Only)</option>
+              </select>
+            </div>
+          `).join('');
+        }
+
+        // Populate Exclusions checkbox list
+        const exclusionsWrap = document.getElementById('afExclusionsWrap');
+        if (exclusionsWrap) {
+          exclusionsWrap.innerHTML = regs.map(r => `
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; cursor:pointer; margin-bottom:4px;">
+              <input type="checkbox" class="af-exclude-checkbox" value="${r.id}">
+              <span>${escHtml(r.student_name)} (${escHtml(r.student_class)})</span>
+            </label>
+          `).join('');
+        }
+
+        openModal('autoFillRoomsModal');
+      }
+
+      /**
+       * Smart Auto-Fill Optimization Allocator Algorithm
+       */
+      function executeAutoFillAlgorithm() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        const scope = document.getElementById('afScope').value;
+        const uncleLimit = parseInt(document.getElementById('afUncleLimit').value || '1');
+
+        // Extract exclusions
+        const excludedIds = new Set();
+        document.querySelectorAll('.af-exclude-checkbox:checked').forEach(cb => {
+          excludedIds.add(parseInt(cb.value));
+        });
+
+        // Get gender filters on buildings
+        const bldGenderFilters = {};
+        document.querySelectorAll('.af-bld-gender-filter').forEach(sel => {
+          bldGenderFilters[sel.dataset.bld] = sel.value; // 'all', 'male', 'female'
+        });
+
+        // Setup rooms allocation map
+        const draftAllocations = {};
+        const roomState = []; // Array of room instances with capacity tracker
+
+        // Load existing allocations if scope is 'unassigned'
+        const allocatedMap = {};
+        if (scope === 'unassigned') {
+          regs.forEach(r => {
+            let cData = {};
+            try { cData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            if (cData['السكن']) {
+              allocatedMap[r.id] = {
+                bldName: cData['السكن'],
+                floorName: cData['السكن__sf__الدور'] || '',
+                roomName: cData['السكن__sf__الغرفة'] || ''
+              };
+            }
+          });
+        }
+
+        // Initialize room instances
+        roomsConfig.forEach(bld => {
+          const bldGenderLimit = bldGenderFilters[bld.name] || 'all';
+
+          const addRoomInst = (rName, cap, flName = '') => {
+            // Find existing kids in this room
+            const existingKids = regs.filter(k => {
+              const alloc = allocatedMap[k.id];
+              return alloc && alloc.bldName === bld.name && alloc.floorName === flName && alloc.roomName === rName;
+            });
+
+            let assignedGender = null;
+            let boyCount = 0;
+            let girlCount = 0;
+            existingKids.forEach(k => {
+              if (k.student_gender === 'female') girlCount++;
+              else boyCount++;
+            });
+            if (boyCount > 0) assignedGender = 'male';
+            if (girlCount > 0) assignedGender = 'female';
+
+            roomState.push({
+              bldName: bld.name,
+              floorName: flName,
+              roomName: rName,
+              capacity: cap,
+              occupied: existingKids.length,
+              assignedKids: existingKids.map(k => k.id),
+              genderLimit: bldGenderLimit !== 'all' ? bldGenderLimit : assignedGender,
+              bldGenderLimit: bldGenderLimit
+            });
+          };
+
+          if (bld.has_floors) {
+            bld.floors.forEach(fl => {
+              fl.rooms.forEach(r => {
+                addRoomInst(r.name, r.capacity, fl.name);
+              });
+            });
+          } else {
+            bld.rooms.forEach(r => {
+              addRoomInst(r.name, r.capacity);
+            });
+          }
+        });
+
+        // Filter kids to assign
+        const kidsToAssign = regs.filter(r => {
+          if (excludedIds.has(r.id)) return false;
+          if (allocatedMap[r.id]) return false; // Already allocated
+          return true;
+        });
+
+        // Group kids by Gender
+        const boys = kidsToAssign.filter(k => k.student_gender !== 'female');
+        const girls = kidsToAssign.filter(k => k.student_gender === 'female');
+
+        // Allocation Sub-Algorithm
+        const allocateGenderGroup = (kids, gender) => {
+          // Group kids by Church + Class
+          const groupsMap = {};
+          kids.forEach(k => {
+            const key = (k._churchId || 0) + '_' + (k.student_class || 'default');
+            if (!groupsMap[key]) groupsMap[key] = [];
+            groupsMap[key].push(k);
+          });
+
+          // Sort groups by size descending to distribute larger clusters first
+          const sortedGroups = Object.values(groupsMap).sort((a, b) => b.length - a.length);
+
+          sortedGroups.forEach(group => {
+            // Try to assign the group together
+            let remainingKidsInGroup = [...group];
+
+            // Filter rooms matching this gender or completely unassigned
+            const getMatchingRooms = () => {
+              return roomState.filter(r => {
+                if (r.occupied >= r.capacity) return false;
+                if (r.genderLimit && r.genderLimit !== gender) return false;
+                if (r.bldGenderLimit !== 'all' && r.bldGenderLimit !== gender) return false;
+                return true;
+              });
+            };
+
+            // Pass 1: Try to fit the WHOLE group in one single room
+            let matchingRooms = getMatchingRooms();
+            const perfectRoom = matchingRooms.find(r => (r.capacity - r.occupied) >= remainingKidsInGroup.length);
+            if (perfectRoom) {
+              remainingKidsInGroup.forEach(k => {
+                perfectRoom.assignedKids.push(k.id);
+                perfectRoom.occupied++;
+                perfectRoom.genderLimit = gender;
+                draftAllocations[k.id] = {
+                  bldName: perfectRoom.bldName,
+                  floorName: perfectRoom.floorName,
+                  roomName: perfectRoom.roomName
+                };
+              });
+              remainingKidsInGroup = [];
+            }
+
+            // Pass 2: Spill into rooms on the same floor/building
+            if (remainingKidsInGroup.length > 0) {
+              matchingRooms = getMatchingRooms();
+              
+              // Group matching rooms by building and floor
+              const roomClusters = {};
+              matchingRooms.forEach(r => {
+                const key = r.bldName + '_' + r.floorName;
+                if (!roomClusters[key]) roomClusters[key] = [];
+                roomClusters[key].push(r);
+              });
+
+              // Sort clusters by free spaces descending
+              const sortedClusters = Object.values(roomClusters).sort((a, b) => {
+                const spaceA = a.reduce((sum, r) => sum + (r.capacity - r.occupied), 0);
+                const spaceB = b.reduce((sum, r) => sum + (r.capacity - r.occupied), 0);
+                return spaceB - spaceA;
+              });
+
+              if (sortedClusters.length > 0) {
+                const bestCluster = sortedClusters[0];
+                bestCluster.forEach(room => {
+                  while (room.occupied < room.capacity && remainingKidsInGroup.length > 0) {
+                    const k = remainingKidsInGroup.shift();
+                    room.assignedKids.push(k.id);
+                    room.occupied++;
+                    room.genderLimit = gender;
+                    draftAllocations[k.id] = {
+                      bldName: room.bldName,
+                      floorName: room.floorName,
+                      roomName: room.roomName
+                    };
+                  }
+                });
+              }
+            }
+
+            // Pass 3: Fill any remaining kids into any general available room of matching gender
+            if (remainingKidsInGroup.length > 0) {
+              matchingRooms = getMatchingRooms();
+              matchingRooms.forEach(room => {
+                while (room.occupied < room.capacity && remainingKidsInGroup.length > 0) {
+                  const k = remainingKidsInGroup.shift();
+                  room.assignedKids.push(k.id);
+                  room.occupied++;
+                  room.genderLimit = gender;
+                  draftAllocations[k.id] = {
+                    bldName: room.bldName,
+                    floorName: room.floorName,
+                    roomName: room.roomName
+                  };
+                }
+              });
+            }
+          });
+        };
+
+        // Distribute boys and girls independently
+        allocateGenderGroup(boys, 'male');
+        allocateGenderGroup(girls, 'female');
+
+        // Apply draft state
+        window.roomsDraftAllocations = draftAllocations;
+
+        closeModal('autoFillRoomsModal');
+        showToast('تم إجراء التوزيع التلقائي في المسودة! عاين وحفظ.', 'success');
+        renderRoomsWorkspaceData();
+      }
+      // =========================================================================
+
     </script>
 
     <!-- Bulk Custom Data Update -->
@@ -11540,6 +12830,32 @@
                   <option value="0">لا</option>
                   <option value="1">نعم</option>
                 </select>
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <label class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف وسكن في هذه الرحلة؟</label>
+                  <select id="editTripHasRooms" class="form-select" style="width:120px;" onchange="toggleTripRoomsConfigurator('edit')">
+                    <option value="0">لا</option>
+                    <option value="1">نعم</option>
+                  </select>
+                </div>
+                <div id="editTripRoomsConfigWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
+                    <select id="editTripRoomsTemplate" class="form-select" style="width:100%;" onchange="onRoomsTemplateChange('edit')">
+                      <!-- Loaded dynamically -->
+                    </select>
+                  </div>
+                  <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
+                    <div class="form-group" style="margin-bottom:12px;">
+                      <label class="form-label" style="font-weight:700;">عدد المباني / الفيلات</label>
+                      <input type="number" id="editTripRoomsBldCount" class="form-input" value="1" min="1" max="10" onchange="generateRoomsWizardBldList('edit')">
+                    </div>
+                    <div id="editTripRoomsBldList" style="display:flex; flex-direction:column; gap:10px;">
+                      <!-- Building cards rendered here -->
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div style="display:flex;gap:10px;margin-top:16px;">

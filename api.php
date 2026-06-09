@@ -3581,6 +3581,24 @@ try {
 
             break;
 
+        case 'getRoomsTemplates':
+
+            getRoomsTemplates();
+
+            break;
+
+        case 'saveRoomsTemplate':
+
+            saveRoomsTemplate();
+
+            break;
+
+        case 'deleteRoomsTemplate':
+
+            deleteRoomsTemplate();
+
+            break;
+
         case 'registerStudentForTrip':
 
             registerStudentForTrip();
@@ -4524,6 +4542,24 @@ try {
         case 'getTripDetails':
 
             getTripDetails();
+
+            break;
+
+        case 'getRoomsTemplates':
+
+            getRoomsTemplates();
+
+            break;
+
+        case 'saveRoomsTemplate':
+
+            saveRoomsTemplate();
+
+            break;
+
+        case 'deleteRoomsTemplate':
+
+            deleteRoomsTemplate();
 
             break;
 
@@ -20273,6 +20309,18 @@ function addTrip()
 
         $hasPointsGame = $hasPointsGame ? 1 : 0;
 
+        $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : 0;
+
+        $hasRooms = $hasRooms ? 1 : 0;
+
+        $roomsConfig = $_POST['rooms_config'] ?? null;
+
+        if ($roomsConfig === '' || $roomsConfig === 'null') {
+
+            $roomsConfig = null;
+
+        }
+
         $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
 
         if (in_array(strtolower($customFields), ['0', 'null', 'undefined'], true)) {
@@ -20579,9 +20627,11 @@ function addTrip()
 
                 image_url, created_by, show_registered_kids,
 
-                has_points_game, custom_fields, custom_field_icons
+                has_points_game, custom_fields, custom_field_icons,
 
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                has_rooms, rooms_config
+
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
         ");
 
@@ -20589,7 +20639,7 @@ function addTrip()
 
         $stmt->bind_param(
 
-            "isssssddsissiiiss",
+            "isssssddsissiiissis",
 
             $churchId,
 
@@ -20623,7 +20673,11 @@ function addTrip()
 
             $customFields,
 
-            $customFieldIcons
+            $customFieldIcons,
+
+            $hasRooms,
+
+            $roomsConfig
 
         );
 
@@ -20748,6 +20802,18 @@ function updateTrip()
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
 
         $hasPointsGame = $hasPointsGame ? 1 : 0;
+
+        $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : 0;
+
+        $hasRooms = $hasRooms ? 1 : 0;
+
+        $roomsConfig = $_POST['rooms_config'] ?? null;
+
+        if ($roomsConfig === '' || $roomsConfig === 'null') {
+
+            $roomsConfig = null;
+
+        }
 
         $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
 
@@ -21003,7 +21069,9 @@ function updateTrip()
 
                 discount = ?, discount_type = ?, max_participants = ?, 
 
-                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?, updated_at = NOW()
+                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
+
+                has_rooms = ?, rooms_config = ?, updated_at = NOW()
 
             WHERE id = ? AND church_id = ?
 
@@ -21013,7 +21081,7 @@ function updateTrip()
 
         $stmt->bind_param(
 
-            "sssssddsisiiissi",
+            "sssssddsisiiissisi",
 
             $title,
 
@@ -21042,6 +21110,10 @@ function updateTrip()
             $customFields,
 
             $customFieldIcons,
+
+            $hasRooms,
+
+            $roomsConfig,
 
             $tripId,
 
@@ -21218,6 +21290,8 @@ function getTripDetails()
         $conn = getDBConnection();
 
         ensureGuestsTable($conn);
+
+        ensureRoomsSchema($conn);
 
 
 
@@ -28843,6 +28917,24 @@ try {
         case 'getTripDetails':
 
             getTripDetails();
+
+            break;
+
+        case 'getRoomsTemplates':
+
+            getRoomsTemplates();
+
+            break;
+
+        case 'saveRoomsTemplate':
+
+            saveRoomsTemplate();
+
+            break;
+
+        case 'deleteRoomsTemplate':
+
+            deleteRoomsTemplate();
 
             break;
 
@@ -40134,6 +40226,310 @@ function deleteCustomFieldTemplate()
     } catch (Exception $e) {
 
         error_log("deleteCustomFieldTemplate error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف القالب: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function ensureRoomsSchema($conn)
+
+{
+
+    // 1. Add has_rooms and rooms_config to trips if missing
+
+    $res = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'has_rooms'");
+
+    if ($res && $res->num_rows === 0) {
+
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `has_rooms` TINYINT(1) DEFAULT 0");
+
+    }
+
+    
+
+    $res2 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'rooms_config'");
+
+    if ($res2 && $res2->num_rows === 0) {
+
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `rooms_config` TEXT DEFAULT NULL");
+
+    }
+
+
+
+    // 2. Create rooms_templates table
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `rooms_templates` (
+
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+
+        `church_id` INT DEFAULT NULL COMMENT 'NULL for developer default templates',
+
+        `name` VARCHAR(255) NOT NULL,
+
+        `config` TEXT NOT NULL,
+
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+
+
+    // 3. Seed default template "بيت الاخوه بالسويس"
+
+    $check = $conn->query("SELECT COUNT(*) as count FROM `rooms_templates` WHERE `name` = 'بيت الاخوه بالسويس'")->fetch_assoc();
+
+    if (intval($check['count'] ?? 0) === 0) {
+
+        $suezConfig = json_encode([
+
+            [
+
+                "name" => "المبنى",
+
+                "has_floors" => false,
+
+                "rooms_count" => 20,
+
+                "room_names" => []
+
+            ],
+
+            [
+
+                "name" => "فيلا",
+
+                "has_floors" => false,
+
+                "rooms_count" => 15,
+
+                "room_names" => []
+
+            ],
+
+            [
+
+                "name" => "فيلا الفرح",
+
+                "has_floors" => false,
+
+                "rooms_count" => 5,
+
+                "room_names" => []
+
+            ]
+
+        ], JSON_UNESCAPED_UNICODE);
+
+        
+
+        $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (NULL, ?, ?)");
+
+        $name = "بيت الاخوه بالسويس";
+
+        $stmt->bind_param("ss", $name, $suezConfig);
+
+        $stmt->execute();
+
+    }
+
+}
+
+
+
+function getRoomsTemplates()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $churchId = getChurchId();
+
+        $conn = getDBConnection();
+
+        ensureRoomsSchema($conn);
+
+
+
+        $stmt = $conn->prepare("SELECT * FROM `rooms_templates` WHERE church_id IS NULL OR church_id = ? ORDER BY id DESC");
+
+        $stmt->bind_param("i", $churchId);
+
+        $stmt->execute();
+
+        $res = $stmt->get_result();
+
+
+
+        $templates = [];
+
+        while ($row = $res->fetch_assoc()) {
+
+            $templates[] = [
+
+                'id' => intval($row['id']),
+
+                'church_id' => $row['church_id'] !== null ? intval($row['church_id']) : null,
+
+                'name' => $row['name'],
+
+                'config' => json_decode($row['config'], true)
+
+            ];
+
+        }
+
+
+
+        sendJSON(['success' => true, 'templates' => $templates]);
+
+    } catch (Exception $e) {
+
+        error_log("getRoomsTemplates error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب قوالب الغرف: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function saveRoomsTemplate()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $churchId = getChurchId();
+
+        $name = trim($_POST['name'] ?? '');
+
+        $configRaw = $_POST['config'] ?? '';
+
+
+
+        if (empty($name) || empty($configRaw)) {
+
+            sendJSON(['success' => false, 'message' => 'الاسم والتوزيع مطلوبان']);
+
+            return;
+
+        }
+
+
+
+        $configDecoded = json_decode($configRaw, true);
+
+        if (!is_array($configDecoded)) {
+
+            sendJSON(['success' => false, 'message' => 'تنسيق التوزيع غير صالح']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+        ensureRoomsSchema($conn);
+
+
+
+        $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (?, ?, ?)");
+
+        $stmt->bind_param("iss", $churchId, $name, $configRaw);
+
+
+
+        if ($stmt->execute()) {
+
+            sendJSON(['success' => true, 'message' => 'تم حفظ القالب بنجاح', 'id' => $conn->insert_id]);
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'فشل حفظ القالب: ' . $stmt->error]);
+
+        }
+
+    } catch (Exception $e) {
+
+        error_log("saveRoomsTemplate error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في حفظ القالب: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function deleteRoomsTemplate()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $churchId = getChurchId();
+
+        $id = intval($_POST['id'] ?? 0);
+
+
+
+        if ($id <= 0) {
+
+            sendJSON(['success' => false, 'message' => 'معرف القالب غير صالح']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+        ensureRoomsSchema($conn);
+
+
+
+        $stmt = $conn->prepare("DELETE FROM `rooms_templates` WHERE id = ? AND church_id = ?");
+
+        $stmt->bind_param("ii", $id, $churchId);
+
+
+
+        if ($stmt->execute()) {
+
+            if ($conn->affected_rows > 0) {
+
+                sendJSON(['success' => true, 'message' => 'تم حذف القالب بنجاح']);
+
+            } else {
+
+                sendJSON(['success' => false, 'message' => 'القالب غير موجود أو غير تابع لك']);
+
+            }
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'فشل حذف القالب: ' . $stmt->error]);
+
+        }
+
+    } catch (Exception $e) {
+
+        error_log("deleteRoomsTemplate error: " . $e->getMessage());
 
         sendJSON(['success' => false, 'message' => 'خطأ في حذف القالب: ' . $e->getMessage()]);
 
