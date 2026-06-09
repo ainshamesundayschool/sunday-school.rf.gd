@@ -112,7 +112,7 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
                     ${bld.floors.map((fl, fIdx) => {
                         const floorName = fl.name;
                         const roomsCount = fl.rooms.length;
-                        const customRoomsVal = fl.rooms.map(r => r.name).join(', ');
+                        const customRoomsVal = fl.rooms.map(r => r.capacity === defaultCap ? r.name : `${r.name}:${r.capacity}`).join(', ');
                         return `
                             <div style="display:grid; grid-template-columns:1.2fr 1fr 2fr; gap:6px; align-items:center;">
                                 <input type="text" class="form-input bld-floor-name-input-${i}-${fIdx}" value="${escHtml(floorName)}" style="font-size:0.75rem;padding:4px;" placeholder="اسم الدور">
@@ -125,7 +125,7 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
             `;
         } else {
             const roomsCount = bld ? (bld.rooms ? bld.rooms.length : (bld.rooms_count || 5)) : 5;
-            const customRoomsVal = bld ? (bld.rooms ? bld.rooms.map(r => r.name).join(', ') : (bld.room_names ? bld.room_names.join(', ') : '')) : '';
+            const customRoomsVal = bld ? (bld.rooms ? bld.rooms.map(r => r.capacity === defaultCap ? r.name : `${r.name}:${r.capacity}`).join(', ') : (bld.room_names ? bld.room_names.join(', ') : '')) : '';
             subHtml = `
                 <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px;">
                     <div class="form-group">
@@ -134,7 +134,7 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
                     </div>
                     <div class="form-group">
                         <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">أسماء/أرقام مخصصة للغرف (اختياري)</label>
-                        <input type="text" class="form-input bld-custom-rooms-input" value="${escHtml(customRoomsVal)}" placeholder="مثال: 101, 102, 103 (مفصولة بفواصل)">
+                        <input type="text" class="form-input bld-custom-rooms-input" value="${escHtml(customRoomsVal)}" placeholder="مثال: 101, 102:6, 103 (مفصولة بفواصل مع إمكانية تحديد السعة بالنقاط)">
                     </div>
                 </div>
             `;
@@ -252,21 +252,27 @@ function compileRoomsConfig(prefix) {
                 const roomsCount = parseInt(card.querySelector(`.bld-floor-rooms-input-${idx}-${fIdx}`)?.value || '5') || 5;
                 const customRoomsInput = card.querySelector(`.bld-floor-custom-rooms-${idx}-${fIdx}`)?.value || '';
 
-                let roomNames = customRoomsInput.split(',').map(r => r.trim()).filter(Boolean);
-                if (roomNames.length === 0) {
+                let roomDefs = customRoomsInput.split(',').map(r => r.trim()).filter(Boolean);
+                if (roomDefs.length === 0) {
                     for (let rIdx = 1; rIdx <= roomsCount; rIdx++) {
-                        roomNames.push(String(rIdx));
+                        roomDefs.push(String(rIdx));
                     }
                 }
 
-                const rooms = roomNames.map(rName => ({
-                    name: rName,
-                    capacity: defaultCap,
-                    is_excluded: false,
-                    uncles: [],
-                    gender_filter: null,
-                    church_filter: null
-                }));
+                const rooms = roomDefs.map(def => {
+                    const parts = def.split(':');
+                    const rName = parts[0].trim();
+                    let cap = parts[1] ? parseInt(parts[1].trim()) : defaultCap;
+                    if (isNaN(cap) || cap <= 0) cap = defaultCap;
+                    return {
+                        name: rName,
+                        capacity: cap,
+                        is_excluded: false,
+                        uncles: [],
+                        gender_filter: null,
+                        church_filter: null
+                    };
+                });
 
                 bld.floors.push({
                     name: floorName,
@@ -277,21 +283,27 @@ function compileRoomsConfig(prefix) {
             const roomsCount = parseInt(card.querySelector('.bld-rooms-count-input')?.value || '5') || 5;
             const customRoomsInput = card.querySelector('.bld-custom-rooms-input')?.value || '';
 
-            let roomNames = customRoomsInput.split(',').map(r => r.trim()).filter(Boolean);
-            if (roomNames.length === 0) {
+            let roomDefs = customRoomsInput.split(',').map(r => r.trim()).filter(Boolean);
+            if (roomDefs.length === 0) {
                 for (let rIdx = 1; rIdx <= roomsCount; rIdx++) {
-                    roomNames.push(String(rIdx));
+                    roomDefs.push(String(rIdx));
                 }
             }
 
-            bld.rooms = roomNames.map(rName => ({
-                name: rName,
-                capacity: defaultCap,
-                is_excluded: false,
-                uncles: [],
-                gender_filter: null,
-                church_filter: null
-            }));
+            bld.rooms = roomDefs.map(def => {
+                const parts = def.split(':');
+                const rName = parts[0].trim();
+                let cap = parts[1] ? parseInt(parts[1].trim()) : defaultCap;
+                if (isNaN(cap) || cap <= 0) cap = defaultCap;
+                return {
+                    name: rName,
+                    capacity: cap,
+                    is_excluded: false,
+                    uncles: [],
+                    gender_filter: null,
+                    church_filter: null
+                };
+            });
         }
 
         config.push(bld);

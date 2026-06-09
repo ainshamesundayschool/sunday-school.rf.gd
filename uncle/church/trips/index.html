@@ -11831,7 +11831,9 @@
                onclick="onRoomCardClick(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
             <div class="ws-room-header">
               <div class="ws-room-name"><i class="fas fa-door-closed"></i> غرفة ${escHtml(room.name)}</div>
-              <div class="ws-room-cap">${occupied} / ${capacity}</div>
+              <div class="ws-room-cap" style="cursor:pointer;" title="اضغط لتعديل سعة الغرفة" onclick="changeRoomCapacity(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${capacity})">
+                ${occupied} / ${capacity} <i class="fas fa-edit" style="font-size:0.6rem; opacity:0.5;"></i>
+              </div>
             </div>
             <div class="ws-room-progress">
               <div class="ws-room-progress-fill ${progressColorClass}" style="width: ${fillPercent}%;"></div>
@@ -12361,6 +12363,54 @@
           return true;
         }
         return false;
+      }
+
+      async function changeRoomCapacity(event, bldName, floorName, roomName, currentCap) {
+        if (event) event.stopPropagation();
+
+        const newCapStr = prompt(`تعديل عدد الأسرة للغرفة ${roomName}:`, currentCap);
+        if (newCapStr === null) return;
+        const newCap = parseInt(newCapStr.trim());
+        if (isNaN(newCap) || newCap <= 0) {
+          showToast('السعة المدخلة غير صالحة', 'warning');
+          return;
+        }
+
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        roomsConfig.forEach(bld => {
+          if (bld.name === bldName) {
+            if (bld.has_floors) {
+              bld.floors.forEach(fl => {
+                if (fl.name === floorName) {
+                  fl.rooms.forEach(r => {
+                    if (r.name === roomName) {
+                      r.capacity = newCap;
+                    }
+                  });
+                }
+              });
+            } else {
+              bld.rooms.forEach(r => {
+                if (r.name === roomName) {
+                  r.capacity = newCap;
+                }
+              });
+            }
+          }
+        });
+
+        const success = await saveRoomsConfig(tripId, roomsConfig);
+        if (success) {
+          showToast('تم تحديث سعة الغرفة بنجاح!', 'success');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل تحديث سعة الغرفة', 'error');
+        }
       }
 
       // =========================================================================
