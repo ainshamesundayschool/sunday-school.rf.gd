@@ -19101,6 +19101,8 @@
         }
 
         async function exportQRCardsToPDF() {
+            let loadingOverlay = null;
+            let pdfContainer = null;
             try {
                 const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
                 if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
@@ -19110,7 +19112,32 @@
                     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
                 }
 
-                showToast('جاري تحضير ملف PDF، يرجى الانتظار...', 'info');
+                loadingOverlay = document.createElement('div');
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.inset = '0';
+                loadingOverlay.style.background = 'rgba(15, 23, 42, 0.7)';
+                loadingOverlay.style.backdropFilter = 'blur(4px)';
+                loadingOverlay.style.zIndex = '99999';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.flexDirection = 'column';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.style.alignItems = 'center';
+                loadingOverlay.style.gap = '16px';
+                loadingOverlay.style.color = '#ffffff';
+                loadingOverlay.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                loadingOverlay.innerHTML = `
+                    <div style="width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.15); border-top-color: #10b981; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div style="font-size: 1.1rem; font-weight: 800; text-align: center; direction: rtl;">
+                        جاري إنشاء ملف PDF...
+                        <div style="font-size: 0.85rem; font-weight: 400; opacity: 0.75; margin-top: 6px;">يرجى عدم إغلاق الصفحة حتى اكتمال التحميل</div>
+                    </div>
+                    <style>
+                        @keyframes spin {
+                            to { transform: rotate(360deg); }
+                        }
+                    </style>
+                `;
+                document.body.appendChild(loadingOverlay);
 
                 const paperKey = document.getElementById('pdfPaperSize').value;
                 const orientation = document.getElementById('pdfOrientation').value;
@@ -19179,7 +19206,11 @@
                     pages.push(kids.slice(i, i + finalCardsPerPage));
                 }
 
-                const pdfContainer = document.createElement('div');
+                pdfContainer = document.createElement('div');
+                pdfContainer.style.position = 'fixed';
+                pdfContainer.style.left = '-9999px';
+                pdfContainer.style.top = '-9999px';
+                pdfContainer.style.overflow = 'hidden';
                 pdfContainer.style.width = `${paperW}mm`;
                 pdfContainer.style.background = '#ffffff';
                 pdfContainer.style.color = '#000000';
@@ -19294,12 +19325,17 @@
                 };
 
                 await html2pdf().set(opt).from(pdfContainer).save();
-
-                document.body.removeChild(pdfContainer);
                 showToast('تم حفظ ملف PDF بنجاح!', 'success');
             } catch (error) {
                 console.error(error);
                 showToast('حدث خطأ أثناء حفظ ملف PDF', 'danger');
+            } finally {
+                if (loadingOverlay && loadingOverlay.parentNode) {
+                    document.body.removeChild(loadingOverlay);
+                }
+                if (pdfContainer && pdfContainer.parentNode) {
+                    document.body.removeChild(pdfContainer);
+                }
             }
         }
 
