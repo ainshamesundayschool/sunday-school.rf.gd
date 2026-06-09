@@ -1450,11 +1450,15 @@ function verifyRegistrationParticipant($conn, $registrationId, $churchId)
 
     $stmt = $conn->prepare("
 
-        SELECT t.church_id, t.collaborating_churches
+        SELECT t.church_id, t.collaborating_churches, COALESCE(s.church_id, g.church_id) as student_church_id
 
         FROM trip_registrations tr
 
         JOIN trips t ON tr.trip_id = t.id
+
+        LEFT JOIN students s ON tr.student_id = s.id
+
+        LEFT JOIN guests g ON tr.guest_id = g.id
 
         WHERE tr.id = ?
 
@@ -1470,23 +1474,10 @@ function verifyRegistrationParticipant($conn, $registrationId, $churchId)
 
         return false;
 
-    $participants = [intval($res['church_id'])];
+    $isOwner = intval($res['church_id']) === intval($churchId);
+    $isOwnKid = intval($res['student_church_id']) === intval($churchId);
 
-    $collabRaw = $res['collaborating_churches'] ?? '';
-
-    if (!empty($collabRaw)) {
-
-        $collab = json_decode($collabRaw, true);
-
-        if (is_array($collab)) {
-
-            $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
-
-        }
-
-    }
-
-    return in_array(intval($churchId), $participants);
+    return ($isOwner || $isOwnKid);
 
 }
 
@@ -21519,7 +21510,7 @@ function getTripDetails()
 
                 s.custom_info as student_custom_info,
 
-                s.church_id as student_church_id
+                COALESCE(s.church_id, g.church_id) as student_church_id
 
             FROM trip_registrations tr
 
