@@ -19102,6 +19102,9 @@
 
         async function exportQRCardsToPDF() {
             try {
+                const kids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
+                if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
+
                 if (typeof html2pdf === 'undefined') {
                     showToast('جاري تحميل مكتبة PDF...', 'info');
                     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
