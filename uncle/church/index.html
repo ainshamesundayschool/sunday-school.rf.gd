@@ -8941,6 +8941,11 @@
                                 <input type="checkbox" id="printCardRounded" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                                 <span>حواف دائرية للكارت (Rounded Corners)</span>
                             </label>
+
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                                <input type="checkbox" id="printBackCard" style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                                <span>توليد ظهر الكارت (Generate Back Card)</span>
+                            </label>
                         </div>
                     </div>
 
@@ -18767,6 +18772,75 @@
             `;
         }
 
+        function generateBackCardMarkup(opts) {
+            const {
+                scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                baseWidth, baseHeight, textReadability
+            } = opts;
+
+            const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+            const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch } = layout;
+
+            const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
+            const cardRadius = isCardRounded ? 10 : 0;
+            
+            const availW = scaledWidth - 2 * scaledPadding;
+            const availH = scaledHeight - 2 * scaledPadding;
+
+            let textShadowStyle = 'none';
+            if (textReadability === 'stroke') {
+                textShadowStyle = `
+                    -1.5px -1.5px 0 ${strokeColor}, 
+                     1.5px -1.5px 0 ${strokeColor}, 
+                    -1.5px  1.5px 0 ${strokeColor}, 
+                     1.5px  1.5px 0 ${strokeColor},
+                    -1.5px  0px 0 ${strokeColor},
+                     1.5px  0px 0 ${strokeColor},
+                     0px   -1.5px 0 ${strokeColor},
+                     0px    1.5px 0 ${strokeColor}
+                `.replace(/\s+/g, ' ').trim();
+            }
+
+            const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
+
+            let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle};`;
+            
+            let bgHtml = '';
+            if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
+                const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
+                const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
+                bgHtml = `
+                <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
+                <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
+                `;
+            }
+
+            const logoHeight = Math.max(20, Math.min(availW * 0.22, availH * 0.22));
+            const churchTitleFontSize = Math.max(9, fChurch * 1.35);
+
+            let innerContentHtml = `
+            <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
+                <div style="font-size:${churchTitleFontSize}px; font-weight:900; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.35; max-width:90%; word-break:break-word;">
+                    ${churchName}
+                </div>
+                <div style="display:flex; justify-content:center; align-items:center; width:100%;">
+                    <img src="/logo.png" style="height:${logoHeight}px; width:auto; object-fit:contain;" onerror="this.style.display='none'">
+                </div>
+                <div style="font-size:${Math.max(8, Math.min(10.5 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; opacity:0.8; letter-spacing:0.02em; font-family:'Outfit', 'Segoe UI', sans-serif;">
+                    sunday-school.online
+                </div>
+            </div>
+            `;
+
+            return `
+            <div class="print-card" style="${bgStyles}">
+                ${bgHtml}
+                ${outlineOverlayHtml}
+                ${innerContentHtml}
+            </div>
+            `;
+        }
+
         function updatePrintPreview() {
             syncPrintSettingsUI();
 
@@ -18818,7 +18892,7 @@
             previewWrapper.style.columnGap = gapX;
             previewWrapper.style.rowGap = gapY;
 
-            previewWrapper.innerHTML = previewKids.map((s, idx) => {
+            let previewHtml = previewKids.map((s, idx) => {
                 return generateCardMarkup({
                     s, scale: previewScale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId: `prev_qrcode_sample_${idx}`,
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
@@ -18827,6 +18901,16 @@
                     readabilityBgShadow
                 });
             }).join('');
+
+            const showBackCard = document.getElementById('printBackCard')?.checked || false;
+            if (showBackCard) {
+                previewHtml += generateBackCardMarkup({
+                    scale: previewScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth, baseHeight, textReadability
+                });
+            }
+
+            previewWrapper.innerHTML = previewHtml;
 
 
             const layout = calculateCardLayout(baseWidth, baseHeight, previewScale, padding);
@@ -18946,6 +19030,17 @@
                 
                 qrTasks.push({ id: cardId, text: link });
             });
+
+            const showBackCard = document.getElementById('printBackCard')?.checked || false;
+            if (showBackCard) {
+                html += `<div style="page-break-before: always; break-before: page; grid-column: 1 / -1; height: 0; line-height: 0; overflow: hidden;"></div>`;
+                kids.forEach((s, idx) => {
+                    html += generateBackCardMarkup({
+                        scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                        baseWidth, baseHeight, textReadability
+                    });
+                });
+            }
 
             printArea.innerHTML = html;
             
