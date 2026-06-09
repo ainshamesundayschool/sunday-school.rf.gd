@@ -3216,7 +3216,9 @@
     .trip-shell-page .shell-mounted-modal {
       display: flex !important;
       flex-direction: column !important;
-      min-height: calc(100vh - 240px);
+      height: calc(100vh - 240px) !important;
+      max-height: none !important;
+      min-height: 0 !important;
     }
 
     .trip-shell-page .shell-mounted-modal .modal-head {
@@ -3224,8 +3226,11 @@
     }
 
     .trip-shell-page .shell-mounted-modal .modal-body {
-      flex: 1 1 auto;
-      min-height: 0;
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      max-height: none !important;
+      padding: 0 0 24px !important;
     }
 
     #tripDetailsModal .modal-box {
@@ -3304,7 +3309,8 @@
       }
 
       .trip-shell-page .shell-mounted-modal {
-        min-height: calc(100vh - 210px);
+        height: calc(100vh - 210px) !important;
+        min-height: 0 !important;
       }
     }
 
@@ -11849,7 +11855,7 @@
               <div class="ws-room-name" style="display:flex; align-items:center; gap:6px;">
                 <i class="fas fa-door-closed"></i> 
                 غرفة ${escHtml(room.name)}
-                <i class="${room.is_excluded ? 'fas fa-eye-slash' : 'far fa-eye'}" 
+                <i class="${room.is_excluded ? 'fas fa-ban' : 'far fa-circle'}" 
                    style="cursor:pointer; font-size:0.75rem; color:${room.is_excluded ? 'var(--danger)' : 'var(--muted)'};" 
                    title="${room.is_excluded ? 'مستبعدة من التسكين التلقائي (اضغط للتضمين)' : 'مدرجة في التسكين التلقائي (اضغط للاستبعاد)'}"
                    onclick="toggleRoomExclusion(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')"></i>

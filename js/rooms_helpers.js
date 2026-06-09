@@ -152,7 +152,7 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
                         <input type="checkbox" class="bld-has-floors-checkbox" id="${prefix}_has_floors_${i}" ${hasFloors ? 'checked' : ''} onchange="toggleBldFloorsWizard('${prefix}', ${i})">
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">سعة الغرفة الافتراضية</label>
+                        <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">سعة الغرفة الافتراضية (يمكنك تعديل سعة كل غرفة لاحقاً، ضع متوسط السعة هنا)</label>
                         <input type="number" class="form-input bld-default-cap-input" value="${defaultCap}" min="1">
                     </div>
                 </div>
