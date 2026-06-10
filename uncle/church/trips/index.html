@@ -13064,6 +13064,38 @@
         return weight + gradeNum;
       };
 
+      window.renderAfChurchOrderList = function() {
+        const listEl = document.getElementById('afChurchOrderList');
+        if (!listEl || !window.afChurchesOrder) return;
+        
+        listEl.innerHTML = window.afChurchesOrder.map((name, idx) => `
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 12px; background:#fff; border:1px solid var(--border); border-radius:6px; font-size:0.75rem; font-weight:bold; color:var(--text); box-shadow:var(--shadow-sm);">
+            <span>${escHtml(name)}</span>
+            <div style="display:flex; gap:4px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="moveAfChurch(${idx}, -1)" style="padding:2px 6px; font-size:0.65rem; height:24px; min-width:24px;" ${idx === 0 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-up"></i>
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="moveAfChurch(${idx}, 1)" style="padding:2px 6px; font-size:0.65rem; height:24px; min-width:24px;" ${idx === window.afChurchesOrder.length - 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      };
+
+      window.moveAfChurch = function(idx, dir) {
+        if (!window.afChurchesOrder) return;
+        const targetIdx = idx + dir;
+        if (targetIdx < 0 || targetIdx >= window.afChurchesOrder.length) return;
+        
+        const temp = window.afChurchesOrder[idx];
+        window.afChurchesOrder[idx] = window.afChurchesOrder[targetIdx];
+        window.afChurchesOrder[targetIdx] = temp;
+        
+        renderAfChurchOrderList();
+        updateAfSortingPreview();
+      };
+
       window.updateAfSortingPreview = function() {
         const priority = document.getElementById('afPriority')?.value || 'church_class';
         const container = document.getElementById('afSortingOptionsContainer');
@@ -13077,30 +13109,28 @@
 
         const firstSortWrap = document.getElementById('afFirstSortFieldWrap');
         const classSortWrap = document.getElementById('afClassSortOrderWrap');
-        const churchSortWrap = document.getElementById('afChurchSortOrderWrap');
+        const churchOrderWrap = document.getElementById('afChurchOrderWrap');
 
         if (priority === 'church_class') {
           if (firstSortWrap) firstSortWrap.style.display = 'block';
           if (classSortWrap) classSortWrap.style.display = 'block';
-          if (churchSortWrap) churchSortWrap.style.display = 'block';
+          if (churchOrderWrap) churchOrderWrap.style.display = 'block';
         } else if (priority === 'church') {
           if (firstSortWrap) firstSortWrap.style.display = 'none';
           if (classSortWrap) classSortWrap.style.display = 'none';
-          if (churchSortWrap) churchSortWrap.style.display = 'block';
+          if (churchOrderWrap) churchOrderWrap.style.display = 'block';
         } else if (priority === 'class') {
           if (firstSortWrap) firstSortWrap.style.display = 'none';
           if (classSortWrap) classSortWrap.style.display = 'block';
-          if (churchSortWrap) churchSortWrap.style.display = 'none';
+          if (churchOrderWrap) churchOrderWrap.style.display = 'none';
         }
 
         const tripId = window.currentTripId;
         const regs = tripRegistrationsCache[tripId] || [];
         
         const uniqueClasses = [...new Set(regs.map(r => (r.student_class || '').trim()).filter(Boolean))];
-        const uniqueChurches = [...new Set(regs.map(r => (r.student_church_name || r.church_name || '').trim()).filter(Boolean))];
-
+        
         const classOrder = document.getElementById('afClassSortOrder')?.value || 'asc';
-        const churchOrder = document.getElementById('afChurchSortOrder')?.value || 'asc';
         const firstSortField = document.getElementById('afFirstSortField')?.value || 'church_first';
 
         const sortedClasses = [...uniqueClasses].sort((a, b) => {
@@ -13110,9 +13140,7 @@
           return classOrder === 'asc' ? a.localeCompare(b, 'ar') : b.localeCompare(a, 'ar');
         });
 
-        const sortedChurches = [...uniqueChurches].sort((a, b) => {
-          return churchOrder === 'asc' ? a.localeCompare(b, 'ar') : b.localeCompare(a, 'ar');
-        });
+        const sortedChurches = window.afChurchesOrder || [];
 
         const previewList = document.getElementById('afSortingPreviewList');
         if (!previewList) return;
@@ -13278,12 +13306,11 @@
                     </select>
                   </div>
 
-                  <div id="afChurchSortOrderWrap" class="form-group" style="flex:1 1 120px; margin:0;">
-                    <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">ترتيب الكنائس (Church Order)</label>
-                    <select id="afChurchSortOrder" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
-                      <option value="asc" selected>تصاعدي (أبجدي أ-ي)</option>
-                      <option value="desc">تنازلي (أبجدي ي-أ)</option>
-                    </select>
+                  <div id="afChurchOrderWrap" class="form-group" style="flex:1 1 100%; margin:0;">
+                    <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:6px; color:var(--text);"><i class="fas fa-sort-amount-down"></i> ترتيب أولوية تسكين الكنائس (ترتيب مخصص بالأسهم):</label>
+                    <div id="afChurchOrderList" style="display:flex; flex-direction:column; gap:6px; padding:6px; background:var(--bg); border:1px solid var(--border); border-radius:8px; max-height:150px; overflow-y:auto;">
+                      <!-- Rendered dynamically -->
+                    </div>
                   </div>
 
                 </div>
@@ -13478,6 +13505,11 @@
               <span>${escHtml(r.student_name)} (${escHtml(r.student_class)})</span>
             </label>
           `).join('');
+        }
+
+        window.afChurchesOrder = participatingChurches.map(c => c.name);
+        if (typeof renderAfChurchOrderList === 'function') {
+          renderAfChurchOrderList();
         }
 
         if (typeof updateAfSortingPreview === 'function') {
@@ -13696,8 +13728,8 @@
 
           // Retrieve sorting options from inputs
           const classOrder = document.getElementById('afClassSortOrder')?.value || 'asc';
-          const churchOrder = document.getElementById('afChurchSortOrder')?.value || 'asc';
           const firstSortField = document.getElementById('afFirstSortField')?.value || 'church_first';
+          const customChurchesOrder = window.afChurchesOrder || [];
 
           const sortedGroups = Object.values(groupsMap).sort((groupA, groupB) => {
             const kidA = groupA[0];
@@ -13711,7 +13743,9 @@
             if (priority === 'church_class') {
               if (firstSortField === 'church_first') {
                 if (churchA !== churchB) {
-                  return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+                  const idxA = customChurchesOrder.indexOf(churchA);
+                  const idxB = customChurchesOrder.indexOf(churchB);
+                  return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 }
                 const wA = getClassSortWeight(classA);
                 const wB = getClassSortWeight(classB);
@@ -13724,10 +13758,14 @@
                 if (classA !== classB) {
                   return classOrder === 'asc' ? classA.localeCompare(classB, 'ar') : classB.localeCompare(classA, 'ar');
                 }
-                return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+                const idxA = customChurchesOrder.indexOf(churchA);
+                const idxB = customChurchesOrder.indexOf(churchB);
+                return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
               }
             } else if (priority === 'church') {
-              return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+              const idxA = customChurchesOrder.indexOf(churchA);
+              const idxB = customChurchesOrder.indexOf(churchB);
+              return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
             } else if (priority === 'class') {
               const wA = getClassSortWeight(classA);
               const wB = getClassSortWeight(classB);
