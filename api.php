@@ -1483,456 +1483,355 @@ function verifyRegistrationParticipant($conn, $registrationId, $churchId)
 
 
 
-function getCollaboratingChurchesList($conn, $collabRaw, $ownerChurchId = 0)
-
+function getCollaboratingChurchesList($conn, $collabRaw, $ownerChurchId = 0, $limitsRaw = '')
 {
-
     $ids = [];
-
     if (!empty($collabRaw)) {
-
         $decoded = json_decode($collabRaw, true);
-
         if (is_array($decoded)) {
-
             $ids = array_values(array_unique(array_filter(array_map('intval', $decoded), function ($id) use ($ownerChurchId) {
-
                 return $id > 0 && $id !== intval($ownerChurchId);
-
             })));
-
         }
-
     }
-
     if (empty($ids)) {
-
         return [];
-
     }
-
-
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
     $types = str_repeat('i', count($ids));
-
     $stmt = $conn->prepare("SELECT id, church_name, church_code FROM churches WHERE id IN ($placeholders)");
-
     if (!$stmt) {
-
         return [];
-
     }
-
     $stmt->bind_param($types, ...$ids);
-
     $stmt->execute();
-
     $result = $stmt->get_result();
 
-    $byId = [];
-
-    while ($row = $result->fetch_assoc()) {
-
-        $byId[intval($row['id'])] = [
-
-            'id' => intval($row['id']),
-
-            'name' => $row['church_name'],
-
-            'code' => $row['church_code'],
-
-        ];
-
+    $limits = [];
+    if (!empty($limitsRaw)) {
+        $limits = json_decode($limitsRaw, true);
+        if (!is_array($limits)) {
+            $limits = [];
+        }
     }
 
-
+    $byId = [];
+    while ($row = $result->fetch_assoc()) {
+        $byId[intval($row['id'])] = [
+            'id' => intval($row['id']),
+            'name' => $row['church_name'],
+            'code' => $row['church_code'],
+            'limit' => isset($limits[strval($row['id'])]) ? intval($limits[strval($row['id'])]) : null,
+        ];
+    }
 
     $list = [];
-
     foreach ($ids as $id) {
-
         if (isset($byId[$id])) {
-
             $list[] = $byId[$id];
-
         }
-
     }
-
     return $list;
-
 }
 
 
 
 function removeTripCollaborator()
-
 {
-
     try {
-
         checkUncleAuth();
-
         $churchId = getChurchId();
-
         if ($churchId <= 0) {
-
             sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة']);
-
             return;
-
         }
-
-
 
         $tripId = intval($_POST['trip_id'] ?? 0);
-
         $removeChurchId = intval($_POST['collaborator_church_id'] ?? 0);
-
         if ($tripId <= 0 || $removeChurchId <= 0) {
-
             sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
-
             return;
-
         }
-
-
 
         $conn = getDBConnection();
-
-        $tStmt = $conn->prepare("SELECT church_id, collaborating_churches, title FROM trips WHERE id = ? LIMIT 1");
-
+        $tStmt = $conn->prepare("SELECT church_id, collaborating_churches, collaboration_limits, title FROM trips WHERE id = ? LIMIT 1");
         $tStmt->bind_param('i', $tripId);
-
         $tStmt->execute();
-
         $trip = $tStmt->get_result()->fetch_assoc();
-
         if (!$trip) {
-
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
-
             return;
-
         }
-
         if (intval($trip['church_id']) !== $churchId) {
-
             sendJSON(['success' => false, 'message' => 'فقط مالك الرحلة يمكنه إزالة كنيسة من المشاركة']);
-
             return;
-
         }
-
         if ($removeChurchId === intval($trip['church_id'])) {
-
             sendJSON(['success' => false, 'message' => 'لا يمكن إزالة كنيسة مالكة الرحلة']);
-
             return;
-
         }
-
-
 
         $collab = [];
-
         if (!empty($trip['collaborating_churches'])) {
-
             $decoded = json_decode($trip['collaborating_churches'], true);
-
             if (is_array($decoded)) {
-
                 $collab = array_values(array_unique(array_map('intval', $decoded)));
-
             }
-
         }
-
         if (!in_array($removeChurchId, $collab, true)) {
-
             sendJSON(['success' => false, 'message' => 'هذه الكنيسة غير مسجلة كشريكة في الرحلة']);
-
             return;
-
         }
-
-
 
         $collab = array_values(array_filter($collab, fn($id) => $id !== $removeChurchId));
-
         $collabJson = json_encode($collab, JSON_UNESCAPED_UNICODE);
 
-        $up = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
-
-        $up->bind_param('si', $collabJson, $tripId);
-
-        if (!$up->execute()) {
-
-            sendJSON(['success' => false, 'message' => 'فشل تحديث بيانات الرحلة']);
-
-            return;
-
+        $limits = [];
+        if (!empty($trip['collaboration_limits'])) {
+            $limits = json_decode($trip['collaboration_limits'], true);
+            if (is_array($limits)) {
+                if (isset($limits[strval($removeChurchId)])) {
+                    unset($limits[strval($removeChurchId)]);
+                }
+            } else {
+                $limits = [];
+            }
         }
+        $limitsJson = json_encode($limits, JSON_UNESCAPED_UNICODE);
 
-
+        $up = $conn->prepare("UPDATE trips SET collaborating_churches = ?, collaboration_limits = ? WHERE id = ?");
+        $up->bind_param('ssi', $collabJson, $limitsJson, $tripId);
+        if (!$up->execute()) {
+            sendJSON(['success' => false, 'message' => 'فشل تحديث بيانات الرحلة']);
+            return;
+        }
 
         ensureTripCollaborationRequestsTable($conn);
-
         $delReq = $conn->prepare("DELETE FROM trip_collaboration_requests WHERE trip_id = ? AND (from_church_id = ? OR to_church_id = ?)");
-
         if ($delReq) {
-
             $delReq->bind_param('iii', $tripId, $removeChurchId, $removeChurchId);
-
             $delReq->execute();
-
         }
-
-
 
         $removedName = '';
-
         $nameStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
-
         if ($nameStmt) {
-
             $nameStmt->bind_param('i', $removeChurchId);
-
             $nameStmt->execute();
-
             $nr = $nameStmt->get_result()->fetch_assoc();
-
             $removedName = $nr['church_name'] ?? '';
-
         }
 
-
-
         sendJSON([
-
             'success' => true,
-
             'message' => 'تم إزالة ' . ($removedName ?: 'الكنيسة') . ' من المشاركة',
-
-            'collaborators_list' => getCollaboratingChurchesList($conn, $collabJson, intval($trip['church_id'])),
-
+            'collaborators_list' => getCollaboratingChurchesList($conn, $collabJson, intval($trip['church_id']), $limitsJson),
         ]);
-
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
-
     }
-
 }
 
 
 
-function ensureTripCollaborationRequestsTable($conn)
-
+function updateCollaborationLimit()
 {
+    try {
+        checkUncleAuth();
+        $churchId = getChurchId();
+        if ($churchId <= 0) {
+            sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة']);
+            return;
+        }
 
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $collabChurchId = intval($_POST['collaborator_church_id'] ?? 0);
+        $limit = isset($_POST['registration_limit']) && $_POST['registration_limit'] !== '' ? intval($_POST['registration_limit']) : null;
+
+        if ($tripId <= 0 || $collabChurchId <= 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureTripCollaborationRequestsTable($conn);
+
+        // Verify trip exists and user is owner
+        $tStmt = $conn->prepare("SELECT church_id, collaborating_churches, collaboration_limits FROM trips WHERE id = ?");
+        $tStmt->bind_param("i", $tripId);
+        $tStmt->execute();
+        $trip = $tStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+        if (intval($trip['church_id']) !== $churchId) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بتعديل حدود هذه الرحلة']);
+            return;
+        }
+
+        // Verify the collaborator exists in collaborating_churches
+        $collab = [];
+        if (!empty($trip['collaborating_churches'])) {
+            $collab = json_decode($trip['collaborating_churches'], true);
+            if (!is_array($collab))
+                $collab = [];
+        }
+        if (!in_array($collabChurchId, array_map('intval', $collab), true)) {
+            sendJSON(['success' => false, 'message' => 'هذه الكنيسة ليست شريكة في الرحلة']);
+            return;
+        }
+
+        // Update limit
+        $limits = [];
+        if (!empty($trip['collaboration_limits'])) {
+            $limits = json_decode($trip['collaboration_limits'], true);
+            if (!is_array($limits))
+                $limits = [];
+        }
+
+        if ($limit !== null) {
+            $limits[strval($collabChurchId)] = $limit;
+        } else {
+            if (isset($limits[strval($collabChurchId)])) {
+                unset($limits[strval($collabChurchId)]);
+            }
+        }
+        $limitsJson = json_encode($limits, JSON_UNESCAPED_UNICODE);
+
+        $up = $conn->prepare("UPDATE trips SET collaboration_limits = ? WHERE id = ?");
+        $up->bind_param("si", $limitsJson, $tripId);
+        if ($up->execute()) {
+            sendJSON([
+                'success' => true,
+                'message' => 'تم تحديث حد التسجيل بنجاح',
+                'collaborators_list' => getCollaboratingChurchesList($conn, $trip['collaborating_churches'], $churchId, $limitsJson)
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل تحديث حد التسجيل']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+function ensureTripCollaborationRequestsTable($conn)
+{
     $sql = "CREATE TABLE IF NOT EXISTS `trip_collaboration_requests` (
-
         `id` int(11) NOT NULL AUTO_INCREMENT,
-
         `trip_id` int(11) NOT NULL,
-
         `from_church_id` int(11) NOT NULL,
-
         `to_church_id` int(11) NOT NULL,
-
         `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
-
+        `registration_limit` int(11) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-
         `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-
         PRIMARY KEY (`id`),
-
         KEY `trip_id` (`trip_id`),
-
         KEY `from_church_id` (`from_church_id`),
-
         KEY `to_church_id` (`to_church_id`)
-
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
-
     $conn->query($sql);
 
+    $res = $conn->query("SHOW COLUMNS FROM `trip_collaboration_requests` LIKE 'registration_limit'");
+    if ($res && $res->num_rows === 0) {
+        $conn->query("ALTER TABLE `trip_collaboration_requests` ADD COLUMN `registration_limit` int(11) DEFAULT NULL AFTER `status`");
+    }
+
+    $res2 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'collaboration_limits'");
+    if ($res2 && $res2->num_rows === 0) {
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `collaboration_limits` TEXT DEFAULT NULL");
+    }
 }
 
 
 
 function sendCollaborationRequest()
-
 {
-
     try {
-
         checkUncleAuth();
-
         $churchId = getChurchId();
-
         if ($churchId <= 0) {
-
             sendJSON(['success' => false, 'message' => 'يجب تسجيل الدخول ككنيسة لإرسال دعوة المشاركة']);
-
             return;
-
         }
-
-
 
         $tripId = intval($_POST['trip_id'] ?? 0);
-
         $toChurchCode = sanitize($_POST['to_church_code'] ?? '');
-
-
+        $registrationLimit = isset($_POST['registration_limit']) && $_POST['registration_limit'] !== '' ? intval($_POST['registration_limit']) : null;
 
         if ($tripId <= 0 || empty($toChurchCode)) {
-
             sendJSON(['success' => false, 'message' => 'جميع الحقول مطلوبة']);
-
             return;
-
         }
-
-
 
         $conn = getDBConnection();
-
         ensureTripCollaborationRequestsTable($conn);
 
-
-
         // 1. Verify trip exists and user is owner
-
         $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
-
         $tStmt->bind_param("i", $tripId);
-
         $tStmt->execute();
-
         $trip = $tStmt->get_result()->fetch_assoc();
-
         if (!$trip) {
-
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
-
             return;
-
         }
-
         if (intval($trip['church_id']) !== $churchId) {
-
             sendJSON(['success' => false, 'message' => 'غير مصرح لك بإرسال طلب مشاركة لهذه الرحلة']);
-
             return;
-
         }
-
-
 
         // 2. Lookup recipient church
-
         $cStmt = $conn->prepare("SELECT id, church_name FROM churches WHERE church_code = ? LIMIT 1");
-
         $cStmt->bind_param("s", $toChurchCode);
-
         $cStmt->execute();
-
         $toChurch = $cStmt->get_result()->fetch_assoc();
-
         if (!$toChurch) {
-
             sendJSON(['success' => false, 'message' => 'رمز الكنيسة غير صحيح أو الكنيسة غير موجودة']);
-
             return;
-
         }
-
         $toChurchId = intval($toChurch['id']);
 
-
-
         if ($toChurchId === $churchId) {
-
             sendJSON(['success' => false, 'message' => 'لا يمكنك إرسال طلب مشاركة لكنيستك']);
-
             return;
-
         }
-
-
 
         // 3. Check if already a collaborator
-
         $collab = [];
-
         if (!empty($trip['collaborating_churches'])) {
-
             $collab = json_decode($trip['collaborating_churches'], true);
-
             if (!is_array($collab))
-
                 $collab = [];
-
         }
-
         if (in_array($toChurchId, $collab)) {
-
             sendJSON(['success' => false, 'message' => 'هذه الكنيسة تشارك بالفعل في الرحلة']);
-
             return;
-
         }
-
-
 
         // 4. Check for existing pending request
-
         $chk = $conn->prepare("SELECT id FROM trip_collaboration_requests WHERE trip_id = ? AND to_church_id = ? AND status = 'pending'");
-
         $chk->bind_param("ii", $tripId, $toChurchId);
-
         $chk->execute();
-
         if ($chk->get_result()->num_rows > 0) {
-
             sendJSON(['success' => false, 'message' => 'يوجد طلب معلق مرسل بالفعل لهذه الكنيسة']);
-
             return;
-
         }
-
-
 
         // 5. Insert request
-
-        $ins = $conn->prepare("INSERT INTO trip_collaboration_requests (trip_id, from_church_id, to_church_id, status) VALUES (?, ?, ?, 'pending')");
-
-        $ins->bind_param("iii", $tripId, $churchId, $toChurchId);
+        $ins = $conn->prepare("INSERT INTO trip_collaboration_requests (trip_id, from_church_id, to_church_id, status, registration_limit) VALUES (?, ?, ?, 'pending', ?)");
+        $ins->bind_param("iiii", $tripId, $churchId, $toChurchId, $registrationLimit);
 
         if ($ins->execute()) {
-
             sendJSON(['success' => true, 'message' => 'تم إرسال طلب المشاركة بنجاح إلى ' . $toChurch['church_name']]);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'فشل إرسال الطلب: ' . $ins->error]);
-
         }
-
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-
     }
-
 }
 
 
@@ -2028,163 +1927,100 @@ function getCollaborationRequests()
 
 
 function respondToCollaborationRequest()
-
 {
-
     try {
-
         $churchId = getChurchId();
-
         $requestId = intval($_POST['request_id'] ?? 0);
-
         $status = sanitize($_POST['status'] ?? ''); // 'accepted' or 'rejected'
 
-
-
         if ($requestId <= 0 || !in_array($status, ['accepted', 'rejected'])) {
-
             sendJSON(['success' => false, 'message' => 'بيانات غير صحيحة']);
-
             return;
-
         }
-
-
 
         $conn = getDBConnection();
-
         ensureTripCollaborationRequestsTable($conn);
 
-
-
         // Verify request belongs to the logged-in church
-
         $rStmt = $conn->prepare("SELECT * FROM trip_collaboration_requests WHERE id = ? AND to_church_id = ? AND status = 'pending' LIMIT 1");
-
         $rStmt->bind_param("ii", $requestId, $churchId);
-
         $rStmt->execute();
-
         $request = $rStmt->get_result()->fetch_assoc();
-
         if (!$request) {
-
             sendJSON(['success' => false, 'message' => 'الطلب غير موجود أو تمت معالجته بالفعل']);
-
             return;
-
         }
-
-
 
         $tripId = intval($request['trip_id']);
 
-
-
         if ($status === 'accepted') {
-
-            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
-
+            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches, collaboration_limits FROM trips WHERE id = ?");
             $tStmt->bind_param("i", $tripId);
-
             $tStmt->execute();
-
             $trip = $tStmt->get_result()->fetch_assoc();
-
             if (!$trip) {
-
                 sendJSON(['success' => false, 'message' => 'الرحلة المرتبطة بالطلب لم تعد موجودة']);
-
                 return;
-
             }
-
-
 
             $ownerChurchId = intval($trip['church_id']);
-
             // Church joining the trip is the non-owner side of the request
-
             $joinChurchId = (intval($request['from_church_id']) === $ownerChurchId)
-
                 ? intval($request['to_church_id'])
-
                 : intval($request['from_church_id']);
 
-
-
             if ($joinChurchId <= 0 || $joinChurchId === $ownerChurchId) {
-
                 sendJSON(['success' => false, 'message' => 'بيانات الطلب غير صالحة']);
-
                 return;
-
             }
-
-
 
             $collab = [];
-
             if (!empty($trip['collaborating_churches'])) {
-
                 $collab = json_decode($trip['collaborating_churches'], true);
-
                 if (!is_array($collab))
-
                     $collab = [];
-
             }
-
             if (!in_array($joinChurchId, array_map('intval', $collab), true)) {
-
                 $collab[] = $joinChurchId;
-
             }
-
             $collab = array_values(array_unique(array_map('intval', $collab)));
-
             $collabJson = json_encode($collab, JSON_UNESCAPED_UNICODE);
 
-
-
-            $upTrip = $conn->prepare("UPDATE trips SET collaborating_churches = ? WHERE id = ?");
-
-            $upTrip->bind_param("si", $collabJson, $tripId);
-
-            if (!$upTrip->execute()) {
-
-                sendJSON(['success' => false, 'message' => 'فشل تحديث بيانات الرحلة']);
-
-                return;
-
+            $limits = [];
+            if (!empty($trip['collaboration_limits'])) {
+                $limits = json_decode($trip['collaboration_limits'], true);
+                if (!is_array($limits))
+                    $limits = [];
             }
 
+            if ($request['registration_limit'] !== null) {
+                $limits[strval($joinChurchId)] = intval($request['registration_limit']);
+            } else {
+                if (isset($limits[strval($joinChurchId)])) {
+                    unset($limits[strval($joinChurchId)]);
+                }
+            }
+            $limitsJson = json_encode($limits, JSON_UNESCAPED_UNICODE);
+
+            $upTrip = $conn->prepare("UPDATE trips SET collaborating_churches = ?, collaboration_limits = ? WHERE id = ?");
+            $upTrip->bind_param("ssi", $collabJson, $limitsJson, $tripId);
+            if (!$upTrip->execute()) {
+                sendJSON(['success' => false, 'message' => 'فشل تحديث بيانات الرحلة']);
+                return;
+            }
         }
-
-
 
         // Update request status
-
         $upReq = $conn->prepare("UPDATE trip_collaboration_requests SET status = ? WHERE id = ?");
-
         $upReq->bind_param("si", $status, $requestId);
-
         if ($upReq->execute()) {
-
             sendJSON(['success' => true, 'message' => $status === 'accepted' ? 'تم قبول طلب المشاركة بنجاح' : 'تم رفض الطلب']);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'فشل تحديث الطلب']);
-
         }
-
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-
     }
-
 }
 
 
@@ -3658,6 +3494,14 @@ try {
 
             break;
 
+        case 'updateCollaborationLimit':
+
+            checkAuth();
+
+            updateCollaborationLimit();
+
+            break;
+
 
 
 
@@ -4619,6 +4463,14 @@ try {
             checkAuth();
 
             removeTripCollaborator();
+
+            break;
+
+        case 'updateCollaborationLimit':
+
+            checkAuth();
+
+            updateCollaborationLimit();
 
             break;
 
@@ -15711,7 +15563,7 @@ function bulkSaveImportedKids()
         $allowedChurches = [$churchId];
         $maxParticipants = 0;
         if ($tripId > 0) {
-            $tripStmt = $conn->prepare("SELECT church_id, max_participants, title, collaborating_churches FROM trips WHERE id = ?");
+            $tripStmt = $conn->prepare("SELECT church_id, max_participants, title, collaborating_churches, collaboration_limits FROM trips WHERE id = ?");
             $tripStmt->bind_param("i", $tripId);
             $tripStmt->execute();
             $trip = $tripStmt->get_result()->fetch_assoc();
@@ -15732,6 +15584,18 @@ function bulkSaveImportedKids()
             }
             if (in_array($churchId, $participants)) {
                 $allowedChurches = $participants;
+            }
+
+            $ownerChurchId = intval($trip['church_id']);
+            $churchLimit = null;
+            if ($ownerChurchId !== $churchId) {
+                $limits = [];
+                if (!empty($trip['collaboration_limits'])) {
+                    $limits = json_decode($trip['collaboration_limits'], true);
+                }
+                if (is_array($limits) && isset($limits[strval($churchId)])) {
+                    $churchLimit = intval($limits[strval($churchId)]);
+                }
             }
         }
 
@@ -15933,8 +15797,39 @@ function bulkSaveImportedKids()
                 $chkReg->execute();
                 $chkRegRes = $chkReg->get_result();
 
+                $isAlreadyRegistered = false;
+                $existingReg = null;
                 if ($chkRegRes->num_rows > 0) {
                     $existingReg = $chkRegRes->fetch_assoc();
+                    if ($existingReg['cancelled'] == 0) {
+                        $isAlreadyRegistered = true;
+                    }
+                }
+
+                if (!$isAlreadyRegistered) {
+                    if ($ownerChurchId !== $churchId && $churchLimit !== null) {
+                        $cntStmt = $conn->prepare("
+                            SELECT COUNT(*) as cnt
+                            FROM trip_registrations tr
+                            LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                            LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                            WHERE tr.trip_id = ? 
+                              AND tr.cancelled = 0
+                              AND COALESCE(s.church_id, g.church_id) = ?
+                        ");
+                        $cntStmt->bind_param("ii", $tripId, $churchId);
+                        $cntStmt->execute();
+                        $churchActiveCount = (int) $cntStmt->get_result()->fetch_assoc()['cnt'];
+
+                        if ($churchActiveCount >= $churchLimit) {
+                            $errors[] = "فشل تسجيل الطفل " . $name . " في الرحلة: تجاوز الحد المسموح به لكنيستك ({$churchLimit})";
+                            continue;
+                        }
+                    }
+                }
+
+                if ($chkRegRes->num_rows > 0) {
+                    // Re-fetch existingReg if it was cancelled
                     if ($existingReg['cancelled'] == 1) {
                         $reactivate = $conn->prepare("UPDATE trip_registrations SET cancelled = 0, registered_by = ? WHERE id = ?");
                         $reactivate->bind_param("si", $_SESSION['username'], $existingReg['id']);
@@ -20174,7 +20069,7 @@ function getTrips()
 
             $row['end_date_formatted'] = $row['end_date'] ? date('d/m/Y', strtotime($row['end_date'])) : '';
 
-            $row['collaborators_list'] = getCollaboratingChurchesList($conn, $row['collaborating_churches'] ?? '', intval($row['church_id']));
+            $row['collaborators_list'] = getCollaboratingChurchesList($conn, $row['collaborating_churches'] ?? '', intval($row['church_id']), $row['collaboration_limits'] ?? '');
 
             $row['is_owner'] = intval($row['is_owner'] ?? 0);
 
@@ -21283,6 +21178,7 @@ function getTripDetails()
         ensureGuestsTable($conn);
 
         ensureRoomsSchema($conn);
+        ensureTripCollaborationRequestsTable($conn);
 
 
 
@@ -21780,7 +21676,7 @@ function getTripDetails()
 
 
 
-        $trip['collaborators_list'] = getCollaboratingChurchesList($conn, $trip['collaborating_churches'] ?? '', intval($trip['church_id']));
+        $trip['collaborators_list'] = getCollaboratingChurchesList($conn, $trip['collaborating_churches'] ?? '', intval($trip['church_id']), $trip['collaboration_limits'] ?? '');
 
         $trip['is_owner'] = ($churchId > 0 && intval($trip['church_id']) === $churchId) ? 1 : 0;
 
@@ -23809,7 +23705,7 @@ function registerStudentForTrip()
 
 
 
-        $tripStmt = $conn->prepare("SELECT max_participants, title FROM trips WHERE id = ?");
+        $tripStmt = $conn->prepare("SELECT church_id, max_participants, title, collaboration_limits FROM trips WHERE id = ?");
 
         $tripStmt->bind_param("i", $tripId);
 
@@ -23824,6 +23720,37 @@ function registerStudentForTrip()
             return;
 
         }
+
+        // Check collaborating church registration limits
+        $ownerChurchId = intval($trip['church_id']);
+        if ($ownerChurchId !== $churchId) {
+            $limits = [];
+            if (!empty($trip['collaboration_limits'])) {
+                $limits = json_decode($trip['collaboration_limits'], true);
+            }
+            if (is_array($limits) && isset($limits[strval($churchId)])) {
+                $churchLimit = intval($limits[strval($churchId)]);
+                
+                $cntStmt = $conn->prepare("
+                    SELECT COUNT(*) as cnt
+                    FROM trip_registrations tr
+                    LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                    LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                    WHERE tr.trip_id = ? 
+                      AND tr.cancelled = 0
+                      AND COALESCE(s.church_id, g.church_id) = ?
+                ");
+                $cntStmt->bind_param("ii", $tripId, $churchId);
+                $cntStmt->execute();
+                $churchActiveCount = (int) $cntStmt->get_result()->fetch_assoc()['cnt'];
+                
+                if ($churchActiveCount >= $churchLimit) {
+                    sendJSON(['success' => false, 'message' => 'عذراً، لقد تجاوزت كنيستك الحد الأقصى المسموح به من التسجيلات لهذه الرحلة وهو: ' . $churchLimit]);
+                    return;
+                }
+            }
+        }
+
 
 
 
@@ -28872,6 +28799,14 @@ try {
             checkAuth();
 
             removeTripCollaborator();
+
+            break;
+
+        case 'updateCollaborationLimit':
+
+            checkAuth();
+
+            updateCollaborationLimit();
 
             break;
 

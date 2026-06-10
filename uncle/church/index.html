@@ -9619,6 +9619,11 @@
             fd.append('trip_id', tripId);
             fd.append('to_church_code', code);
 
+            const limitInput = document.getElementById('collabRegistrationLimitInput');
+            if (limitInput && limitInput.value !== '') {
+                fd.append('registration_limit', limitInput.value);
+            }
+
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 if (res.success) {
@@ -9627,6 +9632,33 @@
                     await loadTrips();
                 } else {
                     showToast(res.message || 'فشل إرسال الدعوة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        async function changeCollabLimit(tripId, churchId, limitVal) {
+            const fd = new FormData();
+            fd.append('action', 'updateCollaborationLimit');
+            fd.append('trip_id', tripId);
+            fd.append('collaborator_church_id', churchId);
+            if (limitVal !== '') {
+                fd.append('registration_limit', limitVal);
+            }
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message || 'تم تحديث الحد بنجاح', 'success');
+                    clearTripsLocalCaches();
+                    const idx = allTripsCache.findIndex(t => t.id == tripId);
+                    if (idx >= 0 && res.collaborators_list) {
+                        allTripsCache[idx].collaborators_list = res.collaborators_list;
+                    }
+                    await showTripCollaborationModal(tripId);
+                    await loadTrips();
+                } else {
+                    showToast(res.message || 'فشل تحديث الحد', 'error');
                 }
             } catch (e) {
                 showToast('خطأ في الاتصال', 'error');
@@ -9649,9 +9681,22 @@
             <h4 style="margin-bottom:12px;font-size:0.95rem;font-weight:700;"><i class="fas fa-users"></i> الكنائس المشاركة (${list.length})</h4>
             <div style="background:#f0f9ff;border:1px solid #0ea5e9;border-radius:10px;padding:10px 14px;">
                 ${list.map(ch => `
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(14,165,233,0.15);">
-                    <span style="font-size:0.85rem;color:#0369a1;"><strong>${escHtml(ch.name)}</strong> <small>(${escHtml(ch.code)})</small></span>
-                    ${isOwner ? `<button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;white-space:nowrap" data-trip-id="${trip.id}" data-church-id="${ch.id}" data-church-name="${escHtml(ch.name)}" onclick="removeTripCollaboratorBtn(this)"><i class="fas fa-user-minus"></i> إزالة</button>` : ''}
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(14,165,233,0.15);flex-wrap:wrap;direction:rtl;text-align:right;">
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        <span style="font-size:0.85rem;color:#0369a1;"><strong>${escHtml(ch.name)}</strong> <small>(${escHtml(ch.code)})</small></span>
+                        <span style="font-size:0.75rem;color:#0284c7;">
+                            الحد الأقصى للتسجيل: ${ch.limit !== null && ch.limit !== undefined ? `<strong>${ch.limit}</strong>` : '<strong>مفتوح</strong>'}
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        ${isOwner ? `
+                        <div style="display:flex;align-items:center;gap:4px;">
+                            <span style="font-size:0.7rem;color:var(--text-muted);">تعديل الحد:</span>
+                            <input type="number" min="1" placeholder="مفتوح" value="${ch.limit !== null && ch.limit !== undefined ? ch.limit : ''}" style="width:70px;padding:4px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;background:var(--bg);color:var(--text);" onchange="changeCollabLimit(${trip.id}, ${ch.id}, this.value)">
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;white-space:nowrap;padding:4px 8px;font-size:0.75rem;" data-trip-id="${trip.id}" data-church-id="${ch.id}" data-church-name="${escHtml(ch.name)}" onclick="removeTripCollaboratorBtn(this)"><i class="fas fa-user-minus"></i> إزالة</button>
+                        ` : ''}
+                    </div>
                 </div>`).join('')}
             </div>
         </div>`;
@@ -9715,7 +9760,7 @@
 
             await loadSystemChurches();
 
-            const collaborationLink = `${window.location.origin}/uncle/church/?joinTrip=${tripId}#trips`;
+            const collaborationLink = `${window.location.origin}/uncle/church/trips/?joinTrip=${tripId}#trips`;
             const cid = (typeof getChurchId === 'function' ? getChurchId() : 0) ||
                 parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
             const isOwner = parseInt(trip.is_owner) === 1 || parseInt(trip.church_id) === cid;
@@ -9745,8 +9790,14 @@
                 <div id="collabChurchSearchResults" style="position:absolute;top:100%;left:0;right:0;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:5px;display:none;background:var(--modal-bg, var(--bg));z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15); padding:4px;">
                 </div>
             </div>
-            <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px; background:var(--surface-2); padding:10px; border-radius:8px; border:1px solid var(--border); direction:rtl; text-align:right;">
                 <span id="collabSelectedChurchName" style="font-size:0.85rem; font-weight:700; color:var(--primary);"></span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:0.8rem; color:var(--text); white-space:nowrap;">أقصى عدد للتسجيل (اختياري):</label>
+                    <input type="number" id="collabRegistrationLimitInput" min="1" placeholder="بلا حد" style="width:100px; padding:6px; border:1px solid var(--border); border-radius:6px; font-size:0.85rem; background:var(--bg); color:var(--text);">
+                </div>
+            </div>
+            <div style="margin-top:12px; display:flex; justify-content:flex-end;">
                 <button class="btn btn-success" id="collabSendInviteBtn" onclick="sendCollabRequest(${tripId})" disabled style="opacity:0.5;"><i class="fas fa-paper-plane"></i> إرسال الدعوة</button>
             </div>
         </div>
