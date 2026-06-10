@@ -16709,7 +16709,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         e.preventDefault();
                         _swipeClientX = e.clientX;
                         _swipeClientY = e.clientY;
-                        triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
                     }
                 });
                 
@@ -17011,6 +17010,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return;
                 }
                 
+                // Process selection exactly once per animation frame
+                triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
+                
                 const threshold = 185; // 185px trigger zone from top/bottom
                 const speedMax = 160; // Bullet maximum speed
                 
@@ -17031,7 +17033,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 
                 if (scrollAmount !== 0) {
                     window.scrollBy(0, scrollAmount);
-                    triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
                 }
                 
                 _autoScrollTimer = requestAnimationFrame(loop);
@@ -17115,7 +17116,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else {
                 // Prevent scrolling during swipe selection
                 e.preventDefault();
-                triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
             }
         }
 
