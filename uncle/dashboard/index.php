@@ -3038,7 +3038,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none !important;
         }
         body.bulk-active .class-view {
-            padding-top: 105px !important;
+            padding-top: 155px !important;
+        }
+        body.bulk-active .att-toolbar {
+            top: 96px !important;
         }
         body.bulk-active .bulk-actions-bar {
             position: fixed !important;
