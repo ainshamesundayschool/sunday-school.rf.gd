@@ -21506,7 +21506,11 @@ function getTripDetails()
 
                 s.custom_info as student_custom_info,
 
-                COALESCE(s.church_id, g.church_id) as student_church_id
+                COALESCE(s.church_id, g.church_id) as student_church_id,
+
+                ch.church_name as student_church_name,
+
+                ch.church_name as church_name
 
             FROM trip_registrations tr
 
@@ -21519,6 +21523,8 @@ function getTripDetails()
             LEFT JOIN classes gc ON gc.id = s.class_id
 
             LEFT JOIN uncles u ON tr.registered_by = u.id
+
+            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id)
 
             WHERE tr.trip_id = ? AND tr.cancelled = 0
 

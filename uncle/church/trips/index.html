@@ -12959,7 +12959,7 @@
         // Generate options for church filter select dropdown
         const churchOptionsHtml = `
           <option value="all" selected>كل الكنائس (All)</option>
-          ${participatingChurches.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('')}
+          ${participatingChurches.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('')}
         `;
 
         // Populate Conditions Wrap
@@ -13188,11 +13188,11 @@
             let remainingKidsInGroup = [...group];
 
             const getMatchingRooms = (kid) => {
-              const kidChurchId = parseInt(kid.student_church_id || kid.church_id || kid._churchId || 0);
+              const kidChurchName = String(kid.student_church_name || kid.church_name || '').trim();
               return roomState.filter(r => {
                 if (r.occupied >= r.capacity) return false;
                 if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
-                if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit) !== String(kidChurchId)) return false;
+                if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit).trim() !== kidChurchName) return false;
                 return true;
               });
             };
@@ -13204,8 +13204,8 @@
               const perfectRoom = matchingRooms.find(r => {
                 if ((r.capacity - r.occupied) < remainingKidsInGroup.length) return false;
                 return remainingKidsInGroup.every(k => {
-                  const kidCid = parseInt(k.student_church_id || k.church_id || k._churchId || 0);
-                  return !r.churchLimit || r.churchLimit === 'all' || String(r.churchLimit) === String(kidCid);
+                  const kidChurchName = String(k.student_church_name || k.church_name || '').trim();
+                  return !r.churchLimit || r.churchLimit === 'all' || String(r.churchLimit).trim() === kidChurchName;
                 });
               });
 
