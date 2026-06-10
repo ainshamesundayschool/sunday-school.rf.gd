@@ -13125,6 +13125,80 @@
         }
       };
 
+      window.toggleCustomSelectDropdown = function(btn) {
+        const menu = btn.nextElementSibling;
+        const isVisible = menu.style.display === 'block';
+        
+        // Close all other dropdown menus first
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+        
+        menu.style.display = isVisible ? 'none' : 'block';
+      };
+
+      window.selectCustomOption = function(item, hiddenInputId, onchangeCallbackName) {
+        const val = item.getAttribute('data-value');
+        const text = item.textContent;
+        const wrapper = item.closest('.dropdown');
+        const btnText = wrapper.querySelector('.custom-select-text');
+        const hiddenInput = document.getElementById(hiddenInputId) || wrapper.querySelector('input[type="hidden"]');
+        
+        if (btnText) btnText.textContent = text;
+        if (hiddenInput) {
+          hiddenInput.value = val;
+          hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof hiddenInput.onchange === 'function') {
+            hiddenInput.onchange();
+          }
+        }
+        
+        // Remove active/selected class from other items
+        wrapper.querySelectorAll('.custom-select-item').forEach(el => {
+          el.style.background = 'transparent';
+          el.style.color = 'var(--text)';
+          el.classList.remove('selected');
+        });
+        item.style.background = 'var(--primary-glow)';
+        item.style.color = 'var(--primary)';
+        item.classList.add('selected');
+        
+        // Close menu
+        wrapper.querySelector('.dropdown-menu').style.display = 'none';
+        
+        // Call callback if any
+        if (onchangeCallbackName && typeof window[onchangeCallbackName] === 'function') {
+          window[onchangeCallbackName](val);
+        }
+      };
+
+      window.selectCustomGenderOption = function(item) {
+        const val = item.getAttribute('data-value');
+        const text = item.textContent;
+        const wrapper = item.closest('.dropdown');
+        const btnText = wrapper.querySelector('.custom-select-text');
+        const hiddenInput = wrapper.querySelector('input[type="hidden"]');
+        
+        if (btnText) btnText.textContent = text;
+        if (hiddenInput) {
+          hiddenInput.value = val;
+          hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        // Remove active/selected class from other items
+        wrapper.querySelectorAll('.custom-select-item').forEach(el => {
+          el.style.background = 'transparent';
+          el.style.color = 'var(--text)';
+          el.classList.remove('selected');
+        });
+        item.style.background = 'var(--primary-glow)';
+        item.style.color = 'var(--primary)';
+        item.classList.add('selected');
+        
+        // Close menu
+        wrapper.querySelector('.dropdown-menu').style.display = 'none';
+      };
+
       window.toggleAfUncleLimitInput = function() {
         const type = document.getElementById('afUncleLimitType').value;
         const input = document.getElementById('afUncleLimit');
@@ -13137,6 +13211,18 @@
           if (help) help.style.display = 'none';
           input.value = '';
         }
+      };
+
+      window.filterAfExclusions = function() {
+        const query = (document.getElementById('afExclusionsSearch')?.value || '').toLowerCase().trim();
+        document.querySelectorAll('#afExclusionsWrap .af-exclusion-item').forEach(item => {
+          const name = item.getAttribute('data-name') || '';
+          if (name.includes(query)) {
+            item.style.setProperty('display', 'flex', 'important');
+          } else {
+            item.style.setProperty('display', 'none', 'important');
+          }
+        });
       };
 
       window.getClassSortWeight = function(className) {
@@ -13325,8 +13411,8 @@
 
       // Close dropdowns when clicking outside
       document.addEventListener('click', function(e) {
-        if (!e.target.closest('.af-church-dropdown')) {
-          document.querySelectorAll('.af-church-dropdown-menu').forEach(menu => {
+        if (!e.target.closest('.af-church-dropdown') && !e.target.closest('.custom-select-dropdown')) {
+          document.querySelectorAll('.af-church-dropdown-menu, .custom-select-menu').forEach(menu => {
             menu.style.display = 'none';
           });
         }
@@ -13397,19 +13483,33 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                 <div class="form-group" style="margin:0;">
                   <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-filter"></i> نطاق التسكين:</label>
-                  <select id="afScope" class="form-select" style="width:100%; height:38px; border-radius:8px;">
-                    <option value="unassigned" selected>الأطفال غير المسكنين فقط</option>
-                    <option value="all">إعادة تسكين الجميع (تفريغ الغرف)</option>
-                  </select>
+                  <div class="dropdown custom-select-dropdown" style="position:relative; width:100%;">
+                    <button type="button" class="btn btn-outline dropdown-toggle custom-select-btn" style="width:100%; height:38px; padding:0 12px; font-size:0.82rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:8px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                      <span class="custom-select-text">الأطفال غير المسكنين فقط</span>
+                      <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-right:4px;"></i>
+                    </button>
+                    <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                      <div class="custom-select-item selected" data-value="unassigned" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomOption(this, 'afScope')">الأطفال غير المسكنين فقط</div>
+                      <div class="custom-select-item" data-value="all" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afScope')">إعادة تسكين الجميع (تفريغ الغرف)</div>
+                    </div>
+                    <input type="hidden" id="afScope" value="unassigned">
+                  </div>
                 </div>
                 
                 <div class="form-group" style="margin:0;">
                   <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-shield"></i> حد انكل / طنط الأقصى:</label>
                   <div style="display:flex; gap:8px;">
-                    <select id="afUncleLimitType" class="form-select" style="flex:1.2; height:38px; border-radius:8px;" onchange="toggleAfUncleLimitInput()">
-                      <option value="none" selected>لا يوجد حد (No Limit)</option>
-                      <option value="custom">حد مخصص</option>
-                    </select>
+                    <div class="dropdown custom-select-dropdown" style="position:relative; flex:1.2;">
+                      <button type="button" class="btn btn-outline dropdown-toggle custom-select-btn" style="width:100%; height:38px; padding:0 12px; font-size:0.82rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:8px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                        <span class="custom-select-text">لا يوجد حد (No Limit)</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-right:4px;"></i>
+                      </button>
+                      <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                        <div class="custom-select-item selected" data-value="none" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomOption(this, 'afUncleLimitType', 'toggleAfUncleLimitInput')">لا يوجد حد (No Limit)</div>
+                        <div class="custom-select-item" data-value="custom" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afUncleLimitType', 'toggleAfUncleLimitInput')">حد مخصص</div>
+                      </div>
+                      <input type="hidden" id="afUncleLimitType" value="none">
+                    </div>
                     <input type="number" id="afUncleLimit" class="form-input" style="flex:1; display:none; height:38px; border-radius:8px;" min="0" step="1" placeholder="مثال: 2">
                   </div>
                   <div id="afUncleLimitHelp" style="display:none; font-size:0.72rem; color:var(--muted); margin-top:4px;">
@@ -13461,54 +13561,70 @@
 
               <!-- ── Sorting options & Preview block (Visible when priority is not 'none') ── -->
               <div id="afSortingOptionsContainer" style="display:flex; flex-direction:column; gap:12px; background:var(--surface-3); padding:14px; border-radius:10px; border:1px solid var(--border); display:none;">
-                <div style="display:flex; gap:12px; flex-wrap:wrap; width:100%;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%;">
                   
-                  <div id="afFirstSortFieldWrap" class="form-group" style="flex:1 1 100%; margin:0;">
+                  <div id="afFirstSortFieldWrap" class="form-group" style="margin:0;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">الترتيب الأساسي (Primary Sort)</label>
-                    <select id="afFirstSortField" class="form-select" style="font-size:0.75rem; height:34px; border-radius:6px; padding:2px 8px; width:100%;" onchange="updateAfSortingPreview()">
-                      <option value="church_first" selected>الكنيسة أولاً ثم الفصل (Church then Class)</option>
-                      <option value="class_first">الفصل أولاً ثم الكنيسة (Class then Church)</option>
-                    </select>
+                    <div class="dropdown custom-select-dropdown" style="position:relative; width:100%;">
+                      <button type="button" class="btn btn-outline dropdown-toggle custom-select-btn" style="width:100%; height:34px; padding:0 8px; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                        <span class="custom-select-text">الكنيسة أولاً ثم الفصل (Church then Class)</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                      </button>
+                      <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                        <div class="custom-select-item selected" data-value="church_first" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomOption(this, 'afFirstSortField', 'updateAfSortingPreview')">الكنيسة أولاً ثم الفصل (Church then Class)</div>
+                        <div class="custom-select-item" data-value="class_first" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afFirstSortField', 'updateAfSortingPreview')">الفصل أولاً ثم الكنيسة (Class then Church)</div>
+                      </div>
+                      <input type="hidden" id="afFirstSortField" value="church_first">
+                    </div>
                   </div>
 
-                  <div id="afClassSortOrderWrap" class="form-group" style="flex:1 1 180px; margin:0;">
+                  <div id="afClassSortOrderWrap" class="form-group" style="margin:0;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">ترتيب الفصول (Class Order)</label>
-                    <select id="afClassSortOrder" class="form-select" style="font-size:0.75rem; height:34px; border-radius:6px; padding:2px 8px; width:100%;" onchange="updateAfSortingPreview()">
-                      <option value="asc" selected>تصاعدي (من الأصغر للأكبر)</option>
-                      <option value="desc">تنازلي (من الأكبر للأصغر)</option>
-                    </select>
+                    <div class="dropdown custom-select-dropdown" style="position:relative; width:100%;">
+                      <button type="button" class="btn btn-outline dropdown-toggle custom-select-btn" style="width:100%; height:34px; padding:0 8px; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                        <span class="custom-select-text">تصاعدي (من الأصغر للأكبر)</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                      </button>
+                      <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                        <div class="custom-select-item selected" data-value="asc" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomOption(this, 'afClassSortOrder', 'updateAfSortingPreview')">تصاعدي (من الأصغر للأكبر)</div>
+                        <div class="custom-select-item" data-value="desc" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afClassSortOrder', 'updateAfSortingPreview')">تنازلي (من الأكبر للأصغر)</div>
+                      </div>
+                      <input type="hidden" id="afClassSortOrder" value="asc">
+                    </div>
                   </div>
 
-                  <div id="afChurchOrderWrap" class="form-group" style="flex:1 1 100%; margin:0;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; border-top:1px dashed var(--border); padding-top:10px; width:100%;">
+                  <div id="afChurchOrderWrap" class="form-group" style="margin:0; width:100%;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:6px; color:var(--text);"><i class="fas fa-sort-amount-down"></i> ترتيب أولوية تسكين الكنائس (ترتيب مخصص بالأسهم):</label>
                     <div id="afChurchOrderList" style="display:flex; flex-direction:column; gap:6px; padding:6px; background:var(--bg); border:1px solid var(--border); border-radius:8px; max-height:130px; overflow-y:auto;">
                       <!-- Rendered dynamically -->
                     </div>
                   </div>
 
-                </div>
-
-                <!-- Preview list below -->
-                <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:10px;">
-                  <label class="form-label" style="font-size:0.75rem; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:4px; color:var(--primary);">
-                    <i class="fas fa-list-ol"></i> معاينة ترتيب التجميع والتسكين (Grouping Preview):
-                  </label>
-                  <div id="afSortingPreviewList" style="font-size:0.75rem; color:var(--text); background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; font-weight:bold;">
-                    <!-- Rendered dynamically -->
+                  <div id="afSortingPreviewWrap" class="form-group" style="margin:0; width:100%;">
+                    <label class="form-label" style="font-size:0.75rem; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:4px; color:var(--primary);">
+                      <i class="fas fa-list-ol"></i> معاينة ترتيب التجميع والتسكين (Grouping Preview):
+                    </label>
+                    <div id="afSortingPreviewList" style="font-size:0.75rem; color:var(--text); background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px; max-height:130px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; font-weight:bold;">
+                      <!-- Rendered dynamically -->
+                    </div>
                   </div>
                 </div>
               </div>
               
               <div class="form-group" style="margin:0;">
                 <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-hotel"></i> تحديد شروط المباني والأدوار (النوع والكنيسة):</label>
-                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:8px; background:var(--surface-3); padding:12px; border-radius:10px; border:1px solid var(--border); max-height:200px; overflow-y:auto; box-sizing:border-box;">
+                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:8px; background:var(--surface-3); padding:12px; border-radius:10px; border:1px solid var(--border); height:100%; min-height:150px; overflow-y:auto; box-sizing:border-box;">
                   <!-- Loaded dynamically based on Buildings and Floors -->
                 </div>
               </div>
 
               <div class="form-group" style="margin:0;">
                 <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-minus"></i> استبعاد أطفال من التوزيع التلقائي:</label>
-                <div id="afExclusionsWrap" style="max-height:120px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px; background:#fff; box-sizing:border-box;">
+                <input type="text" id="afExclusionsSearch" class="form-input" style="width:100%; height:34px; border-radius:6px; font-size:0.75rem; margin-bottom:6px; padding:6px 10px;" placeholder="ابحث باسم الطفل لاستبعاده..." oninput="filterAfExclusions()">
+                <div id="afExclusionsWrap" style="max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px; background:#fff; box-sizing:border-box; display:flex; flex-direction:column; gap:6px;">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -13635,12 +13751,17 @@
                         <div style="display:flex; flex-direction:column; gap:6px; padding:6px 0; border-bottom:1px dashed var(--border);">
                           <span style="font-size:0.75rem; font-weight:700; color:var(--text);"><i class="fas fa-layer-group" style="color:var(--primary-mid);"></i> ${flEsc}:</span>
                           <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap; align-items:center;">
-                            <div style="position:relative; flex:1 1 120px; min-width:110px;">
-                              <select class="form-select af-floor-gender-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="width:100%; font-size:0.75rem; height:34px; padding:4px 8px; border-radius:6px; line-height:26px;">
-                                <option value="all" selected>مشترك (Co-ed)</option>
-                                <option value="male">أولاد فقط (Boys)</option>
-                                <option value="female">بنات فقط (Girls)</option>
-                              </select>
+                            <div class="dropdown custom-select-dropdown" style="position:relative; flex:1 1 120px; min-width:110px;">
+                              <button type="button" class="btn btn-outline btn-sm dropdown-toggle custom-select-btn" style="width:100%; height:34px; padding:4px 8px; font-size:0.75rem; line-height:24px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                                <span class="custom-select-text">مشترك (Co-ed)</span>
+                                <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                              </button>
+                              <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                                <div class="custom-select-item selected" data-value="all" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomGenderOption(this)">مشترك (Co-ed)</div>
+                                <div class="custom-select-item" data-value="male" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomGenderOption(this)">أولاد فقط (Boys)</div>
+                                <div class="custom-select-item" data-value="female" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomGenderOption(this)">بنات فقط (Girls)</div>
+                              </div>
+                              <input type="hidden" class="af-floor-gender-filter" data-bld="${bldEsc}" data-floor="${flEsc}" value="all">
                             </div>
                             <div class="dropdown af-church-dropdown" style="position:relative; flex:1.2 1 140px; min-width:130px;">
                               <button type="button" class="btn btn-outline btn-sm dropdown-toggle af-church-dropdown-btn" style="width:100%; height:34px; padding:4px 8px; font-size:0.75rem; line-height:24px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap;" onclick="toggleChurchDropdown(this)">
@@ -13663,12 +13784,17 @@
                 <div style="display:flex; flex-direction:column; gap:6px; border-bottom:1px solid var(--border); padding:8px 0; margin-bottom:8px;">
                   <span style="font-size:0.8rem; font-weight:700; color:var(--text);"><i class="fas fa-hotel" style="color:var(--primary);"></i> مبنى: ${bldEsc}:</span>
                   <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap; align-items:center;">
-                    <div style="position:relative; flex:1 1 120px; min-width:110px;">
-                      <select class="form-select af-bld-gender-filter" data-bld="${bldEsc}" style="width:100%; font-size:0.75rem; height:34px; padding:4px 8px; border-radius:6px; line-height:26px;">
-                        <option value="all" selected>مشترك (Co-ed)</option>
-                        <option value="male">أولاد فقط (Boys)</option>
-                        <option value="female">بنات فقط (Girls)</option>
-                      </select>
+                    <div class="dropdown custom-select-dropdown" style="position:relative; flex:1 1 120px; min-width:110px;">
+                      <button type="button" class="btn btn-outline btn-sm dropdown-toggle custom-select-btn" style="width:100%; height:34px; padding:4px 8px; font-size:0.75rem; line-height:24px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                        <span class="custom-select-text">مشترك (Co-ed)</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                      </button>
+                      <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                        <div class="custom-select-item selected" data-value="all" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomGenderOption(this)">مشترك (Co-ed)</div>
+                        <div class="custom-select-item" data-value="male" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomGenderOption(this)">أولاد فقط (Boys)</div>
+                        <div class="custom-select-item" data-value="female" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomGenderOption(this)">بنات فقط (Girls)</div>
+                      </div>
+                      <input type="hidden" class="af-bld-gender-filter" data-bld="${bldEsc}" value="all">
                     </div>
                     <div class="dropdown af-church-dropdown" style="position:relative; flex:1.2 1 140px; min-width:130px;">
                       <button type="button" class="btn btn-outline btn-sm dropdown-toggle af-church-dropdown-btn" style="width:100%; height:34px; padding:4px 8px; font-size:0.75rem; line-height:24px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap;" onclick="toggleChurchDropdown(this)">
@@ -13689,13 +13815,28 @@
         // Populate Exclusions checkbox list
         const exclusionsWrap = document.getElementById('afExclusionsWrap');
         if (exclusionsWrap) {
-          exclusionsWrap.innerHTML = regs.map(r => `
-            <label style="display:flex; align-items:center; gap:8px; font-size:0.72rem; cursor:pointer; margin-bottom:4px;">
-              <input type="checkbox" class="af-exclude-checkbox" value="${r.id}">
-              <span>${escHtml(r.student_name)} (${escHtml(r.student_class)})</span>
-            </label>
-          `).join('');
+          exclusionsWrap.innerHTML = regs.map(r => {
+            const studentImg = r.student_image || r.image_url || r['صورة'] || r.photo || '';
+            const studentName = r.student_name || '---';
+            const initials = studentName.trim().charAt(0) || '؟';
+            return `
+              <label class="af-exclusion-item" data-name="${escHtml(studentName.toLowerCase())}" style="display:flex; align-items:center; gap:10px; font-size:0.75rem; cursor:pointer; padding:6px; border-radius:8px; border:1px solid var(--border); transition:all 0.2s; background:var(--card);">
+                <input type="checkbox" class="af-exclude-checkbox" value="${r.id}" style="margin:0;">
+                <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--primary);font-size:0.75rem;">
+                  ${studentImg ? `<img src="${studentImg}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='${escHtml(initials)}'">` : escHtml(initials)}
+                </div>
+                <div style="display:flex; flex-direction:column; line-height:1.2; flex-grow:1;">
+                  <span style="font-weight:700; color:var(--text);">${escHtml(studentName)}</span>
+                  <span style="font-size:0.65rem; color:var(--muted);">${escHtml(r.student_class || 'بدون فصل')} - ${escHtml(r.church_name || '')}</span>
+                </div>
+              </label>
+            `;
+          }).join('');
         }
+        
+        // Reset exclusions search query
+        const searchInput = document.getElementById('afExclusionsSearch');
+        if (searchInput) searchInput.value = '';
 
         window.afChurchesOrder = participatingChurches.map(c => c.name);
         if (typeof renderAfChurchOrderList === 'function') {
