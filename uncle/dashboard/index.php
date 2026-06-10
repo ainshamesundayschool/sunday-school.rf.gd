@@ -12240,12 +12240,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (dbId && selectedStudentIds.has(dbId)) cls += ' selected';
             row.className = cls;
 
-            // Update check circle state
-            const chkCircle = row.querySelector('.bulk-check-circle');
-            if (chkCircle && dbId) {
-                chkCircle.classList.toggle('checked', selectedStudentIds.has(dbId));
-            }
-
             // Update badges
             let badges = '';
             if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
@@ -12268,8 +12262,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             // Update bulk checkbox checked state
-            const dbId = s ? getStudentDbId(s) : 0;
-            const isSelected = selectedStudentIds.has(dbId);
+            const isSelected = dbId ? selectedStudentIds.has(dbId) : false;
             const checkCircle = row.querySelector('.bulk-check-circle');
             if (checkCircle) {
                 if (isSelected) {
