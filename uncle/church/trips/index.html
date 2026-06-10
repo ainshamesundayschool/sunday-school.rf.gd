@@ -11053,9 +11053,10 @@
           }
 
           pdfContainer = document.createElement('div');
-          pdfContainer.style.position = 'fixed';
-          pdfContainer.style.left = '-9999px';
-          pdfContainer.style.top = '-9999px';
+          pdfContainer.style.position = 'absolute';
+          pdfContainer.style.left = '0';
+          pdfContainer.style.top = '0';
+          pdfContainer.style.zIndex = '-9999';
           pdfContainer.style.overflow = 'hidden';
           pdfContainer.style.width = `${paperW}mm`;
           pdfContainer.style.background = '#ffffff';
@@ -11170,7 +11171,7 @@
             margin: 0,
             filename: `trip-qr-cards-${new Date().toISOString().slice(0, 10)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
             jsPDF: { unit: 'mm', format: paperKey, orientation: orientation }
           };
 
