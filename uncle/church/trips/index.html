@@ -8034,20 +8034,39 @@
         const trip = allTripsCache.find(t => t.id == tripId);
         if (!trip) return;
         const max = parseInt(trip.max_participants || 0);
-        const regs = tripRegistrationsCache[tripId] || [];
+        const regs = (tripRegistrationsCache[tripId] || []).filter(r => !r.cancelled);
+        const waitlist = window.currentWaitlistCache || [];
 
         if (max <= 0) {
-          showToast('الرحلة ليس لها حد أقصى للمشاركين', 'info');
+          if (waitlist.length > 0) {
+            if (confirm('الرحلة ليس لها حد أقصى للمشاركين وهناك أطفال في قائمة الانتظار.\nهل تريد ترقية الأطفال المؤهلين إلى التسجيل الرئيسي تلقائياً؟')) {
+              runRebalance();
+            }
+          } else {
+            showToast('الرحلة ليس لها حد أقصى ولا يوجد أطفال في قائمة الانتظار', 'info');
+          }
           return;
         }
 
-        if (regs.length <= max) {
-          showToast('لا يوجد تجاوز للحد الأقصى في المسجلين الحاليين', 'success');
-          return;
+        if (regs.length > max) {
+          const extra = regs.length - max;
+          if (confirm(`تم اكتشاف ${extra} طفل مسجلين فوق الحد الأقصى (${max}).\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`)) {
+            runRebalance();
+          }
+        } else if (regs.length < max) {
+          if (waitlist.length > 0) {
+            const emptySlots = max - regs.length;
+            if (confirm(`يوجد ${emptySlots} أماكن شاغرة وهناك أطفال في قائمة الانتظار.\nهل تريد ترقية الأطفال المؤهلين إلى التسجيل الرئيسي تلقائياً؟`)) {
+              runRebalance();
+            }
+          } else {
+            showToast('السعة كافية ولا يوجد أطفال في قائمة الانتظار', 'success');
+          }
+        } else {
+          showToast('الرحلة مكتملة تماماً بالعدد الأقصى المسموح به', 'info');
         }
 
-        const extra = regs.length - max;
-        if (confirm(`تم اكتشاف ${extra} طفل مسجلين فوق الحد الأقصى (${max}).\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`)) {
+        async function runRebalance() {
           const fd = mkFd('rebalanceTripWaitlist');
           fd.append('trip_id', tripId);
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
