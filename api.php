@@ -40709,7 +40709,7 @@ function saveRoomsTemplate()
 
         $conn = getDBConnection();
         ensureRoomsSchema($conn);
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        $role = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? 'uncle';
         $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
 
@@ -40797,11 +40797,8 @@ function deleteRoomsTemplate()
 
 
         $conn = getDBConnection();
-
         ensureRoomsSchema($conn);
-
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
-
+        $role = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? 'uncle';
         $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
 
