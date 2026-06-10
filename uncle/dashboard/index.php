@@ -2875,22 +2875,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: none !important;
         }
 
-        .attendance-list.bulk-active .attendance-actions {
-            display: flex !important;
-            background: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: auto !important;
-            align-self: center !important;
+        .student-coupons-inline {
+            display: none;
         }
-        .attendance-list.bulk-active .attendance-actions .coupon-toggle-row,
-        .attendance-list.bulk-active .attendance-actions .attend-btn-row {
+        .attendance-list.bulk-active .student-coupons-inline {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 3px;
+            background: rgba(245, 158, 11, 0.12) !important;
+            color: var(--warning, #f59e0b) !important;
+            padding: 2px 6px !important;
+            border-radius: var(--r-full) !important;
+            font-weight: 700 !important;
+            font-size: 0.62rem !important;
+            white-space: nowrap !important;
+        }
+        [data-theme="dark"] .attendance-list.bulk-active .student-coupons-inline {
+            background: rgba(245, 158, 11, 0.2) !important;
+            color: #fbbf24 !important;
+        }
+
+        .attendance-list.bulk-active .attendance-actions {
             display: none !important;
         }
-        .attendance-list.bulk-active .attendance-actions .student-coupons {
-            display: flex !important;
+        .attendance-list.bulk-active .student-info {
+            border-radius: var(--r-xl) !important;
         }
         .attendance-list.bulk-active .attendance-item {
             min-height: 80px;
@@ -11087,7 +11096,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                            <div class="status-indicator">${badges}</div>
+                            <div class="status-indicator">${badges}<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : ''}</span></div>
                 </div>
             </div>
             <div class="attendance-actions">
@@ -12193,7 +12202,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                    <div class="status-indicator">${badges}</div>
+                    <div class="status-indicator">${badges}<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span></div>
                 </div>
             </div>
             <div class="attendance-actions">
@@ -16999,20 +17008,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return;
                 }
                 
-                const threshold = 160; // 160px trigger zone from top/bottom
-                const speedMax = 22; // Snappy scroll speed limit
+                const threshold = 180; // 180px trigger zone from top/bottom
+                const speedMax = 55; // Fast maximum speed
                 
                 const viewHeight = window.innerHeight;
                 let scrollAmount = 0;
                 
                 if (_swipeClientY > viewHeight - threshold) {
                     // Near bottom: scroll down
-                    const ratio = Math.min(1.5, Math.max(0, (_swipeClientY - (viewHeight - threshold)) / threshold));
-                    scrollAmount = Math.max(4, Math.ceil(ratio * speedMax));
+                    const ratio = Math.min(2.0, Math.max(0, (_swipeClientY - (viewHeight - threshold)) / threshold));
+                    scrollAmount = Math.max(12, Math.ceil(ratio * speedMax));
                 } else if (_swipeClientY < threshold) {
                     // Near top: scroll up
-                    const ratio = Math.min(1.5, Math.max(0, (threshold - _swipeClientY) / threshold));
-                    scrollAmount = -Math.max(4, Math.ceil(ratio * speedMax));
+                    const ratio = Math.min(2.0, Math.max(0, (threshold - _swipeClientY) / threshold));
+                    scrollAmount = -Math.max(12, Math.ceil(ratio * speedMax));
                 }
                 
                 if (scrollAmount !== 0) {
