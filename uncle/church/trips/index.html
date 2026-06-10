@@ -10377,14 +10377,14 @@
           if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
             </div>
           `;
           } else {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
             </div>
           `;
@@ -10634,7 +10634,7 @@
         let innerContentHtml = `
         <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
             <div style="display:flex; justify-content:center; align-items:center; width:100%;">
-                <img src="/logo.png" style="height:${logoHeight}px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
+                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${logoHeight}px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
             </div>
             <div style="background:rgba(255,255,255,0.9); border:1px solid ${fontColor}22; border-radius:50px; padding:${4 * scale}px ${12 * scale}px; display:inline-flex; align-items:center; gap:${5 * scale}px; box-shadow:0 1px 3px rgba(0,0,0,0.03); max-width:85%; box-sizing:border-box;">
                 <i class="fas fa-search" style="color:${fontColor}; opacity:0.5; font-size:${Math.max(6.5, 8 * scale)}px;"></i>
@@ -10976,6 +10976,50 @@
                   }
               </style>
           `;
+          // Helper to convert image URL to Base64 data URL
+          const toBase64 = async (url) => {
+            if (!url) return '';
+            if (url.startsWith('data:')) return url;
+            try {
+              const res = await fetch(url);
+              if (!res.ok) return '';
+              const blob = await res.blob();
+              return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = () => resolve('');
+                reader.readAsDataURL(blob);
+              });
+            } catch (e) {
+              console.warn('Failed base64 conversion:', url, e);
+              return '';
+            }
+          };
+
+          // Pre-convert images to base64 to avoid CORS/InfinityFree security challenge issues
+          window.pdfLogoBase64 = await toBase64('/logo.png');
+          
+          let tripImgBase64 = '';
+          if (trip && trip.image_url) {
+            tripImgBase64 = await toBase64(trip.image_url);
+          }
+          trip = { ...trip, image_url: tripImgBase64 || trip.image_url };
+
+          const showStudentImg = document.getElementById('printShowStudentImg').checked;
+          const regsCopy = [];
+          for (let r of regs) {
+            const hasImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
+            let studentImgBase64 = '';
+            if (showStudentImg && hasImg) {
+              studentImgBase64 = await toBase64(r.student_image);
+            }
+            regsCopy.push({
+              ...r,
+              student_image: studentImgBase64 || r.student_image
+            });
+          }
+          regs = regsCopy;
+
           document.body.appendChild(loadingOverlay);
 
           const paperKey = document.getElementById('pdfPaperSize').value;
@@ -11022,7 +11066,6 @@
           const showChurch = document.getElementById('printShowChurch').checked;
           const showTripImage = document.getElementById('printShowTripImage').checked;
           const showTripTitle = document.getElementById('printShowTripTitle').checked;
-          const showStudentImg = document.getElementById('printShowStudentImg').checked;
           const showStudentName = document.getElementById('printShowStudentName').checked;
           const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
           const showCustom = document.getElementById('printShowCustom').checked;
@@ -11056,7 +11099,7 @@
           pdfContainer.style.position = 'absolute';
           pdfContainer.style.left = '0';
           pdfContainer.style.top = '0';
-          pdfContainer.style.zIndex = '-9999';
+          pdfContainer.style.zIndex = '99998';
           pdfContainer.style.overflow = 'hidden';
           pdfContainer.style.width = `${paperW}mm`;
           pdfContainer.style.background = '#ffffff';
