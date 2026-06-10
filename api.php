@@ -22662,6 +22662,10 @@ function promoteWaitlistEntry($conn, $waiting, $tripId)
 
     syncTripRegistrationPaymentStatus($conn, $registrationId, $totalPerKid);
 
+    if (function_exists('auditTripWaitlistPromotion')) {
+        auditTripWaitlistPromotion($tripId, $studentId, $waiting['student_name'] ?? '', $registrationId, $deposit);
+    }
+
 
 
     // Remove from waitlist

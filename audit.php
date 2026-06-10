@@ -628,3 +628,20 @@ function auditTripWaitlistPaymentRestore(string $paymentId, int $studentId, int 
         "استعادة دفعة انتظار بقيمة {$paymentInfo['amount']} ج"
     );
 }
+
+function auditTripWaitlistPromotion(int $tripId, int $studentId, string $studentName, int $registrationId, float $totalPaid): void {
+    writeAuditLog(
+        'trip_waitlist_promotion',
+        'trip_registration',
+        $registrationId,
+        $studentName,
+        null,
+        [
+            'student_id' => $studentId,
+            'trip_id' => $tripId,
+            'registration_id' => $registrationId,
+            'total_paid' => $totalPaid
+        ],
+        "ترقية الطفل $studentName من قائمة الانتظار إلى تسجيل مؤكد للرحلة ID: $tripId"
+    );
+}
