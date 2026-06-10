@@ -543,3 +543,53 @@ function handleRoomsRegistrationFormInject(trip, preData = {}) {
         parentSelect.dispatchEvent(new Event('change'));
     }
 }
+
+/**
+ * Save current wizard layout configuration as a new database template
+ */
+async function saveCurrentRoomsAsTemplate(prefix) {
+    const config = compileRoomsConfig(prefix);
+    const toast = (typeof showToast === 'function') ? showToast : (msg) => alert(msg);
+
+    if (!config || config.length === 0) {
+        toast('برجاء إضافة مبنى واحد على الأقل أولاً لتتمكن من حفظ التوزيع كقالب.', 'warning');
+        return;
+    }
+
+    const templateName = prompt('برجاء إدخال اسم القالب الجديد:');
+    if (!templateName) return; // user cancelled
+
+    const trimmedName = templateName.trim();
+    if (!trimmedName) {
+        toast('اسم القالب لا يمكن أن يكون فارغاً', 'error');
+        return;
+    }
+
+    try {
+        const fd = new FormData();
+        fd.append('action', 'saveRoomsTemplate');
+        fd.append('name', trimmedName);
+        fd.append('config', JSON.stringify(config));
+
+        const apiUrl = (typeof API_URL !== 'undefined') ? API_URL : '/api.php';
+        const res = await fetch(apiUrl, { method: 'POST', body: fd }).then(r => r.json());
+        if (res.success) {
+            toast('تم حفظ القالب الجديد بنجاح', 'success');
+            // Reload templates list for the current modal prefix
+            await loadRoomsTemplates(prefix);
+            // Select the newly saved template in the dropdown
+            const select = document.getElementById(prefix + 'TripRoomsTemplate');
+            if (select && res.id) {
+                select.value = res.id;
+                // Trigger template change to keep the wizard in sync
+                onRoomsTemplateChange(prefix);
+            }
+        } else {
+            toast(res.message || 'فشل حفظ القالب', 'error');
+        }
+    } catch (e) {
+        console.error("Error saving rooms template", e);
+        toast('خطأ في الاتصال بالخادم أثناء حفظ القالب', 'error');
+    }
+}
+

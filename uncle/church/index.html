@@ -7128,9 +7128,14 @@
                                         <div id="addTripRoomsConfigWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
                                             <div class="form-group" style="margin-bottom:12px;">
                                                 <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
-                                                <select id="addTripRoomsTemplate" class="form-select" style="width:100%;" onchange="onRoomsTemplateChange('add')">
-                                                    <!-- Loaded dynamically -->
-                                                </select>
+                                                <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                                                    <select id="addTripRoomsTemplate" class="form-select" style="flex:1;" onchange="onRoomsTemplateChange('add')">
+                                                        <!-- Loaded dynamically -->
+                                                    </select>
+                                                    <button type="button" class="btn btn-outline" onclick="saveCurrentRoomsAsTemplate('add')" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                                                        <i class="fas fa-save"></i> حفظ كقالب
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div id="addTripRoomsScratchWizard" style="display:none; margin-top:10px;">
                                                 <div class="form-group" style="margin-bottom:12px;">
@@ -8341,9 +8346,14 @@
                             <div id="editTripRoomsConfigWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
                                 <div class="form-group" style="margin-bottom:12px;">
                                     <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
-                                    <select id="editTripRoomsTemplate" class="form-select" style="width:100%;" onchange="onRoomsTemplateChange('edit')">
-                                        <!-- Loaded dynamically -->
-                                    </select>
+                                    <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                                        <select id="editTripRoomsTemplate" class="form-select" style="flex:1;" onchange="onRoomsTemplateChange('edit')">
+                                            <!-- Loaded dynamically -->
+                                        </select>
+                                        <button type="button" class="btn btn-outline" onclick="saveCurrentRoomsAsTemplate('edit')" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                                            <i class="fas fa-save"></i> حفظ كقالب
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
                                     <div class="form-group" style="margin-bottom:12px;">

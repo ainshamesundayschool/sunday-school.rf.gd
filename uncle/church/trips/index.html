@@ -117,13 +117,16 @@
       overflow: hidden;
       flex-shrink: 0;
     }
+
     #printSettingsModal input[type="color"]::-webkit-color-swatch-wrapper {
       padding: 0 !important;
     }
+
     #printSettingsModal input[type="color"]::-webkit-color-swatch {
       border: none !important;
       border-radius: 50% !important;
     }
+
     #printSettingsModal input[type="color"]::-moz-color-swatch {
       border: none !important;
       border-radius: 50% !important;
@@ -4605,14 +4608,17 @@
     #tripDetailsScroll {
       padding: 0 !important;
     }
+
     .td-scroll-body {
       padding: 24px 28px;
     }
+
     @media (min-width: 1000px) {
       .td-scroll-body {
         padding: 18px 28px 24px !important;
       }
     }
+
     @media (max-width: 999px) {
       .td-scroll-body {
         padding: 18px 16px 24px !important;
@@ -4645,144 +4651,149 @@
                 <div id="tdQuickStats"></div>
               </div>
               <div class="td-scroll-body">
-              <div class="trip-tabs-bar">
-                <div class="trip-tabs-bar-inner">
-                  <div class="td-tabs trip-header-tabs" id="tdTabsDesktop"
-                    style="margin:0;padding:0;border-bottom:none;background:transparent;">
-                    <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i
-                        class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
-                    <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i
-                        class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span class="td-badge"
-                        id="tdRegsCountDesktop"></span></div>
-                    <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i
-                        class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span
-                        class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
-                    <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i
-                        class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span
-                        class="td-badge warn" id="tdExpCountDesktop"></span></div>
-                    <div class="td-tab" id="tdtab-desktop-rooms" onclick="switchTripTab('rooms')" style="display:none;"><i
-                        class="fas fa-bed"></i><span class="trip-nav-tab-label">الغرف والسكن</span></div>
-                  </div>
-                  <div class="td-tabs" id="tdTabsMobile"
-                    style="margin:0;padding:0;border-bottom:none;background:transparent;flex:1;">
-                    <div class="td-tab active" id="tdtab-info" data-title="الملخص"
-                      data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
-                      style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
-                      الملخص</div>
-                    <div class="td-tab" id="tdtab-regs" data-title="المسجلون"
-                      data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
-                      style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-users"></i> المسجلون
-                      <span class="td-badge" id="tdRegsCount"></span>
+                <div class="trip-tabs-bar">
+                  <div class="trip-tabs-bar-inner">
+                    <div class="td-tabs trip-header-tabs" id="tdTabsDesktop"
+                      style="margin:0;padding:0;border-bottom:none;background:transparent;">
+                      <div class="td-tab active" id="tdtab-desktop-info" onclick="switchTripTab('info')"><i
+                          class="fas fa-info-circle"></i><span class="trip-nav-tab-label">الملخص</span></div>
+                      <div class="td-tab" id="tdtab-desktop-regs" onclick="switchTripTab('regs')"><i
+                          class="fas fa-users"></i><span class="trip-nav-tab-label">المسجلون</span> <span
+                          class="td-badge" id="tdRegsCountDesktop"></span></div>
+                      <div class="td-tab" id="tdtab-desktop-waitlist" onclick="switchTripTab('waitlist')"><i
+                          class="fas fa-clock"></i><span class="trip-nav-tab-label">قائمة الانتظار</span> <span
+                          class="td-badge warn" id="tdWaitlistCountDesktop"></span></div>
+                      <div class="td-tab" id="tdtab-desktop-exp" onclick="switchTripTab('exp')"><i
+                          class="fas fa-receipt"></i><span class="trip-nav-tab-label">المصروفات</span> <span
+                          class="td-badge warn" id="tdExpCountDesktop"></span></div>
+                      <div class="td-tab" id="tdtab-desktop-rooms" onclick="switchTripTab('rooms')"
+                        style="display:none;"><i class="fas fa-bed"></i><span class="trip-nav-tab-label">الغرف
+                          والسكن</span></div>
                     </div>
-                    <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار"
-                      data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
-                      style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
-                      الانتظار
-                      <span class="td-badge warn" id="tdWaitlistCount"></span>
-                    </div>
-                    <div class="td-tab" id="tdtab-exp" data-title="المصروفات"
-                      data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
-                      style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
-                      المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
-                    <div class="td-tab" id="tdtab-rooms" data-title="الغرف والسكن"
-                      data-desc="توزيع الغرف وتسكين الأطفال والمشرفين." onclick="switchTripTab('rooms')"
-                      style="color:var(--text-2);border-bottom-color:transparent;display:none;"><i class="fas fa-bed"></i>
-                      الغرف والسكن</div>
-                  </div>
-                  <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'"
-                    title="إغلاق">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="trip-workspace">
-                <section class="trip-folder-shell">
-                  <div class="trip-folder-header">
-                    <div>
-                      <div class="trip-folder-breadcrumb" id="tripFolderBreadcrumb"></div>
-                      <h3 id="tripFolderTitle">الملخص</h3>
-                      <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
-                    </div>
-                  </div>
-
-                  <div class="trip-folder-body">
-                    <div class="td-panel active" id="tdpanel-info">
-                      <div id="tripInfoContent"></div>
-                    </div>
-                    <div class="td-panel" id="tdpanel-regs">
-                      <div id="tripRegsContent"></div>
-                    </div>
-                    <div class="td-panel" id="tdpanel-waitlist">
-                      <div id="tripWaitlistContent"></div>
-                    </div>
-                    <div class="td-panel" id="tdpanel-exp">
-                      <input type="hidden" id="expTripId">
-                      <div id="expPriceBanner"
-                        style="display:none;background:linear-gradient(135deg,var(--primary),#6366f1);border-radius:14px;padding:16px 20px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                        <div>
-                          <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (الرحلة +
-                            مصروفات)</div>
-                          <div id="expTotalPerKidVal" style="font-size:1.8rem;font-weight:900;">0 ج</div>
-                          <div id="expPriceBreakdown" style="font-size:0.7rem;opacity:.7;margin-top:2px;"></div>
-                        </div>
-                        <i class="fas fa-calculator" style="font-size:2.5rem;opacity:.3;"></i>
+                    <div class="td-tabs" id="tdTabsMobile"
+                      style="margin:0;padding:0;border-bottom:none;background:transparent;flex:1;">
+                      <div class="td-tab active" id="tdtab-info" data-title="الملخص"
+                        data-desc="نظرة عامة على الرحلة والتفاصيل الأساسية." onclick="switchTripTab('info')"
+                        style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-info-circle"></i>
+                        الملخص</div>
+                      <div class="td-tab" id="tdtab-regs" data-title="المسجلون"
+                        data-desc="ملفات الأطفال المسجلين ومتابعة الحضور والمدفوعات." onclick="switchTripTab('regs')"
+                        style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-users"></i>
+                        المسجلون
+                        <span class="td-badge" id="tdRegsCount"></span>
                       </div>
-                      <div class="summary-box" id="expSummary" style="margin-bottom:16px;"></div>
-                      <h4
-                        style="margin-bottom:10px;font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-plus-circle" style="color:var(--primary);"></i> إضافة مصروف جديد</h4>
-                      <form id="addExpenseForm" onsubmit="addTripExpense(event)">
-                        <div class="form-grid">
-                          <div class="form-group"><label class="form-label">اسم المصروف</label><input type="text"
-                              id="expName" class="form-input" placeholder="إيجار باص، طعام..."></div>
-                          <div class="form-group"><label class="form-label">النوع</label><select id="expType"
-                              class="form-select" style="width:100%;">
-                              <option value="bus">إيجار باص</option>
-                              <option value="food">طعام</option>
-                              <option value="entry">دخول</option>
-                              <option value="other">أخرى</option>
-                            </select></div>
-                          <div class="form-group"><label class="form-label">المبلغ الإجمالي (ج)</label><input
-                              type="number" id="expAmount" class="form-input" step="1" min="0" required
-                              oninput="calcExpPerKid()"></div>
-                          <div class="form-group"><label class="form-label">طريقة التمويل</label><select id="expFunding"
-                              class="form-select" style="width:100%;" onchange="toggleExpFunding()">
-                              <option value="kids">يدفعها الأطفال</option>
-                              <option value="funded">ممولة</option>
-                              <option value="partial">جزئية</option>
-                            </select></div>
-                          <div class="form-group" id="expDivisionGroup"><label class="form-label">التقسيم</label><select
-                              id="expDivision" class="form-select" style="width:100%;" onchange="calcExpPerKid()">
-                              <option value="per_kid">المبلغ على كل طفل</option>
-                              <option value="total_divided">يُقسَّم على الأطفال</option>
-                            </select></div>
-                          <div class="form-group" id="expKidsAmountGroup" style="display:none;"><label
-                              class="form-label">ما يدفعه
-                              الأطفال</label><input type="number" id="expKidsAmount" class="form-input" step="1" min="0"
-                              oninput="calcExpPerKid()"></div>
-                          <div class="form-group" style="grid-column:1/-1;">
-                            <div
-                              style="background:var(--info-light);color:#1e40af;padding:11px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;"
-                              id="expCalcResult">أدخل المبلغ لحساب النصيب</div>
-                          </div>
-                          <div class="form-group" style="grid-column:1/-1;"><label
-                              class="form-label">ملاحظات</label><input type="text" id="expNotes" class="form-input"
-                              placeholder="ملاحظات إضافية"></div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top:10px;" id="addExpBtn"><i
-                            class="fas fa-plus"></i> إضافة المصروف</button>
-                      </form>
-                      <hr class="divider-line">
-                      <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;">قائمة المصروفات</h4>
-                      <div id="expensesList"></div>
+                      <div class="td-tab" id="tdtab-waitlist" data-title="قائمة الانتظار"
+                        data-desc="طلبات الانتظار والمراجعة قبل قبول التسجيل." onclick="switchTripTab('waitlist')"
+                        style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-clock"></i> قائمة
+                        الانتظار
+                        <span class="td-badge warn" id="tdWaitlistCount"></span>
+                      </div>
+                      <div class="td-tab" id="tdtab-exp" data-title="المصروفات"
+                        data-desc="مجلد المصروفات والحسابات وتوزيع التكلفة." onclick="switchTripTab('exp')"
+                        style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
+                        المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
+                      <div class="td-tab" id="tdtab-rooms" data-title="الغرف والسكن"
+                        data-desc="توزيع الغرف وتسكين الأطفال والمشرفين." onclick="switchTripTab('rooms')"
+                        style="color:var(--text-2);border-bottom-color:transparent;display:none;"><i
+                          class="fas fa-bed"></i>
+                        الغرف والسكن</div>
                     </div>
-                    <div class="td-panel" id="tdpanel-rooms">
-                      <div id="tripRoomsContent"></div>
-                    </div>
+                    <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'"
+                      title="إغلاق">
+                      <i class="fas fa-times"></i>
+                    </button>
                   </div>
-                  <div class="trip-shell-pages" id="tripShellPages"></div>
-                </section>
-              </div>
+                </div>
+                <div class="trip-workspace">
+                  <section class="trip-folder-shell">
+                    <div class="trip-folder-header">
+                      <div>
+                        <div class="trip-folder-breadcrumb" id="tripFolderBreadcrumb"></div>
+                        <h3 id="tripFolderTitle">الملخص</h3>
+                        <p id="tripFolderDesc">نظرة عامة على الرحلة والتفاصيل الأساسية.</p>
+                      </div>
+                    </div>
+
+                    <div class="trip-folder-body">
+                      <div class="td-panel active" id="tdpanel-info">
+                        <div id="tripInfoContent"></div>
+                      </div>
+                      <div class="td-panel" id="tdpanel-regs">
+                        <div id="tripRegsContent"></div>
+                      </div>
+                      <div class="td-panel" id="tdpanel-waitlist">
+                        <div id="tripWaitlistContent"></div>
+                      </div>
+                      <div class="td-panel" id="tdpanel-exp">
+                        <input type="hidden" id="expTripId">
+                        <div id="expPriceBanner"
+                          style="display:none;background:linear-gradient(135deg,var(--primary),#6366f1);border-radius:14px;padding:16px 20px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                          <div>
+                            <div style="font-size:0.75rem;opacity:.8;margin-bottom:2px;">الإجمالي على الطفل (الرحلة +
+                              مصروفات)</div>
+                            <div id="expTotalPerKidVal" style="font-size:1.8rem;font-weight:900;">0 ج</div>
+                            <div id="expPriceBreakdown" style="font-size:0.7rem;opacity:.7;margin-top:2px;"></div>
+                          </div>
+                          <i class="fas fa-calculator" style="font-size:2.5rem;opacity:.3;"></i>
+                        </div>
+                        <div class="summary-box" id="expSummary" style="margin-bottom:16px;"></div>
+                        <h4
+                          style="margin-bottom:10px;font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:8px;">
+                          <i class="fas fa-plus-circle" style="color:var(--primary);"></i> إضافة مصروف جديد
+                        </h4>
+                        <form id="addExpenseForm" onsubmit="addTripExpense(event)">
+                          <div class="form-grid">
+                            <div class="form-group"><label class="form-label">اسم المصروف</label><input type="text"
+                                id="expName" class="form-input" placeholder="إيجار باص، طعام..."></div>
+                            <div class="form-group"><label class="form-label">النوع</label><select id="expType"
+                                class="form-select" style="width:100%;">
+                                <option value="bus">إيجار باص</option>
+                                <option value="food">طعام</option>
+                                <option value="entry">دخول</option>
+                                <option value="other">أخرى</option>
+                              </select></div>
+                            <div class="form-group"><label class="form-label">المبلغ الإجمالي (ج)</label><input
+                                type="number" id="expAmount" class="form-input" step="1" min="0" required
+                                oninput="calcExpPerKid()"></div>
+                            <div class="form-group"><label class="form-label">طريقة التمويل</label><select
+                                id="expFunding" class="form-select" style="width:100%;" onchange="toggleExpFunding()">
+                                <option value="kids">يدفعها الأطفال</option>
+                                <option value="funded">ممولة</option>
+                                <option value="partial">جزئية</option>
+                              </select></div>
+                            <div class="form-group" id="expDivisionGroup"><label
+                                class="form-label">التقسيم</label><select id="expDivision" class="form-select"
+                                style="width:100%;" onchange="calcExpPerKid()">
+                                <option value="per_kid">المبلغ على كل طفل</option>
+                                <option value="total_divided">يُقسَّم على الأطفال</option>
+                              </select></div>
+                            <div class="form-group" id="expKidsAmountGroup" style="display:none;"><label
+                                class="form-label">ما يدفعه
+                                الأطفال</label><input type="number" id="expKidsAmount" class="form-input" step="1"
+                                min="0" oninput="calcExpPerKid()"></div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                              <div
+                                style="background:var(--info-light);color:#1e40af;padding:11px 14px;border-radius:10px;font-weight:700;font-size:0.85rem;"
+                                id="expCalcResult">أدخل المبلغ لحساب النصيب</div>
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;"><label
+                                class="form-label">ملاحظات</label><input type="text" id="expNotes" class="form-input"
+                                placeholder="ملاحظات إضافية"></div>
+                          </div>
+                          <button type="submit" class="btn btn-primary" style="margin-top:10px;" id="addExpBtn"><i
+                              class="fas fa-plus"></i> إضافة المصروف</button>
+                        </form>
+                        <hr class="divider-line">
+                        <h4 style="margin-bottom:10px;font-size:0.9rem;font-weight:700;">قائمة المصروفات</h4>
+                        <div id="expensesList"></div>
+                      </div>
+                      <div class="td-panel" id="tdpanel-rooms">
+                        <div id="tripRoomsContent"></div>
+                      </div>
+                    </div>
+                    <div class="trip-shell-pages" id="tripShellPages"></div>
+                  </section>
+                </div>
               </div>
             </div>
           </div>
@@ -5188,7 +5199,7 @@
           allTripsCache = [tripResp.trip];
           window.currentWaitlistCache = tripResp.trip.waitlist || [];
           renderTripDetailsFull(tripResp.trip);
-          
+
           const hasRooms = tripResp.trip.has_rooms == 1;
           const desktopTab = document.getElementById('tdtab-desktop-rooms');
           const mobileTab = document.getElementById('tdtab-rooms');
@@ -5383,26 +5394,26 @@
         const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
         const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
         const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
-        
+
         // Cache the raw unfiltered list for Rooms workspace, which always needs all kids
         const rawRegs = trip.registrations || [];
         tripRegistrationsCache[trip.id] = rawRegs;
-        
+
         // Dynamic filtering based on toggle state
         const regs = getFilteredTripRegistrations(trip, rawRegs);
-        
+
         const basePrice = Math.round(calcFinalPrice?.(trip) || Math.round(trip.price || 0));
         const exps = tripExpensesCache[trip.id] || [];
         const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
         const totalPerKid = basePrice + expPerKid;
-        
+
         // Unfiltered waitlist cache for general usage
         const rawWaitlist = getTripWaitlistFromTrip(trip);
         window.currentWaitlistCache = rawWaitlist;
-        
+
         // Filtered waitlist for stats on details page
         const waitlist = getFilteredTripWaitlist(trip, rawWaitlist);
-        
+
         const fin = calcTripFinancialTotals(trip, regs, waitlist);
         const registrationCollected = fin.registrationCollected;
         const waitlistCollected = fin.waitlistCollected;
@@ -6415,8 +6426,8 @@
               const tripTitle = req.trip_title || '';
               const fromName = req.from_church_name || '';
               const isAccessRequest = req.request_type === 'access_request';
-              const limitMsg = (req.registration_limit !== null && req.registration_limit !== undefined) 
-                ? ` (الحد الأقصى للتسجيل: ${req.registration_limit})` 
+              const limitMsg = (req.registration_limit !== null && req.registration_limit !== undefined)
+                ? ` (الحد الأقصى للتسجيل: ${req.registration_limit})`
                 : '';
               const msg = isAccessRequest
                 ? `<strong>كنيسة: ${fromName}</strong> تطلب المشاركة في رحلتك: <strong>${tripTitle}</strong>`
@@ -6855,7 +6866,8 @@
           </form>
           <hr class="divider-line">
           <h3 style="font-size:0.88rem;margin-bottom:12px;color:var(--text-2);display:flex;align-items:center;gap:8px;">
-            <i class="fas fa-history" style="color:var(--muted);"></i> الدفعات السابقة لهذا الطفل</h3>
+            <i class="fas fa-history" style="color:var(--muted);"></i> الدفعات السابقة لهذا الطفل
+          </h3>
           <div id="previousPaymentsList"></div>
         </div>
       </div>
@@ -6893,7 +6905,8 @@
           </form>
           <hr class="divider-line">
           <h3 style="font-size:0.88rem;margin-bottom:12px;color:var(--text-2);display:flex;align-items:center;gap:8px;">
-            <i class="fas fa-history" style="color:var(--muted);"></i> التبرعات السابقة لهذا الطفل</h3>
+            <i class="fas fa-history" style="color:var(--muted);"></i> التبرعات السابقة لهذا الطفل
+          </h3>
           <div id="previousDonationsList"></div>
         </div>
       </div>
@@ -6976,7 +6989,10 @@
               style="padding:12px;border-radius:10px;border:1.5px solid var(--success);background:var(--success-light);text-align:right;">
               <div style="font-weight:700;font-size:0.85rem;color:#065f46;margin-bottom:4px;"><i
                   class="fas fa-plus-circle"></i> إضافة أطفال للرحلة من ملف CSV</div>
-              <div style="font-size:0.77rem;color:#047857;">ارفع ملف CSV يحتوي على أسماء وبيانات الأطفال. سيقوم النظام بمطابقتهم تلقائياً مع قاعدة بيانات الكنيسة. <strong style="display:block;margin-top:4px;color:#065f46;"><i class="fas fa-info-circle"></i> تنبيه: ليس من الضروري ملء جميع خانات البيانات بالملف.</strong></div>
+              <div style="font-size:0.77rem;color:#047857;">ارفع ملف CSV يحتوي على أسماء وبيانات الأطفال. سيقوم النظام
+                بمطابقتهم تلقائياً مع قاعدة بيانات الكنيسة. <strong
+                  style="display:block;margin-top:4px;color:#065f46;"><i class="fas fa-info-circle"></i> تنبيه: ليس من
+                  الضروري ملء جميع خانات البيانات بالملف.</strong></div>
               <button class="btn btn-sm" onclick="tripDownloadTemplate()"
                 style="margin-top:8px;width:100%;background:var(--success);color:white;border:none;">
                 <i class="fas fa-download"></i> تحميل نموذج CSV فارغ
@@ -6999,53 +7015,62 @@
 
     <!-- Bulk Match Review Modal -->
     <div id="bulkMatchReviewModal" class="modal">
-        <div class="modal-box wide" style="max-width: 95vw; width: 1200px;">
-            <div class="modal-head">
-                <h2><i class="fas fa-tasks"></i> مراجعة مطابقة الأسماء والاستيراد الجماعي للرحلة</h2>
-                <button class="modal-close" onclick="closeModal('bulkMatchReviewModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div style="background: var(--primary-light); padding: 12px; border-radius: 10px; border: 1px solid var(--primary-dark); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px; color: var(--primary-dark); direction: rtl; text-align: right;">
-                    <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام تلقائياً بالبحث عن أفضل مطابقة لأسماء الأطفال في قاعدة البيانات الحالية. يمكنك تعديل حالة أي طفل أو اختيار ربطه بطفل آخر، أو إضافته كطفل جديد بالكنيسة، أو استبعاده من عملية الاستيراد.
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; direction: rtl; text-align: right;">
-                    <div style="display: flex; gap: 8px;">
-                        <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;" id="reviewMatchCount">مطابقة مؤكدة: 0</span>
-                        <span class="badge" style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a;" id="reviewPossibleCount">مطابقة محتملة: 0</span>
-                        <span class="badge" style="background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5;" id="reviewNewCount">أطفال جدد: 0</span>
-                    </div>
-                    <div>
-                        <input type="text" id="reviewSearchInput" class="form-input form-input-sm" style="width: 200px; display: inline-block;" placeholder="البحث في القائمة..." oninput="filterReviewTable()">
-                    </div>
-                </div>
-
-                <div class="table-wrap" style="max-height: 55vh; overflow-y: auto; direction: rtl; text-align: right;">
-                    <table class="table" style="width: 100%; min-width: 800px; text-align: right; border-collapse: collapse;">
-                        <thead style="position: sticky; top: 0; background: var(--surface-2); z-index: 10;">
-                            <tr>
-                                <th style="width: 50px; text-align: right; padding: 10px;">#</th>
-                                <th style="text-align: right; padding: 10px;">الاسم بالملف</th>
-                                <th style="text-align: right; padding: 10px;">الفصل / الهاتف بالملف</th>
-                                <th style="text-align: right; padding: 10px; width: 220px;">حالة المطابقة المقترحة</th>
-                                <th style="text-align: right; padding: 10px; width: 320px;">الطفل المستهدف</th>
-                                <th style="text-align: center; padding: 10px; width: 80px;">استيراد؟</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bulkReviewTableBody">
-                            <!-- Rows dynamic -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; direction: rtl;">
-                    <button class="btn btn-success" id="btnConfirmBulkImport" onclick="submitBulkImport()">
-                        <i class="fas fa-check-double"></i> تأكيد وحفظ الاستيراد للرحلة
-                    </button>
-                    <button class="btn btn-outline" onclick="closeModal('bulkMatchReviewModal')">إلغاء</button>
-                </div>
-            </div>
+      <div class="modal-box wide" style="max-width: 95vw; width: 1200px;">
+        <div class="modal-head">
+          <h2><i class="fas fa-tasks"></i> مراجعة مطابقة الأسماء والاستيراد الجماعي للرحلة</h2>
+          <button class="modal-close" onclick="closeModal('bulkMatchReviewModal')"><i class="fas fa-times"></i></button>
         </div>
+        <div class="modal-body">
+          <div
+            style="background: var(--primary-light); padding: 12px; border-radius: 10px; border: 1px solid var(--primary-dark); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px; color: var(--primary-dark); direction: rtl; text-align: right;">
+            <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام تلقائياً بالبحث عن أفضل مطابقة لأسماء
+            الأطفال في قاعدة البيانات الحالية. يمكنك تعديل حالة أي طفل أو اختيار ربطه بطفل آخر، أو إضافته كطفل جديد
+            بالكنيسة، أو استبعاده من عملية الاستيراد.
+          </div>
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; direction: rtl; text-align: right;">
+            <div style="display: flex; gap: 8px;">
+              <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;"
+                id="reviewMatchCount">مطابقة مؤكدة: 0</span>
+              <span class="badge" style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a;"
+                id="reviewPossibleCount">مطابقة محتملة: 0</span>
+              <span class="badge" style="background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5;"
+                id="reviewNewCount">أطفال جدد: 0</span>
+            </div>
+            <div>
+              <input type="text" id="reviewSearchInput" class="form-input form-input-sm"
+                style="width: 200px; display: inline-block;" placeholder="البحث في القائمة..."
+                oninput="filterReviewTable()">
+            </div>
+          </div>
+
+          <div class="table-wrap" style="max-height: 55vh; overflow-y: auto; direction: rtl; text-align: right;">
+            <table class="table" style="width: 100%; min-width: 800px; text-align: right; border-collapse: collapse;">
+              <thead style="position: sticky; top: 0; background: var(--surface-2); z-index: 10;">
+                <tr>
+                  <th style="width: 50px; text-align: right; padding: 10px;">#</th>
+                  <th style="text-align: right; padding: 10px;">الاسم بالملف</th>
+                  <th style="text-align: right; padding: 10px;">الفصل / الهاتف بالملف</th>
+                  <th style="text-align: right; padding: 10px; width: 220px;">حالة المطابقة المقترحة</th>
+                  <th style="text-align: right; padding: 10px; width: 320px;">الطفل المستهدف</th>
+                  <th style="text-align: center; padding: 10px; width: 80px;">استيراد؟</th>
+                </tr>
+              </thead>
+              <tbody id="bulkReviewTableBody">
+                <!-- Rows dynamic -->
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; direction: rtl;">
+            <button class="btn btn-success" id="btnConfirmBulkImport" onclick="submitBulkImport()">
+              <i class="fas fa-check-double"></i> تأكيد وحفظ الاستيراد للرحلة
+            </button>
+            <button class="btn btn-outline" onclick="closeModal('bulkMatchReviewModal')">إلغاء</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Add Attendance -->
@@ -8037,11 +8062,11 @@
         if (!trip) return;
 
         const loggedInChurchId = parseInt(
-          localStorage.getItem('churchId') || 
-          localStorage.getItem('church_id') || 
-          localStorage.getItem('uncle_church_id') || 
-          localStorage.getItem('uncleChurchId') || 
-          window.currentChurchId || 
+          localStorage.getItem('churchId') ||
+          localStorage.getItem('church_id') ||
+          localStorage.getItem('uncle_church_id') ||
+          localStorage.getItem('uncleChurchId') ||
+          window.currentChurchId ||
           0
         );
         const ownerChurchId = parseInt(trip.church_id || 0);
@@ -8071,7 +8096,7 @@
         const ownerLimit = parseInt(trip.max_participants || 0);
         const collabLimitMode = trip.collab_limit_mode || 'open';
         const collabMax = parseInt(trip.collab_max_participants || 0);
-        
+
         // Decode collaborator limits
         const collabLimits = {};
         const collabList = Array.isArray(trip.collaborators_list) ? trip.collaborators_list : [];
@@ -8157,7 +8182,7 @@
 
         // Now decide the prompt message
         if (excessCount > 0) {
-          const msg = isOwner 
+          const msg = isOwner
             ? `تم اكتشاف ${excessCount} طفل مسجلين فوق الحد المسموح به لكنائسهم.\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`
             : `تم اكتشاف ${excessCount} طفل مسجلين فوق الحد المسموح به لكنيستكم.\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`;
           if (confirm(msg)) {
@@ -8272,19 +8297,19 @@
 
       async function tripShowBulkAddModal(tripId) {
         currentReviewTripId = tripId;
-        
+
         // Reset file input and errors
         const fileInput = document.getElementById('tripCsvFile');
         if (fileInput) fileInput.value = '';
-        
+
         const errDiv = document.getElementById('tripBulkErrors');
         if (errDiv) {
           errDiv.style.display = 'none';
           errDiv.innerHTML = '';
         }
-        
+
         openModal('bulkAddModal');
-        
+
         // Load all church kids to tripStudentsCache if not already loaded
         if (!tripStudentsCache || !tripStudentsCache.length) {
           const fd = new FormData();
@@ -8484,17 +8509,17 @@
       function calculateCombinedScore(r, s) {
         const nameScore = calculateFuzzyScore(r.name || '', s.name || s['الاسم'] || '');
         let score = nameScore;
-        
+
         const rPhone = r.phone || '';
         const rEmerg = r.emergency_phone || '';
         const sPhone = s.phone || s['الهاتف'] || s['رقم التليفون'] || s['تليفون'] || '';
         const sEmerg = s.emergency_phone || s['تليفون الطوارئ'] || s['هاتف الطوارئ'] || '';
-        
+
         const cleanCsvPhone = rPhone ? rPhone.replace(/[^\d]/g, '') : '';
         const cleanCsvEmerg = rEmerg ? rEmerg.replace(/[^\d]/g, '') : '';
         const cleanDbPhone = sPhone ? sPhone.replace(/[^\d]/g, '') : '';
         const cleanDbEmerg = sEmerg ? sEmerg.replace(/[^\d]/g, '') : '';
-        
+
         let phoneMatch = false;
         if (cleanCsvPhone && (cleanCsvPhone === cleanDbPhone || cleanCsvPhone === cleanDbEmerg)) {
           phoneMatch = true;
@@ -8502,7 +8527,7 @@
         if (cleanCsvEmerg && (cleanCsvEmerg === cleanDbPhone || cleanCsvEmerg === cleanDbEmerg)) {
           phoneMatch = true;
         }
-        
+
         if (phoneMatch) {
           if (nameScore >= 0.3) {
             score = Math.max(score, 0.95);
@@ -8510,7 +8535,7 @@
             score += 0.3;
           }
         }
-        
+
         const rBirth = r.birthday || '';
         const sBirth = s.birthday || s['عيد الميلاد'] || s['تاريخ الميلاد'] || '';
         if (rBirth && sBirth) {
@@ -8524,7 +8549,7 @@
             }
           }
         }
-        
+
         // Siblings auto-match prevention: if first names are different but father names match
         const n1 = normalizeArabicName(r.name || '');
         const n2 = normalizeArabicName(s.name || s['الاسم'] || '');
@@ -8537,7 +8562,7 @@
             }
           }
         }
-        
+
         return Math.min(score, 1.0);
       }
 
@@ -8597,10 +8622,10 @@
         csv = csv.replace(/^\uFEFF/, '');
         const lines = csv.split(/\r?\n/);
         if (!lines.length) { showToast('الملف فارغ', 'warning'); return; }
-        
+
         const headerCells = parseCSVLine(lines[0] || '');
         const mapping = detectColumns(headerCells);
-        
+
         const standardIndices = new Set(Object.values(mapping).filter(i => i !== -1));
         const customCols = headerCells
           .map((h, i) => ({ h: h.replace(/"/g, '').trim(), i }))
@@ -8628,7 +8653,7 @@
           const address = cell(mapping.address);
           const birthday = cell(mapping.birthday);
           const siblings = cell(mapping.siblings);
-          
+
           // Gender normalization
           let genderRaw = cell(mapping.gender).toLowerCase();
           let gender = '';
@@ -8716,7 +8741,7 @@
         const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const body = document.getElementById('bulkReviewTableBody');
         if (!body) return;
-        
+
         let confidentCount = 0;
         let possibleCount = 0;
         let newCount = 0;
@@ -8757,7 +8782,7 @@
           // Match Dropdown
           let selectHtml = `<select class="form-select form-select-sm" style="width:100%;font-size:0.8rem;" onchange="updateRowMatch(${idx}, this.value)">`;
           selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>➕ إضافة كطفل جديد بالكنيسة</option>`;
-          
+
           if (r.matches.length > 0) {
             selectHtml += `<optgroup label="مطابقات مقترحة">`;
             r.matches.forEach(m => {
@@ -9066,7 +9091,7 @@
             if (floorSelect && roomSelect) {
               const bldName = parentVal;
               let roomsConfig = [];
-              try { roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config; } catch (e) {}
+              try { roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config; } catch (e) { }
               const bld = (roomsConfig || []).find(b => b.name === bldName);
               if (bld && bld.has_floors) {
                 const updateRooms = () => {
@@ -9803,7 +9828,7 @@
         const sel = document.getElementById(selectId);
         const inp = document.getElementById(inputId);
         if (sel && inp) {
-            inp.style.display = sel.value === 'limited' ? 'block' : 'none';
+          inp.style.display = sel.value === 'limited' ? 'block' : 'none';
         }
       }
 
@@ -9939,17 +9964,17 @@
 
         document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
         toggleTripRoomsConfigurator('edit').then(() => {
-            if (t.has_rooms == 1 && t.rooms_config) {
-                try {
-                    const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        const templateId = parsed[0].rooms_template_id || 'custom';
-                        document.getElementById('editTripRoomsTemplate').value = templateId;
-                        onRoomsTemplateChange('edit');
-                        populateRoomsWizardFromConfig('edit', parsed);
-                    }
-                } catch (e) { console.error(e); }
-            }
+          if (t.has_rooms == 1 && t.rooms_config) {
+            try {
+              const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                const templateId = parsed[0].rooms_template_id || 'custom';
+                document.getElementById('editTripRoomsTemplate').value = templateId;
+                onRoomsTemplateChange('edit');
+                populateRoomsWizardFromConfig('edit', parsed);
+              }
+            } catch (e) { console.error(e); }
+          }
         });
 
         toggleEditTripDates();
@@ -9985,27 +10010,27 @@
         let customFields = t ? (t.custom_fields || '') : '';
         let customFieldIcons = {};
         try {
-            customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
+          customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
         } catch (e) { }
         if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
-            customFieldIcons = {};
+          customFieldIcons = {};
         }
 
         const hasRooms = document.getElementById('editTripHasRooms').value === '1';
         let roomsConfig = null;
         if (hasRooms) {
-            const config = compileRoomsConfig('edit');
-            roomsConfig = JSON.stringify(config);
-            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
-            if (!fieldsList.includes('السكن')) {
-                fieldsList.push('السكن');
-            }
-            customFields = fieldsList.join(',');
-            customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
+          const config = compileRoomsConfig('edit');
+          roomsConfig = JSON.stringify(config);
+          const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
+          if (!fieldsList.includes('السكن')) {
+            fieldsList.push('السكن');
+          }
+          customFields = fieldsList.join(',');
+          customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
         } else {
-            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
-            customFields = fieldsList.join(',');
-            delete customFieldIcons['السكن'];
+          const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
+          customFields = fieldsList.join(',');
+          delete customFieldIcons['السكن'];
         }
 
         fd.append('custom_fields', customFields);
@@ -10138,7 +10163,7 @@
           sAvatar = Math.max(25, Math.min(availW * 0.25, availH * 0.35));
           sTripImg = Math.max(20, Math.min(availW * 0.22, availH * 0.25));
           sLogo = Math.max(10, Math.min(availW * 0.08, availH * 0.1));
-          
+
           fH2 = Math.max(9, Math.min(availW * 0.06, availH * 0.085));
           fH3 = Math.max(8, Math.min(availW * 0.05, availH * 0.065));
           fCustom = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
@@ -10149,7 +10174,7 @@
           sAvatar = Math.max(25, Math.min(availW * 0.32, availH * 0.22));
           sTripImg = Math.max(20, Math.min(availW * 0.32, availH * 0.16));
           sLogo = Math.max(10, Math.min(availW * 0.12, availH * 0.06));
-          
+
           fH2 = Math.max(9, Math.min(availW * 0.09, availH * 0.055));
           fH3 = Math.max(8, Math.min(availW * 0.07, availH * 0.045));
           fCustom = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
@@ -10557,8 +10582,8 @@
 
       function generateBackCardMarkup(opts) {
         const {
-            scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-            baseWidth, baseHeight, textReadability
+          scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+          baseWidth, baseHeight, textReadability
         } = opts;
 
         const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
@@ -10566,13 +10591,13 @@
 
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
         const cardRadius = isCardRounded ? 10 : 0;
-        
+
         const availW = scaledWidth - 2 * scaledPadding;
         const availH = scaledHeight - 2 * scaledPadding;
 
         let textShadowStyle = 'none';
         if (textReadability === 'stroke') {
-            textShadowStyle = `
+          textShadowStyle = `
                 -1.5px -1.5px 0 ${strokeColor}, 
                  1.5px -1.5px 0 ${strokeColor}, 
                 -1.5px  1.5px 0 ${strokeColor}, 
@@ -10587,12 +10612,12 @@
         const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
 
         let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle};`;
-        
+
         let bgHtml = '';
         if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
-            const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
-            const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
-            bgHtml = `
+          const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
+          const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
+          bgHtml = `
             <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
             <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
             `;
@@ -11445,9 +11470,9 @@
       function handleCustomBgUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
           const wVal = parseFloat(document.getElementById('printCardWidth')?.value) || 7;
           const hVal = parseFloat(document.getElementById('printCardHeight')?.value) || 10;
           const aspect = wVal / hVal;
@@ -11460,10 +11485,10 @@
         targetAspect = aspect;
         cropImage = new Image();
         cropImage.src = dataUrl;
-        cropImage.onload = function() {
+        cropImage.onload = function () {
           cropCanvas = document.getElementById('cropCanvas');
           cropCtx = cropCanvas.getContext('2d');
-          
+
           if (!cropCanvas.dataset.listenersBound) {
             cropCanvas.addEventListener('mousedown', startDrag);
             cropCanvas.addEventListener('mousemove', drag);
@@ -11474,12 +11499,12 @@
             cropCanvas.addEventListener('touchend', endDrag);
             cropCanvas.dataset.listenersBound = "true";
           }
-          
+
           const maxDisplayW = 500;
           const maxDisplayH = 340;
           let displayW = cropImage.width;
           let displayH = cropImage.height;
-          
+
           if (displayW > maxDisplayW) {
             displayH = (maxDisplayW / displayW) * displayH;
             displayW = maxDisplayW;
@@ -11488,32 +11513,32 @@
             displayW = (maxDisplayH / displayH) * displayW;
             displayH = maxDisplayH;
           }
-          
+
           cropCanvas.width = displayW;
           cropCanvas.height = displayH;
-          
+
           let w = displayW;
           let h = w / targetAspect;
           if (h > displayH) {
             h = displayH;
             w = h * targetAspect;
           }
-          
+
           w = w * 0.95;
           h = h * 0.95;
-          
+
           cropBox.w = w;
           cropBox.h = h;
           cropBox.x = (displayW - w) / 2;
           cropBox.y = (displayH - h) / 2;
-          
+
           const sizeSlider = document.getElementById('cropSizeSlider');
           if (sizeSlider) {
             sizeSlider.min = Math.round(Math.min(w * 0.2, 30));
             sizeSlider.max = Math.round(w);
             sizeSlider.value = Math.round(w);
           }
-          
+
           drawCropCanvas();
           openModal('imageCropModal');
         };
@@ -11523,31 +11548,31 @@
         if (!cropCanvas || !cropCtx) return;
         const cw = cropCanvas.width;
         const ch = cropCanvas.height;
-        
+
         cropCtx.clearRect(0, 0, cw, ch);
         cropCtx.drawImage(cropImage, 0, 0, cw, ch);
-        
+
         cropCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         cropCtx.fillRect(0, 0, cw, cropBox.y);
         cropCtx.fillRect(0, cropBox.y + cropBox.h, cw, ch - (cropBox.y + cropBox.h));
         cropCtx.fillRect(0, cropBox.y, cropBox.x, cropBox.h);
         cropCtx.fillRect(cropBox.x + cropBox.w, cropBox.y, cw - (cropBox.x + cropBox.w), cropBox.h);
-        
+
         cropCtx.strokeStyle = '#4f46e5';
         cropCtx.lineWidth = 2.5;
         cropCtx.setLineDash([6, 4]);
         cropCtx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
         cropCtx.setLineDash([]);
-        
+
         cropCtx.fillStyle = '#ffffff';
         cropCtx.strokeStyle = '#4f46e5';
         cropCtx.lineWidth = 2;
         const cornerSize = 10;
         const corners = [
-          {x: cropBox.x, y: cropBox.y},
-          {x: cropBox.x + cropBox.w, y: cropBox.y},
-          {x: cropBox.x, y: cropBox.y + cropBox.h},
-          {x: cropBox.x + cropBox.w, y: cropBox.y + cropBox.h}
+          { x: cropBox.x, y: cropBox.y },
+          { x: cropBox.x + cropBox.w, y: cropBox.y },
+          { x: cropBox.x, y: cropBox.y + cropBox.h },
+          { x: cropBox.x + cropBox.w, y: cropBox.y + cropBox.h }
         ];
         corners.forEach(c => {
           cropCtx.beginPath();
@@ -11561,7 +11586,7 @@
         e.preventDefault();
         const pos = getMousePos(e);
         if (pos.x >= cropBox.x && pos.x <= cropBox.x + cropBox.w &&
-            pos.y >= cropBox.y && pos.y <= cropBox.y + cropBox.h) {
+          pos.y >= cropBox.y && pos.y <= cropBox.y + cropBox.h) {
           isDraggingCropBox = true;
           dragStart.x = pos.x - cropBox.x;
           dragStart.y = pos.y - cropBox.y;
@@ -11574,15 +11599,15 @@
         const pos = getMousePos(e);
         let newX = pos.x - dragStart.x;
         let newY = pos.y - dragStart.y;
-        
+
         const cw = cropCanvas.width;
         const ch = cropCanvas.height;
-        
+
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + cropBox.w > cw) newX = cw - cropBox.w;
         if (newY + cropBox.h > ch) newY = ch - cropBox.h;
-        
+
         cropBox.x = newX;
         cropBox.y = newY;
         drawCropCanvas();
@@ -11607,18 +11632,18 @@
         const h = w / targetAspect;
         const cw = cropCanvas.width;
         const ch = cropCanvas.height;
-        
+
         const cx = cropBox.x + cropBox.w / 2;
         const cy = cropBox.y + cropBox.h / 2;
-        
+
         let newX = cx - w / 2;
         let newY = cy - h / 2;
-        
+
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + w > cw) newX = cw - w;
         if (newY + h > ch) newY = ch - h;
-        
+
         if (w <= cw && h <= ch) {
           cropBox.w = w;
           cropBox.h = h;
@@ -11631,29 +11656,29 @@
       function confirmCrop() {
         const exportW = 1000;
         const exportH = exportW / targetAspect;
-        
+
         const exportCanvas = document.createElement('canvas');
         exportCanvas.width = exportW;
         exportCanvas.height = exportH;
         const exportCtx = exportCanvas.getContext('2d');
-        
+
         const scaleX = cropImage.width / cropCanvas.width;
         const scaleY = cropImage.height / cropCanvas.height;
-        
+
         const sx = cropBox.x * scaleX;
         const sy = cropBox.y * scaleY;
         const sw = cropBox.w * scaleX;
         const sh = cropBox.h * scaleY;
-        
+
         exportCtx.drawImage(cropImage, sx, sy, sw, sh, 0, 0, exportW, exportH);
-        
+
         customCardBackgroundDataUrl = exportCanvas.toDataURL('image/jpeg', 0.9);
-        
+
         document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
         document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
         document.getElementById('printCustomBgSubSettings').style.display = 'flex';
         document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
-        
+
         closeCropModal();
         updatePrintPreview();
       }
@@ -11695,7 +11720,7 @@
         // Padding & Border
         const paddingInput = document.getElementById('printPadding');
         if (paddingInput) paddingInput.value = 13;
-        
+
         const borderInput = document.getElementById('printCardOutlineStyle');
         if (borderInput) borderInput.value = 'none';
 
@@ -11711,22 +11736,22 @@
 
         const showTripTitle = document.getElementById('printShowTripTitle');
         if (showTripTitle) showTripTitle.checked = true;
-        
+
         const showStudentImg = document.getElementById('printShowStudentImg');
         if (showStudentImg) showStudentImg.checked = true;
-        
+
         const showAvatarFallback = document.getElementById('printShowAvatarFallback');
         if (showAvatarFallback) showAvatarFallback.checked = false;
-        
+
         const showStudentName = document.getElementById('printShowStudentName');
         if (showStudentName) showStudentName.checked = true;
-        
+
         const showStudentId = document.getElementById('printShowStudentId');
         if (showStudentId) showStudentId.checked = true;
 
         const showCustom = document.getElementById('printShowCustom');
         if (showCustom) showCustom.checked = true;
-        
+
         const cardRounded = document.getElementById('printCardRounded');
         if (cardRounded) cardRounded.checked = false;
 
@@ -11799,7 +11824,7 @@
 
         const paddingInput = document.getElementById('printPadding');
         if (paddingInput) paddingInput.value = 15;
-        
+
         const borderInput = document.getElementById('printCardOutlineStyle');
         if (borderInput) borderInput.value = 'solid';
 
@@ -11814,22 +11839,22 @@
 
         const showTripTitle = document.getElementById('printShowTripTitle');
         if (showTripTitle) showTripTitle.checked = true;
-        
+
         const showStudentImg = document.getElementById('printShowStudentImg');
         if (showStudentImg) showStudentImg.checked = true;
-        
+
         const showAvatarFallback = document.getElementById('printShowAvatarFallback');
         if (showAvatarFallback) showAvatarFallback.checked = true;
-        
+
         const showStudentName = document.getElementById('printShowStudentName');
         if (showStudentName) showStudentName.checked = true;
-        
+
         const showStudentId = document.getElementById('printShowStudentId');
         if (showStudentId) showStudentId.checked = true;
 
         const showCustom = document.getElementById('printShowCustom');
         if (showCustom) showCustom.checked = true;
-        
+
         const cardRounded = document.getElementById('printCardRounded');
         if (cardRounded) cardRounded.checked = true;
 
@@ -11881,7 +11906,7 @@
       // =========================================================================
 
       // Inject Rooms Stylesheet
-      (function() {
+      (function () {
         const style = document.createElement('style');
         style.textContent = `
           .rooms-ws-container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; direction: rtl; margin-top: 15px; }
@@ -11932,7 +11957,7 @@
           .ws-uncle-tag { display: inline-flex; align-items: center; gap: 4px; background: #fef3c7; color: #d97706; padding: 2px 5px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
           .ws-uncle-tag i { cursor: pointer; }
           .ws-uncle-tag i:hover { color: #ef4444; }
-          .ws-room-assign-uncle { width: 100%; border: 1px dashed var(--border); background: none; border-radius: 4px; padding: 3px; font-size: 0.65rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+          .ws-room-assign-uncle { width: 100%; border: 1px dashed var(--border); background: none; border-radius: 4px; padding: 3px; font-size: 0.65rem; font-family: 'Cairo'; color: var(--muted); cursor: pointer; transition: all 0.2s; }
           .ws-room-assign-uncle:hover { border-color: var(--primary); color: var(--primary); }
           @keyframes roomsPulse {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
@@ -11985,7 +12010,7 @@
             if (res.success) {
               window.allUnclesCache = res.uncles || [];
             }
-          } catch(e) {}
+          } catch (e) { }
         }
 
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
@@ -12073,7 +12098,7 @@
         // Parse children allocations from registrations custom_data
         regs.forEach(r => {
           let cData = {};
-          try { cData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
           if (cData['السكن']) {
             allocatedMap[r.id] = {
               bldName: cData['السكن'],
@@ -12138,7 +12163,7 @@
         let gridHtml = '';
         roomsConfig.forEach((bld, bldIdx) => {
           const bldAllocatedKids = regs.filter(r => allocatedMap[r.id] && allocatedMap[r.id].bldName === bld.name);
-          
+
           let bldSubHtml = '';
           if (bld.has_floors) {
             bld.floors.forEach((fl, fIdx) => {
@@ -12242,8 +12267,8 @@
             </div>
             <div class="ws-room-kids-list">
               ${roomKids.map(k => {
-                const isDraft = window.roomsDraftAllocations && window.roomsDraftAllocations[k.id];
-                return `
+          const isDraft = window.roomsDraftAllocations && window.roomsDraftAllocations[k.id];
+          return `
                   <div class="ws-kid-badge ${k.student_gender === 'female' ? 'girl' : 'boy'} ${isDraft ? 'draft-assigned' : ''}" 
                        title="${escHtml(k.student_class)} - ${escHtml(k._churchName || '')}">
                     <div class="ws-kid-info">
@@ -12260,7 +12285,7 @@
                     </div>
                   </div>
                 `;
-              }).join('')}
+        }).join('')}
               ${occupied === 0 ? `<div style="text-align:center; font-size:0.68rem; color:var(--muted); padding:4px 0;">شريحة فارغة</div>` : ''}
             </div>
             
@@ -12348,7 +12373,7 @@
        */
       function onKidSwapClick(event, regId, bldName, floorName, roomName) {
         event.stopPropagation();
-        
+
         if (window.roomsSwapSource) {
           if (window.roomsSwapSource.regId == regId) {
             cancelRoomsSwapMode();
@@ -12378,7 +12403,7 @@
         if (!r) return;
 
         let customData = {};
-        try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+        try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
 
         const nextRoom = {
           'السكن': targetRoomObj.bldName,
@@ -12418,14 +12443,14 @@
         if (!sourceReg) return;
 
         let sourceData = {};
-        try { sourceData = JSON.parse(sourceReg.custom_data || '{}'); } catch(e) {}
+        try { sourceData = JSON.parse(sourceReg.custom_data || '{}'); } catch (e) { }
 
         if (targetRegId) {
           // SWAP
           const targetReg = regs.find(r => r.id == targetRegId);
           if (!targetReg) return;
           let targetData = {};
-          try { targetData = JSON.parse(targetReg.custom_data || '{}'); } catch(e) {}
+          try { targetData = JSON.parse(targetReg.custom_data || '{}'); } catch (e) { }
 
           const nextSourceRoom = {
             'السكن': targetData['السكن'] || '',
@@ -12505,7 +12530,7 @@
         if (!r) return;
 
         let customData = {};
-        try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+        try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
 
         delete customData['السكن'];
         delete customData['السكن__sf__الدور'];
@@ -12541,7 +12566,7 @@
 
         regs.forEach(r => {
           let customData = {};
-          try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+          try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
           if (customData['السكن']) {
             delete customData['السكن'];
             delete customData['السكن__sf__الدور'];
@@ -12567,7 +12592,7 @@
           showToast('تم تفريغ جميع الغرف السكنية بنجاح!', 'success');
           regs.forEach(r => {
             let customData = {};
-            try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
             delete customData['السكن'];
             delete customData['السكن__sf__الدور'];
             delete customData['السكن__sf__الغرفة'];
@@ -12590,7 +12615,7 @@
           const r = regs.find(x => x.id == kidId);
           if (r) {
             let customData = {};
-            try { customData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
             customData['السكن'] = roomObj.bldName;
             customData['السكن__sf__الدور'] = roomObj.floorName || '';
             customData['السكن__sf__الغرفة'] = roomObj.roomName;
@@ -12628,7 +12653,7 @@
         try {
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
           return !!res.success;
-        } catch(e) {
+        } catch (e) {
           showToast('عفواً، فشل الاتصال بالخادم لحفظ التسكين', 'error');
           return false;
         }
@@ -12653,7 +12678,7 @@
         if (!trip) return;
 
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
-        
+
         // Find room and assign uncle
         let assignedName = '';
         const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
@@ -12860,7 +12885,7 @@
       // =========================================================================
 
       // Inject Auto-Fill Settings Modal Markup into DOM - Trigger redeployment
-      (function() {
+      (function () {
         if (document.getElementById('autoFillRoomsModal')) return;
         const modal = document.createElement('div');
         modal.id = 'autoFillRoomsModal';
@@ -12944,7 +12969,7 @@
         let collaborators = [];
         try {
           collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
-        } catch(e) {}
+        } catch (e) { }
         collaborators.forEach(cId => {
           const parsedId = parseInt(cId);
           if (parsedId && parsedId !== ownerId) {
@@ -12984,8 +13009,8 @@
                   </div>
                   <div style="display:flex; flex-direction:column; gap:6px; padding-right:12px; border-right:2px solid var(--primary-light);">
                     ${b.floors.map(fl => {
-                      const flEsc = escHtml(fl.name);
-                      return `
+                const flEsc = escHtml(fl.name);
+                return `
                         <div style="display:flex; flex-direction:column; gap:4px; padding-bottom:4px; border-bottom:1px dashed var(--border);">
                           <span style="font-size:0.75rem; font-weight:700;"><i class="fas fa-layer-group"></i> ${flEsc}:</span>
                           <div style="display:flex; gap:6px; width:100%; flex-wrap:wrap;">
@@ -13000,7 +13025,7 @@
                           </div>
                         </div>
                       `;
-                    }).join('')}
+              }).join('')}
                   </div>
                 </div>
               `;
@@ -13088,7 +13113,7 @@
         if (scope === 'unassigned') {
           regs.forEach(r => {
             let cData = {};
-            try { cData = JSON.parse(r.custom_data || '{}'); } catch(e) {}
+            try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
             if (cData['السكن']) {
               allocatedMap[r.id] = {
                 bldName: cData['السكن'],
@@ -13206,7 +13231,7 @@
                 if (r.occupied >= r.capacity) return false;
                 if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
                 if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit).trim() !== kidChurchName) return false;
-                
+
                 // Enforce max uncles limit if configured
                 if (uncleLimit !== 'none') {
                   const limitVal = parseInt(uncleLimit);
@@ -13438,11 +13463,13 @@
               <div class="form-group" style="grid-column:1/-1;">
                 <label class="form-label">حجز الكنائس الأخرى المشاركة (التعاون)</label>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                  <select id="editTripCollabLimitMode" class="form-select" style="flex:1;min-width:200px;" onchange="toggleCollabLimitInput('edit')">
+                  <select id="editTripCollabLimitMode" class="form-select" style="flex:1;min-width:200px;"
+                    onchange="toggleCollabLimitInput('edit')">
                     <option value="open">مفتوح (حسب حد كل كنيسة منفردة)</option>
                     <option value="limited">تحديد حد إجمالي لجميع الكنائس الأخرى المشاركة</option>
                   </select>
-                  <input type="number" id="editTripCollabMaxParticipants" class="form-input" style="width:180px;display:none;" min="0" placeholder="أقصى عدد إجمالي">
+                  <input type="number" id="editTripCollabMaxParticipants" class="form-input"
+                    style="width:180px;display:none;" min="0" placeholder="أقصى عدد إجمالي">
                 </div>
               </div>
               <div class="form-group">
@@ -13474,23 +13501,28 @@
               </div>
               <div class="form-group" style="grid-column:1/-1;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <label class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف وسكن في هذه الرحلة؟</label>
-                  <select id="editTripHasRooms" class="form-select" style="width:120px;" onchange="toggleTripRoomsConfigurator('edit')">
+                  <label class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف وسكن في هذه
+                    الرحلة؟</label>
+                  <select id="editTripHasRooms" class="form-select" style="width:120px;"
+                    onchange="toggleTripRoomsConfigurator('edit')">
                     <option value="0">لا</option>
                     <option value="1">نعم</option>
                   </select>
                 </div>
-                <div id="editTripRoomsConfigWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
+                <div id="editTripRoomsConfigWrap"
+                  style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
                   <div class="form-group" style="margin-bottom:12px;">
                     <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
-                    <select id="editTripRoomsTemplate" class="form-select" style="width:100%;" onchange="onRoomsTemplateChange('edit')">
+                    <select id="editTripRoomsTemplate" class="form-select" style="width:100%;"
+                      onchange="onRoomsTemplateChange('edit')">
                       <!-- Loaded dynamically -->
                     </select>
                   </div>
                   <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
                     <div class="form-group" style="margin-bottom:12px;">
                       <label class="form-label" style="font-weight:700;">عدد المباني / الفيلات</label>
-                      <input type="number" id="editTripRoomsBldCount" class="form-input" value="1" min="1" max="100" onchange="adjustRoomsWizardBldCount('edit')">
+                      <input type="number" id="editTripRoomsBldCount" class="form-input" value="1" min="1" max="100"
+                        onchange="adjustRoomsWizardBldCount('edit')">
                     </div>
                     <div id="editTripRoomsBldList" style="display:flex; flex-direction:column; gap:10px;">
                       <!-- Building cards rendered here -->
@@ -13540,43 +13572,52 @@
           <!-- Settings Panel -->
           <div id="printSettingsFormPanel"
             style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:16px; max-height:75vh; overflow-y:auto; padding-left:5px;">
-            
+
             <!-- Section: Templates Presets -->
             <style>
-                .recommended-btn-glow {
-                    transition: all 0.3s ease;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                }
-                .recommended-btn-glow:hover {
-                    box-shadow: 0 0 10px rgba(79, 70, 229, 0.45);
-                    transform: translateY(-1px);
-                }
+              .recommended-btn-glow {
+                transition: all 0.3s ease;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              }
+
+              .recommended-btn-glow:hover {
+                box-shadow: 0 0 10px rgba(79, 70, 229, 0.45);
+                transform: translateY(-1px);
+              }
             </style>
-            <div style="background:var(--card, #fff); border:1.5px solid var(--primary); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-                <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                    القالب Sunday School
-                </h4>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button type="button" class="btn btn-primary btn-sm recommended-btn-glow" onclick="applyRecommendedQRTemplate()" style="flex:2; justify-content:center; gap:6px; font-weight:800; font-size:0.8rem; height:34px; border:none;">
-                        <i class="fas fa-magic"></i> تطبيق القالب
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="flex:1; justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border);">
-                        <i class="fas fa-undo"></i> إعادة تعيين
-                    </button>
-                </div>
+            <div
+              style="background:var(--card, #fff); border:1.5px solid var(--primary); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                القالب Sunday School
+              </h4>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary btn-sm recommended-btn-glow"
+                  onclick="applyRecommendedQRTemplate()"
+                  style="flex:2; justify-content:center; gap:6px; font-weight:800; font-size:0.8rem; height:34px; border:none;">
+                  <i class="fas fa-magic"></i> تطبيق القالب
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()"
+                  style="flex:1; justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border);">
+                  <i class="fas fa-undo"></i> إعادة تعيين
+                </button>
+              </div>
             </div>
 
             <!-- Section 1: Dimensions & Layout -->
-            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+            <div
+              style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
                 <i class="fas fa-arrows-alt"></i> أبعاد وتخطيط البطاقة
               </h4>
-              
+
               <div class="form-group">
                 <label class="form-label">حجم البطاقة (٪)</label>
                 <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;"
                   oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
-                <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
+                <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">
+                  100%</div>
               </div>
 
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -13613,7 +13654,8 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label">شكل إطار الكارت</label>
-                  <select id="printCardOutlineStyle" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
+                  <select id="printCardOutlineStyle" class="form-select"
+                    style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
                     onchange="togglePrintDashControls(); updatePrintPreview()">
                     <option value="none">بدون إطار (No Border)</option>
                     <option value="dashed">متقطع (Dashed)</option>
@@ -13637,19 +13679,23 @@
             </div>
 
             <!-- Section 2: Card Contents Checklist -->
-            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+            <div
+              style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
                 <i class="fas fa-list-ul"></i> محتويات البطاقة
               </h4>
-              
+
               <div style="display:flex; flex-direction:column; gap:10px;">
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowChurch" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>اسم الكنيسة والشعار</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowTripImage"
                     style="accent-color:var(--primary); width:16px; height:16px;"
                     onchange="const show = this.checked; document.getElementById('printTripImageSubSettings').style.display = show ? 'flex' : 'none'; updatePrintPreview();">
@@ -13680,7 +13726,8 @@
                         <input type="range" id="printTripImgOverlayOpacity" min="0" max="100" value="50"
                           style="padding:0; flex:1;"
                           oninput="updatePrintPreview(); document.getElementById('printTripImgOverlayOpacityVal').textContent = this.value + '%'">
-                        <span id="printTripImgOverlayOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:30px;">50%</span>
+                        <span id="printTripImgOverlayOpacityVal"
+                          style="font-weight:bold; font-size:0.75rem; min-width:30px;">50%</span>
                       </div>
                     </div>
                   </div>
@@ -13695,13 +13742,15 @@
                   </div>
                 </div>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowTripTitle" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>عنوان الرحلة</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowStudentImg" checked
                     style="accent-color:var(--primary); width:16px; height:16px;"
                     onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
@@ -13711,53 +13760,64 @@
                 <!-- Avatar Fallback Sub-option -->
                 <div id="printAvatarFallbackRow"
                   style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:var(--bg); border-radius:6px;">
-                  <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
+                  <label
+                    style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
                     <input type="checkbox" id="printShowAvatarFallback" checked
                       style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
                     <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
                   </label>
                 </div>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowStudentName" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>اسم الطفل</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowStudentId" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>عرض كود الطفل (ID)</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printShowCustom" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>البيانات الإضافية</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printCardRounded" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>حواف دائرية للكارت (Rounded Corners)</span>
                 </label>
 
-                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printBackCard" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
+                  <input type="checkbox" id="printBackCard" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>توليد ظهر الكارت (Generate Back Card)</span>
                 </label>
               </div>
             </div>
 
             <!-- Section 3: Colors & Readability -->
-            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+            <div
+              style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
                 <i class="fas fa-palette"></i> الألوان وتأثيرات النصوص
               </h4>
-              
+
               <div class="form-group">
                 <label class="form-label" style="font-weight:800;">تأثير وضوح نصوص الكارت</label>
-                <select id="printTextReadability" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="updatePrintPreview()">
+                <select id="printTextReadability" class="form-select"
+                  style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
+                  onchange="updatePrintPreview()">
                   <option value="none" selected>بدون تأثير إضافي (تلقائي)</option>
                   <option value="stroke">حدود خارجية بيضاء للنص (White Stroke)</option>
                   <option value="rect">مستطيلات خلفية بيضاء حول النصوص (White Rectangles)</option>
@@ -13765,12 +13825,14 @@
               </div>
 
               <!-- Readability Rect Sub-settings -->
-              <div id="printReadabilitySubSettings" style="display:none; flex-direction:column; gap:12px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:10px; margin-top:4px;">
+              <div id="printReadabilitySubSettings"
+                style="display:none; flex-direction:column; gap:12px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:10px; margin-top:4px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
                   <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
-                    <input type="color" id="printTextReadabilityBgColor" value="#ffffff"
-                      oninput="updatePrintPreview()" onchange="updatePrintPreview()">
-                    <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printTextReadabilityBgColor">لون خلفية المستطيل</label>
+                    <input type="color" id="printTextReadabilityBgColor" value="#ffffff" oninput="updatePrintPreview()"
+                      onchange="updatePrintPreview()">
+                    <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;"
+                      for="printTextReadabilityBgColor">لون خلفية المستطيل</label>
                   </div>
                 </div>
 
@@ -13780,7 +13842,8 @@
                     <input type="range" id="printTextReadabilityBgOpacity" min="0" max="100" value="92"
                       style="padding:0; flex:1;"
                       oninput="updatePrintPreview(); document.getElementById('printTextReadabilityBgOpacityVal').textContent = this.value + '%'">
-                    <span id="printTextReadabilityBgOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:35px;">92%</span>
+                    <span id="printTextReadabilityBgOpacityVal"
+                      style="font-weight:bold; font-size:0.75rem; min-width:35px;">92%</span>
                   </div>
                 </div>
 
@@ -13795,7 +13858,9 @@
 
                 <div style="display:flex; flex-direction:column; gap:4px;">
                   <span style="font-size:0.75rem; font-weight:700;">عرض المستطيلات الخلفية:</span>
-                  <select id="printTextReadabilityWidth" class="form-select" style="width:100%; height:36px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="updatePrintPreview()">
+                  <select id="printTextReadabilityWidth" class="form-select"
+                    style="width:100%; height:36px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
+                    onchange="updatePrintPreview()">
                     <option value="fitted" selected>كل مستطيل يناسب محتواه (Fitted)</option>
                     <option value="same-fitted">كل المستطيلات بنفس عرض أكبر محتوى (Same Fitted)</option>
                     <option value="full">عرض كامل لنصف الكارت (Full Width)</option>
@@ -13804,8 +13869,10 @@
                   </select>
                 </div>
 
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:4px;">
-                  <label style="display:flex; align-items:center; gap:8px; font-size:0.75rem; cursor:pointer; color:var(--text);">
+                <div
+                  style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:4px;">
+                  <label
+                    style="display:flex; align-items:center; gap:8px; font-size:0.75rem; cursor:pointer; color:var(--text);">
                     <input type="checkbox" id="printTextReadabilityShadow" checked
                       style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                     <span>تفعيل ظل للمستطيلات (Rectangle Shadows)</span>
@@ -13814,39 +13881,52 @@
               </div>
 
               <!-- Wide color pickers turned into neat circular ones in a row -->
-              <div style="display:flex; flex-direction:row; justify-content:space-around; align-items:center; gap:12px; flex-wrap:wrap; margin-top:4px; border-top:1px dashed var(--border); padding-top:10px;">
+              <div
+                style="display:flex; flex-direction:row; justify-content:space-around; align-items:center; gap:12px; flex-wrap:wrap; margin-top:4px; border-top:1px dashed var(--border); padding-top:10px;">
                 <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
-                  <input type="color" id="printFontColor" value="#000000"
-                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
-                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printFontColor">لون الخط الموحد</label>
+                  <input type="color" id="printFontColor" value="#000000" oninput="updatePrintPreview()"
+                    onchange="updatePrintPreview()">
+                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printFontColor">لون
+                    الخط الموحد</label>
                 </div>
                 <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
-                  <input type="color" id="printStrokeColor" value="#dddddd"
-                    oninput="updatePrintPreview()" onchange="updatePrintPreview()">
-                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printStrokeColor">لون إطار النصوص (Stroke)</label>
+                  <input type="color" id="printStrokeColor" value="#dddddd" oninput="updatePrintPreview()"
+                    onchange="updatePrintPreview()">
+                  <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;"
+                    for="printStrokeColor">لون إطار النصوص (Stroke)</label>
                 </div>
               </div>
             </div>
 
 
             <!-- Section 4: Custom Background -->
-            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+            <div
+              style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
                 <i class="fas fa-image"></i> خلفية الكارت المخصصة
               </h4>
-              
+
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <input type="file" id="printCustomBgInput" accept="image/*" style="display:none;" onchange="handleCustomBgUpload(event)">
-                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('printCustomBgInput').click()"><i class="fas fa-image"></i> اختر صورة خلفية</button>
-                <button type="button" id="printRemoveCustomBgBtn" class="btn btn-outline btn-sm" style="display:none; color:#dc2626; border-color:#fca5a5; background:#fef2f2;" onclick="removeCustomBg()"><i class="fas fa-trash-alt"></i> إزالة</button>
+                <input type="file" id="printCustomBgInput" accept="image/*" style="display:none;"
+                  onchange="handleCustomBgUpload(event)">
+                <button type="button" class="btn btn-outline btn-sm"
+                  onclick="document.getElementById('printCustomBgInput').click()"><i class="fas fa-image"></i> اختر صورة
+                  خلفية</button>
+                <button type="button" id="printRemoveCustomBgBtn" class="btn btn-outline btn-sm"
+                  style="display:none; color:#dc2626; border-color:#fca5a5; background:#fef2f2;"
+                  onclick="removeCustomBg()"><i class="fas fa-trash-alt"></i> إزالة</button>
               </div>
-              
-              <div id="printCustomBgThumbnailWrap" style="display:none; align-items:center; gap:8px; background:var(--bg); padding:6px; border-radius:6px;">
-                <img id="printCustomBgThumbnail" src="" style="width:40px; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+
+              <div id="printCustomBgThumbnailWrap"
+                style="display:none; align-items:center; gap:8px; background:var(--bg); padding:6px; border-radius:6px;">
+                <img id="printCustomBgThumbnail" src=""
+                  style="width:40px; height:50px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
                 <span style="font-size:0.75rem; color:var(--muted);">تم رفع الصورة بنجاح</span>
               </div>
-              
-              <div id="printCustomBgSubSettings" style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:8px; margin-top:4px;">
+
+              <div id="printCustomBgSubSettings"
+                style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:8px; margin-top:4px;">
                 <div style="display:flex; align-items:center; gap:8px; color:var(--text);">
                   <span style="font-size:0.8rem;">لون التظليل:</span>
                   <input type="color" id="printCustomBgOverlayColor" value="#ffffff"
@@ -13859,41 +13939,47 @@
                     <input type="range" id="printCustomBgOverlayOpacity" min="0" max="100" value="0"
                       style="padding:0; flex:1;"
                       oninput="updatePrintPreview(); document.getElementById('printCustomBgOverlayOpacityVal').textContent = this.value + '%'">
-                    <span id="printCustomBgOverlayOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
+                    <span id="printCustomBgOverlayOpacityVal"
+                      style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <!-- Section 5: PDF Export Settings -->
-            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02); margin-top:8px;">
-                <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                    <i class="fas fa-file-pdf"></i> إعدادات تصدير PDF
-                </h4>
-                <div style="display:flex; gap:10px;">
-                    <div class="form-group" style="flex:1; margin:0;">
-                        <label class="form-label" style="font-size:0.75rem;">حجم الورقة</label>
-                        <select id="pdfPaperSize" class="form-input" style="font-size:0.8rem; height:34px; padding:4px 8px;">
-                            <option value="a4" selected>A4 (210x297mm)</option>
-                            <option value="letter">Letter (216x279mm)</option>
-                            <option value="a3">A3 (297x420mm)</option>
-                            <option value="a5">A5 (148x210mm)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex:1; margin:0;">
-                        <label class="form-label" style="font-size:0.75rem;">اتجاه الورقة</label>
-                        <select id="pdfOrientation" class="form-input" style="font-size:0.8rem; height:34px; padding:4px 8px;">
-                            <option value="portrait" selected>رأسي (Portrait)</option>
-                            <option value="landscape">أفقي (Landscape)</option>
-                        </select>
-                    </div>
+            <div
+              style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02); margin-top:8px;">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-file-pdf"></i> إعدادات تصدير PDF
+              </h4>
+              <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1; margin:0;">
+                  <label class="form-label" style="font-size:0.75rem;">حجم الورقة</label>
+                  <select id="pdfPaperSize" class="form-input" style="font-size:0.8rem; height:34px; padding:4px 8px;">
+                    <option value="a4" selected>A4 (210x297mm)</option>
+                    <option value="letter">Letter (216x279mm)</option>
+                    <option value="a3">A3 (297x420mm)</option>
+                    <option value="a5">A5 (148x210mm)</option>
+                  </select>
                 </div>
-                <button type="button" class="btn" onclick="exportQRCardsToPDF()" style="width:100%; height:38px; font-size:0.85rem; font-weight:800; background:#10b981; border:none; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:6px; cursor:pointer;">
-                    <i class="fas fa-file-download"></i> حفظ كـ PDF (Save as PDF)
-                </button>
+                <div class="form-group" style="flex:1; margin:0;">
+                  <label class="form-label" style="font-size:0.75rem;">اتجاه الورقة</label>
+                  <select id="pdfOrientation" class="form-input"
+                    style="font-size:0.8rem; height:34px; padding:4px 8px;">
+                    <option value="portrait" selected>رأسي (Portrait)</option>
+                    <option value="landscape">أفقي (Landscape)</option>
+                  </select>
+                </div>
+              </div>
+              <button type="button" class="btn" onclick="exportQRCardsToPDF()"
+                style="width:100%; height:38px; font-size:0.85rem; font-weight:800; background:#10b981; border:none; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:6px; cursor:pointer;">
+                <i class="fas fa-file-download"></i> حفظ كـ PDF (Save as PDF)
+              </button>
             </div>
 
-            <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px; height:44px; font-size:0.95rem; font-weight:800;"><i
+            <button class="btn btn-primary" onclick="executePrintQRCards()"
+              style="width:100%; margin-top:8px; height:44px; font-size:0.95rem; font-weight:800;"><i
                 class="fas fa-print"></i> تجهيز وطباعة</button>
           </div>
 
@@ -13919,21 +14005,26 @@
 
     <!-- Print Warning Modal -->
     <div id="printWarningModal" class="modal app-dialog" style="z-index: 9999;">
-        <div class="modal-overlay" onclick="closeModal('printWarningModal')"></div>
-        <div class="modal-box">
-            <div class="modal-head">
-                <h2>تنبيه الطباعة (Print Warning)</h2>
-                <button type="button" class="modal-close" onclick="closeModal('printWarningModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <p style="text-align: center; font-weight: 700; font-size: 0.95rem; color: var(--text-2); line-height: 1.65; margin: 0;">يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.</p>
-                <p style="text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin: 8px 0 0 0;">Recommended to use A3 Landscape Mode while printing.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('printWarningModal')">إلغاء (Cancel)</button>
-                <button type="button" class="btn btn-primary" onclick="executePrintQRCards(true)">طباعة (Print)</button>
-            </div>
+      <div class="modal-overlay" onclick="closeModal('printWarningModal')"></div>
+      <div class="modal-box">
+        <div class="modal-head">
+          <h2>تنبيه الطباعة (Print Warning)</h2>
+          <button type="button" class="modal-close" onclick="closeModal('printWarningModal')"><i
+              class="fas fa-times"></i></button>
         </div>
+        <div class="modal-body">
+          <p
+            style="text-align: center; font-weight: 700; font-size: 0.95rem; color: var(--text-2); line-height: 1.65; margin: 0;">
+            يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.</p>
+          <p style="text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin: 8px 0 0 0;">
+            Recommended to use A3 Landscape Mode while printing.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('printWarningModal')">إلغاء
+            (Cancel)</button>
+          <button type="button" class="btn btn-primary" onclick="executePrintQRCards(true)">طباعة (Print)</button>
+        </div>
+      </div>
     </div>
 
     <!-- Image Crop Modal -->
@@ -13944,17 +14035,21 @@
           <button class="modal-close" onclick="closeCropModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" style="display:flex; flex-direction:column; gap:16px; align-items:center;">
-          <div style="width:100%; max-height:380px; display:flex; justify-content:center; align-items:center; background:#f1f5f9; border-radius:8px; overflow:hidden; position:relative; border:1px solid var(--border);">
+          <div
+            style="width:100%; max-height:380px; display:flex; justify-content:center; align-items:center; background:#f1f5f9; border-radius:8px; overflow:hidden; position:relative; border:1px solid var(--border);">
             <canvas id="cropCanvas" style="max-width:100%; max-height:380px; cursor:move; display:block;"></canvas>
           </div>
-          
+
           <div style="width:100%; display:flex; flex-direction:column; gap:8px;">
             <label class="form-label" style="font-weight:700;">حجم إطار القص (تغيير الأبعاد مع تثبيت النسبة)</label>
-            <input type="range" id="cropSizeSlider" min="50" max="300" value="200" style="padding:0; width:100%;" oninput="handleCropSizeChange(this.value)">
+            <input type="range" id="cropSizeSlider" min="50" max="300" value="200" style="padding:0; width:100%;"
+              oninput="handleCropSizeChange(this.value)">
           </div>
 
-          <div style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px;">
-            <span style="font-size:0.75rem; color:var(--muted);"><i class="fas fa-info-circle"></i> اسحب الإطار لتحديد الجزء المطلوب من الصورة</span>
+          <div
+            style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px;">
+            <span style="font-size:0.75rem; color:var(--muted);"><i class="fas fa-info-circle"></i> اسحب الإطار لتحديد
+              الجزء المطلوب من الصورة</span>
             <div style="display:flex; gap:8px;">
               <button type="button" class="btn btn-outline" onclick="closeCropModal()">إلغاء</button>
               <button type="button" class="btn btn-primary" onclick="confirmCrop()">تأكيد القص</button>
