@@ -40717,16 +40717,15 @@ function saveRoomsTemplate()
 
 
         $conn = getDBConnection();
-
         ensureRoomsSchema($conn);
-
         $role = $_SESSION['uncle_role'] ?? 'uncle';
+        $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
 
 
         if ($id > 0) {
 
-            if ($role === 'developer') {
+            if ($isDeveloperRole) {
 
                 $stmt = $conn->prepare("UPDATE `rooms_templates` SET name = ?, config = ? WHERE id = ?");
 
@@ -40742,7 +40741,7 @@ function saveRoomsTemplate()
 
         } else {
 
-            if ($role === 'developer' && $isDevSave === 1) {
+            if ($isDeveloperRole && $isDevSave === 1) {
 
                 $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (NULL, ?, ?)");
 
@@ -40812,9 +40811,11 @@ function deleteRoomsTemplate()
 
         $role = $_SESSION['uncle_role'] ?? 'uncle';
 
+        $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
 
-        if ($role === 'developer') {
+
+        if ($isDeveloperRole) {
 
             $stmt = $conn->prepare("DELETE FROM `rooms_templates` WHERE id = ?");
 
