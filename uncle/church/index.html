@@ -7857,6 +7857,24 @@
                         <div id="devTemplatesList" style="display:flex;flex-direction:column;gap:12px;"></div>
                     </div>
                 </div>
+                <!-- ── ROOMS TEMPLATES (DEV ONLY) ── -->
+                <div class="card dev-only" style="margin-top:20px;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-hotel dev-icon"></i>
+                            قوالب غرف السكن للمطور (Rooms Templates)
+                        </div>
+                        <button class="btn btn-dev btn-sm" onclick="openDevAddRoomsTemplateModal()">
+                            <i class="fas fa-plus"></i> قالب غرف جديد
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="devRoomsTemplatesLoading"
+                            style="display:none;text-align:center;padding:24px;color:var(--muted);"><i
+                                class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                        <div id="devRoomsTemplatesList" style="display:flex;flex-direction:column;gap:12px;"></div>
+                    </div>
+                </div>
             </div>
             <!-- ── HISTORY ── -->
             <div id="history" class="tab-panel">
@@ -10467,7 +10485,7 @@
                 classes: () => loadClassSettings(),
                 pending: () => runDataLoad('pending', loadPendingRegistrations),
                 history: () => loadAuditLogs(),
-                devChurches: async () => { await loadAllChurches(); await loadRegKeys(); await loadDevTemplates(); },
+                devChurches: async () => { await loadAllChurches(); await loadRegKeys(); await loadDevTemplates(); await loadDevRoomsTemplates(); },
                 churchSettings: async () => { await loadChurchSettingsTab(); await loadAdminProfile(); }
             };
 
@@ -15111,6 +15129,174 @@
                 }
             } catch (e) {
                 showToast('خطأ في الشبكة', 'error');
+            }
+        }
+
+        // ── Developer: Rooms Layout Templates ─────────────────────────
+        let _devRoomsTemplatesCache = [];
+
+        function summarizeRoomsConfig(config) {
+            let bldCount = 0;
+            let roomCount = 0;
+            let bedCount = 0;
+            if (Array.isArray(config)) {
+                bldCount = config.length;
+                config.forEach(b => {
+                    if (b.has_floors) {
+                        if (Array.isArray(b.floors)) {
+                            b.floors.forEach(f => {
+                                if (Array.isArray(f.rooms)) {
+                                    roomCount += f.rooms.length;
+                                    f.rooms.forEach(r => {
+                                        bedCount += (parseInt(r.capacity) || 0);
+                                    });
+                                }
+                            });
+                        }
+                    } else {
+                        if (Array.isArray(b.rooms)) {
+                            roomCount += b.rooms.length;
+                            b.rooms.forEach(r => {
+                                bedCount += (parseInt(r.capacity) || 0);
+                            });
+                        }
+                    }
+                });
+            }
+            return { bldCount, roomCount, bedCount };
+        }
+
+        async function loadDevRoomsTemplates() {
+            if (!isDeveloper) return;
+            const loading = document.getElementById('devRoomsTemplatesLoading');
+            const list = document.getElementById('devRoomsTemplatesList');
+            if (loading) loading.style.display = 'block';
+            if (list) list.innerHTML = '';
+
+            try {
+                const fd = mkFd('getRoomsTemplates');
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    _devRoomsTemplatesCache = res.templates || [];
+                    if (list) {
+                        if (!_devRoomsTemplatesCache.length) {
+                            list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;"><i class="fas fa-hotel" style="font-size:1.8rem;opacity:0.25;display:block;margin-bottom:6px;"></i>لا توجد قوالب غرف مضافة بعد.</div>`;
+                        } else {
+                            if (!allChurchesCache.length) await loadAllChurches();
+                            
+                            list.innerHTML = _devRoomsTemplatesCache.map(t => {
+                                const church = allChurchesCache.find(c => c.id == t.church_id);
+                                const ownerName = t.church_id ? (church ? church.church_name : `كنيسة ${t.church_id}`) : 'قالب عام (المطور)';
+                                const summary = summarizeRoomsConfig(t.config);
+                                return `
+                                    <div class="church-card" style="padding:16px; display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <div class="church-icon" style="background:var(--dev-light); color:var(--dev); width:32px; height:32px; font-size:0.9rem;"><i class="fas fa-hotel"></i></div>
+                                                <div>
+                                                    <h4 style="font-weight:800; font-size:0.92rem; color:var(--text);">${escHtml(t.name)}</h4>
+                                                    <span style="font-size:0.7rem; color:var(--muted);">${escHtml(ownerName)}</span>
+                                                </div>
+                                            </div>
+                                            <div style="display:flex; gap:6px;">
+                                                <button type="button" class="act-btn" onclick="openDevEditRoomsTemplateModal(${t.id})" style="width:28px; height:28px; background:var(--primary-light); color:var(--primary); border:none; border-radius:4px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="تعديل"><i class="fas fa-edit"></i></button>
+                                                <button type="button" class="act-btn act-delete" onclick="devDeleteRoomsTemplate(${t.id})" style="width:28px; height:28px;" title="حذف"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                        <div style="font-size:0.75rem; color:var(--text-3); display:flex; gap:12px; margin-top:4px; flex-wrap:wrap; border-top:1px dashed var(--border); padding-top:6px;">
+                                            <span><strong>مباني:</strong> ${summary.bldCount}</span>
+                                            <span><strong>غرف:</strong> ${summary.roomCount}</span>
+                                            <span><strong>أسرّة (سعة):</strong> ${summary.bedCount}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading dev rooms templates", e);
+                showToast('خطأ في تحميل قوالب الغرف', 'error');
+            } finally {
+                if (loading) loading.style.display = 'none';
+            }
+        }
+
+        async function devDeleteRoomsTemplate(id) {
+            if (!isDeveloper) return;
+            if (!(await showConfirm({ message: 'هل أنت متأكد من حذف قالب غرف السكن هذا نهائياً؟', danger: true }))) return;
+
+            const fd = mkFd('deleteRoomsTemplate');
+            fd.append('id', id);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast('تم حذف القالب بنجاح', 'success');
+                    loadDevRoomsTemplates();
+                } else {
+                    showToast(res.message || 'فشل حذف القالب', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالشبكة', 'error');
+            }
+        }
+
+        function openDevAddRoomsTemplateModal() {
+            window.devEditingTemplateId = null;
+            document.getElementById('devRoomsTemplateModalAction').textContent = 'إضافة';
+            document.getElementById('devRoomsTemplateName').value = '';
+
+            const bldCountInput = document.getElementById('devTripRoomsBldCount');
+            if (bldCountInput) bldCountInput.value = 1;
+
+            generateRoomsWizardBldList('dev');
+            openModal('devAddRoomsTemplateModal');
+        }
+
+        function openDevEditRoomsTemplateModal(id) {
+            const t = _devRoomsTemplatesCache.find(x => x.id == id);
+            if (!t) return;
+
+            window.devEditingTemplateId = id;
+            document.getElementById('devRoomsTemplateModalAction').textContent = 'تعديل';
+            document.getElementById('devRoomsTemplateName').value = t.name;
+
+            populateRoomsWizardFromConfig('dev', t.config);
+            openModal('devAddRoomsTemplateModal');
+        }
+
+        async function saveDevRoomsTemplate() {
+            const name = document.getElementById('devRoomsTemplateName').value.trim();
+            if (!name) {
+                showToast('اسم القالب مطلوب', 'warning');
+                return;
+            }
+            const config = compileRoomsConfig('dev');
+            if (!config || config.length === 0) {
+                showToast('برجاء إضافة مبنى واحد على الأقل', 'warning');
+                return;
+            }
+
+            const fd = mkFd('saveRoomsTemplate');
+            if (window.devEditingTemplateId) {
+                fd.append('id', window.devEditingTemplateId);
+            }
+            fd.append('name', name);
+            fd.append('config', JSON.stringify(config));
+            fd.append('is_dev', '1');
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(window.devEditingTemplateId ? 'تم تعديل القالب بنجاح' : 'تم إضافة القالب الجديد بنجاح', 'success');
+                    closeModal('devAddRoomsTemplateModal');
+                    loadDevRoomsTemplates();
+                } else {
+                    showToast(res.message || 'فشل حفظ القالب', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالشبكة', 'error');
             }
         }
 
@@ -20247,6 +20433,34 @@
                 <button type="button" class="btn btn-outline" onclick="resolvePrompt(null)">إلغاء</button>
                 <button type="button" class="btn btn-primary" id="promptDialogOk"
                     onclick="resolvePrompt(document.getElementById('promptDialogInput').value)">موافق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Rooms Template Add/Edit Modal -->
+    <div id="devAddRoomsTemplateModal" class="modal">
+        <div class="modal-overlay" onclick="closeModal('devAddRoomsTemplateModal')"></div>
+        <div class="modal-box wide" style="max-width:700px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-hotel"></i> <span id="devRoomsTemplateModalAction">إضافة</span> قالب غرف السكن</h2>
+                <button type="button" class="modal-close" onclick="closeModal('devAddRoomsTemplateModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;">اسم القالب *</label>
+                    <input type="text" id="devRoomsTemplateName" class="form-input" required placeholder="مثال: بيت السويس الجديد">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:700;">عدد المباني / الفيلات</label>
+                    <input type="number" id="devTripRoomsBldCount" class="form-input" value="1" min="1" max="100" onchange="adjustRoomsWizardBldCount('dev')">
+                </div>
+                <div id="devTripRoomsBldList" style="display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow-y:auto; padding-right:4px;">
+                    <!-- Building cards rendered here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; gap:10px;">
+                <button type="button" class="btn btn-dev" style="flex:2;" onclick="saveDevRoomsTemplate()"><i class="fas fa-save"></i> حفظ القالب</button>
+                <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('devAddRoomsTemplateModal')">إلغاء</button>
             </div>
         </div>
     </div>

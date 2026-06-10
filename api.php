@@ -40688,6 +40688,10 @@ function saveRoomsTemplate()
 
         $configRaw = $_POST['config'] ?? '';
 
+        $id = intval($_POST['id'] ?? 0);
+
+        $isDevSave = intval($_POST['is_dev'] ?? 0);
+
 
 
         if (empty($name) || empty($configRaw)) {
@@ -40716,17 +40720,49 @@ function saveRoomsTemplate()
 
         ensureRoomsSchema($conn);
 
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
 
 
-        $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (?, ?, ?)");
 
-        $stmt->bind_param("iss", $churchId, $name, $configRaw);
+        if ($id > 0) {
+
+            if ($role === 'developer') {
+
+                $stmt = $conn->prepare("UPDATE `rooms_templates` SET name = ?, config = ? WHERE id = ?");
+
+                $stmt->bind_param("ssi", $name, $configRaw, $id);
+
+            } else {
+
+                $stmt = $conn->prepare("UPDATE `rooms_templates` SET name = ?, config = ? WHERE id = ? AND church_id = ?");
+
+                $stmt->bind_param("ssii", $name, $configRaw, $id, $churchId);
+
+            }
+
+        } else {
+
+            if ($role === 'developer' && $isDevSave === 1) {
+
+                $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (NULL, ?, ?)");
+
+                $stmt->bind_param("ss", $name, $configRaw);
+
+            } else {
+
+                $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (?, ?, ?)");
+
+                $stmt->bind_param("iss", $churchId, $name, $configRaw);
+
+            }
+
+        }
 
 
 
         if ($stmt->execute()) {
 
-            sendJSON(['success' => true, 'message' => 'تم حفظ القالب بنجاح', 'id' => $conn->insert_id]);
+            sendJSON(['success' => true, 'message' => 'تم حفظ القالب بنجاح', 'id' => ($id > 0 ? $id : $conn->insert_id)]);
 
         } else {
 
@@ -40774,11 +40810,23 @@ function deleteRoomsTemplate()
 
         ensureRoomsSchema($conn);
 
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
 
 
-        $stmt = $conn->prepare("DELETE FROM `rooms_templates` WHERE id = ? AND church_id = ?");
 
-        $stmt->bind_param("ii", $id, $churchId);
+        if ($role === 'developer') {
+
+            $stmt = $conn->prepare("DELETE FROM `rooms_templates` WHERE id = ?");
+
+            $stmt->bind_param("i", $id);
+
+        } else {
+
+            $stmt = $conn->prepare("DELETE FROM `rooms_templates` WHERE id = ? AND church_id = ?");
+
+            $stmt->bind_param("ii", $id, $churchId);
+
+        }
 
 
 
