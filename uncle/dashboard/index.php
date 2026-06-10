@@ -14677,34 +14677,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const today = new Date();
             const todayDay = today.getDate(), todayMonth = today.getMonth();
 
-            const zodiacSigns = [
-                { name: 'الجدي', emoji: '♑', start: [12, 22], end: [1, 19] },
-                { name: 'الدلو', emoji: '♒', start: [1, 20], end: [2, 18] },
-                { name: 'الحوت', emoji: '♓', start: [2, 19], end: [3, 20] },
-                { name: 'الحمل', emoji: '♈', start: [3, 21], end: [4, 19] },
-                { name: 'الثور', emoji: '♉', start: [4, 20], end: [5, 20] },
-                { name: 'الجوزاء', emoji: '♊', start: [5, 21], end: [6, 20] },
-                { name: 'السرطان', emoji: '♋', start: [6, 21], end: [7, 22] },
-                { name: 'الأسد', emoji: '♌', start: [7, 23], end: [8, 22] },
-                { name: 'العذراء', emoji: '♍', start: [8, 23], end: [9, 22] },
-                { name: 'الميزان', emoji: '♎', start: [9, 23], end: [10, 22] },
-                { name: 'العقرب', emoji: '♏', start: [10, 23], end: [11, 21] },
-                { name: 'القوس', emoji: '♐', start: [11, 22], end: [12, 21] },
-            ];
-            function getZodiac(day, month) {
-                for (const z of zodiacSigns) {
-                    const [sm, sd] = z.start, [em, ed] = z.end;
-                    if ((month === sm && day >= sd) || (month === em && day <= ed)) return z;
-                }
-                return null;
-            }
-
             document.getElementById('birthdayGrid').innerHTML = ms.length ? ms.map(s => {
                 const p = s['عيد الميلاد'].split('/');
                 const bDay = parseInt(p[0]), bMonth = parseInt(p[1]), bYear = p.length >= 3 ? parseInt(p[2]) : 0;
                 const isToday = (bDay === todayDay && bMonth - 1 === todayMonth);
                 const age = bYear > 0 ? today.getFullYear() - bYear - (today < new Date(today.getFullYear(), bMonth - 1, bDay) ? 1 : 0) : 0;
-                const zodiac = getZodiac(bDay, bMonth);
                 const photo = s['صورة']
                     ? `<img src="${s['صورة']}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? '#db2777' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(s['صورة'] || '').replace(/'/g, "\\'")}',event)">`
                     : `<div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--brand-bg),var(--coupon-bg));display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:1.3rem;flex-shrink:0"><i class="fas fa-user"></i></div>`;
@@ -14718,7 +14695,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div style="flex:1;min-width:0">
                     <div style="font-weight:800;color:var(--text);font-size:.92rem;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s['الاسم'] || '---'}</div>
                     <div style="font-size:.74rem;color:var(--text-3)">${s['الفصل'] || ''}</div>
-                    ${zodiac ? `<div style="font-size:.72rem;color:var(--text-3);margin-top:1px">${zodiac.emoji} ${zodiac.name}</div>` : ''}
                 </div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
