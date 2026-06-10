@@ -12871,6 +12871,9 @@
             fd.append('has_points_game', document.getElementById('tripHasPointsGame').value);
             let customFields = getCustomFieldsFromContainer('tripFieldsContainer');
             let customFieldIcons = JSON.parse(getCustomFieldIconsFromContainer('tripFieldsContainer') || '{}');
+            if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
+                customFieldIcons = {};
+            }
 
             const hasRooms = document.getElementById('addTripHasRooms').value === '1';
             let roomsConfig = null;
@@ -13015,6 +13018,9 @@
             fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
             let customFields = getCustomFieldsFromContainer('editTripFieldsContainer');
             let customFieldIcons = JSON.parse(getCustomFieldIconsFromContainer('editTripFieldsContainer') || '{}');
+            if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
+                customFieldIcons = {};
+            }
 
             const hasRooms = document.getElementById('editTripHasRooms').value === '1';
             let roomsConfig = null;

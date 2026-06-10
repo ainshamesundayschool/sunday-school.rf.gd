@@ -9985,6 +9985,9 @@
         try {
             customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
         } catch (e) { }
+        if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
+            customFieldIcons = {};
+        }
 
         const hasRooms = document.getElementById('editTripHasRooms').value === '1';
         let roomsConfig = null;
