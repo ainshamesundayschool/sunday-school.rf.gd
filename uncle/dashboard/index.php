@@ -2876,7 +2876,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .attendance-list.bulk-active .attendance-actions {
+            display: flex !important;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: auto !important;
+            align-self: center !important;
+        }
+        .attendance-list.bulk-active .attendance-actions .coupon-toggle-row,
+        .attendance-list.bulk-active .attendance-actions .attend-btn-row {
             display: none !important;
+        }
+        .attendance-list.bulk-active .attendance-actions .student-coupons {
+            display: flex !important;
         }
         .attendance-list.bulk-active .attendance-item {
             min-height: 80px;
