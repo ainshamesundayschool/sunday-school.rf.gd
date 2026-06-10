@@ -6356,6 +6356,12 @@
       }
 
       document.addEventListener('DOMContentLoaded', async function () {
+        const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+        if (isDev) {
+          document.querySelectorAll('.dev-only').forEach(el => {
+            el.style.display = 'flex';
+          });
+        }
         const joinTripId = parseInt(new URLSearchParams(window.location.search).get('joinTrip') || '0');
         if (joinTripId > 0) {
           await handleJoinTrip(joinTripId);
@@ -11985,6 +11991,8 @@
         if (!wrap) return;
         wrap.innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري تحميل السكن...</div>`;
 
+        const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip || trip.has_rooms != 1) {
           wrap.innerHTML = '<div class="empty-state">نظام السكن غير مفعل في هذه الرحلة.</div>';
@@ -12040,9 +12048,10 @@
 
               <!-- Actions Row -->
               <div class="rooms-actions-row">
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
+                  ${isDev ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
                 </div>
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="roomsSearchFilter" class="form-input" placeholder="بحث باسم الطفل أو الغرفة..." style="font-size:0.75rem; height:30px; padding:4px 10px; width:200px;" oninput="onRoomsSearchChange()">
@@ -12609,6 +12618,72 @@
             r.custom_data = JSON.stringify(customData);
           });
           renderRoomsWorkspaceData();
+        }
+      }
+
+      /**
+       * Save active trip rooms configuration structure as a reusable template
+       */
+      async function saveActiveTripRoomsAsTemplate() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) {
+          showToast('لم يتم العثور على بيانات الرحلة', 'error');
+          return;
+        }
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
+          showToast('لا يوجد هيكل غرف حالي لحفظه كقالب', 'warning');
+          return;
+        }
+
+        // Clean uncles array to keep template structure clean, but preserve capacity (max beds)
+        const cleanConfig = JSON.parse(JSON.stringify(roomsConfig));
+        cleanConfig.forEach(bld => {
+          if (bld.has_floors) {
+            if (Array.isArray(bld.floors)) {
+              bld.floors.forEach(fl => {
+                if (Array.isArray(fl.rooms)) {
+                  fl.rooms.forEach(r => {
+                    r.uncles = [];
+                  });
+                }
+              });
+            }
+          } else {
+            if (Array.isArray(bld.rooms)) {
+              bld.rooms.forEach(r => {
+                r.uncles = [];
+              });
+            }
+          }
+        });
+
+        const templateName = prompt('برجاء إدخال اسم القالب الجديد:');
+        if (!templateName) return; // user cancelled
+
+        const trimmedName = templateName.trim();
+        if (!trimmedName) {
+          showToast('اسم القالب لا يمكن أن يكون فارغاً', 'error');
+          return;
+        }
+
+        try {
+          const fd = new FormData();
+          fd.append('action', 'saveRoomsTemplate');
+          fd.append('name', trimmedName);
+          fd.append('config', JSON.stringify(cleanConfig));
+
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success) {
+            showToast('تم حفظ هيكل السكن الحالي كقالب جديد بنجاح', 'success');
+          } else {
+            showToast(res.message || 'فشل حفظ القالب', 'error');
+          }
+        } catch (e) {
+          console.error("Error saving rooms template", e);
+          showToast('خطأ في الاتصال بالخادم أثناء حفظ القالب', 'error');
         }
       }
 
@@ -13523,10 +13598,15 @@
                   style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
                   <div class="form-group" style="margin-bottom:12px;">
                     <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
-                    <select id="editTripRoomsTemplate" class="form-select" style="width:100%;"
-                      onchange="onRoomsTemplateChange('edit')">
-                      <!-- Loaded dynamically -->
-                    </select>
+                    <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                      <select id="editTripRoomsTemplate" class="form-select" style="flex:1;"
+                        onchange="onRoomsTemplateChange('edit')">
+                        <!-- Loaded dynamically -->
+                      </select>
+                      <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('edit')" style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                        <i class="fas fa-save"></i> حفظ كقالب
+                      </button>
+                    </div>
                   </div>
                   <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
                     <div class="form-group" style="margin-bottom:12px;">

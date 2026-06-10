@@ -7132,7 +7132,7 @@
                                                     <select id="addTripRoomsTemplate" class="form-select" style="flex:1;" onchange="onRoomsTemplateChange('add')">
                                                         <!-- Loaded dynamically -->
                                                     </select>
-                                                    <button type="button" class="btn btn-outline" onclick="saveCurrentRoomsAsTemplate('add')" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                                                    <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('add')" style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
                                                         <i class="fas fa-save"></i> حفظ كقالب
                                                     </button>
                                                 </div>
@@ -8350,7 +8350,7 @@
                                         <select id="editTripRoomsTemplate" class="form-select" style="flex:1;" onchange="onRoomsTemplateChange('edit')">
                                             <!-- Loaded dynamically -->
                                         </select>
-                                        <button type="button" class="btn btn-outline" onclick="saveCurrentRoomsAsTemplate('edit')" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                                        <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('edit')" style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
                                             <i class="fas fa-save"></i> حفظ كقالب
                                         </button>
                                     </div>
@@ -10223,6 +10223,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+            if (isDev) {
+                document.querySelectorAll('.dev-only').forEach(el => {
+                    el.style.display = 'flex';
+                });
+            }
             // 1. Get authoritative session from server
             const sess = await initSession();
             const hasLocalSession =
