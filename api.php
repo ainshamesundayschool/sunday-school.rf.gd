@@ -1703,9 +1703,12 @@ function updateCollaborationLimit()
         $up = $conn->prepare("UPDATE trips SET collaboration_limits = ? WHERE id = ?");
         $up->bind_param("si", $limitsJson, $tripId);
         if ($up->execute()) {
+            while (promoteFirstEligibleFromWaitlist($conn, $tripId)) {
+                // Keep promoting eligible kids
+            }
             sendJSON([
                 'success' => true,
-                'message' => 'تم تحديث حد التسجيل بنجاح',
+                'message' => 'تم تحديث حد التسجيل بنجاح وتم ترقية الأطفال المؤهلين من قائمة الانتظار تلقائياً',
                 'collaborators_list' => getCollaboratingChurchesList($conn, $trip['collaborating_churches'], $churchId, $limitsJson)
             ]);
         } else {
@@ -4521,6 +4524,16 @@ try {
         case 'getWaitlist':
 
             getWaitlistAction();
+
+            break;
+
+
+
+                case 'promoteFromWaitlist':
+
+            checkAuth();
+
+            promoteSpecificFromWaitlistAction();
 
             break;
 
@@ -21090,6 +21103,11 @@ function updateTrip()
                 $updStmt->execute();
             }
 
+            // Auto-promote eligible waitlist children due to limit change
+            while (promoteFirstEligibleFromWaitlist($conn, $tripId)) {
+                // Keep promoting
+            }
+
             // AFTER update, get new trip data
 
             $newTrip = getTripSnapshot($tripId);
@@ -22383,39 +22401,21 @@ function getWaitlistNextPosition($conn, $tripId)
 
 
 
-function promoteFirstFromWaitlist($conn, $tripId, $churchId)
-
+function promoteWaitlistEntry($conn, $waiting, $tripId)
 {
 
-    // Get the first student in the waitlist
 
-    $stmt = $conn->prepare("
+    
 
-        SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+    
 
-        FROM trip_waitlist tw
+    
 
-        JOIN students s ON s.id = tw.student_id
+    
 
-        WHERE tw.trip_id = ?
+    
 
-        ORDER BY tw.position ASC
-
-        LIMIT 1
-
-    ");
-
-    $stmt->bind_param("i", $tripId);
-
-    $stmt->execute();
-
-    $waiting = $stmt->get_result()->fetch_assoc();
-
-    if (!$waiting) {
-
-        return null;
-
-    }
+    
 
 
 
@@ -22678,7 +22678,213 @@ function promoteFirstFromWaitlist($conn, $tripId, $churchId)
 
     ];
 
+
 }
+
+function promoteFirstEligibleFromWaitlist($conn, $tripId)
+{
+    // 1. Get the trip details
+    $tripStmt = $conn->prepare("SELECT church_id, max_participants, collaboration_limits, collab_limit_mode, collab_max_participants FROM trips WHERE id = ?");
+    $tripStmt->bind_param("i", $tripId);
+    $tripStmt->execute();
+    $trip = $tripStmt->get_result()->fetch_assoc();
+    if (!$trip) return null;
+
+    $ownerChurchId = intval($trip['church_id']);
+    $maxParticipants = intval($trip['max_participants']);
+    $collabLimitMode = $trip['collab_limit_mode'] ?? 'open';
+    $collabMax = intval($trip['collab_max_participants'] ?? 0);
+
+    $limits = [];
+    if (!empty($trip['collaboration_limits'])) {
+        $limits = json_decode($trip['collaboration_limits'], true);
+    }
+
+    // 2. Fetch all waitlist entries in order
+    $wStmt = $conn->prepare("
+        SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+        FROM trip_waitlist tw
+        JOIN students s ON s.id = tw.student_id
+        WHERE tw.trip_id = ?
+        ORDER BY tw.position ASC
+    ");
+    $wStmt->bind_param("i", $tripId);
+    $wStmt->execute();
+    $waitlist = $wStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    if (empty($waitlist)) return null;
+
+    // Check current registration stats
+    $regStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
+    $regStmt->bind_param("i", $tripId);
+    $regStmt->execute();
+    $globalCount = (int) $regStmt->get_result()->fetch_assoc()['cnt'];
+
+    if ($maxParticipants > 0 && $globalCount >= $maxParticipants) {
+        return null; // Globally full
+    }
+
+    // Fetch collaborator registrations count
+    $collabCount = 0;
+    if ($collabLimitMode === 'limited') {
+        $collabCountStmt = $conn->prepare("
+            SELECT COUNT(*) as cnt
+            FROM trip_registrations tr
+            LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+            LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+            WHERE tr.trip_id = ? 
+              AND tr.cancelled = 0
+              AND COALESCE(s.church_id, g.church_id) != ?
+        ");
+        $collabCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+        $collabCountStmt->execute();
+        $collabCount = (int) $collabCountStmt->get_result()->fetch_assoc()['cnt'];
+    }
+
+    // We will evaluate kids one by one in position order
+    foreach ($waitlist as $waiting) {
+        $studentChurchId = intval($waiting['church_id']);
+
+        // A. Check individual church limit
+        if ($studentChurchId === $ownerChurchId) {
+            // Check owner capacity
+            $ownerCountStmt = $conn->prepare("
+                SELECT COUNT(*) as cnt
+                FROM trip_registrations tr
+                LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                WHERE tr.trip_id = ? 
+                  AND tr.cancelled = 0
+                  AND COALESCE(s.church_id, g.church_id) = ?
+            ");
+            $ownerCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+            $ownerCountStmt->execute();
+            $ownerCount = (int) $ownerCountStmt->get_result()->fetch_assoc()['cnt'];
+            if ($maxParticipants > 0 && $ownerCount >= $maxParticipants) {
+                // Owner capacity full, skip this kid
+                continue;
+            }
+        } else {
+            // Check collab church limit
+            $churchLimit = isset($limits[strval($studentChurchId)]) ? intval($limits[strval($studentChurchId)]) : null;
+            if ($churchLimit !== null) {
+                $cntStmt = $conn->prepare("
+                    SELECT COUNT(*) as cnt
+                    FROM trip_registrations tr
+                    LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                    LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                    WHERE tr.trip_id = ? 
+                      AND tr.cancelled = 0
+                      AND COALESCE(s.church_id, g.church_id) = ?
+                ");
+                $cntStmt->bind_param("ii", $tripId, $studentChurchId);
+                $cntStmt->execute();
+                $churchActiveCount = (int) $cntStmt->get_result()->fetch_assoc()['cnt'];
+                if ($churchActiveCount >= $churchLimit) {
+                    // Collaborator limit exceeded, skip this kid
+                    continue;
+                }
+            }
+
+            // Check collab group limit
+            if ($collabLimitMode === 'limited' && $collabMax > 0 && $collabCount >= $collabMax) {
+                // Overall collaborator capacity full, skip this kid
+                continue;
+            }
+        }
+
+        // If we reach here, this child is eligible for promotion!
+        return promoteWaitlistEntry($conn, $waiting, $tripId);
+    }
+
+    return null;
+}
+
+
+
+function promoteFirstFromWaitlist($conn, $tripId, $churchId)
+{
+    // Get the first student in the waitlist
+    $stmt = $conn->prepare("
+        SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+        FROM trip_waitlist tw
+        JOIN students s ON s.id = tw.student_id
+        WHERE tw.trip_id = ?
+        ORDER BY tw.position ASC
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $tripId);
+    $stmt->execute();
+    $waiting = $stmt->get_result()->fetch_assoc();
+    if (!$waiting) {
+        return null;
+    }
+    return promoteWaitlistEntry($conn, $waiting, $tripId);
+}
+
+
+function promoteSpecificFromWaitlistAction()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $waitlistId = intval($_POST['waitlist_id'] ?? 0);
+
+        if (!$tripId || !$waitlistId) {
+            sendJSON(['success' => false, 'message' => 'trip_id و waitlist_id مطلوبان']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $tripStmt = $conn->prepare("SELECT church_id, max_participants, title, collaboration_limits FROM trips WHERE id = ?");
+        $tripStmt->bind_param("i", $tripId);
+        $tripStmt->execute();
+        $trip = $tripStmt->get_result()->fetch_assoc();
+        if (!$trip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
+
+        $ownerChurchId = intval($trip['church_id']);
+        
+        $wStmt = $conn->prepare("
+            SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+            FROM trip_waitlist tw
+            JOIN students s ON s.id = tw.student_id
+            WHERE tw.id = ? AND tw.trip_id = ?
+        ");
+        $wStmt->bind_param("ii", $waitlistId, $tripId);
+        $wStmt->execute();
+        $waiting = $wStmt->get_result()->fetch_assoc();
+        if (!$waiting) {
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على هذا الطفل في قائمة الانتظار']);
+            return;
+        }
+
+        $studentChurchId = intval($waiting['church_id']);
+
+        if ($churchId !== $ownerChurchId && $churchId !== $studentChurchId) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بترقية هذا الطفل']);
+            return;
+        }
+
+        $promoted = promoteWaitlistEntry($conn, $waiting, $tripId);
+        if ($promoted) {
+            sendJSON([
+                'success' => true,
+                'message' => "تم ترقية الطفل {$waiting['student_name']} إلى التسجيل الرئيسي بنجاح",
+                'promoted_student_name' => $waiting['student_name'],
+                'promoted_student_image' => $waiting['student_image']
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في ترقية الطفل']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
 
 
 
@@ -23509,7 +23715,7 @@ function rebalanceTripWaitlist()
             $slots = $max - count($regs);
             $promoted = [];
             for ($i = 0; $i < $slots; $i++) {
-                $p = promoteFirstFromWaitlist($conn, $tripId, $churchId);
+                $p = promoteFirstEligibleFromWaitlist($conn, $tripId);
                 if (!$p) {
                     break;
                 }
@@ -24692,7 +24898,7 @@ function cancelTripRegistration()
 
             if ($tripId > 0) {
 
-                $promoted = promoteFirstFromWaitlist($conn, $tripId, $churchId);
+                $promoted = promoteFirstEligibleFromWaitlist($conn, $tripId);
 
             }
 
@@ -29087,6 +29293,16 @@ try {
         case 'getWaitlist':
 
             getWaitlistAction();
+
+            break;
+
+
+
+                case 'promoteFromWaitlist':
+
+            checkAuth();
+
+            promoteSpecificFromWaitlistAction();
 
             break;
 

@@ -7985,9 +7985,10 @@
               </div>
               <div class="trip-reg-side" style="min-width:132px;">
                 <div class="sub" style="color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
-                <div style="display:flex;gap:6px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
                   <button class="btn btn-success btn-sm" onclick='showAddPaymentModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${totalPerKid}, ${paid}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-money-bill"></i> دفعة</button>
                   <button class="btn btn-outline btn-sm" onclick='showPaymentHistoryModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-history"></i> السجل</button>
+                  <button class="btn btn-primary btn-sm" style="background:var(--primary);border-color:var(--primary);color:#fff;" onclick='promoteFromWaitlist(${tripId}, ${w.id})' title="ترقية للتسجيل الرئيسي"><i class="fas fa-arrow-up"></i> ترقية</button>
                 </div>
               </div>
               <button class="act-btn act-delete" title="إزالة من قائمة الانتظار" onclick='removeFromWaitlist(${tripId}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-times"></i></button>
@@ -7995,6 +7996,25 @@
         }).join('')}
           </div>
         </div>`;
+      }
+
+      async function promoteFromWaitlist(tripId, waitlistId) {
+        if (!confirm('هل تريد ترقية هذا الطفل من قائمة الانتظار إلى التسجيل الرئيسي؟')) return;
+        const fd = mkFd('promoteFromWaitlist');
+        fd.append('trip_id', tripId);
+        fd.append('waitlist_id', waitlistId);
+        const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+        if (d.success) {
+          showToast(d.message || 'تمت الترقية بنجاح', 'success');
+          // Reload trips data and details
+          loadTrips();
+          await showTripDetails(tripId);
+          if (document.getElementById('tdpanel-waitlist')?.style.display !== 'none') {
+            await loadWaitlist(tripId);
+          }
+        } else {
+          showToast(d.message || 'فشل في الترقية', 'error');
+        }
       }
 
       async function removeFromWaitlist(tripId, meta = {}) {
