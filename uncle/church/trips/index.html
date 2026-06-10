@@ -13036,6 +13036,147 @@
         }
       };
 
+      window.getClassSortWeight = function(className) {
+        const name = (className || '').toLowerCase().trim();
+        if (name.includes('حضانه') || name.includes('حضانة') || name.includes('كي جي') || name.includes('kg') || name.includes('infant') || name.includes('baby')) return 1;
+        
+        let weight = 10;
+        if (name.includes('ابتدائي') || name.includes('ابتدائى') || name.includes('primary') || name.includes('grade') || name.includes('class')) {
+          weight = 10;
+        } else if (name.includes('اعدادي') || name.includes('اعدادى') || name.includes('إعدادي') || name.includes('prep') || name.includes('middle')) {
+          weight = 20;
+        } else if (name.includes('ثانوي') || name.includes('ثانوى') || name.includes('sec') || name.includes('high')) {
+          weight = 30;
+        } else if (name.includes('جامع') || name.includes('كلية') || name.includes('كليّة') || name.includes('univ') || name.includes('college')) {
+          weight = 40;
+        } else if (name.includes('خريج') || name.includes('grad')) {
+          weight = 50;
+        }
+        
+        let gradeNum = 0;
+        if (name.includes('اول') || name.includes('أول') || name.includes('1')) gradeNum = 1;
+        else if (name.includes('ثان') || name.includes('تاني') || name.includes('ثاني') || name.includes('2')) gradeNum = 2;
+        else if (name.includes('ثالث') || name.includes('تالت') || name.includes('ثالث') || name.includes('3')) gradeNum = 3;
+        else if (name.includes('رابع') || name.includes('رابع') || name.includes('4')) gradeNum = 4;
+        else if (name.includes('خامس') || name.includes('خامس') || name.includes('5')) gradeNum = 5;
+        else if (name.includes('سادس') || name.includes('سادس') || name.includes('6')) gradeNum = 6;
+        
+        return weight + gradeNum;
+      };
+
+      window.updateAfSortingPreview = function() {
+        const priority = document.getElementById('afPriority')?.value || 'church_class';
+        const container = document.getElementById('afSortingOptionsContainer');
+        if (!container) return;
+
+        if (priority === 'none') {
+          container.style.display = 'none';
+          return;
+        }
+        container.style.display = 'block';
+
+        const firstSortWrap = document.getElementById('afFirstSortFieldWrap');
+        const classSortWrap = document.getElementById('afClassSortOrderWrap');
+        const churchSortWrap = document.getElementById('afChurchSortOrderWrap');
+
+        if (priority === 'church_class') {
+          if (firstSortWrap) firstSortWrap.style.display = 'block';
+          if (classSortWrap) classSortWrap.style.display = 'block';
+          if (churchSortWrap) churchSortWrap.style.display = 'block';
+        } else if (priority === 'church') {
+          if (firstSortWrap) firstSortWrap.style.display = 'none';
+          if (classSortWrap) classSortWrap.style.display = 'none';
+          if (churchSortWrap) churchSortWrap.style.display = 'block';
+        } else if (priority === 'class') {
+          if (firstSortWrap) firstSortWrap.style.display = 'none';
+          if (classSortWrap) classSortWrap.style.display = 'block';
+          if (churchSortWrap) churchSortWrap.style.display = 'none';
+        }
+
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        
+        const uniqueClasses = [...new Set(regs.map(r => (r.student_class || '').trim()).filter(Boolean))];
+        const uniqueChurches = [...new Set(regs.map(r => (r.student_church_name || r.church_name || '').trim()).filter(Boolean))];
+
+        const classOrder = document.getElementById('afClassSortOrder')?.value || 'asc';
+        const churchOrder = document.getElementById('afChurchSortOrder')?.value || 'asc';
+        const firstSortField = document.getElementById('afFirstSortField')?.value || 'church_first';
+
+        const sortedClasses = [...uniqueClasses].sort((a, b) => {
+          const wA = getClassSortWeight(a);
+          const wB = getClassSortWeight(b);
+          if (wA !== wB) return classOrder === 'asc' ? wA - wB : wB - wA;
+          return classOrder === 'asc' ? a.localeCompare(b, 'ar') : b.localeCompare(a, 'ar');
+        });
+
+        const sortedChurches = [...uniqueChurches].sort((a, b) => {
+          return churchOrder === 'asc' ? a.localeCompare(b, 'ar') : b.localeCompare(a, 'ar');
+        });
+
+        const previewList = document.getElementById('afSortingPreviewList');
+        if (!previewList) return;
+
+        let previewItems = [];
+
+        if (priority === 'church_class') {
+          if (firstSortField === 'church_first') {
+            sortedChurches.forEach(church => {
+              sortedClasses.forEach(cls => {
+                const count = regs.filter(r => 
+                  (r.student_class || '').trim() === cls && 
+                  (r.student_church_name || r.church_name || '').trim() === church
+                ).length;
+                if (count > 0) {
+                  previewItems.push(`${church} ➔ ${cls} (${count} طفل)`);
+                }
+              });
+            });
+          } else {
+            sortedClasses.forEach(cls => {
+              sortedChurches.forEach(church => {
+                const count = regs.filter(r => 
+                  (r.student_class || '').trim() === cls && 
+                  (r.student_church_name || r.church_name || '').trim() === church
+                ).length;
+                if (count > 0) {
+                  previewItems.push(`${cls} ➔ ${church} (${count} طفل)`);
+                }
+              });
+            });
+          }
+        } else if (priority === 'church') {
+          sortedChurches.forEach(church => {
+            const count = regs.filter(r => 
+              (r.student_church_name || r.church_name || '').trim() === church
+            ).length;
+            if (count > 0) {
+              previewItems.push(`${church} (${count} طفل)`);
+            }
+          });
+        } else if (priority === 'class') {
+          sortedClasses.forEach(cls => {
+            const count = regs.filter(r => 
+              (r.student_class || '').trim() === cls
+            ).length;
+            if (count > 0) {
+              previewItems.push(`${cls} (${count} طفل)`);
+            }
+          });
+        }
+
+        if (previewItems.length === 0) {
+          previewList.innerHTML = `<span style="color:var(--muted); font-style:italic;">لا يوجد أطفال متطابقين مع التحديد الحالي</span>`;
+        } else {
+          previewList.innerHTML = previewItems.map((item, idx) => `
+            <div style="display:flex; align-items:center; gap:6px; padding:2px 0; border-bottom:1px dashed var(--border-light);">
+              <span style="color:var(--primary); font-weight:800;">${idx + 1}.</span>
+              <span>${escHtml(item)}</span>
+            </div>
+          `).join('');
+        }
+      };
+
       window.generateChurchCheckboxesHtml = function(participatingChurches) {
         return `
           <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 6px; cursor:pointer; width:100%; margin:0; box-sizing:border-box; color:var(--text);">
@@ -13109,12 +13250,53 @@
               </div>
               <div class="form-group">
                 <label class="form-label" style="font-weight:700;">أولوية تجميع الأطفال في الغرفة (Prioritize Grouping By)</label>
-                <select id="afPriority" class="form-select" style="width:100%;">
+                <select id="afPriority" class="form-select" style="width:100%;" onchange="updateAfSortingPreview()">
                   <option value="church_class" selected>الكنيسة والمرحلة الدراسية معاً (Church & Class)</option>
                   <option value="church">الكنيسة فقط (Church Only)</option>
                   <option value="class">المرحلة الدراسية فقط (Class Only)</option>
                   <option value="none">تسكين فردي بدون شروط تجميع (Individual Allocation)</option>
                 </select>
+              </div>
+
+              <!-- ── Sorting options & Preview block (Visible when priority is not 'none') ── -->
+              <div id="afSortingOptionsContainer" style="display:flex; flex-direction:column; gap:10px; background:var(--surface-3); padding:12px; border-radius:8px; border:1.5px solid var(--border); display:none;">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  
+                  <div id="afFirstSortFieldWrap" class="form-group" style="flex:1 1 100%; margin:0;">
+                    <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">الترتيب الأساسي (Primary Sort)</label>
+                    <select id="afFirstSortField" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
+                      <option value="church_first" selected>الكنيسة أولاً ثم الفصل (Church then Class)</option>
+                      <option value="class_first">الفصل أولاً ثم الكنيسة (Class then Church)</option>
+                    </select>
+                  </div>
+
+                  <div id="afClassSortOrderWrap" class="form-group" style="flex:1 1 120px; margin:0;">
+                    <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">ترتيب الفصول (Class Order)</label>
+                    <select id="afClassSortOrder" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
+                      <option value="asc" selected>تصاعدي (من الأصغر للأكبر)</option>
+                      <option value="desc">تنازلي (من الأكبر للأصغر)</option>
+                    </select>
+                  </div>
+
+                  <div id="afChurchSortOrderWrap" class="form-group" style="flex:1 1 120px; margin:0;">
+                    <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">ترتيب الكنائس (Church Order)</label>
+                    <select id="afChurchSortOrder" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
+                      <option value="asc" selected>تصاعدي (أبجدي أ-ي)</option>
+                      <option value="desc">تنازلي (أبجدي ي-أ)</option>
+                    </select>
+                  </div>
+
+                </div>
+
+                <!-- Preview list below -->
+                <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+                  <label class="form-label" style="font-size:0.75rem; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:4px; color:var(--primary);">
+                    <i class="fas fa-list-ol"></i> معاينة ترتيب التجميع والتسكين (Grouping Preview):
+                  </label>
+                  <div id="afSortingPreviewList" style="font-size:0.75rem; color:var(--text); background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; font-weight:bold;">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
               </div>
               
               <div class="form-group">
@@ -13298,6 +13480,9 @@
           `).join('');
         }
 
+        if (typeof updateAfSortingPreview === 'function') {
+          updateAfSortingPreview();
+        }
         openModal('autoFillRoomsModal');
       }
 
@@ -13509,7 +13694,49 @@
             groupsMap[key].push(k);
           });
 
-          const sortedGroups = Object.values(groupsMap).sort((a, b) => b.length - a.length);
+          // Retrieve sorting options from inputs
+          const classOrder = document.getElementById('afClassSortOrder')?.value || 'asc';
+          const churchOrder = document.getElementById('afChurchSortOrder')?.value || 'asc';
+          const firstSortField = document.getElementById('afFirstSortField')?.value || 'church_first';
+
+          const sortedGroups = Object.values(groupsMap).sort((groupA, groupB) => {
+            const kidA = groupA[0];
+            const kidB = groupB[0];
+
+            const classA = (kidA.student_class || '').trim();
+            const classB = (kidB.student_class || '').trim();
+            const churchA = (kidA.student_church_name || kidA.church_name || '').trim();
+            const churchB = (kidB.student_church_name || kidB.church_name || '').trim();
+
+            if (priority === 'church_class') {
+              if (firstSortField === 'church_first') {
+                if (churchA !== churchB) {
+                  return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+                }
+                const wA = getClassSortWeight(classA);
+                const wB = getClassSortWeight(classB);
+                if (wA !== wB) return classOrder === 'asc' ? wA - wB : wB - wA;
+                return classOrder === 'asc' ? classA.localeCompare(classB, 'ar') : classB.localeCompare(classA, 'ar');
+              } else {
+                const wA = getClassSortWeight(classA);
+                const wB = getClassSortWeight(classB);
+                if (wA !== wB) return classOrder === 'asc' ? wA - wB : wB - wA;
+                if (classA !== classB) {
+                  return classOrder === 'asc' ? classA.localeCompare(classB, 'ar') : classB.localeCompare(classA, 'ar');
+                }
+                return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+              }
+            } else if (priority === 'church') {
+              return churchOrder === 'asc' ? churchA.localeCompare(churchB, 'ar') : churchB.localeCompare(churchA, 'ar');
+            } else if (priority === 'class') {
+              const wA = getClassSortWeight(classA);
+              const wB = getClassSortWeight(classB);
+              if (wA !== wB) return classOrder === 'asc' ? wA - wB : wB - wA;
+              return classOrder === 'asc' ? classA.localeCompare(classB, 'ar') : classB.localeCompare(classA, 'ar');
+            } else {
+              return groupB.length - groupA.length;
+            }
+          });
 
           sortedGroups.forEach(group => {
             let remainingKidsInGroup = [...group];
