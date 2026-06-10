@@ -21070,6 +21070,7 @@ function updateTrip()
                     has_rooms = ?, rooms_config = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
+            // Corrected type specifier string: index 15 (has_rooms) is i, index 16 (rooms_config) is s
             $stmt->bind_param(
                 "sssssddsisiiisisii",
                 $title,
