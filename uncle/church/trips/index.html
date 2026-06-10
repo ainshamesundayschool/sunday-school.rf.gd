@@ -5329,6 +5329,7 @@
         const [sc, st, col] = statusMap[trip.status] || ['badge-info', trip.status, '#3b82f6'];
         const finalPrice = Math.round(calcFinalPrice(trip));
         const regs = trip.registrations || [];
+        const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
         document.getElementById('standaloneTripSummary').innerHTML = `
         <div class="trips-grid">
           <div class="trip-card" onclick="showTripDetails(${trip.id})">
@@ -5345,7 +5346,7 @@
               <div class="trip-price-row"><span class="curr">${finalPrice} جنيه</span></div>
               <div class="trip-stats-row">
                 <div class="trip-stat-item"><div class="n" style="color:var(--primary);">${regs.length}</div><div class="l">مسجل</div></div>
-                <div class="trip-stat-item"><div class="n">${trip.max_participants || '∞'}</div><div class="l">الحد</div></div>
+                <div class="trip-stat-item"><div class="n">${activeLimit}</div><div class="l">الحد</div></div>
               </div>
             </div>
           </div>
@@ -5377,6 +5378,7 @@
 
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
         const isOwner = trip.church_id == cid || trip.is_owner == 1;
+        const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
         const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
         const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
         
@@ -5450,7 +5452,7 @@
             { n: totalDonations + ' ج', l: 'تبرعات', c: '#f9a8d4' },
             { n: totalRemaining + ' ج', l: 'إجمالي متبقي', c: '#fca5a5' },
             { n: exps.length, l: 'مصروف', c: '#c4b5fd' },
-            { n: trip.max_participants || '∞', l: 'أقصى عدد', c: 'rgba(255,255,255,0.4)' }
+            { n: activeLimit, l: 'أقصى عدد', c: 'rgba(255,255,255,0.4)' }
           ].map(s => `<div style="flex:1;text-align:center;padding:8px 2px;"><div style="font-size:0.95rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.6rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
         </div>`;
 
@@ -5498,7 +5500,7 @@
           <div class="trip-summary-stat"><strong>${regs.length}</strong><span>مسجل</span></div>
           <div class="trip-summary-stat"><strong>${fin.waitlistCount || 0}</strong><span>انتظار</span></div>
           <div class="trip-summary-stat"><strong>${totalDonations} ج</strong><span>تبرعات</span></div>
-          <div class="trip-summary-stat"><strong>${trip.max_participants || '∞'}</strong><span>أقصى عدد</span></div>
+          <div class="trip-summary-stat"><strong>${activeLimit}</strong><span>أقصى عدد</span></div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
@@ -5548,11 +5550,11 @@
           <button class="trip-action-btn" onclick="openEditTrip(${trip.id})">
             <i class="fas fa-edit"></i>تعديل ${tripWordDef}
           </button>
+          ` : ''}
           <button class="trip-action-btn" onclick="tripShowBulkAddModal(${trip.id})" style="background:var(--success-light);color:#065f46;border-color:#a7f3d0;">
             <i class="fas fa-file-import"></i>إضافة جماعي للأطفال
           </button>
-          ` : ''}
-          ${(isOwner && trip.custom_fields && trip.custom_fields.trim()) ? `
+          ${(trip.custom_fields && trip.custom_fields.trim()) ? `
           <button class="trip-action-btn" onclick="openBulkCustomDataModal(${trip.id})">
             <i class="fas fa-table"></i>تعديل البيانات الإضافية
           </button>` : ''}
@@ -8788,8 +8790,8 @@
       }
 
       function downloadCustomDataCSV(tripId) {
-        const regs = tripRegistrationsCache[tripId] || [];
         const trip = allTripsCache.find(t => t.id == tripId);
+        const regs = getFilteredTripRegistrations(trip, tripRegistrationsCache[tripId] || []);
         const fields = parseCustomFieldsString(trip?.custom_fields);
         const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
         if (!trip || !fields.length) return;
@@ -8953,7 +8955,7 @@
 
       function openBulkCustomDataModal(tripId) {
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-        const regs = tripRegistrationsCache[tripId] || [];
+        const regs = getFilteredTripRegistrations(trip, tripRegistrationsCache[tripId] || []);
         const fields = parseCustomFieldsString(trip?.custom_fields);
         if (!trip || !fields.length) return;
 

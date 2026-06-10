@@ -9237,8 +9237,13 @@
         }
 
         function downloadCustomDataCSV(tripId) {
-            const regs = tripRegistrationsCache[tripId] || [];
             const trip = allTripsCache.find(t => t.id == tripId);
+            let regs = tripRegistrationsCache[tripId] || [];
+            const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+            const isOwner = parseInt(trip?.is_owner) === 1 || parseInt(trip?.church_id) === cid;
+            if (!isOwner) {
+                regs = regs.filter(r => parseInt(r.student_church_id) === cid);
+            }
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;
 
@@ -9455,7 +9460,12 @@
 
         function openBulkCustomDataModal(tripId) {
             const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-            const regs = tripRegistrationsCache[tripId] || [];
+            let regs = tripRegistrationsCache[tripId] || [];
+            const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+            const isOwner = parseInt(trip?.is_owner) === 1 || parseInt(trip?.church_id) === cid;
+            if (!isOwner) {
+                regs = regs.filter(r => parseInt(r.student_church_id) === cid);
+            }
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;
 
@@ -12594,7 +12604,9 @@
                 const exps = tripExpensesCache[t.id] || [];
                 const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
                 const totalPerKid = finalPrice + expPerKid;
-                const pct = t.max_participants > 0 ? Math.min(100, Math.round((t.registered_count || 0) / t.max_participants * 100)) : null;
+                const activeLimit = (t.my_registration_limit !== null && t.my_registration_limit !== undefined) ? t.my_registration_limit : (t.max_participants || 0);
+                const limitDisplay = activeLimit > 0 ? activeLimit : '∞';
+                const pct = activeLimit > 0 ? Math.min(100, Math.round((t.registered_count || 0) / activeLimit * 100)) : null;
                 const isOwner = t.is_owner === undefined || Number(t.is_owner) === 1;
                 return `<div class="trip-card trip-card-compact" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
             ${isOwner ? `<button type="button" class="trip-delete-fab" title="حذف الرحلة" onclick="event.stopPropagation();deleteTrip(${t.id})"><i class="fas fa-trash"></i></button>` : ''}
@@ -12621,11 +12633,11 @@
                     ${expPerKid > 0 ? `<span style="font-size:0.72rem;color:var(--warning);font-weight:700;background:#fef3c7;padding:2px 8px;border-radius:20px;">+${expPerKid} مصروفات</span>` : ''}
                 </div>
                 ${expPerKid > 0 ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;">الإجمالي على الطفل: <strong style="color:var(--primary);">${totalPerKid} ج</strong></div>` : ''}
-                ${pct !== null ? `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:4px;"><span>الامتلاء</span><span>${t.registered_count || 0} / ${t.max_participants}</span></div><div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct >= 90 ? 'var(--danger)' : pct >= 60 ? 'var(--warning)' : 'var(--success)'};border-radius:99px;transition:width .5s;"></div></div></div>` : ''}
+                ${pct !== null ? `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:4px;"><span>الامتلاء</span><span>${t.registered_count || 0} / ${activeLimit}</span></div><div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct >= 90 ? 'var(--danger)' : pct >= 60 ? 'var(--warning)' : 'var(--success)'};border-radius:99px;transition:width .5s;"></div></div></div>` : ''}
                 <div class="trip-stats-row">
                     <div class="trip-stat-item"><div class="n" style="color:var(--primary);">${t.registered_count || 0}</div><div class="l">مسجل</div></div>
                     <div class="trip-stat-item"><div class="n" style="color:var(--success);">${t.paid_count || 0}</div><div class="l">مدفوع</div></div>
-                    <div class="trip-stat-item"><div class="n">${t.max_participants || '∞'}</div><div class="l">الحد</div></div>
+                    <div class="trip-stat-item"><div class="n">${limitDisplay}</div><div class="l">الحد</div></div>
                 </div>
             </div>
         </div>`;
@@ -13068,6 +13080,8 @@
             const expPerKid = Math.round(exps.reduce((s, e) => s + Number(e.perKid || e.per_kid || 0), 0));
             const totalPerKid = basePrice + expPerKid;
             const waitlist = getTripWaitlistFromTrip(trip);
+            const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
+            const isOwner = parseInt(trip.is_owner) === 1 || parseInt(trip.church_id) === cid;
             window.currentWaitlistCache = waitlist;
             const fin = calcTripFinancialTotals(trip, regs, waitlist);
             const registrationCollected = fin.registrationCollected;
@@ -13093,6 +13107,7 @@
                 document.getElementById('tdCoverThumb').innerHTML = `<i class="fas fa-bus" style="color:rgba(255,255,255,0.5);font-size:1.8rem;"></i>`;
             }
             // Quick stats bar
+            const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
             document.getElementById('tdQuickStats').innerHTML = `
         <div style="display:flex;gap:0;padding:12px 0 0;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px;width:100%;">
             ${[
@@ -13100,7 +13115,7 @@
                     { n: totalCollected + ' ج', l: 'إجمالي محصّل', c: '#6ee7b7' },
                     { n: totalRemaining + ' ج', l: 'إجمالي متبقي', c: '#fca5a5' },
                     { n: exps.length, l: 'مصروف', c: '#c4b5fd' },
-                    { n: trip.max_participants || '∞', l: 'الحد الأقصى', c: 'rgba(255,255,255,0.6)' }
+                    { n: activeLimit, l: 'الحد الأقصى', c: 'rgba(255,255,255,0.6)' }
                 ].map(s => `<div style="flex:1;text-align:center;padding:8px 4px;"><div style="font-size:1rem;font-weight:900;color:${s.c};">${s.n}</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.45);margin-top:1px;">${s.l}</div></div>`).join('')}
         </div>`;
 
@@ -13137,7 +13152,7 @@
             <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل طفل</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('exp')"><i class="fas fa-receipt"></i> إدارة المصروفات</button>
             <button class="btn btn-outline btn-sm" onclick="switchTripTab('regs')"><i class="fas fa-users"></i> المسجلون (${regs.length})</button>
-            <button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>
+            ${isOwner ? `<button class="btn btn-outline btn-sm" onclick="closeModal('tripDetailsModal');openEditTrip(${trip.id})"><i class="fas fa-edit"></i> تعديل</button>` : ''}
             <button class="btn btn-outline btn-sm" onclick="exportTripData(${trip.id},'csv')"><i class="fas fa-file-csv"></i> تصدير سجلات ودفعات</button>
             ${customFieldList.length ? `<button class="btn btn-outline btn-sm" onclick="openBulkCustomDataModal(${trip.id})"><i class="fas fa-edit"></i> تحديث بيانات إضافية</button>
             <button class="btn btn-outline btn-sm" onclick="downloadCustomDataCSV(${trip.id})"><i class="fas fa-file-download"></i> تنزيل CSV</button>

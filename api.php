@@ -15583,7 +15583,12 @@ function bulkSaveImportedKids()
                 }
             }
             if (in_array($churchId, $participants)) {
-                $allowedChurches = $participants;
+                $ownerChurchId = intval($trip['church_id']);
+                if ($churchId === $ownerChurchId) {
+                    $allowedChurches = $participants;
+                } else {
+                    $allowedChurches = [$churchId];
+                }
             }
 
             $ownerChurchId = intval($trip['church_id']);
@@ -20123,6 +20128,26 @@ function getTrips()
 
 
 
+            $row['my_registration_limit'] = null;
+
+            if (intval($row['church_id']) !== $churchId) {
+
+                $limits = [];
+
+                if (!empty($row['collaboration_limits'])) {
+
+                    $limits = json_decode($row['collaboration_limits'], true);
+
+                }
+
+                if (is_array($limits) && isset($limits[strval($churchId)])) {
+
+                    $row['my_registration_limit'] = intval($limits[strval($churchId)]);
+
+                }
+
+            }
+
             $trips[] = $row;
 
         }
@@ -21680,6 +21705,26 @@ function getTripDetails()
 
         $trip['is_owner'] = ($churchId > 0 && intval($trip['church_id']) === $churchId) ? 1 : 0;
 
+        $trip['my_registration_limit'] = null;
+
+        if (intval($trip['church_id']) !== $churchId) {
+
+            $limits = [];
+
+            if (!empty($trip['collaboration_limits'])) {
+
+                $limits = json_decode($trip['collaboration_limits'], true);
+
+            }
+
+            if (is_array($limits) && isset($limits[strval($churchId)])) {
+
+                $trip['my_registration_limit'] = intval($limits[strval($churchId)]);
+
+            }
+
+        }
+
 
 
         sendJSON([
@@ -21777,6 +21822,12 @@ function bulkUpdateCustomData()
             $customData = $row['custom_data'] ?? [];
 
             if ($registrationId <= 0 || !is_array($customData)) {
+
+                continue;
+
+            }
+
+            if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
 
                 continue;
 
@@ -23635,7 +23686,22 @@ function registerStudentForTrip()
 
             $studentChurchId = intval($studentRes['church_id']);
 
+            // Get trip owner church ID
+            $tripOwnerId = 0;
+            $tripOwnerStmt = $conn->prepare("SELECT church_id FROM trips WHERE id = ?");
+            if ($tripOwnerStmt) {
+                $tripOwnerStmt->bind_param("i", $tripId);
+                $tripOwnerStmt->execute();
+                $toRes = $tripOwnerStmt->get_result()->fetch_assoc();
+                if ($toRes) {
+                    $tripOwnerId = intval($toRes['church_id']);
+                }
+            }
 
+            if ($churchId !== $tripOwnerId && $studentChurchId !== $churchId) {
+                sendJSON(['success' => false, 'message' => 'غير مسموح لك بتسجيل أطفال من كنائس أخرى']);
+                return;
+            }
 
             if ($regType === 'student' && !verifyTripParticipant($conn, $tripId, $studentChurchId)) {
 
