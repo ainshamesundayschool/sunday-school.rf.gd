@@ -22738,16 +22738,6 @@ function promoteFirstEligibleFromWaitlist($conn, $tripId, $restrictChurchId = nu
 
     if (empty($waitlist)) return null;
 
-    // Check current registration stats
-    $regStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
-    $regStmt->bind_param("i", $tripId);
-    $regStmt->execute();
-    $globalCount = (int) $regStmt->get_result()->fetch_assoc()['cnt'];
-
-    if ($maxParticipants > 0 && $globalCount >= $maxParticipants) {
-        return null; // Globally full
-    }
-
     // Fetch collaborator registrations count
     $collabCount = 0;
     if ($collabLimitMode === 'limited') {
