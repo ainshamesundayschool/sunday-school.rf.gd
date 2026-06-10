@@ -21053,13 +21053,13 @@ function updateTrip()
                 return;
             }
 
-            // Only update rooms_config for collaborated churches
+            // Update rooms_config, has_rooms, custom_fields, and custom_field_icons for collaborated churches
             $stmt = $conn->prepare("
                 UPDATE trips 
-                SET rooms_config = ?, updated_at = NOW()
+                SET rooms_config = ?, has_rooms = ?, custom_fields = ?, custom_field_icons = ?, updated_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->bind_param("si", $roomsConfig, $tripId);
+            $stmt->bind_param("sissi", $roomsConfig, $hasRooms, $customFields, $customFieldIcons, $tripId);
         } else {
             $stmt = $conn->prepare("
                 UPDATE trips 
@@ -40562,61 +40562,37 @@ function ensureRoomsSchema($conn)
 
 
     // 3. Seed default template "بيت الاخوه بالسويس"
+    $suezConfig = json_encode([
+        [
+            "name" => "المبنى",
+            "has_floors" => false,
+            "rooms_count" => 20,
+            "room_names" => []
+        ],
+        [
+            "name" => "فيلا",
+            "has_floors" => false,
+            "rooms_count" => 15,
+            "room_names" => []
+        ],
+        [
+            "name" => "فيلا الفرح",
+            "has_floors" => false,
+            "rooms_count" => 5,
+            "room_names" => []
+        ]
+    ], JSON_UNESCAPED_UNICODE);
 
-    $check = $conn->query("SELECT COUNT(*) as count FROM `rooms_templates` WHERE `name` = 'بيت الاخوه بالسويس'")->fetch_assoc();
-
+    $check = $conn->query("SELECT COUNT(*) as count FROM `rooms_templates` WHERE `name` = 'بيت الاخوه بالسويس' AND `church_id` IS NULL")->fetch_assoc();
     if (intval($check['count'] ?? 0) === 0) {
-
-        $suezConfig = json_encode([
-
-            [
-
-                "name" => "المبنى",
-
-                "has_floors" => false,
-
-                "rooms_count" => 20,
-
-                "room_names" => []
-
-            ],
-
-            [
-
-                "name" => "فيلا",
-
-                "has_floors" => false,
-
-                "rooms_count" => 15,
-
-                "room_names" => []
-
-            ],
-
-            [
-
-                "name" => "فيلا الفرح",
-
-                "has_floors" => false,
-
-                "rooms_count" => 5,
-
-                "room_names" => []
-
-            ]
-
-        ], JSON_UNESCAPED_UNICODE);
-
-        
-
         $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (NULL, ?, ?)");
-
         $name = "بيت الاخوه بالسويس";
-
         $stmt->bind_param("ss", $name, $suezConfig);
-
         $stmt->execute();
-
+    } else {
+        $stmt = $conn->prepare("UPDATE `rooms_templates` SET `config` = ? WHERE `name` = 'بيت الاخوه بالسويس' AND `church_id` IS NULL");
+        $stmt->bind_param("s", $suezConfig);
+        $stmt->execute();
     }
 
 }

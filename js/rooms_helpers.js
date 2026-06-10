@@ -102,17 +102,18 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
 
         let subHtml = '';
         if (hasFloors) {
-            const floorCount = bld.floors.length;
+            const floorCount = bld.floors ? bld.floors.length : 1;
+            const floorsList = bld.floors || [{ name: "الدور 1", rooms: [{ name: "1", capacity: defaultCap }] }];
             subHtml = `
                 <div class="form-group" style="margin-bottom:8px;">
                     <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">عدد الأدوار</label>
-                    <input type="number" class="form-input bld-floor-count-input" value="${floorCount}" min="1" max="10" onchange="generateRoomsFloorList('${prefix}', ${i})">
+                    <input type="number" class="form-input bld-floor-count-input" value="${floorCount}" min="1" max="100" onchange="changeBldFloorCount('${prefix}', ${i}, parseInt(this.value) || 1)">
                 </div>
                 <div class="bld-floors-container" id="${prefix}_bld_floors_${i}" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-                    ${bld.floors.map((fl, fIdx) => {
+                    ${floorsList.map((fl, fIdx) => {
                         const floorName = fl.name;
-                        const roomsCount = fl.rooms.length;
-                        const customRoomsVal = fl.rooms.map(r => r.capacity === defaultCap ? r.name : `${r.name}:${r.capacity}`).join(', ');
+                        const roomsCount = fl.rooms ? fl.rooms.length : 5;
+                        const customRoomsVal = fl.rooms ? fl.rooms.map(r => r.capacity === defaultCap ? r.name : `${r.name}:${r.capacity}`).join(', ') : '';
                         return `
                             <div style="display:grid; grid-template-columns:1.2fr 1fr 2fr; gap:6px; align-items:center;">
                                 <input type="text" class="form-input bld-floor-name-input-${i}-${fIdx}" value="${escHtml(floorName)}" style="font-size:0.75rem;padding:4px;" placeholder="اسم الدور">
@@ -142,6 +143,12 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
 
         html += `
             <div class="rooms-bld-card" style="border: 1px solid var(--border); padding: 12px; border-radius: 8px; background: var(--surface-2); margin-bottom: 8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-weight:800; font-size:0.85rem; color:var(--primary);"><i class="fas fa-hotel"></i> المبنى / الفيلا ${i + 1}</span>
+                    <button type="button" class="btn btn-outline" style="color:var(--danger); border-color:var(--danger); background:transparent; padding:2px 8px; font-size:0.7rem; height:auto; line-height:1; min-height:0;" onclick="removeRoomsWizardBld('${prefix}', ${i})">
+                        <i class="fas fa-trash-alt"></i> حذف
+                    </button>
+                </div>
                 <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:8px; align-items:center;">
                     <div class="form-group" style="margin:0;">
                         <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">اسم المبنى / الفيلا *</label>
@@ -152,7 +159,7 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
                         <input type="checkbox" class="bld-has-floors-checkbox" id="${prefix}_has_floors_${i}" ${hasFloors ? 'checked' : ''} onchange="toggleBldFloorsWizard('${prefix}', ${i})">
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">سعة الغرفة الافتراضية (يمكنك تعديل سعة كل غرفة لاحقاً، ضع متوسط السعة هنا)</label>
+                        <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">سعة الغرفة الافتراضية</label>
                         <input type="number" class="form-input bld-default-cap-input" value="${defaultCap}" min="1">
                     </div>
                 </div>
@@ -163,63 +170,124 @@ function generateRoomsWizardBldList(prefix, preConfig = null) {
         `;
     }
 
+    // Add button to add new building directly at the bottom
+    html += `
+        <button type="button" class="btn btn-outline btn-sm" style="width:100%; margin-top:8px; border-style:dashed; font-weight:700; display:flex; justify-content:center; align-items:center; gap:6px;" onclick="addRoomsWizardBld('${prefix}')">
+            <i class="fas fa-plus"></i> إضافة مبنى جديد
+        </button>
+    `;
+
     listWrap.innerHTML = html;
 }
 
 /**
- * Toggle floors configurator inside a building card
+ * Toggle floors configurator inside a building card using compile-and-regenerate
  */
 function toggleBldFloorsWizard(prefix, bldIdx) {
-    const bldWrap = document.getElementById(prefix + 'TripRoomsBldList');
-    const card = bldWrap.querySelectorAll('.rooms-bld-card')[bldIdx];
-    const hasFloors = card.querySelector('.bld-has-floors-checkbox').checked;
-    const detailsWrap = document.getElementById(`${prefix}_bld_details_${bldIdx}`);
+    const currentConfig = compileRoomsConfig(prefix);
+    const bld = currentConfig[bldIdx];
 
-    if (hasFloors) {
-        detailsWrap.innerHTML = `
-            <div class="form-group" style="margin-bottom:8px;">
-                <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">عدد الأدوار</label>
-                <input type="number" class="form-input bld-floor-count-input" value="1" min="1" max="10" onchange="generateRoomsFloorList('${prefix}', ${bldIdx})">
-            </div>
-            <div class="bld-floors-container" id="${prefix}_bld_floors_${bldIdx}" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
-        `;
-        generateRoomsFloorList(prefix, bldIdx);
+    if (bld.has_floors) {
+        bld.floors = [
+            { name: "الدور 1", rooms: [{ name: "1", capacity: bld.default_cap || 4 }] }
+        ];
+        delete bld.rooms;
+        delete bld.rooms_count;
+        delete bld.room_names;
     } else {
-        detailsWrap.innerHTML = `
-            <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px;">
-                <div class="form-group">
-                    <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">عدد الغرف</label>
-                    <input type="number" class="form-input bld-rooms-count-input" value="5" min="1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" style="font-size:0.7rem;font-weight:700;color:var(--text-2);">أسماء/أرقام مخصصة للغرف (اختياري)</label>
-                    <input type="text" class="form-input bld-custom-rooms-input" placeholder="مثال: 101, 102, 103 (مفصولة بفواصل)">
-                </div>
-            </div>
-        `;
+        bld.rooms = [
+            { name: "1", capacity: bld.default_cap || 4 }
+        ];
+        delete bld.floors;
     }
+
+    generateRoomsWizardBldList(prefix, currentConfig);
 }
 
 /**
- * Generate floors inputs list inside a building
+ * Change floor count inside a building card using compile-and-regenerate
  */
-function generateRoomsFloorList(prefix, bldIdx) {
-    const bldWrap = document.getElementById(prefix + 'TripRoomsBldList');
-    const card = bldWrap.querySelectorAll('.rooms-bld-card')[bldIdx];
-    const floorCount = parseInt(card.querySelector('.bld-floor-count-input').value || '1') || 1;
-    const floorsContainer = document.getElementById(`${prefix}_bld_floors_${bldIdx}`);
+function changeBldFloorCount(prefix, bldIdx, newFloorCount) {
+    const currentConfig = compileRoomsConfig(prefix);
+    const bld = currentConfig[bldIdx];
+    if (!bld.has_floors) return;
 
-    let html = '';
-    for (let fIdx = 0; fIdx < floorCount; fIdx++) {
-        html += `
-            <div style="display:grid; grid-template-columns:1.2fr 1fr 2fr; gap:6px; align-items:center;">
-                <input type="text" class="form-input bld-floor-name-input-${bldIdx}-${fIdx}" value="الدور ${fIdx + 1}" style="font-size:0.75rem;padding:4px;" placeholder="اسم الدور">
-                <input type="number" class="form-input bld-floor-rooms-input-${bldIdx}-${fIdx}" value="5" min="1" style="font-size:0.75rem;padding:4px;" placeholder="عدد الغرف">
-                <input type="text" class="form-input bld-floor-custom-rooms-${bldIdx}-${fIdx}" style="font-size:0.75rem;padding:4px;" placeholder="أرقام الغرف (مفصولة بفواصل)">
-            </div>
-        `;
+    if (!bld.floors) bld.floors = [];
+    const oldFloorCount = bld.floors.length;
+    
+    if (oldFloorCount < newFloorCount) {
+        for (let f = oldFloorCount; f < newFloorCount; f++) {
+            bld.floors.push({
+                name: `الدور ${f + 1}`,
+                rooms: [{ name: "1", capacity: bld.default_cap || 4 }]
+            });
+        }
+    } else if (oldFloorCount > newFloorCount) {
+        bld.floors.splice(newFloorCount);
     }
-    floorsContainer.innerHTML = html;
+
+    generateRoomsWizardBldList(prefix, currentConfig);
+}
+
+/**
+ * Adjust buildings count dynamically from input field change
+ */
+function adjustRoomsWizardBldCount(prefix) {
+    const bldCountInput = document.getElementById(prefix + 'TripRoomsBldCount');
+    if (!bldCountInput) return;
+    const newCount = Math.max(1, parseInt(bldCountInput.value || '1') || 1);
+    bldCountInput.value = newCount;
+
+    const currentConfig = compileRoomsConfig(prefix);
+    const oldLength = currentConfig.length;
+
+    if (oldLength < newCount) {
+        for (let i = oldLength; i < newCount; i++) {
+            currentConfig.push({
+                name: `المبنى ${i + 1}`,
+                has_floors: false,
+                rooms_count: 5,
+                room_names: [],
+                default_cap: 4
+            });
+        }
+    } else if (oldLength > newCount) {
+        currentConfig.splice(newCount);
+    }
+
+    generateRoomsWizardBldList(prefix, currentConfig);
+}
+
+/**
+ * Add a building card directly
+ */
+function addRoomsWizardBld(prefix) {
+    const currentConfig = compileRoomsConfig(prefix);
+    currentConfig.push({
+        name: `المبنى ${currentConfig.length + 1}`,
+        has_floors: false,
+        rooms_count: 5,
+        room_names: [],
+        default_cap: 4
+    });
+
+    const bldCountInput = document.getElementById(prefix + 'TripRoomsBldCount');
+    if (bldCountInput) bldCountInput.value = currentConfig.length;
+
+    generateRoomsWizardBldList(prefix, currentConfig);
+}
+
+/**
+ * Remove a building card directly
+ */
+function removeRoomsWizardBld(prefix, bldIdx) {
+    const currentConfig = compileRoomsConfig(prefix);
+    currentConfig.splice(bldIdx, 1);
+
+    const bldCountInput = document.getElementById(prefix + 'TripRoomsBldCount');
+    if (bldCountInput) bldCountInput.value = currentConfig.length;
+
+    generateRoomsWizardBldList(prefix, currentConfig);
 }
 
 /**
