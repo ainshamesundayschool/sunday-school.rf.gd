@@ -1746,6 +1746,16 @@ function ensureTripCollaborationRequestsTable($conn)
     if ($res2 && $res2->num_rows === 0) {
         $conn->query("ALTER TABLE `trips` ADD COLUMN `collaboration_limits` TEXT DEFAULT NULL");
     }
+
+    $res3 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'collab_limit_mode'");
+    if ($res3 && $res3->num_rows === 0) {
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `collab_limit_mode` VARCHAR(50) DEFAULT 'open'");
+    }
+
+    $res4 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'collab_max_participants'");
+    if ($res4 && $res4->num_rows === 0) {
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `collab_max_participants` INT(11) DEFAULT NULL");
+    }
 }
 
 
@@ -19952,6 +19962,7 @@ function getTrips()
 
 
         $conn = getDBConnection();
+        ensureTripCollaborationRequestsTable($conn);
 
 
 
