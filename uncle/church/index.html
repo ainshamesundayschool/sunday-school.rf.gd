@@ -19032,14 +19032,14 @@
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     churchHeaderHtml = `
                         <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
                         </div>
                     `;
                 } else {
                     churchHeaderHtml = `
                         <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                                <img src="/logo.png" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
                         </div>
                     `;
@@ -19272,7 +19272,7 @@
             let innerContentHtml = `
             <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
                 <div style="display:flex; justify-content:center; align-items:center; width:100%;">
-                    <img src="/logo.png" style="height:${logoHeight}px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
+                    <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${logoHeight}px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
                 </div>
                 <div style="background:rgba(255,255,255,0.9); border:1px solid ${fontColor}22; border-radius:50px; padding:${4 * scale}px ${12 * scale}px; display:inline-flex; align-items:center; gap:${5 * scale}px; box-shadow:0 1px 3px rgba(0,0,0,0.03); max-width:85%; box-sizing:border-box;">
                     <i class="fas fa-search" style="color:${fontColor}; opacity:0.5; font-size:${Math.max(6.5, 8 * scale)}px;"></i>
@@ -19563,6 +19563,47 @@
                 `;
                 document.body.appendChild(loadingOverlay);
 
+                // Helper to convert image URL to Base64 data URL
+                const toBase64 = async (url) => {
+                    if (!url) return '';
+                    if (url.startsWith('data:')) return url;
+                    try {
+                        const res = await fetch(url);
+                        if (!res.ok) return '';
+                        const blob = await res.blob();
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = () => resolve('');
+                            reader.readAsDataURL(blob);
+                        });
+                    } catch (e) {
+                        console.warn('Failed base64 conversion:', url, e);
+                        return '';
+                    }
+                };
+
+                // Pre-convert logo to Base64
+                window.pdfLogoBase64 = await toBase64('/logo.png');
+
+                const kidsCopy = [];
+                for (let kid of kids) {
+                    const imgUrl = kid['صورة'] || kid.image_url || kid.photo || kid.student_image || '';
+                    const hasImg = imgUrl && imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
+                    let studentImgBase64 = '';
+                    if (showStudentImg && hasImg) {
+                        studentImgBase64 = await toBase64(imgUrl);
+                    }
+                    kidsCopy.push({
+                        ...kid,
+                        'صورة': studentImgBase64,
+                        image_url: studentImgBase64,
+                        photo: studentImgBase64,
+                        student_image: studentImgBase64
+                    });
+                }
+                const finalKids = kidsCopy;
+
                 const paperKey = document.getElementById('pdfPaperSize').value;
                 const orientation = document.getElementById('pdfOrientation').value;
 
@@ -19626,14 +19667,15 @@
                 const showBackCard = document.getElementById('printBackCard')?.checked || false;
 
                 const pages = [];
-                for (let i = 0; i < kids.length; i += finalCardsPerPage) {
-                    pages.push(kids.slice(i, i + finalCardsPerPage));
+                for (let i = 0; i < finalKids.length; i += finalCardsPerPage) {
+                    pages.push(finalKids.slice(i, i + finalCardsPerPage));
                 }
 
                 pdfContainer = document.createElement('div');
-                pdfContainer.style.position = 'fixed';
-                pdfContainer.style.left = '-9999px';
-                pdfContainer.style.top = '-9999px';
+                pdfContainer.style.position = 'absolute';
+                pdfContainer.style.left = '0';
+                pdfContainer.style.top = '0';
+                pdfContainer.style.zIndex = '99998';
                 pdfContainer.style.overflow = 'hidden';
                 pdfContainer.style.width = `${paperW}mm`;
                 pdfContainer.style.background = '#ffffff';
@@ -19647,20 +19689,25 @@
                         height: ${paperH}mm;
                         padding: ${margin}mm;
                         box-sizing: border-box;
-                        display: grid;
-                        grid-template-columns: repeat(${finalCols}, ${scaledCardW}mm);
-                        grid-template-rows: repeat(${finalRows}, ${scaledCardH}mm);
-                        gap: ${gapY}mm ${gapX}mm;
-                        align-content: start;
-                        justify-content: center;
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-content: flex-start;
+                        justify-content: flex-start;
                         page-break-after: always;
                         break-after: page;
                         background: #ffffff;
                         overflow: hidden;
                     }
                     .print-card {
+                        box-sizing: border-box;
+                        width: ${scaledCardW}mm !important;
+                        height: ${scaledCardH}mm !important;
                         page-break-inside: avoid;
                         break-inside: avoid;
+                        margin-bottom: ${gapY}mm !important;
+                    }
+                    .print-card:not(:nth-child(${finalCols}n)) {
+                        margin-right: ${gapX}mm !important;
                     }
                 `;
                 pdfContainer.appendChild(cssStyle);
@@ -19744,7 +19791,22 @@
                     margin: 0,
                     filename: `qr-cards-${new Date().toISOString().slice(0, 10)}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        scrollX: 0,
+                        scrollY: 0,
+                        ignoreElements: (element) => {
+                            if (element.tagName === 'HTML' || element.tagName === 'BODY') {
+                                return false;
+                            }
+                            if (pdfContainer && (element === pdfContainer || pdfContainer.contains(element))) {
+                                return false;
+                            }
+                            return true;
+                        }
+                    },
                     jsPDF: { unit: 'mm', format: paperKey, orientation: orientation }
                 };
 
