@@ -19797,16 +19797,7 @@
                         useCORS: true,
                         logging: false,
                         scrollX: 0,
-                        scrollY: 0,
-                        ignoreElements: (element) => {
-                            if (element.tagName === 'HTML' || element.tagName === 'BODY') {
-                                return false;
-                            }
-                            if (pdfContainer && (element === pdfContainer || pdfContainer.contains(element))) {
-                                return false;
-                            }
-                            return true;
-                        }
+                        scrollY: 0
                     },
                     jsPDF: { unit: 'mm', format: paperKey, orientation: orientation }
                 };
