@@ -193,6 +193,81 @@ function deleteUploadedFile(?string $imageUrl): bool {
     return false;
 }
 
+/**
+ * Deletes the new image file forever (since the update was reverted)
+ * and recovers the old image file from the trash bin back to its original location.
+ */
+function restoreRevertedImageFile(?string $oldImageUrl, ?string $newImageUrl): void {
+    // 1. Delete the new image file forever
+    if (!empty($newImageUrl)) {
+        $newPath = $newImageUrl;
+        if (strpos($newPath, 'https://') === 0 || strpos($newPath, 'http://') === 0) {
+            $parsed = parse_url($newPath);
+            $newPath = $parsed['path'] ?? '';
+        }
+        if (strpos($newPath, '/uploads/') === 0 && strpos($newPath, '/uploads/trash_bin/') !== 0) {
+            $newRealFile = __DIR__ . $newPath;
+            if (is_file($newRealFile)) {
+                @unlink($newRealFile);
+                error_log("🗑️ Reverted photo deleted forever: " . $newRealFile);
+            }
+        }
+    }
+
+    // 2. Recover the old image file from trash bin back to its original location
+    if (!empty($oldImageUrl)) {
+        $oldPath = $oldImageUrl;
+        if (strpos($oldPath, 'https://') === 0 || strpos($oldPath, 'http://') === 0) {
+            $parsed = parse_url($oldPath);
+            $oldPath = $parsed['path'] ?? '';
+        }
+        if (strpos($oldPath, '/uploads/') === 0) {
+            $trashPath = str_replace('/uploads/', '/uploads/trash_bin/', $oldPath);
+            $trashRealFile = __DIR__ . $trashPath;
+            $originalRealFile = __DIR__ . $oldPath;
+
+            if (is_file($trashRealFile)) {
+                $origDir = dirname($originalRealFile);
+                if (!is_dir($origDir)) {
+                    @mkdir($origDir, 0755, true);
+                }
+                if (@rename($trashRealFile, $originalRealFile) || (@copy($trashRealFile, $originalRealFile) && @unlink($trashRealFile))) {
+                    error_log("🔄 Reverted photo recovered from trash bin: " . $trashPath . " -> " . $oldPath);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Recovers a deleted photo from the trash bin back to its main uploads directory.
+ */
+function recoverRevertedImageFile(?string $imageUrl): void {
+    if (empty($imageUrl)) return;
+
+    $path = $imageUrl;
+    if (strpos($path, 'https://') === 0 || strpos($path, 'http://') === 0) {
+        $parsed = parse_url($path);
+        $path = $parsed['path'] ?? '';
+    }
+
+    if (strpos($path, '/uploads/') === 0) {
+        $trashPath = str_replace('/uploads/', '/uploads/trash_bin/', $path);
+        $trashRealFile = __DIR__ . $trashPath;
+        $originalRealFile = __DIR__ . $path;
+
+        if (is_file($trashRealFile)) {
+            $origDir = dirname($originalRealFile);
+            if (!is_dir($origDir)) {
+                @mkdir($origDir, 0755, true);
+            }
+            if (@rename($trashRealFile, $originalRealFile) || (@copy($trashRealFile, $originalRealFile) && @unlink($trashRealFile))) {
+                error_log("🔄 Recovered photo from trash bin: " . $trashPath . " -> " . $path);
+            }
+        }
+    }
+}
+
 
 
 // ── Game / QR processing for trips ─────────────────────────
@@ -6833,7 +6908,7 @@ function updateStudentImageAfterCreation()
 
 
 
-        $studentExistsStmt = $conn->prepare("SELECT id, image_url FROM students WHERE id = ? LIMIT 1");
+        $studentExistsStmt = $conn->prepare("SELECT id, name, image_url FROM students WHERE id = ? LIMIT 1");
 
         $studentExistsStmt->bind_param("i", $studentId);
 
@@ -6848,6 +6923,7 @@ function updateStudentImageAfterCreation()
 
         }
         $oldImageUrl = $studentRow['image_url'] ?? '';
+        $studentName = $studentRow['name'] ?? '';
 
 
 
@@ -6980,6 +7056,8 @@ function updateStudentImageAfterCreation()
             if (!empty($oldImageUrl)) {
                 deleteUploadedFile($oldImageUrl);
             }
+
+            writeAuditLog('student_edit', 'student', $studentId, $studentName, ['image_url' => $oldImageUrl], ['image_url' => $photoUrl], 'تعديل صورة الطفل');
 
             $verifyStmt = $conn->prepare("SELECT image_url FROM students WHERE id = ? LIMIT 1");
 
@@ -8509,11 +8587,12 @@ function updateStudentImage()
 
         $conn = getDBConnection();
 
-        $oldQuery = $conn->prepare("SELECT image_url FROM students WHERE id = ? LIMIT 1");
+        $oldQuery = $conn->prepare("SELECT name, image_url FROM students WHERE id = ? LIMIT 1");
         $oldQuery->bind_param("i", $studentId);
         $oldQuery->execute();
         $oldRow = $oldQuery->get_result()->fetch_assoc();
         $oldImageUrl = $oldRow['image_url'] ?? '';
+        $studentName = $oldRow['name'] ?? '';
 
         $stmt = $conn->prepare("UPDATE students SET image_url = ? WHERE id = ?");
 
@@ -8526,6 +8605,8 @@ function updateStudentImage()
             if (!empty($oldImageUrl)) {
                 deleteUploadedFile($oldImageUrl);
             }
+
+            writeAuditLog('student_edit', 'student', $studentId, $studentName, ['image_url' => $oldImageUrl], ['image_url' => $imageUrl], 'تعديل صورة الطفل');
 
             sendJSON(['success' => true, 'message' => 'تم تحديث صورة الطفل بنجاح', 'student_id' => $studentId, 'imageUrl' => $imageUrl]);
 
@@ -13484,11 +13565,12 @@ function updateUncleImage()
 
         $conn = getDBConnection();
 
-        $oldQuery = $conn->prepare("SELECT image_url FROM uncles WHERE id = ? LIMIT 1");
+        $oldQuery = $conn->prepare("SELECT name, image_url FROM uncles WHERE id = ? LIMIT 1");
         $oldQuery->bind_param("i", $uncleId);
         $oldQuery->execute();
         $oldRow = $oldQuery->get_result()->fetch_assoc();
         $oldImageUrl = $oldRow['image_url'] ?? '';
+        $uncleName = $oldRow['name'] ?? '';
 
         $stmt = $conn->prepare("UPDATE uncles SET image_url = ? WHERE id = ?");
 
@@ -13501,6 +13583,8 @@ function updateUncleImage()
             if (!empty($oldImageUrl)) {
                 deleteUploadedFile($oldImageUrl);
             }
+
+            writeAuditLog('uncle_edit', 'uncle', $uncleId, $uncleName, ['image_url' => $oldImageUrl], ['image_url' => $imageUrl], 'تعديل صورة الخادم');
 
             $_SESSION['uncle_image'] = $imageUrl;
 
@@ -32863,6 +32947,9 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         $ins->bind_param($types, ...$params);
                         if ($ins->execute()) {
                             $revertedCount++;
+                            if (!empty($snapshot['image_url'])) {
+                                recoverRevertedImageFile($snapshot['image_url']);
+                            }
 
                             // Restore related attendance from snapshot if present
                             if (isset($snapshot['_attendance_history']) && is_array($snapshot['_attendance_history'])) {
@@ -33127,6 +33214,15 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 }
 
+                // If image_url is being reverted
+                if (isset($oldData['image_url']) || isset($newData['image_url'])) {
+                    $oldImg = $oldData['image_url'] ?? '';
+                    $newImg = $newData['image_url'] ?? '';
+                    if ($oldImg !== $newImg) {
+                        restoreRevertedImageFile($oldImg, $newImg);
+                    }
+                }
+
 
 
                 // Update using whitelisted columns
@@ -33254,6 +33350,9 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                     if ($ins->execute()) {
                         $reverted = true;
                         $msg = "تم إعادة تسجيل الطفل المحذوف بنجاح";
+                        if (!empty($oldData['image_url'])) {
+                            recoverRevertedImageFile($oldData['image_url']);
+                        }
 
                         // Restore related attendance from snapshot if present
                         if (isset($oldData['_attendance_history']) && is_array($oldData['_attendance_history'])) {
@@ -33514,6 +33613,83 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
             }
 
+        } elseif ($entity === 'uncle') {
+            if ($action === 'uncle_delete') {
+                $stmt = $conn->prepare("UPDATE uncles SET deleted = 0 WHERE id = ? AND church_id = ?");
+                $stmt->bind_param("ii", $entityId, $churchId);
+                if ($stmt->execute() && $stmt->affected_rows > 0) {
+                    $reverted = true;
+                    $msg = "تم استرجاع الخادم المحذوف بنجاح";
+                    if (!empty($oldData['image_url'])) {
+                        recoverRevertedImageFile($oldData['image_url']);
+                    }
+                }
+            } elseif ($action === 'uncle_add') {
+                $stmt = $conn->prepare("SELECT image_url FROM uncles WHERE id = ? AND church_id = ?");
+                $stmt->bind_param("ii", $entityId, $churchId);
+                $stmt->execute();
+                $uncleRow = $stmt->get_result()->fetch_assoc();
+                $imgUrl = $uncleRow['image_url'] ?? '';
+
+                $del = $conn->prepare("DELETE FROM uncles WHERE id = ? AND church_id = ?");
+                $del->bind_param("ii", $entityId, $churchId);
+                if ($del->execute() && $del->affected_rows > 0) {
+                    $reverted = true;
+                    $msg = "تم التراجع عن إضافة الخادم وحذفه بنجاح";
+                    if (!empty($imgUrl)) {
+                        $path = $imgUrl;
+                        if (strpos($path, 'https://') === 0 || strpos($path, 'http://') === 0) {
+                            $parsed = parse_url($path);
+                            $path = $parsed['path'] ?? '';
+                        }
+                        $realFile = __DIR__ . $path;
+                        if (is_file($realFile)) {
+                            @unlink($realFile);
+                        }
+                    }
+                }
+            } elseif ($action === 'uncle_edit') {
+                if (empty($oldData)) {
+                    return ['success' => false, 'message' => 'لا توجد بيانات سابقة لاسترجاعها'];
+                }
+
+                if (isset($oldData['image_url']) || isset($newData['image_url'])) {
+                    $oldImg = $oldData['image_url'] ?? '';
+                    $newImg = $newData['image_url'] ?? '';
+                    if ($oldImg !== $newImg) {
+                        restoreRevertedImageFile($oldImg, $newImg);
+                    }
+                }
+
+                $whitelist = ['name', 'email', 'role', 'image_url', 'deleted'];
+                $updates = [];
+                $types = '';
+                $params = [];
+                foreach ($oldData as $key => $val) {
+                    if (in_array($key, $whitelist, true)) {
+                        $updates[] = "`$key` = ?";
+                        $params[] = $val;
+                        if (is_int($val)) $types .= 'i';
+                        elseif (is_float($val)) $types .= 'd';
+                        else $types .= 's';
+                    }
+                }
+
+                if (!empty($updates)) {
+                    $sql = "UPDATE uncles SET " . implode(', ', $updates) . " WHERE id = ? AND church_id = ?";
+                    $types .= 'ii';
+                    $params[] = $entityId;
+                    $params[] = $churchId;
+                    $upd = $conn->prepare($sql);
+                    $upd->bind_param($types, ...$params);
+                    if ($upd->execute()) {
+                        $reverted = true;
+                        $msg = "تم استرجاع بيانات الخادم بنجاح";
+                    }
+                } else {
+                    return ['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث'];
+                }
+            }
         }
 
 
