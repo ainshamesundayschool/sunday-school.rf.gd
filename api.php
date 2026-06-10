@@ -40559,54 +40559,45 @@ function ensureRoomsSchema($conn)
 
 
     // 2. Create rooms_templates table
+    $checkTable = $conn->query("SHOW TABLES LIKE 'rooms_templates'");
+    $tableExists = ($checkTable && $checkTable->num_rows > 0);
 
     $conn->query("CREATE TABLE IF NOT EXISTS `rooms_templates` (
-
         `id` INT AUTO_INCREMENT PRIMARY KEY,
-
         `church_id` INT DEFAULT NULL COMMENT 'NULL for developer default templates',
-
         `name` VARCHAR(255) NOT NULL,
-
         `config` TEXT NOT NULL,
-
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
 
 
     // 3. Seed default template "بيت الاخوه بالسويس"
-    $suezConfig = json_encode([
-        [
-            "name" => "المبنى",
-            "has_floors" => false,
-            "rooms_count" => 20,
-            "room_names" => []
-        ],
-        [
-            "name" => "فيلا",
-            "has_floors" => false,
-            "rooms_count" => 15,
-            "room_names" => []
-        ],
-        [
-            "name" => "فيلا الفرح",
-            "has_floors" => false,
-            "rooms_count" => 5,
-            "room_names" => []
-        ]
-    ], JSON_UNESCAPED_UNICODE);
+    if (!$tableExists) {
+        $suezConfig = json_encode([
+            [
+                "name" => "المبنى",
+                "has_floors" => false,
+                "rooms_count" => 20,
+                "room_names" => []
+            ],
+            [
+                "name" => "فيلا",
+                "has_floors" => false,
+                "rooms_count" => 15,
+                "room_names" => []
+            ],
+            [
+                "name" => "فيلا الفرح",
+                "has_floors" => false,
+                "rooms_count" => 5,
+                "room_names" => []
+            ]
+        ], JSON_UNESCAPED_UNICODE);
 
-    $check = $conn->query("SELECT COUNT(*) as count FROM `rooms_templates` WHERE `name` = 'بيت الاخوه بالسويس' AND `church_id` IS NULL")->fetch_assoc();
-    if (intval($check['count'] ?? 0) === 0) {
         $stmt = $conn->prepare("INSERT INTO `rooms_templates` (church_id, name, config) VALUES (NULL, ?, ?)");
         $name = "بيت الاخوه بالسويس";
         $stmt->bind_param("ss", $name, $suezConfig);
-        $stmt->execute();
-    } else {
-        $stmt = $conn->prepare("UPDATE `rooms_templates` SET `config` = ? WHERE `name` = 'بيت الاخوه بالسويس' AND `church_id` IS NULL");
-        $stmt->bind_param("s", $suezConfig);
         $stmt->execute();
     }
 
