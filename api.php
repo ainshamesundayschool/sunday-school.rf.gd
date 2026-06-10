@@ -21039,81 +21039,70 @@ function updateTrip()
 
         $oldTrip = getTripSnapshot($tripId);
 
+        if (!$oldTrip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
 
+        $ownerChurchId = intval($oldTrip['church_id']);
+        $isOwner = ($churchId === $ownerChurchId);
 
-        $stmt = $conn->prepare("
+        if (!$isOwner) {
+            if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+                sendJSON(['success' => false, 'message' => 'غير مصرح لك بتعديل هذه الرحلة']);
+                return;
+            }
 
-            UPDATE trips 
-
-            SET title = ?, description = ?, type = ?, 
-
-                start_date = ?, end_date = ?, price = ?, 
-
-                discount = ?, discount_type = ?, max_participants = ?, 
-
-                status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-
-                has_rooms = ?, rooms_config = ?, updated_at = NOW()
-
-            WHERE id = ? AND church_id = ?
-
-        ");
-
-
-
-        $stmt->bind_param(
-
-            "sssssddsisiiissisi",
-
-            $title,
-
-            $description,
-
-            $type,
-
-            $dbStartDate,
-
-            $dbEndDate,
-
-            $price,
-
-            $discount,
-
-            $discountType,
-
-            $maxParticipants,
-
-            $status,
-
-            $showRegisteredKids,
-
-            $hasPointsGame,
-
-            $customFields,
-
-            $customFieldIcons,
-
-            $hasRooms,
-
-            $roomsConfig,
-
-            $tripId,
-
-            $churchId
-
-        );
-
-
+            // Only update rooms_config for collaborated churches
+            $stmt = $conn->prepare("
+                UPDATE trips 
+                SET rooms_config = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->bind_param("si", $roomsConfig, $tripId);
+        } else {
+            $stmt = $conn->prepare("
+                UPDATE trips 
+                SET title = ?, description = ?, type = ?, 
+                    start_date = ?, end_date = ?, price = ?, 
+                    discount = ?, discount_type = ?, max_participants = ?, 
+                    status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
+                    has_rooms = ?, rooms_config = ?, updated_at = NOW()
+                WHERE id = ? AND church_id = ?
+            ");
+            $stmt->bind_param(
+                "sssssddsisiiissisi",
+                $title,
+                $description,
+                $type,
+                $dbStartDate,
+                $dbEndDate,
+                $price,
+                $discount,
+                $discountType,
+                $maxParticipants,
+                $status,
+                $showRegisteredKids,
+                $hasPointsGame,
+                $customFields,
+                $customFieldIcons,
+                $hasRooms,
+                $roomsConfig,
+                $tripId,
+                $churchId
+            );
+        }
 
         if ($stmt->execute()) {
-
-            // Save collaboration settings
-            $collabLimitMode = sanitize($_POST['collab_limit_mode'] ?? 'open');
-            $collabMax = isset($_POST['collab_max_participants']) && $_POST['collab_max_participants'] !== '' ? intval($_POST['collab_max_participants']) : null;
-            $updStmt = $conn->prepare("UPDATE trips SET collab_limit_mode = ?, collab_max_participants = ? WHERE id = ?");
-            if ($updStmt) {
-                $updStmt->bind_param("sii", $collabLimitMode, $collabMax, $tripId);
-                $updStmt->execute();
+            if ($isOwner) {
+                // Save collaboration settings
+                $collabLimitMode = sanitize($_POST['collab_limit_mode'] ?? 'open');
+                $collabMax = isset($_POST['collab_max_participants']) && $_POST['collab_max_participants'] !== '' ? intval($_POST['collab_max_participants']) : null;
+                $updStmt = $conn->prepare("UPDATE trips SET collab_limit_mode = ?, collab_max_participants = ? WHERE id = ?");
+                if ($updStmt) {
+                    $updStmt->bind_param("sii", $collabLimitMode, $collabMax, $tripId);
+                    $updStmt->execute();
+                }
             }
 
             // Auto-promote eligible waitlist children due to limit change
