@@ -17008,20 +17008,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return;
                 }
                 
-                const threshold = 180; // 180px trigger zone from top/bottom
-                const speedMax = 55; // Fast maximum speed
+                const threshold = 185; // 185px trigger zone from top/bottom
+                const speedMax = 160; // Bullet maximum speed
                 
                 const viewHeight = window.innerHeight;
                 let scrollAmount = 0;
                 
                 if (_swipeClientY > viewHeight - threshold) {
                     // Near bottom: scroll down
-                    const ratio = Math.min(2.0, Math.max(0, (_swipeClientY - (viewHeight - threshold)) / threshold));
-                    scrollAmount = Math.max(12, Math.ceil(ratio * speedMax));
+                    const delta = _swipeClientY - (viewHeight - threshold);
+                    const ratio = Math.min(2.5, Math.max(0, delta / threshold));
+                    scrollAmount = Math.max(18, Math.ceil(ratio * speedMax));
                 } else if (_swipeClientY < threshold) {
                     // Near top: scroll up
-                    const ratio = Math.min(2.0, Math.max(0, (threshold - _swipeClientY) / threshold));
-                    scrollAmount = -Math.max(12, Math.ceil(ratio * speedMax));
+                    const delta = threshold - _swipeClientY;
+                    const ratio = Math.min(2.5, Math.max(0, delta / threshold));
+                    scrollAmount = -Math.max(18, Math.ceil(ratio * speedMax));
                 }
                 
                 if (scrollAmount !== 0) {
