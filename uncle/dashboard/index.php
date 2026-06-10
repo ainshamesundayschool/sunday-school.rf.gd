@@ -11029,7 +11029,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const dbId = getStudentDbId(s);
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
-                return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}"
+                return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
             ontouchstart="_holdStart(event,'${safeName2}')"
             ontouchmove="_holdMove(event)"
             ontouchend="_holdEnd()"
@@ -12135,7 +12135,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const dbId = getStudentDbId(s);
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
-                return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}"
+                return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
             ontouchstart="_holdStart(event,'${safeName}')"
             ontouchmove="_holdMove(event)"
             ontouchend="_holdEnd()"
@@ -12236,7 +12236,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let cls = 'attendance-item ' + st;
             if (isInChanged || isCouponChanged) cls += ' has-local';
             if (isBdayToday) cls += ' bday-row';
+            const dbId = s ? getStudentDbId(s) : null;
+            if (dbId && selectedStudentIds.has(dbId)) cls += ' selected';
             row.className = cls;
+
+            // Update check circle state
+            const chkCircle = row.querySelector('.bulk-check-circle');
+            if (chkCircle && dbId) {
+                chkCircle.classList.toggle('checked', selectedStudentIds.has(dbId));
+            }
 
             // Update badges
             let badges = '';
@@ -16582,6 +16590,93 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 });
                 initSwipeToClose(overlay);
             });
+
+            // ── Mouse swipe selection in attendance view ──
+            const attendanceList = document.getElementById('attendanceList');
+            if (attendanceList) {
+                let isMouseDown = false;
+                let mouseHoldTimer = null;
+                
+                attendanceList.addEventListener('mousedown', e => {
+                    const card = e.target.closest('.attendance-item');
+                    if (!card) return;
+                    
+                    // Ignore clicks on buttons/inputs/action zones
+                    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.coupon-toggle-row') || e.target.closest('.attend-btn-row') || e.target.closest('.student-avatar')) {
+                        return;
+                    }
+                    
+                    isMouseDown = true;
+                    _holdStartX = e.clientX;
+                    _holdStartY = e.clientY;
+                    _holdScrolled = false;
+                    
+                    // Start long press timer (350ms for snappy response)
+                    mouseHoldTimer = setTimeout(() => {
+                        if (!isMouseDown) return;
+                        navigator.vibrate && navigator.vibrate([12, 60, 20]);
+                        
+                        // Enter select mode if not active
+                        if (!isBulkSelectMode) {
+                            toggleBulkSelectMode();
+                        }
+                        
+                        // Select the current card
+                        const dbId = parseInt(card.getAttribute('data-db-id'));
+                        if (dbId) {
+                            if (!selectedStudentIds.has(dbId)) {
+                                selectedStudentIds.add(dbId);
+                                const allList = isCombinedView ? combinedStudents : students;
+                                const s = allList.find(x => getStudentDbId(x) === dbId);
+                                if (s) {
+                                    _updateAttendanceRow(getStudentId(s));
+                                }
+                                updateBulkUI();
+                            }
+                        }
+                        
+                        _isSwipingSelection = true;
+                    }, 350);
+                });
+                
+                attendanceList.addEventListener('mousemove', e => {
+                    if (!isMouseDown) return;
+                    
+                    const dx = Math.abs(e.clientX - _holdStartX);
+                    const dy = Math.abs(e.clientY - _holdStartY);
+                    if (dx > 8 || dy > 8) {
+                        if (!_isSwipingSelection) {
+                            clearTimeout(mouseHoldTimer);
+                        }
+                    }
+                    
+                    if (_isSwipingSelection) {
+                        e.preventDefault();
+                        const card = e.target.closest('.attendance-item');
+                        if (card) {
+                            const dbId = parseInt(card.getAttribute('data-db-id'));
+                            if (dbId && !selectedStudentIds.has(dbId)) {
+                                selectedStudentIds.add(dbId);
+                                const allList = isCombinedView ? combinedStudents : students;
+                                const s = allList.find(x => getStudentDbId(x) === dbId);
+                                if (s) {
+                                    _updateAttendanceRow(getStudentId(s));
+                                }
+                                updateBulkUI();
+                            }
+                        }
+                    }
+                });
+                
+                const clearMouseSelection = () => {
+                    isMouseDown = false;
+                    _isSwipingSelection = false;
+                    clearTimeout(mouseHoldTimer);
+                };
+                
+                attendanceList.addEventListener('mouseup', clearMouseSelection);
+                attendanceList.addEventListener('mouseleave', clearMouseSelection);
+            }
         }
 
 
@@ -16831,9 +16926,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _holdScrolled = false;
         let _holdStartX = 0;
         let _holdStartY = 0;
-        const HOLD_MS = 700;
-        let _copyHoldTarget = null;
-        let _copyHoldPopupTimer = null;
+        const HOLD_MS = 350; // Snappy 350ms long press limit
+        let _isSwipingSelection = false;
 
         function _holdStart(e, studentName) {
             _holdCancel();
@@ -16841,6 +16935,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             _holdStartX = t.clientX;
             _holdStartY = t.clientY;
             _holdScrolled = false;
+
+            // Ignore hold if target is button/input/action zones
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.coupon-toggle-row') || e.target.closest('.attend-btn-row') || e.target.closest('.student-avatar')) {
+                return;
+            }
 
             const el = e.currentTarget || e.target?.closest('.attendance-item');
             if (el) {
@@ -16854,18 +16953,68 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (_holdScrolled) { _holdCancel(); return; }
                 _holdCancel(false);
                 navigator.vibrate && navigator.vibrate([12, 60, 20]);
+                
+                // 1. Enter select mode if not active
+                if (!isBulkSelectMode) {
+                    toggleBulkSelectMode();
+                }
+                
+                // 2. Select the current held card
+                if (_holdTarget) {
+                    const dbId = parseInt(_holdTarget.getAttribute('data-db-id'));
+                    if (dbId) {
+                        if (!selectedStudentIds.has(dbId)) {
+                            selectedStudentIds.add(dbId);
+                            const allList = isCombinedView ? combinedStudents : students;
+                            const s = allList.find(x => getStudentDbId(x) === dbId);
+                            if (s) {
+                                _updateAttendanceRow(getStudentId(s));
+                            }
+                            updateBulkUI();
+                        }
+                    }
+                }
+                
+                // 3. Initiate swipe selection
+                _isSwipingSelection = true;
             }, HOLD_MS);
         }
 
         function _holdMove(e) {
-            if (!_holdTimer) return;
             const t = e.touches ? e.touches[0] : e;
-            const dx = Math.abs(t.clientX - _holdStartX);
-            const dy = Math.abs(t.clientY - _holdStartY);
-            if (dx > 8 || dy > 8) { _holdScrolled = true; _holdCancel(); }
+            
+            if (!_isSwipingSelection) {
+                const dx = Math.abs(t.clientX - _holdStartX);
+                const dy = Math.abs(t.clientY - _holdStartY);
+                if (dx > 8 || dy > 8) {
+                    _holdScrolled = true;
+                    _holdCancel();
+                }
+            } else {
+                // Prevent scrolling during swipe selection
+                e.preventDefault();
+                
+                const targetEl = document.elementFromPoint(t.clientX, t.clientY);
+                const card = targetEl?.closest('.attendance-item');
+                if (card) {
+                    const dbId = parseInt(card.getAttribute('data-db-id'));
+                    if (dbId && !selectedStudentIds.has(dbId)) {
+                        selectedStudentIds.add(dbId);
+                        const allList = isCombinedView ? combinedStudents : students;
+                        const s = allList.find(x => getStudentDbId(x) === dbId);
+                        if (s) {
+                            _updateAttendanceRow(getStudentId(s));
+                        }
+                        updateBulkUI();
+                    }
+                }
+            }
         }
 
-        function _holdEnd() { _holdCancel(); }
+        function _holdEnd() {
+            _isSwipingSelection = false;
+            _holdCancel();
+        }
 
         function _holdCancel(removeRipple = true) {
             clearTimeout(_holdTimer); _holdTimer = null;
