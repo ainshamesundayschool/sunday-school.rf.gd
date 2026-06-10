@@ -3016,6 +3016,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             animation: slideUp 0.3s var(--ease-spring);
         }
+        @keyframes slideDownBulk {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        body.bulk-active .topbar,
+        body.bulk-active .class-topbar {
+            display: none !important;
+        }
+        body.bulk-active .class-view {
+            padding-top: 105px !important;
+        }
+        body.bulk-active .bulk-actions-bar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            border-bottom: 1.5px solid var(--border-solid) !important;
+            padding: 10px 16px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            background: var(--surface) !important;
+            animation: slideDownBulk 0.25s var(--ease-spring) !important;
+        }
         .bulk-actions-btns {
             display: flex;
             gap: 6px;
@@ -12370,6 +12401,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const list = document.getElementById('attendanceList');
             
             if (isBulkSelectMode) {
+                document.body.classList.add('bulk-active');
                 if (toggleBtn) {
                     toggleBtn.classList.add('active');
                     toggleBtn.innerHTML = '<i class="fas fa-times"></i><span class="save-btn-bottom"><span class="save-btn-label">إلغاء</span></span>';
@@ -12382,6 +12414,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     list.classList.add('bulk-active');
                 }
             } else {
+                document.body.classList.remove('bulk-active');
                 if (toggleBtn) {
                     toggleBtn.classList.remove('active');
                     toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i><span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>';
