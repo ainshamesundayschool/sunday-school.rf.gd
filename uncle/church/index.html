@@ -15236,6 +15236,7 @@
                     loadDevRoomsTemplates();
                 } else {
                     showToast(res.message || 'فشل حذف القالب', 'error');
+                    alert("Debug info: " + JSON.stringify(res));
                 }
             } catch (e) {
                 showToast('خطأ في الاتصال بالشبكة', 'error');
