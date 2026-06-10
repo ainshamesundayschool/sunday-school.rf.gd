@@ -40388,9 +40388,10 @@ function addCustomFieldTemplate()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        $role = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? 'uncle';
+        $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
-        if ($role !== 'developer') {
+        if (!$isDeveloperRole) {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح للمطورين فقط']);
 
@@ -40480,9 +40481,10 @@ function deleteCustomFieldTemplate()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        $role = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? 'uncle';
+        $isDeveloperRole = in_array(strtolower($role), ['developer', 'dev']);
 
-        if ($role !== 'developer') {
+        if (!$isDeveloperRole) {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح للمطورين فقط']);
 
@@ -40827,7 +40829,14 @@ function deleteRoomsTemplate()
 
             } else {
 
-                sendJSON(['success' => false, 'message' => 'القالب غير موجود أو غير تابع لك']);
+                sendJSON([
+                    'success' => false, 
+                    'message' => 'القالب غير موجود أو غير تابع لك',
+                    'debug_session' => $_SESSION,
+                    'debug_role' => $role,
+                    'debug_is_dev' => $isDeveloperRole,
+                    'debug_id' => $id
+                ]);
 
             }
 
