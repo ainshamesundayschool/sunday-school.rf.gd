@@ -16628,7 +16628,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             }
                         }
                         
+                        _swipeClientX = e.clientX;
+                        _swipeClientY = e.clientY;
                         _isSwipingSelection = true;
+                        startAutoScrollLoop();
                     }, 350);
                 });
                 
@@ -16645,25 +16648,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     
                     if (_isSwipingSelection) {
                         e.preventDefault();
-                        const card = e.target.closest('.attendance-item');
-                        if (card) {
-                            const dbId = parseInt(card.getAttribute('data-db-id'));
-                            if (dbId && !selectedStudentIds.has(dbId)) {
-                                selectedStudentIds.add(dbId);
-                                const allList = isCombinedView ? combinedStudents : students;
-                                const s = allList.find(x => getStudentDbId(x) === dbId);
-                                if (s) {
-                                    _updateAttendanceRow(getStudentId(s));
-                                }
-                                updateBulkUI();
-                            }
-                        }
+                        _swipeClientX = e.clientX;
+                        _swipeClientY = e.clientY;
+                        triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
                     }
                 });
                 
                 const clearMouseSelection = () => {
                     isMouseDown = false;
                     _isSwipingSelection = false;
+                    _swipeClientX = null;
+                    _swipeClientY = null;
+                    stopAutoScrollLoop();
                     clearTimeout(mouseHoldTimer);
                 };
                 
@@ -16924,6 +16920,71 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _copyHoldTarget = null;
         let _copyHoldPopupTimer = null;
 
+        // Auto-scroll variables for swipe selection
+        let _swipeClientX = null;
+        let _swipeClientY = null;
+        let _autoScrollTimer = null;
+
+        function triggerSelectionAtPoint(x, y) {
+            if (x === null || y === null) return;
+            const targetEl = document.elementFromPoint(x, y);
+            const card = targetEl?.closest('.attendance-item');
+            if (card) {
+                const dbId = parseInt(card.getAttribute('data-db-id'));
+                if (dbId && !selectedStudentIds.has(dbId)) {
+                    selectedStudentIds.add(dbId);
+                    const allList = isCombinedView ? combinedStudents : students;
+                    const s = allList.find(x => getStudentDbId(x) === dbId);
+                    if (s) {
+                        _updateAttendanceRow(getStudentId(s));
+                    }
+                    updateBulkUI();
+                }
+            }
+        }
+
+        function startAutoScrollLoop() {
+            if (_autoScrollTimer) return;
+            
+            const loop = () => {
+                if (!_isSwipingSelection || _swipeClientY === null) {
+                    stopAutoScrollLoop();
+                    return;
+                }
+                
+                const threshold = 100; // 100px from top/bottom
+                const speedMax = 12; // Controlled medium speed
+                
+                const viewHeight = window.innerHeight;
+                let scrollAmount = 0;
+                
+                if (_swipeClientY > viewHeight - threshold) {
+                    // Near bottom: scroll down
+                    const ratio = (_swipeClientY - (viewHeight - threshold)) / threshold;
+                    scrollAmount = Math.ceil(ratio * speedMax);
+                } else if (_swipeClientY < threshold) {
+                    // Near top: scroll up
+                    const ratio = (threshold - _swipeClientY) / threshold;
+                    scrollAmount = -Math.ceil(ratio * speedMax);
+                }
+                
+                if (scrollAmount !== 0) {
+                    window.scrollBy(0, scrollAmount);
+                    triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
+                }
+                
+                _autoScrollTimer = requestAnimationFrame(loop);
+            };
+            _autoScrollTimer = requestAnimationFrame(loop);
+        }
+
+        function stopAutoScrollLoop() {
+            if (_autoScrollTimer) {
+                cancelAnimationFrame(_autoScrollTimer);
+                _autoScrollTimer = null;
+            }
+        }
+
         function _holdStart(e, studentName) {
             _holdCancel();
             const t = e.touches ? e.touches[0] : e;
@@ -16971,12 +17032,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 
                 // 3. Initiate swipe selection
+                _swipeClientX = _holdStartX;
+                _swipeClientY = _holdStartY;
                 _isSwipingSelection = true;
+                startAutoScrollLoop();
             }, HOLD_MS);
         }
 
         function _holdMove(e) {
             const t = e.touches ? e.touches[0] : e;
+            _swipeClientX = t.clientX;
+            _swipeClientY = t.clientY;
             
             if (!_isSwipingSelection) {
                 const dx = Math.abs(t.clientX - _holdStartX);
@@ -16988,26 +17054,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else {
                 // Prevent scrolling during swipe selection
                 e.preventDefault();
-                
-                const targetEl = document.elementFromPoint(t.clientX, t.clientY);
-                const card = targetEl?.closest('.attendance-item');
-                if (card) {
-                    const dbId = parseInt(card.getAttribute('data-db-id'));
-                    if (dbId && !selectedStudentIds.has(dbId)) {
-                        selectedStudentIds.add(dbId);
-                        const allList = isCombinedView ? combinedStudents : students;
-                        const s = allList.find(x => getStudentDbId(x) === dbId);
-                        if (s) {
-                            _updateAttendanceRow(getStudentId(s));
-                        }
-                        updateBulkUI();
-                    }
-                }
+                triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
             }
         }
 
         function _holdEnd() {
             _isSwipingSelection = false;
+            _swipeClientX = null;
+            _swipeClientY = null;
+            stopAutoScrollLoop();
             _holdCancel();
         }
 
