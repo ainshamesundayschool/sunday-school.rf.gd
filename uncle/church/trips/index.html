@@ -11006,18 +11006,17 @@
           trip = { ...trip, image_url: tripImgBase64 };
 
           const showStudentImg = document.getElementById('printShowStudentImg').checked;
-          const regsCopy = [];
-          for (let r of regs) {
+          const regsCopy = await Promise.all(regs.map(async (r) => {
             const hasImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
             let studentImgBase64 = '';
             if (showStudentImg && hasImg) {
               studentImgBase64 = await toBase64(r.student_image);
             }
-            regsCopy.push({
+            return {
               ...r,
               student_image: studentImgBase64
-            });
-          }
+            };
+          }));
           regs = regsCopy;
 
           document.body.appendChild(loadingOverlay);
