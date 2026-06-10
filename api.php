@@ -6833,19 +6833,21 @@ function updateStudentImageAfterCreation()
 
 
 
-        $studentExistsStmt = $conn->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
+        $studentExistsStmt = $conn->prepare("SELECT id, image_url FROM students WHERE id = ? LIMIT 1");
 
         $studentExistsStmt->bind_param("i", $studentId);
 
         $studentExistsStmt->execute();
 
-        if (!$studentExistsStmt->get_result()->fetch_assoc()) {
+        $studentRow = $studentExistsStmt->get_result()->fetch_assoc();
+        if (!$studentRow) {
 
             sendJSON(['success' => false, 'message' => 'Student not found']);
 
             return;
 
         }
+        $oldImageUrl = $studentRow['image_url'] ?? '';
 
 
 
@@ -6974,6 +6976,10 @@ function updateStudentImageAfterCreation()
 
 
         if ($updateStmt->execute()) {
+
+            if (!empty($oldImageUrl)) {
+                deleteUploadedFile($oldImageUrl);
+            }
 
             $verifyStmt = $conn->prepare("SELECT image_url FROM students WHERE id = ? LIMIT 1");
 
@@ -8503,6 +8509,12 @@ function updateStudentImage()
 
         $conn = getDBConnection();
 
+        $oldQuery = $conn->prepare("SELECT image_url FROM students WHERE id = ? LIMIT 1");
+        $oldQuery->bind_param("i", $studentId);
+        $oldQuery->execute();
+        $oldRow = $oldQuery->get_result()->fetch_assoc();
+        $oldImageUrl = $oldRow['image_url'] ?? '';
+
         $stmt = $conn->prepare("UPDATE students SET image_url = ? WHERE id = ?");
 
         $stmt->bind_param("si", $imageUrl, $studentId);
@@ -8510,6 +8522,10 @@ function updateStudentImage()
 
 
         if ($stmt->execute()) {
+
+            if (!empty($oldImageUrl)) {
+                deleteUploadedFile($oldImageUrl);
+            }
 
             sendJSON(['success' => true, 'message' => 'تم تحديث صورة الطفل بنجاح', 'student_id' => $studentId, 'imageUrl' => $imageUrl]);
 
@@ -13468,6 +13484,12 @@ function updateUncleImage()
 
         $conn = getDBConnection();
 
+        $oldQuery = $conn->prepare("SELECT image_url FROM uncles WHERE id = ? LIMIT 1");
+        $oldQuery->bind_param("i", $uncleId);
+        $oldQuery->execute();
+        $oldRow = $oldQuery->get_result()->fetch_assoc();
+        $oldImageUrl = $oldRow['image_url'] ?? '';
+
         $stmt = $conn->prepare("UPDATE uncles SET image_url = ? WHERE id = ?");
 
         $stmt->bind_param("si", $imageUrl, $uncleId);
@@ -13475,6 +13497,10 @@ function updateUncleImage()
 
 
         if ($stmt->execute()) {
+
+            if (!empty($oldImageUrl)) {
+                deleteUploadedFile($oldImageUrl);
+            }
 
             $_SESSION['uncle_image'] = $imageUrl;
 
