@@ -11927,6 +11927,9 @@
           .ws-room-card { background: var(--bg); border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; position: relative; }
           .ws-room-card:hover { border-color: var(--primary); }
           .ws-room-card.rooms-swap-active { border-color: var(--success) !important; animation: roomsPulse 1.5s infinite; }
+          .ws-room-card.rooms-over-capacity { border-color: var(--danger-mid) !important; background: var(--danger-light) !important; }
+          .ws-room-card.rooms-over-capacity.rooms-gender-boy { border-top-color: #3b82f6 !important; }
+          .ws-room-card.rooms-over-capacity.rooms-gender-girl { border-top-color: #ec4899 !important; }
           .ws-room-card.rooms-gender-boy { border-top: 3px solid #3b82f6; }
           .ws-room-card.rooms-gender-girl { border-top: 3px solid #ec4899; }
           .ws-room-header { display: flex; justify-content: space-between; align-items: center; }
@@ -12216,9 +12219,11 @@
         // Capacity calculation
         const occupied = roomKids.length;
         const capacity = room.capacity;
+        const isOverCapacity = occupied > capacity;
         const fillPercent = Math.min(100, (occupied / capacity) * 100);
         let progressColorClass = 'green';
-        if (fillPercent >= 100) progressColorClass = 'red';
+        if (isOverCapacity) progressColorClass = 'red';
+        else if (fillPercent >= 100) progressColorClass = 'red';
         else if (fillPercent >= 75) progressColorClass = 'orange';
 
         // Check Swap status
@@ -12246,7 +12251,7 @@
         const availableUncles = window.allUnclesCache.filter(u => !(room.uncles || []).some(x => x.id == u.id));
 
         return `
-          <div class="ws-room-card ${genderClass} ${isSwapActive ? 'rooms-swap-active' : ''} ${isSearchMatch ? 'search-match' : ''}" 
+          <div class="ws-room-card ${genderClass} ${isOverCapacity ? 'rooms-over-capacity' : ''} ${isSwapActive ? 'rooms-swap-active' : ''} ${isSearchMatch ? 'search-match' : ''}" 
                style="${isSearchMatch ? 'box-shadow:0 0 10px rgba(99,102,241,0.25); border-color:var(--primary);' : ''}"
                onclick="onRoomCardClick(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
             <div class="ws-room-header">
@@ -12258,13 +12263,18 @@
                    title="${room.is_excluded ? 'مستبعدة من التسكين التلقائي (اضغط للتضمين)' : 'مدرجة في التسكين التلقائي (اضغط للاستبعاد)'}"
                    onclick="toggleRoomExclusion(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')"></i>
               </div>
-              <div class="ws-room-cap" style="cursor:pointer;" title="اضغط لتعديل سعة الغرفة" onclick="changeRoomCapacity(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${capacity})">
+              <div class="ws-room-cap" style="cursor:pointer; ${isOverCapacity ? 'color:var(--danger); font-weight:800;' : ''}" title="اضغط لتعديل سعة الغرفة" onclick="changeRoomCapacity(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${capacity})">
                 ${occupied} / ${capacity} <i class="fas fa-edit" style="font-size:0.6rem; opacity:0.5;"></i>
               </div>
             </div>
             <div class="ws-room-progress">
               <div class="ws-room-progress-fill ${progressColorClass}" style="width: ${fillPercent}%;"></div>
             </div>
+            ${isOverCapacity ? `
+              <div style="font-size:0.62rem; font-weight:700; color:var(--danger); background:var(--danger-light); border:1px solid var(--danger-mid); border-radius:4px; padding:3px 6px; display:flex; align-items:center; gap:4px; margin-top:2px; line-height:1.2;" title="عدد المسكنين يتجاوز السعة الاستيعابية المحددة للغرفة (مشاركة أسرّة)">
+                <i class="fas fa-exclamation-triangle" style="font-size:0.7rem;"></i> يتجاوز سعة الغرفة (مشاركة في الأسرة)
+              </div>
+            ` : ''}
             <div class="ws-room-kids-list">
               ${roomKids.map(k => {
           const isDraft = window.roomsDraftAllocations && window.roomsDraftAllocations[k.id];
