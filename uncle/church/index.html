@@ -19583,6 +19583,8 @@
                     }
                 };
 
+                const showStudentImg = document.getElementById('printShowStudentImg').checked;
+
                 // Pre-convert logo to Base64
                 window.pdfLogoBase64 = await toBase64('/logo.png');
 
@@ -19646,7 +19648,6 @@
 
                 const padding = document.getElementById('printPadding').value + 'px';
                 const showChurch = document.getElementById('printShowChurch').checked;
-                const showStudentImg = document.getElementById('printShowStudentImg').checked;
                 const showStudentName = document.getElementById('printShowStudentName').checked;
                 const showClass = document.getElementById('printShowClass').checked;
                 const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
