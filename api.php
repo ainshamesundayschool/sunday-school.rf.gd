@@ -23632,202 +23632,171 @@ function restoreTripWaitlistPayment()
 
 
 
-function rebalanceTripWaitlist()
-
+function moveRegToWaitlist($conn, $tripId, $r, $churchId)
 {
+    $regId = $r['id'];
+    $studentId = $r['student_id'];
+    $historyArray = parseWaitlistPaymentHistory($r['payment_history'] ?? null);
+    if (empty($historyArray)) {
+        $historyArray = fetchRegistrationPaymentsAsHistory($conn, $regId);
+    }
+    $totals = computeWaitlistPaymentTotals($historyArray);
+    $totalPaid = $totals['total_paid'];
+    $totalDonation = $totals['total_donation'];
+    if ($totalPaid < floatval($r['deposit'] ?? 0) - 0.01) {
+        $totalPaid = floatval($r['deposit'] ?? 0);
+    }
+    $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
 
+    $pos = getWaitlistNextPosition($conn, $tripId);
+    $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, donation, custom_data, payment_history, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $ins->bind_param("iiiisddsss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalPaid, $totalDonation, $r['custom_data'], $paymentHistoryJson, $r['created_at']);
+    if ($ins->execute()) {
+        $delP = $conn->prepare("DELETE FROM trip_payments WHERE registration_id = ?");
+        $delP->bind_param("i", $regId);
+        $delP->execute();
+
+        $del = $conn->prepare("DELETE FROM trip_registrations WHERE id = ?");
+        $del->bind_param("i", $regId);
+        return $del->execute();
+    }
+    return false;
+}
+
+function rebalanceTripWaitlist()
+{
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
         $tripId = intval($_POST['trip_id'] ?? 0);
 
         if (!$tripId) {
-
             sendJSON(['success' => false, 'message' => 'trip_id مطلوب']);
-
             return;
-
         }
-
-
 
         $conn = getDBConnection();
-
         ensureWaitlistTable($conn);
 
-
-
         if (!verifyTripParticipant($conn, $tripId, $churchId)) {
-
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح لك بموازنتها']);
-
             return;
-
         }
 
-
-
-        // Get trip max
-
-        $tripStmt = $conn->prepare("SELECT max_participants FROM trips WHERE id = ?");
-
+        $tripStmt = $conn->prepare("SELECT church_id, max_participants, collaboration_limits, collab_limit_mode, collab_max_participants FROM trips WHERE id = ?");
         $tripStmt->bind_param("i", $tripId);
-
         $tripStmt->execute();
-
         $trip = $tripStmt->get_result()->fetch_assoc();
-
         if (!$trip) {
-
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
-
-            return;
-
-        }
-
-        $max = intval($trip['max_participants']);
-
-        if ($max <= 0) {
-
-            sendJSON(['success' => true, 'message' => 'لا يوجد حد أقصى للرحلة، لا حاجة للموازنة', 'moved' => 0]);
-
-            return;
-
-        }
-
-
-
-        // Get all active registrations ordered by creation date (earliest first stay in)
-
-        $regStmt = $conn->prepare("SELECT id, student_id, deposit, notes, custom_data, created_at, payment_history FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 ORDER BY created_at ASC, id ASC");
-
-        $regStmt->bind_param("i", $tripId);
-
-        $regStmt->execute();
-
-        $regs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-
-
-        if (count($regs) < $max) {
-            // Promote kids from waitlist to registrations
-            $slots = $max - count($regs);
-            $promoted = [];
-            for ($i = 0; $i < $slots; $i++) {
-                $p = promoteFirstEligibleFromWaitlist($conn, $tripId);
-                if (!$p) {
-                    break;
-                }
-                $promoted[] = $p['student_name'];
-            }
-            if (!empty($promoted)) {
-                $namesStr = implode('، ', $promoted);
-                sendJSON([
-                    'success' => true, 
-                    'message' => "تم زيادة السعة وترقية الأطفال من قائمة الانتظار تلقائياً: $namesStr", 
-                    'promoted' => count($promoted),
-                    'moved' => 0
-                ]);
-            } else {
-                sendJSON(['success' => true, 'message' => 'السعة كافية ولا يوجد أطفال في قائمة الانتظار للتصعيد', 'moved' => 0]);
-            }
             return;
         }
 
-        if (count($regs) == $max) {
-            sendJSON(['success' => true, 'message' => 'الرحلة مساوية تماماً للحد الأقصى، لا حاجة للموازنة', 'moved' => 0]);
-            return;
+        $ownerChurchId = intval($trip['church_id']);
+        $maxParticipants = intval($trip['max_participants']);
+        $collabLimitMode = $trip['collab_limit_mode'] ?? 'open';
+        $collabMax = intval($trip['collab_max_participants'] ?? 0);
+
+        $limits = [];
+        if (!empty($trip['collaboration_limits'])) {
+            $limits = json_decode($trip['collaboration_limits'], true);
         }
-
-
-
-        $extra = array_slice($regs, $max);
 
         $movedCount = 0;
 
+        // Get all active registrations grouped by church
+        $regStmt = $conn->prepare("
+            SELECT tr.*, COALESCE(s.church_id, g.church_id) AS church_id
+            FROM trip_registrations tr
+            LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+            LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+            WHERE tr.trip_id = ? AND tr.cancelled = 0
+            ORDER BY tr.created_at ASC, tr.id ASC
+        ");
+        $regStmt->bind_param("i", $tripId);
+        $regStmt->execute();
+        $allRegs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-
-        foreach ($extra as $r) {
-
-            $regId = $r['id'];
-
-            $studentId = $r['student_id'];
-
-            $historyArray = parseWaitlistPaymentHistory($r['payment_history'] ?? null);
-
-            if (empty($historyArray)) {
-
-                $historyArray = fetchRegistrationPaymentsAsHistory($conn, $regId);
-
-            }
-
-            $totals = computeWaitlistPaymentTotals($historyArray);
-
-            $totalPaid = $totals['total_paid'];
-
-            $totalDonation = $totals['total_donation'];
-
-            if ($totalPaid < floatval($r['deposit'] ?? 0) - 0.01) {
-
-                $totalPaid = floatval($r['deposit'] ?? 0);
-
-            }
-
-            $paymentHistoryJson = json_encode($historyArray, JSON_UNESCAPED_UNICODE);
-
-
-
-            // Move to waitlist
-
-            $pos = getWaitlistNextPosition($conn, $tripId);
-
-            $ins = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, position, notes, deposit, donation, custom_data, payment_history, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-            $ins->bind_param("iiiisddsss", $tripId, $studentId, $churchId, $pos, $r['notes'], $totalPaid, $totalDonation, $r['custom_data'], $paymentHistoryJson, $r['created_at']);
-
-
-
-            if ($ins->execute()) {
-
-                // Delete payments (they are consolidated in waitlist.deposit)
-
-                $delP = $conn->prepare("DELETE FROM trip_payments WHERE registration_id = ?");
-
-                $delP->bind_param("i", $regId);
-
-                $delP->execute();
-
-
-
-                // Delete the registration
-
-                $del = $conn->prepare("DELETE FROM trip_registrations WHERE id = ?");
-
-                $del->bind_param("i", $regId);
-
-                $del->execute();
-
-
-
-                $movedCount++;
-
-            }
-
+        // Group registrations by church
+        $churchRegs = [];
+        foreach ($allRegs as $r) {
+            $cid = intval($r['church_id']);
+            $churchRegs[$cid][] = $r;
         }
 
+        // A. Shrink owner church registrations if ownerCount > maxParticipants
+        if ($maxParticipants > 0 && isset($churchRegs[$ownerChurchId]) && count($churchRegs[$ownerChurchId]) > $maxParticipants) {
+            $excess = array_slice($churchRegs[$ownerChurchId], $maxParticipants);
+            foreach ($excess as $r) {
+                if (moveRegToWaitlist($conn, $tripId, $r, $ownerChurchId)) {
+                    $movedCount++;
+                }
+            }
+        }
 
+        // B. Shrink each collaborator church registrations if collabCount > churchLimit
+        if (is_array($limits)) {
+            foreach ($limits as $collabIdStr => $churchLimitVal) {
+                $collabId = intval($collabIdStr);
+                $churchLimit = intval($churchLimitVal);
+                if (isset($churchRegs[$collabId]) && count($churchRegs[$collabId]) > $churchLimit) {
+                    $excess = array_slice($churchRegs[$collabId], $churchLimit);
+                    foreach ($excess as $r) {
+                        if (moveRegToWaitlist($conn, $tripId, $r, $collabId)) {
+                            $movedCount++;
+                        }
+                    }
+                }
+            }
+        }
 
-        sendJSON(['success' => true, 'message' => "تم نقل $movedCount طفل إلى قائمة الانتظار بنجاح", 'moved' => $movedCount]);
+        // C. Shrink overall collaborator limit if collab_limit_mode === 'limited'
+        if ($collabLimitMode === 'limited' && $collabMax > 0) {
+            $regStmt->execute();
+            $currentRegs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            
+            $collabRegs = [];
+            foreach ($currentRegs as $r) {
+                $cid = intval($r['church_id']);
+                if ($cid !== $ownerChurchId) {
+                    $collabRegs[] = $r;
+                }
+            }
 
+            if (count($collabRegs) > $collabMax) {
+                $excess = array_slice($collabRegs, $collabMax);
+                foreach ($excess as $r) {
+                    if (moveRegToWaitlist($conn, $tripId, $r, intval($r['church_id']))) {
+                        $movedCount++;
+                    }
+                }
+            }
+        }
+
+        // D. Grow: Promote eligible kids from waitlist
+        $promoted = [];
+        while ($p = promoteFirstEligibleFromWaitlist($conn, $tripId)) {
+            $promoted[] = $p['student_name'];
+        }
+
+        $msg = "تمت موازنة الرحلة بنجاح.";
+        if ($movedCount > 0) {
+            $msg .= " تم نقل $movedCount طفل إلى قائمة الانتظار.";
+        }
+        if (!empty($promoted)) {
+            $namesStr = implode('، ', $promoted);
+            $msg .= " تم ترقية الأطفال من قائمة الانتظار تلقائياً: $namesStr";
+        }
+
+        sendJSON([
+            'success' => true,
+            'message' => $msg,
+            'moved' => $movedCount,
+            'promoted' => count($promoted)
+        ]);
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
-
     }
-
 }
 
 
