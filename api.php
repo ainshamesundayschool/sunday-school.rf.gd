@@ -22597,7 +22597,16 @@ function promoteWaitlistEntry($conn, $waiting, $tripId)
 
         }
 
-
+        // Validate that receivedBy exists in uncles table to avoid foreign key constraint failure
+        $dbReceivedBy = null;
+        if ($receivedBy > 0) {
+            $checkUncle = $conn->prepare("SELECT id FROM uncles WHERE id = ?");
+            $checkUncle->bind_param("i", $receivedBy);
+            $checkUncle->execute();
+            if ($checkUncle->get_result()->num_rows > 0) {
+                $dbReceivedBy = $receivedBy;
+            }
+        }
 
         $ps = $conn->prepare("
 
@@ -22607,7 +22616,7 @@ function promoteWaitlistEntry($conn, $waiting, $tripId)
 
         ");
 
-        $ps->bind_param("iddsiss", $registrationId, $pAmt, $pDon, $pMethod, $receivedBy, $pNotes, $pDate);
+        $ps->bind_param("iddsiss", $registrationId, $pAmt, $pDon, $pMethod, $dbReceivedBy, $pNotes, $pDate);
 
         $ps->execute();
 
