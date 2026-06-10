@@ -541,3 +541,90 @@ function recoverStudentAttendanceFromAuditLogs($studentId, $churchId, $conn) {
         error_log("recoverStudentAttendanceFromAuditLogs error: " . $e->getMessage());
     }
 }
+
+// ── TRIP PAYMENTS ────────────────────────────────────────────
+
+function auditTripPaymentAdd(int $paymentId, int $registrationId, float $amount, float $donation, string $method, string $notes): void {
+    writeAuditLog(
+        'trip_payment_add',
+        'trip_payment',
+        $paymentId,
+        "دفعة رقم $paymentId",
+        null,
+        [
+            'registration_id' => $registrationId,
+            'amount' => $amount,
+            'donation' => $donation,
+            'payment_method' => $method,
+            'notes' => $notes
+        ],
+        "إضافة دفعة/تبرع للرحلة بقيمة " . ($amount > 0 ? "$amount ج" : "$donation ج تبرع")
+    );
+}
+
+function auditTripPaymentDelete(int $paymentId, array $paymentInfo): void {
+    writeAuditLog(
+        'trip_payment_delete',
+        'trip_payment',
+        $paymentId,
+        "دفعة رقم $paymentId",
+        $paymentInfo,
+        null,
+        "إلغاء/حذف دفعة الرحلة الملغاة بقيمة {$paymentInfo['amount']} ج"
+    );
+}
+
+function auditTripPaymentRestore(int $paymentId, array $paymentInfo): void {
+    writeAuditLog(
+        'trip_payment_restore',
+        'trip_payment',
+        $paymentId,
+        "دفعة رقم $paymentId",
+        null,
+        $paymentInfo,
+        "استعادة دفعة الرحلة بقيمة {$paymentInfo['amount']} ج"
+    );
+}
+
+function auditTripWaitlistPaymentAdd(string $paymentId, int $studentId, int $tripId, float $amount, float $donation, string $method, string $notes): void {
+    writeAuditLog(
+        'trip_waitlist_payment_add',
+        'trip_waitlist_payment',
+        $tripId,
+        "طفل ID: $studentId",
+        null,
+        [
+            'payment_id' => $paymentId,
+            'student_id' => $studentId,
+            'amount' => $amount,
+            'donation' => $donation,
+            'payment_method' => $method,
+            'notes' => $notes
+        ],
+        "إضافة دفعة انتظار بقيمة " . ($amount > 0 ? "$amount ج" : "$donation ج تبرع")
+    );
+}
+
+function auditTripWaitlistPaymentDelete(string $paymentId, int $studentId, int $tripId, array $paymentInfo): void {
+    writeAuditLog(
+        'trip_waitlist_payment_delete',
+        'trip_waitlist_payment',
+        $tripId,
+        "طفل ID: $studentId",
+        $paymentInfo,
+        null,
+        "حذف دفعة انتظار بقيمة {$paymentInfo['amount']} ج"
+    );
+}
+
+function auditTripWaitlistPaymentRestore(string $paymentId, int $studentId, int $tripId, array $paymentInfo): void {
+    writeAuditLog(
+        'trip_waitlist_payment_restore',
+        'trip_waitlist_payment',
+        $tripId,
+        "طفل ID: $studentId",
+        null,
+        $paymentInfo,
+        "استعادة دفعة انتظار بقيمة {$paymentInfo['amount']} ج"
+    );
+}

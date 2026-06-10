@@ -23243,6 +23243,10 @@ function addTripWaitlistPayment()
 
         if ($upd->execute()) {
 
+            if (function_exists('auditTripWaitlistPaymentAdd')) {
+                auditTripWaitlistPaymentAdd($newPaymentId, $studentId, $tripId, $amount, $donation, $paymentMethod, $notes);
+            }
+
             $status = tripPaymentStatusFromPaid($newTotalPaid, $totalPerKid);
 
 
@@ -23427,6 +23431,17 @@ function deleteTripWaitlistPayment()
 
         if ($upd->execute()) {
 
+            if (function_exists('auditTripWaitlistPaymentDelete')) {
+                $deletedPayInfo = [];
+                foreach ($historyArray as $p) {
+                    if (isset($p['id']) && $p['id'] == $paymentId) {
+                        $deletedPayInfo = $p;
+                        break;
+                    }
+                }
+                auditTripWaitlistPaymentDelete($paymentId, $studentId, $tripId, $deletedPayInfo);
+            }
+
             $totalPerKid = getTripTotalPerKid($conn, $tripId);
 
             $status = tripPaymentStatusFromPaid($newTotalPaid, $totalPerKid);
@@ -23610,6 +23625,17 @@ function restoreTripWaitlistPayment()
 
 
         if ($upd->execute()) {
+
+            if (function_exists('auditTripWaitlistPaymentRestore')) {
+                $restoredPayInfo = [];
+                foreach ($historyArray as $p) {
+                    if (isset($p['id']) && $p['id'] == $paymentId) {
+                        $restoredPayInfo = $p;
+                        break;
+                    }
+                }
+                auditTripWaitlistPaymentRestore($paymentId, $studentId, $tripId, $restoredPayInfo);
+            }
 
             $totalPerKid = getTripTotalPerKid($conn, $tripId);
 
@@ -24674,6 +24700,10 @@ function addTripPayment()
 
             $newPaymentId = $conn->insert_id;
 
+            if (function_exists('auditTripPaymentAdd')) {
+                auditTripPaymentAdd($newPaymentId, $registrationId, $amount, $donation, $paymentMethod, $notes);
+            }
+
 
 
             $historyStmt = $conn->prepare("SELECT payment_history FROM trip_registrations WHERE id = ?");
@@ -25050,6 +25080,10 @@ function deleteTripPayment()
 
         }
 
+        if (function_exists('auditTripPaymentDelete')) {
+            auditTripPaymentDelete($paymentId, $paymentInfo);
+        }
+
 
 
         // Update payment_history JSON in trip_registrations
@@ -25266,12 +25300,8 @@ function restoreTripPayment()
 
 
 
-        // Audit log
-
-        if (function_exists('logAudit')) {
-
-            logAudit('trip_payment_restored', 'trip_payments', $paymentId, "Restored payment of {$paymentInfo['amount']} for registration {$registrationId}");
-
+        if (function_exists('auditTripPaymentRestore')) {
+            auditTripPaymentRestore($paymentId, $paymentInfo);
         }
 
 
