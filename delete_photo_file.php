@@ -62,16 +62,22 @@ try {
     }
     
     if ($action === 'delete') {
-        // Perform deletion
-        if (unlink($realFilePath)) {
-            error_log("✅ Successfully deleted: $fileName");
+        // Move to trash bin folder instead of hard deleting
+        $trashDir = __DIR__ . '/uploads/trash_bin/students/';
+        if (!is_dir($trashDir)) {
+            @mkdir($trashDir, 0755, true);
+        }
+        $trashFilePath = $trashDir . $fileName;
+
+        if (@rename($realFilePath, $trashFilePath) || (@copy($realFilePath, $trashFilePath) && @unlink($realFilePath))) {
+            error_log("✅ Successfully moved to trash bin: $fileName");
             sendJson([
                 'success' => true, 
-                'message' => 'File deleted successfully',
+                'message' => 'File moved to trash bin',
                 'fileName' => $fileName
             ]);
         } else {
-            error_log("❌ Failed to delete: $fileName");
+            error_log("❌ Failed to move to trash bin: $fileName");
             sendJson(['success' => false, 'message' => 'Failed to delete file']);
         }
     }

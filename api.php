@@ -129,99 +129,68 @@ function ensureChurchTypeColumn(mysqli $conn): void
  */
 
 function deleteUploadedFile(?string $imageUrl): bool {
-
     if (empty($imageUrl)) return false;
 
-
-
     // Extract relative path from full URL or relative path
-
     $path = $imageUrl;
-
     if (strpos($path, 'https://') === 0 || strpos($path, 'http://') === 0) {
-
         $parsed = parse_url($path);
-
         $path = $parsed['path'] ?? '';
-
     }
-
-
 
     // Must start with /uploads/
-
     if (strpos($path, '/uploads/') !== 0) {
-
         error_log("deleteUploadedFile: path does not start with /uploads/: " . $imageUrl);
-
         return false;
-
     }
-
-
 
     // Build absolute file path
-
     $filePath = __DIR__ . $path;
-
     $realPath = @realpath($filePath);
-
     $uploadsDir = @realpath(__DIR__ . '/uploads');
 
-
-
     // Safety checks
-
     if (!$realPath || !$uploadsDir) {
-
         error_log("deleteUploadedFile: file not found or uploads dir missing: " . $imageUrl);
-
         return false;
-
     }
-
-
 
     // Path traversal protection
-
     if (strpos($realPath, $uploadsDir . DIRECTORY_SEPARATOR) !== 0 && $realPath !== $uploadsDir) {
-
         error_log("SECURITY deleteUploadedFile: path traversal attempt blocked: " . $imageUrl);
-
         return false;
-
     }
-
-
 
     // Must be a regular file
-
     if (!is_file($realPath)) {
-
         error_log("deleteUploadedFile: not a regular file: " . $imageUrl);
-
         return false;
-
     }
 
+    // Map /uploads/... to /uploads/trash_bin/...
+    $trashPath = str_replace('/uploads/', '/uploads/trash_bin/', $path);
+    $trashFilePath = __DIR__ . $trashPath;
+    $trashDir = dirname($trashFilePath);
 
+    if (!is_dir($trashDir)) {
+        @mkdir($trashDir, 0755, true);
+    }
 
-    // Delete file
-
-    if (@unlink($realPath)) {
-
-        error_log("✅ Cleaned up uploaded file: " . $path);
-
+    // Move file
+    if (@rename($realPath, $trashFilePath)) {
+        error_log("✅ Moved uploaded file to trash bin: " . $path . " -> " . $trashPath);
         return true;
-
     }
 
+    // Fallback: copy and delete if rename fails
+    if (@copy($realPath, $trashFilePath)) {
+        @unlink($realPath);
+        error_log("✅ Moved uploaded file to trash bin (copy+delete): " . $path . " -> " . $trashPath);
+        return true;
+    }
 
-
-    error_log("❌ Failed to delete uploaded file: " . $path);
-
+    error_log("❌ Failed to move uploaded file to trash bin: " . $path);
     return false;
-
 }
 
 
