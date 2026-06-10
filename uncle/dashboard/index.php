@@ -8883,6 +8883,82 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- MAIN CONTAINER -->
     <div id="mainContainer">
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+            <div class="bulk-actions-bar-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                <div style="display:flex; align-items:center; gap:6px; flex:1; min-width: 0;">
+                    <!-- Select all checkbox circle -->
+                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex: none;" title="تحديد الكل">
+                        <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
+                    </div>
+                    
+                    <!-- Deselect all outside the dropdown -->
+                    <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل" style="flex: none;">
+                        <i class="fas fa-eraser" style="font-size: 0.72rem;"></i>
+                    </button>
+                    
+                    <!-- Dropdown taking whole width -->
+                    <div class="action-dropdown" style="flex: 1; min-width: 0; position: relative;">
+                        <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="width: 100%; text-align: right; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: transparent; height: 32px; padding: 0 10px; font-size: 0.78rem; font-weight: 700;">
+                            <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <i class="fas fa-filter" style="font-size: 0.75rem; color: var(--text-3);"></i>
+                                <span>تحديد حسب...</span>
+                            </span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.65rem; color: var(--text-3);"></i>
+                        </button>
+                        <div class="dropdown-menu" id="bulkFilterMenu" style="right: 0; left: 0; min-width: 100%; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg);">
+                            <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
+                            <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                            <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Left Stack: Close Button & Selected Count Badge underneath -->
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
+                    <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
+                        &times;
+                    </button>
+                    <span id="bulkSelectedCount" class="selected-count-chip" style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
+                </div>
+            </div>
+            <div class="bulk-actions-btns">
+                <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <div class="action-dropdown" style="flex:none;">
+                    <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
+                        <i class="fas fa-coins"></i>
+                    </button>
+                    <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
+                        <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
+                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
+                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
+                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
+                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
+                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
+                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
+                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
+                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
+                    </div>
+                </div>
+
+                <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-bulk-action bulk-note" onclick="openBulkNoteModal()" title="إضافة ملاحظة جماعية">
+                    <i class="fas fa-sticky-note"></i>
+                </button>
+                <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
 
         <!-- TOPBAR -->
         <header class="topbar">
@@ -9288,82 +9364,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="save-btn save-btn-coupons" id="submitCoupons" disabled title="حفظ الكوبونات">
                                 <i class="fas fa-star"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">الكوبونات</span></span>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Bulk Actions Bar (Nested inside sticky toolbar flow) -->
-                    <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
-                        <div class="bulk-actions-bar-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                            <div style="display:flex; align-items:center; gap:6px; flex:1; min-width: 0;">
-                                <!-- Select all checkbox circle -->
-                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex: none;" title="تحديد الكل">
-                                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
-                                </div>
-                                
-                                <!-- Deselect all outside the dropdown -->
-                                <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل" style="flex: none;">
-                                    <i class="fas fa-eraser" style="font-size: 0.72rem;"></i>
-                                </button>
-                                
-                                <!-- Dropdown taking whole width -->
-                                <div class="action-dropdown" style="flex: 1; min-width: 0; position: relative;">
-                                    <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="width: 100%; text-align: right; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: transparent; height: 32px; padding: 0 10px; font-size: 0.78rem; font-weight: 700;">
-                                        <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            <i class="fas fa-filter" style="font-size: 0.75rem; color: var(--text-3);"></i>
-                                            <span>تحديد حسب...</span>
-                                        </span>
-                                        <i class="fas fa-chevron-down" style="font-size: 0.65rem; color: var(--text-3);"></i>
-                                    </button>
-                                    <div class="dropdown-menu" id="bulkFilterMenu" style="right: 0; left: 0; min-width: 100%; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg);">
-                                        <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
-                                        <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
-                                        <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Left Stack: Close Button & Selected Count Badge underneath -->
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
-                                <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
-                                    &times;
-                                </button>
-                                <span id="bulkSelectedCount" class="selected-count-chip" style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
-                            </div>
-                        </div>
-                        <div class="bulk-actions-btns">
-                            <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            
-                            <div class="action-dropdown" style="flex:none;">
-                                <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
-                                    <i class="fas fa-coins"></i>
-                                </button>
-                                <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
-                                    <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
-                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
-                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
-                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
-                                    <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
-                                    <div class="dropdown-divider"></div>
-                                    <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
-                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
-                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
-                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
-                                    <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
-                                </div>
-                            </div>
-
-                            <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-bulk-action bulk-note" onclick="openBulkNoteModal()" title="إضافة ملاحظة جماعية">
-                                <i class="fas fa-sticky-note"></i>
-                            </button>
-                            <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
-                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
