@@ -12882,11 +12882,20 @@
                 <label class="form-label" style="font-weight:700;">أقصى عدد مشرفين في الغرفة الواحدة</label>
                 <input type="number" id="afUncleLimit" class="form-input" value="1" min="0" max="4">
               </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">أولوية تجميع الأطفال في الغرفة (Prioritize Grouping By)</label>
+                <select id="afPriority" class="form-select" style="width:100%;">
+                  <option value="church_class" selected>الكنيسة والمرحلة الدراسية معاً (Church & Class)</option>
+                  <option value="church">الكنيسة فقط (Church Only)</option>
+                  <option value="class">المرحلة الدراسية فقط (Class Only)</option>
+                  <option value="none">تسكين فردي بدون شروط تجميع (Individual Allocation)</option>
+                </select>
+              </div>
               
               <div class="form-group">
-                <label class="form-label" style="font-weight:700;">تصفية النوع (أين يبيت الأولاد وأين تبيت البنات؟)</label>
-                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:6px; background:var(--surface-3); padding:8px 12px; border-radius:8px; border:1.5px solid var(--border-solid);">
-                  <!-- Loaded dynamically based on Buildings -->
+                <label class="form-label" style="font-weight:700;">تحديد شروط المباني والأدوار (النوع والكنيسة)</label>
+                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:6px; background:var(--surface-3); padding:8px 12px; border-radius:8px; border:1.5px solid var(--border-solid); max-height:250px; overflow-y:auto;">
+                  <!-- Loaded dynamically based on Buildings and Floors -->
                 </div>
               </div>
 
@@ -12909,25 +12918,101 @@
       /**
        * Open Auto-Fill Wizard and populate filters dynamically
        */
-      function openAutoFillWizardModal() {
+      async function openAutoFillWizardModal() {
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const regs = tripRegistrationsCache[tripId] || [];
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
 
-        // Populate Gender filters based on buildings list
+        await loadSystemChurches();
+
+        const ownerId = parseInt(trip.church_id || 0);
+        const ownerName = trip.owner_church_name || 'الكنيسة المالكة';
+        const participatingChurches = [];
+        if (ownerId) {
+          participatingChurches.push({ id: ownerId, name: ownerName });
+        }
+        let collaborators = [];
+        try {
+          collaborators = trip.collaborating_churches ? JSON.parse(trip.collaborating_churches) : [];
+        } catch(e) {}
+        collaborators.forEach(cId => {
+          const parsedId = parseInt(cId);
+          if (parsedId && parsedId !== ownerId) {
+            let name = '';
+            const sysC = systemChurches.find(c => c.id == parsedId);
+            if (sysC) name = sysC.name;
+            else {
+              const regC = regs.find(r => parseInt(r.student_church_id || r.church_id) == parsedId);
+              name = regC ? (regC.church_name || `كنيسة ${parsedId}`) : `كنيسة ${parsedId}`;
+            }
+            participatingChurches.push({ id: parsedId, name: name });
+          }
+        });
+        regs.forEach(r => {
+          const cid = parseInt(r.student_church_id || r.church_id || 0);
+          if (cid && !participatingChurches.some(c => c.id === cid)) {
+            participatingChurches.push({ id: cid, name: r.church_name || `كنيسة ${cid}` });
+          }
+        });
+
+        // Generate options for church filter select dropdown
+        const churchOptionsHtml = `
+          <option value="all" selected>كل الكنائس (All)</option>
+          ${participatingChurches.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('')}
+        `;
+
+        // Populate Conditions Wrap
         const genderWrap = document.getElementById('afGenderFiltersWrap');
         if (genderWrap) {
-          genderWrap.innerHTML = roomsConfig.map((b, idx) => `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom: 1px solid var(--border); padding-bottom:5px; margin-bottom:5px;">
-              <span style="font-size:0.8rem; font-weight:700;"><i class="fas fa-hotel"></i> ${escHtml(b.name)}:</span>
-              <select class="form-select af-bld-gender-filter" data-bld="${escHtml(b.name)}" style="width:130px; font-size:0.75rem; height:28px; padding:2px 6px;">
-                <option value="all" selected>مشترك (حسب الحاجة)</option>
-                <option value="male">أولاد فقط (Boys Only)</option>
-                <option value="female">بنات فقط (Girls Only)</option>
-              </select>
-            </div>
-          `).join('');
+          genderWrap.innerHTML = roomsConfig.map((b, idx) => {
+            const bldEsc = escHtml(b.name);
+            if (b.has_floors) {
+              return `
+                <div style="border-bottom: 2px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+                  <div style="font-size:0.8rem; font-weight:800; color:var(--text); margin-bottom:6px;">
+                    <i class="fas fa-hotel" style="color:var(--primary);"></i> مبنى: ${bldEsc}
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:6px; padding-right:12px; border-right:2px solid var(--primary-light);">
+                    ${b.floors.map(fl => {
+                      const flEsc = escHtml(fl.name);
+                      return `
+                        <div style="display:flex; flex-direction:column; gap:4px; padding-bottom:4px; border-bottom:1px dashed var(--border);">
+                          <span style="font-size:0.75rem; font-weight:700;"><i class="fas fa-layer-group"></i> ${flEsc}:</span>
+                          <div style="display:flex; gap:6px; width:100%;">
+                            <select class="form-select af-floor-gender-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="flex:1; font-size:0.7rem; height:28px; padding:2px 6px;">
+                              <option value="all" selected>مشترك (Co-ed)</option>
+                              <option value="male">أولاد فقط (Boys)</option>
+                              <option value="female">بنات فقط (Girls)</option>
+                            </select>
+                            <select class="form-select af-floor-church-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="flex:1.2; font-size:0.7rem; height:28px; padding:2px 6px;">
+                              ${churchOptionsHtml}
+                            </select>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            } else {
+              return `
+                <div style="display:flex; flex-direction:column; gap:4px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
+                  <span style="font-size:0.8rem; font-weight:700;"><i class="fas fa-hotel"></i> مبنى: ${bldEsc}:</span>
+                  <div style="display:flex; gap:6px; width:100%;">
+                    <select class="form-select af-bld-gender-filter" data-bld="${bldEsc}" style="flex:1; font-size:0.7rem; height:28px; padding:2px 6px;">
+                      <option value="all" selected>مشترك (Co-ed)</option>
+                      <option value="male">أولاد فقط (Boys)</option>
+                      <option value="female">بنات فقط (Girls)</option>
+                    </select>
+                    <select class="form-select af-bld-church-filter" data-bld="${bldEsc}" style="flex:1.2; font-size:0.7rem; height:28px; padding:2px 6px;">
+                      ${churchOptionsHtml}
+                    </select>
+                  </div>
+                </div>
+              `;
+            }
+          }).join('');
         }
 
         // Populate Exclusions checkbox list
@@ -12955,6 +13040,7 @@
 
         const scope = document.getElementById('afScope').value;
         const uncleLimit = parseInt(document.getElementById('afUncleLimit').value || '1');
+        const priority = document.getElementById('afPriority').value;
 
         // Extract exclusions
         const excludedIds = new Set();
@@ -12962,15 +13048,31 @@
           excludedIds.add(parseInt(cb.value));
         });
 
-        // Get gender filters on buildings
+        // Get gender and church filters on buildings
         const bldGenderFilters = {};
+        const bldChurchFilters = {};
         document.querySelectorAll('.af-bld-gender-filter').forEach(sel => {
-          bldGenderFilters[sel.dataset.bld] = sel.value; // 'all', 'male', 'female'
+          bldGenderFilters[sel.dataset.bld] = sel.value;
+        });
+        document.querySelectorAll('.af-bld-church-filter').forEach(sel => {
+          bldChurchFilters[sel.dataset.bld] = sel.value;
+        });
+
+        // Get gender and church filters on floors
+        const floorGenderFilters = {};
+        const floorChurchFilters = {};
+        document.querySelectorAll('.af-floor-gender-filter').forEach(sel => {
+          const key = sel.dataset.bld + '__' + sel.dataset.floor;
+          floorGenderFilters[key] = sel.value;
+        });
+        document.querySelectorAll('.af-floor-church-filter').forEach(sel => {
+          const key = sel.dataset.bld + '__' + sel.dataset.floor;
+          floorChurchFilters[key] = sel.value;
         });
 
         // Setup rooms allocation map
         const draftAllocations = {};
-        const roomState = []; // Array of room instances with capacity tracker
+        const roomState = [];
 
         // Load existing allocations if scope is 'unassigned'
         const allocatedMap = {};
@@ -12990,10 +13092,7 @@
 
         // Initialize room instances
         roomsConfig.forEach(bld => {
-          const bldGenderLimit = bldGenderFilters[bld.name] || 'all';
-
           const addRoomInst = (rName, cap, flName = '') => {
-            // Find existing kids in this room
             const existingKids = regs.filter(k => {
               const alloc = allocatedMap[k.id];
               return alloc && alloc.bldName === bld.name && alloc.floorName === flName && alloc.roomName === rName;
@@ -13009,6 +13108,22 @@
             if (boyCount > 0) assignedGender = 'male';
             if (girlCount > 0) assignedGender = 'female';
 
+            let genderLimit = 'all';
+            let churchLimit = 'all';
+
+            if (flName) {
+              const fKey = bld.name + '__' + flName;
+              genderLimit = floorGenderFilters[fKey] || 'all';
+              churchLimit = floorChurchFilters[fKey] || 'all';
+            } else {
+              genderLimit = bldGenderFilters[bld.name] || 'all';
+              churchLimit = bldChurchFilters[bld.name] || 'all';
+            }
+
+            if (genderLimit === 'all' && assignedGender) {
+              genderLimit = assignedGender;
+            }
+
             roomState.push({
               bldName: bld.name,
               floorName: flName,
@@ -13016,8 +13131,8 @@
               capacity: cap,
               occupied: existingKids.length,
               assignedKids: existingKids.map(k => k.id),
-              genderLimit: bldGenderLimit !== 'all' ? bldGenderLimit : assignedGender,
-              bldGenderLimit: bldGenderLimit
+              genderLimit: genderLimit,
+              churchLimit: churchLimit
             });
           };
 
@@ -13039,7 +13154,7 @@
         // Filter kids to assign
         const kidsToAssign = regs.filter(r => {
           if (excludedIds.has(r.id)) return false;
-          if (allocatedMap[r.id]) return false; // Already allocated
+          if (allocatedMap[r.id]) return false;
           return true;
         });
 
@@ -13049,110 +13164,114 @@
 
         // Allocation Sub-Algorithm
         const allocateGenderGroup = (kids, gender) => {
-          // Group kids by Church + Class
           const groupsMap = {};
           kids.forEach(k => {
-            const key = (k._churchId || 0) + '_' + (k.student_class || 'default');
+            let key;
+            const cid = parseInt(k.student_church_id || k.church_id || k._churchId || 0);
+            const cls = (k.student_class || 'default').trim();
+            if (priority === 'church_class') {
+              key = cid + '_' + cls;
+            } else if (priority === 'church') {
+              key = String(cid);
+            } else if (priority === 'class') {
+              key = cls;
+            } else {
+              key = String(k.id);
+            }
             if (!groupsMap[key]) groupsMap[key] = [];
             groupsMap[key].push(k);
           });
 
-          // Sort groups by size descending to distribute larger clusters first
           const sortedGroups = Object.values(groupsMap).sort((a, b) => b.length - a.length);
 
           sortedGroups.forEach(group => {
-            // Try to assign the group together
             let remainingKidsInGroup = [...group];
 
-            // Filter rooms matching this gender or completely unassigned
-            const getMatchingRooms = () => {
+            const getMatchingRooms = (kid) => {
+              const kidChurchId = parseInt(kid.student_church_id || kid.church_id || kid._churchId || 0);
               return roomState.filter(r => {
                 if (r.occupied >= r.capacity) return false;
-                if (r.genderLimit && r.genderLimit !== gender) return false;
-                if (r.bldGenderLimit !== 'all' && r.bldGenderLimit !== gender) return false;
+                if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
+                if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit) !== String(kidChurchId)) return false;
                 return true;
               });
             };
 
             // Pass 1: Try to fit the WHOLE group in one single room
-            let matchingRooms = getMatchingRooms();
-            const perfectRoom = matchingRooms.find(r => (r.capacity - r.occupied) >= remainingKidsInGroup.length);
-            if (perfectRoom) {
-              remainingKidsInGroup.forEach(k => {
-                perfectRoom.assignedKids.push(k.id);
-                perfectRoom.occupied++;
-                perfectRoom.genderLimit = gender;
-                draftAllocations[k.id] = {
-                  bldName: perfectRoom.bldName,
-                  floorName: perfectRoom.floorName,
-                  roomName: perfectRoom.roomName
-                };
-              });
-              remainingKidsInGroup = [];
-            }
-
-            // Pass 2: Spill into rooms on the same floor/building
             if (remainingKidsInGroup.length > 0) {
-              matchingRooms = getMatchingRooms();
-              
-              // Group matching rooms by building and floor
-              const roomClusters = {};
-              matchingRooms.forEach(r => {
-                const key = r.bldName + '_' + r.floorName;
-                if (!roomClusters[key]) roomClusters[key] = [];
-                roomClusters[key].push(r);
-              });
-
-              // Sort clusters by free spaces descending
-              const sortedClusters = Object.values(roomClusters).sort((a, b) => {
-                const spaceA = a.reduce((sum, r) => sum + (r.capacity - r.occupied), 0);
-                const spaceB = b.reduce((sum, r) => sum + (r.capacity - r.occupied), 0);
-                return spaceB - spaceA;
-              });
-
-              if (sortedClusters.length > 0) {
-                const bestCluster = sortedClusters[0];
-                bestCluster.forEach(room => {
-                  while (room.occupied < room.capacity && remainingKidsInGroup.length > 0) {
-                    const k = remainingKidsInGroup.shift();
-                    room.assignedKids.push(k.id);
-                    room.occupied++;
-                    room.genderLimit = gender;
-                    draftAllocations[k.id] = {
-                      bldName: room.bldName,
-                      floorName: room.floorName,
-                      roomName: room.roomName
-                    };
-                  }
+              const representativeKid = remainingKidsInGroup[0];
+              const matchingRooms = getMatchingRooms(representativeKid);
+              const perfectRoom = matchingRooms.find(r => {
+                if ((r.capacity - r.occupied) < remainingKidsInGroup.length) return false;
+                return remainingKidsInGroup.every(k => {
+                  const kidCid = parseInt(k.student_church_id || k.church_id || k._churchId || 0);
+                  return !r.churchLimit || r.churchLimit === 'all' || String(r.churchLimit) === String(kidCid);
                 });
+              });
+
+              if (perfectRoom) {
+                remainingKidsInGroup.forEach(k => {
+                  perfectRoom.assignedKids.push(k.id);
+                  perfectRoom.occupied++;
+                  perfectRoom.genderLimit = gender;
+                  draftAllocations[k.id] = {
+                    bldName: perfectRoom.bldName,
+                    floorName: perfectRoom.floorName,
+                    roomName: perfectRoom.roomName
+                  };
+                });
+                remainingKidsInGroup = [];
               }
             }
 
-            // Pass 3: Fill any remaining kids into any general available room of matching gender
+            // Pass 2: Spill into rooms that match conditions for each kid
             if (remainingKidsInGroup.length > 0) {
-              matchingRooms = getMatchingRooms();
-              matchingRooms.forEach(room => {
-                while (room.occupied < room.capacity && remainingKidsInGroup.length > 0) {
-                  const k = remainingKidsInGroup.shift();
-                  room.assignedKids.push(k.id);
-                  room.occupied++;
-                  room.genderLimit = gender;
-                  draftAllocations[k.id] = {
-                    bldName: room.bldName,
-                    floorName: room.floorName,
-                    roomName: room.roomName
-                  };
+              while (remainingKidsInGroup.length > 0) {
+                const k = remainingKidsInGroup[0];
+                const matchingRooms = getMatchingRooms(k);
+                if (matchingRooms.length === 0) {
+                  remainingKidsInGroup.shift();
+                  continue;
                 }
-              });
+
+                matchingRooms.sort((a, b) => {
+                  const aClusterKids = a.assignedKids;
+                  const bClusterKids = b.assignedKids;
+
+                  const aGroupCount = aClusterKids.filter(id => group.some(gk => gk.id === id)).length;
+                  const bGroupCount = bClusterKids.filter(id => group.some(gk => gk.id === id)).length;
+                  if (aGroupCount !== bGroupCount) return bGroupCount - aGroupCount;
+
+                  const kCid = parseInt(k.student_church_id || k.church_id || k._churchId || 0);
+                  const aChurchCount = a.assignedKids.filter(id => {
+                    const rkid = regs.find(kr => kr.id === id);
+                    return rkid && parseInt(rkid.student_church_id || rkid.church_id || rkid._churchId) === kCid;
+                  }).length;
+                  const bChurchCount = b.assignedKids.filter(id => {
+                    const rkid = regs.find(kr => kr.id === id);
+                    return rkid && parseInt(rkid.student_church_id || rkid.church_id || rkid._churchId) === kCid;
+                  }).length;
+                  return bChurchCount - aChurchCount;
+                });
+
+                const bestRoom = matchingRooms[0];
+                bestRoom.assignedKids.push(k.id);
+                bestRoom.occupied++;
+                bestRoom.genderLimit = gender;
+                draftAllocations[k.id] = {
+                  bldName: bestRoom.bldName,
+                  floorName: bestRoom.floorName,
+                  roomName: bestRoom.roomName
+                };
+                remainingKidsInGroup.shift();
+              }
             }
           });
         };
 
-        // Distribute boys and girls independently
         allocateGenderGroup(boys, 'male');
         allocateGenderGroup(girls, 'female');
 
-        // Apply draft state
         window.roomsDraftAllocations = draftAllocations;
 
         closeModal('autoFillRoomsModal');
