@@ -22694,7 +22694,7 @@ function promoteWaitlistEntry($conn, $waiting, $tripId)
 
 }
 
-function promoteFirstEligibleFromWaitlist($conn, $tripId)
+function promoteFirstEligibleFromWaitlist($conn, $tripId, $restrictChurchId = null)
 {
     // 1. Get the trip details
     $tripStmt = $conn->prepare("SELECT church_id, max_participants, collaboration_limits, collab_limit_mode, collab_max_participants FROM trips WHERE id = ?");
@@ -22714,14 +22714,25 @@ function promoteFirstEligibleFromWaitlist($conn, $tripId)
     }
 
     // 2. Fetch all waitlist entries in order
-    $wStmt = $conn->prepare("
-        SELECT tw.*, s.name AS student_name, s.image_url AS student_image
-        FROM trip_waitlist tw
-        JOIN students s ON s.id = tw.student_id
-        WHERE tw.trip_id = ?
-        ORDER BY tw.position ASC
-    ");
-    $wStmt->bind_param("i", $tripId);
+    if ($restrictChurchId !== null) {
+        $wStmt = $conn->prepare("
+            SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+            FROM trip_waitlist tw
+            JOIN students s ON s.id = tw.student_id
+            WHERE tw.trip_id = ? AND tw.church_id = ?
+            ORDER BY tw.position ASC
+        ");
+        $wStmt->bind_param("ii", $tripId, $restrictChurchId);
+    } else {
+        $wStmt = $conn->prepare("
+            SELECT tw.*, s.name AS student_name, s.image_url AS student_image
+            FROM trip_waitlist tw
+            JOIN students s ON s.id = tw.student_id
+            WHERE tw.trip_id = ?
+            ORDER BY tw.position ASC
+        ");
+        $wStmt->bind_param("i", $tripId);
+    }
     $wStmt->execute();
     $waitlist = $wStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -23735,59 +23746,80 @@ function rebalanceTripWaitlist()
             $churchRegs[$cid][] = $r;
         }
 
-        // A. Shrink owner church registrations if ownerCount > maxParticipants
-        if ($maxParticipants > 0 && isset($churchRegs[$ownerChurchId]) && count($churchRegs[$ownerChurchId]) > $maxParticipants) {
-            $excess = array_slice($churchRegs[$ownerChurchId], $maxParticipants);
-            foreach ($excess as $r) {
-                if (moveRegToWaitlist($conn, $tripId, $r, $ownerChurchId)) {
-                    $movedCount++;
+        $isOwner = ($churchId === $ownerChurchId);
+
+        if ($isOwner) {
+            // A. Shrink owner church registrations if ownerCount > maxParticipants
+            if ($maxParticipants > 0 && isset($churchRegs[$ownerChurchId]) && count($churchRegs[$ownerChurchId]) > $maxParticipants) {
+                $excess = array_slice($churchRegs[$ownerChurchId], $maxParticipants);
+                foreach ($excess as $r) {
+                    if (moveRegToWaitlist($conn, $tripId, $r, $ownerChurchId)) {
+                        $movedCount++;
+                    }
                 }
             }
-        }
 
-        // B. Shrink each collaborator church registrations if collabCount > churchLimit
-        if (is_array($limits)) {
-            foreach ($limits as $collabIdStr => $churchLimitVal) {
-                $collabId = intval($collabIdStr);
-                $churchLimit = intval($churchLimitVal);
-                if (isset($churchRegs[$collabId]) && count($churchRegs[$collabId]) > $churchLimit) {
-                    $excess = array_slice($churchRegs[$collabId], $churchLimit);
+            // B. Shrink each collaborator church registrations if collabCount > churchLimit
+            if (is_array($limits)) {
+                foreach ($limits as $collabIdStr => $churchLimitVal) {
+                    $collabId = intval($collabIdStr);
+                    $churchLimit = intval($churchLimitVal);
+                    if (isset($churchRegs[$collabId]) && count($churchRegs[$collabId]) > $churchLimit) {
+                        $excess = array_slice($churchRegs[$collabId], $churchLimit);
+                        foreach ($excess as $r) {
+                            if (moveRegToWaitlist($conn, $tripId, $r, $collabId)) {
+                                $movedCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // C. Shrink overall collaborator limit if collab_limit_mode === 'limited'
+            if ($collabLimitMode === 'limited' && $collabMax > 0) {
+                $regStmt->execute();
+                $currentRegs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                
+                $collabRegs = [];
+                foreach ($currentRegs as $r) {
+                    $cid = intval($r['church_id']);
+                    if ($cid !== $ownerChurchId) {
+                        $collabRegs[] = $r;
+                    }
+                }
+
+                if (count($collabRegs) > $collabMax) {
+                    $excess = array_slice($collabRegs, $collabMax);
                     foreach ($excess as $r) {
-                        if (moveRegToWaitlist($conn, $tripId, $r, $collabId)) {
+                        if (moveRegToWaitlist($conn, $tripId, $r, intval($r['church_id']))) {
                             $movedCount++;
                         }
                     }
                 }
             }
-        }
 
-        // C. Shrink overall collaborator limit if collab_limit_mode === 'limited'
-        if ($collabLimitMode === 'limited' && $collabMax > 0) {
-            $regStmt->execute();
-            $currentRegs = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            
-            $collabRegs = [];
-            foreach ($currentRegs as $r) {
-                $cid = intval($r['church_id']);
-                if ($cid !== $ownerChurchId) {
-                    $collabRegs[] = $r;
-                }
+            // D. Grow: Promote eligible kids from waitlist
+            $promoted = [];
+            while ($p = promoteFirstEligibleFromWaitlist($conn, $tripId)) {
+                $promoted[] = $p['student_name'];
             }
-
-            if (count($collabRegs) > $collabMax) {
-                $excess = array_slice($collabRegs, $collabMax);
+        } else {
+            // Collaborator church - only shrink and grow for their own church!
+            $churchLimit = isset($limits[strval($churchId)]) ? intval($limits[strval($churchId)]) : null;
+            if ($churchLimit !== null && isset($churchRegs[$churchId]) && count($churchRegs[$churchId]) > $churchLimit) {
+                $excess = array_slice($churchRegs[$churchId], $churchLimit);
                 foreach ($excess as $r) {
-                    if (moveRegToWaitlist($conn, $tripId, $r, intval($r['church_id']))) {
+                    if (moveRegToWaitlist($conn, $tripId, $r, $churchId)) {
                         $movedCount++;
                     }
                 }
             }
-        }
 
-        // D. Grow: Promote eligible kids from waitlist
-        $promoted = [];
-        while ($p = promoteFirstEligibleFromWaitlist($conn, $tripId)) {
-            $promoted[] = $p['student_name'];
+            // Grow: Promote eligible kids from waitlist ONLY for $churchId
+            $promoted = [];
+            while ($p = promoteFirstEligibleFromWaitlist($conn, $tripId, $churchId)) {
+                $promoted[] = $p['student_name'];
+            }
         }
 
         $msg = "تمت موازنة الرحلة بنجاح.";

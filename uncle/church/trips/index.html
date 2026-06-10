@@ -8031,39 +8031,145 @@
       }
 
       async function autoDetectWaitlist(tripId) {
-        const trip = allTripsCache.find(t => t.id == tripId);
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
-        const max = parseInt(trip.max_participants || 0);
-        const regs = (tripRegistrationsCache[tripId] || []).filter(r => !r.cancelled);
+
+        const loggedInChurchId = parseInt(
+          localStorage.getItem('churchId') || 
+          localStorage.getItem('church_id') || 
+          localStorage.getItem('uncle_church_id') || 
+          localStorage.getItem('uncleChurchId') || 
+          window.currentChurchId || 
+          0
+        );
+        const ownerChurchId = parseInt(trip.church_id || 0);
+        const isOwner = (loggedInChurchId === ownerChurchId);
+
+        // Fetch all active registrations
+        const allRegs = (tripRegistrationsCache[tripId] || []).filter(r => !r.cancelled);
         const waitlist = window.currentWaitlistCache || [];
 
-        if (max <= 0) {
-          if (waitlist.length > 0) {
-            if (confirm('الرحلة ليس لها حد أقصى للمشاركين وهناك أطفال في قائمة الانتظار.\nهل تريد ترقية الأطفال المؤهلين إلى التسجيل الرئيسي تلقائياً؟')) {
-              runRebalance();
-            }
-          } else {
-            showToast('الرحلة ليس لها حد أقصى ولا يوجد أطفال في قائمة الانتظار', 'info');
-          }
-          return;
-        }
+        // Group registrations by church
+        const regsByChurch = {};
+        allRegs.forEach(r => {
+          const cid = parseInt(r.student_church_id || r.church_id || 0);
+          if (!regsByChurch[cid]) regsByChurch[cid] = [];
+          regsByChurch[cid].push(r);
+        });
 
-        if (regs.length > max) {
-          const extra = regs.length - max;
-          if (confirm(`تم اكتشاف ${extra} طفل مسجلين فوق الحد الأقصى (${max}).\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`)) {
-            runRebalance();
+        // Group waitlist by church
+        const waitlistByChurch = {};
+        waitlist.forEach(w => {
+          const cid = parseInt(w.student_church_id || w.church_id || 0);
+          if (!waitlistByChurch[cid]) waitlistByChurch[cid] = [];
+          waitlistByChurch[cid].push(w);
+        });
+
+        // Get limits
+        const ownerLimit = parseInt(trip.max_participants || 0);
+        const collabLimitMode = trip.collab_limit_mode || 'open';
+        const collabMax = parseInt(trip.collab_max_participants || 0);
+        
+        // Decode collaborator limits
+        const collabLimits = {};
+        const collabList = Array.isArray(trip.collaborators_list) ? trip.collaborators_list : [];
+        collabList.forEach(c => {
+          if (c.limit !== null && c.limit !== undefined) {
+            collabLimits[parseInt(c.id)] = parseInt(c.limit);
           }
-        } else if (regs.length < max) {
-          if (waitlist.length > 0) {
-            const emptySlots = max - regs.length;
-            if (confirm(`يوجد ${emptySlots} أماكن شاغرة وهناك أطفال في قائمة الانتظار.\nهل تريد ترقية الأطفال المؤهلين إلى التسجيل الرئيسي تلقائياً؟`)) {
-              runRebalance();
+        });
+
+        let excessCount = 0;
+        let vacanciesToPromote = 0;
+
+        if (isOwner) {
+          // 1. Evaluate Owner Church
+          const ownerCount = (regsByChurch[ownerChurchId] || []).length;
+          if (ownerLimit > 0) {
+            if (ownerCount > ownerLimit) {
+              excessCount += (ownerCount - ownerLimit);
+            } else if (ownerCount < ownerLimit) {
+              const ownerWaitlistCount = (waitlistByChurch[ownerChurchId] || []).length;
+              vacanciesToPromote += Math.min(ownerLimit - ownerCount, ownerWaitlistCount);
             }
-          } else {
-            showToast('السعة كافية ولا يوجد أطفال في قائمة الانتظار', 'success');
+          }
+
+          // 2. Evaluate Collaborator Churches (individual limits)
+          let totalCollabCount = 0;
+          const collabChurchesIds = collabList.map(c => parseInt(c.id));
+          collabChurchesIds.forEach(cid => {
+            const count = (regsByChurch[cid] || []).length;
+            totalCollabCount += count;
+            const limit = collabLimits[cid];
+            if (limit !== undefined && limit > 0) {
+              if (count > limit) {
+                excessCount += (count - limit);
+              } else if (count < limit) {
+                const waitlistCount = (waitlistByChurch[cid] || []).length;
+                vacanciesToPromote += Math.min(limit - count, waitlistCount);
+              }
+            } else {
+              // Collaborator limit is open/unlimited
+              const waitlistCount = (waitlistByChurch[cid] || []).length;
+              vacanciesToPromote += waitlistCount;
+            }
+          });
+
+          // 3. Evaluate Collaborator Group Limit
+          if (collabLimitMode === 'limited' && collabMax > 0) {
+            if (totalCollabCount > collabMax) {
+              excessCount += (totalCollabCount - collabMax);
+            }
           }
         } else {
-          showToast('الرحلة مكتملة تماماً بالعدد الأقصى المسموح به', 'info');
+          // I am a collaborator church - only evaluate my own church!
+          const myId = loggedInChurchId;
+          const count = (regsByChurch[myId] || []).length;
+          const limit = collabLimits[myId];
+          const waitlistCount = (waitlistByChurch[myId] || []).length;
+
+          // Check individual limit excess/vacancies
+          if (limit !== undefined && limit !== null) {
+            if (count > limit) {
+              excessCount = count - limit;
+            } else if (count < limit) {
+              vacanciesToPromote = Math.min(limit - count, waitlistCount);
+            }
+          } else {
+            // My limit is open/unlimited, so any waitlisted kid from my church can be promoted
+            vacanciesToPromote = waitlistCount;
+          }
+
+          // If there's a collab group limit, restrict vacancies to promote
+          if (collabLimitMode === 'limited' && collabMax > 0) {
+            let totalCollabCount = 0;
+            collabList.forEach(c => {
+              totalCollabCount += (regsByChurch[parseInt(c.id)] || []).length;
+            });
+            const groupVacancy = Math.max(0, collabMax - totalCollabCount);
+            if (vacanciesToPromote > groupVacancy) {
+              vacanciesToPromote = groupVacancy;
+            }
+          }
+        }
+
+        // Now decide the prompt message
+        if (excessCount > 0) {
+          const msg = isOwner 
+            ? `تم اكتشاف ${excessCount} طفل مسجلين فوق الحد المسموح به لكنائسهم.\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`
+            : `تم اكتشاف ${excessCount} طفل مسجلين فوق الحد المسموح به لكنيستكم.\nهل تريد نقلهم إلى قائمة الانتظار تلقائياً (الأحدث انضماماً سيتم نقلهم)؟`;
+          if (confirm(msg)) {
+            runRebalance();
+          }
+        } else if (vacanciesToPromote > 0) {
+          const msg = isOwner
+            ? `تم اكتشاف أماكن شاغرة وهناك أطفال في قائمة الانتظار مؤهلين للترقية.\nهل تريد ترقيتهم إلى التسجيل الرئيسي تلقائياً؟`
+            : `تم اكتشاف أماكن شاغرة لكنيستكم وهناك أطفال في قائمة الانتظار مؤهلين للترقية.\nهل تريد ترقيتهم إلى التسجيل الرئيسي تلقائياً؟`;
+          if (confirm(msg)) {
+            runRebalance();
+          }
+        } else {
+          showToast(isOwner ? 'الرحلة متوازنة تماماً ولا توجد ترقيات أو تجاوزات حالياً' : 'الرحلة متوازنة تماماً ولا توجد ترقيات أو تجاوزات حالياً لكنيستكم', 'info');
         }
 
         async function runRebalance() {
