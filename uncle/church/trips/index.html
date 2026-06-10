@@ -9650,6 +9650,15 @@
         const type = document.getElementById('editTripType').value;
         document.getElementById('editEndDateGroup').style.display = type === 'multiple_days' ? 'block' : 'none';
       }
+      function toggleCollabLimitInput(mode) {
+        const selectId = mode === 'add' ? 'tripCollabLimitMode' : 'editTripCollabLimitMode';
+        const inputId = mode === 'add' ? 'tripCollabMaxParticipants' : 'editTripCollabMaxParticipants';
+        const sel = document.getElementById(selectId);
+        const inp = document.getElementById(inputId);
+        if (sel && inp) {
+            inp.style.display = sel.value === 'limited' ? 'block' : 'none';
+        }
+      }
 
       function recalcEditTripPrice() {
         const price = parseFloat(document.getElementById('editTripPrice').value) || 0;
@@ -9773,6 +9782,9 @@
         document.getElementById('editTripDiscount').value = Math.round(t.discount || 0);
         document.getElementById('editTripDiscountType').value = t.discount_type || 'percentage';
         document.getElementById('editTripMaxParticipants').value = t.max_participants || '';
+        document.getElementById('editTripCollabLimitMode').value = t.collab_limit_mode || 'open';
+        document.getElementById('editTripCollabMaxParticipants').value = t.collab_max_participants || '';
+        toggleCollabLimitInput('edit');
         document.getElementById('editTripStatus').value = t.status;
         document.getElementById('editTripDescription').value = t.description || '';
         document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
@@ -9816,6 +9828,8 @@
         fd.append('discount', Math.round(parseFloat(document.getElementById('editTripDiscount').value) || 0));
         fd.append('discount_type', document.getElementById('editTripDiscountType').value);
         fd.append('max_participants', document.getElementById('editTripMaxParticipants').value || 0);
+        fd.append('collab_limit_mode', document.getElementById('editTripCollabLimitMode').value);
+        fd.append('collab_max_participants', document.getElementById('editTripCollabMaxParticipants').value || '');
         fd.append('status', document.getElementById('editTripStatus').value);
         fd.append('description', document.getElementById('editTripDescription').value);
         fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
@@ -13130,8 +13144,18 @@
                   style="font-weight:700;color:var(--primary);">
               </div>
               <div class="form-group">
-                <label class="form-label">الحد الأقصى</label>
+                <label class="form-label">الحد الأقصى (للكنيسة الرئيسية)</label>
                 <input type="number" id="editTripMaxParticipants" class="form-input" min="0">
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">حجز الكنائس الأخرى المشاركة (التعاون)</label>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                  <select id="editTripCollabLimitMode" class="form-select" style="flex:1;min-width:200px;" onchange="toggleCollabLimitInput('edit')">
+                    <option value="open">مفتوح (حسب حد كل كنيسة منفردة)</option>
+                    <option value="limited">تحديد حد إجمالي لجميع الكنائس الأخرى المشاركة</option>
+                  </select>
+                  <input type="number" id="editTripCollabMaxParticipants" class="form-input" style="width:180px;display:none;" min="0" placeholder="أقصى عدد إجمالي">
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">الحالة</label>

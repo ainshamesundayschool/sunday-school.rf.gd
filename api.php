@@ -15843,12 +15843,46 @@ function bulkSaveImportedKids()
                         $registeredCount++;
                     }
                 } else {
-                    $countStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
-                    $countStmt->bind_param("i", $tripId);
-                    $countStmt->execute();
-                    $activeCount = (int) $countStmt->get_result()->fetch_assoc()['cnt'];
+                    $isWaitlist = false;
+                    if ($churchId === $ownerChurchId) {
+                        $ownerCountStmt = $conn->prepare("
+                            SELECT COUNT(*) as cnt
+                            FROM trip_registrations tr
+                            LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                            LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                            WHERE tr.trip_id = ? 
+                              AND tr.cancelled = 0
+                              AND COALESCE(s.church_id, g.church_id) = ?
+                        ");
+                        $ownerCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+                        $ownerCountStmt->execute();
+                        $ownerCount = (int) $ownerCountStmt->get_result()->fetch_assoc()['cnt'];
+                        if ($maxParticipants > 0 && $ownerCount >= $maxParticipants) {
+                            $isWaitlist = true;
+                        }
+                    } else {
+                        $collabLimitMode = $trip['collab_limit_mode'] ?? 'open';
+                        if ($collabLimitMode === 'limited') {
+                            $collabMax = intval($trip['collab_max_participants'] ?? 0);
+                            $collabCountStmt = $conn->prepare("
+                                SELECT COUNT(*) as cnt
+                                FROM trip_registrations tr
+                                LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                                LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                                WHERE tr.trip_id = ? 
+                                  AND tr.cancelled = 0
+                                  AND COALESCE(s.church_id, g.church_id) != ?
+                            ");
+                            $collabCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+                            $collabCountStmt->execute();
+                            $collabCount = (int) $collabCountStmt->get_result()->fetch_assoc()['cnt'];
+                            if ($collabMax > 0 && $collabCount >= $collabMax) {
+                                $isWaitlist = true;
+                            }
+                        }
+                    }
 
-                    if ($maxParticipants > 0 && $activeCount >= $maxParticipants) {
+                    if ($isWaitlist) {
                         $checkWait = $conn->prepare("SELECT id FROM trip_waitlist WHERE trip_id = ? AND student_id = ?");
                         $checkWait->bind_param("ii", $tripId, $studentId);
                         $checkWait->execute();
@@ -20600,6 +20634,15 @@ function addTrip()
 
             $tripId = $conn->insert_id;
 
+            // Save collaboration settings
+            $collabLimitMode = sanitize($_POST['collab_limit_mode'] ?? 'open');
+            $collabMax = isset($_POST['collab_max_participants']) && $_POST['collab_max_participants'] !== '' ? intval($_POST['collab_max_participants']) : null;
+            $updStmt = $conn->prepare("UPDATE trips SET collab_limit_mode = ?, collab_max_participants = ? WHERE id = ?");
+            if ($updStmt) {
+                $updStmt->bind_param("sii", $collabLimitMode, $collabMax, $tripId);
+                $updStmt->execute();
+            }
+
 
 
             // تسجيل النشاط
@@ -21037,6 +21080,15 @@ function updateTrip()
 
 
         if ($stmt->execute()) {
+
+            // Save collaboration settings
+            $collabLimitMode = sanitize($_POST['collab_limit_mode'] ?? 'open');
+            $collabMax = isset($_POST['collab_max_participants']) && $_POST['collab_max_participants'] !== '' ? intval($_POST['collab_max_participants']) : null;
+            $updStmt = $conn->prepare("UPDATE trips SET collab_limit_mode = ?, collab_max_participants = ? WHERE id = ?");
+            if ($updStmt) {
+                $updStmt->bind_param("sii", $collabLimitMode, $collabMax, $tripId);
+                $updStmt->execute();
+            }
 
             // AFTER update, get new trip data
 
@@ -23838,21 +23890,49 @@ function registerStudentForTrip()
 
 
 
-        // عدد المسجلين النشطين
-
-        $countStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
-
-        $countStmt->bind_param("i", $tripId);
-
-        $countStmt->execute();
-
-        $activeCount = (int) $countStmt->get_result()->fetch_assoc()['cnt'];
-
-
+        $isWaitlist = false;
+        if ($regType !== 'guest') {
+            if ($churchId === $ownerChurchId) {
+                $ownerCountStmt = $conn->prepare("
+                    SELECT COUNT(*) as cnt
+                    FROM trip_registrations tr
+                    LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                    LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                    WHERE tr.trip_id = ? 
+                      AND tr.cancelled = 0
+                      AND COALESCE(s.church_id, g.church_id) = ?
+                ");
+                $ownerCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+                $ownerCountStmt->execute();
+                $ownerCount = (int) $ownerCountStmt->get_result()->fetch_assoc()['cnt'];
+                if ($maxParticipants > 0 && $ownerCount >= $maxParticipants) {
+                    $isWaitlist = true;
+                }
+            } else {
+                $collabLimitMode = $trip['collab_limit_mode'] ?? 'open';
+                if ($collabLimitMode === 'limited') {
+                    $collabMax = intval($trip['collab_max_participants'] ?? 0);
+                    $collabCountStmt = $conn->prepare("
+                        SELECT COUNT(*) as cnt
+                        FROM trip_registrations tr
+                        LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
+                        LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
+                        WHERE tr.trip_id = ? 
+                          AND tr.cancelled = 0
+                          AND COALESCE(s.church_id, g.church_id) != ?
+                    ");
+                    $collabCountStmt->bind_param("ii", $tripId, $ownerChurchId);
+                    $collabCountStmt->execute();
+                    $collabCount = (int) $collabCountStmt->get_result()->fetch_assoc()['cnt'];
+                    if ($collabMax > 0 && $collabCount >= $collabMax) {
+                        $isWaitlist = true;
+                    }
+                }
+            }
+        }
 
         // إذا الرحلة ممتلئة → أضفه لقائمة الانتظار (فقط للطلاب وليس للزوار)
-
-        if ($regType !== 'guest' && $maxParticipants > 0 && $activeCount >= $maxParticipants) {
+        if ($isWaitlist) {
 
             $position = getWaitlistNextPosition($conn, $tripId);
 
