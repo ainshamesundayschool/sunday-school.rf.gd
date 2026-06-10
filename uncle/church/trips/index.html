@@ -13808,6 +13808,20 @@
             if (remainingKidsInGroup.length > 0) {
               const representativeKid = remainingKidsInGroup[0];
               const matchingRooms = getMatchingRooms(representativeKid);
+              
+              // Sort matching rooms to prioritize packing partially filled rooms first (combining classes if spaces allow)
+              matchingRooms.sort((a, b) => {
+                const aOccupied = a.occupied > 0;
+                const bOccupied = b.occupied > 0;
+                if (aOccupied !== bOccupied) {
+                  return bOccupied ? 1 : -1;
+                }
+                if (a.occupied !== b.occupied) {
+                  return b.occupied - a.occupied;
+                }
+                return a.capacity - b.capacity;
+              });
+
               const perfectRoom = matchingRooms.find(r => {
                 if ((r.capacity - r.occupied) < remainingKidsInGroup.length) return false;
                 return remainingKidsInGroup.every(k => {
@@ -13860,7 +13874,12 @@
                     const rkid = regs.find(kr => kr.id === id);
                     return rkid && parseInt(rkid.student_church_id || rkid.church_id || rkid._churchId) === kCid;
                   }).length;
-                  return bChurchCount - aChurchCount;
+                  if (aChurchCount !== bChurchCount) return bChurchCount - aChurchCount;
+
+                  // Tie-breaker: prefer rooms that are already occupied to maximize space utilization (put class 1 & 2 together)
+                  if (a.occupied !== b.occupied) return b.occupied - a.occupied;
+
+                  return a.capacity - b.capacity;
                 });
 
                 const bestRoom = matchingRooms[0];
