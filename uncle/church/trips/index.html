@@ -11003,7 +11003,7 @@
           if (trip && trip.image_url) {
             tripImgBase64 = await toBase64(trip.image_url);
           }
-          trip = { ...trip, image_url: tripImgBase64 || trip.image_url };
+          trip = { ...trip, image_url: tripImgBase64 };
 
           const showStudentImg = document.getElementById('printShowStudentImg').checked;
           const regsCopy = [];
@@ -11015,7 +11015,7 @@
             }
             regsCopy.push({
               ...r,
-              student_image: studentImgBase64 || r.student_image
+              student_image: studentImgBase64
             });
           }
           regs = regsCopy;
