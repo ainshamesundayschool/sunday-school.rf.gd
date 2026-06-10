@@ -5950,30 +5950,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       });
       if (changed) {
         localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
-        // Refresh announcement banner
-        const banner = document.getElementById('scAnnBanner');
-        const bannerList = document.getElementById('annBannerList');
-        const dismissedIdsNew = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-        const activeAnns = allAnnouncements.filter(ann => !dismissedIdsNew.includes(parseInt(ann.id)));
-        if (activeAnns.length > 0) {
-          const latest = activeAnns[0];
-          latestBannerAnnId = parseInt(latest.id);
-          let linkBtn = '';
-          if (latest.type === 'button' && latest.link) {
-            linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
-          }
-          if (bannerList) {
-            bannerList.innerHTML = `
-              <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
-              ${linkBtn}
-            `;
-          }
-          if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
-            banner.style.display = 'block';
-          }
-        } else {
-          if (banner) banner.style.display = 'none';
-        }
+        loadAnn();
       }
       const st = tSt(t);
       if (st === 'done' && t.my_submission) { showExamResult(t, t.my_submission); return; }
@@ -6722,13 +6699,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const annBadge = document.getElementById('annBadge');
 
         // 2. Render the Announcements Section Card (if present)
-        if (anns.length > 0) {
-          if (annSub) annSub.textContent = `${anns.length} إعلان${anns.length > 1 ? 'ات' : ''} موجه ليك`;
-          if (annBadge) annBadge.textContent = String(anns.length);
+        const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+        const activeAnns = anns.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
 
-          const latestCard = anns[0];
-          const buttonCount = anns.filter(a => a.type === 'button' && a.link).length;
-          const messageCount = anns.length - buttonCount;
+        if (activeAnns.length > 0) {
+          if (annSub) annSub.textContent = `${activeAnns.length} إعلان${activeAnns.length > 1 ? 'ات' : ''} موجه ليك`;
+          if (annBadge) annBadge.textContent = String(activeAnns.length);
+
+          const latestCard = activeAnns[0];
+          const buttonCount = activeAnns.filter(a => a.type === 'button' && a.link).length;
+          const messageCount = activeAnns.length - buttonCount;
+          const remainingAnns = activeAnns.slice(1);
+
+          let remainingHtml = '';
+          if (remainingAnns.length > 0) {
+            remainingHtml = `
+              <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-3); margin: 15px 0 10px 0; border-bottom: 1.5px solid var(--bdr); padding-bottom: 6px;">الإعلانات السابقة</div>
+              <div class="ann-list">
+                ${remainingAnns.map(a => `
+                  <div class="ann-item">
+                    <div class="ann-top">
+                      <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
+                        <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
+                        ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
+                      </span>
+                      <span class="ann-date">${fmtDate(a.created_at)}</span>
+                    </div>
+                    <div class="ann-text">${esc(a.text)}</div>
+                    <div class="ann-footer">
+                      <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
+                      ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
+                      <button onclick="dismissSingleAnn(${a.id})" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
+                    </div>
+                  </div>`).join('')}
+              </div>
+            `;
+          }
 
           if (cardList) {
             cardList.innerHTML = `
@@ -6745,12 +6751,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                   </span>
                   <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latestCard.created_at)}</span>
                   ${latestCard.type === 'button' && latestCard.link ? `<a href="${esc(latestCard.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> فتح الرابط</a>` : ''}
+                  <button onclick="dismissSingleAnn(${latestCard.id})" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
                 </div>
               </div>
               <div class="ann-summary-card">
                 <div class="ann-stat-grid">
                   <div class="ann-stat">
-                    <span class="ann-stat-val">${anns.length}</span>
+                    <span class="ann-stat-val">${activeAnns.length}</span>
                     <span class="ann-stat-lbl">إجمالي الإعلانات</span>
                   </div>
                   <div class="ann-stat">
@@ -6768,23 +6775,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                 </div>
               </div>
             </div>
-            <div class="ann-list">
-              ${anns.map(a => `
-                <div class="ann-item">
-                  <div class="ann-top">
-                    <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
-                      <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
-                      ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
-                    </span>
-                    <span class="ann-date">${fmtDate(a.created_at)}</span>
-                  </div>
-                  <div class="ann-text">${esc(a.text)}</div>
-                  <div class="ann-footer">
-                    <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
-                    ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
-                  </div>
-                </div>`).join('')}
-            </div>
+            ${remainingHtml}
           </div>`;
           }
           if (card && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
@@ -6805,9 +6796,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
 
         // 3. Handle top announcement notification banner
-        const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-        const activeAnns = anns.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
-
         if (!activeAnns.length) {
           if (banner) banner.style.display = 'none';
           return;
@@ -6837,6 +6825,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
+    function dismissSingleAnn(annId) {
+      if (!student) return;
+      const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+      if (!dismissedIds.includes(parseInt(annId))) {
+        dismissedIds.push(parseInt(annId));
+        localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
+      }
+      loadAnn();
+    }
+
     function dismissAnnBanner() {
       if (!student) return;
       const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
@@ -6844,29 +6842,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         dismissedIds.push(latestBannerAnnId);
         localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
       }
-      // Re-evaluate the banner
-      const banner = document.getElementById('scAnnBanner');
-      const bannerList = document.getElementById('annBannerList');
-      const activeAnns = allAnnouncements.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
-      if (activeAnns.length > 0) {
-        const latest = activeAnns[0];
-        latestBannerAnnId = parseInt(latest.id);
-        let linkBtn = '';
-        if (latest.type === 'button' && latest.link) {
-          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
-        }
-        if (bannerList) {
-          bannerList.innerHTML = `
-            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
-            ${linkBtn}
-          `;
-        }
-        if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
-          banner.style.display = 'block';
-        }
-      } else {
-        if (banner) banner.style.display = 'none';
-      }
+      loadAnn();
     }
 
     // ── Edit / Password / Photo ───────────────────────────────────────
@@ -7302,12 +7278,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (scTrips) scTrips.style.display = 'block';
         
         // Show announcements banner at top if we have active announcements
-        const bannerList = document.getElementById('annBannerList');
-        if (bannerList && bannerList.textContent.trim().length > 0 && scAnnBanner) {
+        const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
+        const activeAnns = allAnnouncements.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
+
+        if (activeAnns.length > 0 && scAnnBanner) {
            scAnnBanner.style.display = 'block';
         }
-        // Show announcements section card if we have any announcements
-        if (allAnnouncements && allAnnouncements.length > 0 && scAnn) {
+        // Show announcements section card if we have any active announcements
+        if (activeAnns.length > 0 && scAnn) {
            scAnn.style.display = 'block';
         }
         
