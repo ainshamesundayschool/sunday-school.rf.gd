@@ -11113,20 +11113,25 @@
                   height: ${paperH}mm;
                   padding: ${margin}mm;
                   box-sizing: border-box;
-                  display: grid;
-                  grid-template-columns: repeat(${finalCols}, ${scaledCardW}mm);
-                  grid-template-rows: repeat(${finalRows}, ${scaledCardH}mm);
-                  gap: ${gapY}mm ${gapX}mm;
-                  align-content: start;
-                  justify-content: center;
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-content: flex-start;
+                  justify-content: flex-start;
                   page-break-after: always;
                   break-after: page;
                   background: #ffffff;
                   overflow: hidden;
               }
               .print-card {
+                  box-sizing: border-box;
+                  width: ${scaledCardW}mm !important;
+                  height: ${scaledCardH}mm !important;
                   page-break-inside: avoid;
                   break-inside: avoid;
+                  margin-bottom: ${gapY}mm !important;
+              }
+              .print-card:not(:nth-child(${finalCols}n)) {
+                  margin-right: ${gapX}mm !important;
               }
           `;
           pdfContainer.appendChild(cssStyle);
