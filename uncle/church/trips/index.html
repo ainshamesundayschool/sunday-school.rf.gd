@@ -4693,7 +4693,7 @@
                         style="color:var(--text-2);border-bottom-color:transparent;"><i class="fas fa-receipt"></i>
                         المصروفات <span class="td-badge warn" id="tdExpCount"></span></div>
                       <div class="td-tab" id="tdtab-rooms" data-title="الغرف والسكن"
-                        data-desc="توزيع الغرف وتسكين الأطفال والمشرفين." onclick="switchTripTab('rooms')"
+                        data-desc="توزيع الغرف وتسكين الأطفال والخدام (انكل / طنط)." onclick="switchTripTab('rooms')"
                         style="color:var(--text-2);border-bottom-color:transparent;display:none;"><i
                           class="fas fa-bed"></i>
                         الغرف والسكن</div>
@@ -12012,14 +12012,16 @@
           }
         }
 
-        // Fetch Uncles if not cached
-        if (!window.allUnclesCache.length) {
+        // Fetch Uncles if not cached for this trip
+        if (!window.allUnclesCache || window.allUnclesCacheTripId !== tripId) {
           try {
             const fd = new FormData();
             fd.append('action', 'getAllUncles');
+            fd.append('trip_id', tripId);
             const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
             if (res.success) {
               window.allUnclesCache = res.uncles || [];
+              window.allUnclesCacheTripId = tripId;
             }
           } catch (e) { }
         }
@@ -12050,6 +12052,7 @@
               <div class="rooms-actions-row">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
+                  <button type="button" class="btn btn-success btn-sm" style="background:#10b981; color:#fff; border:none;" onclick="downloadTaskeenCSV()"><i class="fas fa-file-csv"></i> تحميل التسكين CSV</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
                   ${isDev ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
                 </div>
@@ -12312,7 +12315,7 @@
             <div class="ws-room-uncles">
               <div style="display:flex; flex-wrap:wrap; gap:4px;">${unclesHtml}</div>
               <select class="ws-room-assign-uncle" onchange="onUncleAssignSelect(this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
-                <option value="">+ تعيين مشرف...</option>
+                <option value="">+ تعيين انكل / طنط...</option>
                 ${availableUncles.map(u => `<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
               </select>
             </div>
@@ -12727,6 +12730,106 @@
         renderRoomsWorkspaceData();
       }
 
+      function downloadTaskeenCSV() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) {
+          showToast('لم يتم العثور على بيانات الرحلة', 'error');
+          return;
+        }
+
+        const regs = tripRegistrationsCache[tripId] || [];
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
+          showToast('لا توجد بيانات غرف لتحميلها', 'warning');
+          return;
+        }
+
+        // Parse allocations map
+        const allocatedMap = {};
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+          if (cData['السكن']) {
+            allocatedMap[r.id] = {
+              bldName: cData['السكن'],
+              floorName: cData['السكن__sf__الدور'] || '',
+              roomName: cData['السكن__sf__الغرفة'] || ''
+            };
+          }
+        });
+
+        // Apply draft allocations if any
+        if (window.roomsDraftAllocations) {
+          Object.entries(window.roomsDraftAllocations).forEach(([kidId, roomObj]) => {
+            allocatedMap[kidId] = roomObj;
+          });
+        }
+
+        // CSV Headers
+        const headers = ['المبنى', 'الدور', 'اسم الغرفة', 'السعة الاستيعابية', 'عدد الأطفال المسكنين', 'انكل / طنط في الغرفة', 'أسماء الأطفال'];
+        const rows = [headers];
+
+        roomsConfig.forEach(bld => {
+          const processRoom = (floorName, room) => {
+            const roomKids = regs.filter(r => {
+              const alloc = allocatedMap[r.id];
+              return alloc && alloc.bldName === bld.name && alloc.floorName === floorName && alloc.roomName === room.name;
+            });
+
+            const occupied = roomKids.length;
+            const capacity = room.capacity;
+            const unclesList = (room.uncles || []).map(u => u.name).join('، ') || '-';
+            const kidsList = roomKids.map(k => k.student_name).join('، ') || '-';
+
+            rows.push([
+              bld.name,
+              floorName || '-',
+              room.name,
+              capacity,
+              occupied,
+              unclesList,
+              kidsList
+            ]);
+          };
+
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => {
+              (fl.rooms || []).forEach(r => {
+                processRoom(fl.name, r);
+              });
+            });
+          } else {
+            (bld.rooms || []).forEach(r => {
+              processRoom('', r);
+            });
+          }
+        });
+
+        // Convert to CSV string
+        const escapeCsvValue = (val) => {
+          const str = String(val === null || val === undefined ? '' : val);
+          if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+
+        const csvContent = rows.map(r => r.map(escapeCsvValue).join(',')).join('\n');
+
+        // Create blob and download with BOM for Excel Arabic support
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `تسكين_رحلة_${trip.title || tripId}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('تم تحميل ملف التسكين بنجاح!', 'success');
+      }
+
       /**
        * API persistence wrapper
        */
@@ -12799,10 +12902,10 @@
         selectEl.value = '';
 
         if (success) {
-          showToast('تم تعيين المشرف بنجاح! 👮', 'success');
+          showToast('تم تعيين انكل / طنط بنجاح! 👮', 'success');
           renderRoomsWorkspaceData();
         } else {
-          showToast('فشل تعيين المشرف', 'error');
+          showToast('فشل تعيين انكل / طنط', 'error');
         }
       }
 
@@ -12839,10 +12942,10 @@
 
         const success = await saveRoomsConfig(tripId, roomsConfig);
         if (success) {
-          showToast('تم إزالة المشرف من الغرفة', 'info');
+          showToast('تم إزالة انكل / طنط من الغرفة', 'info');
           renderRoomsWorkspaceData();
         } else {
-          showToast('فشل إزالة المشرف', 'error');
+          showToast('فشل إزالة انكل / طنط', 'error');
         }
       }
 
@@ -13301,7 +13404,7 @@
                 </div>
                 
                 <div class="form-group" style="margin:0;">
-                  <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-shield"></i> حد المشرفين الأقصى:</label>
+                  <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-shield"></i> حد انكل / طنط الأقصى:</label>
                   <div style="display:flex; gap:8px;">
                     <select id="afUncleLimitType" class="form-select" style="flex:1.2; height:38px; border-radius:8px;" onchange="toggleAfUncleLimitInput()">
                       <option value="none" selected>لا يوجد حد (No Limit)</option>
@@ -13310,7 +13413,7 @@
                     <input type="number" id="afUncleLimit" class="form-input" style="flex:1; display:none; height:38px; border-radius:8px;" min="0" step="1" placeholder="مثال: 2">
                   </div>
                   <div id="afUncleLimitHelp" style="display:none; font-size:0.72rem; color:var(--muted); margin-top:4px;">
-                    الحد الأقصى المسموح: <strong id="afUncleLimitMaxVal">0</strong> (سعة أكبر غرفة)
+                    الحد الأقصى المسموح لـ انكل / طنط: <strong id="afUncleLimitMaxVal">0</strong> (سعة أكبر غرفة)
                   </div>
                 </div>
               </div>
@@ -13646,16 +13749,16 @@
         if (limitType === 'custom') {
           const inputVal = document.getElementById('afUncleLimit').value;
           if (inputVal.trim() === '') {
-            showToast('الرجاء إدخال قيمة للحد الأقصى للمشرفين في الغرفة', 'warning');
+            showToast('الرجاء إدخال قيمة للحد الأقصى لـ انكل / طنط في الغرفة', 'warning');
             return;
           }
           const parsed = parseInt(inputVal);
           if (isNaN(parsed) || parsed < 0) {
-            showToast('الرجاء إدخال رقم صحيح غير سالب للحد الأقصى للمشرفين', 'warning');
+            showToast('الرجاء إدخال رقم صحيح غير سالب للحد الأقصى لـ انكل / طنط', 'warning');
             return;
           }
           if (parsed > maxRoomCapacity) {
-            showToast(`الحد الأقصى للمشرفين لا يمكن أن يتجاوز سعة أكبر غرفة (${maxRoomCapacity})`, 'warning');
+            showToast(`الحد الأقصى لـ انكل / طنط لا يمكن أن يتجاوز سعة أكبر غرفة (${maxRoomCapacity})`, 'warning');
             return;
           }
           uncleLimit = parsed;

@@ -13571,40 +13571,77 @@ function getAllUncles()
 
         $conn = getDBConnection();
 
-
-
+        $tripId = intval($_POST['trip_id'] ?? 0);
         $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
 
+        if ($tripId > 0) {
+            $churchIds = [$churchId];
+            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+            if ($tStmt) {
+                $tStmt->bind_param("i", $tripId);
+                $tStmt->execute();
+                $tRes = $tStmt->get_result();
+                if ($tRes->num_rows > 0) {
+                    $tRow = $tRes->fetch_assoc();
+                    $churchIds[] = intval($tRow['church_id']);
+                    $collabRaw = $tRow['collaborating_churches'] ?? '';
+                    if (!empty($collabRaw)) {
+                        $decoded = json_decode($collabRaw, true);
+                        if (is_array($decoded)) {
+                            foreach ($decoded as $cid) {
+                                $churchIds[] = intval($cid);
+                            }
+                        }
+                    }
+                }
+            }
+            $churchIds = array_values(array_unique(array_filter($churchIds)));
 
-
-        if ($isAll) {
-
+            if (!empty($churchIds)) {
+                $placeholders = implode(',', array_fill(0, count($churchIds), '?'));
+                $types = str_repeat('i', count($churchIds));
+                $stmt = $conn->prepare("
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
+                           c.church_name
+                    FROM uncles u
+                    LEFT JOIN churches c ON u.church_id = c.id
+                    WHERE u.church_id IN ($placeholders) AND (u.deleted IS NULL OR u.deleted = 0)
+                    ORDER BY c.church_name,
+                        CASE u.role 
+                            WHEN 'admin' THEN 1
+                            WHEN 'developer' THEN 2
+                            ELSE 3
+                        END, u.name
+                ");
+                $stmt->bind_param($types, ...$churchIds);
+            } else {
+                $stmt = $conn->prepare("
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
+                    FROM uncles u
+                    WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0)
+                    ORDER BY 
+                        CASE u.role 
+                            WHEN 'admin' THEN 1
+                            WHEN 'developer' THEN 2
+                            ELSE 3
+                        END, u.name
+                ");
+                $stmt->bind_param("i", $churchId);
+            }
+        } elseif ($isAll) {
             $stmt = $conn->prepare("
-
                 SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
-
                        c.church_name
-
                 FROM uncles u
-
                 LEFT JOIN churches c ON u.church_id = c.id
-
                 WHERE (u.deleted IS NULL OR u.deleted = 0)
-
                 ORDER BY c.church_name,
-
                     CASE u.role 
-
                         WHEN 'admin' THEN 1
-
                         WHEN 'developer' THEN 2
-
                         ELSE 3
-
                     END, u.name
-
             ");
-
         } else {
 
             $stmt = $conn->prepare("
