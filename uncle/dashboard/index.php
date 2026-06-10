@@ -16983,6 +16983,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _swipeClientY = null;
         let _autoScrollTimer = null;
 
+        document.addEventListener('touchmove', function(e) {
+            if (_isSwipingSelection) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
         function triggerSelectionAtPoint(x, y) {
             if (x === null || y === null) return;
             const targetEl = document.elementFromPoint(x, y);
