@@ -12882,7 +12882,14 @@
               </div>
               <div class="form-group">
                 <label class="form-label" style="font-weight:700;">أقصى عدد مشرفين في الغرفة الواحدة</label>
-                <input type="number" id="afUncleLimit" class="form-input" value="1" min="0" max="4">
+                <select id="afUncleLimit" class="form-select" style="width:100%;">
+                  <option value="none" selected>لا يوجد حد (No Limit)</option>
+                  <option value="0">0 (لا يسمح بمشرفين)</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
               </div>
               <div class="form-group">
                 <label class="form-label" style="font-weight:700;">أولوية تجميع الأطفال في الغرفة (Prioritize Grouping By)</label>
@@ -13041,7 +13048,7 @@
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
 
         const scope = document.getElementById('afScope').value;
-        const uncleLimit = parseInt(document.getElementById('afUncleLimit').value || '1');
+        const uncleLimit = document.getElementById('afUncleLimit').value;
         const priority = document.getElementById('afPriority').value;
 
         // Extract exclusions
@@ -13094,7 +13101,10 @@
 
         // Initialize room instances
         roomsConfig.forEach(bld => {
-          const addRoomInst = (rName, cap, flName = '') => {
+          const addRoomInst = (rObj, flName = '') => {
+            const rName = rObj.name;
+            const cap = rObj.capacity;
+            const unclesCount = (rObj.uncles || []).length;
             const existingKids = regs.filter(k => {
               const alloc = allocatedMap[k.id];
               return alloc && alloc.bldName === bld.name && alloc.floorName === flName && alloc.roomName === rName;
@@ -13131,7 +13141,8 @@
               floorName: flName,
               roomName: rName,
               capacity: cap,
-              occupied: existingKids.length,
+              occupied: existingKids.length + unclesCount, // Count uncles as occupied beds
+              unclesCount: unclesCount,
               assignedKids: existingKids.map(k => k.id),
               genderLimit: genderLimit,
               churchLimit: churchLimit
@@ -13142,13 +13153,13 @@
             bld.floors.forEach(fl => {
               fl.rooms.forEach(r => {
                 if (r.is_excluded) return;
-                addRoomInst(r.name, r.capacity, fl.name);
+                addRoomInst(r, fl.name);
               });
             });
           } else {
             bld.rooms.forEach(r => {
               if (r.is_excluded) return;
-              addRoomInst(r.name, r.capacity);
+              addRoomInst(r);
             });
           }
         });
@@ -13195,6 +13206,13 @@
                 if (r.occupied >= r.capacity) return false;
                 if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
                 if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit).trim() !== kidChurchName) return false;
+                
+                // Enforce max uncles limit if configured
+                if (uncleLimit !== 'none') {
+                  const limitVal = parseInt(uncleLimit);
+                  if (r.unclesCount > limitVal) return false;
+                }
+
                 return true;
               });
             };
