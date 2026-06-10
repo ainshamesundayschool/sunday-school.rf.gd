@@ -15548,6 +15548,7 @@ function bulkSaveImportedKids()
     try {
         checkAuth();
         $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
         $conn = getDBConnection();
         $conn->begin_transaction();
 
@@ -15837,7 +15838,7 @@ function bulkSaveImportedKids()
                     // Re-fetch existingReg if it was cancelled
                     if ($existingReg['cancelled'] == 1) {
                         $reactivate = $conn->prepare("UPDATE trip_registrations SET cancelled = 0, registered_by = ? WHERE id = ?");
-                        $reactivate->bind_param("si", $_SESSION['username'], $existingReg['id']);
+                        $reactivate->bind_param("ii", $uncleId, $existingReg['id']);
                         $reactivate->execute();
                         $registeredCount++;
                     }
@@ -15852,8 +15853,9 @@ function bulkSaveImportedKids()
                         $checkWait->bind_param("ii", $tripId, $studentId);
                         $checkWait->execute();
                         if ($checkWait->get_result()->num_rows === 0) {
-                            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, registered_by) VALUES (?, ?, ?)");
-                            $insW->bind_param("iis", $tripId, $studentId, $_SESSION['username']);
+                            $position = getWaitlistNextPosition($conn, $tripId);
+                            $insW = $conn->prepare("INSERT INTO trip_waitlist (trip_id, student_id, church_id, added_by, position) VALUES (?, ?, ?, ?, ?)");
+                            $insW->bind_param("iiiii", $tripId, $studentId, $targetChurchId, $uncleId, $position);
                             $insW->execute();
                         }
                     } else {
@@ -15861,7 +15863,7 @@ function bulkSaveImportedKids()
                             INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type)
                             VALUES (?, ?, ?, 'student')
                         ");
-                        $regStmt->bind_param("iis", $tripId, $studentId, $_SESSION['username']);
+                        $regStmt->bind_param("iii", $tripId, $studentId, $uncleId);
                         if ($regStmt->execute()) {
                             $registeredCount++;
                         } else {
