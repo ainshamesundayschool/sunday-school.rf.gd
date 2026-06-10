@@ -9941,7 +9941,8 @@
                 try {
                     const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        document.getElementById('editTripRoomsTemplate').value = 'custom';
+                        const templateId = parsed[0].rooms_template_id || 'custom';
+                        document.getElementById('editTripRoomsTemplate').value = templateId;
                         onRoomsTemplateChange('edit');
                         populateRoomsWizardFromConfig('edit', parsed);
                     }

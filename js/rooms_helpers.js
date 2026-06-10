@@ -311,6 +311,14 @@ function compileRoomsConfig(prefix) {
             has_floors: hasFloors
         };
 
+        // Save the selected template ID on the first building card to restore it on edit
+        if (idx === 0) {
+            const templateSelect = document.getElementById(prefix + 'TripRoomsTemplate');
+            if (templateSelect && templateSelect.value) {
+                bld.rooms_template_id = templateSelect.value;
+            }
+        }
+
         if (hasFloors) {
             bld.floors = [];
             const floorCount = parseInt(card.querySelector('.bld-floor-count-input')?.value || '1') || 1;
