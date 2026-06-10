@@ -19972,6 +19972,8 @@ function getTrips()
 
                     u.name as created_by_name,
 
+                    ch.church_name as owner_church_name,
+
                     (t.church_id = ?) as is_owner,
 
                     (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0) as registered_count,
@@ -19981,6 +19983,8 @@ function getTrips()
                 FROM trips t
 
                 LEFT JOIN uncles u ON t.created_by = u.id
+
+                LEFT JOIN churches ch ON ch.id = t.church_id
 
                 WHERE ";
 
@@ -21286,11 +21290,13 @@ function getTripDetails()
 
         $tripStmt = $conn->prepare("
 
-            SELECT t.*, u.name as created_by_name
+            SELECT t.*, u.name as created_by_name, ch.church_name as owner_church_name
 
             FROM trips t
 
             LEFT JOIN uncles u ON t.created_by = u.id
+
+            LEFT JOIN churches ch ON ch.id = t.church_id
 
             WHERE t.id = ?
 
@@ -25391,11 +25397,13 @@ function exportTripData()
 
         $tripStmt = $conn->prepare("
 
-            SELECT t.*, u.name as created_by_name
+            SELECT t.*, u.name as created_by_name, ch.church_name as owner_church_name
 
             FROM trips t
 
             LEFT JOIN uncles u ON t.created_by = u.id
+
+            LEFT JOIN churches ch ON ch.id = t.church_id
 
             WHERE t.id = ?
 
