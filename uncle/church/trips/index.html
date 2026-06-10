@@ -12969,9 +12969,113 @@
       // DYNAMIC ROOMS AUTO-FILL OPTIMIZER WIZARD
       // =========================================================================
 
+      // Dropdown toggle and checkmark management functions
+      window.toggleChurchDropdown = function(btn) {
+        const menu = btn.nextElementSibling;
+        const isVisible = menu.style.display === 'block';
+        // Close all other church menus first
+        document.querySelectorAll('.af-church-dropdown-menu').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+        menu.style.display = isVisible ? 'none' : 'block';
+      };
+
+      window.handleChurchSelectAll = function(selectAllCb) {
+        const menu = selectAllCb.closest('.af-church-dropdown-menu');
+        const checkboxes = menu.querySelectorAll('.af-church-checkbox');
+        checkboxes.forEach(cb => {
+          cb.checked = selectAllCb.checked;
+        });
+        updateChurchDropdownBtnText(menu);
+      };
+
+      window.handleChurchCheckboxChange = function(cb) {
+        const menu = cb.closest('.af-church-dropdown-menu');
+        const selectAllCb = menu.querySelector('.af-church-select-all');
+        const checkboxes = Array.from(menu.querySelectorAll('.af-church-checkbox'));
+        
+        const allChecked = checkboxes.every(c => c.checked);
+        if (selectAllCb) {
+          selectAllCb.checked = allChecked;
+        }
+        updateChurchDropdownBtnText(menu);
+      };
+
+      window.updateChurchDropdownBtnText = function(menu) {
+        const dropdown = menu.closest('.af-church-dropdown');
+        const btnText = dropdown.querySelector('.selected-churches-text');
+        const selectAllCb = menu.querySelector('.af-church-select-all');
+        const checkboxes = Array.from(menu.querySelectorAll('.af-church-checkbox'));
+        const checkedCbs = checkboxes.filter(c => c.checked);
+
+        if (selectAllCb && selectAllCb.checked) {
+          btnText.textContent = "كل الكنائس";
+        } else if (checkedCbs.length === 0) {
+          btnText.textContent = "لم يتم اختيار كنيسة";
+        } else if (checkedCbs.length === 1) {
+          btnText.textContent = checkedCbs[0].value;
+        } else if (checkedCbs.length === checkboxes.length) {
+          btnText.textContent = "كل الكنائس";
+          if (selectAllCb) selectAllCb.checked = true;
+        } else {
+          btnText.textContent = `تم اختيار (${checkedCbs.length})`;
+        }
+      };
+
+      window.toggleAfUncleLimitInput = function() {
+        const type = document.getElementById('afUncleLimitType').value;
+        const input = document.getElementById('afUncleLimit');
+        const help = document.getElementById('afUncleLimitHelp');
+        if (type === 'custom') {
+          input.style.display = 'block';
+          if (help) help.style.display = 'block';
+        } else {
+          input.style.display = 'none';
+          if (help) help.style.display = 'none';
+          input.value = '';
+        }
+      };
+
+      window.generateChurchCheckboxesHtml = function(participatingChurches) {
+        return `
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 6px; cursor:pointer; width:100%; margin:0; box-sizing:border-box; color:var(--text);">
+            <input type="checkbox" class="af-church-select-all" checked onchange="handleChurchSelectAll(this)" style="width:14px; height:14px; accent-color:var(--primary); margin:0;">
+            <strong style="margin-right:4px;">الكل (All)</strong>
+          </label>
+          ${participatingChurches.map(c => `
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 6px; cursor:pointer; width:100%; margin:0; box-sizing:border-box; color:var(--text);">
+              <input type="checkbox" class="af-church-checkbox" value="${escHtml(c.name)}" checked onchange="handleChurchCheckboxChange(this)" style="width:14px; height:14px; accent-color:var(--primary); margin:0;">
+              <span style="margin-right:4px;">${escHtml(c.name)}</span>
+            </label>
+          `).join('')}
+        `;
+      };
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.af-church-dropdown')) {
+          document.querySelectorAll('.af-church-dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+          });
+        }
+      });
+
       // Inject Auto-Fill Settings Modal Markup into DOM - Trigger redeployment
       (function () {
         if (document.getElementById('autoFillRoomsModal')) return;
+
+        // Add custom styles for the dropdown checkboxes
+        const style = document.createElement('style');
+        style.textContent = `
+          .af-church-dropdown-menu label {
+            transition: background 0.15s ease;
+          }
+          .af-church-dropdown-menu label:hover {
+            background-color: var(--primary-light, #eef2ff);
+          }
+        `;
+        document.head.appendChild(style);
+
         const modal = document.createElement('div');
         modal.id = 'autoFillRoomsModal';
         modal.className = 'modal app-dialog';
@@ -12992,14 +13096,16 @@
               </div>
               <div class="form-group">
                 <label class="form-label" style="font-weight:700;">أقصى عدد مشرفين في الغرفة الواحدة</label>
-                <select id="afUncleLimit" class="form-select" style="width:100%;">
-                  <option value="none" selected>لا يوجد حد (No Limit)</option>
-                  <option value="0">0 (لا يسمح بمشرفين)</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
+                <div style="display:flex; gap:8px;">
+                  <select id="afUncleLimitType" class="form-select" style="flex:1;" onchange="toggleAfUncleLimitInput()">
+                    <option value="none" selected>لا يوجد حد (No Limit)</option>
+                    <option value="custom">حد مخصص (Custom Limit)</option>
+                  </select>
+                  <input type="number" id="afUncleLimit" class="form-input" style="flex:1; display:none;" min="0" step="1" placeholder="أدخل الحد الأقصى للمشرفين">
+                </div>
+                <div id="afUncleLimitHelp" style="display:none; font-size:0.75rem; color:var(--muted); margin-top:4px;">
+                  أقصى عدد مسموح به هو <strong id="afUncleLimitMaxVal">0</strong> (سعة أكبر غرفة متوفرة)
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label" style="font-weight:700;">أولوية تجميع الأطفال في الغرفة (Prioritize Grouping By)</label>
@@ -13075,11 +13181,46 @@
           }
         });
 
-        // Generate options for church filter select dropdown
-        const churchOptionsHtml = `
-          <option value="all" selected>كل الكنائس (All)</option>
-          ${participatingChurches.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('')}
-        `;
+        // Calculate max room capacity
+        let maxRoomCapacity = 0;
+        roomsConfig.forEach(bld => {
+          const checkRoom = (rObj) => {
+            if (rObj.is_excluded) return;
+            const cap = parseInt(rObj.capacity || 0);
+            if (cap > maxRoomCapacity) {
+              maxRoomCapacity = cap;
+            }
+          };
+          if (bld.has_floors) {
+            bld.floors.forEach(fl => {
+              fl.rooms.forEach(checkRoom);
+            });
+          } else {
+            bld.rooms.forEach(checkRoom);
+          }
+        });
+
+        window.afMaxRoomCapacity = maxRoomCapacity;
+
+        // Reset Uncle Limit UI fields
+        const typeSel = document.getElementById('afUncleLimitType');
+        if (typeSel) {
+          typeSel.value = 'none';
+        }
+        const inputEl = document.getElementById('afUncleLimit');
+        if (inputEl) {
+          inputEl.value = '';
+          inputEl.style.display = 'none';
+          inputEl.setAttribute('max', maxRoomCapacity);
+        }
+        const helpEl = document.getElementById('afUncleLimitHelp');
+        if (helpEl) {
+          helpEl.style.display = 'none';
+        }
+        const maxValEl = document.getElementById('afUncleLimitMaxVal');
+        if (maxValEl) {
+          maxValEl.textContent = maxRoomCapacity;
+        }
 
         // Populate Conditions Wrap
         const genderWrap = document.getElementById('afGenderFiltersWrap');
@@ -13094,23 +13235,29 @@
                   </div>
                   <div style="display:flex; flex-direction:column; gap:6px; padding-right:12px; border-right:2px solid var(--primary-light);">
                     ${b.floors.map(fl => {
-                const flEsc = escHtml(fl.name);
-                return `
+                      const flEsc = escHtml(fl.name);
+                      return `
                         <div style="display:flex; flex-direction:column; gap:4px; padding-bottom:4px; border-bottom:1px dashed var(--border);">
                           <span style="font-size:0.75rem; font-weight:700;"><i class="fas fa-layer-group"></i> ${flEsc}:</span>
-                          <div style="display:flex; gap:6px; width:100%; flex-wrap:wrap;">
+                          <div style="display:flex; gap:6px; width:100%; flex-wrap:wrap; align-items:center;">
                             <select class="form-select af-floor-gender-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="flex:1 1 120px; font-size:0.7rem; height:28px; padding:2px 6px; min-width:110px;">
                               <option value="all" selected>مشترك (Co-ed)</option>
                               <option value="male">أولاد فقط (Boys)</option>
                               <option value="female">بنات فقط (Girls)</option>
                             </select>
-                            <select class="form-select af-floor-church-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="flex:1.2 1 140px; font-size:0.7rem; height:28px; padding:2px 6px; min-width:130px;">
-                              ${churchOptionsHtml}
-                            </select>
+                            <div class="dropdown af-church-dropdown" style="position:relative; flex:1.2 1 140px; min-width:130px;">
+                              <button type="button" class="btn btn-outline btn-sm dropdown-toggle af-church-dropdown-btn" style="width:100%; height:28px; padding:2px 6px; font-size:0.7rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap;" onclick="toggleChurchDropdown(this)">
+                                <span class="selected-churches-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">كل الكنائس</span>
+                                <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                              </button>
+                              <div class="dropdown-menu af-church-dropdown-menu af-floor-church-filter" data-bld="${bldEsc}" data-floor="${flEsc}" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                                ${generateChurchCheckboxesHtml(participatingChurches)}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       `;
-              }).join('')}
+                    }).join('')}
                   </div>
                 </div>
               `;
@@ -13118,15 +13265,21 @@
               return `
                 <div style="display:flex; flex-direction:column; gap:4px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px;">
                   <span style="font-size:0.8rem; font-weight:700;"><i class="fas fa-hotel"></i> مبنى: ${bldEsc}:</span>
-                  <div style="display:flex; gap:6px; width:100%; flex-wrap:wrap;">
+                  <div style="display:flex; gap:6px; width:100%; flex-wrap:wrap; align-items:center;">
                     <select class="form-select af-bld-gender-filter" data-bld="${bldEsc}" style="flex:1 1 120px; font-size:0.7rem; height:28px; padding:2px 6px; min-width:110px;">
                       <option value="all" selected>مشترك (Co-ed)</option>
                       <option value="male">أولاد فقط (Boys)</option>
                       <option value="female">بنات فقط (Girls)</option>
                     </select>
-                    <select class="form-select af-bld-church-filter" data-bld="${bldEsc}" style="flex:1.2 1 140px; font-size:0.7rem; height:28px; padding:2px 6px; min-width:130px;">
-                      ${churchOptionsHtml}
-                    </select>
+                    <div class="dropdown af-church-dropdown" style="position:relative; flex:1.2 1 140px; min-width:130px;">
+                      <button type="button" class="btn btn-outline btn-sm dropdown-toggle af-church-dropdown-btn" style="width:100%; height:28px; padding:2px 6px; font-size:0.7rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:6px; background:#fff; white-space:nowrap;" onclick="toggleChurchDropdown(this)">
+                        <span class="selected-churches-text" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">كل الكنائس</span>
+                        <i class="fas fa-chevron-down" style="font-size:0.6rem; margin-right:4px;"></i>
+                      </button>
+                      <div class="dropdown-menu af-church-dropdown-menu af-bld-church-filter" data-bld="${bldEsc}" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                        ${generateChurchCheckboxesHtml(participatingChurches)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               `;
@@ -13158,8 +13311,47 @@
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
 
         const scope = document.getElementById('afScope').value;
-        const uncleLimit = document.getElementById('afUncleLimit').value;
         const priority = document.getElementById('afPriority').value;
+
+        // Calculate max room capacity dynamically
+        let maxRoomCapacity = 0;
+        roomsConfig.forEach(bld => {
+          const checkRoom = (rObj) => {
+            if (rObj.is_excluded) return;
+            const cap = parseInt(rObj.capacity || 0);
+            if (cap > maxRoomCapacity) {
+              maxRoomCapacity = cap;
+            }
+          };
+          if (bld.has_floors) {
+            bld.floors.forEach(fl => {
+              fl.rooms.forEach(checkRoom);
+            });
+          } else {
+            bld.rooms.forEach(checkRoom);
+          }
+        });
+
+        // Parse and validate custom/none uncle limit
+        const limitType = document.getElementById('afUncleLimitType').value;
+        let uncleLimit = 'none';
+        if (limitType === 'custom') {
+          const inputVal = document.getElementById('afUncleLimit').value;
+          if (inputVal.trim() === '') {
+            showToast('الرجاء إدخال قيمة للحد الأقصى للمشرفين في الغرفة', 'warning');
+            return;
+          }
+          const parsed = parseInt(inputVal);
+          if (isNaN(parsed) || parsed < 0) {
+            showToast('الرجاء إدخال رقم صحيح غير سالب للحد الأقصى للمشرفين', 'warning');
+            return;
+          }
+          if (parsed > maxRoomCapacity) {
+            showToast(`الحد الأقصى للمشرفين لا يمكن أن يتجاوز سعة أكبر غرفة (${maxRoomCapacity})`, 'warning');
+            return;
+          }
+          uncleLimit = parsed;
+        }
 
         // Extract exclusions
         const excludedIds = new Set();
@@ -13173,8 +13365,14 @@
         document.querySelectorAll('.af-bld-gender-filter').forEach(sel => {
           bldGenderFilters[sel.dataset.bld] = sel.value;
         });
-        document.querySelectorAll('.af-bld-church-filter').forEach(sel => {
-          bldChurchFilters[sel.dataset.bld] = sel.value;
+        document.querySelectorAll('.af-bld-church-filter').forEach(menu => {
+          const selectAllCb = menu.querySelector('.af-church-select-all');
+          if (selectAllCb && selectAllCb.checked) {
+            bldChurchFilters[menu.dataset.bld] = 'all';
+          } else {
+            const checked = Array.from(menu.querySelectorAll('.af-church-checkbox:checked')).map(cb => cb.value.trim());
+            bldChurchFilters[menu.dataset.bld] = checked;
+          }
         });
 
         // Get gender and church filters on floors
@@ -13184,9 +13382,15 @@
           const key = sel.dataset.bld + '__' + sel.dataset.floor;
           floorGenderFilters[key] = sel.value;
         });
-        document.querySelectorAll('.af-floor-church-filter').forEach(sel => {
-          const key = sel.dataset.bld + '__' + sel.dataset.floor;
-          floorChurchFilters[key] = sel.value;
+        document.querySelectorAll('.af-floor-church-filter').forEach(menu => {
+          const key = menu.dataset.bld + '__' + menu.dataset.floor;
+          const selectAllCb = menu.querySelector('.af-church-select-all');
+          if (selectAllCb && selectAllCb.checked) {
+            floorChurchFilters[key] = 'all';
+          } else {
+            const checked = Array.from(menu.querySelectorAll('.af-church-checkbox:checked')).map(cb => cb.value.trim());
+            floorChurchFilters[key] = checked;
+          }
         });
 
         // Setup rooms allocation map
@@ -13315,7 +13519,15 @@
               return roomState.filter(r => {
                 if (r.occupied >= r.capacity) return false;
                 if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
-                if (r.churchLimit && r.churchLimit !== 'all' && String(r.churchLimit).trim() !== kidChurchName) return false;
+                
+                // Validate church filters (can be array or string 'all' / legacy name)
+                if (r.churchLimit && r.churchLimit !== 'all') {
+                  if (Array.isArray(r.churchLimit)) {
+                    if (!r.churchLimit.includes(kidChurchName)) return false;
+                  } else if (String(r.churchLimit).trim() !== kidChurchName) {
+                    return false;
+                  }
+                }
 
                 // Enforce max uncles limit if configured
                 if (uncleLimit !== 'none') {
@@ -13335,7 +13547,9 @@
                 if ((r.capacity - r.occupied) < remainingKidsInGroup.length) return false;
                 return remainingKidsInGroup.every(k => {
                   const kidChurchName = String(k.student_church_name || k.church_name || '').trim();
-                  return !r.churchLimit || r.churchLimit === 'all' || String(r.churchLimit).trim() === kidChurchName;
+                  if (!r.churchLimit || r.churchLimit === 'all') return true;
+                  if (Array.isArray(r.churchLimit)) return r.churchLimit.includes(kidChurchName);
+                  return String(r.churchLimit).trim() === kidChurchName;
                 });
               });
 
