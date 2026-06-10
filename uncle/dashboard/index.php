@@ -9954,7 +9954,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeKidQrScannerBtn" onclick="stopKidQrScan()">&times;</button>
             </div>
             <div style="padding:0 2px 10px">
-                <!-- Navigation tabs inside the modal -->
                 <div class="modal-mode-tabs" style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
                     <button type="button" id="modalTab_attendance" class="modal-mode-tab" onclick="switchModalScanMode('attendance')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-user-check"></i> حضور
@@ -9964,6 +9963,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                     <button type="button" id="modalTab_profile" class="modal-mode-tab" onclick="switchModalScanMode('profile')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-user"></i> الملف
+                    </button>
+                </div>
+
+                <!-- Scanner source selector (Camera vs. USB) -->
+                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
+                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                        <i class="fas fa-camera"></i> الكاميرا
+                    </button>
+                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                        <i class="fas fa-keyboard"></i> ماسح خارجي
                     </button>
                 </div>
 
@@ -12734,13 +12743,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getKidIdFromQrText(decodedText) {
             if (!decodedText) return '';
             try {
-                const url = new URL(decodedText, window.location.origin);
-                return (
-                    url.searchParams.get('student_id') ||
-                    url.searchParams.get('studentId') ||
-                    url.searchParams.get('id') ||
-                    ''
-                ).trim();
+                const cleaned = String(decodedText).trim();
+                // If it's a URL
+                if (cleaned.includes('://') || cleaned.includes('?')) {
+                    const url = new URL(cleaned, window.location.origin);
+                    const id = url.searchParams.get('student_id') ||
+                               url.searchParams.get('studentId') ||
+                               url.searchParams.get('id');
+                    if (id) return id.trim();
+                }
+                
+                // If it's a raw integer
+                if (/^\d+$/.test(cleaned)) {
+                    return cleaned;
+                }
+                
+                // Direct lookup fallback
+                const pool = isCombinedView ? combinedStudents : students;
+                const match = pool.find(s => String(getStudentId(s)) === cleaned || String(getStudentDbId(s)) === cleaned);
+                if (match) return getStudentId(match);
+                
+                return cleaned;
             } catch (e) {
                 return '';
             }
@@ -12757,6 +12780,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function switchModalScanMode(mode) {
             if (['attendance', 'coupons', 'profile'].includes(mode)) {
                 kidQrScanMode = mode;
+                localStorage.setItem('scanner_mode_preference', mode);
                 
                 // Update active tab style
                 document.querySelectorAll('.modal-mode-tab').forEach(btn => {
@@ -12959,25 +12983,73 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        async function startKidQrScan(mode = 'profile') {
-            const normalizedMode = ['attendance', 'coupons', 'profile', 'general'].includes(mode) ? mode : 'profile';
-            
-            let initialTabMode = normalizedMode;
-            if (normalizedMode === 'general') {
-                initialTabMode = 'attendance';
-            } else if (normalizedMode !== 'profile' && !currentClass) {
-                showToast('اختر فصلًا أولًا', 'info');
-                return;
+        let scannerSource = 'camera';
+
+        function switchScannerSource(source) {
+            if (['camera', 'usb'].includes(source)) {
+                scannerSource = source;
+                localStorage.setItem('scanner_source_preference', source);
+                
+                // Update tabs styling
+                document.querySelectorAll('.scanner-source-tab').forEach(btn => {
+                    btn.style.background = 'none';
+                    btn.style.color = 'var(--text-3)';
+                });
+                const activeBtn = document.getElementById('scannerSourceTab_' + source);
+                if (activeBtn) {
+                    activeBtn.style.background = 'var(--surface)';
+                    activeBtn.style.color = 'var(--brand)';
+                }
+                
+                const readerEl = document.getElementById('kidQrReader');
+                if (source === 'usb') {
+                    // Stop camera scanner if running
+                    if (kidQrScanner) {
+                        const scanner = kidQrScanner;
+                        kidQrScanner = null;
+                        scanner.stop().then(() => {
+                            scanner.clear?.();
+                        }).catch(() => {});
+                    }
+                    // Show a clean placeholder in readerEl
+                    if (readerEl) {
+                        readerEl.style.minHeight = '180px';
+                        readerEl.style.background = 'var(--surface-3)';
+                        readerEl.style.border = '2px dashed var(--border)';
+                        readerEl.style.display = 'flex';
+                        readerEl.style.flexDirection = 'column';
+                        readerEl.style.alignItems = 'center';
+                        readerEl.style.justifyContent = 'center';
+                        readerEl.style.color = 'var(--brand)';
+                        readerEl.style.gap = '10px';
+                        readerEl.style.padding = '20px';
+                        readerEl.innerHTML = `
+                            <i class="fas fa-keyboard" style="font-size:2.8rem;opacity:0.85;"></i>
+                            <div style="font-weight:800;font-size:1.0rem;text-align:center;">الماسح الخارجي نشط</div>
+                            <div style="font-size:0.8rem;color:var(--text-3);text-align:center;">قم بتوجيه قارئ الـ QR الخارجي نحو كروت الأطفال والمسح.</div>
+                        `;
+                    }
+                } else {
+                    // Source is camera
+                    if (readerEl) {
+                        readerEl.style.minHeight = '280px';
+                        readerEl.style.background = '#000';
+                        readerEl.style.border = 'none';
+                        readerEl.innerHTML = '';
+                    }
+                    // Restart camera
+                    restartCameraOnly();
+                }
             }
+        }
 
-            // Open modal first so DOM elements exist
+        async function restartCameraOnly() {
+            if (kidQrScanner) return;
             const modal = document.getElementById('kidQrScannerModal');
-            if (modal) modal.classList.add('active');
+            if (!modal || !modal.classList.contains('active')) return;
+            if (scannerSource !== 'camera') return;
 
-            // Switch to the mode
-            switchModalScanMode(initialTabMode);
-
-            if (!kidQrScanner) kidQrScanner = new Html5Qrcode('kidQrReader');
+            kidQrScanner = new Html5Qrcode('kidQrReader');
             try {
                 await kidQrScanner.start(
                     { facingMode: 'environment' },
@@ -12993,7 +13065,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     () => { }
                 );
 
-                // Forcibly unmirror webcam preview in JS as well, checking periodically during startup
+                // Unmirror webcam
                 let forceCount = 0;
                 const forceInterval = setInterval(() => {
                     const videoEl = document.querySelector('#kidQrReader video');
@@ -13009,6 +13081,78 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 stopKidQrScan();
             }
         }
+
+        async function startKidQrScan(mode = 'profile') {
+            const normalizedMode = ['attendance', 'coupons', 'profile', 'general'].includes(mode) ? mode : 'profile';
+            
+            let initialTabMode = normalizedMode;
+            if (normalizedMode === 'general') {
+                const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
+                initialTabMode = savedMode;
+            } else if (normalizedMode !== 'profile' && !currentClass) {
+                showToast('اختر فصلًا أولًا', 'info');
+                return;
+            }
+
+            // Open modal first so DOM elements exist
+            const modal = document.getElementById('kidQrScannerModal');
+            if (modal) modal.classList.add('active');
+
+            // Switch to the mode
+            switchModalScanMode(initialTabMode);
+
+            // Load scanner source preference from localStorage
+            const pref = localStorage.getItem('scanner_source_preference') || 'camera';
+            switchScannerSource(pref);
+        }
+
+        // Global USB/Wireless Keyboard Scanner Listener
+        (function() {
+            let scanBuffer = '';
+            let lastKeyTime = 0;
+            const SCAN_TIMEOUT = 50; // ms
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.altKey || e.metaKey) return;
+                
+                const modal = document.getElementById('kidQrScannerModal');
+                const isModalActive = modal && modal.classList.contains('active');
+                
+                // If focusing editing input field and scanner modal is NOT active, ignore
+                const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                const isEditing = activeTag === 'input' || activeTag === 'textarea';
+                if (isEditing && !isModalActive) {
+                    return;
+                }
+
+                const now = Date.now();
+                if (e.key.length === 1) {
+                    if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
+                        scanBuffer += e.key;
+                        lastKeyTime = now;
+                    } else {
+                        scanBuffer = e.key;
+                        lastKeyTime = now;
+                    }
+                } else if (e.key === 'Enter') {
+                    if (scanBuffer.length > 0) {
+                        const kidId = getKidIdFromQrText(scanBuffer);
+                        if (kidId) {
+                            e.preventDefault();
+                            if (!isModalActive) {
+                                const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
+                                startKidQrScan(savedMode).then(() => {
+                                    recordKidQrScan(kidId);
+                                });
+                            } else {
+                                recordKidQrScan(kidId);
+                            }
+                            scanBuffer = '';
+                        }
+                    }
+                }
+            });
+        })();
 
         async function saveAllGeneralChanges() {
             let date = currentFriday;

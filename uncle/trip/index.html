@@ -667,6 +667,17 @@
             <div
                 style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
                 <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+                
+                <!-- Scanner source selector (Camera vs. USB) -->
+                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3, #e5e7eb);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;direction:rtl;">
+                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
+                        <i class="fas fa-camera"></i> الكاميرا
+                    </button>
+                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
+                        <i class="fas fa-keyboard"></i> ماسح خارجي
+                    </button>
+                </div>
+
                 <div id="reader"
                     style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
                 <button class="topbar-btn" onclick="stopScanner()"
@@ -995,148 +1006,175 @@
 
             // QR Code Scanner Logic
             let html5QrcodeScanner = null;
+            let scannerSource = 'camera';
 
             function getKidIdFromQrText(decodedText) {
                 if (!decodedText) return '';
                 try {
-                    const url = new URL(decodedText, window.location.origin);
-                    return (
-                        url.searchParams.get('student_id') ||
-                        url.searchParams.get('studentId') ||
-                        url.searchParams.get('id') ||
-                        ''
-                    ).trim();
+                    const cleaned = String(decodedText).trim();
+                    // If it's a URL
+                    if (cleaned.includes('://') || cleaned.includes('?')) {
+                        const url = new URL(cleaned, window.location.origin);
+                        const id = url.searchParams.get('student_id') ||
+                                   url.searchParams.get('studentId') ||
+                                   url.searchParams.get('id');
+                        if (id) return id.trim();
+                    }
+                    
+                    // If it's a raw integer
+                    if (/^\d+$/.test(cleaned)) {
+                        return cleaned;
+                    }
+                    
+                    // Direct lookup fallback if regsList is populated
+                    const match = regsList.find(r => String(r.student_id) === cleaned || String(r.id) === cleaned);
+                    if (match) return String(match.student_id);
+                    
+                    return cleaned;
                 } catch (e) {
                     return '';
                 }
             }
 
-            function startScannerV2() {
-                document.getElementById('scannerModal').style.display = 'flex';
-                if (!html5QrcodeScanner) {
-                    html5QrcodeScanner = new Html5Qrcode("reader");
+            function switchScannerSource(source) {
+                if (['camera', 'usb'].includes(source)) {
+                    scannerSource = source;
+                    localStorage.setItem('scanner_source_preference', source);
+                    
+                    // Update tabs styling
+                    document.querySelectorAll('.scanner-source-tab').forEach(btn => {
+                        btn.style.background = 'none';
+                        btn.style.color = 'var(--muted, #888)';
+                    });
+                    const activeBtn = document.getElementById('scannerSourceTab_' + source);
+                    if (activeBtn) {
+                        activeBtn.style.background = 'var(--surface, #fff)';
+                        activeBtn.style.color = 'var(--primary, #5b6cf5)';
+                    }
+                    
+                    const readerEl = document.getElementById('reader');
+                    if (source === 'usb') {
+                        // Stop camera scanner if running
+                        if (html5QrcodeScanner) {
+                            const scanner = html5QrcodeScanner;
+                            html5QrcodeScanner = null;
+                            scanner.stop().then(() => {}).catch(() => {});
+                        }
+                        // Show a clean placeholder in readerEl
+                        if (readerEl) {
+                            readerEl.style.minHeight = '200px';
+                            readerEl.style.background = 'var(--bg, #f3f4f6)';
+                            readerEl.style.border = '2px dashed var(--border, #e5e7eb)';
+                            readerEl.style.display = 'flex';
+                            readerEl.style.flexDirection = 'column';
+                            readerEl.style.alignItems = 'center';
+                            readerEl.style.justifyContent = 'center';
+                            readerEl.style.color = 'var(--primary, #5b6cf5)';
+                            readerEl.style.gap = '10px';
+                            readerEl.style.padding = '20px';
+                            readerEl.innerHTML = `
+                                <i class="fas fa-keyboard" style="font-size:2.8rem;opacity:0.85;"></i>
+                                <div style="font-weight:800;font-size:1.0rem;text-align:center;">الماسح الخارجي نشط</div>
+                                <div style="font-size:0.8rem;color:var(--muted, #888);text-align:center;">قم بتوجيه قارئ الـ QR الخارجي نحو الكارت والمسح.</div>
+                            `;
+                        }
+                    } else {
+                        // Source is camera
+                        if (readerEl) {
+                            readerEl.style.minHeight = '300px';
+                            readerEl.style.background = '#000';
+                            readerEl.style.border = 'none';
+                            readerEl.innerHTML = '';
+                        }
+                        // Restart camera
+                        restartCameraOnly();
+                    }
                 }
-                const activeTripId = currentTrip?.id || tripId || '';
+            }
+
+            async function restartCameraOnly() {
+                if (html5QrcodeScanner) return;
+                const modal = document.getElementById('scannerModal');
+                if (!modal || modal.style.display === 'none') return;
+                if (scannerSource !== 'camera') return;
+
+                html5QrcodeScanner = new Html5Qrcode("reader");
+                const activeTripId = currentTrip?.id || '';
+                
                 html5QrcodeScanner.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
-                        html5QrcodeScanner.stop().then(async () => {
-                            document.getElementById('scannerModal').style.display = 'none';
-
-                            const scannedStudentId = getKidIdFromQrText(decodedText);
-                            if (!scannedStudentId) {
-                                alert('الكود الممسوح غير صحيح');
-                                return;
-                            }
-
-                            let parsedUrl = null;
-                            try {
-                                parsedUrl = new URL(decodedText, window.location.origin);
-                            } catch (e) { }
-                            const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
-
-                            if (activeTripId && String(scannedTripId || activeTripId) === String(activeTripId)) {
-                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
-                                return;
-                            }
-
-                            if (!scannedTripId) {
-                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
-                                return;
-                            }
-
-                            const fd = new FormData();
-                            fd.append('action', 'getTripDetails');
-                            fd.append('trip_id', scannedTripId);
-
-                            try {
-                                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                                const currentChurchId = currentTrip ? currentTrip.church_id : null;
-                                if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
-                                    if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
-                                        window.location.href = `/uncle/trip/points/?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
-                                    }
-                                } else {
-                                    await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                                }
-                            } catch (err) {
-                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                            }
-                        });
+                        handleScannedText(decodedText);
                     },
-                    (errorMessage) => {
-                        // Ignore parse errors
-                    }
+                    (errorMessage) => {}
                 ).catch((err) => {
                     alert("حدث خطأ في الوصول للكاميرا: " + err);
                     stopScanner();
                 });
             }
 
-            function startScanner() {
-                document.getElementById('scannerModal').style.display = 'flex';
-                if (!html5QrcodeScanner) {
-                    html5QrcodeScanner = new Html5Qrcode("reader");
+            async function handleScannedText(decodedText) {
+                // If scanner is active, stop it first
+                if (html5QrcodeScanner) {
+                    const scanner = html5QrcodeScanner;
+                    html5QrcodeScanner = null;
+                    try {
+                        await scanner.stop();
+                    } catch(e){}
                 }
-                html5QrcodeScanner.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    async (decodedText, decodedResult) => {
-                        // Success
-                        html5QrcodeScanner.stop().then(async () => {
-                            document.getElementById('scannerModal').style.display = 'none';
-                            
-                            let parsedUrl;
-                            try {
-                                parsedUrl = new URL(decodedText);
-                            } catch (e) {
-                                alert('الكود الممسوح غير صحيح');
-                                return;
-                            }
-                            const scannedTripId = parsedUrl.searchParams.get('trip_id');
-                            const scannedStudentId = parsedUrl.searchParams.get('student_id');
-                            
-                            if (!scannedTripId || !scannedStudentId) {
-                                await customAlert('الكود الممسوح غير صحيح');
-                                return;
-                            }
+                document.getElementById('scannerModal').style.display = 'none';
 
-                            if (currentTrip && String(scannedTripId) === String(currentTrip.id)) {
-                                // Same trip - navigate directly
-                                window.location.href = decodedText;
-                                return;
-                            }
+                const scannedStudentId = getKidIdFromQrText(decodedText);
+                if (!scannedStudentId) {
+                    alert('الكود الممسوح غير صحيح');
+                    return;
+                }
 
-                            // Different trip - check church
-                            const fd = new FormData();
-                            fd.append('action', 'getTripDetails');
-                            fd.append('trip_id', scannedTripId);
-                            
-                            try {
-                                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                                const currentChurchId = currentTrip ? currentTrip.church_id : null;
-                                if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
-                                    // Same church, different trip -> Ask to redirect
-                                    if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
-                                        window.location.href = decodedText;
-                                    }
-                                } else {
-                                    // Different church or unauthorized -> Block and alert
-                                    await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                                }
-                            } catch (err) {
-                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                            }
-                        });
-                    },
-                    (errorMessage) => {
-                        // Ignore parse errors
+                let parsedUrl = null;
+                try {
+                    parsedUrl = new URL(decodedText, window.location.origin);
+                } catch (e) { }
+                const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
+                const activeTripId = currentTrip?.id || '';
+
+                if (activeTripId && String(scannedTripId || activeTripId) === String(activeTripId)) {
+                    window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+                    return;
+                }
+
+                if (!scannedTripId) {
+                    window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('action', 'getTripDetails');
+                fd.append('trip_id', scannedTripId);
+
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    const currentChurchId = currentTrip ? currentTrip.church_id : null;
+                    if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
+                        if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
+                            window.location.href = `/uncle/trip/points/?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
+                        }
+                    } else {
+                        await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
                     }
-                ).catch((err) => {
-                    alert("حدث خطأ في الوصول للكاميرا: " + err);
-                    stopScanner();
-                });
+                } catch (err) {
+                    await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                }
+            }
+
+            function startScannerV2() {
+                document.getElementById('scannerModal').style.display = 'flex';
+                const pref = localStorage.getItem('scanner_source_preference') || 'camera';
+                switchScannerSource(pref);
+            }
+
+            function startScanner() {
+                startScannerV2();
             }
 
             function stopScanner() {
@@ -1146,10 +1184,52 @@
                     }).catch(e => {
                         document.getElementById('scannerModal').style.display = 'none';
                     });
+                    html5QrcodeScanner = null;
                 } else {
                     document.getElementById('scannerModal').style.display = 'none';
                 }
             }
+
+            // Global USB/Wireless Keyboard Scanner Listener
+            (function() {
+                let scanBuffer = '';
+                let lastKeyTime = 0;
+                const SCAN_TIMEOUT = 50; // ms
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey || e.altKey || e.metaKey) return;
+                    
+                    const modal = document.getElementById('scannerModal');
+                    const isModalActive = modal && modal.style.display === 'flex';
+                    
+                    // If focusing editing input field and scanner modal is NOT active, ignore
+                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                    const isEditing = activeTag === 'input' || activeTag === 'textarea';
+                    if (isEditing && !isModalActive) {
+                        return;
+                    }
+
+                    const now = Date.now();
+                    if (e.key.length === 1) {
+                        if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
+                            scanBuffer += e.key;
+                            lastKeyTime = now;
+                        } else {
+                            scanBuffer = e.key;
+                            lastKeyTime = now;
+                        }
+                    } else if (e.key === 'Enter') {
+                        if (scanBuffer.length > 0) {
+                            const kidId = getKidIdFromQrText(scanBuffer);
+                            if (kidId) {
+                                e.preventDefault();
+                                handleScannedText(scanBuffer);
+                                scanBuffer = '';
+                            }
+                        }
+                    }
+                });
+            })();
 
             function printQRCards() {
                 if (!currentTrip || !currentTrip.id) {
