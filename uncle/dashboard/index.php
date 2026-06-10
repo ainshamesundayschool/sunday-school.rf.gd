@@ -12307,14 +12307,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const addC = parseInt(couponData[studentId] || 0);
             if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
 
+            const baseC = parseInt(s ? s['كوبونات'] || 0 : 0);
+            const totC = baseC + addC;
+            const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span>`;
+
             const indicator = row.querySelector('.status-indicator');
-            if (indicator) indicator.innerHTML = badges;
+            if (indicator) indicator.innerHTML = badges + inlineCoupons;
 
             // Update coupons display in-place
             const couponsEl = row.querySelector('.student-coupons');
             if (couponsEl) {
-                const baseC = parseInt(s ? s['كوبونات'] || 0 : 0);
-                const totC = baseC + addC;
                 couponsEl.innerHTML = `<i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}`;
             }
 
