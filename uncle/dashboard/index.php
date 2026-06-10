@@ -16921,6 +16921,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _holdStartY = 0;
         const HOLD_MS = 350; // Snappy 350ms long press limit
         let _isSwipingSelection = false;
+        let _copyHoldTarget = null;
+        let _copyHoldPopupTimer = null;
 
         function _holdStart(e, studentName) {
             _holdCancel();
