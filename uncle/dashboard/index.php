@@ -16952,20 +16952,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return;
                 }
                 
-                const threshold = 100; // 100px from top/bottom
-                const speedMax = 12; // Controlled medium speed
+                const threshold = 160; // 160px trigger zone from top/bottom
+                const speedMax = 22; // Snappy scroll speed limit
                 
                 const viewHeight = window.innerHeight;
                 let scrollAmount = 0;
                 
                 if (_swipeClientY > viewHeight - threshold) {
                     // Near bottom: scroll down
-                    const ratio = (_swipeClientY - (viewHeight - threshold)) / threshold;
-                    scrollAmount = Math.ceil(ratio * speedMax);
+                    const ratio = Math.min(1.5, Math.max(0, (_swipeClientY - (viewHeight - threshold)) / threshold));
+                    scrollAmount = Math.max(4, Math.ceil(ratio * speedMax));
                 } else if (_swipeClientY < threshold) {
                     // Near top: scroll up
-                    const ratio = (threshold - _swipeClientY) / threshold;
-                    scrollAmount = -Math.ceil(ratio * speedMax);
+                    const ratio = Math.min(1.5, Math.max(0, (threshold - _swipeClientY) / threshold));
+                    scrollAmount = -Math.max(4, Math.ceil(ratio * speedMax));
                 }
                 
                 if (scrollAmount !== 0) {
