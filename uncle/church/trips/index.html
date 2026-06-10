@@ -13229,11 +13229,28 @@
         }
       });
 
-      // Inject Auto-Fill Settings Modal Markup into DOM - Trigger redeployment
+      window.selectAfPriority = function(val) {
+        const sel = document.getElementById('afPriority');
+        if (sel) {
+          sel.value = val;
+        }
+        document.querySelectorAll('.af-priority-card').forEach(card => {
+          if (card.dataset.value === val) {
+            card.classList.add('active');
+          } else {
+            card.classList.remove('active');
+          }
+        });
+        if (typeof updateAfSortingPreview === 'function') {
+          updateAfSortingPreview();
+        }
+      };
+
+      // Inject Auto-Fill Settings Modal Markup into DOM
       (function () {
         if (document.getElementById('autoFillRoomsModal')) return;
 
-        // Add custom styles for the dropdown checkboxes
+        // Add custom styles for the dropdown checkboxes and priority cards
         const style = document.createElement('style');
         style.textContent = `
           .af-church-dropdown-menu label {
@@ -13241,6 +13258,23 @@
           }
           .af-church-dropdown-menu label:hover {
             background-color: var(--primary-light, #eef2ff);
+          }
+          .af-priority-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid var(--border) !important;
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+          }
+          .af-priority-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary) !important;
+            box-shadow: var(--shadow-md);
+            background: var(--surface-2) !important;
+          }
+          .af-priority-card.active {
+            border-color: var(--primary) !important;
+            background-color: var(--primary-light, #f5f7ff) !important;
+            box-shadow: 0 4px 12px rgba(91, 108, 245, 0.12) !important;
           }
         `;
         document.head.appendChild(style);
@@ -13250,57 +13284,93 @@
         modal.className = 'modal app-dialog';
         modal.innerHTML = `
           <div class="modal-overlay" onclick="closeModal('autoFillRoomsModal')"></div>
-          <div class="modal-box" style="max-width:550px;">
-            <div class="modal-head">
-              <h2><i class="fas fa-magic"></i> معالج التوزيع التلقائي الذكي (Auto-Fill)</h2>
+          <div class="modal-box" style="max-width:650px; width:95%; max-height:90vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border-radius:16px;">
+            <div class="modal-head" style="padding:16px 20px; border-bottom:1px solid var(--border); background:var(--surface);">
+              <h2><i class="fas fa-magic" style="color:var(--primary);"></i> معالج التوزيع التلقائي الذكي (Auto-Fill)</h2>
               <button class="modal-close" onclick="closeModal('autoFillRoomsModal')"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
-              <div class="form-group">
-                <label class="form-label" style="font-weight:700;">من يتم تسكينهم تلقائياً؟</label>
-                <select id="afScope" class="form-select" style="width:100%;">
-                  <option value="unassigned" selected>توزيع الأطفال غير المسكنين فقط</option>
-                  <option value="all">إعادة تسكين جميع الأطفال (سيتم تفريغ الغرف الحالية)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label" style="font-weight:700;">أقصى عدد مشرفين في الغرفة الواحدة</label>
-                <div style="display:flex; gap:8px;">
-                  <select id="afUncleLimitType" class="form-select" style="flex:1;" onchange="toggleAfUncleLimitInput()">
-                    <option value="none" selected>لا يوجد حد (No Limit)</option>
-                    <option value="custom">حد مخصص (Custom Limit)</option>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:18px; overflow-y:auto; padding:20px; max-height:calc(90vh - 140px); box-sizing:border-box;">
+              
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-filter"></i> نطاق التسكين:</label>
+                  <select id="afScope" class="form-select" style="width:100%; height:38px; border-radius:8px;">
+                    <option value="unassigned" selected>الأطفال غير المسكنين فقط</option>
+                    <option value="all">إعادة تسكين الجميع (تفريغ الغرف)</option>
                   </select>
-                  <input type="number" id="afUncleLimit" class="form-input" style="flex:1; display:none;" min="0" step="1" placeholder="أدخل الحد الأقصى للمشرفين">
                 </div>
-                <div id="afUncleLimitHelp" style="display:none; font-size:0.75rem; color:var(--muted); margin-top:4px;">
-                  أقصى عدد مسموح به هو <strong id="afUncleLimitMaxVal">0</strong> (سعة أكبر غرفة متوفرة)
+                
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-shield"></i> حد المشرفين الأقصى:</label>
+                  <div style="display:flex; gap:8px;">
+                    <select id="afUncleLimitType" class="form-select" style="flex:1.2; height:38px; border-radius:8px;" onchange="toggleAfUncleLimitInput()">
+                      <option value="none" selected>لا يوجد حد (No Limit)</option>
+                      <option value="custom">حد مخصص</option>
+                    </select>
+                    <input type="number" id="afUncleLimit" class="form-input" style="flex:1; display:none; height:38px; border-radius:8px;" min="0" step="1" placeholder="مثال: 2">
+                  </div>
+                  <div id="afUncleLimitHelp" style="display:none; font-size:0.72rem; color:var(--muted); margin-top:4px;">
+                    الحد الأقصى المسموح: <strong id="afUncleLimitMaxVal">0</strong> (سعة أكبر غرفة)
+                  </div>
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label" style="font-weight:700;">أولوية تجميع الأطفال في الغرفة (Prioritize Grouping By)</label>
-                <select id="afPriority" class="form-select" style="width:100%;" onchange="updateAfSortingPreview()">
-                  <option value="church_class" selected>الكنيسة والمرحلة الدراسية معاً (Church & Class)</option>
-                  <option value="church">الكنيسة فقط (Church Only)</option>
-                  <option value="class">المرحلة الدراسية فقط (Class Only)</option>
-                  <option value="none">تسكين فردي بدون شروط تجميع (Individual Allocation)</option>
+
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:8px;"><i class="fas fa-layer-group"></i> أولوية تجميع وتسكين الأطفال (Select Grouping Priority):</label>
+                <select id="afPriority" class="form-select" style="display:none;" onchange="updateAfSortingPreview()">
+                  <option value="church_class" selected>الكنيسة والمرحلة الدراسية معاً</option>
+                  <option value="church">الكنيسة فقط</option>
+                  <option value="class">المرحلة الدراسية فقط</option>
+                  <option value="none">تسكين فردي عشوائي</option>
                 </select>
+                
+                <div class="af-priority-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;">
+                  
+                  <div class="af-priority-card active" data-value="church_class" onclick="selectAfPriority('church_class')" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; border-radius:12px; cursor:pointer;">
+                    <div style="font-size:1.6rem; color:var(--primary); margin-bottom:6px; display:flex; gap:4px; align-items:center;">
+                      <i class="fas fa-place-of-worship"></i>
+                      <i class="fas fa-graduation-cap" style="font-size:1rem;"></i>
+                    </div>
+                    <div style="font-size:0.82rem; font-weight:800; color:var(--text); margin-bottom:2px;">الكنيسة والمرحلة الدراسية</div>
+                    <div style="font-size:0.68rem; color:var(--text-3); font-weight:600;">Church & Class</div>
+                  </div>
+
+                  <div class="af-priority-card" data-value="church" onclick="selectAfPriority('church')" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; border-radius:12px; cursor:pointer;">
+                    <div style="font-size:1.6rem; color:var(--primary); margin-bottom:6px;"><i class="fas fa-place-of-worship"></i></div>
+                    <div style="font-size:0.82rem; font-weight:800; color:var(--text); margin-bottom:2px;">الكنيسة فقط</div>
+                    <div style="font-size:0.68rem; color:var(--text-3); font-weight:600;">Church Only</div>
+                  </div>
+
+                  <div class="af-priority-card" data-value="class" onclick="selectAfPriority('class')" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; border-radius:12px; cursor:pointer;">
+                    <div style="font-size:1.6rem; color:var(--primary); margin-bottom:6px;"><i class="fas fa-graduation-cap"></i></div>
+                    <div style="font-size:0.82rem; font-weight:800; color:var(--text); margin-bottom:2px;">المرحلة الدراسية فقط</div>
+                    <div style="font-size:0.68rem; color:var(--text-3); font-weight:600;">Class Only</div>
+                  </div>
+
+                  <div class="af-priority-card" data-value="none" onclick="selectAfPriority('none')" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; border-radius:12px; cursor:pointer;">
+                    <div style="font-size:1.6rem; color:var(--muted); margin-bottom:6px;"><i class="fas fa-user-friends"></i></div>
+                    <div style="font-size:0.82rem; font-weight:800; color:var(--text); margin-bottom:2px;">تسكين فردي عشوائي</div>
+                    <div style="font-size:0.68rem; color:var(--text-3); font-weight:600;">Individual Allocation</div>
+                  </div>
+
+                </div>
               </div>
 
               <!-- ── Sorting options & Preview block (Visible when priority is not 'none') ── -->
-              <div id="afSortingOptionsContainer" style="display:flex; flex-direction:column; gap:10px; background:var(--surface-3); padding:12px; border-radius:8px; border:1.5px solid var(--border); display:none;">
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div id="afSortingOptionsContainer" style="display:flex; flex-direction:column; gap:12px; background:var(--surface-3); padding:14px; border-radius:10px; border:1px solid var(--border); display:none;">
+                <div style="display:flex; gap:12px; flex-wrap:wrap; width:100%;">
                   
                   <div id="afFirstSortFieldWrap" class="form-group" style="flex:1 1 100%; margin:0;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">الترتيب الأساسي (Primary Sort)</label>
-                    <select id="afFirstSortField" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
+                    <select id="afFirstSortField" class="form-select" style="font-size:0.75rem; height:34px; border-radius:6px; padding:2px 8px; width:100%;" onchange="updateAfSortingPreview()">
                       <option value="church_first" selected>الكنيسة أولاً ثم الفصل (Church then Class)</option>
                       <option value="class_first">الفصل أولاً ثم الكنيسة (Class then Church)</option>
                     </select>
                   </div>
 
-                  <div id="afClassSortOrderWrap" class="form-group" style="flex:1 1 120px; margin:0;">
+                  <div id="afClassSortOrderWrap" class="form-group" style="flex:1 1 180px; margin:0;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">ترتيب الفصول (Class Order)</label>
-                    <select id="afClassSortOrder" class="form-select" style="font-size:0.75rem; height:30px; padding:2px 6px; width:100%;" onchange="updateAfSortingPreview()">
+                    <select id="afClassSortOrder" class="form-select" style="font-size:0.75rem; height:34px; border-radius:6px; padding:2px 8px; width:100%;" onchange="updateAfSortingPreview()">
                       <option value="asc" selected>تصاعدي (من الأصغر للأكبر)</option>
                       <option value="desc">تنازلي (من الأكبر للأصغر)</option>
                     </select>
@@ -13308,7 +13378,7 @@
 
                   <div id="afChurchOrderWrap" class="form-group" style="flex:1 1 100%; margin:0;">
                     <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:6px; color:var(--text);"><i class="fas fa-sort-amount-down"></i> ترتيب أولوية تسكين الكنائس (ترتيب مخصص بالأسهم):</label>
-                    <div id="afChurchOrderList" style="display:flex; flex-direction:column; gap:6px; padding:6px; background:var(--bg); border:1px solid var(--border); border-radius:8px; max-height:150px; overflow-y:auto;">
+                    <div id="afChurchOrderList" style="display:flex; flex-direction:column; gap:6px; padding:6px; background:var(--bg); border:1px solid var(--border); border-radius:8px; max-height:130px; overflow-y:auto;">
                       <!-- Rendered dynamically -->
                     </div>
                   </div>
@@ -13316,8 +13386,8 @@
                 </div>
 
                 <!-- Preview list below -->
-                <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
-                  <label class="form-label" style="font-size:0.75rem; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:4px; color:var(--primary);">
+                <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:10px;">
+                  <label class="form-label" style="font-size:0.75rem; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:4px; color:var(--primary);">
                     <i class="fas fa-list-ol"></i> معاينة ترتيب التجميع والتسكين (Grouping Preview):
                   </label>
                   <div id="afSortingPreviewList" style="font-size:0.75rem; color:var(--text); background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; font-weight:bold;">
@@ -13326,23 +13396,23 @@
                 </div>
               </div>
               
-              <div class="form-group">
-                <label class="form-label" style="font-weight:700;">تحديد شروط المباني والأدوار (النوع والكنيسة)</label>
-                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:6px; background:var(--surface-3); padding:8px 12px; border-radius:8px; border:1.5px solid var(--border-solid); max-height:250px; overflow-y:auto;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-hotel"></i> تحديد شروط المباني والأدوار (النوع والكنيسة):</label>
+                <div id="afGenderFiltersWrap" style="display:flex; flex-direction:column; gap:8px; background:var(--surface-3); padding:12px; border-radius:10px; border:1px solid var(--border); max-height:200px; overflow-y:auto; box-sizing:border-box;">
                   <!-- Loaded dynamically based on Buildings and Floors -->
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label" style="font-weight:700;">استبعاد أطفال من التوزيع التلقائي (اختر الأطفال المستبعدين)</label>
-                <div id="afExclusionsWrap" style="max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:6px; background:#fff;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-user-minus"></i> استبعاد أطفال من التوزيع التلقائي:</label>
+                <div id="afExclusionsWrap" style="max-height:120px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px; background:#fff; box-sizing:border-box;">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
             </div>
-            <div class="modal-footer" style="display:flex; gap:10px; margin-top:8px;">
-              <button type="button" class="btn btn-primary" style="flex:2;" onclick="executeAutoFillAlgorithm()"><i class="fas fa-play"></i> تشغيل خوارزمية التوزيع</button>
-              <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('autoFillRoomsModal')">إلغاء</button>
+            <div class="modal-footer" style="display:flex; gap:12px; padding:16px 20px; border-top:1px solid var(--border); background:var(--surface);">
+              <button type="button" class="btn btn-primary" style="flex:2; height:38px; font-size:0.85rem;" onclick="executeAutoFillAlgorithm()"><i class="fas fa-play"></i> تشغيل خوارزمية التوزيع</button>
+              <button type="button" class="btn btn-outline" style="flex:1; height:38px; font-size:0.85rem;" onclick="closeModal('autoFillRoomsModal')">إلغاء</button>
             </div>
           </div>
         `;
@@ -13510,6 +13580,10 @@
         window.afChurchesOrder = participatingChurches.map(c => c.name);
         if (typeof renderAfChurchOrderList === 'function') {
           renderAfChurchOrderList();
+        }
+
+        if (typeof selectAfPriority === 'function') {
+          selectAfPriority('church_class');
         }
 
         if (typeof updateAfSortingPreview === 'function') {
