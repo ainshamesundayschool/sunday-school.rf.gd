@@ -10457,7 +10457,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </div>
 
     <!-- Custom Confirm Modal -->
-    <div class="modal-overlay" id="customConfirmModal" style="z-index:100010">
+    <div class="modal-overlay" id="customConfirmModal" style="z-index:20000000">
         <div class="modal modal-sm" style="max-width:380px; text-align: center; border: 1.5px solid var(--border-solid);">
             <div style="padding: 20px 16px 16px;">
                 <div style="font-size: 3rem; margin-bottom: 12px; color: var(--danger);" id="customConfirmIcon">
@@ -12958,17 +12958,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 selectedCard.classList.add('active-target');
             }
             
-            // Auto check credentials radio button if both have credentials
-            const credRadio = document.querySelector(`input[name="merge_credentials"][value="${targetLetter}"]`);
-            if (credRadio) {
-                credRadio.checked = true;
-                document.querySelectorAll('input[name="merge_credentials"]').forEach(r => {
-                    const item = r.closest('.merge-radio-item');
-                    if (item) {
-                        if (r.checked) item.classList.add('selected');
-                        else item.classList.remove('selected');
-                    }
-                });
+            // Auto check credentials radio button ONLY if both have credentials
+            if (_mergeData && _mergeData.hasPasswordA && _mergeData.hasPasswordB) {
+                const credRadio = document.querySelector(`input[name="merge_credentials"][value="${targetLetter}"]`);
+                if (credRadio) {
+                    credRadio.checked = true;
+                    document.querySelectorAll('input[name="merge_credentials"]').forEach(r => {
+                        const item = r.closest('.merge-radio-item');
+                        if (item) {
+                            if (r.checked) item.classList.add('selected');
+                            else item.classList.remove('selected');
+                        }
+                    });
+                }
             }
         }
 
@@ -13155,8 +13157,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const checkedCredA = hasPassA ? 'checked' : '';
                 const checkedCredB = !hasPassA && hasPassB ? 'checked' : '';
                 
-                const classCredA = hasPassA && !hasPassB ? 'selected' : '';
-                const classCredB = !hasPassA && hasPassB ? 'selected' : '';
+                const classCredA = checkedCredA ? 'selected' : '';
+                const classCredB = checkedCredB ? 'selected' : '';
 
                 credentialsHtml = `
                     <div class="merge-radio-group">
