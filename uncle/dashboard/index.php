@@ -9169,8 +9169,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showHelpModal()">
                     <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-question-circle"></i></span>
-                    <span class="tool-card-name">دليل المساعدة والبحث</span>
-                    <span class="tool-card-desc">ابحث واعرف تفاصيل كل ميزة في الخدمة.</span>
+                    <span class="tool-card-name">دليل مساعدة الخدمة</span>
+                    <span class="tool-card-desc">اعرف تفاصيل كل ميزة في الخدمة.</span>
                 </button>
             </div>
         </div>
@@ -9183,7 +9183,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="flex: none;">
                 <h3 style="display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-question-circle" style="color:var(--brand);"></i> 
-                    <span>دليل مساعدة الخدمة والبحث الذكي عن الميزات</span>
+                    <span>دليل مساعدة الخدمة</span>
                 </h3>
                 <button class="close-btn" onclick="closeHelpModal()">&times;</button>
             </div>
@@ -9329,7 +9329,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
             </div>
             <div class="topbar-actions">
-                <button class="topbar-btn" onclick="showHelpModal()" title="دليل المساعدة والبحث الذكي">
+                <button class="topbar-btn" onclick="showHelpModal()" title="دليل مساعدة الخدمة">
                     <i class="fas fa-question-circle"></i>
                 </button>
                 <?php if ($showSettings): ?>
