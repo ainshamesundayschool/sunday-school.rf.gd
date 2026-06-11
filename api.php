@@ -5695,13 +5695,15 @@ function withdrawCoupons()
         $conn->begin_transaction();
 
         // Get current coupons with breakdown
-        $stmt = $conn->prepare("SELECT coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? FOR UPDATE");
+        $stmt = $conn->prepare("SELECT name, coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? FOR UPDATE");
         $stmt->bind_param("i", $studentId);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
         if (!$res) {
             throw new Exception('الطفل غير موجود');
         }
+
+        $studentName = $res['name'] ?? '';
 
         $current = intval($res['coupons']);
         $att_avail = intval($res['attendance_coupons']);
@@ -5773,10 +5775,11 @@ function withdrawCoupons()
 
         // ► Comprehensive Audit
         require_once 'audit.php';
-        writeAuditLog('coupon_withdraw', 'coupon', $studentId, '', null, ['amount' => $amount], "سحب $amount كوبون" . ($note ? " ($note)" : ''));
+        writeAuditLog('coupon_withdraw', 'coupon', $studentId, $studentName, null, ['amount' => $amount], "سحب $amount كوبون" . ($note ? " ($note)" : ''));
 
+        $withdrawalId = $conn->insert_id;
         $conn->commit();
-        sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal]);
+        sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal, 'withdrawal_id' => $withdrawalId]);
     } catch (Exception $e) {
         if (isset($conn))
             $conn->rollback();
@@ -34474,6 +34477,60 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 }
 
+            } elseif ($action === 'coupon_withdraw') {
+                $stmt = $conn->prepare("SELECT id FROM coupon_withdrawals WHERE student_id = ? AND is_refunded = 0 ORDER BY created_at DESC, id DESC LIMIT 1");
+                $stmt->bind_param("i", $entityId);
+                $stmt->execute();
+                $resW = $stmt->get_result()->fetch_assoc();
+                if (!$resW) {
+                    return ['success' => false, 'message' => 'لم يتم العثور على عملية سحب نشطة قابلة للتراجع لهذا الطفل'];
+                }
+                $withdrawalId = intval($resW['id']);
+                
+                $stmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE id = ? FOR UPDATE");
+                $stmt->bind_param("i", $withdrawalId);
+                $stmt->execute();
+                $w = $stmt->get_result()->fetch_assoc();
+                if (!$w) {
+                    throw new Exception('عملية السحب غير موجودة');
+                }
+                if ($w['is_refunded']) {
+                    throw new Exception('تم استرجاع هذه العملية بالفعل');
+                }
+
+                $amount = intval($w['amount']);
+                $att = intval($w['att_amount'] ?? 0);
+                $com = intval($w['com_amount'] ?? 0);
+                $tsk = intval($w['tsk_amount'] ?? 0);
+
+                // Update student
+                $upd = $conn->prepare("UPDATE students SET coupons = coupons + ?, attendance_coupons = attendance_coupons + ?, commitment_coupons = commitment_coupons + ?, task_coupons = task_coupons + ? WHERE id = ?");
+                $upd->bind_param("iiiii", $amount, $att, $com, $tsk, $entityId);
+                if (!$upd->execute()) {
+                    throw new Exception('فشل استعادة الكوبونات للطفل');
+                }
+
+                // Mark as refunded
+                $mark = $conn->prepare("UPDATE coupon_withdrawals SET is_refunded = 1, refunded_at = NOW() WHERE id = ?");
+                $mark->bind_param("i", $withdrawalId);
+                if (!$mark->execute()) {
+                    throw new Exception('فشل تحديث حالة السحب');
+                }
+
+                // Retrieve student name for log if not loaded
+                $studentName = '';
+                $stuStmt = $conn->prepare("SELECT name FROM students WHERE id = ?");
+                $stuStmt->bind_param("i", $entityId);
+                $stuStmt->execute();
+                $stuRes = $stuStmt->get_result()->fetch_assoc();
+                if ($stuRes) {
+                    $studentName = $stuRes['name'];
+                }
+
+                // Write audit log
+                writeAuditLog('coupon_refund', 'coupon', $entityId, $studentName, null, ['amount' => $amount], "تراجع عن السحب: استرجاع $amount كوبون (عملية #$withdrawalId)");
+                $reverted = true;
+                $msg = "تم التراجع عن عملية السحب بنجاح وإعادة الكوبونات للطفل";
             }
 
         } elseif ($entity === 'attendance') {

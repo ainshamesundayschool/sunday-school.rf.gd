@@ -701,6 +701,89 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             cursor: not-allowed;
         }
 
+        /* ── Undo Toast ── */
+        .undo-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(22, 28, 45, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 12px 18px;
+            border-radius: 14px;
+            box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 30000000;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            min-width: 280px;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            direction: rtl;
+            transition: all 0.3s ease;
+        }
+        .undo-toast.show {
+            display: flex;
+            animation: undoToastIn 0.3s var(--ease);
+        }
+        .undo-btn {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .undo-btn:hover {
+            transform: scale(1.05);
+            background: rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
+        }
+        .undo-timer-circle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 700;
+        }
+        .undo-toast-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .undo-toast-close:hover {
+            color: #fff;
+        }
+        @keyframes undoToastIn {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
         .hist-section {
             padding: 0 20px;
         }
@@ -908,6 +991,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
     <div id="toast" class="toast"></div>
 
+    <!-- Undo Toast -->
+    <div class="undo-toast" id="undoToast">
+        <div class="undo-timer-circle" id="undoTimerCircle">10</div>
+        <span style="flex:1;" id="undoToastText">تم تنفيذ العملية بنجاح</span>
+        <button class="undo-btn" id="undoToastActionBtn"><i class="fas fa-undo"></i> تراجع</button>
+        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i class="fas fa-times"></i></button>
+    </div>
+
     <script>
         const API_URL = '/api.php';
         function escapeHtml(text) {
@@ -923,6 +1014,62 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         let classes = [];
         let currentClass = 'all';
         let selectedStudent = null;
+        let undoToastTimer = null;
+        let undoCountdownInterval = null;
+
+        function showUndoToast(log) {
+            const toastEl = document.getElementById('undoToast');
+            const timerEl = document.getElementById('undoTimerCircle');
+            const textEl = document.getElementById('undoToastText');
+            const actionBtn = document.getElementById('undoToastActionBtn');
+
+            if (!toastEl || !timerEl || !textEl || !actionBtn) return;
+
+            hideUndoToast();
+
+            textEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-weight:700;">تم سحب ${log.amount} كوبونات لـ ${escapeHtml(log.student_name)}</span>
+                    <span style="font-size:0.7rem; opacity:0.8; font-weight:normal;">تراجع عن العملية بكبسة زر واحدة.</span>
+                </div>
+            `;
+
+            actionBtn.onclick = async () => {
+                hideUndoToast();
+                await refund(log.id);
+            };
+
+            let secondsLeft = 10;
+            timerEl.textContent = secondsLeft;
+            toastEl.classList.add('show');
+
+            undoCountdownInterval = setInterval(() => {
+                secondsLeft--;
+                timerEl.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    hideUndoToast();
+                }
+            }, 1000);
+
+            undoToastTimer = setTimeout(() => {
+                hideUndoToast();
+            }, 10000);
+        }
+
+        function hideUndoToast() {
+            const toastEl = document.getElementById('undoToast');
+            if (toastEl) {
+                toastEl.classList.remove('show');
+            }
+            if (undoToastTimer) {
+                clearTimeout(undoToastTimer);
+                undoToastTimer = null;
+            }
+            if (undoCountdownInterval) {
+                clearInterval(undoCountdownInterval);
+                undoCountdownInterval = null;
+            }
+        }
 
         // Help UI scale
         if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -1232,16 +1379,15 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <option value="task">المهام فقط</option>
                     </select>
                 </div>
-
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
+                </div>
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
                     <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
                 </div>
                 <div id="wError" style="color:var(--danger);font-size:.8rem;font-weight:800;margin-top:8px;padding-right:8px;display:none;animation:shake 0.3s">القيمة أكبر من الرصيد المتاح!</div>
             </div>
-                            <div style="margin-bottom:12px;">
-                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
-                </div>
             <div class="hist-section">
                 <div class="hist-title">سجل العمليات</div>
                 <div id="histList">
@@ -1353,6 +1499,13 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                     document.getElementById('wAmount').value = '';
                     if (noteEl) noteEl.value = '';
 
+                    // Show Undo Toast!
+                    showUndoToast({
+                        id: r.withdrawal_id,
+                        amount: val,
+                        student_name: selectedStudent['الاسم']
+                    });
+
                     // Soft refresh all data in background to update local categories cards
                     const refreshFd = new FormData(); refreshFd.append('action', 'getData');
                     const refreshR = await fetch(API_URL, { method: 'POST', body: refreshFd, credentials: 'include' }).then(r => r.json());
@@ -1384,8 +1537,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             btn.disabled = false; btn.innerHTML = 'سحب';
         }
 
-        async function refund(wid) {
-            if (!confirm('هل تريد استرجاع الكوبونات؟')) return;
+        async function refund(wid, skipConfirm = false) {
+            if (!skipConfirm && !confirm('هل تريد استرجاع الكوبونات؟')) return;
             const fd = new FormData();
             fd.append('action', 'refundWithdrawal');
             fd.append('withdrawal_id', wid);
@@ -1403,6 +1556,15 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                             if (updated) {
                                 selectedStudent = updated;
                                 document.getElementById('curTotal').textContent = updated['كوبونات'];
+                                // Update breakdown card dynamically
+                                const breakdownDiv = document.querySelector('.breakdown-card');
+                                if (breakdownDiv) {
+                                    breakdownDiv.innerHTML = `
+                                        <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${updated['كوبونات الحضور'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${updated['كوبونات الالتزام'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${updated['كوبونات المهام'] || 0}</div></div>
+                                    `;
+                                }
                             }
                         }
                     }
