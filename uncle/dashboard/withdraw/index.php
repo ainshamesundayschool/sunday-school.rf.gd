@@ -7,7 +7,8 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
     $parent = dirname($rootPath);
-    if ($parent === $rootPath) break;
+    if ($parent === $rootPath)
+        break;
     $rootPath = $parent;
 }
 $sessionPath = $rootPath . '/.sessions';
@@ -39,7 +40,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
     <meta property="og:title" content="سحب الكوبونات | مدارس الأحد">
-    <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta property="og:description"
+        content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta property="og:url" content="https://sunday-school.online/uncle/dashboard/withdraw/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
     <meta property="og:image:width" content="1000">
@@ -49,7 +51,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="سحب الكوبونات | مدارس الأحد">
-    <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta name="twitter:description"
+        content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
     <title>سحب الكوبونات | Sunday School</title>
@@ -518,9 +521,40 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             transform: translateY(0);
         }
 
-        .sheet-header { padding: 20px 24px 12px; text-align: center; position: relative; border-bottom: 1px solid var(--border-solid); }
-        .sheet-close { position: absolute; top: 12px; left: 16px; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); border: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); transition: all var(--t); }
-        .sheet-photo { width: 80px; height: 80px; border-radius: 22px; border: 3px solid var(--surface); box-shadow: var(--shadow-md); margin: 0 auto 10px; object-fit: cover; display: block; }
+        .sheet-header {
+            padding: 20px 24px 12px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid var(--border-solid);
+        }
+
+        .sheet-close {
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-2);
+            transition: all var(--t);
+        }
+
+        .sheet-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 22px;
+            border: 3px solid var(--surface);
+            box-shadow: var(--shadow-md);
+            margin: 0 auto 10px;
+            object-fit: cover;
+            display: block;
+        }
 
         .sheet-name {
             font-size: 1.4rem;
@@ -823,7 +857,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 <div style="display:flex; flex-direction: column; gap:12px; max-width: 500px; margin: 0 auto;">
                     <!-- Sort and Filters Info Row -->
                     <div style="display:flex; justify-content: space-between; align-items: center; padding: 0 8px;">
-                         <div style="position:relative">
+                        <div style="position:relative">
                             <i class="fas fa-sort-amount-down"
                                 style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text-3);pointer-events:none"></i>
                             <select id="sortSelect" class="pill"
@@ -837,7 +871,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         </div>
                         <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-3);">ترتيب حسب</div>
                     </div>
-                    
+
                     <!-- Search Row -->
                     <div style="position:relative">
                         <i class="fas fa-search search-icon"></i>
@@ -945,9 +979,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function setFilter(cls) {
             currentClass = cls;
             renderFilters();
-            
+
             const searchVal = document.getElementById('searchInput').value.trim();
-            
+
             if (cls === 'classes') {
                 document.getElementById('classList').style.display = 'grid';
                 document.getElementById('studentList').style.display = 'none';
@@ -1039,7 +1073,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
-            
+
             let maxScore = 0;
 
             // Fields to search in
@@ -1053,7 +1087,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
             fields.forEach(field => {
                 if (!field.val) return;
-                
+
                 const target = field.val.toString();
                 const tNormalized = normalizeArabic(target);
                 const tRaw = target.toLowerCase();
@@ -1113,7 +1147,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             document.getElementById('studentList').style.display = 'flex';
 
             let filtered = allStudents;
-            
+
             // If we have a specific class selected (not 'all' and not 'classes' view), filter by that class
             if (currentClass !== 'all' && currentClass !== 'classes') {
                 filtered = filtered.filter(s => s['الفصل'] === currentClass);
@@ -1124,14 +1158,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 filtered = filtered.map(s => {
                     return { ...s, _searchScore: getMatchScore(s, q) };
                 })
-                .filter(s => s._searchScore > 0);
+                    .filter(s => s._searchScore > 0);
 
                 // Sort by search score first, then by the selected sort option
                 filtered.sort((a, b) => {
                     if (b._searchScore !== a._searchScore) {
                         return b._searchScore - a._searchScore;
                     }
-                    
+
                     if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
                     if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
                     if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
@@ -1199,7 +1233,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                     </select>
                 </div>
                 <div style="margin-bottom:12px;">
-                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة اختيارية (مثال: جائزة النشاط)">
+                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
                 </div>
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
@@ -1224,7 +1258,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const input = document.getElementById('wAmount');
             const val = parseInt(input.value) || 0;
             const category = document.getElementById('wCategory') ? document.getElementById('wCategory').value : 'all';
-            
+
             let max = 0;
             if (selectedStudent) {
                 if (category === 'att') max = parseInt(selectedStudent['كوبونات الحضور'] || 0);
@@ -1232,7 +1266,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 else if (category === 'task') max = parseInt(selectedStudent['كوبونات المهام'] || 0);
                 else max = parseInt(selectedStudent['كوبونات'] || 0);
             }
-            
+
             const btn = document.getElementById('wBtn');
             const err = document.getElementById('wError');
 
@@ -1289,7 +1323,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         async function submitWithdraw() {
             const val = parseInt(document.getElementById('wAmount').value);
             if (!val || val <= 0) { showToast('أدخل قيمة صحيحة', 'error'); return; }
-            
+
             const category = document.getElementById('wCategory').value;
             let limit = selectedStudent ? (selectedStudent['كوبونات'] || 0) : 0;
             if (category === 'att') limit = parseInt(selectedStudent['كوبونات الحضور'] || 0);
@@ -1317,7 +1351,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                     showToast('تم السحب بنجاح', 'success');
                     document.getElementById('wAmount').value = '';
                     if (noteEl) noteEl.value = '';
-                    
+
                     // Soft refresh all data in background to update local categories cards
                     const refreshFd = new FormData(); refreshFd.append('action', 'getData');
                     const refreshR = await fetch(API_URL, { method: 'POST', body: refreshFd, credentials: 'include' }).then(r => r.json());
@@ -1340,7 +1374,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                             }
                         }
                     }
-                    
+
                     loadHistory(selectedStudent['_studentId']);
                 } else {
                     showToast(r.message || 'فشل السحب', 'error');
