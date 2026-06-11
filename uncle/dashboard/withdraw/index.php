@@ -625,6 +625,27 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             background: var(--surface);
         }
 
+        .withdraw-note-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 14px;
+            border: 2px solid var(--border-solid);
+            background: var(--surface-2);
+            font-size: 0.95rem;
+            font-weight: 800;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            transition: all var(--t);
+            box-sizing: border-box;
+            text-align: right;
+        }
+
+        .withdraw-note-input:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
         .withdraw-btn {
             padding: 0 28px;
             border-radius: 14px;
@@ -855,6 +876,15 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
     <script>
         const API_URL = '/api.php';
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
         let allStudents = [];
         let classes = [];
         let currentClass = 'all';
@@ -1168,6 +1198,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <option value="task">المهام فقط</option>
                     </select>
                 </div>
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة اختيارية (مثال: جائزة النشاط)">
+                </div>
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
                     <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
@@ -1240,6 +1273,12 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <div class="hist-uncle">بواسطة: ${h.uncle_name}</div>
                         ${h.is_refunded ? '<span class="audit-tag tag-brand">تم الاسترجاع</span>' : `<button class="refund-btn" onclick="refund(${h.id})">استرجاع</button>`}
                     </div>
+                    ${h.note ? `
+                    <div class="hist-note" style="margin-top:10px;font-size:0.85rem;color:var(--text-2);background:var(--surface);padding:8px 12px;border-radius:10px;font-weight:800;border-right:3px solid var(--brand);word-break:break-word;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-comment-dots" style="color:var(--brand);font-size:0.9rem"></i>
+                        <span>${escapeHtml(h.note)}</span>
+                    </div>
+                    ` : ''}
                 </div>
             `).join('');
             } else {
@@ -1262,17 +1301,22 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const btn = document.getElementById('wBtn');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
+            const noteEl = document.getElementById('wNote');
+            const noteVal = noteEl ? noteEl.value.trim() : '';
+
             const fd = new FormData();
             fd.append('action', 'withdrawCoupons');
             fd.append('student_id', selectedStudent['_studentId']);
             fd.append('amount', val);
             fd.append('category', category);
+            fd.append('note', noteVal);
 
             try {
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (r.success) {
                     showToast('تم السحب بنجاح', 'success');
                     document.getElementById('wAmount').value = '';
+                    if (noteEl) noteEl.value = '';
                     
                     // Soft refresh all data in background to update local categories cards
                     const refreshFd = new FormData(); refreshFd.append('action', 'getData');
