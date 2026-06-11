@@ -8710,6 +8710,8 @@ function getMergeComparison()
             'hasPasswordB' => $hasPasswordB,
             'taskCountA' => $taskCountA,
             'taskCountB' => $taskCountB,
+            'attendanceCountA' => count($attA),
+            'attendanceCountB' => count($attB),
             'attendanceConflicts' => $conflicts,
             'attendanceUnion' => $union
         ]);

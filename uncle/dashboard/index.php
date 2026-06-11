@@ -12936,7 +12936,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 stopAutoRefresh();
             } catch (e) {
                 hideLoading();
-                showToast('حدث خطأ غير متوقع', 'error');
+                console.error(e);
+                showToast('حدث خطأ غير متوقع: ' + e.message, 'error');
             }
         }
 
@@ -13240,8 +13241,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 `;
             }
 
-            const totalAttA = Object.keys(attA).length;
-            const totalAttB = Object.keys(attB).length;
+            const totalAttA = _mergeData.attendanceCountA || 0;
+            const totalAttB = _mergeData.attendanceCountB || 0;
 
             const attendanceHtml = `
                 <div class="merge-radio-group">
