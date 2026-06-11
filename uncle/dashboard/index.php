@@ -3070,10 +3070,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none !important;
         }
         body.bulk-active .class-view {
-            padding-top: 155px !important;
+            padding-top: var(--bulk-active-padding, 155px) !important;
         }
         body.bulk-active .att-toolbar {
-            top: 96px !important;
+            top: var(--bulk-bar-height, 96px) !important;
+            background: var(--surface) !important;
+            border-radius: 0 0 var(--r-xl) var(--r-xl) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            border-top: none !important;
         }
         body.bulk-active .bulk-actions-bar {
             position: fixed !important;
@@ -3085,9 +3089,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin: 0 !important;
             border-radius: 0 !important;
             border: none !important;
-            border-bottom: 1.5px solid var(--border-solid) !important;
             padding: 10px 16px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            box-shadow: none !important;
             background: var(--surface) !important;
             animation: slideDownBulk 0.25s var(--ease-spring) !important;
         }
@@ -11397,7 +11400,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
@@ -12503,7 +12506,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
@@ -12607,7 +12610,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let cls = 'attendance-item ' + st;
             if (isInChanged || isCouponChanged) cls += ' has-local';
             if (isBdayToday) cls += ' bday-row';
-            const dbId = s ? getStudentDbId(s) : null;
+            const dbId = s ? Number(getStudentDbId(s)) : null;
             if (dbId && selectedStudentIds.has(dbId)) cls += ' selected';
             row.className = cls;
 
@@ -12742,6 +12745,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (list) {
                     list.classList.add('bulk-active');
                 }
+                setTimeout(updateBulkBarHeight, 50);
             } else {
                 document.body.classList.remove('bulk-active');
                 if (toggleBtn) {
@@ -12759,9 +12763,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 isMergeChoosingMode = false;
                 updateBulkUI();
             }
-            
+
             renderAttendanceList(currentClass);
         }
+
+        function updateBulkBarHeight() {
+            const bar = document.getElementById('bulkActionsBar');
+            if (bar && isBulkSelectMode) {
+                const height = bar.offsetHeight;
+                document.documentElement.style.setProperty('--bulk-bar-height', height + 'px');
+                const toolbar = document.querySelector('.att-toolbar');
+                const toolbarHeight = toolbar ? toolbar.offsetHeight : 50;
+                document.documentElement.style.setProperty('--bulk-active-padding', (height + toolbarHeight + 8) + 'px');
+            }
+        }
+        window.addEventListener('resize', updateBulkBarHeight);
 
         function disableBulkSelectMode() {
             if (isBulkSelectMode) {
@@ -12774,19 +12790,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 event.preventDefault();
                 event.stopPropagation();
             }
-            if (selectedStudentIds.has(dbId)) {
-                selectedStudentIds.delete(dbId);
+            const numId = Number(dbId);
+            if (selectedStudentIds.has(numId)) {
+                selectedStudentIds.delete(numId);
             } else {
                 if (isMergeChoosingMode && selectedStudentIds.size >= 2) {
                     showToast('يمكنك تحديد طفلين فقط في وضع الدمج', 'warning');
                     return;
                 }
-                selectedStudentIds.add(dbId);
+                selectedStudentIds.add(numId);
             }
             
             // Find student node and update row class/checkbox in-place
             const allList = isCombinedView ? combinedStudents : students;
-            const s = allList.find(x => getStudentDbId(x) === dbId);
+            const s = allList.find(x => Number(getStudentDbId(x)) === numId);
             if (s) {
                 const sid = getStudentId(s);
                 _updateAttendanceRow(sid);
@@ -12809,10 +12826,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
             
-            const isAllSel = displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            const isAllSel = displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
             
             displayed.forEach(s => {
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 if (isAllSel) {
                     selectedStudentIds.delete(dbId);
                 } else {
@@ -12833,7 +12850,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             selectedStudentIds.clear();
             
             displayed.forEach(s => {
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const sid = getStudentId(s);
                 const st = attendanceData[sid] || 'pending';
                 
@@ -12902,7 +12919,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const displayed = filterAndSortActiveStudents();
             const barCircle = document.getElementById('bulkBarSelectAllCircle');
             
-            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
             
             if (barCircle) {
                 if (isAllSel) {
@@ -13478,8 +13495,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }, d => {
                         showToast(d.message || 'تم دمج الحسابين بنجاح', 'success');
                         closeMergeModal();
-                        selectedStudentIds.clear();
-                        updateBulkUI();
+                        disableBulkSelectMode();
                         loadData();
                     }, err => {
                         showToast(err || 'فشل الدمج', 'error');
