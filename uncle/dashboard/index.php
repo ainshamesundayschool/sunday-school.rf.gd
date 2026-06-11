@@ -8975,11 +8975,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="account-name" id="accountDisplayName">---</div>
                 <div class="account-role" id="accountDisplayRole">---</div>
                 <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
-                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
                     <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()"
                         style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="pwaInstallBtn" onclick="hideAccountModal(); triggerPwaInstall()"
+                        style="padding:8px 14px;font-size:.82rem;display:none" title="تثبيت التطبيق">
+                        <i class="fas fa-download" style="color:var(--success)"></i> تثبيت التطبيق
                     </button>
                     <a href="/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
@@ -9348,13 +9352,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
-                <!-- PWA Install -->
-                <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" title="تثبيت التطبيق"
-                    style="display:none;position:relative; overflow:visible;">
-                    <i class="fas fa-download"></i>
-                    <span
-                        style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
-                </button>
+
                 <div class="topbar-avatar-btn" id="uncleChip"
                     style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
@@ -20121,10 +20119,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         showToast(d.message || 'فشل حفظ الملاحظات الجماعية', 'error');
                     }
                 })
-                .catch(err => {
-                    hideLoading();
-                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
-                });
                 .catch(err => {
                     hideLoading();
                     showToast('حدث خطأ في الاتصال بالخادم', 'error');
