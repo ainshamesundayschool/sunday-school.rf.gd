@@ -3136,23 +3136,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            height: 32px;
-            padding: 0 10px !important;
-            gap: 6px;
-            border-radius: var(--r-md) !important;
+            height: 26px;
+            padding: 0 8px !important;
+            gap: 4px;
+            border-radius: var(--r-sm, 6px) !important;
             border: none !important;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .btn-bulk-label {
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             font-weight: 700;
             font-family: 'Cairo', sans-serif;
             white-space: nowrap;
             color: inherit;
         }
         .btn-bulk-action i {
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             line-height: 1 !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -9157,11 +9157,56 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
                     <span class="tool-card-name">اقتراحات الإخوات</span>
                     <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                </button>
                 <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();window.location.href='/uncle/church/?action=bulkAdd'">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
                 </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showHelpModal()">
+                    <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-question-circle"></i></span>
+                    <span class="tool-card-name">دليل المساعدة والبحث</span>
+                    <span class="tool-card-desc">ابحث واعرف تفاصيل كل ميزة في الخدمة.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Center & Smart Search Modal -->
+    <!-- NOTE TO DEVELOPERS: ALWAYS ADD NEW FEATURES TO THE HELP_FEATURES DATA ARRAY AT THE BOTTOM OF THE SCRIPTS SECTION! -->
+    <div class="modal-overlay" id="helpFeaturesModal" style="z-index: 1000015;">
+        <div class="modal modal-lg" style="max-width: 850px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex: none;">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-question-circle" style="color:var(--brand);"></i> 
+                    <span>دليل مساعدة الخدمة والبحث الذكي عن الميزات</span>
+                </h3>
+                <button class="close-btn" onclick="closeHelpModal()">&times;</button>
+            </div>
+            <div class="help-modal-body" style="padding: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 12px; direction: rtl; text-align: right;">
+                <!-- Search bar -->
+                <div class="help-search-wrapper" style="flex: none; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="position: relative; width: 100%;">
+                        <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.95rem;"></i>
+                        <input type="text" id="helpSearchInput" placeholder="ابحث عن ميزة أو كلمة رئيسية (مثال: دمج، غياب، كوبونات، صورة، رحلة)..." 
+                            style="width: 100%; height: 42px; padding: 0 38px 0 12px; border: 1px solid var(--border); border-radius: var(--r-md, 8px); font-family: 'Cairo', sans-serif; font-size: 0.9rem; background: var(--bg); color: var(--text); outline: none; box-sizing: border-box;"
+                            oninput="performHelpSearch()">
+                    </div>
+                    <!-- Category Chips -->
+                    <div class="help-categories" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                        <button class="help-cat-chip active" id="help-cat-all" onclick="filterHelpByCategory('all')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:var(--brand); color:white; font-family:'Cairo',sans-serif; transition:all 0.2s;">الكل</button>
+                        <button class="help-cat-chip" id="help-cat-attendance" onclick="filterHelpByCategory('attendance')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الحضور والغياب</button>
+                        <button class="help-cat-chip" id="help-cat-bulk" onclick="filterHelpByCategory('bulk')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الإجراءات الجماعية</button>
+                        <button class="help-cat-chip" id="help-cat-profile" onclick="filterHelpByCategory('profile')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الملف الشخصي</button>
+                        <button class="help-cat-chip" id="help-cat-settings" onclick="filterHelpByCategory('settings')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إعدادات الطباعة</button>
+                        <button class="help-cat-chip" id="help-cat-trash" onclick="filterHelpByCategory('trash')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">المحذوفات</button>
+                        <button class="help-cat-chip" id="help-cat-admin" onclick="filterHelpByCategory('admin')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إدارة الرحلات والنظام</button>
+                    </div>
+                </div>
+                <!-- Scrollable results list -->
+                <div id="helpFeaturesList" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
+                    <!-- Features cards render here -->
+                </div>
             </div>
         </div>
     </div>
@@ -9280,6 +9325,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
             </div>
             <div class="topbar-actions">
+                <button class="topbar-btn" onclick="showHelpModal()" title="دليل المساعدة والبحث الذكي">
+                    <i class="fas fa-question-circle"></i>
+                </button>
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
@@ -9333,6 +9381,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tool-chip" onclick="showHelpModal()" style="background:rgba(91,108,245,0.08);color:var(--brand);border-color:rgba(91,108,245,0.25);"><i class="fas fa-question-circle"></i> دليل المساعدة</button>
                         <button class="home-tools-link" onclick="showAllToolsModal()">
                             كل الأدوات <i class="fas fa-arrow-left"></i>
                         </button>
@@ -20076,7 +20125,633 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     hideLoading();
                     showToast('حدث خطأ في الاتصال بالخادم', 'error');
                 });
+                .catch(err => {
+                    hideLoading();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                });
         };
+
+        // =========================================================================
+        // NOTE TO DEVELOPERS: ALWAYS ADD NEW FEATURES TO THIS HELP SYSTEM DATA ARRAY!
+        // Each feature should have:
+        // - title: Arabic title/name of the feature
+        // - category: category key ('attendance', 'bulk', 'profile', 'settings', 'trash', 'admin')
+        // - description: brief description of what the feature does
+        // - how_it_works: step-by-step description of how to use it
+        // - location: where this feature is located in the UI
+        // - keywords: synonyms, tags, or common queries for intelligent matching
+        // - action: JavaScript code to execute, or URL string to open (external redirect)
+        // =========================================================================
+        const HELP_FEATURES = [
+            {
+                title: "رصد الحضور والغياب اليومي بنقرة واحدة",
+                category: "attendance",
+                description: "رصد حالة حضور الطفل المباشرة لليوم الجاري.",
+                how_it_works: "انقر على اسم الطفل في لوحة التحضير، ستتحول الحالة بالتتابع: 'حاضر' (أخضر)، ثم 'غائب' (أحمر)، ثم 'لا بيانات' (رمادي) تلقائياً.",
+                location: "الصفحة الرئيسية -> جدول الفصل",
+                keywords: ["حضور", "غياب", "رصد", "تحضير", "تحضير يومي", "غياب وحضور", "نقرة", "لمس"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "شريط البحث السريع والذكي للأطفال",
+                category: "attendance",
+                description: "البحث عن الأطفال بالاسم، الفصل، أو الهاتف لعرضهم ورصدهم فوراً.",
+                how_it_works: "اكتب الكلمة في شريط البحث في الترويسة العلوية أو أعلى قائمة الفصول، وستظهر النتائج فوراً لتعديلها.",
+                location: "أعلى الصفحة الرئيسية / الترويسة العلوية (Topbar)",
+                keywords: ["بحث", "فلترة", "بحث سريع", "اسم", "هاتف", "تليفون", "فصل"],
+                action: "closeHelpModal(); document.getElementById('inlineSearchInput').focus();"
+            },
+            {
+                title: "التصفية السريعة حسب حالة التحضير",
+                category: "attendance",
+                description: "تصفية قائمة الأطفال لعرض فئات معينة فقط حسب حالتها لليوم.",
+                how_it_works: "انقر على الفلاتر الدائرية الصغيرة أعلى لوحة التحضير لعرض: (الكل 🌐 / لا بيانات ➖ / حاضرين ✔ / غائبين ✖) لتسريع المتابعة.",
+                location: "الصفحة الرئيسية -> أعلى قائمة التحضير",
+                keywords: ["تصفية", "فلتر", "لا بيانات", "حاضرين", "غائبين", "تحضير"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "شريط أعياد ميلاد اليوم التفاعلي",
+                category: "attendance",
+                description: "تنبيه تلقائي تفاعلي لتهنئة الأطفال الذين يوافق عيد ميلادهم اليوم.",
+                how_it_works: "يظهر شريط ملون أعلى القائمة تلقائياً في حالة وجود أعياد ميلاد، ويتم تمييز صف الطفل بأيقونة كعكة 🎂 ولون ذهبي دافئ.",
+                location: "الصفحة الرئيسية -> أسفل شريط البحث",
+                keywords: ["عيد ميلاد", "أعياد ميلاد", "سنة حلوة", "تهنئة", "ميلاد اليوم", "تورته", "كعكة"],
+                action: "closeHelpModal(); showBirthdayModal();"
+            },
+            {
+                title: "أداة سحب جوائز الكوبونات والنقاط",
+                category: "attendance",
+                description: "خصم نقاط أو كوبونات من حساب الطفل مباشرة عند استبدالها بجوائز.",
+                how_it_works: "افتح الأداة، اختر الطفل، أدخل عدد الكوبونات المراد خصمها ثم اضغط تأكيد السحب ليتم تحديث رصيده فوراً.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> سحب كوبونات",
+                keywords: ["سحب", "كوبونات", "هدايا", "استبدال", "خصم نقاط", "جوائز", "نقاط"],
+                action: "window.location.href='/uncle/dashboard/withdraw/'"
+            },
+            {
+                title: "المهام، الاختبارات والواجبات",
+                category: "attendance",
+                description: "تسجيل وتقييم تسليمات الواجبات والأنشطة والاختبارات الدورية للأطفال.",
+                how_it_works: "افتح صفحة المهام، أنشئ مهمة جديدة (اختبار، واجب، حفظ) وقم برصد درجات أو تسليمات الأطفال.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> المهام",
+                keywords: ["مهمة", "مهام", "واجب", "اختبار", "حفظ", "تسميع", "تسليم", "درجات"],
+                action: "window.location.href='/uncle/dashboard/tasks/'"
+            },
+            {
+                title: "تصدير البيانات المخصص",
+                category: "attendance",
+                description: "تصدير قوائم وبيانات الأطفال إلى ملفات Excel أو CSV مخصصة.",
+                how_it_works: "اختر الفصل والبيانات المطلوبة (الهاتف، تاريخ الميلاد، النقاط إلخ) ثم اضغط تصدير لتحميل الملف فوراً.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> تصدير مخصص",
+                keywords: ["تصدير", "excel", "csv", "تحميل بيانات", "شيت", "اكسيل"],
+                action: "closeHelpModal(); showAllKidsCustomExport();"
+            },
+            {
+                title: "إرسال الإعلانات والتنبيهات للأطفال",
+                category: "attendance",
+                description: "نشر إعلانات عامة للخدمة أو مخصصة تظهر في حسابات الأطفال وأولياء الأمور.",
+                how_it_works: "اكتب عنوان الإعلان ومحتواه واختر فئة الاستهداف، وسيتم عرضه للطفل عند تسجيل دخوله أو فتح حسابه.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> الإعلانات",
+                keywords: ["اعلان", "اعلام", "تنبيه", "رسالة", "خبر", "تبليغ", "إعلانات"],
+                action: "closeHelpModal(); showAnnouncementsModal();"
+            },
+            {
+                title: "سجل أعياد ميلاد الشهر",
+                category: "attendance",
+                description: "عرض شامل للأطفال الذين تقع أعياد ميلادهم في الشهر الجاري أو أي شهر آخر.",
+                how_it_works: "افتح الأداة واختر الشهر لعرض قائمة الأطفال مع فصولهم وتاريخ ميلادهم لترتيب احتفالات الخدمة.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> أعياد الميلاد",
+                keywords: ["أعياد الميلاد", "شهر", "ميلاد الشهر", "احتفال", "ميلاد"],
+                action: "closeHelpModal(); showBirthdayModal();"
+            },
+            {
+                title: "عرض جميع أطفال الكنيسة",
+                category: "attendance",
+                description: "قائمة موحدة وشاملة لجميع الأطفال المسجلين في الكنيسة مع إمكانيات فرز متقدمة.",
+                how_it_works: "تتيح لك البحث السريع، ترتيب الأطفال تصاعدياً أو تنازلياً حسب الاسم أو رصيد النقاط، والتصفية بالفصول.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> جميع الأطفال",
+                keywords: ["جميع الأطفال", "كل الاطفال", "قائمة شاملة", "ترتيب", "بحث عام", "جدول"],
+                action: "closeHelpModal(); showAllStudentsModal();"
+            },
+            {
+                title: "اقتراحات ربط الإخوة بالذكاء الاصطناعي",
+                category: "attendance",
+                description: "نظام ذكي يتعرف تلقائياً على الأطفال غير المربوطين كإخوة بناءً على تشابه الأسماء أو أرقام الهواتف.",
+                how_it_works: "يقوم النظام بتحليل قاعدة البيانات وعرض اقتراحات الربط بضغطة زر واحدة لتسهيل متابعة العائلات.",
+                location: "الصفحة الرئيسية -> شريط الأدوات العلوي -> اقتراحات الإخوات",
+                keywords: ["اخوة", "إخوة", "ربط", "قرابة", "تشابه", "عائلة", "اقتراح", "ذكاء"],
+                action: "closeHelpModal(); openSiblingSuggestionsView();"
+            },
+            {
+                title: "إضافة مجموعة أطفال دفعة واحدة",
+                category: "settings",
+                description: "رفع ملف CSV أو Excel لإدخال مئات الأطفال وتحديث بياناتهم مرة واحدة.",
+                how_it_works: "قم بتحميل النموذج التجريبي، املأ البيانات، ارفع الملف، وسيقوم النظام بالتحقق وإضافتهم فوراً وتوزيعهم على الفصول.",
+                location: "لوحة الإدارة والإعدادات -> إضافة مجموعة (Bulk Import)",
+                keywords: ["اضافة مجموعة", "bulk add", "استيراد", "رفع ملف", "اكسيل", "ملف", "csv"],
+                action: "window.location.href='/uncle/church/?action=bulkAdd'"
+            },
+            {
+                title: "تفعيل وإلغاء وضع التحديد الجماعي",
+                category: "bulk",
+                description: "تمكين تحديد عدة أطفال معاً لتطبيق إجراءات موحدة دفعة واحدة.",
+                how_it_works: "انقر على زر 'تحديد' (علامة صح الدائرية) في شريط التحضير السفلي، ستظهر دوائر اختيار بجانب كل طفل لتحديدهم.",
+                location: "أسفل الصفحة الرئيسية -> زر 'تحديد'",
+                keywords: ["تحديد", "اختيار", "وضع التحديد", "تحديد مجمع", "تحديد جماعي", "bulk select"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "رصد الحضور الجماعي",
+                category: "bulk",
+                description: "تحضير أو تغييب مجموعة من الأطفال المحددين معاً بضغطة واحدة.",
+                how_it_works: "قم بتفعيل وضع التحديد، اختر الأطفال المطلوبين، ثم اضغط على زر 'حضور' أو 'غياب' في شريط الإجراءات المجمعة السفلي.",
+                location: "شريط الإجراءات المجمعة السفلي -> حضور / غياب",
+                keywords: ["رصد جماعي", "حضور جماعي", "غياب جماعي", "تحضير مجمع", "تحديد"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "إضافة وخصم الكوبونات الجماعي",
+                category: "bulk",
+                description: "تعديل نقاط/كوبونات مجموعة من الأطفال المحددين بضغطة واحدة.",
+                how_it_works: "حدد الأطفال، انقر على زر 'كوبونات' في شريط الإجراءات، واختر القيمة المراد إضافتها أو خصمها (+30، -10، إلخ).",
+                location: "شريط الإجراءات المجمعة السفلي -> كوبونات",
+                keywords: ["كوبونات جماعية", "نقاط جماعية", "مكافأة جماعية", "إضافة نقاط", "تحديد"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "نقل الفصول الجماعي للأطفال",
+                category: "bulk",
+                description: "نقل مجموعة من الأطفال المحددين إلى فصل دراسي آخر دفعة واحدة.",
+                how_it_works: "حدد الأطفال، اضغط على زر 'نقل' في شريط الإجراءات السفلي، اختر الفصل الجديد، ثم أكد عملية النقل.",
+                location: "شريط الإجراءات المجمعة السفلي -> نقل",
+                keywords: ["نقل جماعي", "تغيير فصل", "نقل فصل", "ترقية", "ترحيل"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "إضافة ملاحظة جماعية للأطفال",
+                category: "bulk",
+                description: "إدراج ملاحظة متابعة أو تنبيه موحد في سجلات مجموعة من الأطفال معاً.",
+                how_it_works: "حدد الأطفال، انقر زر 'ملاحظة' في شريط الإجراءات السفلي، اكتب نص الملاحظة واضغط حفظ.",
+                location: "شريط الإجراءات المجمعة السفلي -> ملاحظة",
+                keywords: ["ملاحظة جماعية", "ملاحظة مجمعة", "تنبيه جماعي", "متابعة جماعية"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "الحذف الجماعي للأطفال",
+                category: "bulk",
+                description: "حذف مجموعة أطفال محددين ونقلهم إلى سلة المحذوفات دفعة واحدة.",
+                how_it_works: "حدد الأطفال، اضغط زر 'حذف' في شريط الإجراءات، وأكد الحذف لنقلهم إلى سلة المحذوفات المؤقتة.",
+                location: "شريط الإجراءات المجمعة السفلي -> حذف",
+                keywords: ["حذف جماعي", "حذف مجمع", "إزالة جماعية", "سلة المهملات"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "دمج الحسابات المكررة الذكي",
+                category: "bulk",
+                description: "دمج حسابين مكررين لنفس الطفل مع نقل كامل البيانات والنقاط والصورة وتجنب الفقدان.",
+                how_it_works: "حدد الحسابين المكررين، سيظهر خيار 'دمج' تلقائياً. اختر البيانات التي تود الاحتفاظ بها (الاسم الأصح، الفصل، الكوبونات، الصورة الشخصية) وأكد الدمج.",
+                location: "شريط الإجراءات المجمعة السفلي -> دمج (يظهر عند تحديد حسابين فقط)",
+                keywords: ["دمج", "حساب مكرر", "تكرار", "دمج حسابات", "مكررين", "تنظيف"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "عرض تفاصيل الطفل وتعديلها",
+                category: "profile",
+                description: "نافذة عرض شاملة لجميع بيانات الطفل، رصيد نقاطه، ونسب الحضور.",
+                how_it_works: "في قائمة التحضير، انقر فوق أيقونة التفاصيل أو اسم الطفل لفتح نافذة التفاصيل، ومنها يمكنك الضغط على 'تعديل البيانات'.",
+                location: "الصفحة الرئيسية -> النقر على اسم الطفل",
+                keywords: ["تعديل طفل", "بيانات الطفل", "تفاصيل الطفل", "عنوان", "هاتف", "تعديل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "الملف الشخصي العام للطفل (كارت المتابعة)",
+                category: "profile",
+                description: "رابط عام وخارجي يعرض نقاط الطفل وحضوره ويمكن لأولياء الأمور متابعته عبر الـ QR.",
+                how_it_works: "من نافذة تفاصيل الطفل، اضغط على زر 'الملف العام' ليفتح كارت المتابعة التفاعلي في تبويب جديد `/user/profile/?id={id}`.",
+                location: "نافذة تفاصيل الطفل -> زر 'الملف العام' 🔗",
+                keywords: ["ملف عام", "رابط خارجي", "كارت المتابعة", "متابعة ولي الامر", "بروفايل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "تحديث ورفع الصورة الشخصية للطفل",
+                category: "profile",
+                description: "إضافة صورة شخصية للطفل تظهر في التحضير وكروت الـ QR الخاصة به.",
+                how_it_works: "افتح نافذة تعديل الطفل، انقر على زر رفع الصورة، اختر الصورة من جهازك واضغط حفظ.",
+                location: "نافذة تفاصيل الطفل -> تعديل البيانات -> صورة الطفل",
+                keywords: ["صورة شخصية", "رفع صورة", "تعديل صورة", "صورة الطفل", "تحديث صورة"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "عرض السجل التاريخي لحضور الطفل",
+                category: "profile",
+                description: "إحصائية تفصيلية دائرية وجدول شهري لحضور وغياب الطفل طوال العام الدراسي.",
+                how_it_works: "افتح نافذة تفاصيل الطفل، وانقر على تبويب 'سجل الحضور والغياب' لعرض نسب الحضور بالأشهر.",
+                location: "نافذة تفاصيل الطفل -> سجل الحضور والغياب",
+                keywords: ["نسبة الحضور", "سجل الحضور", "تواريخ الحضور", "غياب الطفل", "احصائيات الحضور"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "إدارة وربط الإخوة يدوياً",
+                category: "profile",
+                description: "ربط الأطفال الأشقاء ببعضهم يدوياً لتسهيل عرض عائلاتهم ومتابعتهم.",
+                how_it_works: "من تفاصيل الطفل، اضغط على زر 'إدارة الإخوة' ثم ابحث عن اسم الأخ واضغط ربط لتأسيس العلاقة العائلية.",
+                location: "نافذة تفاصيل الطفل -> إدارة الإخوة",
+                keywords: ["ربط اخوة", "اضافة اخ", "ربط شقيق", "اخوات", "شقيق", "يدوي"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "عرض معرّف قاعدة البيانات (Database ID)",
+                category: "profile",
+                description: "الرقم التعريفي الفريد لكل طفل في قاعدة البيانات لأغراض البحث والدعم والمطابقة.",
+                how_it_works: "يظهر هذا الرقم بوضوح داخل بطاقة تفاصيل الطفل تحت اسم (معرّف النظام ID).",
+                location: "نافذة تفاصيل الطفل -> أسفل الصورة الشخصية",
+                keywords: ["id", "db id", "معرف النظام", "رقم الطفل", "رقم السجل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "أرشيف سلة المهملات والمحذوفات",
+                category: "trash",
+                description: "الاحتفاظ بالأطفال المحذوفين مؤقتاً لإمكانية مراجعتهم أو استعادتهم في أي وقت.",
+                how_it_works: "افتح سلة المهملات من شريط القائمة الجانبية أو الإعدادات لمشاهدة الأطفال المحذوفين والبحث عنهم.",
+                location: "الصفحة الرئيسية -> شريط القائمة الجانبية -> سلة المهملات",
+                keywords: ["سلة المهملات", "المحذوفات", "الأطفال المحذوفين", "trash bin", "مهملات"],
+                action: "closeHelpModal(); openModal('trashBinModal');"
+            },
+            {
+                title: "استعادة الطفل المحذوف وصورته الشخصية",
+                category: "trash",
+                description: "تراجع كامل عن عملية الحذف واستعادة ملف الطفل وصورته الشخصية ونقاطه بنسبة 100%.",
+                how_it_works: "افتح سلة المهملات، ابحث عن الطفل، واضغط على زر 'استعادة' (أيقونة السهم الدائري)، ليعود لقائمته الأصلية فوراً.",
+                location: "نافذة سلة المهملات -> زر استعادة",
+                keywords: ["استعادة", "ترجيع", "تراجع عن الحذف", "استعادة الصورة", "مسترجع"],
+                action: "closeHelpModal(); openModal('trashBinModal');"
+            },
+            {
+                title: "توليد طباعة كروت الـ QR مخصصة للأطفال",
+                category: "settings",
+                description: "تصميم وطباعة كروت هوية ذكية للأطفال بـ رموز QR مشفرة للمتابعة السريعة.",
+                how_it_works: "افتح صفحة الإعدادات، انتقل لقسم 'طباعة كروت QR'، خصص الأبعاد، الألوان، الخلفيات، ثم اضغط طباعة.",
+                location: "الترويسة العلوية -> لوحة الإدارة والإعدادات -> طباعة كروت QR",
+                keywords: ["كروت qr", "طباعة كروت", "توليد qr", "كود qr", "تصميم كروت", "بطاقات"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "طباعة كروت لأطفال محددين فقط مع بحث وفلترة",
+                category: "settings",
+                description: "حصر طباعة كروت الـ QR لأطفال معينين تحددهم بالاسم أو الفصل دون طباعة الكل.",
+                how_it_works: "في إعدادات الطباعة، غير 'نطاق الطباعة' إلى 'طباعة أطفال محددين فقط'، واستخدم شريط البحث والفلترة لتحديد أطفالك وتحديث المعاينة.",
+                location: "لوحة الإدارة والإعدادات -> طباعة كروت QR -> الأطفال المستهدفين",
+                keywords: ["طباعة محددة", "تحديد اطفال للطباعة", "فلترة الطباعة", "بحث اطفال الطباعة"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "رفع خلفية مخصصة للكروت وقصّها تلقائياً",
+                category: "settings",
+                description: "تخصيص الهوية البصرية للكارت برفع قالب خلفية خاص بكنيستك وقصّه بأبعاد مثالية.",
+                how_it_works: "اضغط على زر رفع خلفية مخصصة، اختر الصورة من جهازك، استخدم أداة القص المدمجة في المتصفح لقص الخلفية، ثم احفظها.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> الخلفية المخصصة",
+                keywords: ["خلفية الكارت", "رفع خلفية", "قص الصورة", "قالب خلفية", "crop", "خلفية مخصصة"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "درجة تغطية وشفافية خلفية الكروت",
+                category: "settings",
+                description: "إضافة طبقة لونية فوق الخلفية المخصصة لتسهيل قراءة نصوص وبيانات الكروت.",
+                how_it_works: "اختر لون التغطية المفضل (أبيض، داكن إلخ) وتحكم بنسبة الشفافية (Opacity Slider) لموازنة جمال الكارت ووضوح الخطوط.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> لون الشفافية والتغطية",
+                keywords: ["شفافية", "تغطية الخلفية", "وضوح النصوص", "opacity", "لون التغطية"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تحديد أبعاد الكروت وتخطيط الصفحات",
+                category: "settings",
+                description: "تعديل طول وعرض الكارت ومسافات التباعد لتناسب مقاسات الطباعة وورق الكروت المتاح.",
+                how_it_works: "أدخل العرض والارتفاع بالسنتيمتر، والتباعد الأفقي والرأسي بالبكسل لتوزيع الكروت بشكل مثالي في الصفحة.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> أبعاد وتخطيط البطاقة",
+                keywords: ["ابعاد الكارت", "طول وعرض", "سنتيمتر", "تباعد الكروت", "landscape", "طولي وعرضي"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تحسين وضوح نصوص الكروت (قوالب القراءة)",
+                category: "settings",
+                description: "مجموعة خيارات برمجية متقدمة لجعل الخطوط مقروءة على الخلفيات المشغولة بالرسومات.",
+                how_it_works: "يمكنك تفعيل خيار 'مستطيل النصوص' (Rect) لوضع خلفية بيضاء نصف شفافة خلف الأسماء، أو خيار 'إطار النصوص الحامي' (Stroke) لإضافة ظل مجسم حول الحروف.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> وضوح النصوص",
+                keywords: ["مستطيل النصوص", "rect", "stroke", "وضوح الخط", "سهولة القراءة", "تظليل"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "طباعة ظهر الكروت (Back Side Printing)",
+                category: "settings",
+                description: "توليد وجه خلفي للكروت يحتوي على لوجو مدارس الأحد وعنوان الخدمة وشعار موقع sunday-school.online.",
+                how_it_works: "فعل خيار 'طباعة الوجه الخلفي للبطاقة'، وسيقوم النظام تلقائياً بإنشاء صفحات تالية تحتوي على التصاميم الخلفية المقابلة.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> خيارات المحتوى -> طباعة الوجه الخلفي",
+                keywords: ["ظهر الكارت", "لوجو خلفي", "طباعة الوجهين", "double side", "شعار الموقع"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "إخفاء وإظهار الصورة الشخصية والمعرّف على الكارت",
+                category: "settings",
+                description: "تعديل محتويات الكارت لإظهار أو إخفاء صور الأطفال أو أرقام الـ ID الخاص بهم.",
+                how_it_works: "استخدم خانات الاختيار (Checkboxes) المتاحة لتفعيل/تعطيل إظهار الصور أو معرّفات الـ ID في المعاينة الفورية والكارت المطبوع.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> خيارات المحتوى",
+                keywords: ["اخفاء الصورة", "اظهار المعرف", "id الكارت", "صورة الكارت", "محتوى الكارت"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تخصيص إطار وأركان البطاقات المطبوعة",
+                category: "settings",
+                description: "تعديل نمط وشكل خط القص حول الكروت لتسهيل عملية قص الكروت يدوياً.",
+                how_it_works: "اختر شكل الإطار (متصل، متقطع، منقّط، أو مخفي) وتحكم بلونه وحجمه، بالإضافة لتفعيل الأركان الدائرية (Rounded Corners) أو الحادة للكروت.",
+                location: "لوحة الإعدادات -> طباعة كروت QR -> إطار البطاقة",
+                keywords: ["اطار الكارت", "خط متقطع", "نقاط القص", "rounded corners", "اركان دائرية"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "إدارة وإنشاء رحلات ومؤتمرات الكنيسة",
+                category: "admin",
+                description: "لوحة متكاملة لإنشاء رحلات الخدمة وإدارتها ورصد مدفوعاتها للأطفال.",
+                how_it_works: "افتح إدارة الرحلات، أنشئ رحلة جديدة ببيانات التسعير وحجز التذاكر، وقم بتخصيص أسئلة تسجيل إضافية.",
+                location: "لوحة الإدارة والإعدادات -> إدارة الرحلات / المؤتمرات",
+                keywords: ["رحلة", "مؤتمر", "رحلات", "تسجيل رحلة", "تذكرة", "مدفوعات الرحلة", "اشتراك"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "تخصيص حقول وأيقونات تسجيل الرحلات",
+                category: "admin",
+                description: "إضافة أسئلة مخصصة لصفحة تسجيل الأطفال بالرحلات (مثل: مقاس التيشرت، التليفون الاحتياطي).",
+                how_it_works: "أثنائ إنشاء أو تعديل الرحلة، أضف الحقول المخصصة واختر أيقونة مناسبة لكل حقل لتسهيل تعبئتها من قبل الأطفال.",
+                location: "لوحة الإدارة والإعدادات -> تعديل الرحلة -> الحقول المخصصة للأطفال",
+                keywords: ["حقول مخصصة", "ايقونات الحقول", "مقاس تيشرت", "بيانات اضافية", "اسئلة الرحلة"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "طباعة كروت الـ QR الخاصة بالرحلات",
+                category: "admin",
+                description: "طباعة كروت دخول خاصة بالرحلة للأطفال المسجلين تحتوي على بياناتهم الإضافية ورمز QR مخصص.",
+                how_it_works: "افتح تفاصيل الرحلة، اضغط على زر 'طباعة كروت QR'، وسيقوم النظام بتوليد كروت دخول الرحلة التي تحتوي على حقول التسجيل المخصصة.",
+                location: "تفاصيل الرحلة -> طباعة كروت QR للرحلة",
+                keywords: ["كروت الرحلة", "تذكرة دخول", "qr الرحلة", "طباعة تذاكر", "باركود الرحلة"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "تسجيل حساب خادم جديد (عم)",
+                category: "admin",
+                description: "إضافة حساب خادم جديد للكنيسة لتمكينه من رصد الحضور ومتابعة الفصول.",
+                how_it_works: "افتح إدارة الخدام، أدخل بيانات الخادم الشخصية واسم المستخدم ورقم الهاتف وصلاحياته لتوليد حسابه.",
+                location: "لوحة الإدارة والإعدادات -> إدارة الخدام / الأمناء",
+                keywords: ["خادم جديد", "تسجيل خادم", "عم جديد", "حساب خادم", "اضافة عم"],
+                action: "window.location.href='/uncle/church/?action=uncles'"
+            },
+            {
+                title: "سجل التدقيق الإداري العام (Audit Logs)",
+                category: "admin",
+                description: "سجل حماية وتتبع كامل لجميع العمليات الحساسة التي تمت على مستوى الخدمة لضمان الأمان والشفافية.",
+                how_it_works: "يعرض تاريخ وتفاصيل الحركات الحساسة (مثل: دمج الحسابات، حذف طفل، تعديل بيانات) مع اسم الخادم الذي قام بالحركة والوقت والبيانات القديمة والجديدة.",
+                location: "الرابط الخارجي المباشر لخدمة المراقبة -> `/audit.php`",
+                keywords: ["سجل الحركات", "audit log", "مراقبة", "سجل التدقيق", "حركات الخدام", "تعديلات"],
+                action: "window.open('/audit.php', '_blank')"
+            },
+            {
+                title: "أخذ نسخة احتياطية يدوية لقاعدة البيانات",
+                category: "admin",
+                description: "تصدير نسخة كاملة وآمنة من ملفات البيانات وحفظها محلياً على جهازك لمواجهة الطوارئ.",
+                how_it_works: "في الإعدادات، اضغط على زر 'نسخ احتياطي للبيانات أوفلاين' لتنزيل ملف يحتوي على كامل البيانات في شكل ملف نصي مشفر.",
+                location: "لوحة الإدارة والإعدادات -> صيانة النظام -> نسخ احتياطي",
+                keywords: ["نسخة احتياطية", "backup", "حفظ البيانات", "اوفلاين", "امان البيانات"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "المزامنة التلقائية واليدوية للبيانات",
+                category: "admin",
+                description: "نظام مزامنة ذكي يضمن عمل التطبيق بنجاح في ظروف انقطاع الإنترنت أو بطئه.",
+                how_it_works: "يقوم التطبيق بحفظ الحضور والكوبونات محلياً على المتصفح عند انقطاع الشبكة، وفور عودة الاتصال يتم مزامنتها مع خادم الكنيسة الرئيسي تلقائياً أو يدوياً بالضغط على زر المزامنة.",
+                location: "أعلى يمين الصفحة الرئيسية (أيقونة السحابة/الحالة)",
+                keywords: ["مزامنة", "sync", "انقطاع الانترنت", "اوفلاين", "المزامنة اليدوية", "حفظ محلي"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "لوحة المتصدرين العامة للأطفال (Leaderboard)",
+                category: "admin",
+                description: "صفحة عامة تفاعلية تعرض ترتيب الأطفال حسب نقاطهم وكوبوناتهم مع واجهة متحركة محفّزة.",
+                how_it_works: "تتيح تصفية لوحة المتصدرين بحسب الفصول والبحث السريع عن ترتيب طفل معين.",
+                location: "الرابط الخارجي المباشر للوحة -> `/leaderboard/`",
+                keywords: ["لوحة المتصدرين", "ترتيب الأطفال", "leaderboard", "نقاط المتصدرين", "الاوائل", "جوائز"],
+                action: "window.open('/leaderboard/', '_blank')"
+            },
+            {
+                title: "تسجيل كنيسة جديدة على المنصة",
+                category: "admin",
+                description: "تسجيل كنيسة جديدة وتأسيس نظام مدارس الأحد الخاص بها.",
+                how_it_works: "افتح صفحة التسجيل، املأ بيانات الكنيسة والمنطقة وحساب مدير النظام لتوليد لوحة التحكم الخاصة بكنيستك.",
+                location: "صفحة تسجيل كنيسة -> `/church-register.html`",
+                keywords: ["تسجيل كنيسة", "كنيسة جديدة", "انشاء نظام", "church register", "منصة جديدة"],
+                action: "window.open('/church-register.html', '_blank')"
+            },
+            {
+                title: "تسجيل طفل جديد بواسطة أولياء الأمور",
+                category: "admin",
+                description: "صفحة تتيح لأولياء الأمور تسجيل أطفالهم يدوياً وتوجيههم للكنيسة والفصل المناسب.",
+                how_it_works: "يقوم ولي الأمر بتعبئة بيانات الطفل الشخصية وصورته واختيار الكنيسة المناسبة.",
+                location: "صفحة تسجيل طفل -> `/user/registration/`",
+                keywords: ["تسجيل طفل جديد", "ولي الامر", "اضافة ابن", "تسجيل ابن", "حساب طفل جديد"],
+                action: "window.open('/user/registration/', '_blank')"
+            }
+        ];
+
+        let currentHelpCategory = 'all';
+
+        function showHelpModal() {
+            openModal('helpFeaturesModal');
+            document.getElementById('helpSearchInput').value = '';
+            filterHelpByCategory('all');
+        }
+
+        function closeHelpModal() {
+            closeModal('helpFeaturesModal');
+        }
+
+        function filterHelpByCategory(cat) {
+            currentHelpCategory = cat;
+            document.querySelectorAll('.help-cat-chip').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `help-cat-${cat}`);
+                if (btn.id === `help-cat-${cat}`) {
+                    btn.style.background = 'var(--brand)';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = 'rgba(120,120,120,0.1)';
+                    btn.style.color = 'var(--text-2)';
+                }
+            });
+            performHelpSearch();
+        }
+
+        function normalizeArabic(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/[\u064B-\u065F]/g, '') // Remove tashkeel/diacritics
+                .toLowerCase()
+                .trim();
+        }
+
+        function performHelpSearch() {
+            const query = document.getElementById('helpSearchInput').value.trim();
+            const normalizedQuery = normalizeArabic(query);
+            const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+
+            const listContainer = document.getElementById('helpFeaturesList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            let scoredFeatures = [];
+
+            HELP_FEATURES.forEach(feature => {
+                if (currentHelpCategory !== 'all' && feature.category !== currentHelpCategory) {
+                    return;
+                }
+
+                let score = 0;
+                
+                if (queryWords.length > 0) {
+                    const normTitle = normalizeArabic(feature.title);
+                    const normDesc = normalizeArabic(feature.description);
+                    const normHow = normalizeArabic(feature.how_it_works);
+                    const normLoc = normalizeArabic(feature.location);
+
+                    queryWords.forEach(word => {
+                        if (normTitle === word) score += 30;
+                        else if (normTitle.includes(word)) score += 15;
+
+                        if (feature.keywords && feature.keywords.some(k => normalizeArabic(k).includes(word))) {
+                            score += 10;
+                        }
+
+                        if (normDesc.includes(word)) score += 5;
+                        if (normHow.includes(word)) score += 2;
+                        if (normLoc.includes(word)) score += 2;
+                        if (normalizeArabic(feature.category) === word) score += 5;
+                    });
+                } else {
+                    score = 1;
+                }
+
+                if (score > 0) {
+                    scoredFeatures.push({ feature, score });
+                }
+            });
+
+            if (queryWords.length > 0) {
+                scoredFeatures.sort((a, b) => b.score - a.score);
+            }
+
+            if (scoredFeatures.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:var(--text-3);">
+                        <i class="fas fa-search" style="font-size:2.5rem; display:block; margin-bottom:12px; opacity:0.5;"></i>
+                        <p style="font-size:1rem; font-weight:bold; margin-bottom:4px;">لم نجد ميزات تطابق بحثك</p>
+                        <p style="font-size:0.8rem; opacity:0.8;">تأكد من كتابة كلمات بحث صحيحة أو تصفح الأقسام بالكامل.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            function highlightText(text, words) {
+                if (!words.length || !text) return text;
+                let regexPattern = words.map(w => w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+                try {
+                    let re = new RegExp(`(${regexPattern})`, 'gi');
+                    return text.replace(re, '<mark style="background:rgba(254,240,138,0.85); color:#000; padding:0 2px; border-radius:2px;">$1</mark>');
+                } catch(e) {
+                    return text;
+                }
+            }
+
+            scoredFeatures.forEach(({ feature }) => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: var(--card, #ffffff);
+                    border: 1px solid var(--border);
+                    border-radius: var(--r-md, 8px);
+                    padding: 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+                    transition: transform 0.2s, box-shadow 0.2s;
+                `;
+                
+                card.onmouseenter = () => {
+                    card.style.transform = 'translateY(-2px)';
+                    card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                };
+                card.onmouseleave = () => {
+                    card.style.transform = 'none';
+                    card.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
+                };
+
+                let categoryColor = 'var(--brand)';
+                let categoryLabel = '';
+                switch (feature.category) {
+                    case 'attendance': categoryLabel = 'الحضور والغياب'; categoryColor = '#10b981'; break;
+                    case 'bulk': categoryLabel = 'إجراءات جماعية'; categoryColor = '#8b5cf6'; break;
+                    case 'profile': categoryLabel = 'الملف الشخصي'; categoryColor = '#3b82f6'; break;
+                    case 'settings': categoryLabel = 'إعدادات الطباعة'; categoryColor = '#f59e0b'; break;
+                    case 'trash': categoryLabel = 'المحذوفات'; categoryColor = '#ef4444'; break;
+                    case 'admin': categoryLabel = 'إدارة النظام'; categoryColor = '#374151'; break;
+                }
+
+                const categoryBadge = `<span style="background:${categoryColor}15; color:${categoryColor}; font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:12px; margin-right:auto; font-family:'Cairo',sans-serif;">${categoryLabel}</span>`;
+
+                const highlightedTitle = queryWords.length ? highlightText(feature.title, queryWords) : feature.title;
+                const highlightedDesc = queryWords.length ? highlightText(feature.description, queryWords) : feature.description;
+                const highlightedHow = queryWords.length ? highlightText(feature.how_it_works, queryWords) : feature.how_it_works;
+                const highlightedLoc = queryWords.length ? highlightText(feature.location, queryWords) : feature.location;
+
+                let actionBtnHtml = '';
+                if (typeof feature.action === 'string') {
+                    if (feature.action.startsWith('window.location.href') || feature.action.startsWith('window.open')) {
+                        actionBtnHtml = `
+                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                                <span>انتقال</span> <i class="fas fa-external-link-alt" style="font-size:0.65rem;"></i>
+                            </button>
+                        `;
+                    } else {
+                        actionBtnHtml = `
+                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                                <span>فتح الأداة</span> <i class="fas fa-arrow-left" style="font-size:0.65rem;"></i>
+                            </button>
+                        `;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+                        <h4 style="margin:0; font-size:0.88rem; font-weight:800; color:var(--text); font-family:'Cairo',sans-serif;">${highlightedTitle}</h4>
+                        ${categoryBadge}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-2); line-height:1.4;">
+                        <strong>شرح الميزة:</strong> ${highlightedDesc}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-3); line-height:1.4;">
+                        <strong>كيف تعمل:</strong> ${highlightedHow}
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:4px; font-size:0.78rem; background:var(--bg); padding:6px 10px; border-radius:6px; box-sizing:border-box;">
+                        <div>
+                            <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-map-marker-alt" style="color:var(--brand); margin-left:4px;"></i> مكانها:</span>
+                            <span style="color:var(--text-2); font-weight:600;">${highlightedLoc}</span>
+                        </div>
+                        ${actionBtnHtml}
+                    </div>
+                `;
+
+                listContainer.appendChild(card);
+            });
+        }
 
     </script>
 </body>
