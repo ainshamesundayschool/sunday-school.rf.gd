@@ -19463,13 +19463,13 @@
                 const sid = s['_studentId'] || s.id || s.student_id;
                 const isChecked = printSelectedStudentIds.has(sid);
                 const label = document.createElement('label');
-                label.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); padding:2px 0;';
+                label.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); padding:4px 0;';
                 
                 const input = document.createElement('input');
                 input.type = 'checkbox';
                 input.value = sid;
                 input.checked = isChecked;
-                input.style.cssText = 'accent-color:var(--primary); width:15px; height:15px;';
+                input.style.cssText = 'accent-color:var(--primary); width:15px; height:15px; flex-shrink:0;';
                 input.onchange = function() {
                     if (this.checked) {
                         printSelectedStudentIds.add(sid);
@@ -19480,10 +19480,27 @@
                     updatePrintPreview();
                 };
 
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'avatar-text';
+                avatarDiv.style.cssText = 'width:28px; height:28px; min-width:28px; min-height:28px; font-size:0.75rem;';
+                if (s['صورة']) {
+                    const img = document.createElement('img');
+                    img.src = s['صورة'];
+                    img.alt = '';
+                    img.style.cssText = 'width:100%; height:100%; object-fit:cover; border-radius:50%;';
+                    img.onerror = function() {
+                        avatarDiv.innerHTML = (s['الاسم'] || '').charAt(0);
+                    };
+                    avatarDiv.appendChild(img);
+                } else {
+                    avatarDiv.textContent = (s['الاسم'] || '').charAt(0);
+                }
+
                 const span = document.createElement('span');
                 span.textContent = `${s['الاسم']} (${s['الفصل'] || '---'})`;
 
                 label.appendChild(input);
+                label.appendChild(avatarDiv);
                 label.appendChild(span);
                 listContainer.appendChild(label);
             });
