@@ -8852,6 +8852,7 @@ function mergeDuplicateStudents()
         $attendanceMode = $_POST['attendance_mode'] ?? 'combine'; // 'combine', 'keep_A', 'keep_B'
         $attendanceConflicts = json_decode($_POST['attendance_conflicts'] ?? '{}', true);
         $couponsMode = $_POST['coupons_mode'] ?? 'sum'; // 'sum', 'keep_A', 'keep_B'
+        $isTargetA = ($_POST['is_target_a'] ?? 'true') === 'true';
 
         // Fetch pre-merge snapshots for audit/undo
         $targetSnapshot = getMergeStudentSnapshot($targetId, $conn);
@@ -8871,6 +8872,10 @@ function mergeDuplicateStudents()
             $stmtFull->execute();
             $dFull = $stmtFull->get_result()->fetch_assoc();
 
+            // Resolve actual student A vs B records based on isTargetA
+            $aFull = $isTargetA ? $tFull : $dFull;
+            $bFull = $isTargetA ? $dFull : $tFull;
+
             $updateData = [];
             $updateFields = ['name', 'phone', 'emergency_phone', 'email', 'birthday', 'gender', 'class_id', 'address', 'medical_notes', 'image_url'];
             
@@ -8878,9 +8883,9 @@ function mergeDuplicateStudents()
             foreach ($updateFields as $field) {
                 $source = $profileFields[$field] ?? 'A';
                 if ($source === 'B') {
-                    $updateData[$field] = $dFull[$field];
+                    $updateData[$field] = $bFull[$field];
                 } else {
-                    $updateData[$field] = $tFull[$field];
+                    $updateData[$field] = $aFull[$field];
                 }
             }
 
@@ -8888,12 +8893,21 @@ function mergeDuplicateStudents()
             $tCustom = json_decode($tFull['custom_info'] ?? 'null', true) ?: [];
             $dCustom = json_decode($dFull['custom_info'] ?? 'null', true) ?: [];
             
-            $mergedCustom = $tCustom;
+            $aCustom = $isTargetA ? $tCustom : $dCustom;
+            $bCustom = $isTargetA ? $dCustom : $tCustom;
+            
+            $mergedCustom = $tCustom; // Start with target student's custom info
             if (isset($profileFields['custom_fields']) && is_array($profileFields['custom_fields'])) {
                 foreach ($profileFields['custom_fields'] as $cfKey => $source) {
                     if ($source === 'B') {
-                        if (isset($dCustom[$cfKey])) {
-                            $mergedCustom[$cfKey] = $dCustom[$cfKey];
+                        if (isset($bCustom[$cfKey])) {
+                            $mergedCustom[$cfKey] = $bCustom[$cfKey];
+                        } else {
+                            unset($mergedCustom[$cfKey]);
+                        }
+                    } else {
+                        if (isset($aCustom[$cfKey])) {
+                            $mergedCustom[$cfKey] = $aCustom[$cfKey];
                         } else {
                             unset($mergedCustom[$cfKey]);
                         }
@@ -8902,7 +8916,7 @@ function mergeDuplicateStudents()
             } else {
                 // Auto-choose values missing in target
                 foreach ($dCustom as $k => $v) {
-                    if ($k !== 'username' && $k !== 'sibling_group' && (!isset($mergedCustom[$k]) || empty($mergedCustom[$k]))) {
+                    if ($k !== 'username' && $k !== 'sibling_group' && $k !== '_notes' && (!isset($mergedCustom[$k]) || empty($mergedCustom[$k]))) {
                         $mergedCustom[$k] = $v;
                     }
                 }
@@ -8913,16 +8927,45 @@ function mergeDuplicateStudents()
                 $mergedCustom['sibling_group'] = $dCustom['sibling_group'];
             }
 
+            // Merge internal '_notes' if present in both
+            $notesA = $aCustom['_notes'] ?? [];
+            $notesB = $bCustom['_notes'] ?? [];
+            if (!is_array($notesA)) $notesA = [];
+            if (!is_array($notesB)) $notesB = [];
+            
+            // Combine notes
+            $combinedNotes = array_merge($notesA, $notesB);
+            
+            // Deduplicate notes by their id if they have ids
+            $uniqueNotes = [];
+            $seenNoteIds = [];
+            foreach ($combinedNotes as $note) {
+                $nId = $note['id'] ?? null;
+                if ($nId) {
+                    if (!in_array($nId, $seenNoteIds)) {
+                        $seenNoteIds[] = $nId;
+                        $uniqueNotes[] = $note;
+                    }
+                } else {
+                    $uniqueNotes[] = $note;
+                }
+            }
+            if (!empty($uniqueNotes)) {
+                $mergedCustom['_notes'] = $uniqueNotes;
+            } else {
+                unset($mergedCustom['_notes']);
+            }
+
             // Credentials (username + password_hash)
             $selectedPasswordHash = $tFull['password_hash'];
             $selectedUsername = $tCustom['username'] ?? null;
 
             if ($credentialsFrom === 'B') {
-                $selectedPasswordHash = $dFull['password_hash'];
-                $selectedUsername = $dCustom['username'] ?? null;
+                $selectedPasswordHash = $bFull['password_hash'];
+                $selectedUsername = $bCustom['username'] ?? null;
             } elseif ($credentialsFrom === 'A') {
-                $selectedPasswordHash = $tFull['password_hash'];
-                $selectedUsername = $tCustom['username'] ?? null;
+                $selectedPasswordHash = $aFull['password_hash'];
+                $selectedUsername = $aCustom['username'] ?? null;
             } else {
                 if (empty($selectedPasswordHash) && !empty($dFull['password_hash'])) {
                     $selectedPasswordHash = $dFull['password_hash'];
@@ -8942,33 +8985,61 @@ function mergeDuplicateStudents()
             $comCoupons = intval($tFull['commitment_coupons']);
             $tskCoupons = intval($tFull['task_coupons']);
 
+            // Decide which coupons to keep based on couponsMode ('sum', 'keep_A', 'keep_B')
+            $keepDuplicateCoupons = false;
+            if ($isTargetA) {
+                if ($couponsMode === 'keep_B') {
+                    $keepDuplicateCoupons = true;
+                }
+            } else {
+                if ($couponsMode === 'keep_A') {
+                    $keepDuplicateCoupons = true;
+                }
+            }
+
             if ($couponsMode === 'sum') {
                 $coupons += intval($dFull['coupons']);
                 $attCoupons += intval($dFull['attendance_coupons']);
                 $comCoupons += intval($dFull['commitment_coupons']);
                 $tskCoupons += intval($dFull['task_coupons']);
-            } elseif ($couponsMode === 'keep_B') {
+            } elseif ($keepDuplicateCoupons) {
                 $coupons = intval($dFull['coupons']);
                 $attCoupons = intval($dFull['attendance_coupons']);
                 $comCoupons = intval($dFull['commitment_coupons']);
                 $tskCoupons = intval($dFull['task_coupons']);
             }
 
+            // Let's resolve the class name for the chosen class_id!
+            $chosenClassId = intval($updateData['class_id']);
+            $classStmt = $conn->prepare("
+                SELECT arabic_name FROM church_classes 
+                WHERE id = ? AND church_id = ? AND is_active = 1
+                UNION
+                SELECT arabic_name FROM classes 
+                WHERE id = ?
+                LIMIT 1
+            ");
+            $classStmt->bind_param("iii", $chosenClassId, $churchId, $chosenClassId);
+            $classStmt->execute();
+            $classResult = $classStmt->get_result();
+            $classData = $classResult->fetch_assoc();
+            $chosenClassName = $classData['arabic_name'] ?? '';
+
             // Update Target Student
             $customInfoJSON = json_encode($mergedCustom, JSON_UNESCAPED_UNICODE);
             $updateStmt = $conn->prepare("
                 UPDATE students 
                 SET name = ?, phone = ?, emergency_phone = ?, email = ?, birthday = ?, 
-                    gender = ?, class_id = ?, address = ?, medical_notes = ?, image_url = ?, 
+                    gender = ?, class_id = ?, class = ?, address = ?, medical_notes = ?, image_url = ?, 
                     password_hash = ?, custom_info = ?, coupons = ?, attendance_coupons = ?, 
                     commitment_coupons = ?, task_coupons = ?, updated_at = NOW() 
                 WHERE id = ?
             ");
             
-            $updateStmt->bind_param("ssssssisssssiiiii", 
+            $updateStmt->bind_param("ssssssissssssiiiii", 
                 $updateData['name'], $updateData['phone'], $updateData['emergency_phone'], 
                 $updateData['email'], $updateData['birthday'], $updateData['gender'], 
-                $updateData['class_id'], $updateData['address'], $updateData['medical_notes'], 
+                $updateData['class_id'], $chosenClassName, $updateData['address'], $updateData['medical_notes'], 
                 $updateData['image_url'], $selectedPasswordHash, $customInfoJSON, 
                 $coupons, $attCoupons, $comCoupons, $tskCoupons, $targetId
             );
@@ -8997,11 +9068,35 @@ function mergeDuplicateStudents()
             }
 
             // Merge Attendance
+            $keepTargetAttendance = true;
+            $keepDuplicateAttendance = false;
+            
             if ($attendanceMode === 'keep_A') {
+                if ($isTargetA) {
+                    $keepTargetAttendance = true;
+                    $keepDuplicateAttendance = false;
+                } else {
+                    $keepTargetAttendance = false;
+                    $keepDuplicateAttendance = true;
+                }
+            } elseif ($attendanceMode === 'keep_B') {
+                if ($isTargetA) {
+                    $keepTargetAttendance = false;
+                    $keepDuplicateAttendance = true;
+                } else {
+                    $keepTargetAttendance = true;
+                    $keepDuplicateAttendance = false;
+                }
+            } else {
+                $keepTargetAttendance = false;
+                $keepDuplicateAttendance = false;
+            }
+
+            if ($keepTargetAttendance) {
                 $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
                 $delAtt->bind_param("i", $duplicateId);
                 $delAtt->execute();
-            } elseif ($attendanceMode === 'keep_B') {
+            } elseif ($keepDuplicateAttendance) {
                 $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
                 $delAtt->bind_param("i", $targetId);
                 $delAtt->execute();
@@ -9035,7 +9130,19 @@ function mergeDuplicateStudents()
                         
                         if ($isConflict) {
                             $selectedSource = $attendanceConflicts[$date] ?? 'A';
-                            if ($selectedSource === 'B') {
+                            
+                            $keepDuplicateRecord = false;
+                            if ($isTargetA) {
+                                if ($selectedSource === 'B') {
+                                    $keepDuplicateRecord = true;
+                                }
+                            } else {
+                                if ($selectedSource === 'A') {
+                                    $keepDuplicateRecord = true;
+                                }
+                            }
+
+                            if ($keepDuplicateRecord) {
                                 $delRec = $conn->prepare("DELETE FROM attendance WHERE id = ?");
                                 $delRec->bind_param("i", $recA['id']);
                                 $delRec->execute();
@@ -33964,6 +34071,14 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                     // 3. Re-insert both students profiles
                     reinsertRecordInternal('students', $targetSnapshot, $conn);
                     reinsertRecordInternal('students', $duplicateSnapshot, $conn);
+
+                    // Restore image files if present
+                    if (!empty($targetSnapshot['image_url'])) {
+                        recoverRevertedImageFile($targetSnapshot['image_url']);
+                    }
+                    if (!empty($duplicateSnapshot['image_url'])) {
+                        recoverRevertedImageFile($duplicateSnapshot['image_url']);
+                    }
                     
                     // 4. Restore related data for both snapshots
                     $snapshots = [$targetSnapshot, $duplicateSnapshot];

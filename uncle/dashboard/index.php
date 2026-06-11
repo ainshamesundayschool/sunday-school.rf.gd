@@ -13086,13 +13086,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = [
                 { key: 'name', label: 'الاسم الكامل' },
                 { key: 'gender', label: 'النوع', format: v => v === 'female' ? 'بنت' : 'ولد' },
-                { key: 'class_name', label: 'الفصل' },
+                { key: 'class_id', displayKey: 'class_name', label: 'الفصل' },
                 { key: 'phone', label: 'رقم التليفون' },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ' },
                 { key: 'email', label: 'البريد الإلكتروني' },
                 { key: 'birthday', label: 'تاريخ الميلاد' },
                 { key: 'address', label: 'العنوان' },
-                { key: 'medical_notes', label: 'ملاحظات طبية' }
+                { key: 'medical_notes', label: 'ملاحظات طبية' },
+                { 
+                    key: 'image_url', 
+                    label: 'الصورة الشخصية', 
+                    isHtml: true, 
+                    format: v => v ? `<img src="${window.photoUrl ? window.photoUrl(v) : v}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);vertical-align:middle;">` : 'لا توجد صورة' 
+                }
             ];
 
             let tableRowsHtml = '';
@@ -13100,8 +13106,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fields.forEach(f => {
                 const valA = (sA[f.key] || '').toString().trim();
                 const valB = (sB[f.key] || '').toString().trim();
-                const dispA = f.format ? f.format(valA) : valA;
-                const dispB = f.format ? f.format(valB) : valB;
+                
+                const dispValA = f.displayKey ? sA[f.displayKey] : valA;
+                const dispValB = f.displayKey ? sB[f.displayKey] : valB;
+                
+                const dispA = f.format ? f.format(dispValA) : dispValA;
+                const dispB = f.format ? f.format(dispValB) : dispValB;
 
                 const isIdentical = valA && valB && (valA.toLowerCase() === valB.toLowerCase());
 
@@ -13110,7 +13120,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <tr>
                             <td class="merge-field-label">${f.label}</td>
                             <td colspan="2" class="merge-cell-option identical" style="text-align:center;">
-                                ${escHtml(dispA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
+                                ${f.isHtml ? dispA : escHtml(dispA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
                             </td>
                         </tr>
                     `;
@@ -13131,14 +13141,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <td class="merge-cell-option ${classA}">
                                 <label>
                                     <input type="radio" name="field_${f.key}" value="A" ${checkedA}>
-                                    <span>${escHtml(dispA || '---')}</span>
+                                    <span>${f.isHtml ? dispA : escHtml(dispA || '---')}</span>
                                     ${classA ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
                                 </label>
                             </td>
                             <td class="merge-cell-option ${classB}">
                                 <label>
                                     <input type="radio" name="field_${f.key}" value="B" ${checkedB}>
-                                    <span>${escHtml(dispB || '---')}</span>
+                                    <span>${f.isHtml ? dispB : escHtml(dispB || '---')}</span>
                                     ${classB ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
                                 </label>
                             </td>
@@ -13458,6 +13468,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         action: 'mergeDuplicateStudents',
                         target_id: targetId,
                         duplicate_id: duplicateId,
+                        is_target_a: isTargetA,
                         profile_fields: profileFields,
                         credentials_from: credentialsFrom,
                         attendance_mode: attendanceMode,
