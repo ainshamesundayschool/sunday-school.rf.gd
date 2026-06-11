@@ -9752,8 +9752,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-external-link-alt"></i> الملف العام</button>
                 <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
                     حذف</button>
             </div>
@@ -14476,6 +14477,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showToast(`تم نسخ ${attended.length} حاضر`, 'success');
         }
 
+        function redirectToKidProfile() {
+            if (!currentStudentForEdit) return;
+            const id = getStudentDbId(currentStudentForEdit);
+            if (!id) return;
+            const url = `${window.location.origin}/user/profile/?id=${encodeURIComponent(id)}`;
+            window.open(url, '_blank');
+        }
+
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
             const s = isCombinedView
@@ -15218,6 +15227,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
             let rowsList = [
+                ['معرّف الطفل (ID)', String(getStudentDbId(s)), 'blue', 'fa-fingerprint', String(getStudentDbId(s))],
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card', s['الاسم'] || '---'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars', genderLabel],
                 ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher', s['الفصل'] || '---'],
@@ -15344,6 +15354,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
 
             let rowsList = [
+                ['معرّف الطفل (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card', full.name || '---'],
                 ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars', formatGenderLabel(full.gender || full['النوع'])],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher', full.class || '---'],
@@ -17511,6 +17522,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('closeRegistrationDetailsModal', 'click', hideRegistrationDetails);
             on('closeAnnouncementsModal', 'click', hideAnnouncementsModal);
             on('editStudentBtn', 'click', showEditForm);
+            on('viewProfileBtn', 'click', redirectToKidProfile);
             on('deleteStudentBtn', 'click', () => { if (currentStudentForEdit) showDeleteStudentModal(currentStudentForEdit); });
             on('confirmDeleteStudentBtn', 'click', deleteStudent);
             on('editForm', 'submit', updateStudentInfo);
