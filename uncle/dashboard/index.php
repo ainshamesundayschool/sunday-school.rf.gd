@@ -20723,23 +20723,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                 }
 
+                const iconClass = feature.icon || 'fas fa-star';
+
                 card.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-                        <h4 style="margin:0; font-size:0.88rem; font-weight:800; color:var(--text); font-family:'Cairo',sans-serif;">${highlightedTitle}</h4>
-                        ${categoryBadge}
-                    </div>
-                    <div style="font-size:0.8rem; color:var(--text-2); line-height:1.4;">
-                        <strong>شرح الميزة:</strong> ${highlightedDesc}
-                    </div>
-                    <div style="font-size:0.8rem; color:var(--text-3); line-height:1.4;">
-                        <strong>كيف تعمل:</strong> ${highlightedHow}
-                    </div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:4px; font-size:0.78rem; background:var(--bg); padding:6px 10px; border-radius:6px; box-sizing:border-box;">
-                        <div>
-                            <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-map-marker-alt" style="color:var(--brand); margin-left:4px;"></i> مكانها:</span>
-                            <span style="color:var(--text-2); font-weight:600;">${highlightedLoc}</span>
+                    <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
+                        <div style="flex:none; width:38px; height:38px; border-radius:50%; background:${categoryColor}10; color:${categoryColor}; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-top:2px;">
+                            <i class="${iconClass}"></i>
                         </div>
-                        ${actionBtnHtml}
+                        <div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                                <h4 style="margin:0; font-size:0.92rem; font-weight:800; color:var(--text); font-family:'Cairo',sans-serif;">${highlightedTitle}</h4>
+                                ${categoryBadge}
+                            </div>
+                            <p style="margin:0; font-size:0.82rem; color:var(--text-2); line-height:1.5; font-family:'Cairo',sans-serif;">
+                                ${highlightedDesc} ${highlightedHow}
+                            </p>
+                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:4px; background:var(--surface-2, rgba(120,120,120,0.04)); padding:6px 12px; border-radius:8px; border:1px solid var(--border-solid, rgba(120,120,120,0.08)); box-sizing:border-box; width:100%;">
+                                <div style="display:flex; align-items:center; gap:6px; font-size:0.76rem; color:var(--text-3);">
+                                    <i class="fas fa-compass" style="color:var(--brand); font-size:0.8rem;"></i>
+                                    <span style="font-weight:700;">الموقع:</span>
+                                    <span style="color:var(--text-2); font-weight:600;">${highlightedLoc}</span>
+                                </div>
+                                ${actionBtnHtml}
+                            </div>
+                        </div>
                     </div>
                 `;
 
