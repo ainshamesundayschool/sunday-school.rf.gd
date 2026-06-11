@@ -8722,6 +8722,100 @@ function getMergeComparison()
     }
 }
 
+function getMergeStudentSnapshot($studentId, $conn) {
+    if (function_exists('getStudentSnapshot')) {
+        $snapshot = getStudentSnapshot($studentId);
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
+        $stmt->bind_param("i", $studentId);
+        $stmt->execute();
+        $snapshot = $stmt->get_result()->fetch_assoc();
+        if (!$snapshot) return null;
+        $snapshot['_attendance_history'] = [];
+        $snapshot['_sibling_groups'] = [];
+    }
+    
+    if (!$snapshot) return null;
+    
+    // Task Submissions
+    $taskStmt = $conn->prepare("SELECT * FROM task_submissions WHERE student_id = ?");
+    $taskStmt->bind_param("i", $studentId);
+    $taskStmt->execute();
+    $res = $taskStmt->get_result();
+    $tasks = [];
+    while ($row = $res->fetch_assoc()) {
+        $tasks[] = $row;
+    }
+    $snapshot['_task_submissions'] = $tasks;
+    
+    // Exam Starts
+    $examStmt = $conn->prepare("SELECT * FROM exam_starts WHERE student_id = ?");
+    $examStmt->bind_param("i", $studentId);
+    $examStmt->execute();
+    $res = $examStmt->get_result();
+    $exams = [];
+    while ($row = $res->fetch_assoc()) {
+        $exams[] = $row;
+    }
+    $snapshot['_exam_starts'] = $exams;
+    
+    // Trip Registrations & Payments
+    $tripStmt = $conn->prepare("SELECT * FROM trip_registrations WHERE student_id = ?");
+    $tripStmt->bind_param("i", $studentId);
+    $tripStmt->execute();
+    $res = $tripStmt->get_result();
+    $trips = [];
+    while ($row = $res->fetch_assoc()) {
+        $regId = $row['id'];
+        $payStmt = $conn->prepare("SELECT * FROM trip_payments WHERE registration_id = ?");
+        $payStmt->bind_param("i", $regId);
+        $payStmt->execute();
+        $payRes = $payStmt->get_result();
+        $payments = [];
+        while ($pRow = $payRes->fetch_assoc()) {
+            $payments[] = $pRow;
+        }
+        $row['_payments'] = $payments;
+        $trips[] = $row;
+    }
+    $snapshot['_trip_registrations'] = $trips;
+    
+    // Trip Waitlist
+    $waitStmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE student_id = ?");
+    $waitStmt->bind_param("i", $studentId);
+    $waitStmt->execute();
+    $res = $waitStmt->get_result();
+    $waitlist = [];
+    while ($row = $res->fetch_assoc()) {
+        $waitlist[] = $row;
+    }
+    $snapshot['_trip_waitlist'] = $waitlist;
+
+    // Coupon Withdrawals
+    $wStmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE student_id = ?");
+    $wStmt->bind_param("i", $studentId);
+    $wStmt->execute();
+    $res = $wStmt->get_result();
+    $withdrawals = [];
+    while ($row = $res->fetch_assoc()) {
+        $withdrawals[] = $row;
+    }
+    $snapshot['_coupon_withdrawals'] = $withdrawals;
+
+    // Coupon Logs
+    $logStmt = $conn->prepare("SELECT * FROM coupon_logs WHERE student_id = ?");
+    $logStmt->bind_param("i", $studentId);
+    $logStmt->execute();
+    $res = $logStmt->get_result();
+    $logs = [];
+    while ($row = $res->fetch_assoc()) {
+        $logs[] = $row;
+    }
+    $snapshot['_coupon_logs'] = $logs;
+
+    return $snapshot;
+}
+
 function mergeDuplicateStudents()
 {
     try {
@@ -8758,6 +8852,10 @@ function mergeDuplicateStudents()
         $attendanceMode = $_POST['attendance_mode'] ?? 'combine'; // 'combine', 'keep_A', 'keep_B'
         $attendanceConflicts = json_decode($_POST['attendance_conflicts'] ?? '{}', true);
         $couponsMode = $_POST['coupons_mode'] ?? 'sum'; // 'sum', 'keep_A', 'keep_B'
+
+        // Fetch pre-merge snapshots for audit/undo
+        $targetSnapshot = getMergeStudentSnapshot($targetId, $conn);
+        $duplicateSnapshot = getMergeStudentSnapshot($duplicateId, $conn);
 
         // Start Transaction
         $conn->begin_transaction();
@@ -9096,8 +9194,23 @@ function mergeDuplicateStudents()
                 deleteUploadedFile($targetStudent['image_url']);
             }
 
-            // Audit Log
-            auditStudentMerge($targetId, $duplicateId, $targetStudent['name'], $duplicateStudent['name']);
+            // Audit Log for Undo Merge
+            $oldData = [
+                'target_id' => $targetId,
+                'duplicate_id' => $duplicateId,
+                'target_snapshot' => $targetSnapshot,
+                'duplicate_snapshot' => $duplicateSnapshot
+            ];
+            
+            writeAuditLog(
+                'student_merge',
+                'student',
+                $targetId,
+                $targetStudent['name'],
+                $oldData,
+                null,
+                "دمج حساب الطفل " . $duplicateStudent['name'] . " مع الحساب الرئيسي " . $targetStudent['name']
+            );
 
             sendJSON([
                 'success' => true,
@@ -33403,8 +33516,34 @@ function deleteAuditLog()
 
 
 
-// ── Restore an action from the audit log (admin only) ─────────
-
+function reinsertRecordInternal($tableName, $row, $conn) {
+    if (empty($row) || !is_array($row)) return false;
+    
+    $fields = [];
+    $placeholders = [];
+    $types = '';
+    $params = [];
+    
+    foreach ($row as $key => $val) {
+        if (strpos($key, '_') === 0) continue; // skip nested snapshots
+        $fields[] = "`$key`";
+        $placeholders[] = "?";
+        $params[] = $val;
+        
+        if (is_int($val)) $types .= 'i';
+        elseif (is_float($val)) $types .= 'd';
+        else $types .= 's';
+    }
+    
+    $sql = "INSERT INTO `$tableName` (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception("Reinsert failed preparing query for $tableName: " . $conn->error);
+    }
+    
+    $stmt->bind_param($types, ...$params);
+    return $stmt->execute();
+}
 
 function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentId = 0)
 {
@@ -33772,6 +33911,139 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                             $msg = "تم استرجاع الملاحظة المحذوفة بنجاح";
                         }
                     }
+                }
+            } elseif ($action === 'student_merge') {
+                $targetId = intval($oldData['target_id'] ?? 0);
+                $duplicateId = intval($oldData['duplicate_id'] ?? 0);
+                $targetSnapshot = $oldData['target_snapshot'] ?? null;
+                $duplicateSnapshot = $oldData['duplicate_snapshot'] ?? null;
+                
+                if (!$targetId || !$duplicateId || !$targetSnapshot || !$duplicateSnapshot) {
+                    return ['success' => false, 'message' => 'بيانات الدمج التاريخية غير صالحة للاسترجاع'];
+                }
+                
+                $conn->begin_transaction();
+                try {
+                    // 1. Delete all records for both IDs in related tables to get a clean slate
+                    $deleteTables = [
+                        'attendance' => 'student_id',
+                        'student_sibling_group_members' => 'student_id',
+                        'task_submissions' => 'student_id',
+                        'exam_starts' => 'student_id',
+                        'coupon_logs' => 'student_id',
+                        'coupon_withdrawals' => 'student_id',
+                        'trip_waitlist' => 'student_id'
+                    ];
+                    
+                    foreach ($deleteTables as $tbl => $col) {
+                        $delStmt = $conn->prepare("DELETE FROM `$tbl` WHERE `$col` = ? OR `$col` = ?");
+                        $delStmt->bind_param("ii", $targetId, $duplicateId);
+                        $delStmt->execute();
+                    }
+                    
+                    // Clear trip registrations & payments for both kids
+                    $getRegs = $conn->prepare("SELECT id FROM trip_registrations WHERE student_id = ? OR student_id = ?");
+                    $getRegs->bind_param("ii", $targetId, $duplicateId);
+                    $getRegs->execute();
+                    $regRes = $getRegs->get_result();
+                    $regIds = [];
+                    while ($r = $regRes->fetch_assoc()) {
+                        $regIds[] = intval($r['id']);
+                    }
+                    
+                    if (!empty($regIds)) {
+                        $regIdsStr = implode(',', $regIds);
+                        $conn->query("DELETE FROM trip_payments WHERE registration_id IN ($regIdsStr)");
+                        $conn->query("DELETE FROM trip_registrations WHERE id IN ($regIdsStr)");
+                    }
+                    
+                    // 2. Revert Profiles (delete first then insert)
+                    $conn->query("DELETE FROM students WHERE id = $targetId");
+                    $conn->query("DELETE FROM students WHERE id = $duplicateId");
+                    
+                    // 3. Re-insert both students profiles
+                    reinsertRecordInternal('students', $targetSnapshot, $conn);
+                    reinsertRecordInternal('students', $duplicateSnapshot, $conn);
+                    
+                    // 4. Restore related data for both snapshots
+                    $snapshots = [$targetSnapshot, $duplicateSnapshot];
+                    foreach ($snapshots as $snap) {
+                        $sid = intval($snap['id']);
+                        
+                        // Attendance
+                        if (isset($snap['_attendance_history']) && is_array($snap['_attendance_history'])) {
+                            foreach ($snap['_attendance_history'] as $att) {
+                                $att['student_id'] = $sid;
+                                reinsertRecordInternal('attendance', $att, $conn);
+                            }
+                        }
+                        
+                        // Sibling Groups
+                        if (isset($snap['_sibling_groups']) && is_array($snap['_sibling_groups'])) {
+                            $insSib = $conn->prepare("INSERT INTO student_sibling_group_members (student_id, group_id) VALUES (?, ?)");
+                            foreach ($snap['_sibling_groups'] as $groupId) {
+                                $insSib->bind_param("ii", $sid, $groupId);
+                                $insSib->execute();
+                            }
+                        }
+                        
+                        // Task Submissions
+                        if (isset($snap['_task_submissions']) && is_array($snap['_task_submissions'])) {
+                            foreach ($snap['_task_submissions'] as $task) {
+                                reinsertRecordInternal('task_submissions', $task, $conn);
+                            }
+                        }
+                        
+                        // Exam Starts
+                        if (isset($snap['_exam_starts']) && is_array($snap['_exam_starts'])) {
+                            foreach ($snap['_exam_starts'] as $exam) {
+                                reinsertRecordInternal('exam_starts', $exam, $conn);
+                            }
+                        }
+                        
+                        // Coupon Withdrawals
+                        if (isset($snap['_coupon_withdrawals']) && is_array($snap['_coupon_withdrawals'])) {
+                            foreach ($snap['_coupon_withdrawals'] as $w) {
+                                reinsertRecordInternal('coupon_withdrawals', $w, $conn);
+                            }
+                        }
+                        
+                        // Coupon Logs
+                        if (isset($snap['_coupon_logs']) && is_array($snap['_coupon_logs'])) {
+                            foreach ($snap['_coupon_logs'] as $clog) {
+                                reinsertRecordInternal('coupon_logs', $clog, $conn);
+                            }
+                        }
+                        
+                        // Trip waitlist
+                        if (isset($snap['_trip_waitlist']) && is_array($snap['_trip_waitlist'])) {
+                            foreach ($snap['_trip_waitlist'] as $wait) {
+                                reinsertRecordInternal('trip_waitlist', $wait, $conn);
+                            }
+                        }
+                        
+                        // Trip registrations & payments
+                        if (isset($snap['_trip_registrations']) && is_array($snap['_trip_registrations'])) {
+                            foreach ($snap['_trip_registrations'] as $reg) {
+                                $payments = $reg['_payments'] ?? [];
+                                unset($reg['_payments']);
+                                
+                                reinsertRecordInternal('trip_registrations', $reg, $conn);
+                                
+                                foreach ($payments as $pay) {
+                                    reinsertRecordInternal('trip_payments', $pay, $conn);
+                                }
+                            }
+                        }
+                    }
+                    
+                    $conn->commit();
+                    $reverted = true;
+                    $msg = "تم التراجع عن عملية الدمج بنجاح واستعادة كلا الطفلين لسيرتهما الأولى";
+                    
+                } catch (Exception $txEx) {
+                    $conn->rollback();
+                    throw $txEx;
                 }
             } elseif ($action === 'student_edit') {
 

@@ -1613,6 +1613,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: rgba(255, 255, 255, 0.22) !important;
         }
 
+        .action-strip-merge {
+            background: rgba(124, 58, 237, 0.15) !important;
+            border-color: rgba(124, 58, 237, 0.22) !important;
+            color: #7c3aed !important;
+        }
+
+        .action-strip-merge:hover {
+            background: rgba(124, 58, 237, 0.25) !important;
+            border-color: rgba(124, 58, 237, 0.35) !important;
+            color: #6d28d9 !important;
+        }
+
         .action-strip-neutral {
             background: var(--surface-2) !important;
             color: var(--text-2) !important;
@@ -9553,6 +9565,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-hand-pointer swipe-hand-icon"></i>
                         <span class="strip-btn-label">سحب</span>
                     </button>
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-merge"
+                        onclick="startMergeChooseMode()" title="دمج الحسابات المكررة" id="stripMergeBtn">
+                        <i class="fas fa-code-merge"></i>
+                        <span class="strip-btn-label">دمج</span>
+                    </button>
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral" onclick="showResetModal()"
                         title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
@@ -10782,7 +10799,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 'bulkDeleteStudents': { label: 'حذف جماعي للأطفال' },
                 'bulkUpdateStudentsClass': { label: 'نقل جماعي للفصول' },
                 'bulkUpdateStudentsCoupons': { label: 'تعديل جماعي للكوبونات' },
-                'deleteStudent': { label: 'حذف طفل' }
+                'deleteStudent': { label: 'حذف طفل' },
+                'student_merge': { label: 'دمج الحسابات المكررة' }
             };
             return m[act] || { label: act };
         }
@@ -10875,7 +10893,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         // Check if this was a critical restorable action
                         const criticalActions = [
                             'bulkDeleteStudents', 'bulkUpdateStudentsClass', 
-                            'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent'
+                            'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent',
+                            'mergeDuplicateStudents'
                         ];
                         if (criticalActions.includes(params.action)) {
                             triggerUndoToastChecking();
@@ -12664,6 +12683,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         let isBulkSelectMode = false;
+        let isMergeChoosingMode = false;
         const selectedStudentIds = new Set();
 
         function openModal(id) {
@@ -12715,6 +12735,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     list.classList.remove('bulk-active');
                 }
                 selectedStudentIds.clear();
+                isMergeChoosingMode = false;
                 updateBulkUI();
             }
             
@@ -12735,6 +12756,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (selectedStudentIds.has(dbId)) {
                 selectedStudentIds.delete(dbId);
             } else {
+                if (isMergeChoosingMode && selectedStudentIds.size >= 2) {
+                    showToast('يمكنك تحديد طفلين فقط في وضع الدمج', 'warning');
+                    return;
+                }
                 selectedStudentIds.add(dbId);
             }
             
@@ -12747,6 +12772,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             
             updateBulkUI();
+
+            if (isMergeChoosingMode && selectedStudentIds.size === 2) {
+                isMergeChoosingMode = false;
+                triggerBulkMerge();
+            }
         }
 
         function toggleSelectAllBulk(event) {
@@ -12754,6 +12784,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 event.preventDefault();
                 event.stopPropagation();
             }
+            isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
             
@@ -12773,6 +12804,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function bulkSelectByFilter(filter) {
+            isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
             
@@ -12939,6 +12971,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 console.error(e);
                 showToast('حدث خطأ غير متوقع: ' + e.message, 'error');
             }
+        }
+
+        function startMergeChooseMode() {
+            if (selectedStudentIds.size === 2) {
+                triggerBulkMerge();
+                return;
+            }
+            
+            selectedStudentIds.clear();
+            isMergeChoosingMode = true;
+            
+            if (!isBulkSelectMode) {
+                toggleBulkSelectMode();
+            } else {
+                updateBulkUI();
+                renderAttendanceList(currentClass);
+            }
+            
+            showToast('يرجى تحديد طفلين فقط من القائمة لدمج حساباتهما', 'info');
         }
 
         function closeMergeModal() {
