@@ -34728,7 +34728,7 @@ function getLastAuditLog()
 
               AND uncle_id = ? 
 
-              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save')
+              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'student_merge')
 
               AND created_at >= NOW() - INTERVAL 10 SECOND
 

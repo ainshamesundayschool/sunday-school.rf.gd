@@ -2932,7 +2932,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
             align-items: center;
             gap: 10px;
-            z-index: 9999;
+            z-index: 30000000;
             font-family: 'Cairo', sans-serif;
             font-size: 0.85rem;
             font-weight: 600;
@@ -2966,6 +2966,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(1.05);
             background: rgba(99, 102, 241, 0.35);
             color: #c7d2fe;
+        }
+        .history-undo-btn {
+            background: rgba(99, 102, 241, 0.1) !important;
+            color: #a5b4fc !important;
+            border: 1px solid rgba(99, 102, 241, 0.2) !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.72rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            transition: all 0.2s ease !important;
+        }
+        .history-undo-btn:hover {
+            background: rgba(99, 102, 241, 0.25) !important;
+            color: #c7d2fe !important;
+            border-color: rgba(99, 102, 241, 0.35) !important;
         }
         .undo-timer-circle {
             position: relative;
@@ -17835,6 +17855,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (entityName) desc += ` — <strong>${entityName}</strong>`;
                     if (entityType && !entityName) desc += ` في ${entityType}`;
 
+                    const restorableActions = [
+                        'student_add', 'student_edit', 'student_delete', 'coupon_edit', 
+                        'attendance_add', 'attendance_edit', 'attendance_delete', 
+                        'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 
+                        'bulk_attendance_save', 'bulk_note_add', 'note_add', 'note_delete', 
+                        'student_merge', 'uncle_add', 'uncle_edit', 'uncle_delete'
+                    ];
+                    const isUndoable = restorableActions.includes(action);
+                    const undoButton = isUndoable ? `
+                        <button class="history-undo-btn" onclick="undoHistoryAction(${log.id})" title="تراجع عن هذه العملية">
+                            <i class="fas fa-undo"></i> تراجع
+                        </button>
+                    ` : '';
+
                     html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;
                 border-bottom:1px solid var(--border);">
 
@@ -17852,13 +17886,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ${actor ? `<div style="font-size:.72rem;color:var(--text-3);margin-top:1px"><i class="fas fa-user" style="font-size:.6rem"></i> ${actor}</div>` : ''}
                 </div>
 
-                <!-- Time badge -->
-                <div style="font-size:.7rem;color:var(--text-3);white-space:nowrap;flex-shrink:0">${time}</div>
+                <!-- Action / Time badge -->
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    ${undoButton}
+                    <div style="font-size:.7rem;color:var(--text-3);white-space:nowrap;">${time}</div>
+                </div>
             </div>`;
                 });
             });
 
             content.innerHTML = html;
+        }
+
+        async function undoHistoryAction(logId) {
+            showCustomConfirm({
+                title: 'تأكيد التراجع',
+                message: 'هل أنت متأكد من التراجع عن هذه العملية؟ قد يؤثر ذلك على البيانات المرتبطة.',
+                icon: '<i class="fas fa-undo"></i>',
+                iconColor: 'var(--brand)',
+                btnText: 'نعم، تراجع',
+                btnClass: 'btn-primary',
+                btnIconClass: 'fas fa-check',
+                onConfirm: async () => {
+                    showLoading('جاري التراجع عن العملية...');
+                    const fd = new FormData();
+                    fd.append('action', 'restoreAuditLog');
+                    fd.append('log_id', logId);
+                    try {
+                        const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                            .then(r => r.json())
+                            .catch(() => ({ success: false }));
+                        
+                        hideLoading();
+                        if (d.success) {
+                            showToast(d.message || 'تم التراجع عن العملية بنجاح', 'success');
+                            loadData();
+                            showUncleHistory();
+                        } else {
+                            showToast(d.message || 'فشل في التراجع عن العملية', 'error');
+                        }
+                    } catch (e) {
+                        hideLoading();
+                        showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+                    }
+                }
+            });
         }
 
         function renderHistorySummary(logs) {
