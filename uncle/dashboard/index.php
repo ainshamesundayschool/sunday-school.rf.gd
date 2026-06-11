@@ -3136,13 +3136,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
             height: 32px;
+            padding: 0 10px !important;
+            gap: 6px;
             border-radius: var(--r-md) !important;
             border: none !important;
-            padding: 0 !important;
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+        .btn-bulk-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            white-space: nowrap;
+            color: inherit;
         }
         .btn-bulk-action i {
             font-size: 0.72rem;
@@ -3155,20 +3162,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             opacity: 0.85;
             transform: scale(1.05);
         }
-        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; }
+        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; color: var(--success) !important; }
         .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
-        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
         .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; }
+        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; color: var(--warning) !important; }
         .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
-        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; }
+        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; color: var(--brand) !important; }
         .btn-bulk-action.bulk-class i { color: var(--brand) !important; }
-        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
         .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
         .btn-bulk-action.bulk-note i { color: #3b82f6 !important; }
         
-        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; color: #8b5cf6 !important; }
         .btn-bulk-action.bulk-merge i { color: #8b5cf6 !important; }
 
         /* Premium Merge Duplicates Table & UI Styles */
@@ -9202,14 +9209,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="bulk-actions-btns">
                 <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
                     <i class="fas fa-check"></i>
+                    <span class="btn-bulk-label">حضور</span>
                 </button>
                 <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
                     <i class="fas fa-times"></i>
+                    <span class="btn-bulk-label">غياب</span>
                 </button>
                 
                 <div class="action-dropdown" style="flex:none;">
                     <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
                         <i class="fas fa-coins"></i>
+                        <span class="btn-bulk-label">كوبونات</span>
                     </button>
                     <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
                         <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
@@ -9228,15 +9238,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
                     <i class="fas fa-edit"></i>
+                    <span class="btn-bulk-label">نقل</span>
                 </button>
                 <button class="btn-bulk-action bulk-note" onclick="openBulkNoteModal()" title="إضافة ملاحظة جماعية">
                     <i class="fas fa-sticky-note"></i>
+                    <span class="btn-bulk-label">ملاحظة</span>
                 </button>
                 <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                     <i class="fas fa-trash"></i>
+                    <span class="btn-bulk-label">حذف</span>
                 </button>
                 <button class="btn-bulk-action bulk-merge" id="bulkMergeBtn" onclick="triggerBulkMerge()" title="دمج الحسابين المكررين" style="display: none;">
                     <i class="fas fa-code-merge"></i>
+                    <span class="btn-bulk-label">دمج</span>
                 </button>
             </div>
         </div>
