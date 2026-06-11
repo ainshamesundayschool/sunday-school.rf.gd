@@ -73,7 +73,7 @@ function getStudentSnapshot($studentId) {
     if (!$student) return null;
 
     // Fetch related attendance records
-    $attStmt = $conn->prepare("SELECT attendance_date, status, uncle_id FROM attendance WHERE student_id = ?");
+    $attStmt = $conn->prepare("SELECT attendance_date, status, uncle_id, church_id FROM attendance WHERE student_id = ?");
     $attStmt->bind_param("i", $studentId);
     $attStmt->execute();
     $attResult = $attStmt->get_result();

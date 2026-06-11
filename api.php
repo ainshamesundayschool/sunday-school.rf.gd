@@ -33974,6 +33974,9 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         if (isset($snap['_attendance_history']) && is_array($snap['_attendance_history'])) {
                             foreach ($snap['_attendance_history'] as $att) {
                                 $att['student_id'] = $sid;
+                                if (empty($att['church_id'])) {
+                                    $att['church_id'] = $churchId;
+                                }
                                 reinsertRecordInternal('attendance', $att, $conn);
                             }
                         }
