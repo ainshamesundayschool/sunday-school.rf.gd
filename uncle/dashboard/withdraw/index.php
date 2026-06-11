@@ -1232,15 +1232,16 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <option value="task">المهام فقط</option>
                     </select>
                 </div>
-                <div style="margin-bottom:12px;">
-                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
-                </div>
+
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
                     <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
                 </div>
                 <div id="wError" style="color:var(--danger);font-size:.8rem;font-weight:800;margin-top:8px;padding-right:8px;display:none;animation:shake 0.3s">القيمة أكبر من الرصيد المتاح!</div>
             </div>
+                            <div style="margin-bottom:12px;">
+                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
+                </div>
             <div class="hist-section">
                 <div class="hist-title">سجل العمليات</div>
                 <div id="histList">
