@@ -3217,6 +3217,14 @@ try {
 
             break;
 
+        case 'getMergeComparison':
+            getMergeComparison();
+            break;
+
+        case 'mergeDuplicateStudents':
+            mergeDuplicateStudents();
+            break;
+
         case 'searchKidsByName':
 
             searchKidsByName();
@@ -8553,6 +8561,577 @@ function deleteStudent()
 
     }
 
+}
+
+function getMergeComparison()
+{
+    try {
+        $churchId = getChurchId();
+        $studentIdA = intval($_POST['studentIdA'] ?? $_GET['studentIdA'] ?? 0);
+        $studentIdB = intval($_POST['studentIdB'] ?? $_GET['studentIdB'] ?? 0);
+
+        if ($studentIdA === 0 || $studentIdB === 0) {
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        // Fetch student A
+        $stmtA = $conn->prepare("
+            SELECT s.*, c.church_name, COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class_name 
+            FROM students s 
+            LEFT JOIN churches c ON s.church_id = c.id 
+            LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id 
+            LEFT JOIN classes cl ON cl.id = s.class_id 
+            WHERE s.id = ? AND s.church_id = ?
+        ");
+        $stmtA->bind_param("ii", $studentIdA, $churchId);
+        $stmtA->execute();
+        $resA = $stmtA->get_result()->fetch_assoc();
+
+        // Fetch student B
+        $stmtB = $conn->prepare("
+            SELECT s.*, c.church_name, COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class_name 
+            FROM students s 
+            LEFT JOIN churches c ON s.church_id = c.id 
+            LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id 
+            LEFT JOIN classes cl ON cl.id = s.class_id 
+            WHERE s.id = ? AND s.church_id = ?
+        ");
+        $stmtB->bind_param("ii", $studentIdB, $churchId);
+        $stmtB->execute();
+        $resB = $stmtB->get_result()->fetch_assoc();
+
+        if (!$resA || !$resB) {
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على أحد الأطفال أو الحسابات تنتمي لكنيسة أخرى']);
+            return;
+        }
+
+        $hasPasswordA = !empty($resA['password_hash']);
+        $hasPasswordB = !empty($resB['password_hash']);
+
+        // Remove sensitive hashes
+        unset($resA['password_hash']);
+        unset($resB['password_hash']);
+
+        // Fetch task submission count
+        $taskStmtA = $conn->prepare("SELECT COUNT(*) as cnt FROM task_submissions WHERE student_id = ?");
+        $taskStmtA->bind_param("i", $studentIdA);
+        $taskStmtA->execute();
+        $taskCountA = $taskStmtA->get_result()->fetch_assoc()['cnt'] ?? 0;
+
+        $taskStmtB = $conn->prepare("SELECT COUNT(*) as cnt FROM task_submissions WHERE student_id = ?");
+        $taskStmtB->bind_param("i", $studentIdB);
+        $taskStmtB->execute();
+        $taskCountB = $taskStmtB->get_result()->fetch_assoc()['cnt'] ?? 0;
+
+        // Fetch attendance history
+        $attStmtA = $conn->prepare("
+            SELECT a.attendance_date, a.status, a.class_id, a.uncle_id, 
+                   COALESCE(cc.arabic_name, cl.arabic_name, a.status) as class_name,
+                   u.name as uncle_name
+            FROM attendance a
+            LEFT JOIN church_classes cc ON cc.id = a.class_id AND cc.church_id = a.church_id
+            LEFT JOIN classes cl ON cl.id = a.class_id
+            LEFT JOIN uncles u ON u.id = a.uncle_id
+            WHERE a.student_id = ?
+        ");
+        $attStmtA->bind_param("i", $studentIdA);
+        $attStmtA->execute();
+        $attResultA = $attStmtA->get_result();
+        $attA = [];
+        while ($row = $attResultA->fetch_assoc()) {
+            $attA[$row['attendance_date']] = $row;
+        }
+
+        $attStmtB = $conn->prepare("
+            SELECT a.attendance_date, a.status, a.class_id, a.uncle_id, 
+                   COALESCE(cc.arabic_name, cl.arabic_name, a.status) as class_name,
+                   u.name as uncle_name
+            FROM attendance a
+            LEFT JOIN church_classes cc ON cc.id = a.class_id AND cc.church_id = a.church_id
+            LEFT JOIN classes cl ON cl.id = a.class_id
+            LEFT JOIN uncles u ON u.id = a.uncle_id
+            WHERE a.student_id = ?
+        ");
+        $attStmtB->bind_param("i", $studentIdB);
+        $attStmtB->execute();
+        $attResultB = $attStmtB->get_result();
+        $attB = [];
+        while ($row = $attResultB->fetch_assoc()) {
+            $attB[$row['attendance_date']] = $row;
+        }
+
+        $conflicts = [];
+        $union = [];
+        $allDates = array_unique(array_merge(array_keys($attA), array_keys($attB)));
+        sort($allDates);
+
+        foreach ($allDates as $d) {
+            $hasA = isset($attA[$d]);
+            $hasB = isset($attB[$d]);
+            if ($hasA && $hasB) {
+                $recA = $attA[$d];
+                $recB = $attB[$d];
+                if ($recA['status'] !== $recB['status'] || $recA['class_id'] !== $recB['class_id'] || $recA['uncle_id'] !== $recB['uncle_id']) {
+                    $conflicts[] = [
+                        'date' => $d,
+                        'recordA' => $recA,
+                        'recordB' => $recB
+                    ];
+                } else {
+                    $union[] = [
+                        'date' => $d,
+                        'source' => 'both',
+                        'record' => $recA
+                    ];
+                }
+            } elseif ($hasA) {
+                $union[] = [
+                    'date' => $d,
+                    'source' => 'A',
+                    'record' => $attA[$d]
+                ];
+            } else {
+                $union[] = [
+                    'date' => $d,
+                    'source' => 'B',
+                    'record' => $attB[$d]
+                ];
+            }
+        }
+
+        sendJSON([
+            'success' => true,
+            'studentA' => $resA,
+            'studentB' => $resB,
+            'hasPasswordA' => $hasPasswordA,
+            'hasPasswordB' => $hasPasswordB,
+            'taskCountA' => $taskCountA,
+            'taskCountB' => $taskCountB,
+            'attendanceConflicts' => $conflicts,
+            'attendanceUnion' => $union
+        ]);
+
+    } catch (Exception $e) {
+        error_log("getMergeComparison error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب بيانات المقارنة: ' . $e->getMessage()]);
+    }
+}
+
+function mergeDuplicateStudents()
+{
+    try {
+        $churchId = getChurchId();
+        
+        $targetId = intval($_POST['target_id'] ?? 0);
+        $duplicateId = intval($_POST['duplicate_id'] ?? 0);
+        
+        if ($targetId === 0 || $duplicateId === 0 || $targetId === $duplicateId) {
+            sendJSON(['success' => false, 'message' => 'معرفات الأطفال غير صالحة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        // Verify church_id
+        $checkStmt = $conn->prepare("SELECT id, name, image_url, custom_info, coupons, attendance_coupons, commitment_coupons, task_coupons, password_hash FROM students WHERE id = ? AND church_id = ?");
+        
+        $checkStmt->bind_param("ii", $targetId, $churchId);
+        $checkStmt->execute();
+        $targetStudent = $checkStmt->get_result()->fetch_assoc();
+
+        $checkStmt->bind_param("ii", $duplicateId, $churchId);
+        $checkStmt->execute();
+        $duplicateStudent = $checkStmt->get_result()->fetch_assoc();
+
+        if (!$targetStudent || !$duplicateStudent) {
+            sendJSON(['success' => false, 'message' => 'أحد الحسابات غير موجود أو لا ينتمي لهذه الكنيسة']);
+            return;
+        }
+
+        $profileFields = json_decode($_POST['profile_fields'] ?? '{}', true);
+        $credentialsFrom = $_POST['credentials_from'] ?? 'A'; // 'A' or 'B'
+        $attendanceMode = $_POST['attendance_mode'] ?? 'combine'; // 'combine', 'keep_A', 'keep_B'
+        $attendanceConflicts = json_decode($_POST['attendance_conflicts'] ?? '{}', true);
+        $couponsMode = $_POST['coupons_mode'] ?? 'sum'; // 'sum', 'keep_A', 'keep_B'
+
+        // Start Transaction
+        $conn->begin_transaction();
+
+        try {
+            // Update profile fields
+            $stmtFull = $conn->prepare("SELECT * FROM students WHERE id = ?");
+            $stmtFull->bind_param("i", $targetId);
+            $stmtFull->execute();
+            $tFull = $stmtFull->get_result()->fetch_assoc();
+
+            $stmtFull->bind_param("i", $duplicateId);
+            $stmtFull->execute();
+            $dFull = $stmtFull->get_result()->fetch_assoc();
+
+            $updateData = [];
+            $updateFields = ['name', 'phone', 'emergency_phone', 'email', 'birthday', 'gender', 'class_id', 'address', 'medical_notes', 'image_url'];
+            
+            // Collect updated field values
+            foreach ($updateFields as $field) {
+                $source = $profileFields[$field] ?? 'A';
+                if ($source === 'B') {
+                    $updateData[$field] = $dFull[$field];
+                } else {
+                    $updateData[$field] = $tFull[$field];
+                }
+            }
+
+            // Custom fields & Sibling group inside custom_info JSON
+            $tCustom = json_decode($tFull['custom_info'] ?? 'null', true) ?: [];
+            $dCustom = json_decode($dFull['custom_info'] ?? 'null', true) ?: [];
+            
+            $mergedCustom = $tCustom;
+            if (isset($profileFields['custom_fields']) && is_array($profileFields['custom_fields'])) {
+                foreach ($profileFields['custom_fields'] as $cfKey => $source) {
+                    if ($source === 'B') {
+                        if (isset($dCustom[$cfKey])) {
+                            $mergedCustom[$cfKey] = $dCustom[$cfKey];
+                        } else {
+                            unset($mergedCustom[$cfKey]);
+                        }
+                    }
+                }
+            } else {
+                // Auto-choose values missing in target
+                foreach ($dCustom as $k => $v) {
+                    if ($k !== 'username' && $k !== 'sibling_group' && (!isset($mergedCustom[$k]) || empty($mergedCustom[$k]))) {
+                        $mergedCustom[$k] = $v;
+                    }
+                }
+            }
+
+            // Sibling Group link
+            if (!isset($mergedCustom['sibling_group']) && isset($dCustom['sibling_group'])) {
+                $mergedCustom['sibling_group'] = $dCustom['sibling_group'];
+            }
+
+            // Credentials (username + password_hash)
+            $selectedPasswordHash = $tFull['password_hash'];
+            $selectedUsername = $tCustom['username'] ?? null;
+
+            if ($credentialsFrom === 'B') {
+                $selectedPasswordHash = $dFull['password_hash'];
+                $selectedUsername = $dCustom['username'] ?? null;
+            } elseif ($credentialsFrom === 'A') {
+                $selectedPasswordHash = $tFull['password_hash'];
+                $selectedUsername = $tCustom['username'] ?? null;
+            } else {
+                if (empty($selectedPasswordHash) && !empty($dFull['password_hash'])) {
+                    $selectedPasswordHash = $dFull['password_hash'];
+                    $selectedUsername = $dCustom['username'] ?? null;
+                }
+            }
+
+            if (!empty($selectedUsername)) {
+                $mergedCustom['username'] = $selectedUsername;
+            } else {
+                unset($mergedCustom['username']);
+            }
+
+            // Coupons calculation
+            $coupons = intval($tFull['coupons']);
+            $attCoupons = intval($tFull['attendance_coupons']);
+            $comCoupons = intval($tFull['commitment_coupons']);
+            $tskCoupons = intval($tFull['task_coupons']);
+
+            if ($couponsMode === 'sum') {
+                $coupons += intval($dFull['coupons']);
+                $attCoupons += intval($dFull['attendance_coupons']);
+                $comCoupons += intval($dFull['commitment_coupons']);
+                $tskCoupons += intval($dFull['task_coupons']);
+            } elseif ($couponsMode === 'keep_B') {
+                $coupons = intval($dFull['coupons']);
+                $attCoupons = intval($dFull['attendance_coupons']);
+                $comCoupons = intval($dFull['commitment_coupons']);
+                $tskCoupons = intval($dFull['task_coupons']);
+            }
+
+            // Update Target Student
+            $customInfoJSON = json_encode($mergedCustom, JSON_UNESCAPED_UNICODE);
+            $updateStmt = $conn->prepare("
+                UPDATE students 
+                SET name = ?, phone = ?, emergency_phone = ?, email = ?, birthday = ?, 
+                    gender = ?, class_id = ?, address = ?, medical_notes = ?, image_url = ?, 
+                    password_hash = ?, custom_info = ?, coupons = ?, attendance_coupons = ?, 
+                    commitment_coupons = ?, task_coupons = ?, updated_at = NOW() 
+                WHERE id = ?
+            ");
+            
+            $updateStmt->bind_param("ssssssisssssiiiii", 
+                $updateData['name'], $updateData['phone'], $updateData['emergency_phone'], 
+                $updateData['email'], $updateData['birthday'], $updateData['gender'], 
+                $updateData['class_id'], $updateData['address'], $updateData['medical_notes'], 
+                $updateData['image_url'], $selectedPasswordHash, $customInfoJSON, 
+                $coupons, $attCoupons, $comCoupons, $tskCoupons, $targetId
+            );
+            $updateStmt->execute();
+
+            // Sibling group database links
+            $sibStmt = $conn->prepare("SELECT group_id FROM student_sibling_group_members WHERE student_id = ?");
+            $sibStmt->bind_param("i", $targetId);
+            $sibStmt->execute();
+            $tGroup = $sibStmt->get_result()->fetch_assoc();
+
+            $sibStmt->bind_param("i", $duplicateId);
+            $sibStmt->execute();
+            $dGroup = $sibStmt->get_result()->fetch_assoc();
+
+            if ($dGroup) {
+                if (!$tGroup) {
+                    $mvSib = $conn->prepare("UPDATE student_sibling_group_members SET student_id = ? WHERE student_id = ?");
+                    $mvSib->bind_param("ii", $targetId, $duplicateId);
+                    $mvSib->execute();
+                } else {
+                    $delSib = $conn->prepare("DELETE FROM student_sibling_group_members WHERE student_id = ?");
+                    $delSib->bind_param("i", $duplicateId);
+                    $delSib->execute();
+                }
+            }
+
+            // Merge Attendance
+            if ($attendanceMode === 'keep_A') {
+                $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
+                $delAtt->bind_param("i", $duplicateId);
+                $delAtt->execute();
+            } elseif ($attendanceMode === 'keep_B') {
+                $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
+                $delAtt->bind_param("i", $targetId);
+                $delAtt->execute();
+
+                $mvAtt = $conn->prepare("UPDATE attendance SET student_id = ? WHERE student_id = ?");
+                $mvAtt->bind_param("ii", $targetId, $duplicateId);
+                $mvAtt->execute();
+            } else {
+                $getAttDates = $conn->prepare("SELECT id, attendance_date, status, class_id, uncle_id FROM attendance WHERE student_id = ?");
+                
+                $getAttDates->bind_param("i", $targetId);
+                $getAttDates->execute();
+                $attResA = $getAttDates->get_result();
+                $datesA = [];
+                while ($r = $attResA->fetch_assoc()) {
+                    $datesA[$r['attendance_date']] = $r;
+                }
+
+                $getAttDates->bind_param("i", $duplicateId);
+                $getAttDates->execute();
+                $attResB = $getAttDates->get_result();
+                $datesB = [];
+                while ($r = $attResB->fetch_assoc()) {
+                    $datesB[$r['attendance_date']] = $r;
+                }
+
+                foreach ($datesB as $date => $recB) {
+                    if (isset($datesA[$date])) {
+                        $recA = $datesA[$date];
+                        $isConflict = $recA['status'] !== $recB['status'] || $recA['class_id'] !== $recB['class_id'] || $recA['uncle_id'] !== $recB['uncle_id'];
+                        
+                        if ($isConflict) {
+                            $selectedSource = $attendanceConflicts[$date] ?? 'A';
+                            if ($selectedSource === 'B') {
+                                $delRec = $conn->prepare("DELETE FROM attendance WHERE id = ?");
+                                $delRec->bind_param("i", $recA['id']);
+                                $delRec->execute();
+
+                                $mvRec = $conn->prepare("UPDATE attendance SET student_id = ? WHERE id = ?");
+                                $mvRec->bind_param("ii", $targetId, $recB['id']);
+                                $mvRec->execute();
+                            } else {
+                                $delRec = $conn->prepare("DELETE FROM attendance WHERE id = ?");
+                                $delRec->bind_param("i", $recB['id']);
+                                $delRec->execute();
+                            }
+                        } else {
+                            $delRec = $conn->prepare("DELETE FROM attendance WHERE id = ?");
+                            $delRec->bind_param("i", $recB['id']);
+                            $delRec->execute();
+                        }
+                    } else {
+                        $mvRec = $conn->prepare("UPDATE attendance SET student_id = ? WHERE id = ?");
+                        $mvRec->bind_param("ii", $targetId, $recB['id']);
+                        $mvRec->execute();
+                    }
+                }
+            }
+
+            // Merge Tasks submissions
+            $taskStmt = $conn->prepare("SELECT id, task_id, score FROM task_submissions WHERE student_id = ?");
+            
+            $taskStmt->bind_param("i", $targetId);
+            $taskStmt->execute();
+            $tasksA = [];
+            $resTasksA = $taskStmt->get_result();
+            while ($row = $resTasksA->fetch_assoc()) {
+                $tasksA[$row['task_id']] = $row;
+            }
+
+            $taskStmt->bind_param("i", $duplicateId);
+            $taskStmt->execute();
+            $resTasksB = $taskStmt->get_result();
+            
+            while ($rowB = $resTasksB->fetch_assoc()) {
+                $taskId = $rowB['task_id'];
+                if (isset($tasksA[$taskId])) {
+                    $rowA = $tasksA[$taskId];
+                    if (intval($rowB['score']) > intval($rowA['score'])) {
+                        $delTask = $conn->prepare("DELETE FROM task_submissions WHERE id = ?");
+                        $delTask->bind_param("i", $rowA['id']);
+                        $delTask->execute();
+
+                        $mvTask = $conn->prepare("UPDATE task_submissions SET student_id = ? WHERE id = ?");
+                        $mvTask->bind_param("ii", $targetId, $rowB['id']);
+                        $mvTask->execute();
+                    } else {
+                        $delTask = $conn->prepare("DELETE FROM task_submissions WHERE id = ?");
+                        $delTask->bind_param("i", $rowB['id']);
+                        $delTask->execute();
+                    }
+                } else {
+                    $mvTask = $conn->prepare("UPDATE task_submissions SET student_id = ? WHERE id = ?");
+                    $mvTask->bind_param("ii", $targetId, $rowB['id']);
+                    $mvTask->execute();
+                }
+            }
+
+            // Merge exam_starts
+            $examStmt = $conn->prepare("SELECT id, task_id FROM exam_starts WHERE student_id = ?");
+            $examStmt->bind_param("i", $targetId);
+            $examStmt->execute();
+            $examsA = [];
+            $resExamsA = $examStmt->get_result();
+            while ($row = $resExamsA->fetch_assoc()) {
+                $examsA[$row['task_id']] = $row['id'];
+            }
+
+            $examStmt->bind_param("i", $duplicateId);
+            $examStmt->execute();
+            $resExamsB = $examStmt->get_result();
+            while ($rowB = $resExamsB->fetch_assoc()) {
+                $taskId = $rowB['task_id'];
+                if (isset($examsA[$taskId])) {
+                    $delExam = $conn->prepare("DELETE FROM exam_starts WHERE id = ?");
+                    $delExam->bind_param("i", $rowB['id']);
+                    $delExam->execute();
+                } else {
+                    $mvExam = $conn->prepare("UPDATE exam_starts SET student_id = ? WHERE id = ?");
+                    $mvExam->bind_param("ii", $targetId, $rowB['id']);
+                    $mvExam->execute();
+                }
+            }
+
+            // Merge coupon logs & withdrawals
+            $mvLogs = $conn->prepare("UPDATE coupon_logs SET student_id = ? WHERE student_id = ?");
+            $mvLogs->bind_param("ii", $targetId, $duplicateId);
+            $mvLogs->execute();
+
+            $mvWithdrawals = $conn->prepare("UPDATE coupon_withdrawals SET student_id = ? WHERE student_id = ?");
+            $mvWithdrawals->bind_param("ii", $targetId, $duplicateId);
+            $mvWithdrawals->execute();
+
+            // Merge trip registrations & payments
+            $tripStmt = $conn->prepare("SELECT id, trip_id FROM trip_registrations WHERE student_id = ?");
+            
+            $tripStmt->bind_param("i", $targetId);
+            $tripStmt->execute();
+            $tripsA = [];
+            $resTripsA = $tripStmt->get_result();
+            while ($row = $resTripsA->fetch_assoc()) {
+                $tripsA[$row['trip_id']] = $row['id'];
+            }
+
+            $tripStmt->bind_param("i", $duplicateId);
+            $tripStmt->execute();
+            $resTripsB = $tripStmt->get_result();
+            while ($rowB = $resTripsB->fetch_assoc()) {
+                $tripId = $rowB['trip_id'];
+                $regIdB = $rowB['id'];
+                if (isset($tripsA[$tripId])) {
+                    $regIdA = $tripsA[$tripId];
+                    $mvPayments = $conn->prepare("UPDATE trip_payments SET registration_id = ? WHERE registration_id = ?");
+                    $mvPayments->bind_param("ii", $regIdA, $regIdB);
+                    $mvPayments->execute();
+
+                    $delReg = $conn->prepare("DELETE FROM trip_registrations WHERE id = ?");
+                    $delReg->bind_param("i", $regIdB);
+                    $delReg->execute();
+                } else {
+                    $mvReg = $conn->prepare("UPDATE trip_registrations SET student_id = ? WHERE id = ?");
+                    $mvReg->bind_param("ii", $targetId, $regIdB);
+                    $mvReg->execute();
+                }
+            }
+
+            // Move remaining trip_waitlist rows
+            $mvWait = $conn->prepare("UPDATE trip_waitlist SET student_id = ? WHERE student_id = ?");
+            $mvWait->bind_param("ii", $targetId, $duplicateId);
+            @$mvWait->execute();
+
+            // Sibling group cleanup
+            $delSib = $conn->prepare("DELETE FROM student_sibling_group_members WHERE student_id = ?");
+            $delSib->bind_param("i", $duplicateId);
+            $delSib->execute();
+
+            // Delete Duplicate Student Record
+            $delStudent = $conn->prepare("DELETE FROM students WHERE id = ? AND church_id = ?");
+            $delStudent->bind_param("ii", $duplicateId, $churchId);
+            $delStudent->execute();
+
+            // Commit Transaction
+            $conn->commit();
+
+            // Cleanup deleted student's image file if we kept the other
+            if (!empty($duplicateStudent['image_url']) && $updateData['image_url'] !== $duplicateStudent['image_url']) {
+                deleteUploadedFile($duplicateStudent['image_url']);
+            }
+            if (!empty($targetStudent['image_url']) && $updateData['image_url'] !== $targetStudent['image_url']) {
+                deleteUploadedFile($targetStudent['image_url']);
+            }
+
+            // Audit Log
+            auditStudentMerge($targetId, $duplicateId, $targetStudent['name'], $duplicateStudent['name']);
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تم دمج الحسابات بنجاح وحذف الحساب المكرر للطفل "' . $duplicateStudent['name'] . '"'
+            ]);
+
+        } catch (Exception $txEx) {
+            $conn->rollback();
+            throw $txEx;
+        }
+
+    } catch (Exception $e) {
+        error_log("mergeDuplicateStudents error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في عملية الدمج: ' . $e->getMessage()]);
+    }
+}
+
+function auditStudentMerge($targetId, $duplicateId, $targetName, $duplicateName) {
+    try {
+        $conn = getDBConnection();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+        $action = 'merge_students';
+        $details = json_encode([
+            'target_id' => $targetId,
+            'target_name' => $targetName,
+            'duplicate_id' => $duplicateId,
+            'duplicate_name' => $duplicateName
+        ], JSON_UNESCAPED_UNICODE);
+
+        $stmt = $conn->prepare("INSERT INTO audit_logs (church_id, uncle_id, action, entity, entity_id, details, created_at) VALUES (?, ?, ?, 'student', ?, ?, NOW())");
+        $stmt->bind_param("iisis", $churchId, $uncleId, $action, $targetId, $details);
+        $stmt->execute();
+    } catch (Exception $e) {
+        error_log("auditStudentMerge failed: " . $e->getMessage());
+    }
 }
 
 

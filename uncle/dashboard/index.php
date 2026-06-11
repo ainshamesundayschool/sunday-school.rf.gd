@@ -3133,6 +3133,246 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; }
         .btn-bulk-action.bulk-note i { color: #3b82f6 !important; }
         
+        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-merge i { color: #8b5cf6 !important; }
+
+        /* Premium Merge Duplicates Table & UI Styles */
+        .merge-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 10px 0;
+            color: var(--text);
+            direction: rtl;
+            text-align: right;
+        }
+        .merge-header-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .merge-kid-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+            transition: all var(--t) var(--ease);
+            position: relative;
+            cursor: pointer;
+        }
+        .merge-kid-card.active-target {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+        .merge-kid-card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--surface-3);
+            color: var(--text-2);
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: var(--r-full);
+            font-weight: 700;
+            border: 1px solid var(--border-solid);
+        }
+        .merge-kid-card.active-target .merge-kid-card-badge {
+            background: #8b5cf6;
+            color: #fff;
+            border-color: #8b5cf6;
+        }
+        .merge-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--r-full);
+            object-fit: cover;
+            border: 2px solid var(--border-solid);
+        }
+        .merge-avatar-fallback {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--r-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--border-solid);
+        }
+        .merge-avatar-fallback.male { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .merge-avatar-fallback.female { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+        
+        .merge-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl);
+            overflow: hidden;
+        }
+        .merge-table th, .merge-table td {
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--border-solid);
+        }
+        .merge-table th {
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-weight: 700;
+            text-align: right;
+        }
+        .merge-table tr:last-child td {
+            border-bottom: none;
+        }
+        .merge-field-label {
+            font-weight: 700;
+            color: var(--text-2);
+            width: 20%;
+        }
+        .merge-cell-option {
+            width: 40%;
+            position: relative;
+            transition: all var(--t) var(--ease);
+        }
+        .merge-cell-option label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: var(--r-md);
+            border: 1.5px solid transparent;
+            transition: all var(--t) var(--ease);
+        }
+        .merge-cell-option input[type="radio"] {
+            margin: 0;
+            accent-color: #8b5cf6;
+            cursor: pointer;
+        }
+        .merge-cell-option label:hover {
+            background: var(--surface-3);
+        }
+        .merge-cell-option.auto-selected label {
+            background: rgba(16, 185, 129, 0.07);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            font-weight: 600;
+        }
+        .merge-cell-option.auto-selected input[type="radio"] {
+            accent-color: var(--success);
+        }
+        .merge-cell-option.identical {
+            background: var(--surface-2);
+            color: var(--text-3);
+        }
+        .merge-section-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text);
+            margin: 8px 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .merge-section-title i {
+            color: #8b5cf6;
+        }
+        .merge-attendance-box, .merge-coupons-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .merge-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .merge-radio-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            transition: all var(--t) var(--ease);
+        }
+        .merge-radio-item:hover {
+            background: var(--surface-3);
+        }
+        .merge-radio-item input[type="radio"] {
+            margin: 0;
+            accent-color: #8b5cf6;
+        }
+        .merge-radio-item.selected {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+        }
+        
+        /* Conflicts List style */
+        .merge-conflicts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px dashed var(--border-solid);
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+        .merge-conflict-row {
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .merge-conflict-date {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-2);
+        }
+        .merge-conflict-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .merge-conflict-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.74rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            transition: all var(--t) var(--ease);
+        }
+        .merge-conflict-option input[type="radio"] {
+            margin: 0;
+            accent-color: #8b5cf6;
+        }
+        .merge-conflict-option:hover {
+            background: var(--surface-3);
+        }
+        .merge-conflict-option.selected {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+            font-weight: 600;
+        }
+        
         .bulk-close-x-btn {
             background: transparent;
             border: none;
@@ -8960,6 +9200,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                     <i class="fas fa-trash"></i>
                 </button>
+                <button class="btn-bulk-action bulk-merge" id="bulkMergeBtn" onclick="triggerBulkMerge()" title="دمج الحسابين المكررين" style="display: none;">
+                    <i class="fas fa-code-merge"></i>
+                </button>
             </div>
         </div>
 
@@ -9527,6 +9770,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
                 <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
                     إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Merge Duplicate Kids Modal -->
+    <div id="mergeDuplicateModal" class="modal-overlay" style="z-index:1000009">
+        <div class="modal" style="max-width:900px; height: 90vh; max-height: 90vh;">
+            <div class="modal-header">
+                <h3><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</h3>
+                <button class="close-btn" onclick="closeMergeModal()">&times;</button>
+            </div>
+            <div class="mbody" style="overflow-y:auto; flex:1; padding-top:10px;">
+                <p style="font-size:0.78rem; color:var(--text-3); margin-bottom:12px; line-height:1.5;">
+                    اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل جميع السجلات المرتبطة (الحضور، المهام، الكوبونات، الرحلات) تلقائياً.
+                </p>
+                <div id="mergeModalContent"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between; padding-top:14px; border-top:1px solid var(--border-solid)">
+                <button class="btn btn-success" id="confirmMergeBtn" onclick="submitMergeDuplicate()" type="button" style="padding: 10px 24px; font-weight:700;">
+                    <i class="fas fa-check-double"></i> إتمام الدمج وحذف المكرر
+                </button>
+                <button class="btn btn-ghost" onclick="closeMergeModal()" type="button"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </div>
     </div>
@@ -12569,6 +12834,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (countEl) {
                 countEl.textContent = selectedStudentIds.size;
             }
+            const mergeBtn = document.getElementById('bulkMergeBtn');
+            if (mergeBtn) {
+                if (selectedStudentIds.size === 2) {
+                    mergeBtn.style.display = 'inline-flex';
+                } else {
+                    mergeBtn.style.display = 'none';
+                }
+            }
             updateSelectAllHeaderCheckbox();
         }
 
@@ -12621,6 +12894,512 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             openModal('customConfirmModal');
+        }
+
+        // ── MERGE DUPLICATES CONTROLLER ─────────────────────────────
+        let _mergeData = null;
+        let _mergeSelectedTarget = 'A'; // Default Target profile is A
+        
+        async function triggerBulkMerge() {
+            if (selectedStudentIds.size !== 2) {
+                showToast('يرجى تحديد طفلين فقط لإجراء الدمج', 'warning');
+                return;
+            }
+            const ids = Array.from(selectedStudentIds);
+            const idA = ids[0];
+            const idB = ids[1];
+            
+            showLoading('جاري تحميل بيانات المقارنة...');
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getMergeComparison');
+                fd.append('studentIdA', idA);
+                fd.append('studentIdB', idB);
+                
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                    .then(r => r.json())
+                    .catch(() => ({ success: false, message: 'خطأ في الاتصال بالخادم' }));
+                
+                hideLoading();
+                if (!resp.success) {
+                    showToast(resp.message || 'فشل تحميل بيانات المقارنة', 'error');
+                    return;
+                }
+                
+                _mergeData = resp;
+                _mergeSelectedTarget = 'A'; // default primary target is A
+                
+                renderMergeComparison();
+                
+                const modal = document.getElementById('mergeDuplicateModal');
+                if (modal) modal.classList.add('active');
+                stopAutoRefresh();
+            } catch (e) {
+                hideLoading();
+                showToast('حدث خطأ غير متوقع', 'error');
+            }
+        }
+
+        function closeMergeModal() {
+            const modal = document.getElementById('mergeDuplicateModal');
+            if (modal) modal.classList.remove('active');
+            _mergeData = null;
+            startAutoRefresh();
+        }
+
+        function selectMergeTarget(targetLetter) {
+            _mergeSelectedTarget = targetLetter;
+            document.querySelectorAll('.merge-kid-card').forEach(card => {
+                card.classList.remove('active-target');
+            });
+            const selectedCard = document.getElementById(`mergeCard${targetLetter}`);
+            if (selectedCard) {
+                selectedCard.classList.add('active-target');
+            }
+            
+            // Auto check credentials radio button if both have credentials
+            const credRadio = document.querySelector(`input[name="merge_credentials"][value="${targetLetter}"]`);
+            if (credRadio) {
+                credRadio.checked = true;
+                document.querySelectorAll('input[name="merge_credentials"]').forEach(r => {
+                    const item = r.closest('.merge-radio-item');
+                    if (item) {
+                        if (r.checked) item.classList.add('selected');
+                        else item.classList.remove('selected');
+                    }
+                });
+            }
+        }
+
+        function renderMergeComparison() {
+            if (!_mergeData) return;
+            const content = document.getElementById('mergeModalContent');
+            if (!content) return;
+
+            const sA = _mergeData.studentA;
+            const sB = _mergeData.studentB;
+            const hasPassA = _mergeData.hasPasswordA;
+            const hasPassB = _mergeData.hasPasswordB;
+            const tasksA = _mergeData.taskCountA || 0;
+            const tasksB = _mergeData.taskCountB || 0;
+            const conflicts = _mergeData.attendanceConflicts || [];
+            const unionAtt = _mergeData.attendanceUnion || [];
+
+            const getAvatarHtml = (s, letter) => {
+                const gender = (s.gender === 'female' || s['النوع'] === 'female') ? 'female' : 'male';
+                const avatar = s.image_url 
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s.image_url) : s.image_url}" alt="" class="merge-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                    : '';
+                const fallback = `<div class="merge-avatar-fallback ${gender}" ${s.image_url ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                return `
+                    <div id="mergeCard${letter}" class="merge-kid-card ${letter === 'A' ? 'active-target' : ''}" onclick="selectMergeTarget('${letter}')">
+                        <span class="merge-kid-card-badge">${letter === 'A' ? 'الحساب الرئيسي' : 'حساب مكرر'}</span>
+                        ${avatar}${fallback}
+                        <div style="font-weight:800;font-size:0.86rem;margin-top:6px;">${escHtml(s.name)}</div>
+                        <div style="font-size:0.7rem;color:var(--text-3)">${escHtml(s.class_name || '---')}</div>
+                    </div>
+                `;
+            };
+
+            const headerHtml = `
+                <div class="merge-header-cards" style="margin-bottom: 16px;">
+                    ${getAvatarHtml(sA, 'A')}
+                    ${getAvatarHtml(sB, 'B')}
+                </div>
+            `;
+
+            // Field configurations
+            const fields = [
+                { key: 'name', label: 'الاسم الكامل' },
+                { key: 'gender', label: 'النوع', format: v => v === 'female' ? 'بنت' : 'ولد' },
+                { key: 'class_name', label: 'الفصل' },
+                { key: 'phone', label: 'رقم التليفون' },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ' },
+                { key: 'email', label: 'البريد الإلكتروني' },
+                { key: 'birthday', label: 'تاريخ الميلاد' },
+                { key: 'address', label: 'العنوان' },
+                { key: 'medical_notes', label: 'ملاحظات طبية' }
+            ];
+
+            let tableRowsHtml = '';
+
+            fields.forEach(f => {
+                const valA = (sA[f.key] || '').toString().trim();
+                const valB = (sB[f.key] || '').toString().trim();
+                const dispA = f.format ? f.format(valA) : valA;
+                const dispB = f.format ? f.format(valB) : valB;
+
+                const isIdentical = valA && valB && (valA.toLowerCase() === valB.toLowerCase());
+
+                if (isIdentical) {
+                    tableRowsHtml += `
+                        <tr>
+                            <td class="merge-field-label">${f.label}</td>
+                            <td colspan="2" class="merge-cell-option identical" style="text-align:center;">
+                                ${escHtml(dispA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // Auto-choose non-empty
+                    const isMissingA = !valA;
+                    const isMissingB = !valB;
+                    
+                    const checkedA = !isMissingA ? 'checked' : '';
+                    const checkedB = isMissingB ? '' : (isMissingA ? 'checked' : '');
+
+                    const classA = isMissingB && !isMissingA ? 'auto-selected' : '';
+                    const classB = isMissingA && !isMissingB ? 'auto-selected' : '';
+
+                    tableRowsHtml += `
+                        <tr>
+                            <td class="merge-field-label">${f.label}</td>
+                            <td class="merge-cell-option ${classA}">
+                                <label>
+                                    <input type="radio" name="field_${f.key}" value="A" ${checkedA}>
+                                    <span>${escHtml(dispA || '---')}</span>
+                                    ${classA ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
+                                </label>
+                            </td>
+                            <td class="merge-cell-option ${classB}">
+                                <label>
+                                    <input type="radio" name="field_${f.key}" value="B" ${checkedB}>
+                                    <span>${escHtml(dispB || '---')}</span>
+                                    ${classB ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
+                                </label>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            // Parse Custom Fields
+            let parsedCustomA = {};
+            let parsedCustomB = {};
+            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch(e) {}
+            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch(e) {}
+
+            const allCustomKeys = Array.from(new Set([...Object.keys(parsedCustomA), ...Object.keys(parsedCustomB)]))
+                .filter(k => k !== 'username' && k !== 'sibling_group');
+
+            if (allCustomKeys.length > 0) {
+                tableRowsHtml += `
+                    <tr>
+                        <th colspan="3" style="text-align:right;background:var(--surface-3);font-size:0.82rem;font-weight:800;color:var(--brand)">
+                            <i class="fas fa-sliders"></i> الحقول المخصصة
+                        </th>
+                    </tr>
+                `;
+                allCustomKeys.forEach(k => {
+                    const valA = (parsedCustomA[k] || '').toString().trim();
+                    const valB = (parsedCustomB[k] || '').toString().trim();
+
+                    const isIdentical = valA && valB && (valA.toLowerCase() === valB.toLowerCase());
+
+                    if (isIdentical) {
+                        tableRowsHtml += `
+                            <tr>
+                                <td class="merge-field-label">${escHtml(k)}</td>
+                                <td colspan="2" class="merge-cell-option identical" style="text-align:center;">
+                                    ${escHtml(valA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        const isMissingA = !valA;
+                        const isMissingB = !valB;
+                        
+                        const checkedA = !isMissingA ? 'checked' : '';
+                        const checkedB = isMissingB ? '' : (isMissingA ? 'checked' : '');
+
+                        const classA = isMissingB && !isMissingA ? 'auto-selected' : '';
+                        const classB = isMissingA && !isMissingB ? 'auto-selected' : '';
+
+                        tableRowsHtml += `
+                            <tr>
+                                <td class="merge-field-label">${escHtml(k)}</td>
+                                <td class="merge-cell-option ${classA}">
+                                    <label>
+                                        <input type="radio" name="customfield_${k}" value="A" ${checkedA}>
+                                        <span>${escHtml(valA || '---')}</span>
+                                        ${classA ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
+                                    </label>
+                                </td>
+                                <td class="merge-cell-option ${classB}">
+                                    <label>
+                                        <input type="radio" name="customfield_${k}" value="B" ${checkedB}>
+                                        <span>${escHtml(valB || '---')}</span>
+                                        ${classB ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
+                                    </label>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
+
+            // Credentials box (username & password)
+            let credentialsHtml = '';
+            const userA = parsedCustomA.username || '';
+            const userB = parsedCustomB.username || '';
+            
+            if (!hasPassA && !hasPassB) {
+                credentialsHtml = `
+                    <div style="font-size:0.75rem;color:var(--text-3);background:var(--surface-3);padding:10px;border-radius:var(--r-md);text-align:center;">
+                        <i class="fas fa-info-circle"></i> لا يمتلك أي من الحسابين كلمة مرور أو حساب دخول نشط.
+                        <input type="hidden" name="merge_credentials" value="auto">
+                    </div>
+                `;
+            } else {
+                const checkedCredA = hasPassA ? 'checked' : '';
+                const checkedCredB = !hasPassA && hasPassB ? 'checked' : '';
+                
+                const classCredA = hasPassA && !hasPassB ? 'selected' : '';
+                const classCredB = !hasPassA && hasPassB ? 'selected' : '';
+
+                credentialsHtml = `
+                    <div class="merge-radio-group">
+                        <label class="merge-radio-item ${classCredA}" onclick="document.querySelectorAll('input[name=\\'merge_credentials\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                            <input type="radio" name="merge_credentials" value="A" ${checkedCredA}>
+                            <div>
+                                <div style="font-weight:700;font-size:0.78rem;">بيانات حساب: ${escHtml(sA.name)}</div>
+                                <div style="font-size:0.7rem;color:var(--text-3)">اسم المستخدم: ${escHtml(userA || '(لا يوجد)')} | كلمة المرور: ${hasPassA ? '✓ متوفرة' : '✗ غير متوفرة'}</div>
+                            </div>
+                            ${hasPassA && !hasPassB ? '<span style="font-size:0.66rem;color:var(--success);margin-right:auto;font-weight:700;"><i class="fas fa-check-circle"></i> اختيار تلقائي</span>' : ''}
+                        </label>
+                        <label class="merge-radio-item ${classCredB}" onclick="document.querySelectorAll('input[name=\\'merge_credentials\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                            <input type="radio" name="merge_credentials" value="B" ${checkedCredB}>
+                            <div>
+                                <div style="font-weight:700;font-size:0.78rem;">بيانات حساب: ${escHtml(sB.name)}</div>
+                                <div style="font-size:0.7rem;color:var(--text-3)">اسم المستخدم: ${escHtml(userB || '(لا يوجد)')} | كلمة المرور: ${hasPassB ? '✓ متوفرة' : '✗ غير متوفرة'}</div>
+                            </div>
+                            ${hasPassB && !hasPassA ? '<span style="font-size:0.66rem;color:var(--success);margin-right:auto;font-weight:700;"><i class="fas fa-check-circle"></i> اختيار تلقائي</span>' : ''}
+                        </label>
+                    </div>
+                `;
+            }
+
+            // Coupon strategy
+            const couponsSum = (sA.coupons || 0) + (sB.coupons || 0);
+            const couponHtml = `
+                <div class="merge-radio-group">
+                    <label class="merge-radio-item selected" onclick="document.querySelectorAll('input[name=\\'merge_coupons\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_coupons" value="sum" checked>
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">جمع كوبونات المحفظتين (الكوبونات الإجمالية: ${couponsSum})</div>
+                            <div style="font-size:0.7rem;color:var(--text-3)">سيتم إضافة الكوبونات والالتزام والمهام معاً.</div>
+                        </div>
+                    </label>
+                    <label class="merge-radio-item" onclick="document.querySelectorAll('input[name=\\'merge_coupons\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_coupons" value="keep_A">
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">الاحتفاظ بكوبونات الحساب الأول فقط (${sA.coupons || 0} كوبون)</div>
+                        </div>
+                    </label>
+                    <label class="merge-radio-item" onclick="document.querySelectorAll('input[name=\\'merge_coupons\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_coupons" value="keep_B">
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">الاحتفاظ بكوبونات الحساب الثاني فقط (${sB.coupons || 0} كوبون)</div>
+                        </div>
+                    </label>
+                </div>
+            `;
+
+            // Attendance strategy & conflicts
+            let attendanceConflictsHtml = '';
+            if (conflicts.length > 0) {
+                attendanceConflictsHtml = `
+                    <div class="merge-conflicts-container">
+                        <div style="font-size:0.74rem;font-weight:700;color:var(--danger);margin-bottom:4px;">
+                            <i class="fas fa-triangle-exclamation"></i> تعارضات في سجل الحضور والغياب (${conflicts.length} أيام):
+                        </div>
+                        ${conflicts.map((c, idx) => {
+                            const statusLabelA = c.recordA.status === 'present' ? 'حاضر' : 'غائب';
+                            const statusLabelB = c.recordB.status === 'present' ? 'حاضر' : 'غائب';
+                            
+                            const checkedA = c.recordA.status === 'present' ? 'checked' : (c.recordB.status === 'present' ? '' : 'checked');
+                            const checkedB = c.recordB.status === 'present' && c.recordA.status !== 'present' ? 'checked' : '';
+
+                            return `
+                                <div class="merge-conflict-row">
+                                    <div class="merge-conflict-date">${escHtml(c.date)}</div>
+                                    <div class="merge-conflict-options">
+                                        <label class="merge-conflict-option ${checkedA ? 'selected' : ''}" onclick="this.parentElement.querySelectorAll('.merge-conflict-option').forEach(o => o.classList.remove('selected')); this.classList.add('selected')">
+                                            <input type="radio" name="attconflict_${c.date}" value="A" ${checkedA}>
+                                            <span>${escHtml(sA.name)} (${statusLabelA} - فصل: ${escHtml(c.recordA.class_name || '---')} - الخادم: ${escHtml(c.recordA.uncle_name || '---')})</span>
+                                        </label>
+                                        <label class="merge-conflict-option ${checkedB ? 'selected' : ''}" onclick="this.parentElement.querySelectorAll('.merge-conflict-option').forEach(o => o.classList.remove('selected')); this.classList.add('selected')">
+                                            <input type="radio" name="attconflict_${c.date}" value="B" ${checkedB}>
+                                            <span>${escHtml(sB.name)} (${statusLabelB} - فصل: ${escHtml(c.recordB.class_name || '---')} - الخادم: ${escHtml(c.recordB.uncle_name || '---')})</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            const totalAttA = Object.keys(attA).length;
+            const totalAttB = Object.keys(attB).length;
+
+            const attendanceHtml = `
+                <div class="merge-radio-group">
+                    <label class="merge-radio-item selected" onclick="document.querySelectorAll('input[name=\\'merge_attendance\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_attendance" value="combine" checked>
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">دمج سجلات الحضور بالكامل (تجميع التواريخ)</div>
+                            <div style="font-size:0.7rem;color:var(--text-3)">سيدمج سجلات الحضور والغياب وحل التعارضات أدناه.</div>
+                        </div>
+                    </label>
+                    <label class="merge-radio-item" onclick="document.querySelectorAll('input[name=\\'merge_attendance\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_attendance" value="keep_A">
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">الاحتفاظ بسجل حضور الحساب الأول فقط (${totalAttA} أيام)</div>
+                        </div>
+                    </label>
+                    <label class="merge-radio-item" onclick="document.querySelectorAll('input[name=\\'merge_attendance\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
+                        <input type="radio" name="merge_attendance" value="keep_B">
+                        <div>
+                            <div style="font-weight:700;font-size:0.78rem;">الاحتفاظ بسجل حضور الحساب الثاني فقط (${totalAttB} أيام)</div>
+                        </div>
+                    </label>
+                    ${attendanceConflictsHtml}
+                </div>
+            `;
+
+            content.innerHTML = `
+                <div class="merge-container">
+                    <div style="font-size:0.74rem;color:var(--text-3);margin-bottom:2px;font-weight:700;">اضغط على الحساب الذي ترغب في جعله الحساب الرئيسي الباقي:</div>
+                    ${headerHtml}
+                    
+                    <div class="merge-section-title"><i class="fas fa-id-card"></i> مقارنة الملف الشخصي والحقول</div>
+                    <table class="merge-table">
+                        <thead>
+                            <tr>
+                                <th>الحقل</th>
+                                <th>من حساب: ${escHtml(sA.name)}</th>
+                                <th>من حساب: ${escHtml(sB.name)}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div class="merge-section-title"><i class="fas fa-lock"></i> الحساب وكلمة المرور</div>
+                    <div class="merge-attendance-box">
+                        ${credentialsHtml}
+                    </div>
+
+                    <div class="merge-section-title"><i class="fas fa-coins"></i> الكوبونات والجوائز</div>
+                    <div class="merge-coupons-box">
+                        ${couponHtml}
+                    </div>
+
+                    <div class="merge-section-title"><i class="fas fa-calendar-check"></i> الحضور والغياب والمهام</div>
+                    <div class="merge-attendance-box">
+                        <div style="font-size:0.7rem;color:var(--text-3);margin-bottom:6px;">
+                            <i class="fas fa-tasks"></i> سجل المهام: الحساب الأول سلّم <b>${tasksA}</b> مهام، والحساب الثاني سلّم <b>${tasksB}</b> مهام. (سيتم الدمج التلقائي مع تفضيل الدرجة الأعلى).
+                        </div>
+                        ${attendanceHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function submitMergeDuplicate() {
+            if (!_mergeData) return;
+            const sA = _mergeData.studentA;
+            const sB = _mergeData.studentB;
+
+            const isTargetA = _mergeSelectedTarget === 'A';
+            const targetId = isTargetA ? sA.id : sB.id;
+            const duplicateId = isTargetA ? sB.id : sA.id;
+            
+            const targetName = isTargetA ? sA.name : sB.name;
+            const duplicateName = isTargetA ? sB.name : sA.name;
+
+            const fields = ['name', 'gender', 'class_id', 'phone', 'emergency_phone', 'email', 'birthday', 'address', 'medical_notes', 'image_url'];
+            const profileFields = {};
+            
+            fields.forEach(f => {
+                const radio = document.querySelector(`input[name="field_${f}"]:checked`);
+                if (radio) {
+                    profileFields[f] = radio.value;
+                } else {
+                    profileFields[f] = 'A';
+                }
+            });
+
+            let parsedCustomA = {};
+            let parsedCustomB = {};
+            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch(e) {}
+            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch(e) {}
+            const allCustomKeys = Array.from(new Set([...Object.keys(parsedCustomA), ...Object.keys(parsedCustomB)]))
+                .filter(k => k !== 'username' && k !== 'sibling_group');
+
+            const customFieldsSources = {};
+            allCustomKeys.forEach(k => {
+                const radio = document.querySelector(`input[name="customfield_${k}"]:checked`);
+                if (radio) {
+                    customFieldsSources[k] = radio.value;
+                } else {
+                    customFieldsSources[k] = 'A';
+                }
+            });
+            profileFields['custom_fields'] = customFieldsSources;
+
+            const credentialsRadio = document.querySelector('input[name="merge_credentials"]:checked');
+            const credentialsFrom = credentialsRadio ? credentialsRadio.value : 'A';
+
+            const couponsRadio = document.querySelector('input[name="merge_coupons"]:checked');
+            const couponsMode = couponsRadio ? couponsRadio.value : 'sum';
+
+            const attRadio = document.querySelector('input[name="merge_attendance"]:checked');
+            const attendanceMode = attRadio ? attRadio.value : 'combine';
+
+            const attendanceConflicts = {};
+            const conflicts = _mergeData.attendanceConflicts || [];
+            conflicts.forEach(c => {
+                const radio = document.querySelector(`input[name="attconflict_${c.date}"]:checked`);
+                if (radio) {
+                    attendanceConflicts[c.date] = radio.value;
+                }
+            });
+
+            const confirmMsg = `أنت على وشك دمج حساب الطفل "${duplicateName}" مع حساب الطفل الرئيسي "${targetName}".\nسيتم حذف حساب "${duplicateName}" بالكامل وتحويل كافة سجلاته التاريخية وحل التعارضات كما اخترت.\nهل تريد المتابعة؟`;
+            
+            showCustomConfirm({
+                title: 'تأكيد دمج الحسابين',
+                message: confirmMsg,
+                icon: '<i class="fas fa-code-merge"></i>',
+                iconColor: '#8b5cf6',
+                btnText: 'تأكيد ودمج',
+                btnClass: 'btn-success',
+                btnIconClass: 'fas fa-check-double',
+                onConfirm: () => {
+                    showLoading('جاري دمج الحسابات المكررة...');
+                    makeApiCall({
+                        action: 'mergeDuplicateStudents',
+                        target_id: targetId,
+                        duplicate_id: duplicateId,
+                        profile_fields: profileFields,
+                        credentials_from: credentialsFrom,
+                        attendance_mode: attendanceMode,
+                        attendance_conflicts: attendanceConflicts,
+                        coupons_mode: couponsMode
+                    }, d => {
+                        showToast(d.message || 'تم دمج الحسابين بنجاح', 'success');
+                        closeMergeModal();
+                        selectedStudentIds.clear();
+                        updateBulkUI();
+                        loadData();
+                    }, err => {
+                        showToast(err || 'فشل الدمج', 'error');
+                    });
+                }
+            });
         }
 
         // Bulk operations triggers for class uncle
