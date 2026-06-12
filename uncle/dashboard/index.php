@@ -12478,6 +12478,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let velocityY = 0;
             let isDragging = false;
             let isSwipingDown = false;
+            let initialScrollTop = 0;
 
             const onStart = e => {
                 const target = e.target;
@@ -12499,6 +12500,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 isDragging = true;
                 isSwipingDown = false;
                 velocityY = 0;
+                initialScrollTop = modal.scrollTop;
 
                 modal.style.transition = 'none';
                 overlay.style.transition = 'none';
@@ -12519,14 +12521,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 if (!isSwipingDown) {
                     const isAtTop = modal.scrollTop <= 0;
-                    const touchedHeaderOrHandle = (startY - modal.getBoundingClientRect().top < 50) || e.target.closest('.modal-header') || e.target.closest('.modal::before') || (e.target === overlay);
                     const dyTotal = t.clientY - startY;
                     const dxTotal = t.clientX - startX;
 
                     if (dyTotal > 0 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
-                        if (isAtTop || touchedHeaderOrHandle) {
+                        if (isAtTop) {
                             isSwipingDown = true;
-                            swipeStartY = startY;
+                            swipeStartY = (initialScrollTop <= 0) ? startY : t.clientY;
                         }
                     }
                 }
