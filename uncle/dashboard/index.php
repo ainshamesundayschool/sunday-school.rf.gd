@@ -3649,9 +3649,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
   2147483640 — ctx backdrop
   2147483647 — ctx menu
 */
+        html.modal-open,
         body.modal-open {
             overflow: hidden !important;
             overscroll-behavior-y: contain !important;
+            height: 100% !important;
         }
 
         .modal-overlay {
@@ -3664,6 +3666,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: flex-end;
             align-items: flex-end;
             flex-direction: column;
+            overscroll-behavior-y: contain;
         }
 
         .modal-overlay.active {
@@ -3698,6 +3701,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
             transition: background var(--t) var(--ease);
+            overscroll-behavior-y: contain;
         }
 
         .modal-lg {
@@ -12515,14 +12519,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 lastTime = now;
 
                 if (!isSwipingDown) {
-                    const isVertical = Math.abs(t.clientY - startY) > Math.abs(t.clientX - startX);
                     const isAtTop = modal.scrollTop <= 0;
-                    const touchedHeaderOrHandle = (startY - modal.getBoundingClientRect().top < 50) || e.target.closest('.modal-header') || e.target.closest('.modal::before');
+                    const touchedHeaderOrHandle = (startY - modal.getBoundingClientRect().top < 50) || e.target.closest('.modal-header') || e.target.closest('.modal::before') || (e.target === overlay);
+                    const dyTotal = t.clientY - startY;
+                    const dxTotal = t.clientX - startX;
 
-                    if (isVertical && (t.clientY - lastY) > 0) {
+                    if (dyTotal > 0 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
                         if (isAtTop || touchedHeaderOrHandle) {
                             isSwipingDown = true;
-                            swipeStartY = t.clientY;
+                            swipeStartY = startY;
                         }
                     }
                 }
@@ -12590,10 +12595,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 isSwipingDown = false;
             };
 
-            modal.addEventListener('touchstart', onStart, { passive: true });
-            modal.addEventListener('touchmove', onMove, { passive: false });
-            modal.addEventListener('touchend', onEnd);
-            modal.addEventListener('touchcancel', onEnd);
+            overlay.addEventListener('touchstart', onStart, { passive: true });
+            overlay.addEventListener('touchmove', onMove, { passive: false });
+            overlay.addEventListener('touchend', onEnd);
+            overlay.addEventListener('touchcancel', onEnd);
         }
 
         // ── RENDER ATTENDANCE ─────────────────────────────────────────
@@ -17827,6 +17832,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
+                document.documentElement.classList.toggle('modal-open', hasActiveModal);
                 document.body.classList.toggle('modal-open', hasActiveModal);
             });
             document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal').forEach(el => {
@@ -17837,6 +17843,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
+                document.documentElement.classList.toggle('modal-open', hasActiveModal);
                 document.body.classList.toggle('modal-open', hasActiveModal);
             };
             syncModalOpenState();
