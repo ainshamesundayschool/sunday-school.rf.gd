@@ -3649,6 +3649,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
   2147483640 — ctx backdrop
   2147483647 — ctx menu
 */
+        body.modal-open {
+            overflow: hidden !important;
+            overscroll-behavior-y: contain !important;
+        }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -12459,71 +12464,133 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
-            let startX = 0, startY = 0, curX = 0, dragging = false, isHorizontal = null;
+            let startY = 0;
+            let startX = 0;
+            let swipeStartY = 0;
+            let lastY = 0;
+            let lastTime = 0;
+            let velocityY = 0;
+            let isDragging = false;
+            let isSwipingDown = false;
 
             const onStart = e => {
-                // If touch starts inside a scrollable table, don't intercept
-                const target = e.target || e.srcElement;
+                const target = e.target;
                 if (target && target.closest && (
                     target.closest('.table-zoom-wrap') ||
                     target.closest('.table-container') ||
                     target.closest('.sheet-container')
                 )) {
-                    dragging = false;
+                    isDragging = false;
                     return;
                 }
+
                 const t = e.touches ? e.touches[0] : e;
-                startX = t.clientX; startY = t.clientY;
-                curX = 0; dragging = true; isHorizontal = null;
+                startY = t.clientY;
+                startX = t.clientX;
+                swipeStartY = startY;
+                lastY = startY;
+                lastTime = Date.now();
+                isDragging = true;
+                isSwipingDown = false;
+                velocityY = 0;
+
                 modal.style.transition = 'none';
+                overlay.style.transition = 'none';
             };
 
             const onMove = e => {
-                if (!dragging) return;
-                const t = e.touches ? e.touches[0] : e;
-                const dx = t.clientX - startX;
-                const dy = t.clientY - startY;
+                if (!isDragging) return;
 
-                // Determine direction on first significant move
-                if (isHorizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-                    isHorizontal = Math.abs(dx) > Math.abs(dy);
+                const t = e.touches ? e.touches[0] : e;
+                const now = Date.now();
+                const dt = now - lastTime;
+
+                if (dt > 0) {
+                    velocityY = (t.clientY - lastY) / dt;
+                }
+                lastY = t.clientY;
+                lastTime = now;
+
+                if (!isSwipingDown) {
+                    const isVertical = Math.abs(t.clientY - startY) > Math.abs(t.clientX - startX);
+                    const isAtTop = modal.scrollTop <= 0;
+                    const touchedHeaderOrHandle = (startY - modal.getBoundingClientRect().top < 50) || e.target.closest('.modal-header') || e.target.closest('.modal::before');
+
+                    if (isVertical && (t.clientY - lastY) > 0) {
+                        if (isAtTop || touchedHeaderOrHandle) {
+                            isSwipingDown = true;
+                            swipeStartY = t.clientY;
+                        }
+                    }
                 }
 
-                // Only handle rightward horizontal swipe (RTL: "away from content")
-                if (!isHorizontal) return;
-                // In RTL layout, sliding left (negative dx) = closing direction
-                // but swiping right (positive dx) also feels natural on phones
-                // so we accept both left and right, but predominantly left in RTL
-                curX = dx; // allow both directions, close on threshold
-                const absDx = Math.abs(curX);
-                modal.style.transform = `translateX(${curX}px)`;
-                overlay.style.background = `rgba(0,0,0,${Math.max(0, .45 - absDx / 500)})`;
+                if (isSwipingDown) {
+                    if (e.cancelable) e.preventDefault();
+                    const translateY = Math.max(0, t.clientY - swipeStartY);
+                    modal.style.transform = `translateY(${translateY}px)`;
+
+                    const progress = translateY / modal.offsetHeight;
+                    const opacity = Math.max(0, 0.45 * (1 - progress));
+                    overlay.style.background = `rgba(0,0,0,${opacity})`;
+                    overlay.style.backdropFilter = `blur(${Math.max(0, 6 * (1 - progress))}px)`;
+                }
             };
 
             const onEnd = () => {
-                if (!dragging) return;
-                dragging = false; modal.style.transition = '';
-                if (isHorizontal && Math.abs(curX) > 100) {
-                    // Animate off screen in swipe direction
-                    modal.style.transition = 'transform .2s ease';
-                    modal.style.transform = `translateX(${curX > 0 ? '120%' : '-120%'})`;
-                    setTimeout(() => {
-                        overlay.classList.remove('active');
+                if (!isDragging) return;
+                isDragging = false;
+
+                modal.style.transition = '';
+                overlay.style.transition = '';
+
+                if (isSwipingDown) {
+                    const dy = lastY - swipeStartY;
+                    const modalHeight = modal.offsetHeight;
+                    const threshold = modalHeight * 0.22;
+                    const isFastSwipe = velocityY > 0.6;
+
+                    if (dy > threshold || isFastSwipe) {
+                        modal.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+                        overlay.style.transition = 'background-color 0.28s ease, backdrop-filter 0.28s ease';
+                        modal.style.transform = 'translateY(100%)';
+                        modal.style.opacity = '0';
+                        overlay.style.background = 'rgba(0,0,0,0)';
+                        overlay.style.backdropFilter = 'blur(0px)';
+
+                        setTimeout(() => {
+                            overlay.classList.remove('active');
+                            modal.style.transform = '';
+                            modal.style.opacity = '';
+                            modal.style.transition = '';
+                            overlay.style.background = '';
+                            overlay.style.backdropFilter = '';
+                            overlay.style.transition = '';
+                            startAutoRefresh();
+
+                            if (overlay.id === 'studentModal') currentStudentForEdit = null;
+                            if (overlay.id === 'accountModal') hideAccountEditForm();
+                        }, 280);
+                    } else {
+                        modal.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                        overlay.style.transition = 'background-color 0.3s ease, backdrop-filter 0.3s ease';
                         modal.style.transform = '';
-                        modal.style.transition = '';
                         overlay.style.background = '';
-                        startAutoRefresh();
-                    }, 210);
-                } else {
-                    modal.style.transform = '';
-                    overlay.style.background = '';
+                        overlay.style.backdropFilter = '';
+
+                        setTimeout(() => {
+                            modal.style.transition = '';
+                            overlay.style.transition = '';
+                        }, 300);
+                    }
                 }
-                curX = 0; isHorizontal = null;
+
+                isSwipingDown = false;
             };
 
             modal.addEventListener('touchstart', onStart, { passive: true });
-            modal.addEventListener('touchmove', onMove, { passive: true });
+            modal.addEventListener('touchmove', onMove, { passive: false });
             modal.addEventListener('touchend', onEnd);
+            modal.addEventListener('touchcancel', onEnd);
         }
 
         // ── RENDER ATTENDANCE ─────────────────────────────────────────
@@ -17741,6 +17808,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 });
                 initSwipeToClose(overlay);
             });
+
+            // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
+            const modalObserver = new MutationObserver(() => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
+                    return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
+                });
+                document.body.classList.toggle('modal-open', hasActiveModal);
+            });
+            document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal').forEach(el => {
+                modalObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+            });
+            // Sync initial state
+            const syncModalOpenState = () => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
+                    return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
+                });
+                document.body.classList.toggle('modal-open', hasActiveModal);
+            };
+            syncModalOpenState();
 
             // ── Mouse swipe selection in attendance view ──
             const attendanceList = document.getElementById('attendanceList');
