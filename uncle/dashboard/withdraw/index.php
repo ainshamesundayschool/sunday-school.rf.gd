@@ -7,7 +7,8 @@ ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
     $parent = dirname($rootPath);
-    if ($parent === $rootPath) break;
+    if ($parent === $rootPath)
+        break;
     $rootPath = $parent;
 }
 $sessionPath = $rootPath . '/.sessions';
@@ -39,7 +40,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
     <meta property="og:title" content="سحب الكوبونات | مدارس الأحد">
-    <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta property="og:description"
+        content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta property="og:url" content="https://sunday-school.online/uncle/dashboard/withdraw/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
     <meta property="og:image:width" content="1000">
@@ -49,7 +51,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="سحب الكوبونات | مدارس الأحد">
-    <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
+    <meta name="twitter:description"
+        content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
     <title>سحب الكوبونات | Sunday School</title>
@@ -518,9 +521,40 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             transform: translateY(0);
         }
 
-        .sheet-header { padding: 20px 24px 12px; text-align: center; position: relative; border-bottom: 1px solid var(--border-solid); }
-        .sheet-close { position: absolute; top: 12px; left: 16px; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); border: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); transition: all var(--t); }
-        .sheet-photo { width: 80px; height: 80px; border-radius: 22px; border: 3px solid var(--surface); box-shadow: var(--shadow-md); margin: 0 auto 10px; object-fit: cover; display: block; }
+        .sheet-header {
+            padding: 20px 24px 12px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid var(--border-solid);
+        }
+
+        .sheet-close {
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-2);
+            transition: all var(--t);
+        }
+
+        .sheet-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 22px;
+            border: 3px solid var(--surface);
+            box-shadow: var(--shadow-md);
+            margin: 0 auto 10px;
+            object-fit: cover;
+            display: block;
+        }
 
         .sheet-name {
             font-size: 1.4rem;
@@ -625,6 +659,27 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             background: var(--surface);
         }
 
+        .withdraw-note-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 14px;
+            border: 2px solid var(--border-solid);
+            background: var(--surface-2);
+            font-size: 0.95rem;
+            font-weight: 800;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            transition: all var(--t);
+            box-sizing: border-box;
+            text-align: right;
+        }
+
+        .withdraw-note-input:focus {
+            border-color: var(--brand);
+            background: var(--surface);
+        }
+
         .withdraw-btn {
             padding: 0 28px;
             border-radius: 14px;
@@ -644,6 +699,89 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         .withdraw-btn:disabled {
             opacity: .4;
             cursor: not-allowed;
+        }
+
+        /* ── Undo Toast ── */
+        .undo-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(22, 28, 45, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 12px 18px;
+            border-radius: 14px;
+            box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 30000000;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            min-width: 280px;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            direction: rtl;
+            transition: all 0.3s ease;
+        }
+        .undo-toast.show {
+            display: flex;
+            animation: undoToastIn 0.3s var(--ease);
+        }
+        .undo-btn {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .undo-btn:hover {
+            transform: scale(1.05);
+            background: rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
+        }
+        .undo-timer-circle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 700;
+        }
+        .undo-toast-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .undo-toast-close:hover {
+            color: #fff;
+        }
+        @keyframes undoToastIn {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
         .hist-section {
@@ -802,7 +940,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 <div style="display:flex; flex-direction: column; gap:12px; max-width: 500px; margin: 0 auto;">
                     <!-- Sort and Filters Info Row -->
                     <div style="display:flex; justify-content: space-between; align-items: center; padding: 0 8px;">
-                         <div style="position:relative">
+                        <div style="position:relative">
                             <i class="fas fa-sort-amount-down"
                                 style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text-3);pointer-events:none"></i>
                             <select id="sortSelect" class="pill"
@@ -816,7 +954,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         </div>
                         <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-3);">ترتيب حسب</div>
                     </div>
-                    
+
                     <!-- Search Row -->
                     <div style="position:relative">
                         <i class="fas fa-search search-icon"></i>
@@ -853,12 +991,85 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
     <div id="toast" class="toast"></div>
 
+    <!-- Undo Toast -->
+    <div class="undo-toast" id="undoToast">
+        <div class="undo-timer-circle" id="undoTimerCircle">10</div>
+        <span style="flex:1;" id="undoToastText">تم تنفيذ العملية بنجاح</span>
+        <button class="undo-btn" id="undoToastActionBtn"><i class="fas fa-undo"></i> تراجع</button>
+        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i class="fas fa-times"></i></button>
+    </div>
+
     <script>
         const API_URL = '/api.php';
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
         let allStudents = [];
         let classes = [];
         let currentClass = 'all';
         let selectedStudent = null;
+        let undoToastTimer = null;
+        let undoCountdownInterval = null;
+
+        function showUndoToast(log) {
+            const toastEl = document.getElementById('undoToast');
+            const timerEl = document.getElementById('undoTimerCircle');
+            const textEl = document.getElementById('undoToastText');
+            const actionBtn = document.getElementById('undoToastActionBtn');
+
+            if (!toastEl || !timerEl || !textEl || !actionBtn) return;
+
+            hideUndoToast();
+
+            textEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-weight:700;">تم سحب ${log.amount} كوبونات لـ ${escapeHtml(log.student_name)}</span>
+                    <span style="font-size:0.7rem; opacity:0.8; font-weight:normal;">تراجع عن العملية بكبسة زر واحدة.</span>
+                </div>
+            `;
+
+            actionBtn.onclick = async () => {
+                hideUndoToast();
+                await refund(log.id);
+            };
+
+            let secondsLeft = 10;
+            timerEl.textContent = secondsLeft;
+            toastEl.classList.add('show');
+
+            undoCountdownInterval = setInterval(() => {
+                secondsLeft--;
+                timerEl.textContent = secondsLeft;
+                if (secondsLeft <= 0) {
+                    hideUndoToast();
+                }
+            }, 1000);
+
+            undoToastTimer = setTimeout(() => {
+                hideUndoToast();
+            }, 10000);
+        }
+
+        function hideUndoToast() {
+            const toastEl = document.getElementById('undoToast');
+            if (toastEl) {
+                toastEl.classList.remove('show');
+            }
+            if (undoToastTimer) {
+                clearTimeout(undoToastTimer);
+                undoToastTimer = null;
+            }
+            if (undoCountdownInterval) {
+                clearInterval(undoCountdownInterval);
+                undoCountdownInterval = null;
+            }
+        }
 
         // Help UI scale
         if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -915,9 +1126,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function setFilter(cls) {
             currentClass = cls;
             renderFilters();
-            
+
             const searchVal = document.getElementById('searchInput').value.trim();
-            
+
             if (cls === 'classes') {
                 document.getElementById('classList').style.display = 'grid';
                 document.getElementById('studentList').style.display = 'none';
@@ -1009,7 +1220,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
-            
+
             let maxScore = 0;
 
             // Fields to search in
@@ -1023,7 +1234,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
 
             fields.forEach(field => {
                 if (!field.val) return;
-                
+
                 const target = field.val.toString();
                 const tNormalized = normalizeArabic(target);
                 const tRaw = target.toLowerCase();
@@ -1083,7 +1294,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             document.getElementById('studentList').style.display = 'flex';
 
             let filtered = allStudents;
-            
+
             // If we have a specific class selected (not 'all' and not 'classes' view), filter by that class
             if (currentClass !== 'all' && currentClass !== 'classes') {
                 filtered = filtered.filter(s => s['الفصل'] === currentClass);
@@ -1094,14 +1305,14 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 filtered = filtered.map(s => {
                     return { ...s, _searchScore: getMatchScore(s, q) };
                 })
-                .filter(s => s._searchScore > 0);
+                    .filter(s => s._searchScore > 0);
 
                 // Sort by search score first, then by the selected sort option
                 filtered.sort((a, b) => {
                     if (b._searchScore !== a._searchScore) {
                         return b._searchScore - a._searchScore;
                     }
-                    
+
                     if (sort === 'name_asc') return (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar');
                     if (sort === 'name_desc') return (b['الاسم'] || '').localeCompare(a['الاسم'] || '', 'ar');
                     if (sort === 'coupons_desc') return (parseInt(b['كوبونات']) || 0) - (parseInt(a['كوبونات']) || 0);
@@ -1168,6 +1379,9 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <option value="task">المهام فقط</option>
                     </select>
                 </div>
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="wNote" class="withdraw-note-input" placeholder="ملاحظة">
+                </div>
                 <div class="input-group">
                     <input type="number" id="wAmount" class="amount-input" placeholder="0" min="1" oninput="checkAmount()" style="padding:10px;font-size:1.1rem">
                     <button class="withdraw-btn" id="wBtn" onclick="submitWithdraw()" style="padding:0 20px;font-size:1rem">سحب</button>
@@ -1191,7 +1405,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const input = document.getElementById('wAmount');
             const val = parseInt(input.value) || 0;
             const category = document.getElementById('wCategory') ? document.getElementById('wCategory').value : 'all';
-            
+
             let max = 0;
             if (selectedStudent) {
                 if (category === 'att') max = parseInt(selectedStudent['كوبونات الحضور'] || 0);
@@ -1199,7 +1413,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 else if (category === 'task') max = parseInt(selectedStudent['كوبونات المهام'] || 0);
                 else max = parseInt(selectedStudent['كوبونات'] || 0);
             }
-            
+
             const btn = document.getElementById('wBtn');
             const err = document.getElementById('wError');
 
@@ -1240,6 +1454,12 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                         <div class="hist-uncle">بواسطة: ${h.uncle_name}</div>
                         ${h.is_refunded ? '<span class="audit-tag tag-brand">تم الاسترجاع</span>' : `<button class="refund-btn" onclick="refund(${h.id})">استرجاع</button>`}
                     </div>
+                    ${h.note ? `
+                    <div class="hist-note" style="margin-top:10px;font-size:0.85rem;color:var(--text-2);background:var(--surface);padding:8px 12px;border-radius:10px;font-weight:800;border-right:3px solid var(--brand);word-break:break-word;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-comment-dots" style="color:var(--brand);font-size:0.9rem"></i>
+                        <span>${escapeHtml(h.note)}</span>
+                    </div>
+                    ` : ''}
                 </div>
             `).join('');
             } else {
@@ -1250,7 +1470,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         async function submitWithdraw() {
             const val = parseInt(document.getElementById('wAmount').value);
             if (!val || val <= 0) { showToast('أدخل قيمة صحيحة', 'error'); return; }
-            
+
             const category = document.getElementById('wCategory').value;
             let limit = selectedStudent ? (selectedStudent['كوبونات'] || 0) : 0;
             if (category === 'att') limit = parseInt(selectedStudent['كوبونات الحضور'] || 0);
@@ -1262,18 +1482,30 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             const btn = document.getElementById('wBtn');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
+            const noteEl = document.getElementById('wNote');
+            const noteVal = noteEl ? noteEl.value.trim() : '';
+
             const fd = new FormData();
             fd.append('action', 'withdrawCoupons');
             fd.append('student_id', selectedStudent['_studentId']);
             fd.append('amount', val);
             fd.append('category', category);
+            fd.append('note', noteVal);
 
             try {
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (r.success) {
                     showToast('تم السحب بنجاح', 'success');
                     document.getElementById('wAmount').value = '';
-                    
+                    if (noteEl) noteEl.value = '';
+
+                    // Show Undo Toast!
+                    showUndoToast({
+                        id: r.withdrawal_id,
+                        amount: val,
+                        student_name: selectedStudent['الاسم']
+                    });
+
                     // Soft refresh all data in background to update local categories cards
                     const refreshFd = new FormData(); refreshFd.append('action', 'getData');
                     const refreshR = await fetch(API_URL, { method: 'POST', body: refreshFd, credentials: 'include' }).then(r => r.json());
@@ -1296,7 +1528,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                             }
                         }
                     }
-                    
+
                     loadHistory(selectedStudent['_studentId']);
                 } else {
                     showToast(r.message || 'فشل السحب', 'error');
@@ -1305,8 +1537,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             btn.disabled = false; btn.innerHTML = 'سحب';
         }
 
-        async function refund(wid) {
-            if (!confirm('هل تريد استرجاع الكوبونات؟')) return;
+        async function refund(wid, skipConfirm = false) {
+            if (!skipConfirm && !confirm('هل تريد استرجاع الكوبونات؟')) return;
             const fd = new FormData();
             fd.append('action', 'refundWithdrawal');
             fd.append('withdrawal_id', wid);
@@ -1324,6 +1556,15 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                             if (updated) {
                                 selectedStudent = updated;
                                 document.getElementById('curTotal').textContent = updated['كوبونات'];
+                                // Update breakdown card dynamically
+                                const breakdownDiv = document.querySelector('.breakdown-card');
+                                if (breakdownDiv) {
+                                    breakdownDiv.innerHTML = `
+                                        <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${updated['كوبونات الحضور'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${updated['كوبونات الالتزام'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${updated['كوبونات المهام'] || 0}</div></div>
+                                    `;
+                                }
                             }
                         }
                     }

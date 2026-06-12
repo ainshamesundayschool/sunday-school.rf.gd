@@ -1613,6 +1613,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: rgba(255, 255, 255, 0.22) !important;
         }
 
+        .action-strip-merge {
+            background: rgba(124, 58, 237, 0.15) !important;
+            border-color: rgba(124, 58, 237, 0.22) !important;
+            color: #7c3aed !important;
+        }
+
+        .action-strip-merge:hover {
+            background: rgba(124, 58, 237, 0.25) !important;
+            border-color: rgba(124, 58, 237, 0.35) !important;
+            color: #6d28d9 !important;
+        }
+
         .action-strip-neutral {
             background: var(--surface-2) !important;
             color: var(--text-2) !important;
@@ -2920,7 +2932,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
             align-items: center;
             gap: 10px;
-            z-index: 9999;
+            z-index: 30000000;
             font-family: 'Cairo', sans-serif;
             font-size: 0.85rem;
             font-weight: 600;
@@ -2954,6 +2966,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(1.05);
             background: rgba(99, 102, 241, 0.35);
             color: #c7d2fe;
+        }
+        .history-undo-btn {
+            background: rgba(99, 102, 241, 0.1) !important;
+            color: #a5b4fc !important;
+            border: 1px solid rgba(99, 102, 241, 0.2) !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.72rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            transition: all 0.2s ease !important;
+        }
+        .history-undo-btn:hover {
+            background: rgba(99, 102, 241, 0.25) !important;
+            color: #c7d2fe !important;
+            border-color: rgba(99, 102, 241, 0.35) !important;
         }
         .undo-timer-circle {
             position: relative;
@@ -3038,10 +3070,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none !important;
         }
         body.bulk-active .class-view {
-            padding-top: 155px !important;
+            padding-top: var(--bulk-active-padding, 155px) !important;
         }
         body.bulk-active .att-toolbar {
-            top: 96px !important;
+            top: var(--bulk-bar-height, 96px) !important;
+            background: var(--surface) !important;
+            border-radius: 0 0 var(--r-xl) var(--r-xl) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            border-top: none !important;
         }
         body.bulk-active .bulk-actions-bar {
             position: fixed !important;
@@ -3053,9 +3089,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin: 0 !important;
             border-radius: 0 !important;
             border: none !important;
-            border-bottom: 1.5px solid var(--border-solid) !important;
             padding: 10px 16px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            box-shadow: none !important;
             background: var(--surface) !important;
             animation: slideDownBulk 0.25s var(--ease-spring) !important;
         }
@@ -3101,16 +3136,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: var(--r-md) !important;
+            height: 26px;
+            padding: 0 8px !important;
+            gap: 4px;
+            border-radius: var(--r-sm, 6px) !important;
             border: none !important;
-            padding: 0 !important;
             cursor: pointer;
             transition: all 0.2s ease;
         }
+        .btn-bulk-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            white-space: nowrap;
+            color: inherit;
+        }
         .btn-bulk-action i {
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             line-height: 1 !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -3120,20 +3162,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             opacity: 0.85;
             transform: scale(1.05);
         }
-        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; }
+        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; color: var(--success) !important; }
         .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
-        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
         .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; }
+        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; color: var(--warning) !important; }
         .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
-        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; }
+        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; color: var(--brand) !important; }
         .btn-bulk-action.bulk-class i { color: var(--brand) !important; }
-        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; }
+        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
         .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
         .btn-bulk-action.bulk-note i { color: #3b82f6 !important; }
         
-        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; }
+        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; color: #8b5cf6 !important; }
         .btn-bulk-action.bulk-merge i { color: #8b5cf6 !important; }
 
         /* Premium Merge Duplicates Table & UI Styles */
@@ -8933,11 +8975,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="account-name" id="accountDisplayName">---</div>
                 <div class="account-role" id="accountDisplayRole">---</div>
                 <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
-                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
                     <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()"
                         style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="pwaInstallBtn" onclick="hideAccountModal(); triggerPwaInstall()"
+                        style="padding:8px 14px;font-size:.82rem;display:none" title="تثبيت التطبيق">
+                        <i class="fas fa-download" style="color:var(--success)"></i> تثبيت التطبيق
                     </button>
                     <a href="/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
@@ -9115,11 +9161,56 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
                     <span class="tool-card-name">اقتراحات الإخوات</span>
                     <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
+                </button>
                 <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();window.location.href='/uncle/church/?action=bulkAdd'">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
                 </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showHelpModal()">
+                    <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-question-circle"></i></span>
+                    <span class="tool-card-name">دليل مساعدة الخدمة</span>
+                    <span class="tool-card-desc">اعرف تفاصيل كل ميزة في الخدمة.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Center & Smart Search Modal -->
+    <!-- NOTE TO DEVELOPERS: ALWAYS ADD NEW FEATURES TO THE HELP_FEATURES DATA ARRAY AT THE BOTTOM OF THE SCRIPTS SECTION! -->
+    <div class="modal-overlay" id="helpFeaturesModal" style="z-index: 1000015;">
+        <div class="modal modal-lg" style="max-width: 850px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex: none;">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-question-circle" style="color:var(--brand);"></i> 
+                    <span>دليل مساعدة الخدمة</span>
+                </h3>
+                <button class="close-btn" onclick="closeHelpModal()">&times;</button>
+            </div>
+            <div class="help-modal-body" style="padding: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 12px; direction: rtl; text-align: right;">
+                <!-- Search bar -->
+                <div class="help-search-wrapper" style="flex: none; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="position: relative; width: 100%;">
+                        <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.95rem;"></i>
+                        <input type="text" id="helpSearchInput" placeholder="ابحث عن ميزة أو كلمة رئيسية (مثال: دمج، غياب، كوبونات، صورة، رحلة)..." 
+                            style="width: 100%; height: 42px; padding: 0 38px 0 12px; border: 1px solid var(--border); border-radius: var(--r-md, 8px); font-family: 'Cairo', sans-serif; font-size: 0.9rem; background: var(--bg); color: var(--text); outline: none; box-sizing: border-box;"
+                            oninput="performHelpSearch()">
+                    </div>
+                    <!-- Category Chips -->
+                    <div class="help-categories" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                        <button class="help-cat-chip active" id="help-cat-all" onclick="filterHelpByCategory('all')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:var(--brand); color:white; font-family:'Cairo',sans-serif; transition:all 0.2s;">الكل</button>
+                        <button class="help-cat-chip" id="help-cat-attendance" onclick="filterHelpByCategory('attendance')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الحضور والغياب</button>
+                        <button class="help-cat-chip" id="help-cat-bulk" onclick="filterHelpByCategory('bulk')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الإجراءات الجماعية</button>
+                        <button class="help-cat-chip" id="help-cat-profile" onclick="filterHelpByCategory('profile')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الملف الشخصي</button>
+                        <button class="help-cat-chip" id="help-cat-settings" onclick="filterHelpByCategory('settings')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إعدادات الطباعة</button>
+                        <button class="help-cat-chip" id="help-cat-trash" onclick="filterHelpByCategory('trash')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">المحذوفات</button>
+                        <button class="help-cat-chip" id="help-cat-admin" onclick="filterHelpByCategory('admin')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إدارة الرحلات والنظام</button>
+                    </div>
+                </div>
+                <!-- Scrollable results list -->
+                <div id="helpFeaturesList" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
+                    <!-- Features cards render here -->
+                </div>
             </div>
         </div>
     </div>
@@ -9167,14 +9258,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="bulk-actions-btns">
                 <button class="btn-bulk-action bulk-att-present" onclick="bulkMarkAttendance('present')" title="حضور">
                     <i class="fas fa-check"></i>
+                    <span class="btn-bulk-label">حضور</span>
                 </button>
                 <button class="btn-bulk-action bulk-att-absent" onclick="bulkMarkAttendance('absent')" title="غياب">
                     <i class="fas fa-times"></i>
+                    <span class="btn-bulk-label">غياب</span>
                 </button>
                 
                 <div class="action-dropdown" style="flex:none;">
                     <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
                         <i class="fas fa-coins"></i>
+                        <span class="btn-bulk-label">كوبونات</span>
                     </button>
                     <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
                         <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
@@ -9193,15 +9287,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <button class="btn-bulk-action bulk-class" onclick="triggerBulkClass()" title="تغيير الفصل">
                     <i class="fas fa-edit"></i>
+                    <span class="btn-bulk-label">نقل</span>
                 </button>
                 <button class="btn-bulk-action bulk-note" onclick="openBulkNoteModal()" title="إضافة ملاحظة جماعية">
                     <i class="fas fa-sticky-note"></i>
+                    <span class="btn-bulk-label">ملاحظة</span>
                 </button>
                 <button class="btn-bulk-action bulk-delete" onclick="triggerBulkDelete()" title="حذف">
                     <i class="fas fa-trash"></i>
+                    <span class="btn-bulk-label">حذف</span>
                 </button>
                 <button class="btn-bulk-action bulk-merge" id="bulkMergeBtn" onclick="triggerBulkMerge()" title="دمج الحسابين المكررين" style="display: none;">
                     <i class="fas fa-code-merge"></i>
+                    <span class="btn-bulk-label">دمج</span>
                 </button>
             </div>
         </div>
@@ -9231,6 +9329,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
             </div>
             <div class="topbar-actions">
+                <button class="topbar-btn" onclick="showHelpModal()" title="دليل مساعدة الخدمة">
+                    <i class="fas fa-question-circle"></i>
+                </button>
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
@@ -9251,13 +9352,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
-                <!-- PWA Install -->
-                <button class="topbar-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()" title="تثبيت التطبيق"
-                    style="display:none;position:relative; overflow:visible;">
-                    <i class="fas fa-download"></i>
-                    <span
-                        style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--success);border-radius:50%;border:2px solid var(--bg)"></span>
-                </button>
+
                 <div class="topbar-avatar-btn" id="uncleChip"
                     style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
@@ -9284,6 +9379,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tool-chip" onclick="showHelpModal()" style="background:rgba(91,108,245,0.08);color:var(--brand);border-color:rgba(91,108,245,0.25);"><i class="fas fa-question-circle"></i> دليل المساعدة</button>
                         <button class="home-tools-link" onclick="showAllToolsModal()">
                             كل الأدوات <i class="fas fa-arrow-left"></i>
                         </button>
@@ -9553,6 +9649,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-hand-pointer swipe-hand-icon"></i>
                         <span class="strip-btn-label">سحب</span>
                     </button>
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-merge"
+                        onclick="startMergeChooseMode()" title="دمج الحسابات المكررة" id="stripMergeBtn">
+                        <i class="fas fa-code-merge"></i>
+                        <span class="strip-btn-label">دمج</span>
+                    </button>
                     <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral" onclick="showResetModal()"
                         title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
@@ -9715,8 +9816,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-external-link-alt"></i> الملف العام</button>
                 <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
                     حذف</button>
             </div>
@@ -10782,7 +10884,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 'bulkDeleteStudents': { label: 'حذف جماعي للأطفال' },
                 'bulkUpdateStudentsClass': { label: 'نقل جماعي للفصول' },
                 'bulkUpdateStudentsCoupons': { label: 'تعديل جماعي للكوبونات' },
-                'deleteStudent': { label: 'حذف طفل' }
+                'deleteStudent': { label: 'حذف طفل' },
+                'student_merge': { label: 'دمج الحسابات المكررة' }
             };
             return m[act] || { label: act };
         }
@@ -10875,7 +10978,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         // Check if this was a critical restorable action
                         const criticalActions = [
                             'bulkDeleteStudents', 'bulkUpdateStudentsClass', 
-                            'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent'
+                            'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent',
+                            'mergeDuplicateStudents'
                         ];
                         if (criticalActions.includes(params.action)) {
                             triggerUndoToastChecking();
@@ -11357,7 +11461,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
@@ -12463,7 +12567,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
@@ -12567,7 +12671,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let cls = 'attendance-item ' + st;
             if (isInChanged || isCouponChanged) cls += ' has-local';
             if (isBdayToday) cls += ' bday-row';
-            const dbId = s ? getStudentDbId(s) : null;
+            const dbId = s ? Number(getStudentDbId(s)) : null;
             if (dbId && selectedStudentIds.has(dbId)) cls += ' selected';
             row.className = cls;
 
@@ -12664,6 +12768,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         let isBulkSelectMode = false;
+        let isMergeChoosingMode = false;
         const selectedStudentIds = new Set();
 
         function openModal(id) {
@@ -12701,6 +12806,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (list) {
                     list.classList.add('bulk-active');
                 }
+                setTimeout(updateBulkBarHeight, 50);
             } else {
                 document.body.classList.remove('bulk-active');
                 if (toggleBtn) {
@@ -12715,11 +12821,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     list.classList.remove('bulk-active');
                 }
                 selectedStudentIds.clear();
+                isMergeChoosingMode = false;
                 updateBulkUI();
             }
-            
+
             renderAttendanceList(currentClass);
         }
+
+        function updateBulkBarHeight() {
+            const bar = document.getElementById('bulkActionsBar');
+            if (bar && isBulkSelectMode) {
+                const height = bar.offsetHeight;
+                document.documentElement.style.setProperty('--bulk-bar-height', height + 'px');
+                const toolbar = document.querySelector('.att-toolbar');
+                const toolbarHeight = toolbar ? toolbar.offsetHeight : 50;
+                document.documentElement.style.setProperty('--bulk-active-padding', (height + toolbarHeight + 8) + 'px');
+            }
+        }
+        window.addEventListener('resize', updateBulkBarHeight);
 
         function disableBulkSelectMode() {
             if (isBulkSelectMode) {
@@ -12732,21 +12851,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 event.preventDefault();
                 event.stopPropagation();
             }
-            if (selectedStudentIds.has(dbId)) {
-                selectedStudentIds.delete(dbId);
+            const numId = Number(dbId);
+            if (selectedStudentIds.has(numId)) {
+                selectedStudentIds.delete(numId);
             } else {
-                selectedStudentIds.add(dbId);
+                if (isMergeChoosingMode && selectedStudentIds.size >= 2) {
+                    showToast('يمكنك تحديد طفلين فقط في وضع الدمج', 'warning');
+                    return;
+                }
+                selectedStudentIds.add(numId);
             }
             
             // Find student node and update row class/checkbox in-place
             const allList = isCombinedView ? combinedStudents : students;
-            const s = allList.find(x => getStudentDbId(x) === dbId);
+            const s = allList.find(x => Number(getStudentDbId(x)) === numId);
             if (s) {
                 const sid = getStudentId(s);
                 _updateAttendanceRow(sid);
             }
             
             updateBulkUI();
+
+            if (isMergeChoosingMode && selectedStudentIds.size === 2) {
+                isMergeChoosingMode = false;
+                triggerBulkMerge();
+            }
         }
 
         function toggleSelectAllBulk(event) {
@@ -12754,13 +12883,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 event.preventDefault();
                 event.stopPropagation();
             }
+            isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
             
-            const isAllSel = displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            const isAllSel = displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
             
             displayed.forEach(s => {
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 if (isAllSel) {
                     selectedStudentIds.delete(dbId);
                 } else {
@@ -12773,6 +12903,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function bulkSelectByFilter(filter) {
+            isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
             
@@ -12780,7 +12911,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             selectedStudentIds.clear();
             
             displayed.forEach(s => {
-                const dbId = getStudentDbId(s);
+                const dbId = Number(getStudentDbId(s));
                 const sid = getStudentId(s);
                 const st = attendanceData[sid] || 'pending';
                 
@@ -12849,7 +12980,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const displayed = filterAndSortActiveStudents();
             const barCircle = document.getElementById('bulkBarSelectAllCircle');
             
-            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(getStudentDbId(s)));
+            const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
             
             if (barCircle) {
                 if (isAllSel) {
@@ -12941,6 +13072,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function startMergeChooseMode() {
+            if (selectedStudentIds.size === 2) {
+                triggerBulkMerge();
+                return;
+            }
+            
+            selectedStudentIds.clear();
+            isMergeChoosingMode = true;
+            
+            if (!isBulkSelectMode) {
+                toggleBulkSelectMode();
+            } else {
+                updateBulkUI();
+                renderAttendanceList(currentClass);
+            }
+            
+            showToast('يرجى تحديد طفلين فقط من القائمة لدمج حساباتهما', 'info');
+        }
+
         function closeMergeModal() {
             const modal = document.getElementById('mergeDuplicateModal');
             if (modal) modal.classList.remove('active');
@@ -13015,13 +13165,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = [
                 { key: 'name', label: 'الاسم الكامل' },
                 { key: 'gender', label: 'النوع', format: v => v === 'female' ? 'بنت' : 'ولد' },
-                { key: 'class_name', label: 'الفصل' },
+                { key: 'class_id', displayKey: 'class_name', label: 'الفصل' },
                 { key: 'phone', label: 'رقم التليفون' },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ' },
                 { key: 'email', label: 'البريد الإلكتروني' },
                 { key: 'birthday', label: 'تاريخ الميلاد' },
                 { key: 'address', label: 'العنوان' },
-                { key: 'medical_notes', label: 'ملاحظات طبية' }
+                { key: 'medical_notes', label: 'ملاحظات طبية' },
+                { 
+                    key: 'image_url', 
+                    label: 'الصورة الشخصية', 
+                    isHtml: true, 
+                    format: v => v ? `<img src="${window.photoUrl ? window.photoUrl(v) : v}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);vertical-align:middle;">` : 'لا توجد صورة' 
+                }
             ];
 
             let tableRowsHtml = '';
@@ -13029,8 +13185,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fields.forEach(f => {
                 const valA = (sA[f.key] || '').toString().trim();
                 const valB = (sB[f.key] || '').toString().trim();
-                const dispA = f.format ? f.format(valA) : valA;
-                const dispB = f.format ? f.format(valB) : valB;
+                
+                const dispValA = f.displayKey ? sA[f.displayKey] : valA;
+                const dispValB = f.displayKey ? sB[f.displayKey] : valB;
+                
+                const dispA = f.format ? f.format(dispValA) : dispValA;
+                const dispB = f.format ? f.format(dispValB) : dispValB;
 
                 const isIdentical = valA && valB && (valA.toLowerCase() === valB.toLowerCase());
 
@@ -13039,7 +13199,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <tr>
                             <td class="merge-field-label">${f.label}</td>
                             <td colspan="2" class="merge-cell-option identical" style="text-align:center;">
-                                ${escHtml(dispA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
+                                ${f.isHtml ? dispA : escHtml(dispA || '---')} <span style="color:var(--success);margin-right:8px;"><i class="fas fa-check-circle"></i> متطابق</span>
                             </td>
                         </tr>
                     `;
@@ -13060,14 +13220,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <td class="merge-cell-option ${classA}">
                                 <label>
                                     <input type="radio" name="field_${f.key}" value="A" ${checkedA}>
-                                    <span>${escHtml(dispA || '---')}</span>
+                                    <span>${f.isHtml ? dispA : escHtml(dispA || '---')}</span>
                                     ${classA ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
                                 </label>
                             </td>
                             <td class="merge-cell-option ${classB}">
                                 <label>
                                     <input type="radio" name="field_${f.key}" value="B" ${checkedB}>
-                                    <span>${escHtml(dispB || '---')}</span>
+                                    <span>${f.isHtml ? dispB : escHtml(dispB || '---')}</span>
                                     ${classB ? '<span style="font-size:0.6rem;margin-right:auto;">(تلقائي)</span>' : ''}
                                 </label>
                             </td>
@@ -13387,6 +13547,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         action: 'mergeDuplicateStudents',
                         target_id: targetId,
                         duplicate_id: duplicateId,
+                        is_target_a: isTargetA,
                         profile_fields: profileFields,
                         credentials_from: credentialsFrom,
                         attendance_mode: attendanceMode,
@@ -13395,8 +13556,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }, d => {
                         showToast(d.message || 'تم دمج الحسابين بنجاح', 'success');
                         closeMergeModal();
-                        selectedStudentIds.clear();
-                        updateBulkUI();
+                        disableBulkSelectMode();
                         loadData();
                     }, err => {
                         showToast(err || 'فشل الدمج', 'error');
@@ -14394,6 +14554,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showToast(`تم نسخ ${attended.length} حاضر`, 'success');
         }
 
+        function redirectToKidProfile() {
+            if (!currentStudentForEdit) return;
+            const id = getStudentDbId(currentStudentForEdit);
+            if (!id) return;
+            const url = `${window.location.origin}/user/profile/?id=${encodeURIComponent(id)}`;
+            window.open(url, '_blank');
+        }
+
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
             const s = isCombinedView
@@ -15136,6 +15304,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
             let rowsList = [
+                ['معرّف الطفل (ID)', String(getStudentDbId(s)), 'blue', 'fa-fingerprint', String(getStudentDbId(s))],
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card', s['الاسم'] || '---'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars', genderLabel],
                 ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher', s['الفصل'] || '---'],
@@ -15262,6 +15431,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
 
             let rowsList = [
+                ['معرّف الطفل (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card', full.name || '---'],
                 ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars', formatGenderLabel(full.gender || full['النوع'])],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher', full.class || '---'],
@@ -17429,6 +17599,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('closeRegistrationDetailsModal', 'click', hideRegistrationDetails);
             on('closeAnnouncementsModal', 'click', hideAnnouncementsModal);
             on('editStudentBtn', 'click', showEditForm);
+            on('viewProfileBtn', 'click', redirectToKidProfile);
             on('deleteStudentBtn', 'click', () => { if (currentStudentForEdit) showDeleteStudentModal(currentStudentForEdit); });
             on('confirmDeleteStudentBtn', 'click', deleteStudent);
             on('editForm', 'submit', updateStudentInfo);
@@ -17784,6 +17955,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (entityName) desc += ` — <strong>${entityName}</strong>`;
                     if (entityType && !entityName) desc += ` في ${entityType}`;
 
+                    const restorableActions = [
+                        'student_add', 'student_edit', 'student_delete', 'coupon_edit', 
+                        'attendance_add', 'attendance_edit', 'attendance_delete', 
+                        'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 
+                        'bulk_attendance_save', 'bulk_note_add', 'note_add', 'note_delete', 
+                        'student_merge', 'uncle_add', 'uncle_edit', 'uncle_delete'
+                    ];
+                    const isUndoable = restorableActions.includes(action);
+                    const undoButton = isUndoable ? `
+                        <button class="history-undo-btn" onclick="undoHistoryAction(${log.id})" title="تراجع عن هذه العملية">
+                            <i class="fas fa-undo"></i> تراجع
+                        </button>
+                    ` : '';
+
                     html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;
                 border-bottom:1px solid var(--border);">
 
@@ -17801,13 +17986,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ${actor ? `<div style="font-size:.72rem;color:var(--text-3);margin-top:1px"><i class="fas fa-user" style="font-size:.6rem"></i> ${actor}</div>` : ''}
                 </div>
 
-                <!-- Time badge -->
-                <div style="font-size:.7rem;color:var(--text-3);white-space:nowrap;flex-shrink:0">${time}</div>
+                <!-- Action / Time badge -->
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    ${undoButton}
+                    <div style="font-size:.7rem;color:var(--text-3);white-space:nowrap;">${time}</div>
+                </div>
             </div>`;
                 });
             });
 
             content.innerHTML = html;
+        }
+
+        async function undoHistoryAction(logId) {
+            showCustomConfirm({
+                title: 'تأكيد التراجع',
+                message: 'هل أنت متأكد من التراجع عن هذه العملية؟ قد يؤثر ذلك على البيانات المرتبطة.',
+                icon: '<i class="fas fa-undo"></i>',
+                iconColor: 'var(--brand)',
+                btnText: 'نعم، تراجع',
+                btnClass: 'btn-primary',
+                btnIconClass: 'fas fa-check',
+                onConfirm: async () => {
+                    showLoading('جاري التراجع عن العملية...');
+                    const fd = new FormData();
+                    fd.append('action', 'restoreAuditLog');
+                    fd.append('log_id', logId);
+                    try {
+                        const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                            .then(r => r.json())
+                            .catch(() => ({ success: false }));
+                        
+                        hideLoading();
+                        if (d.success) {
+                            showToast(d.message || 'تم التراجع عن العملية بنجاح', 'success');
+                            loadData();
+                            showUncleHistory();
+                        } else {
+                            showToast(d.message || 'فشل في التراجع عن العملية', 'error');
+                        }
+                    } catch (e) {
+                        hideLoading();
+                        showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+                    }
+                }
+            });
         }
 
         function renderHistorySummary(logs) {
@@ -19901,6 +20124,682 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     showToast('حدث خطأ في الاتصال بالخادم', 'error');
                 });
         };
+
+        // =========================================================================
+        // NOTE TO DEVELOPERS: ALWAYS ADD NEW FEATURES TO THIS HELP SYSTEM DATA ARRAY!
+        // Each feature should have:
+        // - title: Arabic title/name of the feature
+        // - category: category key ('attendance', 'bulk', 'profile', 'settings', 'trash', 'admin')
+        // - description: brief description of what the feature does
+        // - how_it_works: step-by-step description of how to use it
+        // - location: where this feature is located in the UI
+        // - keywords: synonyms, tags, or common queries for intelligent matching
+        // - action: JavaScript code to execute, or URL string to open (external redirect)
+        // =========================================================================
+        const HELP_FEATURES = [
+            {
+                title: "رصد الحضور والغياب",
+                category: "attendance",
+                icon: "fas fa-user-check",
+                description: "تحضير وتغييب الولاد والبنات لليوم الحالي.",
+                how_it_works: "دوس على اسم الولد في القائمة عشان تغير حالته بالترتيب: حاضر، غايب، أو تشيل الحضور خالص.",
+                location: "الصفحة الرئيسية > قائمة الفصول",
+                keywords: ["حضور", "غياب", "رصد", "تحضير", "تحضير يومي", "غياب وحضور", "نقرة", "لمس"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "البحث الذكي عن الأطفال",
+                category: "attendance",
+                icon: "fas fa-search",
+                description: "تدور وتوصل لأي ولد أو بنت بسرعة.",
+                how_it_works: "اكتب الاسم، الفصل، أو رقم التليفون في خانة البحث فوق عشان يظهرلك ملف الولد علطول.",
+                location: "الترويسة العلوية أو أعلى الفصول",
+                keywords: ["بحث", "فلترة", "بحث سريع", "اسم", "هاتف", "تليفون", "فصل"],
+                action: "closeHelpModal(); document.getElementById('inlineSearchInput').focus();"
+            },
+            {
+                title: "تصفية الولاد بحالة الحضور",
+                category: "attendance",
+                icon: "fas fa-filter",
+                description: "فلترة القائمة عشان تركز على فئة معينة.",
+                how_it_works: "دوس على الفلاتر المدورة فوق عشان تشوف الحاضرين بس، أو الغايبين بس، أو اللي لسه متسجلش ليهم بيانات النهاردة.",
+                location: "الصفحة الرئيسية > أعلى الفصول",
+                keywords: ["تصفية", "فلتر", "لا بيانات", "حاضرين", "غائبين", "تحضير"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "تنبيه أعياد ميلاد النهاردة",
+                category: "attendance",
+                icon: "fas fa-birthday-cake",
+                description: "تنبيه تلقائي عشان تعيد على الولاد اللي عيد ميلادهم النهاردة.",
+                how_it_works: "هيظهر شريط ملون فوق تلقائي لو فيه أعياد ميلاد، وهتلاقي علامة تورته متميزة جنب اسم الولد.",
+                location: "أعلى الصفحة الرئيسية",
+                keywords: ["عيد ميلاد", "أعياد ميلاد", "تهنئة", "ميلاد اليوم", "تورته"],
+                action: "closeHelpModal(); showBirthdayModal();"
+            },
+            {
+                title: "سحب هدايا الكوبونات",
+                category: "attendance",
+                icon: "fas fa-ticket-alt",
+                description: "خصم نقط أو كوبونات من رصيد الولد لما يستبدلها بجايزة.",
+                how_it_works: "افتح الأداة، اختار الولد، واكتب عدد النقط اللي عايز تخصمها ودوس تأكيد علطول.",
+                location: "الصفحة الرئيسية > شريط الأدوات > سحب كوبونات",
+                keywords: ["سحب", "كوبونات", "هدايا", "استبدال", "خصم نقاط", "جوائز", "نقاط"],
+                action: "window.location.href='/uncle/dashboard/withdraw/'"
+            },
+            {
+                title: "إدارة المهام والواجبات",
+                category: "attendance",
+                icon: "fas fa-tasks",
+                description: "تسجيل وتقييم تسليمات الواجبات والأنشطة والاختبارات الدورية.",
+                how_it_works: "اعمل مهمة جديدة زي حفظ أو واجب، وبعدين سجل درجات الولاد وتقييماتهم.",
+                location: "الصفحة الرئيسية > شريط الأدوات > المهام",
+                keywords: ["مهمة", "مهام", "واجب", "اختبار", "حفظ", "تسميع", "تسليم", "درجات"],
+                action: "window.location.href='/uncle/dashboard/tasks/'"
+            },
+            {
+                title: "تصدير البيانات المخصص",
+                category: "attendance",
+                icon: "fas fa-file-export",
+                description: "تحميل وتصدير كشوف الولاد لملفات إكسل مخصصة.",
+                how_it_works: "اختار الفصل والبيانات اللي محتاجها زي التليفونات، التواريخ، أو النقط، وحمل الملف فوراً.",
+                location: "الصفحة الرئيسية > شريط الأدوات > تصدير",
+                keywords: ["تصدير", "excel", "csv", "تحميل بيانات", "شيت", "اكسيل"],
+                action: "closeHelpModal(); showAllKidsCustomExport();"
+            },
+            {
+                title: "نشر الإعلانات العامة",
+                category: "attendance",
+                icon: "fas fa-bullhorn",
+                description: "تنزيل إعلانات تظهر للولاد وأهاليهم لما يفتحوا حساباتهم.",
+                how_it_works: "اكتب عنوان الإعلان والتفاصيل واختار مين يشوفه وهيظهرلهم علطول أول ما يفتحوا التطبيق.",
+                location: "الصفحة الرئيسية > شريط الأدوات > الإعلانات",
+                keywords: ["اعلان", "اعلام", "تنبيه", "رسالة", "خبر", "تبليغ", "إعلانات"],
+                action: "closeHelpModal(); showAnnouncementsModal();"
+            },
+            {
+                title: "أعياد ميلاد الشهر",
+                category: "attendance",
+                icon: "fas fa-calendar-alt",
+                description: "كشف بكل الولاد اللي أعياد ميلادهم في الشهر الحالي.",
+                how_it_works: "افتح الأداة واختار الشهر عشان ترتب حفلات الخدمة وأعياد الميلاد بسهولة.",
+                location: "الصفحة الرئيسية > شريط الأدوات > أعياد الميلاد",
+                keywords: ["أعياد الميلاد", "شهر", "ميلاد الشهر", "احتفال", "ميلاد"],
+                action: "closeHelpModal(); showBirthdayModal();"
+            },
+            {
+                title: "عرض كل الولاد",
+                category: "attendance",
+                icon: "fas fa-users",
+                description: "كشف كامل للبحث والترتيب وتصفية كل الولاد المسجلين بالكنيسة.",
+                how_it_works: "افتح الكشف عشان ترتب الولاد بالاسم أو برصيد النقط مع إمكانية البحث السريع.",
+                location: "الصفحة الرئيسية > شريط الأدوات > جميع الأطفال",
+                keywords: ["جميع الأطفال", "كل الاطفال", "قائمة شاملة", "ترتيب", "بحث عام", "جدول"],
+                action: "closeHelpModal(); showAllStudentsModal();"
+            },
+            {
+                title: "اقتراحات ربط الإخوات",
+                category: "attendance",
+                icon: "fas fa-wand-magic-sparkles",
+                description: "نظام ذكي بيتعرف على الإخوات الأشقاء لو مش مربوطين ببعض.",
+                how_it_works: "السيستم بيقارن اسم العيلة والتليفونات وبيقترح عليك تربطهم كعيلة بضغطة واحدة.",
+                location: "الصفحة الرئيسية > شريط الأدوات > اقتراحات الإخوات",
+                keywords: ["اخوة", "إخوة", "ربط", "قرابة", "تشابه", "عائلة", "اقتراح", "ذكاء"],
+                action: "closeHelpModal(); openSiblingSuggestionsView();"
+            },
+            {
+                title: "إضافة مجموعة أطفال دفعة واحدة",
+                category: "settings",
+                icon: "fas fa-file-upload",
+                description: "رفع كشف إكسل عشان تدخل عدد كبير من الولاد للفصول مرة واحدة.",
+                how_it_works: "حمل النموذج الفاضي، املأ البيانات، وارفع الملف وهيتم تسجيلهم فوراً.",
+                location: "لوحة الإدارة والإعدادات > إضافة مجموعة",
+                keywords: ["اضافة مجموعة", "bulk add", "استيراد", "رفع ملف", "اكسيل", "ملف", "csv"],
+                action: "window.location.href='/uncle/church/?action=bulkAdd'"
+            },
+            {
+                title: "تفعيل وضع التحديد الجماعي",
+                category: "bulk",
+                icon: "fas fa-check-square",
+                description: "اختيار كذا ولد مع بعض عشان تعملهم إجراء مشترك وسريع.",
+                how_it_works: "دوس على زرار تحديد تحت وهيظهرلك دوائر اختيار جنب أسماء الولاد عشان تعلم عليهم.",
+                location: "أسفل الصفحة الرئيسية > زر تحديد",
+                keywords: ["تحديد", "اختيار", "وضع التحديد", "تحديد مجمع", "تحديد جماعي", "bulk select"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "رصد الحضور والغياب الجماعي",
+                category: "bulk",
+                icon: "fas fa-user-check",
+                description: "تحضير أو تغييب مجموعة ولاد مع بعض بضغطة واحدة.",
+                how_it_works: "شغل وضع التحديد، علم على الولاد، ودوس حضور أو غياب من الشريط السفلي علطول.",
+                location: "شريط الإجراءات الجماعية السفلي",
+                keywords: ["رصد جماعي", "حضور جماعي", "غياب جماعي", "تحضير مجمع", "تحديد"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "تعديل الكوبونات الجماعي",
+                category: "bulk",
+                icon: "fas fa-star",
+                description: "تزويد أو خصم نقط مكافأة لكذا ولد مع بعض.",
+                how_it_works: "حدد الولاد، ودوس كوبونات في الشريط السفلي، واختار القيمة اللي عايز تزودها أو تخصمها.",
+                location: "شريط الإجراءات الجماعية السفلي",
+                keywords: ["كوبونات جماعية", "نقاط جماعية", "مكافأة جماعية", "إضافة نقاط", "تحديد"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "نقل الفصول الجماعي",
+                category: "bulk",
+                icon: "fas fa-exchange-alt",
+                description: "ترحيل أو نقل كذا ولد للفصل الجديد مع بعض.",
+                how_it_works: "علم على الولاد، ودوس نقل في الشريط السفلي، واختار الفصل الجديد لتأكيد النقل علطول.",
+                location: "شريط الإجراءات الجماعية السفلي",
+                keywords: ["نقل جماعي", "تغيير فصل", "نقل فصل", "ترقية", "ترحيل"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "إضافة ملاحظة جماعية",
+                category: "bulk",
+                icon: "fas fa-sticky-note",
+                description: "كتابة ملاحظة متابعة أو تنبيه موحد لكذا ولد مع بعض.",
+                how_it_works: "حدد الولاد، ودوس ملاحظة في الشريط السفلي، واكتب الكلام وهيتحفظ في سجلاتهم كلهم.",
+                location: "شريط الإجراءات الجماعية السفلي",
+                keywords: ["ملاحظة جماعية", "ملاحظة مجمعة", "تنبيه جماعي", "متابعة جماعية"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "حذف الولاد الجماعي",
+                category: "bulk",
+                icon: "fas fa-trash-alt",
+                description: "حذف كذا ولد ونقلهم لسلة المحذوفات مرة واحدة.",
+                how_it_works: "علم على الولاد، ودوس حذف في الشريط السفلي، وأكد العملية عشان يتنقلوا لسلة المهملات.",
+                location: "شريط الإجراءات الجماعية السفلي",
+                keywords: ["حذف جماعي", "حذف مجمع", "إزالة جماعية", "سلة المهملات"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "دمج الحسابات المكررة",
+                category: "bulk",
+                icon: "fas fa-code-merge",
+                description: "دمج حسابين مكررين لنفس الولد مع جمع النقط والحفاظ على صورته.",
+                how_it_works: "اختار الحسابين، ودوس دمج، وحدد الاسم الصح والفصل والصورة اللي عايز تخليهم.",
+                location: "شريط الإجراءات الجماعية السفلي (عند اختيار حسابين فقط)",
+                keywords: ["دمج", "حساب مكرر", "تكرار", "دمج حسابات", "مكررين", "تنظيف"],
+                action: "closeHelpModal(); if(!isBulkSelectMode) toggleBulkSelectMode();"
+            },
+            {
+                title: "تفاصيل وتعديل بيانات الولد",
+                category: "profile",
+                icon: "fas fa-user-edit",
+                description: "ملف كامل يعرض بيانات الولد الشخصية، نقطه، ونسبة حضوره.",
+                how_it_works: "دوس على اسم الولد في القائمة لفتح ملفه، ومنه تقدر تعدل رقم التليفون أو العنوان.",
+                location: "الصفحة الرئيسية > اسم الولد",
+                keywords: ["تعديل طفل", "بيانات الطفل", "تفاصيل الطفل", "عنوان", "هاتف", "تعديل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "رابط كارت المتابعة العام",
+                category: "profile",
+                icon: "fas fa-external-link-alt",
+                description: "فتح صفحة المتابعة الخارجية للولد لمشاركتها مع أولياء الأمور.",
+                how_it_works: "افتح تفاصيل الولد، ودوس على زرار الملف العام وهيفتح الكارت في تبويب جديد.",
+                location: "داخل نافذة تفاصيل الطفل",
+                keywords: ["ملف عام", "رابط خارجي", "كارت المتابعة", "متابعة ولي الامر", "بروفايل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "رفع وتعديل الصورة الشخصية",
+                category: "profile",
+                icon: "fas fa-image",
+                description: "تحديث صورة الولد عشان تظهر في كشوف التحضير وكروت الـ QR.",
+                how_it_works: "افتح تعديل بيانات الولد، ودوس على علامة الصورة لرفع لقطة جديدة وحفظها.",
+                location: "تفاصيل الطفل > تعديل البيانات > صورة الطفل",
+                keywords: ["صورة شخصية", "رفع صورة", "تعديل صورة", "صورة الطفل", "تحديث صورة"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "نسب حضور وغياب الولد",
+                category: "profile",
+                icon: "fas fa-chart-pie",
+                description: "رسم بياني يعرض نسب التزام الولد بالحضور والغياب خلال السنة.",
+                how_it_works: "افتح تفاصيل الولد وانتقل لتبويب سجل الحضور والغياب لمشاهدة التحليل الدائري.",
+                location: "داخل نافذة تفاصيل الطفل > سجل الحضور",
+                keywords: ["نسبة الحضور", "سجل الحضور", "تواريخ الحضور", "غياب الطفل", "احصائيات الحضور"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "ربط الإخوات يدوياً",
+                category: "profile",
+                icon: "fas fa-link",
+                description: "ربط الأخوات ببعضهم يدوياً لتسهيل المتابعة المشتركة.",
+                how_it_works: "افتح تفاصيل الولد، ودوس إدارة الإخوة وابحث عن اسم شقيقه لربط الحسابين ببعض.",
+                location: "داخل نافذة تفاصيل الطفل > إدارة الإخوة",
+                keywords: ["ربط اخوة", "اضافة اخ", "ربط شقيق", "اخوات", "شقيق", "يدوي"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "معرّف النظام الفريد للولد",
+                category: "profile",
+                icon: "fas fa-fingerprint",
+                description: "الرقم التعريفي الخاص بالولد في قاعدة البيانات للبحث والعمليات التقنية.",
+                how_it_works: "بيظهر الرقم الفريد ده بوضوح في نافذة تفاصيل الولد تحت اسم معرّف النظام.",
+                location: "داخل نافذة تفاصيل الطفل",
+                keywords: ["id", "db id", "معرف النظام", "رقم الطفل", "رقم السجل"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "سلة المحذوفات وأرشيف الولاد",
+                category: "trash",
+                icon: "fas fa-trash-arrow-up",
+                description: "مكان مؤقت بنشيل فيه الولاد المحذوفين عشان مفيش داتا تضيع بالخطأ.",
+                how_it_works: "افتح سلة المهملات عشان تراجع الولاد اللي اتحذفوا وتقدر ترجعهم أو تحذفهم نهائي.",
+                location: "الصفحة الرئيسية > القائمة الجانبية > سلة المهملات",
+                keywords: ["سلة المهملات", "المحذوفات", "الأطفال المحذوفين", "trash bin", "مهملات"],
+                action: "closeHelpModal(); openModal('trashBinModal');"
+            },
+            {
+                title: "استعادة الولد وصورته المحذوفة",
+                category: "trash",
+                icon: "fas fa-undo-alt",
+                description: "التراجع عن الحذف واسترجاع ملف الولد كامل بنقطه وصورته الشخصية.",
+                how_it_works: "افتح سلة المهملات، ابحث عن الولد، ودوس على زرار استعادة عشان يرجع لفصله فوراً.",
+                location: "سلة المهملات > زر استعادة",
+                keywords: ["استعادة", "ترجيع", "تراجع عن الحذف", "استعادة الصورة", "مسترجع"],
+                action: "closeHelpModal(); openModal('trashBinModal');"
+            },
+            {
+                title: "توليد وطباعة كروت الـ QR",
+                category: "settings",
+                icon: "fas fa-qrcode",
+                description: "تصميم وطباعة كروت هوية ذكية للولاد فيها كود المتابعة السريع.",
+                how_it_works: "افتح صفحة الإعدادات، انتقل لقسم طباعة كروت الـ QR، واظبط التصميم والألوان واطبع علطول.",
+                location: "لوحة الإدارة والإعدادات > طباعة كروت QR",
+                keywords: ["كروت qr", "طباعة كروت", "توليد qr", "كود qr", "تصميم كروت", "بطاقات"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تصفية ولاد معينين للطباعة",
+                category: "settings",
+                icon: "fas fa-check-double",
+                description: "طباعة الكروت لولاد مختارين بس بدل ما تطبع الكشوف كلها.",
+                how_it_works: "غير نطاق الطباعة لـ طباعة أطفال محددين فقط، وابحث وعلم على الولاد اللي عايزهم.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > نطاق الطباعة",
+                keywords: ["طباعة محددة", "تحديد اطفال للطباعة", "فلترة الطباعة", "بحث اطفال الطباعة"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تخصيص خلفية الكارت",
+                category: "settings",
+                icon: "fas fa-paint-brush",
+                description: "رفع قالب صورة مخصص لهوية كنيستك وقصها بالمقاس المظبوط.",
+                how_it_works: "ارفع الصورة اللي تعجبك واستخدم أداة القص المدمجة عشان تظبط المقاس والنسبة.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > الخلفية المخصصة",
+                keywords: ["خلفية الكارت", "رفع خلفية", "قص الصورة", "قالب خلفية", "crop", "خلفية مخصصة"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "شفافية وتغطية الخلفية",
+                category: "settings",
+                icon: "fas fa-sliders-h",
+                description: "إضافة طبقة لون خفيفة فوق صورة الخلفية عشان الأسماء تبان في القراءة.",
+                how_it_works: "اختار لون التغطية ودرجة الشفافية عشان توازن بين جمال الصورة ووضوح الكتابة.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > درجة الشفافية",
+                keywords: ["شفافية", "تغطية الخلفية", "وضوح النصوص", "opacity", "لون التغطية"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "أبعاد وتخطيط الكارت",
+                category: "settings",
+                icon: "fas fa-ruler-combined",
+                description: "ضبط الطول والعرض والمسافات الفاصلة بين الكروت لتناسب مقاس الورق.",
+                how_it_works: "اكتب العرض والارتفاع بالسنتيمتر واظبط التباعد بالبكسل للتحكم في رص الكروت.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > أبعاد البطاقة",
+                keywords: ["ابعاد الكارت", "طول وعرض", "سنتيمتر", "تباعد الكروت", "landscape", "طولي وعرضي"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "تحسين ووضوح نصوص الكروت",
+                category: "settings",
+                icon: "fas fa-font",
+                description: "تفعيل خيارات بصرية تضمن سهولة قراءة الأسماء على الكروت الملونة.",
+                how_it_works: "فعل خيار مستطيل النصوص لعمل خلفية بيضاء ورا الاسم، أو خيار تظليل الحروف.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > وضوح النصوص",
+                keywords: ["مستطيل النصوص", "rect", "stroke", "وضوح الخط", "سهولة القراءة", "تظليل"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "طباعة ضهر كروت الهوية",
+                category: "settings",
+                icon: "fas fa-reply",
+                description: "توليد تصميم خلفي للكروت عليه شعار الخدمة والموقع.",
+                how_it_works: "نشط خيار طباعة الوجه الخلفي عشان السيستم يعمل صفحات تالية فيها التصميم الخلفي مظبوط.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > طباعة الوجه الخلفي",
+                keywords: ["ظهر الكارت", "لوجو خلفي", "طباعة الوجهين", "double side", "شعار الموقع"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "إخفاء وإظهار عناصر الكارت",
+                category: "settings",
+                icon: "fas fa-eye-slash",
+                description: "التحكم في إظهار أو إخفاء صور الولاد أو أرقام الـ ID على الكروت.",
+                how_it_works: "علم أو شيل العلامة من مربعات الاختيار لتفعيل أو إلغاء هذه العناصر.",
+                location: "لوحة الإدارة والإعدادات > إيارات المحتوى",
+                keywords: ["اخفاء الصورة", "اظهار المعرف", "id الكارت", "صورة الكارت", "محتوى الكارت"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "شكل إطار وأركان الكروت",
+                category: "settings",
+                icon: "fas fa-border-style",
+                description: "تعديل خط القص وتدوير الأركان لتسهيل قص الكروت وتنسيقها.",
+                how_it_works: "اختار شكل الخط زي المنقط أو المتقطع وحدد نسبة الأركان المدورة المناسبة.",
+                location: "لوحة الإدارة والإعدادات > إعدادات الطباعة > إطار البطاقة",
+                keywords: ["اطار الكارت", "خط متقطع", "نقاط القص", "rounded corners", "اركان دائرية"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "إدارة رحلات ومؤتمرات الكنيسة",
+                category: "admin",
+                icon: "fas fa-bus",
+                description: "لوحة متكاملة لعمل الرحلات ومتابعة حجوزات واشتراكات الولاد.",
+                how_it_works: "اعمل رحلة جديدة واكتب سعر التذكرة ونوع الاشتراك، وسجل المسددين والمشاركين.",
+                location: "لوحة الإدارة والإعدادات > إدارة الرحلات والمؤتمرات",
+                keywords: ["رحلة", "مؤتمر", "رحلات", "تسجيل رحلة", "تذكرة", "مدفوعات الرحلة", "اشتراك"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "تخصيص أسئلة وحقول الرحلات",
+                category: "admin",
+                icon: "fas fa-list-ul",
+                description: "إضافة أسئلة اختيارية لصفحة الحجز زي مقاس التيشرت مع وضع أيقونة معبرة.",
+                how_it_works: "وانت بتعمل الرحلة، أضف الحقول المخصصة واختار الأيقونة الجذابة اللي هتظهر للولاد.",
+                location: "لوحة الإدارة والإعدادات > تعديل الرحلة > الحقول المخصصة",
+                keywords: ["حقول مخصصة", "ايقونات الحقول", "مقاس تيشرت", "بيانات اضافية", "اسئلة الرحلة"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "تذاكر وكروت دخول الرحلات",
+                category: "admin",
+                icon: "fas fa-ticket-alt",
+                description: "توليد كروت دخول خاصة بالرحلة للمسجلين فيها كود الـ QR والبيانات الإضافية.",
+                how_it_works: "من تفاصيل الرحلة، دوس على طباعة كروت الـ QR لتوليد التذاكر فوراً.",
+                location: "إعدادات الرحلة > تفاصيل الرحلة > كروت QR",
+                keywords: ["كروت الرحلة", "تذكرة دخول", "qr الرحلة", "طباعة تذاكر", "باركود الرحلة"],
+                action: "window.location.href='/uncle/church/?action=trips'"
+            },
+            {
+                title: "تسجيل حساب خادم جديد",
+                category: "admin",
+                icon: "fas fa-user-plus",
+                description: "إضافة حسابات دخول وصلاحيات لخدام ومسؤولي الفصول الجدد.",
+                how_it_works: "افتح إدارة الخدام، واكتب بيانات الخادم الشخصية وتليفونه عشان السيستم يعمله حساب علطول.",
+                location: "لوحة الإدارة والإعدادات > إدارة الخدام",
+                keywords: ["خادم جديد", "تسجيل خادم", "عم جديد", "حساب خادم", "اضافة عم"],
+                action: "window.location.href='/uncle/church/?action=uncles'"
+            },
+            {
+                title: "سجل الرقابة والتدقيق الإداري",
+                category: "admin",
+                icon: "fas fa-history",
+                description: "مراقبة وتتبع كامل للعمليات الحساسة زي الحذف والدمج والتعديل.",
+                how_it_works: "السيستم بيسجل أي عملية حساسة تمت ومين الخادم اللي عملها وفي أي وقت للحماية والشفافية.",
+                location: "سجل الرقابة والتدقيق الإداري العام",
+                keywords: ["سجل الحركات", "audit log", "مراقبة", "سجل التدقيق", "حركات الخدام", "تعديلات"],
+                action: "window.open('/audit.php', '_blank')"
+            },
+            {
+                title: "نسخة احتياطية لقاعدة البيانات",
+                category: "admin",
+                icon: "fas fa-database",
+                description: "تنزيل نسخة كاملة من كل داتا الكنيسة والولاد على جهازك للطوارئ.",
+                how_it_works: "دوس على زرار نسخ احتياطي وهيتحمل ملف مشفر فيه كل بيانات الخدمة.",
+                location: "لوحة الإدارة والإعدادات > صيانة النظام",
+                keywords: ["نسخة احتياطية", "backup", "حفظ البيانات", "اوفلاين", "امان البيانات"],
+                action: "window.location.href='/uncle/church/'"
+            },
+            {
+                title: "العمل بدون إنترنت والمزامنة",
+                category: "admin",
+                icon: "fas fa-cloud-upload-alt",
+                description: "التحضير ورصد الكوبونات حتى لو النت قطع، والمزامنة تلقائياً لما يرجع.",
+                how_it_works: "التطبيق بيحفظ الحضور محلياً على المتصفح، وأول ما الشبكة ترجع بيترفع تلقائي للسيستم.",
+                location: "أعلى يمين الصفحة الرئيسية",
+                keywords: ["مزامنة", "sync", "انقطاع الانترنت", "اوفلاين", "المزامنة اليدوية", "حفظ محلي"],
+                action: "closeHelpModal()"
+            },
+            {
+                title: "لوحة المتصدرين وأوائل الولاد",
+                category: "admin",
+                icon: "fas fa-crown",
+                description: "صفحة عامة تعرض ترتيب الولاد المتفوقين في رصيد النقط والكوبونات.",
+                how_it_works: "تقدر تفلتر لوحة الشرف بالفصل وتبحث عن ترتيب ولد معين وسط أصحابه لتشجيعه.",
+                location: "لوحة المتصدرين العامة للأطفال",
+                keywords: ["لوحة المتصدرين", "ترتيب الأطفال", "leaderboard", "نقاط المتصدرين", "الاوائل", "جوائز"],
+                action: "window.open('/leaderboard/', '_blank')"
+            },
+            {
+                title: "تسجيل كنيسة جديدة بالمنصة",
+                category: "admin",
+                icon: "fas fa-church",
+                description: "إنشاء وتهيئة نظام مدارس الأحد لكنيسة جديدة بالكامل.",
+                how_it_works: "املأ بيانات الكنيسة والمنطقة وحساب المسؤول لفتح لوحة تحكم خاصة بكنيستك.",
+                location: "صفحة تسجيل كنائس جديدة",
+                keywords: ["تسجيل كنيسة", "كنيسة جديدة", "انشاء نظام", "church register", "منصة جديدة"],
+                action: "window.open('/church-register.html', '_blank')"
+            },
+            {
+                title: "بوابة تسجيل الولاد للأهالي",
+                category: "admin",
+                icon: "fas fa-child",
+                description: "صفحة تتيح لأولياء الأمور تسجيل ولادهم الجدد وتوجيههم للفصول.",
+                how_it_works: "الأب أو الأم بيملا بيانات الولد وصورته الشخصية وتفاصيله لمراجعتها وتسكينه بالفصل.",
+                location: "بوابة تسجيل أطفال جديدة للأهالي",
+                keywords: ["تسجيل طفل جديد", "ولي الامر", "اضافة ابن", "تسجيل ابن", "حساب طفل جديد"],
+                action: "window.open('/user/registration/', '_blank')"
+            }
+        ];
+
+
+        let currentHelpCategory = 'all';
+
+        function showHelpModal() {
+            openModal('helpFeaturesModal');
+            document.getElementById('helpSearchInput').value = '';
+            filterHelpByCategory('all');
+        }
+
+        function closeHelpModal() {
+            closeModal('helpFeaturesModal');
+        }
+
+        function filterHelpByCategory(cat) {
+            currentHelpCategory = cat;
+            document.querySelectorAll('.help-cat-chip').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `help-cat-${cat}`);
+                if (btn.id === `help-cat-${cat}`) {
+                    btn.style.background = 'var(--brand)';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = 'rgba(120,120,120,0.1)';
+                    btn.style.color = 'var(--text-2)';
+                }
+            });
+            performHelpSearch();
+        }
+
+        function normalizeArabic(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/[\u064B-\u065F]/g, '') // Remove tashkeel/diacritics
+                .toLowerCase()
+                .trim();
+        }
+
+        function performHelpSearch() {
+            const query = document.getElementById('helpSearchInput').value.trim();
+            const normalizedQuery = normalizeArabic(query);
+            const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+
+            const listContainer = document.getElementById('helpFeaturesList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            let scoredFeatures = [];
+
+            HELP_FEATURES.forEach(feature => {
+                if (currentHelpCategory !== 'all' && feature.category !== currentHelpCategory) {
+                    return;
+                }
+
+                let score = 0;
+                
+                if (queryWords.length > 0) {
+                    const normTitle = normalizeArabic(feature.title);
+                    const normDesc = normalizeArabic(feature.description);
+                    const normHow = normalizeArabic(feature.how_it_works);
+                    const normLoc = normalizeArabic(feature.location);
+
+                    queryWords.forEach(word => {
+                        if (normTitle === word) score += 30;
+                        else if (normTitle.includes(word)) score += 15;
+
+                        if (feature.keywords && feature.keywords.some(k => normalizeArabic(k).includes(word))) {
+                            score += 10;
+                        }
+
+                        if (normDesc.includes(word)) score += 5;
+                        if (normHow.includes(word)) score += 2;
+                        if (normLoc.includes(word)) score += 2;
+                        if (normalizeArabic(feature.category) === word) score += 5;
+                    });
+                } else {
+                    score = 1;
+                }
+
+                if (score > 0) {
+                    scoredFeatures.push({ feature, score });
+                }
+            });
+
+            if (queryWords.length > 0) {
+                scoredFeatures.sort((a, b) => b.score - a.score);
+            }
+
+            if (scoredFeatures.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:var(--text-3);">
+                        <i class="fas fa-search" style="font-size:2.5rem; display:block; margin-bottom:12px; opacity:0.5;"></i>
+                        <p style="font-size:1rem; font-weight:bold; margin-bottom:4px;">لم نجد ميزات تطابق بحثك</p>
+                        <p style="font-size:0.8rem; opacity:0.8;">تأكد من كتابة كلمات بحث صحيحة أو تصفح الأقسام بالكامل.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            function highlightText(text, words) {
+                if (!words.length || !text) return text;
+                let regexPattern = words.map(w => w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+                try {
+                    let re = new RegExp(`(${regexPattern})`, 'gi');
+                    return text.replace(re, '<mark style="background:rgba(254,240,138,0.85); color:#000; padding:0 2px; border-radius:2px;">$1</mark>');
+                } catch(e) {
+                    return text;
+                }
+            }
+
+            scoredFeatures.forEach(({ feature }) => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: var(--card, #ffffff);
+                    border: 1px solid var(--border);
+                    border-radius: var(--r-md, 8px);
+                    padding: 14px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+                    transition: transform 0.2s, box-shadow 0.2s;
+                `;
+                
+                card.onmouseenter = () => {
+                    card.style.transform = 'translateY(-2px)';
+                    card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                };
+                card.onmouseleave = () => {
+                    card.style.transform = 'none';
+                    card.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
+                };
+
+                let categoryColor = 'var(--brand)';
+                let categoryLabel = '';
+                switch (feature.category) {
+                    case 'attendance': categoryLabel = 'الحضور والغياب'; categoryColor = '#10b981'; break;
+                    case 'bulk': categoryLabel = 'إجراءات جماعية'; categoryColor = '#8b5cf6'; break;
+                    case 'profile': categoryLabel = 'الملف الشخصي'; categoryColor = '#3b82f6'; break;
+                    case 'settings': categoryLabel = 'إعدادات الطباعة'; categoryColor = '#f59e0b'; break;
+                    case 'trash': categoryLabel = 'المحذوفات'; categoryColor = '#ef4444'; break;
+                    case 'admin': categoryLabel = 'إدارة النظام'; categoryColor = '#374151'; break;
+                }
+
+                const categoryBadge = `<span style="background:${categoryColor}15; color:${categoryColor}; font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:12px; margin-right:auto; font-family:'Cairo',sans-serif;">${categoryLabel}</span>`;
+
+                const highlightedTitle = queryWords.length ? highlightText(feature.title, queryWords) : feature.title;
+                const highlightedDesc = queryWords.length ? highlightText(feature.description, queryWords) : feature.description;
+                const highlightedHow = queryWords.length ? highlightText(feature.how_it_works, queryWords) : feature.how_it_works;
+                const highlightedLoc = queryWords.length ? highlightText(feature.location, queryWords) : feature.location;
+
+                let actionBtnHtml = '';
+                if (typeof feature.action === 'string') {
+                    if (feature.action.startsWith('window.location.href') || feature.action.startsWith('window.open')) {
+                        actionBtnHtml = `
+                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                                <span>انتقال</span> <i class="fas fa-external-link-alt" style="font-size:0.65rem;"></i>
+                            </button>
+                        `;
+                    } else {
+                        actionBtnHtml = `
+                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                                <span>فتح الأداة</span> <i class="fas fa-arrow-left" style="font-size:0.65rem;"></i>
+                            </button>
+                        `;
+                    }
+                }
+
+                const iconClass = feature.icon || 'fas fa-star';
+
+                card.innerHTML = `
+                    <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
+                        <div style="flex:none; width:38px; height:38px; border-radius:50%; background:${categoryColor}10; color:${categoryColor}; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-top:2px;">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                                <h4 style="margin:0; font-size:0.92rem; font-weight:800; color:var(--text); font-family:'Cairo',sans-serif;">${highlightedTitle}</h4>
+                                ${categoryBadge}
+                            </div>
+                            <p style="margin:0; font-size:0.82rem; color:var(--text-2); line-height:1.5; font-family:'Cairo',sans-serif;">
+                                ${highlightedDesc} ${highlightedHow}
+                            </p>
+                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:4px; background:var(--surface-2, rgba(120,120,120,0.04)); padding:6px 12px; border-radius:8px; border:1px solid var(--border-solid, rgba(120,120,120,0.08)); box-sizing:border-box; width:100%;">
+                                <div style="display:flex; align-items:center; gap:6px; font-size:0.76rem; color:var(--text-3);">
+                                    <i class="fas fa-compass" style="color:var(--brand); font-size:0.8rem;"></i>
+                                    <span style="font-weight:700;">الموقع:</span>
+                                    <span style="color:var(--text-2); font-weight:600;">${highlightedLoc}</span>
+                                </div>
+                                ${actionBtnHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                listContainer.appendChild(card);
+            });
+        }
 
     </script>
 </body>

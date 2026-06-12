@@ -5695,13 +5695,15 @@ function withdrawCoupons()
         $conn->begin_transaction();
 
         // Get current coupons with breakdown
-        $stmt = $conn->prepare("SELECT coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? FOR UPDATE");
+        $stmt = $conn->prepare("SELECT name, coupons, attendance_coupons, commitment_coupons, task_coupons FROM students WHERE id = ? FOR UPDATE");
         $stmt->bind_param("i", $studentId);
         $stmt->execute();
         $res = $stmt->get_result()->fetch_assoc();
         if (!$res) {
             throw new Exception('الطفل غير موجود');
         }
+
+        $studentName = $res['name'] ?? '';
 
         $current = intval($res['coupons']);
         $att_avail = intval($res['attendance_coupons']);
@@ -5773,10 +5775,11 @@ function withdrawCoupons()
 
         // ► Comprehensive Audit
         require_once 'audit.php';
-        writeAuditLog('coupon_withdraw', 'coupon', $studentId, '', null, ['amount' => $amount], "سحب $amount كوبون" . ($note ? " ($note)" : ''));
+        writeAuditLog('coupon_withdraw', 'coupon', $studentId, $studentName, null, ['amount' => $amount], "سحب $amount كوبون" . ($note ? " ($note)" : ''));
 
+        $withdrawalId = $conn->insert_id;
         $conn->commit();
-        sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal]);
+        sendJSON(['success' => true, 'message' => 'تم السحب بنجاح', 'newTotal' => $newTotal, 'withdrawal_id' => $withdrawalId]);
     } catch (Exception $e) {
         if (isset($conn))
             $conn->rollback();
@@ -8722,6 +8725,100 @@ function getMergeComparison()
     }
 }
 
+function getMergeStudentSnapshot($studentId, $conn) {
+    if (function_exists('getStudentSnapshot')) {
+        $snapshot = getStudentSnapshot($studentId);
+    } else {
+        $stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
+        $stmt->bind_param("i", $studentId);
+        $stmt->execute();
+        $snapshot = $stmt->get_result()->fetch_assoc();
+        if (!$snapshot) return null;
+        $snapshot['_attendance_history'] = [];
+        $snapshot['_sibling_groups'] = [];
+    }
+    
+    if (!$snapshot) return null;
+    
+    // Task Submissions
+    $taskStmt = $conn->prepare("SELECT * FROM task_submissions WHERE student_id = ?");
+    $taskStmt->bind_param("i", $studentId);
+    $taskStmt->execute();
+    $res = $taskStmt->get_result();
+    $tasks = [];
+    while ($row = $res->fetch_assoc()) {
+        $tasks[] = $row;
+    }
+    $snapshot['_task_submissions'] = $tasks;
+    
+    // Exam Starts
+    $examStmt = $conn->prepare("SELECT * FROM exam_starts WHERE student_id = ?");
+    $examStmt->bind_param("i", $studentId);
+    $examStmt->execute();
+    $res = $examStmt->get_result();
+    $exams = [];
+    while ($row = $res->fetch_assoc()) {
+        $exams[] = $row;
+    }
+    $snapshot['_exam_starts'] = $exams;
+    
+    // Trip Registrations & Payments
+    $tripStmt = $conn->prepare("SELECT * FROM trip_registrations WHERE student_id = ?");
+    $tripStmt->bind_param("i", $studentId);
+    $tripStmt->execute();
+    $res = $tripStmt->get_result();
+    $trips = [];
+    while ($row = $res->fetch_assoc()) {
+        $regId = $row['id'];
+        $payStmt = $conn->prepare("SELECT * FROM trip_payments WHERE registration_id = ?");
+        $payStmt->bind_param("i", $regId);
+        $payStmt->execute();
+        $payRes = $payStmt->get_result();
+        $payments = [];
+        while ($pRow = $payRes->fetch_assoc()) {
+            $payments[] = $pRow;
+        }
+        $row['_payments'] = $payments;
+        $trips[] = $row;
+    }
+    $snapshot['_trip_registrations'] = $trips;
+    
+    // Trip Waitlist
+    $waitStmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE student_id = ?");
+    $waitStmt->bind_param("i", $studentId);
+    $waitStmt->execute();
+    $res = $waitStmt->get_result();
+    $waitlist = [];
+    while ($row = $res->fetch_assoc()) {
+        $waitlist[] = $row;
+    }
+    $snapshot['_trip_waitlist'] = $waitlist;
+
+    // Coupon Withdrawals
+    $wStmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE student_id = ?");
+    $wStmt->bind_param("i", $studentId);
+    $wStmt->execute();
+    $res = $wStmt->get_result();
+    $withdrawals = [];
+    while ($row = $res->fetch_assoc()) {
+        $withdrawals[] = $row;
+    }
+    $snapshot['_coupon_withdrawals'] = $withdrawals;
+
+    // Coupon Logs
+    $logStmt = $conn->prepare("SELECT * FROM coupon_logs WHERE student_id = ?");
+    $logStmt->bind_param("i", $studentId);
+    $logStmt->execute();
+    $res = $logStmt->get_result();
+    $logs = [];
+    while ($row = $res->fetch_assoc()) {
+        $logs[] = $row;
+    }
+    $snapshot['_coupon_logs'] = $logs;
+
+    return $snapshot;
+}
+
 function mergeDuplicateStudents()
 {
     try {
@@ -8758,6 +8855,11 @@ function mergeDuplicateStudents()
         $attendanceMode = $_POST['attendance_mode'] ?? 'combine'; // 'combine', 'keep_A', 'keep_B'
         $attendanceConflicts = json_decode($_POST['attendance_conflicts'] ?? '{}', true);
         $couponsMode = $_POST['coupons_mode'] ?? 'sum'; // 'sum', 'keep_A', 'keep_B'
+        $isTargetA = ($_POST['is_target_a'] ?? 'true') === 'true';
+
+        // Fetch pre-merge snapshots for audit/undo
+        $targetSnapshot = getMergeStudentSnapshot($targetId, $conn);
+        $duplicateSnapshot = getMergeStudentSnapshot($duplicateId, $conn);
 
         // Start Transaction
         $conn->begin_transaction();
@@ -8773,6 +8875,10 @@ function mergeDuplicateStudents()
             $stmtFull->execute();
             $dFull = $stmtFull->get_result()->fetch_assoc();
 
+            // Resolve actual student A vs B records based on isTargetA
+            $aFull = $isTargetA ? $tFull : $dFull;
+            $bFull = $isTargetA ? $dFull : $tFull;
+
             $updateData = [];
             $updateFields = ['name', 'phone', 'emergency_phone', 'email', 'birthday', 'gender', 'class_id', 'address', 'medical_notes', 'image_url'];
             
@@ -8780,9 +8886,9 @@ function mergeDuplicateStudents()
             foreach ($updateFields as $field) {
                 $source = $profileFields[$field] ?? 'A';
                 if ($source === 'B') {
-                    $updateData[$field] = $dFull[$field];
+                    $updateData[$field] = $bFull[$field];
                 } else {
-                    $updateData[$field] = $tFull[$field];
+                    $updateData[$field] = $aFull[$field];
                 }
             }
 
@@ -8790,12 +8896,21 @@ function mergeDuplicateStudents()
             $tCustom = json_decode($tFull['custom_info'] ?? 'null', true) ?: [];
             $dCustom = json_decode($dFull['custom_info'] ?? 'null', true) ?: [];
             
-            $mergedCustom = $tCustom;
+            $aCustom = $isTargetA ? $tCustom : $dCustom;
+            $bCustom = $isTargetA ? $dCustom : $tCustom;
+            
+            $mergedCustom = $tCustom; // Start with target student's custom info
             if (isset($profileFields['custom_fields']) && is_array($profileFields['custom_fields'])) {
                 foreach ($profileFields['custom_fields'] as $cfKey => $source) {
                     if ($source === 'B') {
-                        if (isset($dCustom[$cfKey])) {
-                            $mergedCustom[$cfKey] = $dCustom[$cfKey];
+                        if (isset($bCustom[$cfKey])) {
+                            $mergedCustom[$cfKey] = $bCustom[$cfKey];
+                        } else {
+                            unset($mergedCustom[$cfKey]);
+                        }
+                    } else {
+                        if (isset($aCustom[$cfKey])) {
+                            $mergedCustom[$cfKey] = $aCustom[$cfKey];
                         } else {
                             unset($mergedCustom[$cfKey]);
                         }
@@ -8804,7 +8919,7 @@ function mergeDuplicateStudents()
             } else {
                 // Auto-choose values missing in target
                 foreach ($dCustom as $k => $v) {
-                    if ($k !== 'username' && $k !== 'sibling_group' && (!isset($mergedCustom[$k]) || empty($mergedCustom[$k]))) {
+                    if ($k !== 'username' && $k !== 'sibling_group' && $k !== '_notes' && (!isset($mergedCustom[$k]) || empty($mergedCustom[$k]))) {
                         $mergedCustom[$k] = $v;
                     }
                 }
@@ -8815,16 +8930,45 @@ function mergeDuplicateStudents()
                 $mergedCustom['sibling_group'] = $dCustom['sibling_group'];
             }
 
+            // Merge internal '_notes' if present in both
+            $notesA = $aCustom['_notes'] ?? [];
+            $notesB = $bCustom['_notes'] ?? [];
+            if (!is_array($notesA)) $notesA = [];
+            if (!is_array($notesB)) $notesB = [];
+            
+            // Combine notes
+            $combinedNotes = array_merge($notesA, $notesB);
+            
+            // Deduplicate notes by their id if they have ids
+            $uniqueNotes = [];
+            $seenNoteIds = [];
+            foreach ($combinedNotes as $note) {
+                $nId = $note['id'] ?? null;
+                if ($nId) {
+                    if (!in_array($nId, $seenNoteIds)) {
+                        $seenNoteIds[] = $nId;
+                        $uniqueNotes[] = $note;
+                    }
+                } else {
+                    $uniqueNotes[] = $note;
+                }
+            }
+            if (!empty($uniqueNotes)) {
+                $mergedCustom['_notes'] = $uniqueNotes;
+            } else {
+                unset($mergedCustom['_notes']);
+            }
+
             // Credentials (username + password_hash)
             $selectedPasswordHash = $tFull['password_hash'];
             $selectedUsername = $tCustom['username'] ?? null;
 
             if ($credentialsFrom === 'B') {
-                $selectedPasswordHash = $dFull['password_hash'];
-                $selectedUsername = $dCustom['username'] ?? null;
+                $selectedPasswordHash = $bFull['password_hash'];
+                $selectedUsername = $bCustom['username'] ?? null;
             } elseif ($credentialsFrom === 'A') {
-                $selectedPasswordHash = $tFull['password_hash'];
-                $selectedUsername = $tCustom['username'] ?? null;
+                $selectedPasswordHash = $aFull['password_hash'];
+                $selectedUsername = $aCustom['username'] ?? null;
             } else {
                 if (empty($selectedPasswordHash) && !empty($dFull['password_hash'])) {
                     $selectedPasswordHash = $dFull['password_hash'];
@@ -8844,33 +8988,61 @@ function mergeDuplicateStudents()
             $comCoupons = intval($tFull['commitment_coupons']);
             $tskCoupons = intval($tFull['task_coupons']);
 
+            // Decide which coupons to keep based on couponsMode ('sum', 'keep_A', 'keep_B')
+            $keepDuplicateCoupons = false;
+            if ($isTargetA) {
+                if ($couponsMode === 'keep_B') {
+                    $keepDuplicateCoupons = true;
+                }
+            } else {
+                if ($couponsMode === 'keep_A') {
+                    $keepDuplicateCoupons = true;
+                }
+            }
+
             if ($couponsMode === 'sum') {
                 $coupons += intval($dFull['coupons']);
                 $attCoupons += intval($dFull['attendance_coupons']);
                 $comCoupons += intval($dFull['commitment_coupons']);
                 $tskCoupons += intval($dFull['task_coupons']);
-            } elseif ($couponsMode === 'keep_B') {
+            } elseif ($keepDuplicateCoupons) {
                 $coupons = intval($dFull['coupons']);
                 $attCoupons = intval($dFull['attendance_coupons']);
                 $comCoupons = intval($dFull['commitment_coupons']);
                 $tskCoupons = intval($dFull['task_coupons']);
             }
 
+            // Let's resolve the class name for the chosen class_id!
+            $chosenClassId = intval($updateData['class_id']);
+            $classStmt = $conn->prepare("
+                SELECT arabic_name FROM church_classes 
+                WHERE id = ? AND church_id = ? AND is_active = 1
+                UNION
+                SELECT arabic_name FROM classes 
+                WHERE id = ?
+                LIMIT 1
+            ");
+            $classStmt->bind_param("iii", $chosenClassId, $churchId, $chosenClassId);
+            $classStmt->execute();
+            $classResult = $classStmt->get_result();
+            $classData = $classResult->fetch_assoc();
+            $chosenClassName = $classData['arabic_name'] ?? '';
+
             // Update Target Student
             $customInfoJSON = json_encode($mergedCustom, JSON_UNESCAPED_UNICODE);
             $updateStmt = $conn->prepare("
                 UPDATE students 
                 SET name = ?, phone = ?, emergency_phone = ?, email = ?, birthday = ?, 
-                    gender = ?, class_id = ?, address = ?, medical_notes = ?, image_url = ?, 
+                    gender = ?, class_id = ?, class = ?, address = ?, medical_notes = ?, image_url = ?, 
                     password_hash = ?, custom_info = ?, coupons = ?, attendance_coupons = ?, 
                     commitment_coupons = ?, task_coupons = ?, updated_at = NOW() 
                 WHERE id = ?
             ");
             
-            $updateStmt->bind_param("ssssssisssssiiiii", 
+            $updateStmt->bind_param("ssssssissssssiiiii", 
                 $updateData['name'], $updateData['phone'], $updateData['emergency_phone'], 
                 $updateData['email'], $updateData['birthday'], $updateData['gender'], 
-                $updateData['class_id'], $updateData['address'], $updateData['medical_notes'], 
+                $updateData['class_id'], $chosenClassName, $updateData['address'], $updateData['medical_notes'], 
                 $updateData['image_url'], $selectedPasswordHash, $customInfoJSON, 
                 $coupons, $attCoupons, $comCoupons, $tskCoupons, $targetId
             );
@@ -8899,11 +9071,35 @@ function mergeDuplicateStudents()
             }
 
             // Merge Attendance
+            $keepTargetAttendance = true;
+            $keepDuplicateAttendance = false;
+            
             if ($attendanceMode === 'keep_A') {
+                if ($isTargetA) {
+                    $keepTargetAttendance = true;
+                    $keepDuplicateAttendance = false;
+                } else {
+                    $keepTargetAttendance = false;
+                    $keepDuplicateAttendance = true;
+                }
+            } elseif ($attendanceMode === 'keep_B') {
+                if ($isTargetA) {
+                    $keepTargetAttendance = false;
+                    $keepDuplicateAttendance = true;
+                } else {
+                    $keepTargetAttendance = true;
+                    $keepDuplicateAttendance = false;
+                }
+            } else {
+                $keepTargetAttendance = false;
+                $keepDuplicateAttendance = false;
+            }
+
+            if ($keepTargetAttendance) {
                 $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
                 $delAtt->bind_param("i", $duplicateId);
                 $delAtt->execute();
-            } elseif ($attendanceMode === 'keep_B') {
+            } elseif ($keepDuplicateAttendance) {
                 $delAtt = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
                 $delAtt->bind_param("i", $targetId);
                 $delAtt->execute();
@@ -8937,7 +9133,19 @@ function mergeDuplicateStudents()
                         
                         if ($isConflict) {
                             $selectedSource = $attendanceConflicts[$date] ?? 'A';
-                            if ($selectedSource === 'B') {
+                            
+                            $keepDuplicateRecord = false;
+                            if ($isTargetA) {
+                                if ($selectedSource === 'B') {
+                                    $keepDuplicateRecord = true;
+                                }
+                            } else {
+                                if ($selectedSource === 'A') {
+                                    $keepDuplicateRecord = true;
+                                }
+                            }
+
+                            if ($keepDuplicateRecord) {
                                 $delRec = $conn->prepare("DELETE FROM attendance WHERE id = ?");
                                 $delRec->bind_param("i", $recA['id']);
                                 $delRec->execute();
@@ -9096,8 +9304,23 @@ function mergeDuplicateStudents()
                 deleteUploadedFile($targetStudent['image_url']);
             }
 
-            // Audit Log
-            auditStudentMerge($targetId, $duplicateId, $targetStudent['name'], $duplicateStudent['name']);
+            // Audit Log for Undo Merge
+            $oldData = [
+                'target_id' => $targetId,
+                'duplicate_id' => $duplicateId,
+                'target_snapshot' => $targetSnapshot,
+                'duplicate_snapshot' => $duplicateSnapshot
+            ];
+            
+            writeAuditLog(
+                'student_merge',
+                'student',
+                $targetId,
+                $targetStudent['name'],
+                $oldData,
+                null,
+                "دمج حساب الطفل " . $duplicateStudent['name'] . " مع الحساب الرئيسي " . $targetStudent['name']
+            );
 
             sendJSON([
                 'success' => true,
@@ -33403,8 +33626,34 @@ function deleteAuditLog()
 
 
 
-// ── Restore an action from the audit log (admin only) ─────────
-
+function reinsertRecordInternal($tableName, $row, $conn) {
+    if (empty($row) || !is_array($row)) return false;
+    
+    $fields = [];
+    $placeholders = [];
+    $types = '';
+    $params = [];
+    
+    foreach ($row as $key => $val) {
+        if (strpos($key, '_') === 0) continue; // skip nested snapshots
+        $fields[] = "`$key`";
+        $placeholders[] = "?";
+        $params[] = $val;
+        
+        if (is_int($val)) $types .= 'i';
+        elseif (is_float($val)) $types .= 'd';
+        else $types .= 's';
+    }
+    
+    $sql = "INSERT INTO `$tableName` (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception("Reinsert failed preparing query for $tableName: " . $conn->error);
+    }
+    
+    $stmt->bind_param($types, ...$params);
+    return $stmt->execute();
+}
 
 function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentId = 0)
 {
@@ -33773,6 +34022,150 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         }
                     }
                 }
+            } elseif ($action === 'student_merge') {
+                $targetId = intval($oldData['target_id'] ?? 0);
+                $duplicateId = intval($oldData['duplicate_id'] ?? 0);
+                $targetSnapshot = $oldData['target_snapshot'] ?? null;
+                $duplicateSnapshot = $oldData['duplicate_snapshot'] ?? null;
+                
+                if (!$targetId || !$duplicateId || !$targetSnapshot || !$duplicateSnapshot) {
+                    return ['success' => false, 'message' => 'بيانات الدمج التاريخية غير صالحة للاسترجاع'];
+                }
+                
+                $conn->begin_transaction();
+                try {
+                    // 1. Delete all records for both IDs in related tables to get a clean slate
+                    $deleteTables = [
+                        'attendance' => 'student_id',
+                        'student_sibling_group_members' => 'student_id',
+                        'task_submissions' => 'student_id',
+                        'exam_starts' => 'student_id',
+                        'coupon_logs' => 'student_id',
+                        'coupon_withdrawals' => 'student_id',
+                        'trip_waitlist' => 'student_id'
+                    ];
+                    
+                    foreach ($deleteTables as $tbl => $col) {
+                        $delStmt = $conn->prepare("DELETE FROM `$tbl` WHERE `$col` = ? OR `$col` = ?");
+                        $delStmt->bind_param("ii", $targetId, $duplicateId);
+                        $delStmt->execute();
+                    }
+                    
+                    // Clear trip registrations & payments for both kids
+                    $getRegs = $conn->prepare("SELECT id FROM trip_registrations WHERE student_id = ? OR student_id = ?");
+                    $getRegs->bind_param("ii", $targetId, $duplicateId);
+                    $getRegs->execute();
+                    $regRes = $getRegs->get_result();
+                    $regIds = [];
+                    while ($r = $regRes->fetch_assoc()) {
+                        $regIds[] = intval($r['id']);
+                    }
+                    
+                    if (!empty($regIds)) {
+                        $regIdsStr = implode(',', $regIds);
+                        $conn->query("DELETE FROM trip_payments WHERE registration_id IN ($regIdsStr)");
+                        $conn->query("DELETE FROM trip_registrations WHERE id IN ($regIdsStr)");
+                    }
+                    
+                    // 2. Revert Profiles (delete first then insert)
+                    $conn->query("DELETE FROM students WHERE id = $targetId");
+                    $conn->query("DELETE FROM students WHERE id = $duplicateId");
+                    
+                    // 3. Re-insert both students profiles
+                    reinsertRecordInternal('students', $targetSnapshot, $conn);
+                    reinsertRecordInternal('students', $duplicateSnapshot, $conn);
+
+                    // Restore image files if present
+                    if (!empty($targetSnapshot['image_url'])) {
+                        recoverRevertedImageFile($targetSnapshot['image_url']);
+                    }
+                    if (!empty($duplicateSnapshot['image_url'])) {
+                        recoverRevertedImageFile($duplicateSnapshot['image_url']);
+                    }
+                    
+                    // 4. Restore related data for both snapshots
+                    $snapshots = [$targetSnapshot, $duplicateSnapshot];
+                    foreach ($snapshots as $snap) {
+                        $sid = intval($snap['id']);
+                        
+                        // Attendance
+                        if (isset($snap['_attendance_history']) && is_array($snap['_attendance_history'])) {
+                            foreach ($snap['_attendance_history'] as $att) {
+                                $att['student_id'] = $sid;
+                                if (empty($att['church_id'])) {
+                                    $att['church_id'] = $churchId;
+                                }
+                                reinsertRecordInternal('attendance', $att, $conn);
+                            }
+                        }
+                        
+                        // Sibling Groups
+                        if (isset($snap['_sibling_groups']) && is_array($snap['_sibling_groups'])) {
+                            $insSib = $conn->prepare("INSERT INTO student_sibling_group_members (student_id, group_id) VALUES (?, ?)");
+                            foreach ($snap['_sibling_groups'] as $groupId) {
+                                $insSib->bind_param("ii", $sid, $groupId);
+                                $insSib->execute();
+                            }
+                        }
+                        
+                        // Task Submissions
+                        if (isset($snap['_task_submissions']) && is_array($snap['_task_submissions'])) {
+                            foreach ($snap['_task_submissions'] as $task) {
+                                reinsertRecordInternal('task_submissions', $task, $conn);
+                            }
+                        }
+                        
+                        // Exam Starts
+                        if (isset($snap['_exam_starts']) && is_array($snap['_exam_starts'])) {
+                            foreach ($snap['_exam_starts'] as $exam) {
+                                reinsertRecordInternal('exam_starts', $exam, $conn);
+                            }
+                        }
+                        
+                        // Coupon Withdrawals
+                        if (isset($snap['_coupon_withdrawals']) && is_array($snap['_coupon_withdrawals'])) {
+                            foreach ($snap['_coupon_withdrawals'] as $w) {
+                                reinsertRecordInternal('coupon_withdrawals', $w, $conn);
+                            }
+                        }
+                        
+                        // Coupon Logs
+                        if (isset($snap['_coupon_logs']) && is_array($snap['_coupon_logs'])) {
+                            foreach ($snap['_coupon_logs'] as $clog) {
+                                reinsertRecordInternal('coupon_logs', $clog, $conn);
+                            }
+                        }
+                        
+                        // Trip waitlist
+                        if (isset($snap['_trip_waitlist']) && is_array($snap['_trip_waitlist'])) {
+                            foreach ($snap['_trip_waitlist'] as $wait) {
+                                reinsertRecordInternal('trip_waitlist', $wait, $conn);
+                            }
+                        }
+                        
+                        // Trip registrations & payments
+                        if (isset($snap['_trip_registrations']) && is_array($snap['_trip_registrations'])) {
+                            foreach ($snap['_trip_registrations'] as $reg) {
+                                $payments = $reg['_payments'] ?? [];
+                                unset($reg['_payments']);
+                                
+                                reinsertRecordInternal('trip_registrations', $reg, $conn);
+                                
+                                foreach ($payments as $pay) {
+                                    reinsertRecordInternal('trip_payments', $pay, $conn);
+                                }
+                            }
+                        }
+                    }
+                    
+                    $conn->commit();
+                    $reverted = true;
+                    $msg = "تم التراجع عن عملية الدمج بنجاح واستعادة كلا الطفلين لسيرتهما الأولى";
+                    
+                } catch (Exception $txEx) {
+                    $conn->rollback();
+                    throw $txEx;
+                }
             } elseif ($action === 'student_edit') {
 
                 if (empty($oldData)) {
@@ -34084,6 +34477,60 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 }
 
+            } elseif ($action === 'coupon_withdraw') {
+                $stmt = $conn->prepare("SELECT id FROM coupon_withdrawals WHERE student_id = ? AND is_refunded = 0 ORDER BY created_at DESC, id DESC LIMIT 1");
+                $stmt->bind_param("i", $entityId);
+                $stmt->execute();
+                $resW = $stmt->get_result()->fetch_assoc();
+                if (!$resW) {
+                    return ['success' => false, 'message' => 'لم يتم العثور على عملية سحب نشطة قابلة للتراجع لهذا الطفل'];
+                }
+                $withdrawalId = intval($resW['id']);
+                
+                $stmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE id = ? FOR UPDATE");
+                $stmt->bind_param("i", $withdrawalId);
+                $stmt->execute();
+                $w = $stmt->get_result()->fetch_assoc();
+                if (!$w) {
+                    throw new Exception('عملية السحب غير موجودة');
+                }
+                if ($w['is_refunded']) {
+                    throw new Exception('تم استرجاع هذه العملية بالفعل');
+                }
+
+                $amount = intval($w['amount']);
+                $att = intval($w['att_amount'] ?? 0);
+                $com = intval($w['com_amount'] ?? 0);
+                $tsk = intval($w['tsk_amount'] ?? 0);
+
+                // Update student
+                $upd = $conn->prepare("UPDATE students SET coupons = coupons + ?, attendance_coupons = attendance_coupons + ?, commitment_coupons = commitment_coupons + ?, task_coupons = task_coupons + ? WHERE id = ?");
+                $upd->bind_param("iiiii", $amount, $att, $com, $tsk, $entityId);
+                if (!$upd->execute()) {
+                    throw new Exception('فشل استعادة الكوبونات للطفل');
+                }
+
+                // Mark as refunded
+                $mark = $conn->prepare("UPDATE coupon_withdrawals SET is_refunded = 1, refunded_at = NOW() WHERE id = ?");
+                $mark->bind_param("i", $withdrawalId);
+                if (!$mark->execute()) {
+                    throw new Exception('فشل تحديث حالة السحب');
+                }
+
+                // Retrieve student name for log if not loaded
+                $studentName = '';
+                $stuStmt = $conn->prepare("SELECT name FROM students WHERE id = ?");
+                $stuStmt->bind_param("i", $entityId);
+                $stuStmt->execute();
+                $stuRes = $stuStmt->get_result()->fetch_assoc();
+                if ($stuRes) {
+                    $studentName = $stuRes['name'];
+                }
+
+                // Write audit log
+                writeAuditLog('coupon_refund', 'coupon', $entityId, $studentName, null, ['amount' => $amount], "تراجع عن السحب: استرجاع $amount كوبون (عملية #$withdrawalId)");
+                $reverted = true;
+                $msg = "تم التراجع عن عملية السحب بنجاح وإعادة الكوبونات للطفل";
             }
 
         } elseif ($entity === 'attendance') {
@@ -34456,7 +34903,7 @@ function getLastAuditLog()
 
               AND uncle_id = ? 
 
-              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save')
+              AND action IN ('student_add', 'student_edit', 'student_delete', 'coupon_edit', 'attendance_add', 'attendance_edit', 'attendance_delete', 'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'student_merge')
 
               AND created_at >= NOW() - INTERVAL 10 SECOND
 
