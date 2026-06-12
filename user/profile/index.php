@@ -65,6 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <link rel="icon" href="/favicon.ico">
   <style>
+    /* Hide all tabs and non-info/non-coupon sections in kid profile view */
+    .bottom-nav {
+      display: none !important;
+    }
+    #scTrips, #scAtt, #scAnn, #scSiblings, #scUncles, #scTasks, .stats-bar {
+      display: none !important;
+    }
+    .page {
+      padding-bottom: 24px !important;
+    }
+
     /* ══ TOKENS ══════════════════════════════════════════════════ */
     :root {
       --brand: #4f46e5;
