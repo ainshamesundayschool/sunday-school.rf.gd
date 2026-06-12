@@ -6144,7 +6144,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: start;
             min-height: 400px;
             border: 2px dashed var(--border);
             overflow: hidden;
@@ -9005,14 +9005,14 @@
                             </div>
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                             <div class="form-group">
                                 <label class="form-label">المسافة الأفقية بين الكروت</label>
-                                <input type="number" id="printGapX" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                                <input type="number" id="printGapX" class="form-input" value="0" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">المسافة الرأسية بين الكروت</label>
-                                <input type="number" id="printGapY" class="form-input" value="15" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                                <input type="number" id="printGapY" class="form-input" value="0" min="0" max="100" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
                             </div>
                         </div>
 
@@ -9219,7 +9219,7 @@
                             <i class="fas fa-eye-slash"></i> إخفاء المعاينة
                         </button>
                     </div>
-                    <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:center; min-height:400px; border:2px dashed var(--border); overflow:hidden;">
+                    <div id="printPreviewWrapper" style="background:#f8fafc; padding:20px; border-radius:12px; width:100%; display:flex; justify-content:center; align-items:start; min-height:400px; border:2px dashed var(--border); overflow:hidden;">
                         <div id="printPreviewContent" style="display:flex; align-items:center; justify-content:center;"></div>
                     </div>
                 </div>
@@ -20076,8 +20076,8 @@
             // Apply scale
             const scaleInput = document.getElementById('printScale');
             if (scaleInput) {
-                scaleInput.value = 90;
-                document.getElementById('printScaleVal').textContent = '90%';
+                scaleInput.value = 100;
+                document.getElementById('printScaleVal').textContent = '100%';
             }
 
             // Dimensions: Width = 10, Height = 7
@@ -20088,9 +20088,9 @@
 
             // Gaps
             const gapXInput = document.getElementById('printGapX');
-            if (gapXInput) gapXInput.value = 60;
+            if (gapXInput) gapXInput.value = 0;
             const gapYInput = document.getElementById('printGapY');
-            if (gapYInput) gapYInput.value = 70;
+            if (gapYInput) gapYInput.value = 0;
 
             // Padding & Border
             const paddingInput = document.getElementById('printPadding');
@@ -20184,9 +20184,9 @@
             if (heightInput) heightInput.value = 10;
 
             const gapXInput = document.getElementById('printGapX');
-            if (gapXInput) gapXInput.value = 15;
+            if (gapXInput) gapXInput.value = 0;
             const gapYInput = document.getElementById('printGapY');
-            if (gapYInput) gapYInput.value = 15;
+            if (gapYInput) gapYInput.value = 0;
 
             const paddingInput = document.getElementById('printPadding');
             if (paddingInput) paddingInput.value = 15;
