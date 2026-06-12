@@ -12524,11 +12524,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const dyTotal = t.clientY - startY;
                     const dxTotal = t.clientX - startX;
 
-                    if (dyTotal > 0 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
-                        if (isAtTop) {
-                            isSwipingDown = true;
-                            swipeStartY = (initialScrollTop <= 0) ? startY : t.clientY;
-                        }
+                    if (initialScrollTop <= 0 && isAtTop && dyTotal > 10 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
+                        isSwipingDown = true;
+                        swipeStartY = startY;
                     }
                 }
 
