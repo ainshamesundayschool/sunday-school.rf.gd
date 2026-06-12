@@ -9724,12 +9724,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="class-inline-search-wrap">
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" placeholder="اسم الطفل، الفصل، الهاتف..." autocomplete="off">
-                        <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display:none"
-                            title="مسح البحث">
-                            <i class="fas fa-times"></i>
+                        <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
+                            oninput="performClassInlineSearch(this.value)" autocomplete="off">
+                        <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                            <i class="fas fa-qrcode"></i>
                         </button>
+                        <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
+                                class="fas fa-times"></i></button>
                     </div>
+                    <div class="inline-search-dropdown" id="classSearchDropdown" style="display: none;"></div>
                 </div>
 
 
@@ -13787,16 +13790,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function switchModalScanMode(mode) {
-            if (['attendance', 'coupons', 'profile'].includes(mode)) {
+            if (['attendance', 'coupons', 'profile', 'profile-in-class'].includes(mode)) {
                 kidQrScanMode = mode;
-                localStorage.setItem('scanner_mode_preference', mode);
+                const savedPreferenceMode = mode === 'profile-in-class' ? 'profile' : mode;
+                localStorage.setItem('scanner_mode_preference', savedPreferenceMode);
                 
                 // Update active tab style
                 document.querySelectorAll('.modal-mode-tab').forEach(btn => {
                     btn.style.background = 'none';
                     btn.style.color = 'var(--text-3)';
                 });
-                const activeBtn = document.getElementById('modalTab_' + mode);
+                const tabId = mode === 'profile-in-class' ? 'modalTab_profile' : 'modalTab_' + mode;
+                const activeBtn = document.getElementById(tabId);
                 if (activeBtn) {
                     activeBtn.style.background = 'var(--surface)';
                     activeBtn.style.color = 'var(--brand)';
@@ -13844,7 +13849,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             if (saveBtn) {
-                if (kidQrScanMode === 'profile') {
+                if (kidQrScanMode === 'profile' || kidQrScanMode === 'profile-in-class') {
                     saveBtn.style.display = 'none';
                 } else {
                     saveBtn.style.display = 'block';
@@ -13951,7 +13956,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     updateClassStats();
                 }
                 updateSaveBtns();
-            } else if (kidQrScanMode === 'profile') {
+            } else if (kidQrScanMode === 'profile' || kidQrScanMode === 'profile-in-class') {
+                if (kidQrScanMode === 'profile-in-class' && currentClass) {
+                    const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+                    const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
+                    if (!inCurrentView) {
+                        showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
+                        return false;
+                    }
+                }
                 kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'profile' });
                 stopKidQrScan();
                 showStudentDetails(name);
@@ -14092,7 +14105,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function startKidQrScan(mode = 'profile') {
-            const normalizedMode = ['attendance', 'coupons', 'profile', 'general'].includes(mode) ? mode : 'profile';
+            const normalizedMode = ['attendance', 'coupons', 'profile', 'profile-in-class', 'general'].includes(mode) ? mode : 'profile';
             
             let initialTabMode = normalizedMode;
             if (normalizedMode === 'general') {
@@ -20004,6 +20017,99 @@ if ($hasUncleId && $uncleRole === 'uncle')
             container.style.display = 'flex';
         }
 
+        function performClassInlineSearch(val) {
+            const q = (val || '').trim();
+            _renderClassInlineSearchResults(q);
+        }
+
+        function clearClassSearch() {
+            const input = document.getElementById('classSearchInput');
+            if (input) input.value = '';
+            _renderClassInlineSearchResults('');
+            const clearBtn = document.getElementById('clearClassSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+        }
+
+        function _renderClassInlineSearchResults(q) {
+            const container = document.getElementById('classSearchDropdown');
+            const clearBtn = document.getElementById('clearClassSearchBtn');
+            if (!container) return;
+
+            if (clearBtn) {
+                clearBtn.style.display = q ? 'flex' : 'none';
+            }
+
+            if (!q) {
+                container.innerHTML = '';
+                container.style.display = 'none';
+                return;
+            }
+
+            const searchData = (isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass));
+            if (!searchData || !searchData.length) {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">لا يوجد أطفال في هذا الفصل</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            let results = searchData.map(s => ({ ...s, _searchScore: getMatchScore(s, q) }))
+                .filter(s => s._searchScore > 0)
+                .sort((a, b) => b._searchScore - a._searchScore)
+                .slice(0, 15);
+
+            if (!results.length) {
+                container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">لا توجد نتائج مطابقة في هذا الفصل</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            container.innerHTML = results.map(s => {
+                const name = s['الاسم'] || '---';
+                const cls = s['الفصل'] || '---';
+                const id = s['_studentId'] || s['id'] || s['معرف'] || s['id_student'] || 0;
+                const photo = s['صورة']
+                    ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
+
+                return `
+                <div class="inline-search-item" onclick="selectStudentFromClassInlineSearch(${id})">
+                    ${photo}
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-3);"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
+                </div>`;
+            }).join('');
+
+            container.style.display = 'flex';
+        }
+
+        function selectStudentFromClassInlineSearch(id) {
+            clearClassSearch();
+            const searchData = (isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass));
+            const s = searchData.find(x => Number(x['_studentId'] || x['id'] || x['معرف'] || x['id_student'] || 0) === Number(id));
+            if (!s) return;
+
+            const rowId = `ai-${getStudentId(s)}`;
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const originalBg = row.style.background;
+                row.style.transition = 'background 0.5s ease';
+                row.style.background = 'var(--brand-glow)';
+                setTimeout(() => {
+                    row.style.background = originalBg;
+                }, 2000);
+
+                setTimeout(() => {
+                    showStudentDetails(s['الاسم']);
+                }, 300);
+            } else {
+                showStudentDetails(s['الاسم']);
+            }
+        }
+
         function performInlineSearch(val, source = 'inline') {
             const q = (val || '').trim();
             const currentInput = document.getElementById(source === 'topbar' ? 'topbarSearchInput' : 'inlineSearchInput');
@@ -20029,6 +20135,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         document.addEventListener('click', function (e) {
             const wrap = document.querySelector('.inline-search-wrap');
             const topbarWrap = document.querySelector('.topbar-search-wrap');
+            const classWrap = document.querySelector('.class-inline-search-wrap');
             if (wrap && !wrap.contains(e.target)) {
                 const dropdown = document.getElementById('inlineSearchDropdown');
                 if (dropdown) dropdown.style.display = 'none';
@@ -20037,10 +20144,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const dropdown = document.getElementById('topbarSearchDropdown');
                 if (dropdown) dropdown.style.display = 'none';
             }
+            if (classWrap && !classWrap.contains(e.target)) {
+                const dropdown = document.getElementById('classSearchDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
         });
 
         // Re-open search dropdown on focus if input has content
-        [['inlineSearchInput', 'inlineSearchDropdown'], ['topbarSearchInput', 'topbarSearchDropdown']].forEach(([inputId, dropdownId]) => {
+        [['inlineSearchInput', 'inlineSearchDropdown'], ['topbarSearchInput', 'topbarSearchDropdown'], ['classSearchInput', 'classSearchDropdown']].forEach(([inputId, dropdownId]) => {
             const input = document.getElementById(inputId);
             if (!input) return;
             input.addEventListener('focus', function () {
