@@ -18960,32 +18960,24 @@
             const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
 
             const sid = s['_studentId'] || s.id || s.student_id;
-            const imgUrl = s['صورة'] || s.image_url || s.photo || '';
-            const hasStudentImg = imgUrl && imgUrl.trim() !== '' && !imgUrl.includes('placeholder.com') && !imgUrl.includes('via.placeholder');
+            const rawImg = s['صورة'] || s.image_url || s.photo || '';
+            const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
+            const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
             const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
             
             let avatarHtml = '';
             if (showStudentImg) {
-                if (hasStudentImg) {
-                    if (showAvatarFallback) {
-                        avatarHtml = `
-                        <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
-                                <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
-                                <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
-                            </svg>
-                            <img src="${imgUrl}" class="avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; position:absolute; inset:0; z-index:2;" onerror="this.style.display='none'">
-                        </div>`;
-                    } else {
-                        avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
-                    }
-                } else if (showAvatarFallback) {
-                    avatarHtml = `<div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px">
+                if (showAvatarFallback) {
+                    avatarHtml = `
+                    <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
                             <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
                             <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
                         </svg>
+                        <img src="${imgUrl}" class="avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; position:absolute; inset:0; z-index:2;" onerror="this.style.display='none'">
                     </div>`;
+                } else {
+                    avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
                 }
             }
 

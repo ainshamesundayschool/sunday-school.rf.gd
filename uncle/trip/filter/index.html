@@ -1018,9 +1018,8 @@
                     } catch (e) { }
                 }
 
-                const avatarHtml = hasImage 
-                    ? `<img src="${imgUrl}" class="avatar" onerror="this.style.display='none'">` 
-                    : '';
+                const avatarImg = hasImage ? imgUrl : '/profile_default..webp';
+                const avatarHtml = `<img src="${avatarImg}" class="avatar" onerror="this.style.display='none'">`;
 
                 printArea.innerHTML += `
         <div class="print-card">
