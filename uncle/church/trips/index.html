@@ -3785,24 +3785,23 @@
       }
 
       #printArea {
-        display: grid !important;
-        grid-template-columns: repeat(auto-fit, minmax(var(--card-print-width, 260px), max-content));
-        justify-content: center;
-        justify-items: center;
-        align-items: start;
-        column-gap: var(--print-gap-x, 10mm);
-        row-gap: var(--print-gap-y, 10mm);
-        width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 2mm;
-        box-sizing: border-box;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-content: flex-start !important;
+        gap: var(--print-gap-y, 10mm) var(--print-gap-x, 10mm) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 2mm !important;
+        box-sizing: border-box !important;
       }
 
-      .print-card {
-        break-inside: avoid;
-        page-break-inside: avoid;
-        margin: 0 auto;
+      #printArea .print-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
       }
     }
 
@@ -3848,6 +3847,10 @@
 
     #printPreviewPanel.preview-collapsed #printPreviewWrapper {
       display: none !important;
+    }
+
+    #printPreviewContent .print-card {
+      margin: 0 !important;
     }
 
     /* ── Desktop: side-by-side ───────────────────────────────── */
@@ -10717,12 +10720,11 @@
           custom_data: sourceReg.custom_data || null
         }));
 
-        previewWrapper.style.display = 'grid';
-        previewWrapper.style.gridTemplateColumns = `repeat(auto-fit, minmax(${(baseWidth * previewScale)}px, max-content))`;
+        previewWrapper.style.display = 'flex';
+        previewWrapper.style.flexWrap = 'wrap';
         previewWrapper.style.justifyContent = 'center';
         previewWrapper.style.alignItems = 'start';
-        previewWrapper.style.columnGap = gapX;
-        previewWrapper.style.rowGap = gapY;
+        previewWrapper.style.gap = `${gapY} ${gapX}`;
 
         const layout = calculateCardLayout(baseWidth, baseHeight, previewScale, padding);
         const qrSize = layout.qrSize;

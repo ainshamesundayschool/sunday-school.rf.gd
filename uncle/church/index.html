@@ -6085,25 +6085,25 @@
             }
 
             #printArea {
-                display: grid !important;
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-                justify-items: center;
-                align-items: start;
-                column-gap: var(--print-gap-x, 10mm);
-                row-gap: var(--print-gap-y, 10mm);
-                width: 100%;
-                max-width: 100%;
-                margin: 0 auto;
-                padding: 2mm;
-                box-sizing: border-box;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-content: flex-start !important;
+                gap: var(--print-gap-y, 10mm) var(--print-gap-x, 10mm) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                padding: 2mm !important;
+                box-sizing: border-box !important;
                 background: #fff !important;
             }
 
-            .print-card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                margin: 0 auto;
+            #printArea .print-card {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+                margin: 0 !important;
                 background: #fff !important;
+                flex-shrink: 0 !important;
             }
 
             .print-card img.avatar {
@@ -6148,6 +6148,10 @@
 
         #printPreviewPanel.preview-collapsed #printPreviewWrapper {
             display: none !important;
+        }
+
+        #printPreviewContent .print-card {
+            margin: 0 !important;
         }
 
         @media (min-width: 800px) {
@@ -19350,12 +19354,11 @@
             const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
             const previewKids = kids.slice(0, 4);
 
-            previewWrapper.style.display = 'grid';
-            previewWrapper.style.gridTemplateColumns = `repeat(auto-fit, minmax(${baseWidth * previewScale}px, max-content))`;
+            previewWrapper.style.display = 'flex';
+            previewWrapper.style.flexWrap = 'wrap';
             previewWrapper.style.justifyContent = 'center';
             previewWrapper.style.alignItems = 'start';
-            previewWrapper.style.columnGap = gapX;
-            previewWrapper.style.rowGap = gapY;
+            previewWrapper.style.gap = `${gapY} ${gapX}`;
 
             let previewHtml = previewKids.map((s, idx) => {
                 return generateCardMarkup({
