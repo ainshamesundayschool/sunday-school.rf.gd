@@ -9188,17 +9188,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- Help Center & Smart Search Modal -->
     <!-- NOTE TO DEVELOPERS: ALWAYS ADD NEW FEATURES TO THE HELP_FEATURES DATA ARRAY AT THE BOTTOM OF THE SCRIPTS SECTION! -->
     <div class="modal-overlay" id="helpFeaturesModal" style="z-index: 1000015;">
-        <div class="modal modal-lg" style="max-width: 850px; height: 85vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="flex: none;">
+        <div class="modal modal-lg" style="max-width: 850px; height: 85vh;">
+            <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-question-circle" style="color:var(--brand);"></i> 
                     <span>دليل مساعدة الخدمة</span>
                 </h3>
                 <button class="close-btn" onclick="closeHelpModal()">&times;</button>
             </div>
-            <div class="help-modal-body" style="padding: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 12px; direction: rtl; text-align: right;">
+            <div class="help-modal-body" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;">
                 <!-- Search bar -->
-                <div class="help-search-wrapper" style="flex: none; display: flex; flex-direction: column; gap: 8px;">
+                <div class="help-search-wrapper" style="display: flex; flex-direction: column; gap: 8px;">
                     <div style="position: relative; width: 100%;">
                         <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.95rem;"></i>
                         <input type="text" id="helpSearchInput" placeholder="ابحث عن ميزة أو كلمة رئيسية (مثال: دمج، غياب، كوبونات، صورة، رحلة)..." 
@@ -9217,7 +9217,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
                 <!-- Scrollable results list -->
-                <div id="helpFeaturesList" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
+                <div id="helpFeaturesList" style="display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
                     <!-- Features cards render here -->
                 </div>
             </div>
