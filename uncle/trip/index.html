@@ -1123,7 +1123,18 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
-                        handleScannedText(decodedText);
+                        const reader = document.getElementById('reader');
+                        if (reader) {
+                            reader.style.setProperty('border', '3px solid #10b981', 'important');
+                            reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                        }
+                        setTimeout(() => {
+                            if (reader) {
+                                reader.style.removeProperty('border');
+                                reader.style.removeProperty('box-shadow');
+                            }
+                            handleScannedText(decodedText);
+                        }, 500);
                     },
                     (errorMessage) => {}
                 ).catch((err) => {

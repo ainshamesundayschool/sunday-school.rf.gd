@@ -10842,6 +10842,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let uncleClassNavPermission = 'all';
         let _uncleAssignedClassesLoaded = false;
         let kidQrScanner = null;
+        let kidQrLastScanTime = 0;
+        let kidQrLastScanText = '';
         let kidQrScanMode = '';
         let kidQrScanAmount = 0;
         let kidQrScanSeen = new Set();
@@ -13908,6 +13910,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return false;
             }
 
+            // Green Flash UI feedback
+            const reader = document.getElementById('kidQrReader');
+            if (reader) {
+                reader.style.setProperty('border', '3px solid #10b981', 'important');
+                reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                setTimeout(() => {
+                    reader.style.removeProperty('border');
+                    reader.style.removeProperty('box-shadow');
+                }, 500);
+            }
+
             const studentCompositeId = getStudentId(student);
             const className = student['الفصل'] || student.class || '';
 
@@ -13969,8 +13982,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                 }
                 kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'profile' });
-                stopKidQrScan();
-                showStudentDetails(name);
+                setTimeout(() => {
+                    stopKidQrScan();
+                    showStudentDetails(name);
+                }, 500);
                 return true;
             }
 
@@ -13980,6 +13995,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function stopKidQrScan() {
+            kidQrLastScanTime = 0;
+            kidQrLastScanText = '';
             const modal = document.getElementById('kidQrScannerModal');
             if (kidQrScanner) {
                 try {
@@ -14080,11 +14097,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { facingMode: 'environment' },
                     { fps: 10, qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; } },
                     async (decodedText) => {
+                        const now = Date.now();
                         const kidId = getKidIdFromQrText(decodedText);
                         if (!kidId) {
                             showToast('QR غير صالح', 'error');
                             return;
                         }
+                        if (kidId === kidQrLastScanText && (now - kidQrLastScanTime < 3000)) {
+                            return;
+                        }
+                        kidQrLastScanTime = now;
+                        kidQrLastScanText = kidId;
                         recordKidQrScan(kidId);
                     },
                     () => { }

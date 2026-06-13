@@ -1199,28 +1199,39 @@
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 async (decodedText, decodedResult) => {
-                    html5QrcodeScanner.stop().then(async () => {
-                        document.getElementById('scannerModal').style.display = 'none';
-
-                        const scannedStudentId = getKidIdFromQrText(decodedText);
-                        if (!scannedStudentId) {
-                            showToast('الكود الممسوح غير صحيح', 'error');
-                            return;
+                    const reader = document.getElementById('reader');
+                    if (reader) {
+                        reader.style.setProperty('border', '3px solid #10b981', 'important');
+                        reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                    }
+                    setTimeout(() => {
+                        if (reader) {
+                            reader.style.removeProperty('border');
+                            reader.style.removeProperty('box-shadow');
                         }
+                        html5QrcodeScanner.stop().then(async () => {
+                            document.getElementById('scannerModal').style.display = 'none';
 
-                        let parsedUrl = null;
-                        try {
-                            parsedUrl = new URL(decodedText, window.location.origin);
-                        } catch (e) { }
-                        const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
+                            const scannedStudentId = getKidIdFromQrText(decodedText);
+                            if (!scannedStudentId) {
+                                showToast('الكود الممسوح غير صحيح', 'error');
+                                return;
+                            }
 
-                        if (String(scannedTripId || activeTripId) === String(activeTripId)) {
-                            window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
-                            return;
-                        }
+                            let parsedUrl = null;
+                            try {
+                                parsedUrl = new URL(decodedText, window.location.origin);
+                            } catch (e) { }
+                            const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
 
-                        showToast('هذا الكود لا يخص الرحلة الحالية', 'warning');
-                    });
+                            if (String(scannedTripId || activeTripId) === String(activeTripId)) {
+                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+                                return;
+                            }
+
+                            showToast('هذا الكود لا يخص الرحلة الحالية', 'warning');
+                        });
+                    }, 500);
                 },
                 (errorMessage) => {
                     // Ignore parse errors
@@ -1240,46 +1251,57 @@
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 async (decodedText, decodedResult) => {
-                    // Success
-                    html5QrcodeScanner.stop().then(async () => {
-                        document.getElementById('scannerModal').style.display = 'none';
-                        
-                        let parsedUrl;
-                        try {
-                            parsedUrl = new URL(decodedText);
-                        } catch (e) {
-                            showToast('الكود الممسوح غير صحيح', 'error');
-                            return;
+                    const reader = document.getElementById('reader');
+                    if (reader) {
+                        reader.style.setProperty('border', '3px solid #10b981', 'important');
+                        reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                    }
+                    setTimeout(() => {
+                        if (reader) {
+                            reader.style.removeProperty('border');
+                            reader.style.removeProperty('box-shadow');
                         }
-                        const scannedTripId = parsedUrl.searchParams.get('trip_id');
-                        const scannedStudentId = parsedUrl.searchParams.get('student_id');
-                        
-                        if (!scannedTripId || !scannedStudentId) {
-                            showToast('الكود الممسوح غير صحيح', 'error');
-                            return;
-                        }
-
-                        if (String(scannedTripId) === String(tripId)) {
-                            // Same trip - navigate directly
-                            window.location.href = decodedText;
-                            return;
-                        }
-
-                        // Different trip - check church
-                        showToast('جاري التحقق من كود الرحلة...', 'info');
-                        const res = await apiCall('getTripDetails', { trip_id: scannedTripId });
-                        const currentChurchId = tripData ? tripData.church_id : null;
-                        if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
-                            // Same church, different trip -> Ask to redirect
-                            if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
-                                window.location.href = decodedText;
+                        // Success
+                        html5QrcodeScanner.stop().then(async () => {
+                            document.getElementById('scannerModal').style.display = 'none';
+                            
+                            let parsedUrl;
+                            try {
+                                parsedUrl = new URL(decodedText);
+                            } catch (e) {
+                                showToast('الكود الممسوح غير صحيح', 'error');
+                                return;
                             }
-                        } else {
-                            // Different church or unauthorized -> Block and alert
-                            await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                            showToast('كود غير صالح لكنيستك', 'error');
-                        }
-                    });
+                            const scannedTripId = parsedUrl.searchParams.get('trip_id');
+                            const scannedStudentId = parsedUrl.searchParams.get('student_id');
+                            
+                            if (!scannedTripId || !scannedStudentId) {
+                                showToast('الكود الممسوح غير صحيح', 'error');
+                                return;
+                            }
+
+                            if (String(scannedTripId) === String(tripId)) {
+                                // Same trip - navigate directly
+                                window.location.href = decodedText;
+                                return;
+                            }
+
+                            // Different trip - check church
+                            showToast('جاري التحقق من كود الرحلة...', 'info');
+                            const res = await apiCall('getTripDetails', { trip_id: scannedTripId });
+                            const currentChurchId = tripData ? tripData.church_id : null;
+                            if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
+                                // Same church, different trip -> Ask to redirect
+                                if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
+                                    window.location.href = decodedText;
+                                }
+                            } else {
+                                // Different church or unauthorized -> Block and alert
+                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
+                                showToast('كود غير صالح لكنيستك', 'error');
+                            }
+                        });
+                    }, 500);
                 },
                 (errorMessage) => {
                     // Ignore parse errors

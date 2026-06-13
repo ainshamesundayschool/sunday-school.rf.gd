@@ -811,6 +811,17 @@ $tripTitle = $trip['title'];
                 return;
             }
 
+            // Flash scanner green
+            const reader = document.getElementById('reader');
+            if (reader) {
+                reader.style.setProperty('border', '3px solid #10b981', 'important');
+                reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                setTimeout(() => {
+                    reader.style.removeProperty('border');
+                    reader.style.removeProperty('box-shadow');
+                }, 500);
+            }
+
             // Camera debounce: ignore duplicate scans of same code within 3 seconds
             const now = Date.now();
             if (studentId === lastScannedText && (now - lastScannedTime < 3000)) {
