@@ -360,6 +360,24 @@
             transform: translateY(-2px) scale(0.98);
         }
 
+        .btn-coupon-fast {
+            background: var(--brand) !important;
+        }
+
+        .btn-coupon-fast:hover {
+            background: #4338ca !important;
+            box-shadow: 0 25px 50px rgba(91, 108, 245, 0.3) !important;
+        }
+
+        .btn-welcome-screen {
+            background: #8b5cf6 !important;
+        }
+
+        .btn-welcome-screen:hover {
+            background: #6d28d9 !important;
+            box-shadow: 0 25px 50px rgba(139, 92, 246, 0.3) !important;
+        }
+
         .btn-camera-text {
             font-size: 1.2rem;
         }
@@ -646,14 +664,35 @@
                 </div>
             </div>
 
-            <!-- Big Camera Button -->
-            <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px;">
-                <span class="fa-stack" style="font-size: 1.1rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-expand fa-stack-2x" style="font-size: 1.8rem; color: white;"></i>
-                    <i class="fas fa-qrcode fa-stack-1x" style="font-size: 1.0rem; color: white;"></i>
-                </span>
-                <span class="btn-camera-text" style="margin-top: 2px; color: white;">مسح QR</span>
-            </button>
+            <!-- Scanner & Display Tools -->
+            <div class="scanner-tools-container" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap;">
+                <!-- Standard Scanner (Games/Points) -->
+                <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px; background: var(--success); text-decoration: none;">
+                    <span class="fa-stack" style="font-size: 1.1rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-expand fa-stack-2x" style="font-size: 1.8rem; color: white;"></i>
+                        <i class="fas fa-qrcode fa-stack-1x" style="font-size: 1.0rem; color: white;"></i>
+                    </span>
+                    <span class="btn-camera-text" style="margin-top: 2px; color: white;">نقاط الرحلة (العاب)</span>
+                </button>
+
+                <!-- Fast Coupon Scanner -->
+                <button class="btn-camera-big btn-coupon-fast" onclick="openFastCouponScanner()" title="مسح سريع للكوبونات" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px; text-decoration: none;">
+                    <span class="fa-stack" style="font-size: 1.1rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-bolt fa-stack-2x" style="font-size: 1.8rem; color: white;"></i>
+                        <i class="fas fa-ticket-alt fa-stack-1x" style="font-size: 0.9rem; color: white; transform: rotate(-15deg);"></i>
+                    </span>
+                    <span class="btn-camera-text" style="margin-top: 2px; color: white;">الماسح السريع للكوبونات</span>
+                </button>
+
+                <!-- Welcome Display Screen -->
+                <button class="btn-camera-big btn-welcome-screen" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 20px; text-decoration: none;">
+                    <span class="fa-stack" style="font-size: 1.1rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-tv fa-stack-2x" style="font-size: 1.8rem; color: white;"></i>
+                        <i class="fas fa-volume-up fa-stack-1x" style="font-size: 0.9rem; color: white;"></i>
+                    </span>
+                    <span class="btn-camera-text" style="margin-top: 2px; color: white;">شاشة الترحيب بالأطفال</span>
+                </button>
+            </div>
 
             <div id="loadingDetails" class="loading">
                 <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
@@ -1369,6 +1408,17 @@
                     yesBtn.addEventListener('click', () => close(true));
                     noBtn.addEventListener('click', () => close(false));
                 });
+            }
+
+            function openFastCouponScanner() {
+                if (currentTrip && currentTrip.id) {
+                    window.location.href = `/uncle/trip/fast_scan.php?trip_id=${currentTrip.id}`;
+                }
+            }
+            function openWelcomeScreen() {
+                if (currentTrip && currentTrip.id) {
+                    window.open(`/uncle/trip/welcome.php?trip_id=${currentTrip.id}`, '_blank');
+                }
             }
         </script>
 </body>

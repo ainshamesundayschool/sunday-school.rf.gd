@@ -562,6 +562,163 @@ function processGameQRCode()
 
 
 
+function processFastScanCoupon()
+{
+    try {
+        checkUncleAuth();
+        $churchId = getChurchId();
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        $tripId = intval($_REQUEST['trip_id'] ?? 0);
+        $studentId = intval($_REQUEST['student_id'] ?? 0);
+        $amount = intval($_REQUEST['amount'] ?? 0);
+
+        if ($tripId <= 0 || $studentId <= 0 || $amount === 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id, student_id, and non-zero amount are required']);
+            return;
+        }
+
+        $conn = getDBConnection();
+
+        // 1. Load student details
+        $stmt = $conn->prepare("SELECT id, name, church_id, coupons, attendance_coupons, task_coupons FROM students WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $studentId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Student not found']);
+            return;
+        }
+        $student = $res->fetch_assoc();
+
+        // 2. Load trip to check collaborating churches
+        $tstmt = $conn->prepare("SELECT id, church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $tstmt->bind_param('i', $tripId);
+        $tstmt->execute();
+        $tres = $tstmt->get_result();
+        if ($tres->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'Trip not found']);
+            return;
+        }
+        $trip = $tres->fetch_assoc();
+
+        // Check participating churches
+        $participants = [$trip['church_id']];
+        $collabRaw = $trip['collaborating_churches'] ?? '';
+        $collab = [];
+        if (!empty($collabRaw)) {
+            $decodedCollab = json_decode($collabRaw, true);
+            if (is_array($decodedCollab)) {
+                $collab = array_map('intval', $decodedCollab);
+            }
+        }
+        $participants = array_unique(array_merge($participants, $collab));
+
+        if ($churchId <= 0 || !in_array($churchId, $participants, true)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح بتحديث كوبونات هذه الرحلة']);
+            return;
+        }
+
+        $studentChurchId = intval($student['church_id'] ?? 0);
+        if (!in_array($studentChurchId, $participants, true)) {
+            sendJSON(['success' => false, 'message' => 'هذا الطفل غير مسجل في رحلة مشتركة مع كنيستك']);
+            return;
+        }
+
+        // 3. Update student coupons
+        $oldCount = intval($student['coupons'] ?? 0);
+        $newCount = max(0, $oldCount + $amount);
+
+        $currentAttendance = intval($student['attendance_coupons'] ?? 0);
+        $currentTask = intval($student['task_coupons'] ?? 0);
+        $newCommitment = max(0, $newCount - $currentAttendance - $currentTask);
+
+        $up = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ?");
+        $up->bind_param('iii', $newCount, $newCommitment, $studentId);
+        if (!$up->execute()) {
+            sendJSON(['success' => false, 'message' => 'Failed to update coupons: ' . $up->error]);
+            return;
+        }
+
+        // 4. Log the coupon change
+        $reason = "trip_coupon_scan:" . $tripId;
+        $logStmt = $conn->prepare("
+            INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
+            VALUES (?, ?, ?, ?, ?, 'manual', ?)
+        ");
+        $logStmt->bind_param("iiiiis", $studentId, $uncleId, $oldCount, $newCount, $amount, $reason);
+        $logStmt->execute();
+
+        // 5. Audit log
+        $auditReason = "مسح سريع بالرحلة: " . ($amount > 0 ? "+" . $amount : $amount);
+        auditCouponChange($studentId, $student['name'], $oldCount, $newCount, $auditReason);
+
+        sendJSON([
+            'success' => true,
+            'student_name' => $student['name'],
+            'new_coupons' => $newCount,
+            'change' => $amount
+        ]);
+
+    } catch (Exception $e) {
+        error_log('processFastScanCoupon error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+
+
+function getLatestTripCouponScan()
+{
+    try {
+        checkUncleAuth();
+        $tripId = intval($_REQUEST['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $reason = "trip_coupon_scan:" . $tripId;
+
+        $stmt = $conn->prepare("
+            SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, s.name as student_name, s.profile_photo
+            FROM coupon_logs cl
+            JOIN students s ON cl.student_id = s.id
+            WHERE cl.reason = ?
+            ORDER BY cl.id DESC
+            LIMIT 1
+        ");
+        $stmt->bind_param('s', $reason);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => true, 'latest' => null]);
+            return;
+        }
+
+        $row = $res->fetch_assoc();
+        sendJSON([
+            'success' => true,
+            'latest' => [
+                'log_id' => intval($row['id']),
+                'student_id' => intval($row['student_id']),
+                'student_name' => $row['student_name'],
+                'profile_photo' => $row['profile_photo'],
+                'change_amount' => intval($row['change_amount']),
+                'created_at' => $row['created_at']
+            ]
+        ]);
+
+    } catch (Exception $e) {
+        error_log('getLatestTripCouponScan error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+
+
 function updateTripPointsConfig()
 
 {
@@ -4426,6 +4583,22 @@ try {
         case 'processGameQRCode':
 
             processGameQRCode();
+
+            break;
+
+
+
+        case 'processFastScanCoupon':
+
+            processFastScanCoupon();
+
+            break;
+
+
+
+        case 'getLatestTripCouponScan':
+
+            getLatestTripCouponScan();
 
             break;
 
