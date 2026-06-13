@@ -463,7 +463,7 @@ $tripTitle = $trip['title'];
 
             // Load latest scan log ID on load so we don't replay past items
             try {
-                const res = await fetch(`${API_URL}?action=getLatestTripCouponScan&trip_id=${tripId}`).then(r => r.json());
+                const res = await fetch(`${API_URL}?action=getLatestTripPointsScan&trip_id=${tripId}`).then(r => r.json());
                 if (res.success && res.latest) {
                     lastProcessedLogId = res.latest.log_id;
                 }
@@ -477,7 +477,7 @@ $tripTitle = $trip['title'];
 
         async function pollScanEvents() {
             try {
-                const res = await fetch(`${API_URL}?action=getLatestTripCouponScan&trip_id=${tripId}`).then(r => r.json());
+                const res = await fetch(`${API_URL}?action=getLatestTripPointsScan&trip_id=${tripId}`).then(r => r.json());
                 
                 if (res.success && res.latest) {
                     const latest = res.latest;
@@ -525,21 +525,21 @@ $tripTitle = $trip['title'];
             const titleEl = document.getElementById('congratsTitle');
             const bodyEl = document.getElementById('messageBody');
 
-            // Set styles based on coupon change sign
+            // Set styles based on points change sign
             const isAdd = event.change_amount > 0;
             card.className = 'welcome-card show ' + (isAdd ? 'style-plus' : 'style-minus');
-            titleEl.textContent = isAdd ? 'تهانينااا! 🎉' : 'سحب كوبونات 🎟️';
+            titleEl.textContent = isAdd ? 'تهانينااا! 🎉' : 'سحب نقاط ⭐️';
             
             // Set message texts
             const countStr = Math.abs(event.change_amount);
-            let arabicTerm = 'كوبون';
+            let arabicTerm = 'نقطة';
             if (countStr >= 3 && countStr <= 10) {
-                arabicTerm = 'كوبونات';
+                arabicTerm = 'نقاط';
             }
             
             bodyEl.innerHTML = isAdd 
-                ? `<i class="fas fa-ticket-alt"></i> مبروك عليك ${countStr} ${arabicTerm}!`
-                : `<i class="fas fa-ticket-alt"></i> تم سحب ${countStr} ${arabicTerm}`;
+                ? `<i class="fas fa-star"></i> مبروك عليك ${countStr} ${arabicTerm}!`
+                : `<i class="fas fa-star"></i> تم سحب ${countStr} ${arabicTerm}`;
 
             nameEl.textContent = event.student_name;
             

@@ -571,7 +571,7 @@ function processGameQRCode()
 
 
 
-function processFastScanCoupon()
+function processFastScanPoints()
 {
     try {
         checkUncleAuth();
@@ -590,7 +590,7 @@ function processFastScanCoupon()
         $conn = getDBConnection();
 
         // 1. Load student details
-        $stmt = $conn->prepare("SELECT id, name, church_id, coupons, attendance_coupons, task_coupons, image_url FROM students WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url FROM students WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $studentId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -624,7 +624,7 @@ function processFastScanCoupon()
         $participants = array_unique(array_merge($participants, $collab));
 
         if ($churchId <= 0 || !in_array($churchId, $participants, true)) {
-            sendJSON(['success' => false, 'message' => 'غير مصرح بتحديث كوبونات هذه الرحلة']);
+            sendJSON(['success' => false, 'message' => 'غير مصرح بتحديث نقاط هذه الرحلة']);
             return;
         }
 
@@ -643,27 +643,30 @@ function processFastScanCoupon()
             return;
         }
 
-        // 3. Update student coupons
-        $oldCount = intval($student['coupons'] ?? 0);
+        // 3. Update student trip points
+        $pointsJson = $student['trip_points'] ?? '';
+        $points = json_decode($pointsJson, true);
+        if (!is_array($points)) {
+            $points = [];
+        }
+        $oldCount = intval($points[$tripId] ?? 0);
         $newCount = max(0, $oldCount + $amount);
+        $points[$tripId] = $newCount;
+        $newJson = json_encode($points, JSON_UNESCAPED_UNICODE);
 
-        $currentAttendance = intval($student['attendance_coupons'] ?? 0);
-        $currentTask = intval($student['task_coupons'] ?? 0);
-        $newCommitment = max(0, $newCount - $currentAttendance - $currentTask);
-
-        $up = $conn->prepare("UPDATE students SET coupons = ?, commitment_coupons = ?, updated_at = NOW() WHERE id = ?");
-        $up->bind_param('iii', $newCount, $newCommitment, $studentId);
+        $up = $conn->prepare("UPDATE students SET trip_points = ?, updated_at = NOW() WHERE id = ?");
+        $up->bind_param('si', $newJson, $studentId);
         if (!$up->execute()) {
-            sendJSON(['success' => false, 'message' => 'Failed to update coupons: ' . $up->error]);
+            sendJSON(['success' => false, 'message' => 'Failed to update points: ' . $up->error]);
             return;
         }
 
-        // 4. Log the coupon change
+        // 4. Log the points change in coupon_logs using trip_points_scan reason
         $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
         if ($undoingLogId > 0) {
-            $reason = "trip_coupon_scan_undo:" . $tripId . ":" . $undoingLogId;
+            $reason = "trip_points_scan_undo:" . $tripId . ":" . $undoingLogId;
         } else {
-            $reason = "trip_coupon_scan:" . $tripId;
+            $reason = "trip_points_scan:" . $tripId;
         }
         $logStmt = $conn->prepare("
             INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
@@ -673,27 +676,27 @@ function processFastScanCoupon()
         $logStmt->execute();
 
         // 5. Audit log
-        $auditReason = "مسح سريع بالرحلة: " . ($amount > 0 ? "+" . $amount : $amount);
+        $auditReason = "مسح سريع نقاط بالرحلة: " . ($amount > 0 ? "+" . $amount : $amount);
         auditCouponChange($studentId, $student['name'], $oldCount, $newCount, $auditReason);
 
         sendJSON([
             'success' => true,
             'log_id' => $conn->insert_id,
             'student_name' => $student['name'],
-            'new_coupons' => $newCount,
+            'new_points' => $newCount,
             'change' => $amount,
             'profile_photo' => $student['image_url']
         ]);
 
     } catch (Exception $e) {
-        error_log('processFastScanCoupon error: ' . $e->getMessage());
+        error_log('processFastScanPoints error: ' . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
 
 
-function getLatestTripCouponScan()
+function getLatestTripPointsScan()
 {
     try {
         checkUncleAuth();
@@ -704,7 +707,7 @@ function getLatestTripCouponScan()
         }
 
         $conn = getDBConnection();
-        $reason = "trip_coupon_scan:" . $tripId;
+        $reason = "trip_points_scan:" . $tripId;
 
         $stmt = $conn->prepare("
             SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, s.name as student_name, s.image_url as profile_photo
@@ -737,14 +740,14 @@ function getLatestTripCouponScan()
         ]);
 
     } catch (Exception $e) {
-        error_log('getLatestTripCouponScan error: ' . $e->getMessage());
+        error_log('getLatestTripPointsScan error: ' . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
 
 
-function getRecentTripCouponScans()
+function getRecentTripPointsScans()
 {
     try {
         checkUncleAuth();
@@ -755,7 +758,7 @@ function getRecentTripCouponScans()
         }
 
         $conn = getDBConnection();
-        $reason = "trip_coupon_scan:" . $tripId;
+        $reason = "trip_points_scan:" . $tripId;
         $uncleId = $_SESSION['uncle_id'] ?? null;
 
         $stmt = $conn->prepare("
@@ -765,7 +768,7 @@ function getRecentTripCouponScans()
             FROM coupon_logs cl
             JOIN students s ON cl.student_id = s.id
             LEFT JOIN uncles u ON cl.uncle_id = u.id
-            WHERE cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')
+            WHERE cl.reason = ? OR cl.reason LIKE CONCAT('trip_points_scan_undo:', ?, ':%')
             ORDER BY cl.id DESC
             LIMIT 100
         ");
@@ -796,7 +799,7 @@ function getRecentTripCouponScans()
         ]);
 
     } catch (Exception $e) {
-        error_log('getRecentTripCouponScans error: ' . $e->getMessage());
+        error_log('getRecentTripPointsScans error: ' . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
@@ -4672,25 +4675,25 @@ try {
 
 
 
-        case 'processFastScanCoupon':
+        case 'processFastScanPoints':
 
-            processFastScanCoupon();
-
-            break;
-
-
-
-        case 'getLatestTripCouponScan':
-
-            getLatestTripCouponScan();
+            processFastScanPoints();
 
             break;
 
 
 
-        case 'getRecentTripCouponScans':
+        case 'getLatestTripPointsScan':
 
-            getRecentTripCouponScans();
+            getLatestTripPointsScan();
+
+            break;
+
+
+
+        case 'getRecentTripPointsScans':
+
+            getRecentTripPointsScans();
 
             break;
 

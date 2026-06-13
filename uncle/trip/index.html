@@ -639,12 +639,6 @@
             <div class="topbar-search-results" id="topbarSearchResults"></div>
         </div>
         <div class="topbar-actions">
-            <button class="topbar-btn" onclick="startScannerV2()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
-                <span class="fa-stack" style="font-size: 0.85rem; width: 1.5em; height: 1.5em; line-height: 1.5em; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
-                    <i class="fas fa-expand fa-stack-2x" style="font-size: 1.3rem;"></i>
-                    <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.75rem;"></i>
-                </span>
-            </button>
         </div>
     </div>
 
@@ -666,16 +660,10 @@
 
             <!-- Scanner & Display Tools -->
             <div class="scanner-tools-container" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; direction: rtl; width: 100%;">
-                <!-- Standard Scanner (Games/Points) -->
-                <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="margin: 0; flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: var(--success); text-decoration: none; border-radius: 12px; font-size: 0.92rem; min-height: 44px; min-width: 0; box-shadow: var(--shadow-sm);">
-                    <i class="fas fa-qrcode" style="font-size: 1.1rem; color: white;"></i>
-                    <span class="btn-camera-text" style="color: white; font-weight: 800;">نقاط الرحلة (ألعاب)</span>
-                </button>
-
-                <!-- Fast Coupon Scanner -->
-                <button class="btn-camera-big btn-coupon-fast" onclick="openFastCouponScanner()" title="مسح سريع للكوبونات" style="margin: 0; flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: var(--brand); text-decoration: none; border-radius: 12px; font-size: 0.92rem; min-height: 44px; min-width: 0; box-shadow: var(--shadow-sm);">
+                <!-- Fast Points Scanner -->
+                <button class="btn-camera-big btn-coupon-fast" onclick="openFastCouponScanner()" title="مسح سريع للنقاط" style="margin: 0; max-width: 400px; flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; background: var(--brand); text-decoration: none; border-radius: 12px; font-size: 0.92rem; min-height: 44px; min-width: 0; box-shadow: var(--shadow-sm);">
                     <i class="fas fa-bolt" style="font-size: 1.1rem; color: white;"></i>
-                    <span class="btn-camera-text" style="color: white; font-weight: 800;">الماسح السريع للكوبونات</span>
+                    <span class="btn-camera-text" style="color: white; font-weight: 800;">الماسح السريع للنقاط</span>
                 </button>
             </div>
 

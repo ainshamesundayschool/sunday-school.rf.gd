@@ -54,7 +54,7 @@ $tripTitle = $trip['title'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الماسح السريع للكوبونات | مدارس الأحد</title>
+    <title>الماسح السريع للنقاط | مدارس الأحد</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap">
@@ -612,10 +612,10 @@ $tripTitle = $trip['title'];
                 <!-- Sign Toggle (Plus / Minus) -->
                 <div class="sign-toggle">
                     <button type="button" class="sign-btn plus active" onclick="setSign('plus')">
-                        <i class="fas fa-plus"></i> إضافة كوبونات
+                        <i class="fas fa-plus"></i> إضافة نقاط
                     </button>
                     <button type="button" class="sign-btn minus" onclick="setSign('minus')">
-                        <i class="fas fa-minus"></i> سحب (خصم) كوبونات
+                        <i class="fas fa-minus"></i> سحب (خصم) نقاط
                     </button>
                 </div>
 
@@ -863,7 +863,7 @@ $tripTitle = $trip['title'];
 
             // Call API
             const fd = new FormData();
-            fd.append('action', 'processFastScanCoupon');
+            fd.append('action', 'processFastScanPoints');
             fd.append('trip_id', tripId);
             fd.append('student_id', studentId);
             fd.append('amount', changeAmount);
@@ -875,7 +875,7 @@ $tripTitle = $trip['title'];
                     tempEntry.id = res.log_id; // Set actual database log ID
                     tempEntry.status = 'success';
                     tempEntry.studentName = res.student_name;
-                    tempEntry.new_coupons = res.new_coupons;
+                    tempEntry.new_points = res.new_points;
                     
                     // Set photo from API response
                     if (res.profile_photo) {
@@ -939,7 +939,7 @@ $tripTitle = $trip['title'];
             const undoAmount = -1 * amount;
 
             const fd = new FormData();
-            fd.append('action', 'processFastScanCoupon');
+            fd.append('action', 'processFastScanPoints');
             fd.append('trip_id', tripId);
             fd.append('student_id', studentId);
             fd.append('amount', undoAmount);
@@ -1069,14 +1069,14 @@ $tripTitle = $trip['title'];
 
         async function loadRecentScans() {
             try {
-                const res = await fetch(`${API_URL}?action=getRecentTripCouponScans&trip_id=${tripId}`).then(r => r.json());
+                const res = await fetch(`${API_URL}?action=getRecentTripPointsScans&trip_id=${tripId}`).then(r => r.json());
                 if (res.success && res.scans) {
                     currentUncleId = res.current_uncle_id;
 
                     // Collect all log_ids that were undone
                     const undoneLogIds = new Set();
                     res.scans.forEach(s => {
-                        if (s.reason && s.reason.startsWith('trip_coupon_scan_undo:')) {
+                        if (s.reason && s.reason.startsWith('trip_points_scan_undo:')) {
                             const parts = s.reason.split(':');
                             if (parts.length >= 3) {
                                 const originalLogId = parseInt(parts[2], 10);
@@ -1090,7 +1090,7 @@ $tripTitle = $trip['title'];
                     // Filter out undone logs and the undo log entries themselves
                     const activeScans = res.scans.filter(s => {
                         // Exclude the undo entries
-                        if (s.reason && s.reason.startsWith('trip_coupon_scan_undo:')) {
+                        if (s.reason && s.reason.startsWith('trip_points_scan_undo:')) {
                             return false;
                         }
                         // Exclude original entries that were undone
