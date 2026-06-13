@@ -533,15 +533,28 @@ $tripTitle = $trip['title'];
             isOverlayActive = true;
             const event = displayQueue.shift();
 
-            // Render details
             const card = document.getElementById('welcomeCard');
             const idle = document.getElementById('idlePanel');
+
+            // If a card is already shown, fade it out first to prevent flickers
+            if (card.classList.contains('show')) {
+                card.classList.remove('show');
+                stopConfetti();
+                setTimeout(() => {
+                    showNewEvent(event);
+                }, 400); // Wait for fade out to complete
+            } else {
+                idle.classList.add('hidden');
+                showNewEvent(event);
+            }
+        }
+
+        function showNewEvent(event) {
+            const card = document.getElementById('welcomeCard');
             const nameEl = document.getElementById('studentName');
             const photoEl = document.getElementById('studentPhoto');
             const titleEl = document.getElementById('congratsTitle');
             const bodyEl = document.getElementById('messageBody');
-
-            idle.classList.add('hidden');
 
             // Set styles based on coupon change sign
             const isAdd = event.change_amount > 0;
@@ -561,16 +574,26 @@ $tripTitle = $trip['title'];
 
             nameEl.textContent = event.student_name;
             
-            // Set photo with fallback
+            // Flicker-free photo load: hide image and only show it once loaded
+            photoEl.style.display = 'none';
             if (event.profile_photo) {
                 photoEl.src = event.profile_photo;
-                photoEl.style.display = 'block';
-            } else {
-                photoEl.src = '/profile_default..webp'; // Fallback
+                photoEl.onload = () => {
+                    photoEl.style.display = 'block';
+                };
                 photoEl.onerror = () => {
                     photoEl.src = '/logo.png';
+                    photoEl.style.display = 'block';
                 };
-                photoEl.style.display = 'block';
+            } else {
+                photoEl.src = '/profile_default.webp';
+                photoEl.onload = () => {
+                    photoEl.style.display = 'block';
+                };
+                photoEl.onerror = () => {
+                    photoEl.src = '/logo.png';
+                    photoEl.style.display = 'block';
+                };
             }
 
             // Fire TTS audio
@@ -587,26 +610,39 @@ $tripTitle = $trip['title'];
                 startConfetti();
             }
 
-            // Stay for 2.6 seconds, then fade out
-            setTimeout(() => {
-                card.classList.remove('show');
-                stopConfetti();
-                
+            // Transition logic: stay on screen unless there's a new card waiting
+            if (displayQueue.length > 0) {
+                // If there are more events in queue, wait 5 seconds then proceed to next
                 setTimeout(() => {
                     isOverlayActive = false;
-                    
-                    // If queue is empty, restore idle state
-                    if (displayQueue.length === 0) {
-                        idle.classList.remove('hidden');
-                    }
-                    
-                    // Process next in queue
                     processDisplayQueue();
-                }, 400); // Wait for transition fade out to complete
-            }, 2600);
+                }, 5000);
+            } else {
+                // Keep the card on screen indefinitely
+                isOverlayActive = false;
+            }
         }
 
         function speakText(text) {
+            try {
+                // Google Translate TTS is a high-quality human speech engine for perfect Arabic speech
+                const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encodeURIComponent(text)}`;
+                const audio = new Audio(ttsUrl);
+                
+                audio.defaultPlaybackRate = 0.95;
+                audio.playbackRate = 0.95;
+                
+                audio.play().catch(err => {
+                    console.warn("Google TTS blocked, falling back to Web Speech API", err);
+                    speakTextFallback(text);
+                });
+            } catch (e) {
+                console.error("Google TTS error, falling back", e);
+                speakTextFallback(text);
+            }
+        }
+
+        function speakTextFallback(text) {
             if (!isSpeakingSupported) return;
             try {
                 window.speechSynthesis.cancel();
