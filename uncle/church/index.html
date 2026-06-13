@@ -6090,6 +6090,15 @@
             }
 
             #printArea {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+
+            .print-page {
                 display: flex !important;
                 flex-wrap: wrap !important;
                 justify-content: center !important;
@@ -6100,10 +6109,18 @@
                 margin: 0 auto !important;
                 padding: 2mm !important;
                 box-sizing: border-box !important;
+                page-break-after: always !important;
+                break-after: page !important;
                 background: #fff !important;
             }
 
-            #printArea .print-card {
+            .print-page:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
+            #printArea .print-card,
+            #printArea .print-card-placeholder {
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
                 margin: 0 !important;
@@ -8989,6 +9006,16 @@
                         </h4>
                         
                         <div class="form-group">
+                            <label class="form-label">حجم ورقة الطباعة (Paper Size)</label>
+                            <select id="printPaperSize" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="updatePrintPreview()">
+                                <option value="a4-portrait">A4 بالطول (21.0 × 29.7 سم)</option>
+                                <option value="a4-landscape" selected>A4 بالعرض (29.7 × 21.0 سم)</option>
+                                <option value="a3-portrait">A3 بالطول (29.7 × 42.0 سم)</option>
+                                <option value="a3-landscape">A3 بالعرض (42.0 × 29.7 سم)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label">حجم البطاقة (٪)</label>
                             <input type="range" id="printScale" min="50" max="200" value="100" class="form-input" style="padding:0;" oninput="updatePrintPreview(); document.getElementById('printScaleVal').textContent = this.value + '%'">
                             <div style="text-align:center; font-size:0.8rem; font-weight:bold; margin-top:4px;" id="printScaleVal">100%</div>
@@ -9208,7 +9235,36 @@
                     </div>
                     
 
-                    <button class="btn btn-primary" onclick="executePrintQRCards()" style="width:100%; margin-top:8px; height:44px; font-size:0.95rem; font-weight:800;"><i class="fas fa-print"></i> تجهيز وطباعة</button>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; width: 100%;">
+                        <div style="display: flex; gap: 8px; width: 100%;">
+                            <button type="button" class="btn btn-outline" onclick="executePrintQRCards('front')"
+                                style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--primary); color: var(--primary); justify-content: center; gap: 6px;">
+                                <i class="fas fa-id-card"></i> الوجه فقط
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="executePrintQRCards('back')"
+                                style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--primary); color: var(--primary); justify-content: center; gap: 6px;">
+                                <i class="fas fa-undo"></i> الظهر فقط
+                            </button>
+                        </div>
+
+                        <div style="position: relative; width: 100%;" id="printCombinedDropdownContainer">
+                            <button type="button" class="btn btn-primary" onclick="togglePrintDropdown(event)"
+                                style="width: 100%; height: 44px; font-size: 0.95rem; font-weight: 800; justify-content: center; gap: 8px;">
+                                <i class="fas fa-print"></i> خيارات الطباعة المتقدمة <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                            </button>
+                            <div id="printDropdownMenu" style="display: none; position: absolute; bottom: 48px; left: 0; right: 0; background: var(--card, #fff); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; flex-direction: column;">
+                                <a href="javascript:void(0)" onclick="executePrintQRCards('front'); closePrintDropdown();" style="padding: 12px 16px; font-size: 0.9rem; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; direction: rtl; text-align: right;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-id-card" style="color: var(--primary); width: 20px;"></i> طباعة الوجه فقط (Front Only)
+                                </a>
+                                <a href="javascript:void(0)" onclick="executePrintQRCards('back'); closePrintDropdown();" style="padding: 12px 16px; font-size: 0.9rem; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; direction: rtl; text-align: right;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-undo" style="color: var(--primary); width: 20px;"></i> طباعة الظهر فقط (Back Only)
+                                </a>
+                                <a href="javascript:void(0)" onclick="executePrintQRCards('combined'); closePrintDropdown();" style="padding: 12px 16px; font-size: 0.9rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; text-decoration: none; direction: rtl; text-align: right;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-copy" style="color: var(--primary); width: 20px;"></i> طباعة الوجه والظهر معاً (Combined)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Preview Panel -->
@@ -19584,7 +19640,58 @@
             updatePrintPreview();
         }
 
-        async function executePrintQRCards(force = false) {
+                function getPageGridDimensions(paperSize, cardWidth, cardHeight, gapX, gapY, scale) {
+            let pw = 29.7, ph = 21.0; // default a4-landscape in cm
+            if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+            else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+            else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+            else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+
+            const pxPerCm = 37.795;
+            const pageW = pw * pxPerCm;
+            const pageH = ph * pxPerCm;
+
+            // Margin of 6mm = 0.6cm
+            const margin = 0.6 * pxPerCm;
+            const availW = pageW - 2 * margin;
+            const availH = pageH - 2 * margin;
+
+            const cardW = cardWidth * scale;
+            const cardH = cardHeight * scale;
+
+            const cols = Math.max(1, Math.floor((availW + gapX) / (cardW + gapX)));
+            const rows = Math.max(1, Math.floor((availH + gapY) / (cardH + gapY)));
+
+            return { cols, rows, cardsPerPage: cols * rows };
+        }
+
+        function togglePrintDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('printDropdownMenu');
+            if (menu) {
+                menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+            }
+        }
+
+        function closePrintDropdown() {
+            const menu = document.getElementById('printDropdownMenu');
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('printCombinedDropdownContainer');
+            if (container && !container.contains(event.target)) {
+                closePrintDropdown();
+            }
+        });
+
+        let currentPrintMode = 'combined';
+
+        async function executePrintQRCards(mode = 'combined', force = false) {
+            currentPrintMode = mode;
             const allKids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
             const scope = document.getElementById('printTargetScope')?.value || 'all';
             const kids = scope === 'selected' 
@@ -19595,6 +19702,10 @@
             const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
             const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
             if (!force && wValInput === 10 && hValInput === 7) {
+                const confirmBtn = document.querySelector('#printWarningModal .btn-primary');
+                if (confirmBtn) {
+                    confirmBtn.setAttribute('onclick', `executePrintQRCards('${mode}', true)`);
+                }
                 openModal('printWarningModal');
                 return;
             }
@@ -19606,8 +19717,10 @@
             const baseWidth = (parseFloat(document.getElementById('printCardWidth')?.value) || 7) * 37.795;
             const baseHeight = (parseFloat(document.getElementById('printCardHeight')?.value) || 10) * 37.795;
 
-            const gapX = document.getElementById('printGapX').value + 'px';
-            const gapY = document.getElementById('printGapY').value + 'px';
+            const gapXVal = parseFloat(document.getElementById('printGapX').value) || 0;
+            const gapYVal = parseFloat(document.getElementById('printGapY').value) || 0;
+            const gapX = gapXVal + 'px';
+            const gapY = gapYVal + 'px';
             const padding = document.getElementById('printPadding').value + 'px';
             const showChurch = document.getElementById('printShowChurch').checked;
             const showStudentImg = document.getElementById('printShowStudentImg').checked;
@@ -19627,46 +19740,97 @@
             const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
             const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
 
+            // Grid page segmentation
+            const paperSize = document.getElementById('printPaperSize')?.value || 'a4-landscape';
+            const grid = getPageGridDimensions(paperSize, baseWidth, baseHeight, gapXVal, gapYVal, scale);
+            const cardsPerPage = grid.cardsPerPage;
+            const cols = grid.cols;
+
+            // Chunk kids into pages
+            const pages = [];
+            for (let i = 0; i < kids.length; i += cardsPerPage) {
+                pages.push(kids.slice(i, i + cardsPerPage));
+            }
+
+            // Pad each page to cardsPerPage with null elements
+            const paddedPages = pages.map(pKids => {
+                const padded = [...pKids];
+                while (padded.length < cardsPerPage) {
+                    padded.push(null);
+                }
+                return padded;
+            });
+
             const printArea = document.getElementById('printArea');
             printArea.innerHTML = '';
-            printArea.style.columnGap = gapX;
-            printArea.style.rowGap = gapY;
             printArea.style.setProperty('--print-gap-x', gapX);
             printArea.style.setProperty('--print-gap-y', gapY);
             printArea.style.setProperty('--card-print-width', `${baseWidth * scale}px`);
             
+            const scaledWidth = baseWidth * scale;
+            const scaledHeight = baseHeight * scale;
+            const placeholderHtml = `<div class="print-card-placeholder" style="width:${scaledWidth}px; height:${scaledHeight}px; visibility:hidden; flex-shrink:0;"></div>`;
+
             let html = '';
             const qrTasks = [];
-
             const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
 
-            kids.forEach((s, idx) => {
+            const docDir = document.documentElement.dir || 'ltr';
+            const backPageDir = (docDir === 'rtl') ? 'ltr' : 'rtl';
+
+            // Helper to render front card
+            function renderFrontCard(s, idx) {
+                if (!s) return placeholderHtml;
                 const sid = s['_studentId'] || s.id || s.student_id;
                 const cardId = 'qrcode_kid_' + sid + '_' + idx;
                 const link = `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
 
-                html += generateCardMarkup({
+                qrTasks.push({ id: cardId, text: link });
+
+                return generateCardMarkup({
                     s, scale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId,
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
                     baseWidth, baseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow
                 });
+            }
 
-                
-                qrTasks.push({ id: cardId, text: link });
-            });
-
-            const showBackCard = document.getElementById('printBackCard')?.checked || false;
-            if (showBackCard) {
-                html += `<div style="page-break-before: always; break-before: page; grid-column: 1 / -1; height: 0; line-height: 0; overflow: hidden;"></div>`;
-                kids.forEach((s, idx) => {
-                    html += generateBackCardMarkup({
-                        scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-                        baseWidth, baseHeight, textReadability
-                    });
+            // Helper to render back card
+            function renderBackCard(s) {
+                if (!s) return placeholderHtml;
+                return generateBackCardMarkup({
+                    scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth, baseHeight, textReadability
                 });
             }
+
+            paddedPages.forEach((pageElements, pageIdx) => {
+                // 1. FRONT PAGE
+                if (mode === 'front' || mode === 'combined') {
+                    html += `<div class="print-page">`;
+                    pageElements.forEach((s, elementIdx) => {
+                        const globalIdx = pageIdx * cardsPerPage + elementIdx;
+                        html += renderFrontCard(s, globalIdx);
+                    });
+                    html += `</div>`;
+                }
+
+                // 2. BACK PAGE (with mirrored columns)
+                if (mode === 'back' || mode === 'combined') {
+                    const rowsOfPage = [];
+                    for (let rIdx = 0; rIdx < pageElements.length; rIdx += cols) {
+                        rowsOfPage.push(pageElements.slice(rIdx, rIdx + cols));
+                    }
+                    const backPageElements = rowsOfPage.map(row => [...row].reverse()).flat();
+
+                    html += `<div class="print-page" style="direction:${backPageDir} !important;">`;
+                    backPageElements.forEach(s => {
+                        html += renderBackCard(s);
+                    });
+                    html += `</div>`;
+                }
+            });
 
             printArea.innerHTML = html;
             
