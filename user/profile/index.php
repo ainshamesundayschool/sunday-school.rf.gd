@@ -66,13 +66,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <link rel="icon" href="/favicon.ico">
   <style>
     /* Hide all tabs and non-info/non-coupon sections in kid profile view */
-    .bottom-nav {
+    .view-other-mode .bottom-nav {
       display: none !important;
     }
-    #scTrips, #scAtt, #scAnn, #scSiblings, #scUncles, #scTasks, .stats-bar {
+    .view-other-mode #scTrips,
+    .view-other-mode #scAtt,
+    .view-other-mode #scAnn,
+    .view-other-mode #scSiblings,
+    .view-other-mode #scUncles,
+    .view-other-mode #scTasks,
+    .view-other-mode .stats-bar {
       display: none !important;
     }
-    .page {
+    .view-other-mode .page {
       padding-bottom: 24px !important;
     }
 
@@ -4941,6 +4947,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       loadAnn();
       loadAtt();
       showMain();
+      syncViewMode();
     }
 
     // ── Render private ────────────────────────────────────────────────
@@ -4967,6 +4974,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       loadTrips(true);
       loadAnn();
       showMain();
+      syncViewMode();
     }
 
     // ── Hero ──────────────────────────────────────────────────────────
@@ -5381,6 +5389,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       return !!(IS_PUBLIC || _myStudent);
     }
 
+    function syncViewMode() {
+      if (isViewingOther()) {
+        document.body.classList.add('view-other-mode');
+      } else {
+        document.body.classList.remove('view-other-mode');
+      }
+    }
+
     async function openFriendProfile(friendId) {
       showLoad('جارٍ تحميل الملف…');
       try {
@@ -5472,6 +5488,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       showMain();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      syncViewMode();
     }
 
     function returnToMyProfile() {
@@ -5542,6 +5559,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       // Switch to home tab — this handles all section show/hide
       switchTab('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      syncViewMode();
     }
 
 
