@@ -516,7 +516,22 @@ $tripTitle = $trip['title'];
             </div>
         </div>
 
-        <!-- Settings Card -->
+        <!-- Scanner Card -->
+        <div class="card" style="padding: 12px; margin-bottom: 16px;">
+            <!-- Source selection (Camera vs external scanner) -->
+            <div class="scanner-source-tabs">
+                <button type="button" id="tab_camera" class="scanner-source-tab active" onclick="switchScannerSource('camera')">
+                    <i class="fas fa-camera"></i> الكاميرا
+                </button>
+                <button type="button" id="tab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')">
+                    <i class="fas fa-barcode"></i> ماسح خارجي (USB/بلوتوث)
+                </button>
+            </div>
+
+            <div id="reader"></div>
+        </div>
+
+        <!-- Settings (Controls) Card -->
         <div class="card">
             <div class="card-title">
                 <i class="fas fa-cog text-brand"></i> إعدادات المسح
@@ -540,35 +555,14 @@ $tripTitle = $trip['title'];
                 <button type="button" class="option-btn" onclick="setAmount(100)">100</button>
             </div>
 
-            <!-- Cooldown Toggle Switch -->
-            <div class="cooldown-wrap">
-                <div class="cooldown-label">
-                    <i class="fas fa-history" style="color: var(--brand);"></i>
-                    <div>
-                        <div>حماية التكرار (فترة انتظار 15 ثانية)</div>
-                        <div style="font-size:0.7rem;color:var(--text-3);font-weight:600;margin-top:2px;">يمنع مسح الكود مرتين بالخطأ خلال فترة قصيرة.</div>
-                    </div>
+            <!-- Cooldown Notice -->
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--surface-2); padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--border-solid); font-size: 0.78rem; color: var(--text-2); font-weight: 700;">
+                <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
+                <div>
+                    <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة تلقائياً.</div>
+                    <div style="font-size:0.7rem;color:var(--text-3);font-weight:600;margin-top:2px;">في حالة التكرار سيُطلب منك تأكيد المسح لمتابعة العملية.</div>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="cooldownToggle" checked>
-                    <span class="slider"></span>
-                </label>
             </div>
-        </div>
-
-        <!-- Scanner Card -->
-        <div class="card" style="padding: 12px;">
-            <!-- Source selection (Camera vs external scanner) -->
-            <div class="scanner-source-tabs">
-                <button type="button" id="tab_camera" class="scanner-source-tab active" onclick="switchScannerSource('camera')">
-                    <i class="fas fa-camera"></i> الكاميرا
-                </button>
-                <button type="button" id="tab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')">
-                    <i class="fas fa-barcode"></i> ماسح خارجي (USB/بلوتوث)
-                </button>
-            </div>
-
-            <div id="reader"></div>
         </div>
 
         <!-- Scans Log -->
@@ -673,7 +667,7 @@ $tripTitle = $trip['title'];
             html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                { fps: 10, qrbox: { width: 280, height: 160 } },
                 (decodedText, decodedResult) => {
                     handleScannedText(decodedText);
                 },
@@ -711,12 +705,16 @@ $tripTitle = $trip['title'];
             }
 
             // Check Cooldown
-            const useCooldown = document.getElementById('cooldownToggle').checked;
             const now = Date.now();
-            if (useCooldown && cooldowns[studentId] && (now - cooldowns[studentId] < COOLDOWN_DURATION)) {
-                const remaining = Math.ceil((COOLDOWN_DURATION - (now - cooldowns[studentId])) / 1000);
-                showToast(`تم مسح هذا الكارت للتو! انتظر ${remaining} ثانية أو ألغِ الانتظار`, 'warning');
-                return;
+            if (cooldowns[studentId] && (now - cooldowns[studentId] < COOLDOWN_DURATION)) {
+                if (confirm("تم مسح هذا الطفل مؤخراً. هل تريد إلغاء فترة الانتظار ومسحه مجدداً؟")) {
+                    // Cancel cooldown and allow scan
+                    delete cooldowns[studentId];
+                } else {
+                    // Block scan
+                    showToast("تم إلغاء المسح (حماية التكرار نشطة)", "warning");
+                    return;
+                }
             }
 
             // Lock student cooldown
