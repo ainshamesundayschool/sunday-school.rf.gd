@@ -128,23 +128,23 @@ $tripTitle = $trip['title'];
         .container {
             position: relative;
             z-index: 1;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
-            padding: 16px;
-            padding-bottom: 40px;
+            padding: 10px;
+            padding-bottom: 24px;
         }
 
         .header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .back-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             border: 1.5px solid var(--border-solid);
             background: var(--surface);
             color: var(--text-2);
@@ -162,24 +162,24 @@ $tripTitle = $trip['title'];
         }
 
         .header-title {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             font-weight: 800;
             flex: 1;
         }
 
         .card {
             background: var(--surface);
-            border-radius: 20px;
+            border-radius: 16px;
             border: 1.5px solid var(--border-solid);
-            padding: 20px;
+            padding: 12px;
             box-shadow: var(--shadow-sm);
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .card-title {
-            font-size: 1.0rem;
+            font-size: 0.92rem;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -189,18 +189,18 @@ $tripTitle = $trip['title'];
         .option-group {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .option-btn {
-            padding: 12px 6px;
-            border-radius: 12px;
+            padding: 8px 4px;
+            border-radius: 10px;
             border: 2px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
             font-weight: 800;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all var(--t);
             text-align: center;
@@ -217,19 +217,19 @@ $tripTitle = $trip['title'];
             display: flex;
             background: var(--surface-3);
             padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: 10px;
+            margin-bottom: 12px;
             gap: 4px;
         }
 
         .sign-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
             border: none;
             background: none;
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -318,18 +318,18 @@ $tripTitle = $trip['title'];
             background: var(--surface-3);
             padding: 4px;
             border-radius: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             gap: 4px;
         }
 
         .scanner-source-tab {
             flex: 1;
-            padding: 8px;
+            padding: 6px;
             border-radius: 8px;
             border: none;
             background: none;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -346,9 +346,9 @@ $tripTitle = $trip['title'];
 
         #reader {
             width: 100%;
-            min-height: 280px;
+            aspect-ratio: 1 / 1;
             background: #000;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             border: 1.5px solid var(--border-solid);
         }
@@ -517,7 +517,7 @@ $tripTitle = $trip['title'];
         </div>
 
         <!-- Scanner Card -->
-        <div class="card" style="padding: 12px; margin-bottom: 16px;">
+        <div class="card" style="padding: 8px; margin-bottom: 8px;">
             <!-- Source selection (Camera vs external scanner) -->
             <div class="scanner-source-tabs">
                 <button type="button" id="tab_camera" class="scanner-source-tab active" onclick="switchScannerSource('camera')">
@@ -556,7 +556,7 @@ $tripTitle = $trip['title'];
             </div>
 
             <!-- Cooldown Notice -->
-            <div style="display: flex; align-items: center; gap: 10px; background: var(--surface-2); padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--border-solid); font-size: 0.78rem; color: var(--text-2); font-weight: 700;">
+            <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); font-size: 0.74rem; color: var(--text-2); font-weight: 700;">
                 <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
                 <div>
                     <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة تلقائياً.</div>
@@ -634,7 +634,8 @@ $tripTitle = $trip['title'];
                     html5QrcodeScanner.stop().then(() => {}).catch(() => {});
                     html5QrcodeScanner = null;
                 }
-                reader.style.minHeight = '180px';
+                reader.style.aspectRatio = 'initial';
+                reader.style.minHeight = '140px';
                 reader.style.background = 'var(--surface-2)';
                 reader.style.border = '2px dashed var(--border-solid)';
                 reader.style.display = 'flex';
@@ -652,7 +653,8 @@ $tripTitle = $trip['title'];
                     </div>
                 `;
             } else {
-                reader.style.minHeight = '280px';
+                reader.style.aspectRatio = '1 / 1';
+                reader.style.minHeight = 'initial';
                 reader.style.background = '#000';
                 reader.style.border = '1px solid var(--border-solid)';
                 reader.style.padding = '0';
@@ -665,9 +667,17 @@ $tripTitle = $trip['title'];
             if (html5QrcodeScanner) return;
             
             html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            // Define a dynamic square scan box that fits beautifully inside the reader container
+            const qrboxSquare = function(viewfinderWidth, viewfinderHeight) {
+                let size = Math.min(viewfinderWidth, viewfinderHeight) - 40;
+                if (size < 160) size = 160;
+                return { width: size, height: size };
+            };
+
             html5QrcodeScanner.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 280, height: 160 } },
+                { fps: 10, qrbox: qrboxSquare },
                 (decodedText, decodedResult) => {
                     handleScannedText(decodedText);
                 },
@@ -867,7 +877,7 @@ $tripTitle = $trip['title'];
                         </button>
                     `;
                 }
-                if (isCooldownActive && document.getElementById('cooldownToggle').checked) {
+                if (isCooldownActive) {
                     actionButtons += `
                         <button class="scan-action-btn" onclick="cancelCooldown('${item.studentId}')" title="السماح بالمسح الفوري للطفل">
                             <i class="fas fa-bolt"></i> إلغاء الانتظار

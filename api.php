@@ -682,7 +682,7 @@ function getLatestTripCouponScan()
         $reason = "trip_coupon_scan:" . $tripId;
 
         $stmt = $conn->prepare("
-            SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, s.name as student_name, s.profile_photo
+            SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, s.name as student_name, s.image_url as profile_photo
             FROM coupon_logs cl
             JOIN students s ON cl.student_id = s.id
             WHERE cl.reason = ?
