@@ -678,6 +678,7 @@ function processFastScanCoupon()
 
         sendJSON([
             'success' => true,
+            'log_id' => $conn->insert_id,
             'student_name' => $student['name'],
             'new_coupons' => $newCount,
             'change' => $amount,
@@ -757,29 +758,18 @@ function getRecentTripCouponScans()
         $reason = "trip_coupon_scan:" . $tripId;
         $uncleId = $_SESSION['uncle_id'] ?? null;
 
-        // If uncleId is set, filter by it to show only this uncle's scans.
-        // Otherwise (e.g. church admin), show all scans for this trip.
-        if ($uncleId !== null) {
-            $stmt = $conn->prepare("
-                SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, s.name as student_name, s.image_url as profile_photo
-                FROM coupon_logs cl
-                JOIN students s ON cl.student_id = s.id
-                WHERE (cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')) AND cl.uncle_id = ?
-                ORDER BY cl.id DESC
-                LIMIT 50
-            ");
-            $stmt->bind_param('sii', $reason, $tripId, $uncleId);
-        } else {
-            $stmt = $conn->prepare("
-                SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, s.name as student_name, s.image_url as profile_photo
-                FROM coupon_logs cl
-                JOIN students s ON cl.student_id = s.id
-                WHERE cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')
-                ORDER BY cl.id DESC
-                LIMIT 50
-            ");
-            $stmt->bind_param('si', $reason, $tripId);
-        }
+        $stmt = $conn->prepare("
+            SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, cl.uncle_id,
+                   s.name as student_name, s.image_url as profile_photo,
+                   u.name as uncle_name
+            FROM coupon_logs cl
+            JOIN students s ON cl.student_id = s.id
+            LEFT JOIN uncles u ON cl.uncle_id = u.id
+            WHERE cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')
+            ORDER BY cl.id DESC
+            LIMIT 100
+        ");
+        $stmt->bind_param('si', $reason, $tripId);
         
         $stmt->execute();
         $res = $stmt->get_result();
@@ -793,12 +783,15 @@ function getRecentTripCouponScans()
                 'profile_photo' => $row['profile_photo'],
                 'change_amount' => intval($row['change_amount']),
                 'reason' => $row['reason'],
+                'uncle_id' => $row['uncle_id'] !== null ? intval($row['uncle_id']) : null,
+                'uncle_name' => $row['uncle_name'] ?? 'أدمن الكنيسة',
                 'created_at' => $row['created_at']
             ];
         }
 
         sendJSON([
             'success' => true,
+            'current_uncle_id' => $uncleId !== null ? intval($uncleId) : null,
             'scans' => $logs
         ]);
 

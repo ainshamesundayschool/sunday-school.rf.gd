@@ -128,10 +128,61 @@ $tripTitle = $trip['title'];
         .container {
             position: relative;
             z-index: 1;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 10px;
             padding-bottom: 24px;
+        }
+
+        .top-row-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 650px) {
+            .top-row-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .split-scans-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .split-scans-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .scans-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scans-column-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-solid);
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+            color: var(--text-2);
+        }
+
+        #scanSearchInput:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px var(--brand-glow);
         }
 
         .header {
@@ -546,53 +597,76 @@ $tripTitle = $trip['title'];
             </div>
         </div>
 
-        <!-- Scanner Card -->
-        <div class="card" style="padding: 6px; margin-bottom: 8px;">
-            <div id="reader"></div>
-        </div>
-
-        <!-- Settings (Controls) Card -->
-        <div class="card">
-            <div class="card-title">
-                <i class="fas fa-cog text-brand"></i> إعدادات المسح
+        <div class="top-row-grid">
+            <!-- Scanner Card -->
+            <div class="card" style="padding: 6px; margin-bottom: 0;">
+                <div id="reader"></div>
             </div>
 
-            <!-- Sign Toggle (Plus / Minus) -->
-            <div class="sign-toggle">
-                <button type="button" class="sign-btn plus active" onclick="setSign('plus')">
-                    <i class="fas fa-plus"></i> إضافة كوبونات
-                </button>
-                <button type="button" class="sign-btn minus" onclick="setSign('minus')">
-                    <i class="fas fa-minus"></i> سحب (خصم) كوبونات
-                </button>
-            </div>
+            <!-- Settings (Controls) Card -->
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-title">
+                    <i class="fas fa-cog text-brand"></i> إعدادات المسح
+                </div>
 
-            <!-- Options Grid -->
-            <div class="option-group">
-                <button type="button" class="option-btn active" onclick="setAmount(10)">10</button>
-                <button type="button" class="option-btn" onclick="setAmount(30)">30</button>
-                <button type="button" class="option-btn" onclick="setAmount(50)">50</button>
-                <button type="button" class="option-btn" onclick="setAmount(100)">100</button>
-            </div>
+                <!-- Sign Toggle (Plus / Minus) -->
+                <div class="sign-toggle">
+                    <button type="button" class="sign-btn plus active" onclick="setSign('plus')">
+                        <i class="fas fa-plus"></i> إضافة كوبونات
+                    </button>
+                    <button type="button" class="sign-btn minus" onclick="setSign('minus')">
+                        <i class="fas fa-minus"></i> سحب (خصم) كوبونات
+                    </button>
+                </div>
 
-            <!-- Cooldown Notice -->
-            <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); font-size: 0.74rem; color: var(--text-2); font-weight: 700;">
-                <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
-                <div>
-                    <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة تلقائياً.</div>
-                    <div style="font-size:0.7rem;color:var(--text-3);font-weight:600;margin-top:2px;">في حالة التكرار سيُطلب منك تأكيد المسح لمتابعة العملية.</div>
+                <!-- Options Grid -->
+                <div class="option-group">
+                    <button type="button" class="option-btn active" onclick="setAmount(10)">10</button>
+                    <button type="button" class="option-btn" onclick="setAmount(30)">30</button>
+                    <button type="button" class="option-btn" onclick="setAmount(50)">50</button>
+                    <button type="button" class="option-btn" onclick="setAmount(100)">100</button>
+                </div>
+
+                <!-- Cooldown Notice -->
+                <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); font-size: 0.74rem; color: var(--text-2); font-weight: 700;">
+                    <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
+                    <div>
+                        <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة تلقائياً.</div>
+                        <div style="font-size:0.7rem;color:var(--text-3);font-weight:600;margin-top:2px;">في حالة التكرار سيُطلب منك تأكيد المسح لمتابعة العملية.</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Scans Log -->
-        <div class="scans-log-title">
-            <span>آخر عمليات المسح</span>
-            <span style="font-size: 0.75rem; color: var(--text-3); font-weight: 700;" id="logCount">0 طفل</span>
+        <!-- Search bar -->
+        <div class="search-wrap" style="margin-top: 15px; margin-bottom: 10px; position: relative;">
+            <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 10px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
+            <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
         </div>
 
-        <div class="scans-list" id="scansList">
-            <!-- Scanned items will appear here -->
+        <!-- Split Scans Columns -->
+        <div class="split-scans-container">
+            <!-- Right Column (First in RTL): My Scans -->
+            <div class="scans-column">
+                <div class="scans-column-title">
+                    <span>عمليات مسحي الخاصة</span>
+                    <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
+                </div>
+                <div class="scans-list" id="myScansList">
+                    <!-- My scanned items will appear here -->
+                </div>
+            </div>
+
+            <!-- Left Column (Second in RTL): All Uncles' Scans -->
+            <div class="scans-column">
+                <div class="scans-column-title">
+                    <span>جميع مسوحات الأعمام بالرحلة</span>
+                    <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
+                </div>
+                <div class="scans-list" id="allScansList">
+                    <!-- All scanned items will appear here -->
+                </div>
+            </div>
         </div>
 
     </div>
@@ -765,6 +839,11 @@ $tripTitle = $trip['title'];
             executeScan(studentId);
         }
 
+        function filterScansList() {
+            searchQuery = document.getElementById('scanSearchInput').value.trim().toLowerCase();
+            renderScansList();
+        }
+
         async function executeScan(studentId) {
             const changeAmount = scanAmount * scanSign;
 
@@ -776,7 +855,9 @@ $tripTitle = $trip['title'];
                 studentName: 'جاري التحميل...',
                 change: changeAmount,
                 status: 'processing',
-                profilePhoto: null
+                profilePhoto: null,
+                uncleId: currentUncleId,
+                uncleName: 'مسوحاتي الخاصة'
             };
             addOrUpdateLogEntry(tempEntry);
 
@@ -791,6 +872,7 @@ $tripTitle = $trip['title'];
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 
                 if (res.success) {
+                    tempEntry.id = res.log_id; // Set actual database log ID
                     tempEntry.status = 'success';
                     tempEntry.studentName = res.student_name;
                     tempEntry.new_coupons = res.new_coupons;
@@ -809,7 +891,15 @@ $tripTitle = $trip['title'];
                     if (navigator.vibrate) {
                         navigator.vibrate([100]);
                     }
-                    addOrUpdateLogEntry(tempEntry);
+                    
+                    // Update the temporary entry in scansLog by searching for tempLogId
+                    const idx = scansLog.findIndex(item => item.id === tempLogId);
+                    if (idx > -1) {
+                        scansLog[idx] = tempEntry;
+                    } else {
+                        scansLog.unshift(tempEntry);
+                    }
+                    renderScansList();
                 } else {
                     // Remove from log list because it failed
                     scansLog = scansLog.filter(item => item.id !== tempLogId);
@@ -873,42 +963,32 @@ $tripTitle = $trip['title'];
             }
         }
 
-        function renderScansList() {
-            const listEl = document.getElementById('scansList');
-            const countEl = document.getElementById('logCount');
-
-            countEl.textContent = scansLog.length + ' طفل';
-
-            if (scansLog.length === 0) {
-                listEl.innerHTML = `
-                    <div style="text-align:center;padding:40px;color:var(--text-3);font-size:0.9rem;">
-                        <i class="fas fa-barcode" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
-                        <div>لم يتم مسح أي كروت بعد.</div>
-                    </div>
-                `;
-                return;
+        function renderScanItemHTML(item) {
+            let badgeClass = item.change > 0 ? 'plus' : 'minus';
+            let formattedChange = item.change > 0 ? `+${item.change}` : item.change;
+            
+            let isCooldownActive = cooldowns[item.studentId] && (Date.now() - cooldowns[item.studentId] < COOLDOWN_DURATION);
+            
+            let statusHtml = '';
+            if (item.status === 'processing') {
+                statusHtml = `<i class="fas fa-spinner fa-spin" style="color:var(--brand);"></i> جاري التسجيل...`;
+            } else if (item.status === 'error') {
+                statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
+            } else {
+                // Show scanning uncle's name if it's in the "All scans" feed and not logged by me
+                const uncleSuffix = (item.uncleId !== currentUncleId && item.uncleName) 
+                    ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
+                    : '';
+                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${uncleSuffix}`;
             }
 
-            listEl.innerHTML = scansLog.map(item => {
-                let badgeClass = item.change > 0 ? 'plus' : 'minus';
-                let formattedChange = item.change > 0 ? `+${item.change}` : item.change;
-                
-                let isCooldownActive = cooldowns[item.studentId] && (Date.now() - cooldowns[item.studentId] < COOLDOWN_DURATION);
-                
-                let statusHtml = '';
-                if (item.status === 'processing') {
-                    statusHtml = `<i class="fas fa-spinner fa-spin" style="color:var(--brand);"></i> جاري التسجيل...`;
-                } else if (item.status === 'error') {
-                    statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
-                } else {
-                    statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ بنجاح</span>`;
-                }
+            let photoHtml = item.profilePhoto 
+                ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\'scan-photo\'><i class=\'fas fa-user\'></i></div>'">`
+                : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
 
-                let photoHtml = item.profilePhoto 
-                    ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\'scan-photo\'><i class=\'fas fa-user\'></i></div>'">`
-                    : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
-
-                let actionButtons = '';
+            let actionButtons = '';
+            // Only allow undo/cooldown management for my own scans!
+            if (item.uncleId === currentUncleId || currentUncleId === null) {
                 if (item.status === 'success') {
                     actionButtons += `
                         <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change})" title="تراجع عن هذه العملية">
@@ -923,98 +1003,76 @@ $tripTitle = $trip['title'];
                         </button>
                     `;
                 }
+            }
 
-                return `
-                    <div class="scan-item">
-                        ${photoHtml}
-                        <div class="scan-info">
-                            <div class="scan-name">${item.studentName}</div>
-                            <div class="scan-status">${statusHtml}</div>
-                        </div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                            <div class="scan-badge ${badgeClass}">${formattedChange}</div>
-                            <div class="scan-actions">
-                                ${actionButtons}
-                            </div>
+            return `
+                <div class="scan-item">
+                    ${photoHtml}
+                    <div class="scan-info">
+                        <div class="scan-name">${item.studentName}</div>
+                        <div class="scan-status">${statusHtml}</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                        <div class="scan-badge ${badgeClass}">${formattedChange}</div>
+                        <div class="scan-actions">
+                            ${actionButtons}
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
         }
 
-        let toastTimeout = null;
+        function renderScansList() {
+            const myListEl = document.getElementById('myScansList');
+            const allListEl = document.getElementById('allScansList');
+            const myCountEl = document.getElementById('myCount');
+            const allCountEl = document.getElementById('allCount');
 
-        function showToast(message, type = 'info', duration = 3000) {
-            const toast = document.getElementById('toastNotify');
-            let icon = '<i class="fas fa-info-circle"></i>';
-            if (type === 'success') {
-                icon = '<i class="fas fa-check-circle" style="color:var(--success);"></i>';
-            } else if (type === 'error') {
-                icon = '<i class="fas fa-exclamation-circle" style="color:var(--danger);"></i>';
-            } else if (type === 'warning') {
-                icon = '<i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>';
-            }
-            
-            toast.innerHTML = `${icon} <span>${message}</span>`;
-            toast.classList.add('show');
-
-            if (toastTimeout) {
-                clearTimeout(toastTimeout);
-            }
-
-            if (duration > 0) {
-                toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, duration);
-            }
-        }
-
-        function dismissToast() {
-            const toast = document.getElementById('toastNotify');
-            toast.classList.remove('show');
-            if (toastTimeout) {
-                clearTimeout(toastTimeout);
-                toastTimeout = null;
-            }
-        }
-
-        // Keyboard USB Barcode Scanner Handler
-        (function() {
-            let scanBuffer = '';
-            let lastKeyTime = 0;
-            const SCAN_TIMEOUT = 50; // ms
-
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey || e.altKey || e.metaKey) return;
-                
-                // If focus is in input fields, do not capture barcode unless in USB mode
-                const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-                const isEditing = activeTag === 'input' || activeTag === 'textarea';
-                if (isEditing && scannerSource !== 'usb') return;
-
-                const now = Date.now();
-                if (e.key.length === 1) {
-                    if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
-                        scanBuffer += e.key;
-                        lastKeyTime = now;
-                    } else {
-                        scanBuffer = e.key;
-                        lastKeyTime = now;
-                    }
-                } else if (e.key === 'Enter') {
-                    if (scanBuffer.length > 0) {
-                        e.preventDefault();
-                        handleScannedText(scanBuffer);
-                        scanBuffer = '';
-                    }
-                }
+            // Apply search filter
+            const filtered = scansLog.filter(item => {
+                if (!searchQuery) return true;
+                return item.studentName.toLowerCase().includes(searchQuery) || 
+                       String(item.studentId).includes(searchQuery);
             });
-        })();
+
+            // Split scans
+            const myScans = filtered.filter(item => item.uncleId === currentUncleId);
+            const allScans = filtered;
+
+            myCountEl.textContent = myScans.length + ' طفل';
+            allCountEl.textContent = allScans.length + ' طفل';
+
+            // Render My Scans
+            if (myScans.length === 0) {
+                myListEl.innerHTML = `
+                    <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                        <i class="fas fa-user" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                        <div>لا توجد مسوحات خاصة بك.</div>
+                    </div>
+                `;
+            } else {
+                myListEl.innerHTML = myScans.map(renderScanItemHTML).join('');
+            }
+
+            // Render All Scans
+            if (allScans.length === 0) {
+                allListEl.innerHTML = `
+                    <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                        <i class="fas fa-users" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                        <div>لا توجد مسوحات للرحلة.</div>
+                    </div>
+                `;
+            } else {
+                allListEl.innerHTML = allScans.map(renderScanItemHTML).join('');
+            }
+        }
 
         async function loadRecentScans() {
             try {
                 const res = await fetch(`${API_URL}?action=getRecentTripCouponScans&trip_id=${tripId}`).then(r => r.json());
                 if (res.success && res.scans) {
+                    currentUncleId = res.current_uncle_id;
+
                     // Collect all log_ids that were undone
                     const undoneLogIds = new Set();
                     res.scans.forEach(s => {
@@ -1048,7 +1106,9 @@ $tripTitle = $trip['title'];
                         studentName: s.student_name,
                         change: s.change_amount,
                         status: 'success',
-                        profilePhoto: s.profile_photo
+                        profilePhoto: s.profile_photo,
+                        uncleId: s.uncle_id,
+                        uncleName: s.uncle_name
                     }));
                 }
             } catch (e) {
