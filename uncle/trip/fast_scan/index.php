@@ -351,6 +351,32 @@ $tripTitle = $trip['title'];
             border-radius: 12px;
             overflow: hidden;
             border: 1.5px solid var(--border-solid);
+            position: relative;
+        }
+
+        #reader video, #reader canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
+        .toast-skip-btn {
+            background: var(--brand);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.72rem;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: all var(--t);
+            vertical-align: middle;
+            text-transform: lowercase;
+        }
+
+        .toast-skip-btn:hover {
+            background: #4758d6;
         }
 
         /* Scans Log */
@@ -506,28 +532,22 @@ $tripTitle = $trip['title'];
 
     <div class="container">
         
-        <div class="header">
+        <div class="header" style="align-items: center; gap: 8px; margin-bottom: 10px;">
             <a href="/uncle/trip/?trip_id=<?php echo $tripId; ?>" class="back-btn" title="عودة">
                 <i class="fas fa-arrow-right"></i>
             </a>
-            <div class="header-title">
-                <div style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;">الماسح السريع للكوبونات</div>
-                <div style="font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo htmlspecialchars($tripTitle); ?></div>
-            </div>
-        </div>
-
-        <!-- Scanner Card -->
-        <div class="card" style="padding: 8px; margin-bottom: 8px;">
-            <!-- Source selection (Camera vs external scanner) -->
-            <div class="scanner-source-tabs">
+            <div class="scanner-source-tabs" style="margin-bottom: 0; flex: 1;">
                 <button type="button" id="tab_camera" class="scanner-source-tab active" onclick="switchScannerSource('camera')">
                     <i class="fas fa-camera"></i> الكاميرا
                 </button>
                 <button type="button" id="tab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')">
-                    <i class="fas fa-barcode"></i> ماسح خارجي (USB/بلوتوث)
+                    <i class="fas fa-barcode"></i> ماسح (USB)
                 </button>
             </div>
+        </div>
 
+        <!-- Scanner Card -->
+        <div class="card" style="padding: 6px; margin-bottom: 8px;">
             <div id="reader"></div>
         </div>
 
@@ -707,6 +727,9 @@ $tripTitle = $trip['title'];
             }
         }
 
+        let lastScannedText = '';
+        let lastScannedTime = 0;
+
         async function handleScannedText(decodedText) {
             const studentId = getKidIdFromQrText(decodedText);
             if (!studentId) {
@@ -714,22 +737,35 @@ $tripTitle = $trip['title'];
                 return;
             }
 
-            // Check Cooldown
+            // Camera debounce: ignore duplicate scans of same code within 3 seconds
             const now = Date.now();
+            if (studentId === lastScannedText && (now - lastScannedTime < 3000)) {
+                return; // drop silently to prevent instant repeat scans
+            }
+            lastScannedText = studentId;
+            lastScannedTime = now;
+
+            // Check Cooldown
             if (cooldowns[studentId] && (now - cooldowns[studentId] < COOLDOWN_DURATION)) {
-                if (confirm("تم مسح هذا الطفل مؤخراً. هل تريد إلغاء فترة الانتظار ومسحه مجدداً؟")) {
-                    // Cancel cooldown and allow scan
-                    delete cooldowns[studentId];
-                } else {
-                    // Block scan
-                    showToast("تم إلغاء المسح (حماية التكرار نشطة)", "warning");
-                    return;
-                }
+                showToast(
+                    `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassCooldown('${studentId}')">skip</button>`,
+                    'warning',
+                    8000
+                );
+                return;
             }
 
-            // Lock student cooldown
-            cooldowns[studentId] = now;
+            // Execute scan
+            executeScan(studentId);
+        }
 
+        function bypassCooldown(studentId) {
+            dismissToast();
+            delete cooldowns[studentId];
+            executeScan(studentId);
+        }
+
+        async function executeScan(studentId) {
             const changeAmount = scanAmount * scanSign;
 
             // Instantly append to recent list in "Processing" state to feel extremely responsive
@@ -758,7 +794,16 @@ $tripTitle = $trip['title'];
                     tempEntry.status = 'success';
                     tempEntry.studentName = res.student_name;
                     tempEntry.new_coupons = res.new_coupons;
+                    
+                    // Set photo from API response
+                    if (res.profile_photo) {
+                        tempEntry.profilePhoto = res.profile_photo;
+                    }
+                    
                     showToast(`تم التسجيل بنجاح: ${res.student_name} (${changeAmount > 0 ? '+' : ''}${changeAmount})`, 'success');
+                    
+                    // Lock student cooldown on success
+                    cooldowns[studentId] = Date.now();
                     
                     // Vibrate device if supported
                     if (navigator.vibrate) {
@@ -769,9 +814,6 @@ $tripTitle = $trip['title'];
                     tempEntry.studentName = 'فشل المسح';
                     tempEntry.errorMsg = res.message || 'خطأ غير معروف';
                     showToast("فشل التسجيل: " + (res.message || 'خطأ'), 'error');
-                    
-                    // Remove from cooldown on failure
-                    delete cooldowns[studentId];
                 }
                 
                 addOrUpdateLogEntry(tempEntry);
@@ -781,8 +823,6 @@ $tripTitle = $trip['title'];
                 tempEntry.studentName = 'فشل المسح';
                 tempEntry.errorMsg = 'حدث خطأ في الشبكة';
                 showToast("حدث خطأ في الاتصال بالسيرفر", 'error');
-                
-                delete cooldowns[studentId];
                 addOrUpdateLogEntry(tempEntry);
             }
         }
@@ -903,7 +943,9 @@ $tripTitle = $trip['title'];
             }).join('');
         }
 
-        function showToast(message, type = 'info') {
+        let toastTimeout = null;
+
+        function showToast(message, type = 'info', duration = 3000) {
             const toast = document.getElementById('toastNotify');
             let icon = '<i class="fas fa-info-circle"></i>';
             if (type === 'success') {
@@ -917,9 +959,24 @@ $tripTitle = $trip['title'];
             toast.innerHTML = `${icon} <span>${message}</span>`;
             toast.classList.add('show');
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+
+            if (duration > 0) {
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+        }
+
+        function dismissToast() {
+            const toast = document.getElementById('toastNotify');
+            toast.classList.remove('show');
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+                toastTimeout = null;
+            }
         }
 
         // Keyboard USB Barcode Scanner Handler

@@ -576,9 +576,9 @@ $tripTitle = $trip['title'];
             // Fire TTS audio
             let spokenText = '';
             if (isAdd) {
-                spokenText = `أهلاً يا ${event.student_name}، مبروك عليك ${countStr} ${arabicTerm}!`;
+                spokenText = `أهلاً ${event.student_name}، مبروك ${countStr} ${arabicTerm}!`;
             } else {
-                spokenText = `تم خصم ${countStr} ${arabicTerm} من ${event.student_name}`;
+                spokenText = `تم سحب ${countStr} ${arabicTerm} من ${event.student_name}`;
             }
             speakText(spokenText);
 
@@ -614,14 +614,24 @@ $tripTitle = $trip['title'];
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'ar-EG';
                 
-                // Fetch voices and find Arabic
+                // Fetch voices and find best quality Arabic
                 const voices = window.speechSynthesis.getVoices();
-                const arVoice = voices.find(v => v.lang.startsWith('ar'));
-                if (arVoice) {
-                    utterance.voice = arVoice;
+                const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
+                
+                // Prioritize best quality voices: Google, Laila (iOS), Tarik (iOS), Microsoft, then fallback
+                let selectedVoice = arVoices.find(v => v.name.includes('Google') || v.name.includes('Natural')) ||
+                                    arVoices.find(v => v.name.includes('Laila')) ||
+                                    arVoices.find(v => v.name.includes('Tarik')) ||
+                                    arVoices.find(v => v.name.includes('Maged') && v.name.includes('Premium')) ||
+                                    arVoices.find(v => v.name.includes('Microsoft')) ||
+                                    arVoices.find(v => v.lang.startsWith('ar-SA')) ||
+                                    arVoices[0];
+                                    
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
                 }
                 
-                utterance.rate = 0.88; // Slightly slower for pleasant reading
+                utterance.rate = 0.95; // More natural reading pace
                 utterance.pitch = 1.0;
                 
                 window.speechSynthesis.speak(utterance);

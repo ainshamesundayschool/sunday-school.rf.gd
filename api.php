@@ -581,7 +581,7 @@ function processFastScanCoupon()
         $conn = getDBConnection();
 
         // 1. Load student details
-        $stmt = $conn->prepare("SELECT id, name, church_id, coupons, attendance_coupons, task_coupons FROM students WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, church_id, coupons, attendance_coupons, task_coupons, image_url FROM students WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $studentId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -657,7 +657,8 @@ function processFastScanCoupon()
             'success' => true,
             'student_name' => $student['name'],
             'new_coupons' => $newCount,
-            'change' => $amount
+            'change' => $amount,
+            'profile_photo' => $student['image_url']
         ]);
 
     } catch (Exception $e) {
