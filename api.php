@@ -659,7 +659,12 @@ function processFastScanCoupon()
         }
 
         // 4. Log the coupon change
-        $reason = "trip_coupon_scan:" . $tripId;
+        $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
+        if ($undoingLogId > 0) {
+            $reason = "trip_coupon_scan_undo:" . $tripId . ":" . $undoingLogId;
+        } else {
+            $reason = "trip_coupon_scan:" . $tripId;
+        }
         $logStmt = $conn->prepare("
             INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
             VALUES (?, ?, ?, ?, ?, 'manual', ?)
@@ -732,6 +737,73 @@ function getLatestTripCouponScan()
 
     } catch (Exception $e) {
         error_log('getLatestTripCouponScan error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+
+
+function getRecentTripCouponScans()
+{
+    try {
+        checkUncleAuth();
+        $tripId = intval($_REQUEST['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        $reason = "trip_coupon_scan:" . $tripId;
+        $uncleId = $_SESSION['uncle_id'] ?? null;
+
+        // If uncleId is set, filter by it to show only this uncle's scans.
+        // Otherwise (e.g. church admin), show all scans for this trip.
+        if ($uncleId !== null) {
+            $stmt = $conn->prepare("
+                SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, s.name as student_name, s.image_url as profile_photo
+                FROM coupon_logs cl
+                JOIN students s ON cl.student_id = s.id
+                WHERE (cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')) AND cl.uncle_id = ?
+                ORDER BY cl.id DESC
+                LIMIT 50
+            ");
+            $stmt->bind_param('sii', $reason, $tripId, $uncleId);
+        } else {
+            $stmt = $conn->prepare("
+                SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, s.name as student_name, s.image_url as profile_photo
+                FROM coupon_logs cl
+                JOIN students s ON cl.student_id = s.id
+                WHERE cl.reason = ? OR cl.reason LIKE CONCAT('trip_coupon_scan_undo:', ?, ':%')
+                ORDER BY cl.id DESC
+                LIMIT 50
+            ");
+            $stmt->bind_param('si', $reason, $tripId);
+        }
+        
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        $logs = [];
+        while ($row = $res->fetch_assoc()) {
+            $logs[] = [
+                'log_id' => intval($row['id']),
+                'student_id' => intval($row['student_id']),
+                'student_name' => $row['student_name'],
+                'profile_photo' => $row['profile_photo'],
+                'change_amount' => intval($row['change_amount']),
+                'reason' => $row['reason'],
+                'created_at' => $row['created_at']
+            ];
+        }
+
+        sendJSON([
+            'success' => true,
+            'scans' => $logs
+        ]);
+
+    } catch (Exception $e) {
+        error_log('getRecentTripCouponScans error: ' . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
@@ -4618,6 +4690,14 @@ try {
         case 'getLatestTripCouponScan':
 
             getLatestTripCouponScan();
+
+            break;
+
+
+
+        case 'getRecentTripCouponScans':
+
+            getRecentTripCouponScans();
 
             break;
 

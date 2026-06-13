@@ -809,21 +809,19 @@ $tripTitle = $trip['title'];
                     if (navigator.vibrate) {
                         navigator.vibrate([100]);
                     }
+                    addOrUpdateLogEntry(tempEntry);
                 } else {
-                    tempEntry.status = 'error';
-                    tempEntry.studentName = 'فشل المسح';
-                    tempEntry.errorMsg = res.message || 'خطأ غير معروف';
+                    // Remove from log list because it failed
+                    scansLog = scansLog.filter(item => item.id !== tempLogId);
+                    renderScansList();
                     showToast("فشل التسجيل: " + (res.message || 'خطأ'), 'error');
                 }
-                
-                addOrUpdateLogEntry(tempEntry);
 
             } catch (err) {
-                tempEntry.status = 'error';
-                tempEntry.studentName = 'فشل المسح';
-                tempEntry.errorMsg = 'حدث خطأ في الشبكة';
+                // Remove from log list because it failed
+                scansLog = scansLog.filter(item => item.id !== tempLogId);
+                renderScansList();
                 showToast("حدث خطأ في الاتصال بالسيرفر", 'error');
-                addOrUpdateLogEntry(tempEntry);
             }
         }
 
@@ -855,6 +853,7 @@ $tripTitle = $trip['title'];
             fd.append('trip_id', tripId);
             fd.append('student_id', studentId);
             fd.append('amount', undoAmount);
+            fd.append('undoing_log_id', logId);
 
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
@@ -1012,10 +1011,56 @@ $tripTitle = $trip['title'];
             });
         })();
 
+        async function loadRecentScans() {
+            try {
+                const res = await fetch(`${API_URL}?action=getRecentTripCouponScans&trip_id=${tripId}`).then(r => r.json());
+                if (res.success && res.scans) {
+                    // Collect all log_ids that were undone
+                    const undoneLogIds = new Set();
+                    res.scans.forEach(s => {
+                        if (s.reason && s.reason.startsWith('trip_coupon_scan_undo:')) {
+                            const parts = s.reason.split(':');
+                            if (parts.length >= 3) {
+                                const originalLogId = parseInt(parts[2], 10);
+                                if (!isNaN(originalLogId)) {
+                                    undoneLogIds.add(originalLogId);
+                                }
+                            }
+                        }
+                    });
+
+                    // Filter out undone logs and the undo log entries themselves
+                    const activeScans = res.scans.filter(s => {
+                        // Exclude the undo entries
+                        if (s.reason && s.reason.startsWith('trip_coupon_scan_undo:')) {
+                            return false;
+                        }
+                        // Exclude original entries that were undone
+                        if (undoneLogIds.has(s.log_id)) {
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    scansLog = activeScans.map(s => ({
+                        id: s.log_id,
+                        studentId: s.student_id,
+                        studentName: s.student_name,
+                        change: s.change_amount,
+                        status: 'success',
+                        profilePhoto: s.profile_photo
+                    }));
+                }
+            } catch (e) {
+                console.error("Error loading recent scans:", e);
+            }
+            renderScansList();
+        }
+
         // Start default scanner (camera) on load
         document.addEventListener('DOMContentLoaded', () => {
             startCamera();
-            renderScansList();
+            loadRecentScans();
         });
     </script>
 </body>

@@ -409,22 +409,6 @@ $tripTitle = $trip['title'];
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
 
-    <!-- Autoplay Activation Overlay -->
-    <div class="overlay" id="startOverlay">
-        <div class="overlay-card">
-            <div style="font-size: 3rem; color: var(--brand); margin-bottom: 20px;">
-                <i class="fas fa-volume-up"></i>
-            </div>
-            <h2 class="overlay-title">شاشة الترحيب والجوائز</h2>
-            <p class="overlay-desc">
-                يرجى الضغط على زر البدء لتنشيط نظام الترحيب الصوتي التلقائي للأطفال ومزامنة الشاشة مع ماسح الأعمام.
-            </p>
-            <button class="start-btn" onclick="startDisplay()">
-                <i class="fas fa-play"></i> البدء وتنشيط الصوت
-            </button>
-        </div>
-    </div>
-
     <div class="screen-wrap">
         
         <div class="top-info">
@@ -467,30 +451,15 @@ $tripTitle = $trip['title'];
         let isOverlayActive = false;
         let displayQueue = [];
         let pollingInterval = null;
-        let isSpeakingSupported = false;
 
-        // Initialize voices list early
-        if ('speechSynthesis' in window) {
-            isSpeakingSupported = true;
-            window.speechSynthesis.getVoices();
-            if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-            }
-        }
-
-        async function startDisplay() {
-            // Hide overlay
-            document.getElementById('startOverlay').style.display = 'none';
-
-            // Optional: Request fullscreen
+        // Start display polling automatically on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Optional: Request fullscreen automatically if desired
             try {
                 if (document.documentElement.requestFullscreen) {
                     await document.documentElement.requestFullscreen();
                 }
             } catch (e) {}
-
-            // Trigger empty voice to warm up Web Audio/SpeechSynthesis block bypass
-            speakText(" ");
 
             // Load latest scan log ID on load so we don't replay past items
             try {
@@ -504,7 +473,7 @@ $tripTitle = $trip['title'];
 
             // Start polling database every 800ms
             pollingInterval = setInterval(pollScanEvents, 800);
-        }
+        });
 
         async function pollScanEvents() {
             try {
@@ -596,15 +565,6 @@ $tripTitle = $trip['title'];
                 };
             }
 
-            // Fire TTS audio
-            let spokenText = '';
-            if (isAdd) {
-                spokenText = `أهلاً ${event.student_name}، مبروك ${countStr} ${arabicTerm}!`;
-            } else {
-                spokenText = `تم سحب ${countStr} ${arabicTerm} من ${event.student_name}`;
-            }
-            speakText(spokenText);
-
             // Confetti effect on positive coupon change
             if (isAdd) {
                 startConfetti();
@@ -620,59 +580,6 @@ $tripTitle = $trip['title'];
             } else {
                 // Keep the card on screen indefinitely
                 isOverlayActive = false;
-            }
-        }
-
-        function speakText(text) {
-            try {
-                // Google Translate TTS is a high-quality human speech engine for perfect Arabic speech
-                const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ar&client=tw-ob&q=${encodeURIComponent(text)}`;
-                const audio = new Audio(ttsUrl);
-                
-                audio.defaultPlaybackRate = 0.95;
-                audio.playbackRate = 0.95;
-                
-                audio.play().catch(err => {
-                    console.warn("Google TTS blocked, falling back to Web Speech API", err);
-                    speakTextFallback(text);
-                });
-            } catch (e) {
-                console.error("Google TTS error, falling back", e);
-                speakTextFallback(text);
-            }
-        }
-
-        function speakTextFallback(text) {
-            if (!isSpeakingSupported) return;
-            try {
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ar-EG';
-                
-                // Fetch voices and find best quality Arabic
-                const voices = window.speechSynthesis.getVoices();
-                const arVoices = voices.filter(v => v.lang.startsWith('ar') || v.lang.includes('Arabic'));
-                
-                // Prioritize best quality voices: Google, Laila (iOS), Tarik (iOS), Microsoft, then fallback
-                let selectedVoice = arVoices.find(v => v.name.includes('Google') || v.name.includes('Natural')) ||
-                                    arVoices.find(v => v.name.includes('Laila')) ||
-                                    arVoices.find(v => v.name.includes('Tarik')) ||
-                                    arVoices.find(v => v.name.includes('Maged') && v.name.includes('Premium')) ||
-                                    arVoices.find(v => v.name.includes('Microsoft')) ||
-                                    arVoices.find(v => v.lang.startsWith('ar-SA')) ||
-                                    arVoices[0];
-                                    
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                }
-                
-                utterance.rate = 0.95; // More natural reading pace
-                utterance.pitch = 1.0;
-                
-                window.speechSynthesis.speak(utterance);
-            } catch (e) {
-                console.error("Speech Synthesis error: ", e);
             }
         }
 
