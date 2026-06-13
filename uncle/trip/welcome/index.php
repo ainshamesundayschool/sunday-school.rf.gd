@@ -28,7 +28,7 @@ if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
     exit();
 }
 
-require_once '../../config.php';
+require_once '../../../config.php';
 
 $tripId = intval($_GET['trip_id'] ?? 0);
 if ($tripId <= 0) {
@@ -264,7 +264,7 @@ $tripTitle = $trip['title'];
             100% { transform: scale(1.05); opacity: 0.95; }
         }
 
-        /* Welcome Card Overlay */
+        /* Welcome Greeting Card */
         .welcome-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1.5px solid rgba(255, 255, 255, 0.08);

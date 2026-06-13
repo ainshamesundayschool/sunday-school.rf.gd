@@ -1412,12 +1412,12 @@
 
             function openFastCouponScanner() {
                 if (currentTrip && currentTrip.id) {
-                    window.location.href = `/uncle/trip/fast_scan.php?trip_id=${currentTrip.id}`;
+                    window.location.href = `/uncle/trip/fast_scan/?trip_id=${currentTrip.id}`;
                 }
             }
             function openWelcomeScreen() {
                 if (currentTrip && currentTrip.id) {
-                    window.open(`/uncle/trip/welcome.php?trip_id=${currentTrip.id}`, '_blank');
+                    window.open(`/uncle/trip/welcome/?trip_id=${currentTrip.id}`, '_blank');
                 }
             }
         </script>
