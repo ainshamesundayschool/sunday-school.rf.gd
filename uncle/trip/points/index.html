@@ -765,6 +765,129 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* Dynamic shortcut button enhancements */
+        .control-panel .shortcut-btn {
+            background: var(--success);
+            color: white;
+            border-bottom: 4px solid var(--success-dark);
+            transition: all var(--t) var(--ease);
+        }
+        .control-panel .shortcut-btn.btn-sub {
+            background: var(--warning);
+            color: white;
+            border-bottom: 4px solid var(--warning-dark);
+        }
+        .control-panel .shortcut-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+        }
+
+        /* Scans Log */
+        .scans-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .scan-item {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 12px;
+            border: 1.5px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s var(--ease);
+            box-shadow: var(--shadow-sm);
+        }
+        .scan-photo {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-3);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border-solid);
+        }
+        .scan-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .scan-name {
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: right;
+        }
+        .scan-status {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-align: right;
+        }
+        .scan-badge {
+            font-weight: 900;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .scan-badge.plus {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .scan-badge.minus {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .scan-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .scan-action-btn {
+            border: 1px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--t);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .scan-action-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-bg);
+        }
+        .scan-action-btn.undo:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 650px) {
+            .split-scans-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -849,7 +972,7 @@
                 <div id="customTags" class="custom-tags"></div>
             </div>
 
-            <div class="control-panel">
+            <div class="control-panel" id="controlPanelWrapper">
                 <div class="section-title">اختر قيمة النقاط</div>
                 <div class="points-selector">
                     <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
@@ -863,6 +986,41 @@
                         إضافة</button>
                     <button class="btn-action btn-sub" onclick="executeAction('decrement')"><i class="fas fa-minus"></i>
                         خصم</button>
+                </div>
+            </div>
+
+            <!-- Split Scans Columns -->
+            <div class="split-scans-container" style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
+                <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem;">سجل المسوحات الأخير بالرحلة</div>
+                
+                <!-- Search bar -->
+                <div class="search-wrap" style="margin-bottom: 15px; position: relative;">
+                    <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 10px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
+                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
+                </div>
+
+                <div class="split-scans-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <!-- Right Column (First in RTL): My Scans -->
+                    <div class="scans-column">
+                        <div class="scans-column-title" style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                            <span>عمليات مسحي الخاصة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
+                        </div>
+                        <div class="scans-list" id="myScansList">
+                            <!-- My scanned items will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Left Column (Second in RTL): All Uncles' Scans -->
+                    <div class="scans-column">
+                        <div class="scans-column-title" style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                            <span>جميع مسوحات الأعمام بالرحلة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
+                        </div>
+                        <div class="scans-list" id="allScansList">
+                            <!-- All scanned items will appear here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -899,6 +1057,11 @@
         let currentSelectedPoint = 10;
         let allStudents = [];
 
+        // Dynamic scan feed state variables
+        let scansLog = [];
+        let currentUncleId = null;
+        let searchQuery = "";
+
         document.addEventListener('DOMContentLoaded', () => {
             if (!tripId || !studentId) {
                 showToast('رابط غير صالح', 'error');
@@ -911,9 +1074,9 @@
             if (savedPoint && [10, 30, 50, 100].includes(parseInt(savedPoint))) {
                 currentSelectedPoint = parseInt(savedPoint);
             }
-            updatePointChips();
 
             loadStudentData();
+            loadRecentScans();
         });
 
         function selectPoint(val) {
@@ -985,6 +1148,7 @@
                 if (reg) {
                     studentData = reg;
                     renderStudent();
+                    renderControlPanel();
                     fetchPoints();
                     return;
                 }
@@ -1136,7 +1300,7 @@
         }
 
         let isUpdating = false;
-        async function updatePoints(action, amount) {
+        async function updatePoints(action, amount, actionName = '') {
             if (isUpdating) return;
             isUpdating = true;
 
@@ -1149,7 +1313,8 @@
                 trip_id: tripId,
                 student_id: studentId,
                 game_action: action,
-                amount: amount
+                amount: amount,
+                action_name: actionName
             });
 
             display.classList.remove('settling');
@@ -1166,6 +1331,7 @@
                 } else if (action === 'naughty') {
                     showToast(res.is_naughty ? 'تم تفعيل وضع الشغب' : 'تم إلغاء وضع الشغب', res.is_naughty ? 'error' : 'success');
                 }
+                loadRecentScans();
             } else {
                 showToast(res.message || 'فشل في تحديث النقاط', 'error');
             }
@@ -1492,6 +1658,261 @@
                 yesBtn.addEventListener('click', () => close(true));
                 noBtn.addEventListener('click', () => close(false));
             });
+        }
+        // Dynamic settings control panel and scans feed
+        function renderControlPanel() {
+            const wrapper = document.getElementById('controlPanelWrapper');
+            let pointsConfig = null;
+            if (tripData && tripData.points_config) {
+                try {
+                    pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config;
+                } catch (e) {}
+            }
+            
+            if (pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0) {
+                // Render shortcuts layout
+                let html = `
+                    <div class="section-title">إجراءات سريعة للنقاط</div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                `;
+                pointsConfig.shortcuts.forEach((sh, idx) => {
+                    const signChar = sh.points >= 0 ? '+' : '';
+                    const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
+                    html += `
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:14px; text-align:right; font-size:1.0rem; height:auto; border-radius:12px;">
+                            <span style="display:flex; align-items:center; gap:12px;">
+                                <i class="${sh.icon || 'fas fa-star'}"></i>
+                                <span>${sh.name}</span>
+                            </span>
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:0.9rem;">
+                                ${signChar}${sh.points}
+                            </span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                wrapper.innerHTML = html;
+            } else {
+                // Render standard layout
+                wrapper.innerHTML = `
+                    <div class="section-title">اختر قيمة النقاط</div>
+                    <div class="points-selector">
+                        <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
+                        <div class="point-chip" data-val="30" onclick="selectPoint(30)">30</div>
+                        <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
+                        <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn-action btn-add" onclick="executeAction('increment')"><i class="fas fa-plus"></i> إضافة</button>
+                        <button class="btn-action btn-sub" onclick="executeAction('decrement')"><i class="fas fa-minus"></i> خصم</button>
+                    </div>
+                `;
+                updatePointChips();
+            }
+        }
+
+        async function executeShortcutAction(index) {
+            let pointsConfig = null;
+            if (tripData && tripData.points_config) {
+                try {
+                    pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config;
+                } catch (e) {}
+            }
+            if (!pointsConfig || !Array.isArray(pointsConfig.shortcuts)) return;
+            const sh = pointsConfig.shortcuts[index];
+            if (!sh) return;
+            
+            const game_action = sh.points >= 0 ? 'increment' : 'decrement';
+            const amount = Math.abs(sh.points);
+            
+            await updatePoints(game_action, amount, sh.name);
+        }
+
+        function filterScansList() {
+            searchQuery = document.getElementById('scanSearchInput').value.trim().toLowerCase();
+            renderScansList();
+        }
+
+        function renderScanItemHTML(item) {
+            let badgeClass = item.change > 0 ? 'plus' : 'minus';
+            let formattedChange = item.change > 0 ? `+${item.change}` : item.change;
+            
+            let statusHtml = '';
+            if (item.status === 'processing') {
+                statusHtml = `<i class="fas fa-spinner fa-spin" style="color:var(--brand);"></i> جاري التسجيل...`;
+            } else if (item.status === 'error') {
+                statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
+            } else {
+                const uncleSuffix = (item.uncleId !== currentUncleId && item.uncleName) 
+                    ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
+                    : '';
+                const noteSuffix = item.actionNote 
+                    ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
+                    : '';
+                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${noteSuffix}${uncleSuffix}`;
+            }
+
+            let photoHtml = item.profilePhoto 
+                ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\'scan-photo\'><i class=\'fas fa-user\'></i></div>'">`
+                : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
+
+            let actionButtons = '';
+            if (item.uncleId === currentUncleId || currentUncleId === null) {
+                if (item.status === 'success') {
+                    actionButtons += `
+                        <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change})" title="تراجع عن هذه العملية">
+                            <i class="fas fa-undo"></i> تراجع
+                        </button>
+                    `;
+                }
+            }
+
+            return `
+                <div class="scan-item">
+                    ${photoHtml}
+                    <div class="scan-info">
+                        <div class="scan-name">${item.studentName}</div>
+                        <div class="scan-status">${statusHtml}</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                        <div class="scan-badge ${badgeClass}">${formattedChange}</div>
+                        <div class="scan-actions">
+                            ${actionButtons}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderScansList() {
+            const myListEl = document.getElementById('myScansList');
+            const allListEl = document.getElementById('allScansList');
+            const myCountEl = document.getElementById('myCount');
+            const allCountEl = document.getElementById('allCount');
+
+            const filtered = scansLog.filter(item => {
+                if (!searchQuery) return true;
+                return item.studentName.toLowerCase().includes(searchQuery) || 
+                       String(item.studentId).includes(searchQuery);
+            });
+
+            const myScans = filtered.filter(item => item.uncleId === currentUncleId);
+            const allScans = filtered;
+
+            myCountEl.textContent = myScans.length + ' طفل';
+            allCountEl.textContent = allScans.length + ' طفل';
+
+            if (myScans.length === 0) {
+                myListEl.innerHTML = `
+                    <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                        <i class="fas fa-user" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                        <div>لا توجد مسوحات خاصة بك.</div>
+                    </div>
+                `;
+            } else {
+                myListEl.innerHTML = myScans.map(renderScanItemHTML).join('');
+            }
+
+            if (allScans.length === 0) {
+                allListEl.innerHTML = `
+                    <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                        <i class="fas fa-users" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                        <div>لا توجد مسوحات للرحلة.</div>
+                    </div>
+                `;
+            } else {
+                allListEl.innerHTML = allScans.map(renderScanItemHTML).join('');
+            }
+        }
+
+        async function loadRecentScans() {
+            try {
+                const res = await fetch(`${API_URL}?action=getRecentTripPointsScans&trip_id=${tripId}`).then(r => r.json());
+                if (res.success && res.scans) {
+                    currentUncleId = res.current_uncle_id;
+
+                    const undoneLogIds = new Set();
+                    res.scans.forEach(s => {
+                        if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
+                            const parts = s.reason.split(':');
+                            if (parts.length >= 3) {
+                                const originalLogId = parseInt(parts[2], 10);
+                                if (!isNaN(originalLogId)) {
+                                    undoneLogIds.add(originalLogId);
+                                }
+                            }
+                        }
+                    });
+
+                    const activeScans = res.scans.filter(s => {
+                        if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
+                            return false;
+                        }
+                        if (undoneLogIds.has(s.log_id)) {
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    scansLog = activeScans.map(s => {
+                        let actionNote = '';
+                        if (s.reason) {
+                            const parts = s.reason.split(':');
+                            if (parts.length >= 3) {
+                                actionNote = parts.slice(2).join(':');
+                            }
+                        }
+                        return {
+                            id: s.log_id,
+                            studentId: s.student_id,
+                            studentName: s.student_name,
+                            change: s.change_amount,
+                            status: 'success',
+                            profilePhoto: s.profile_photo,
+                            uncleId: s.uncle_id,
+                            uncleName: s.uncle_name,
+                            actionNote: actionNote
+                        };
+                    });
+                }
+            } catch (e) {
+                console.error("Error loading recent scans:", e);
+            }
+            renderScansList();
+        }
+
+        async function undoScan(logId, studentId, amount) {
+            const btn = document.querySelector(`[data-id="${logId}"]`);
+            if (btn) btn.disabled = true;
+
+            const undoAmount = -1 * amount;
+
+            const res = await apiCall('processGameQRCode', {
+                trip_id: tripId,
+                student_id: studentId,
+                game_action: undoAmount >= 0 ? 'increment' : 'decrement',
+                amount: Math.abs(undoAmount),
+                undoing_log_id: logId
+            });
+
+            if (res.success) {
+                showToast(`تم التراجع بنجاح!`, 'success');
+                scansLog = scansLog.filter(item => item.id !== logId);
+                renderScansList();
+                
+                if (String(studentId) === String(window.studentId)) {
+                    updatePointsDisplay(res.points, res.is_naughty);
+                }
+            } else {
+                showToast("فشل التراجع: " + res.message, 'error');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>

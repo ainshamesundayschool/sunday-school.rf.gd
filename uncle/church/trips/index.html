@@ -9987,6 +9987,81 @@
         document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
         document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
 
+        // Load points config
+        document.getElementById('editTripShortcutsList').innerHTML = '';
+        let pointsConfig = null;
+        if (t.points_config) {
+          try {
+            pointsConfig = typeof t.points_config === 'string' ? JSON.parse(t.points_config) : t.points_config;
+          } catch(e) {}
+        }
+        if (pointsConfig && pointsConfig.points_type === 'shortcuts') {
+          document.getElementById('editTripPointsType').value = 'shortcuts';
+          if (Array.isArray(pointsConfig.shortcuts)) {
+            pointsConfig.shortcuts.forEach(s => {
+              addShortcutRow('edit', s.name, s.points, s.icon);
+            });
+          }
+        } else {
+          document.getElementById('editTripPointsType').value = 'direct';
+        }
+        toggleEditTripPointsGame();
+      }
+
+      function toggleEditTripPointsGame() {
+        const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
+        document.getElementById('editTripPointsGameSettingsWrap').style.display = hasGame ? 'block' : 'none';
+        if (hasGame) {
+          toggleEditTripPointsType();
+        }
+      }
+
+      function toggleEditTripPointsType() {
+        const pointsType = document.getElementById('editTripPointsType').value;
+        document.getElementById('editTripShortcutsArea').style.display = pointsType === 'shortcuts' ? 'block' : 'none';
+      }
+
+      function escHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      }
+
+      function addShortcutRow(mode, name = '', points = '', icon = 'fas fa-star') {
+        const container = document.getElementById('editTripShortcutsList');
+        const rowId = 'shortcut_row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        
+        const rowDiv = document.createElement('div');
+        rowDiv.id = rowId;
+        rowDiv.className = 'shortcut-editor-row';
+        rowDiv.style = 'display:flex; gap:8px; align-items:center; width:100%; margin-bottom:8px;';
+        
+        rowDiv.innerHTML = `
+          <select class="form-select shortcut-icon" style="width:75px; flex-shrink:0;">
+            <option value="fas fa-star" ${icon === 'fas fa-star' ? 'selected' : ''}>⭐</option>
+            <option value="fas fa-clock" ${icon === 'fas fa-clock' ? 'selected' : ''}>⏰</option>
+            <option value="fas fa-check-circle" ${icon === 'fas fa-check-circle' ? 'selected' : ''}>✅</option>
+            <option value="fas fa-times-circle" ${icon === 'fas fa-times-circle' ? 'selected' : ''}>❌</option>
+            <option value="fas fa-book" ${icon === 'fas fa-book' ? 'selected' : ''}>📖</option>
+            <option value="fas fa-church" ${icon === 'fas fa-church' ? 'selected' : ''}>⛪</option>
+            <option value="fas fa-heart" ${icon === 'fas fa-heart' ? 'selected' : ''}>❤️</option>
+            <option value="fas fa-gift" ${icon === 'fas fa-gift' ? 'selected' : ''}>🎁</option>
+            <option value="fas fa-smile" ${icon === 'fas fa-smile' ? 'selected' : ''}>😊</option>
+            <option value="fas fa-frown" ${icon === 'fas fa-frown' ? 'selected' : ''}>😢</option>
+            <option value="fas fa-bus" ${icon === 'fas fa-bus' ? 'selected' : ''}>🚌</option>
+            <option value="fas fa-plus" ${icon === 'fas fa-plus' ? 'selected' : ''}>➕</option>
+            <option value="fas fa-minus" ${icon === 'fas fa-minus' ? 'selected' : ''}>➖</option>
+          </select>
+          <input type="text" class="form-input shortcut-name" placeholder="اسم الإجراء (مثال: حضور مبكر)" value="${escHtml(name)}" style="flex:2; min-width:120px;" required>
+          <input type="number" class="form-input shortcut-points" placeholder="النقاط (مثال: 15 أو -5)" value="${points}" style="width:80px; flex-shrink:0;" required>
+          <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove()" style="padding: 8px 10px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink:0;" title="حذف">
+            <i class="fas fa-trash"></i>
+          </button>
+        `;
+        container.appendChild(rowDiv);
+      }
+
+      function dummyPlaceholderForNextFunc() {
+
         document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
         toggleTripRoomsConfigurator('edit').then(() => {
           if (t.has_rooms == 1 && t.rooms_config) {
@@ -10058,16 +10133,37 @@
           delete customFieldIcons['السكن'];
         }
 
+        const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
+        let pointsConfig = null;
+        if (hasGame) {
+          const pointsType = document.getElementById('editTripPointsType').value;
+          if (pointsType === 'shortcuts') {
+            const shortcuts = [];
+            document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
+              const icon = row.querySelector('.shortcut-icon').value;
+              const name = row.querySelector('.shortcut-name').value.trim();
+              const points = parseInt(row.querySelector('.shortcut-points').value || 0);
+              if (name) {
+                shortcuts.push({ icon, name, points });
+              }
+            });
+            pointsConfig = JSON.stringify({ points_type: 'shortcuts', shortcuts });
+          } else {
+            pointsConfig = JSON.stringify({ points_type: 'direct' });
+          }
+        }
+
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
         fd.append('has_rooms', hasRooms ? '1' : '0');
         fd.append('rooms_config', roomsConfig || '');
+        fd.append('points_config', pointsConfig || '');
 
         const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (d.success) {
-          allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, max_participants: nextMax } : item);
+          allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, max_participants: nextMax, points_config: pointsConfig } : item);
           if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
-            window.currentTripObj = { ...window.currentTripObj, max_participants: nextMax };
+            window.currentTripObj = { ...window.currentTripObj, max_participants: nextMax, points_config: pointsConfig };
           }
           const syncRes = await syncTripCapacityAfterUpdate(tripId, previousMax, nextMax);
           showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.success ? (syncRes.mode === 'grow' ? 'info' : 'success') : 'warning');
@@ -10860,6 +10956,22 @@
         const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
         const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
         if (!force && wValInput === 10 && hValInput === 7) {
+          const paperSizeSelect = document.getElementById('printPaperSize');
+          if (paperSizeSelect) {
+            const selectedVal = paperSizeSelect.value;
+            const sizeMap = {
+              'a4-portrait': { ar: 'A4 بالوضع الرأسي (Portrait)', en: 'A4 Portrait Mode' },
+              'a4-landscape': { ar: 'A4 بالوضع الأفقي (Landscape)', en: 'A4 Landscape Mode' },
+              'a3-portrait': { ar: 'A3 بالوضع الرأسي (Portrait)', en: 'A3 Portrait Mode' },
+              'a3-landscape': { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' }
+            };
+            const info = sizeMap[selectedVal] || { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' };
+            const arSizeEl = document.getElementById('printWarningArSize');
+            const enSizeEl = document.getElementById('printWarningEnSize');
+            if (arSizeEl) arSizeEl.textContent = info.ar;
+            if (enSizeEl) enSizeEl.textContent = info.en;
+          }
+
           const confirmBtn = document.querySelector('#printWarningModal .btn-primary');
           if (confirmBtn) {
             confirmBtn.setAttribute('onclick', `executePrintQRCards('${mode}', true)`);
@@ -14265,10 +14377,29 @@
               </div>
               <div class="form-group" style="grid-column:1/-1;">
                 <label class="form-label">هل يوجد للرحلة مسابقة نقاط؟</label>
-                <select id="editTripHasPointsGame" class="form-select" style="width:100%;">
+                <select id="editTripHasPointsGame" class="form-select" style="width:100%;" onchange="toggleEditTripPointsGame()">
                   <option value="0">لا</option>
                   <option value="1">نعم</option>
                 </select>
+
+                <div id="editTripPointsGameSettingsWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-weight:700;">نظام توزيع النقاط</label>
+                    <select id="editTripPointsType" class="form-select" style="width:100%;" onchange="toggleEditTripPointsType()">
+                      <option value="direct">نقاط مباشرة (10، 30، 50، 100)</option>
+                      <option value="shortcuts">أزرار وإجراءات مخصصة (اختصارات)</option>
+                    </select>
+                  </div>
+                  <div id="editTripShortcutsArea" style="display:none; border-top:1px dashed var(--border); padding-top:12px; margin-top:10px;">
+                    <div style="font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:10px;">الاختصارات المخصصة المتاحة:</div>
+                    <div id="editTripShortcutsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+                      <!-- Dynamic rows -->
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addShortcutRow('edit')">
+                      <i class="fas fa-plus"></i> إضافة اختصار جديد
+                    </button>
+                  </div>
+                </div>
               </div>
               <div class="form-group" style="grid-column:1/-1;">
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -14800,9 +14931,9 @@
         <div class="modal-body">
           <p
             style="text-align: center; font-weight: 700; font-size: 0.95rem; color: var(--text-2); line-height: 1.65; margin: 0;">
-            يُنصح باستخدام ورق <strong>A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.</p>
+            يجب استخدام ورق <strong id="printWarningArSize">A3 بالوضع الأفقي (Landscape)</strong> عند الطباعة.</p>
           <p style="text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin: 8px 0 0 0;">
-            Recommended to use A3 Landscape Mode while printing.</p>
+            You must use <strong id="printWarningEnSize">A3 Landscape Mode</strong> while printing.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="closeModal('printWarningModal')">إلغاء

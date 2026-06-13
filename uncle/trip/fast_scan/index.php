@@ -37,7 +37,7 @@ if ($tripId <= 0) {
 }
 
 $conn = getDBConnection();
-$tstmt = $conn->prepare("SELECT title, church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+$tstmt = $conn->prepare("SELECT title, church_id, collaborating_churches, points_config FROM trips WHERE id = ? LIMIT 1");
 $tstmt->bind_param('i', $tripId);
 $tstmt->execute();
 $trip = $tstmt->get_result()->fetch_assoc();
@@ -609,23 +609,8 @@ $tripTitle = $trip['title'];
                     <i class="fas fa-cog text-brand"></i> إعدادات المسح
                 </div>
 
-                <!-- Sign Toggle (Plus / Minus) -->
-                <div class="sign-toggle">
-                    <button type="button" class="sign-btn plus active" onclick="setSign('plus')">
-                        <i class="fas fa-plus"></i> إضافة نقاط
-                    </button>
-                    <button type="button" class="sign-btn minus" onclick="setSign('minus')">
-                        <i class="fas fa-minus"></i> سحب (خصم) نقاط
-                    </button>
-                </div>
-
-                <!-- Options Grid -->
-                <div class="option-group">
-                    <button type="button" class="option-btn active" onclick="setAmount(10)">10</button>
-                    <button type="button" class="option-btn" onclick="setAmount(30)">30</button>
-                    <button type="button" class="option-btn" onclick="setAmount(50)">50</button>
-                    <button type="button" class="option-btn" onclick="setAmount(100)">100</button>
-                </div>
+                <!-- Dynamic Controls Area -->
+                <div id="settingsControlsArea"></div>
 
                 <!-- Cooldown Notice -->
                 <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); font-size: 0.74rem; color: var(--text-2); font-weight: 700;">
@@ -680,7 +665,9 @@ $tripTitle = $trip['title'];
     <script>
         const API_URL = '/api.php';
         const tripId = <?php echo $tripId; ?>;
+        const pointsConfig = <?php echo json_encode($trip['points_config'] ? json_decode($trip['points_config'], true) : null); ?>;
         
+        let activeShortcut = null;
         let scanAmount = 10;
         let scanSign = 1; // 1 for addition, -1 for subtraction
         let scannerSource = 'camera';
@@ -693,9 +680,68 @@ $tripTitle = $trip['title'];
         // Scanned kids log array
         let scansLog = [];
 
+        function initializeSettings() {
+            const area = document.getElementById('settingsControlsArea');
+            if (pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0) {
+                // Render custom shortcuts
+                let html = `<div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">`;
+                pointsConfig.shortcuts.forEach((sh, idx) => {
+                    const activeClass = idx === 0 ? 'active' : '';
+                    if (idx === 0) activeShortcut = sh;
+                    
+                    const signChar = sh.points >= 0 ? '+' : '';
+                    html += `
+                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:10px 14px; text-align:right;">
+                            <span style="display:flex; align-items:center; gap:10px;">
+                                <i class="${sh.icon || 'fas fa-star'}"></i>
+                                <span>${sh.name}</span>
+                            </span>
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:6px; font-size:0.85rem;">
+                                ${signChar}${sh.points}
+                            </span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                area.innerHTML = html;
+            } else {
+                // Render standard direct points controls
+                activeShortcut = null;
+                area.innerHTML = `
+                    <div class="sign-toggle">
+                        <button type="button" class="sign-btn plus active" onclick="setSign('plus')">
+                            <i class="fas fa-plus"></i> إضافة نقاط
+                        </button>
+                        <button type="button" class="sign-btn minus" onclick="setSign('minus')">
+                            <i class="fas fa-minus"></i> سحب (خصم) نقاط
+                        </button>
+                    </div>
+
+                    <div class="option-group" style="margin-bottom: 12px;">
+                        <button type="button" class="option-btn direct-btn active" onclick="setAmount(10)">10</button>
+                        <button type="button" class="option-btn direct-btn" onclick="setAmount(30)">30</button>
+                        <button type="button" class="option-btn direct-btn" onclick="setAmount(50)">50</button>
+                        <button type="button" class="option-btn direct-btn" onclick="setAmount(100)">100</button>
+                    </div>
+                `;
+            }
+        }
+
+        function selectShortcut(index) {
+            activeShortcut = pointsConfig.shortcuts[index];
+            const buttons = document.querySelectorAll('.shortcut-action-btn');
+            buttons.forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
         function setAmount(val) {
             scanAmount = val;
-            document.querySelectorAll('.option-btn').forEach(btn => {
+            document.querySelectorAll('.direct-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (parseInt(btn.textContent, 10) === val) {
                     btn.classList.add('active');
@@ -856,7 +902,15 @@ $tripTitle = $trip['title'];
         }
 
         async function executeScan(studentId) {
-            const changeAmount = scanAmount * scanSign;
+            let changeAmount = 0;
+            let actionName = '';
+
+            if (activeShortcut) {
+                changeAmount = activeShortcut.points;
+                actionName = activeShortcut.name;
+            } else {
+                changeAmount = scanAmount * scanSign;
+            }
 
             // Instantly append to recent list in "Processing" state to feel extremely responsive
             const tempLogId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
@@ -868,7 +922,8 @@ $tripTitle = $trip['title'];
                 status: 'processing',
                 profilePhoto: null,
                 uncleId: currentUncleId,
-                uncleName: 'مسوحاتي الخاصة'
+                uncleName: 'مسوحاتي الخاصة',
+                actionNote: actionName
             };
             addOrUpdateLogEntry(tempEntry);
 
@@ -878,6 +933,9 @@ $tripTitle = $trip['title'];
             fd.append('trip_id', tripId);
             fd.append('student_id', studentId);
             fd.append('amount', changeAmount);
+            if (actionName) {
+                fd.append('action_name', actionName);
+            }
 
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
@@ -990,7 +1048,10 @@ $tripTitle = $trip['title'];
                 const uncleSuffix = (item.uncleId !== currentUncleId && item.uncleName) 
                     ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
                     : '';
-                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${uncleSuffix}`;
+                const noteSuffix = item.actionNote 
+                    ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
+                    : '';
+                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${noteSuffix}${uncleSuffix}`;
             }
 
             let photoHtml = item.profilePhoto 
@@ -1087,7 +1148,7 @@ $tripTitle = $trip['title'];
                     // Collect all log_ids that were undone
                     const undoneLogIds = new Set();
                     res.scans.forEach(s => {
-                        if (s.reason && s.reason.startsWith('trip_points_scan_undo:')) {
+                        if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
                             const parts = s.reason.split(':');
                             if (parts.length >= 3) {
                                 const originalLogId = parseInt(parts[2], 10);
@@ -1101,7 +1162,7 @@ $tripTitle = $trip['title'];
                     // Filter out undone logs and the undo log entries themselves
                     const activeScans = res.scans.filter(s => {
                         // Exclude the undo entries
-                        if (s.reason && s.reason.startsWith('trip_points_scan_undo:')) {
+                        if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
                             return false;
                         }
                         // Exclude original entries that were undone
@@ -1111,16 +1172,26 @@ $tripTitle = $trip['title'];
                         return true;
                     });
 
-                    scansLog = activeScans.map(s => ({
-                        id: s.log_id,
-                        studentId: s.student_id,
-                        studentName: s.student_name,
-                        change: s.change_amount,
-                        status: 'success',
-                        profilePhoto: s.profile_photo,
-                        uncleId: s.uncle_id,
-                        uncleName: s.uncle_name
-                    }));
+                    scansLog = activeScans.map(s => {
+                        let actionNote = '';
+                        if (s.reason) {
+                            const parts = s.reason.split(':');
+                            if (parts.length >= 3) {
+                                actionNote = parts.slice(2).join(':');
+                            }
+                        }
+                        return {
+                            id: s.log_id,
+                            studentId: s.student_id,
+                            studentName: s.student_name,
+                            change: s.change_amount,
+                            status: 'success',
+                            profilePhoto: s.profile_photo,
+                            uncleId: s.uncle_id,
+                            uncleName: s.uncle_name,
+                            actionNote: actionNote
+                        };
+                    });
                 }
             } catch (e) {
                 console.error("Error loading recent scans:", e);
@@ -1130,6 +1201,7 @@ $tripTitle = $trip['title'];
 
         // Start default scanner (camera) on load
         document.addEventListener('DOMContentLoaded', () => {
+            initializeSettings();
             startCamera();
             loadRecentScans();
         });

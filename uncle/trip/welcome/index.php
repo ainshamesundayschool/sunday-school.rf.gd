@@ -405,6 +405,17 @@ $tripTitle = $trip['title'];
 </head>
 <body>
 
+    <!-- Start Overlay (User interaction to enable audio/fullscreen) -->
+    <div class="overlay" id="startOverlay">
+        <div class="overlay-card">
+            <h2 class="overlay-title" style="margin-top:0;">شاشة عرض الترحيب</h2>
+            <p class="overlay-desc">اضغط على الزر أدناه لتفعيل المؤثرات الصوتية والعرض التلقائي بملء الشاشة عند مسح النقاط.</p>
+            <button type="button" class="start-btn" onclick="startWelcomeScreen()">
+                <i class="fas fa-play"></i> بدء الشاشة
+            </button>
+        </div>
+    </div>
+
     <!-- Ambient glowing backgrounds -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
@@ -452,15 +463,93 @@ $tripTitle = $trip['title'];
         let displayQueue = [];
         let pollingInterval = null;
 
-        // Start display polling automatically on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Optional: Request fullscreen automatically if desired
+        // Web Audio Context for synthesized sound effect
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSuccessSound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const now = audioCtx.currentTime;
+            
+            // Premium chime sound: harmonious arpeggio arced E5 -> G5 -> C6
+            playTone(659.25, now, 0.15); 
+            playTone(783.99, now + 0.08, 0.25);
+            playTone(1046.50, now + 0.16, 0.4);
+        }
+
+        function playFailureSound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const now = audioCtx.currentTime;
+            
+            // Descent buzz-like alert tone: G4 -> E4
+            playTone(392.00, now, 0.15); 
+            playTone(329.63, now + 0.08, 0.25);
+        }
+
+        function playTone(freq, startTime, duration) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                
+                // Prevent clicking sound at the start and end by setting soft envelope curve
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+                
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            } catch (e) {
+                console.error("Audio play error: ", e);
+            }
+        }
+
+        async function startWelcomeScreen() {
+            // Dismiss overlay
+            document.getElementById('startOverlay').style.display = 'none';
+            
+            // Request fullscreen on start
             try {
                 if (document.documentElement.requestFullscreen) {
                     await document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    await document.documentElement.webkitRequestFullscreen();
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Fullscreen request failed: ", e);
+            }
+            
+            // Initialize audio
+            initAudio();
+            
+            // Play a gentle welcome tone to confirm sound is active
+            if (audioCtx) {
+                const now = audioCtx.currentTime;
+                playTone(523.25, now, 0.15); // C5
+                playTone(659.25, now + 0.1, 0.25); // E5
+            }
+        }
 
+        // Start display polling automatically on page load
+        document.addEventListener('DOMContentLoaded', async () => {
             // Load latest scan log ID on load so we don't replay past items
             try {
                 const res = await fetch(`${API_URL}?action=getLatestTripPointsScan&trip_id=${tripId}`).then(r => r.json());
@@ -565,9 +654,12 @@ $tripTitle = $trip['title'];
                 };
             }
 
-            // Confetti effect on positive coupon change
+            // Confetti and sound effects on points change
             if (isAdd) {
+                playSuccessSound();
                 startConfetti();
+            } else {
+                playFailureSound();
             }
 
             // Transition logic: stay on screen unless there's a new card waiting
