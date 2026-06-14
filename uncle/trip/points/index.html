@@ -652,7 +652,7 @@
             font-size: 0.9rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
             transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
+            z-index: 100010;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -888,21 +888,50 @@
                 gap: 16px;
             }
         }
+        #scannerModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg) !important;
+            z-index: 100005 !important;
+            align-items: stretch;
+            justify-content: flex-start;
+            flex-direction: column;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .modal-fullscreen-content {
+            background: var(--surface);
+            padding: 15px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .modal-fullscreen-content::-webkit-scrollbar {
+            display: none;
+        }
         .modal-shortcut-btn {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 10px;
+            padding: 4px 8px;
             border-radius: 8px;
             border: 1.5px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             text-align: right;
-            min-height: 38px;
+            min-height: 30px;
         }
         .modal-shortcut-btn.active {
             border-color: var(--brand) !important;
@@ -1010,7 +1039,7 @@
             </div>
 
             <div class="profile-card">
-                <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty()" title="وضع الشغب"><i
+                <button id="btnNaughty" class="btn-naughty-sm" onclick="markNaughty(event)" title="وضع الشغب"><i
                         class="fas fa-exclamation-triangle"></i> <span id="btnNaughtyLabel" style="
     font-size: 0.9rem;
 ">تعيين شغب</span>
@@ -1095,10 +1124,8 @@
     <canvas id="fireworks"></canvas>
 
     <!-- Scanner Modal -->
-    <div id="scannerModal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column; padding:10px;">
-        <div
-            style="background:var(--surface); padding:15px; border-radius:16px; width:100%; max-width:400px; text-align:center; display:flex; flex-direction:column; gap:10px; max-height:95vh; overflow-y:auto; scrollbar-width:none;">
+    <div id="scannerModal">
+        <div class="modal-fullscreen-content">
             <h3 style="font-weight: 800; font-size:1.1rem; color:var(--text);"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
             
             <!-- Scan Mode Switcher -->
@@ -1186,6 +1213,79 @@
         let currentUncleId = null;
         let searchQuery = "";
         let showShortcuts = true;
+
+        function formatLogTime(timeVal) {
+            if (!timeVal) return '';
+            let date;
+            if (timeVal instanceof Date) {
+                date = timeVal;
+            } else {
+                date = new Date(String(timeVal).replace(' ', 'T'));
+            }
+            if (isNaN(date.getTime())) return timeVal;
+
+            const diffMs = Date.now() - date.getTime();
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHr = Math.floor(diffMin / 60);
+            const diffDays = Math.floor(diffHr / 24);
+
+            let timeAgo = '';
+            if (diffSec < 60) {
+                timeAgo = 'منذ ثوانٍ';
+            } else if (diffMin < 60) {
+                timeAgo = `منذ ${diffMin} د`;
+            } else if (diffHr < 24) {
+                timeAgo = `منذ ${diffHr} س`;
+            } else {
+                timeAgo = `منذ ${diffDays} يوم`;
+            }
+
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const oClock = `${hours}:${minutes} ${ampm}`;
+
+            return `${timeAgo} (${oClock})`;
+        }
+
+        function getRecentActionNotice(studentId) {
+            const now = Date.now();
+            const match = scansLog.find(item => {
+                if (String(item.studentId) !== String(studentId)) return false;
+                if (item.status !== 'success') return false;
+                if (!item.createdAt) return false;
+                
+                let logTime;
+                if (item.createdAt instanceof Date) {
+                    logTime = item.createdAt.getTime();
+                } else {
+                    logTime = new Date(item.createdAt.replace(' ', 'T')).getTime();
+                }
+                if (isNaN(logTime)) return false;
+                const diffMs = now - logTime;
+                return diffMs >= 0 && diffMs < 15 * 60 * 1000;
+            });
+
+            if (match) {
+                let logTime;
+                if (match.createdAt instanceof Date) {
+                    logTime = match.createdAt.getTime();
+                } else {
+                    logTime = new Date(match.createdAt.replace(' ', 'T')).getTime();
+                }
+                const diffMs = now - logTime;
+                const elapsedMin = Math.floor(diffMs / 60000);
+                const elapsedSec = Math.floor((diffMs % 60000) / 1000);
+                const agoStr = elapsedMin > 0 ? `${elapsedMin} د` : `${elapsedSec} ث`;
+                const actionName = match.actionNote || (match.change > 0 ? `+${match.change}` : match.change);
+                const uncleName = match.uncleName || 'الخادم';
+                return `حصل على (${actionName}) منذ ${agoStr} بواسطة (${uncleName})`;
+            }
+            return null;
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!tripId || !studentId) {
@@ -1419,20 +1519,20 @@
             setTimeout(() => display.style.transform = 'scale(1)', 250);
         }
 
-        async function markNaughty() {
+        async function markNaughty(event) {
             const isCurrentlyNaughty = document.getElementById('naughtyTag').classList.contains('show');
             const msg = isCurrentlyNaughty ? 'هل تريد إلغاء وضع الشغب لهذا الطفل؟' : 'هل أنت متأكد من تعيين هذا الطفل في وضع الشغب (Naughty)؟';
             if (await customConfirm(msg)) {
-                updatePoints('naughty', 0);
+                updatePoints('naughty', 0, '', event ? event.currentTarget : null);
             }
         }
 
-        function executeAction(action) {
-            updatePoints(action, currentSelectedPoint);
+        function executeAction(action, event) {
+            updatePoints(action, currentSelectedPoint, '', event ? event.currentTarget : null);
         }
 
         let isUpdating = false;
-        async function updatePoints(action, amount, actionName = '') {
+        async function updatePoints(action, amount, actionName = '', clickedBtn = null) {
             if (isUpdating) return;
             isUpdating = true;
 
@@ -1440,6 +1540,12 @@
             const btns = document.querySelectorAll('.btn-action');
             display.classList.add('settling');
             btns.forEach(b => b.disabled = true);
+
+            let originalBtnHtml = '';
+            if (clickedBtn) {
+                originalBtnHtml = clickedBtn.innerHTML;
+                clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            }
 
             const res = await apiCall('processGameQRCode', {
                 trip_id: tripId,
@@ -1449,17 +1555,26 @@
                 action_name: actionName
             });
 
+            if (clickedBtn) {
+                clickedBtn.innerHTML = originalBtnHtml;
+            }
+
             display.classList.remove('settling');
             btns.forEach(b => b.disabled = false);
             isUpdating = false;
 
             if (res.success) {
                 updatePointsDisplay(res.points, res.is_naughty);
+                const notice = getRecentActionNotice(studentId);
                 if (action === 'increment') {
-                    showToast(`تم إضافة ${amount} نقطة بنجاح`, 'success');
+                    let msg = `تم إضافة ${amount} نقطة بنجاح`;
+                    if (notice) msg += ` <span style="font-size:0.75rem;opacity:0.85;font-weight:normal;display:block;margin-top:2px;">(${notice})</span>`;
+                    showToast(msg, 'success');
                     fireworks();
                 } else if (action === 'decrement') {
-                    showToast(`تم خصم ${amount} نقطة`, 'warning');
+                    let msg = `تم خصم ${amount} نقطة`;
+                    if (notice) msg += ` <span style="font-size:0.75rem;opacity:0.85;font-weight:normal;display:block;margin-top:2px;">(${notice})</span>`;
+                    showToast(msg, 'warning');
                 } else if (action === 'naughty') {
                     showToast(res.is_naughty ? 'تم تفعيل وضع الشغب' : 'تم إلغاء وضع الشغب', res.is_naughty ? 'error' : 'success');
                 }
@@ -1827,17 +1942,6 @@
                 lastScannedText = scannedStudentId;
                 lastScannedTime = now;
 
-                // Check Cooldown
-                if (modalCooldowns[scannedStudentId] && (now - modalCooldowns[scannedStudentId] < 15000)) {
-                    playErrorSound();
-                    showToast(
-                        `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassModalCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
-                        'warning',
-                        8000
-                    );
-                    return;
-                }
-                
                 let changeAmount = 0;
                 let actionName = '';
                 if (modalActiveShortcut) {
@@ -1845,6 +1949,19 @@
                     actionName = modalActiveShortcut.name;
                 } else {
                     changeAmount = modalScanAmount * modalScanSign;
+                }
+
+                // Check Cooldown
+                const activeCooldown = modalCooldowns[scannedStudentId];
+                if (activeCooldown && (now - activeCooldown.time < 15000)) {
+                    if (activeCooldown.change === changeAmount && activeCooldown.actionNote === actionName) {
+                        playErrorSound();
+                        showToast(
+                            `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassModalCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
+                            'warning'
+                        );
+                        return;
+                    }
                 }
                 
                 executeFastScanPoints(scannedStudentId, changeAmount, actionName);
@@ -1876,7 +1993,11 @@
                     playSuccessSound();
                     
                     // Lock student cooldown on success
-                    modalCooldowns[scannedStudentId] = Date.now();
+                    modalCooldowns[scannedStudentId] = {
+                        time: Date.now(),
+                        change: changeAmount,
+                        actionNote: actionName
+                    };
 
                     const reader = document.getElementById('reader');
                     if (reader) {
@@ -1887,7 +2008,11 @@
                             reader.style.removeProperty('box-shadow');
                         }, 500);
                     }
-                    showToast(`تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`, 'success');
+                    
+                    const notice = getRecentActionNotice(scannedStudentId);
+                    let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`;
+                    if (notice) msg += ` <span style="font-size:0.75rem;opacity:0.85;font-weight:normal;display:block;margin-top:2px;">(${notice})</span>`;
+                    showToast(msg, 'success');
                     
                     if (typeof loadRecentScans === 'function') {
                         loadRecentScans();
@@ -2170,15 +2295,15 @@
                     const signChar = sh.points >= 0 ? '+' : '';
                     const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
                     html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:14px; text-align:right; font-size:1.0rem; height:auto; border-radius:12px;">
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem; height:auto; border-radius:8px;">
                             <span style="display:flex; align-items:center; gap:12px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start;">
                                     <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.75rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
+                                    ${sh.desc ? `<span style="font-size:0.72rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:0.9rem;">
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:0.85rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -2196,15 +2321,15 @@
                     const signChar = sh.points >= 0 ? '+' : '';
                     const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
                     html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:10px 14px; text-align:right; font-size:0.95rem; height:auto; border-radius:10px;">
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:8px;">
                             <span style="display:flex; align-items:center; gap:10px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start;">
                                     <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.7rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
+                                    ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:6px; font-size:0.85rem;">
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:6px; font-size:0.78rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -2223,8 +2348,8 @@
                             <div class="point-chip" data-val="100" onclick="selectPoint(100)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">100</div>
                         </div>
                         <div class="action-row" style="gap: 6px;">
-                            <button class="btn-action btn-add" onclick="executeAction('increment')" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
-                            <button class="btn-action btn-sub" onclick="executeAction('decrement')" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
+                            <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
+                            <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
                         </div>
                     </div>
                 `;
@@ -2243,15 +2368,15 @@
                     </div>
 
                     <div class="action-row">
-                        <button class="btn-action btn-add" onclick="executeAction('increment')"><i class="fas fa-plus"></i> إضافة</button>
-                        <button class="btn-action btn-sub" onclick="executeAction('decrement')"><i class="fas fa-minus"></i> خصم</button>
+                        <button class="btn-action btn-add" onclick="executeAction('increment', event)"><i class="fas fa-plus"></i> إضافة</button>
+                        <button class="btn-action btn-sub" onclick="executeAction('decrement', event)"><i class="fas fa-minus"></i> خصم</button>
                     </div>
                 `;
                 updatePointChips();
             }
         }
 
-        async function executeShortcutAction(index) {
+        async function executeShortcutAction(index, event) {
             let pointsConfig = null;
             if (tripData && tripData.points_config) {
                 try {
@@ -2265,7 +2390,7 @@
             const game_action = sh.points >= 0 ? 'increment' : 'decrement';
             const amount = Math.abs(sh.points);
             
-            await updatePoints(game_action, amount, sh.name);
+            await updatePoints(game_action, amount, sh.name, event ? event.currentTarget : null);
         }
 
         function filterScansList() {
@@ -2289,7 +2414,8 @@
                 const noteSuffix = item.actionNote 
                     ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
                     : '';
-                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${noteSuffix}${uncleSuffix}`;
+                const timeStr = item.createdAt ? ` <span style="font-size:0.7rem;color:var(--text-3);margin-right:6px;"><i class="far fa-clock"></i> ${formatLogTime(item.createdAt)}</span>` : '';
+                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${timeStr}${noteSuffix}${uncleSuffix}`;
             }
 
             let photoHtml = item.profilePhoto 
@@ -2300,7 +2426,7 @@
             if (item.uncleId === currentUncleId || currentUncleId === null) {
                 if (item.status === 'success') {
                     actionButtons += `
-                        <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change})" title="تراجع عن هذه العملية">
+                        <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change}, event)" title="تراجع عن هذه العملية">
                             <i class="fas fa-undo"></i> تراجع
                         </button>
                     `;
@@ -2308,7 +2434,7 @@
             }
 
             return `
-                <div class="scan-item">
+                <div class="scan-item" onclick="if(!event.target.closest('button')) window.location.href='/uncle/trip/points/?trip_id=${tripId}&student_id=${item.studentId}'" style="cursor: pointer;">
                     ${photoHtml}
                     <div class="scan-info">
                         <div class="scan-name">${item.studentName}</div>
@@ -2331,6 +2457,7 @@
             const allCountEl = document.getElementById('allCount');
 
             const filtered = scansLog.filter(item => {
+                if (String(item.studentId) !== String(studentId)) return false;
                 if (!searchQuery) return true;
                 return item.studentName.toLowerCase().includes(searchQuery) || 
                        String(item.studentId).includes(searchQuery);
@@ -2426,7 +2553,8 @@
                             profilePhoto: s.profile_photo,
                             uncleId: s.uncle_id,
                             uncleName: s.uncle_name,
-                            actionNote: actionNote
+                            actionNote: actionNote,
+                            createdAt: s.created_at
                         };
                     });
                 }
@@ -2436,9 +2564,16 @@
             renderScansList();
         }
 
-        async function undoScan(logId, studentId, amount) {
+        async function undoScan(logId, studentId, amount, event) {
             const btns = document.querySelectorAll(`[data-id="${logId}"]`);
             btns.forEach(btn => btn.disabled = true);
+
+            let clickedBtn = event ? event.currentTarget : null;
+            let originalBtnHtml = '';
+            if (clickedBtn) {
+                originalBtnHtml = clickedBtn.innerHTML;
+                clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            }
 
             const undoAmount = -1 * amount;
 
@@ -2449,6 +2584,10 @@
                 amount: Math.abs(undoAmount),
                 undoing_log_id: logId
             });
+
+            if (clickedBtn) {
+                clickedBtn.innerHTML = originalBtnHtml;
+            }
 
             if (res.success) {
                 showToast(`تم التراجع بنجاح!`, 'success');

@@ -920,7 +920,67 @@ function getRecentTripPointsScans()
     }
 }
 
+function getTripLeaderboard()
+{
+    try {
+        checkUncleAuth();
+        $tripId = intval($_REQUEST['trip_id'] ?? 0);
+        if ($tripId <= 0) {
+            sendJSON(['success' => false, 'message' => 'trip_id is required']);
+            return;
+        }
 
+        $limit = intval($_REQUEST['limit'] ?? 10);
+        if ($limit <= 0 || $limit > 1000) {
+            $limit = 10;
+        }
+
+        $timeFilter = $_REQUEST['time_filter'] ?? 'overall';
+        
+        $conn = getDBConnection();
+        
+        $dateFilterSql = "";
+        if ($timeFilter === 'today') {
+            $dateFilterSql = "AND DATE(cl.created_at) = CURDATE()";
+        } elseif ($timeFilter === 'yesterday') {
+            $dateFilterSql = "AND DATE(cl.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+        }
+        
+        $stmt = $conn->prepare("
+            SELECT s.id, s.name, s.image_url as profile_photo, s.class, SUM(cl.change_amount) as total_points
+            FROM coupon_logs cl
+            JOIN students s ON cl.student_id = s.id
+            WHERE (cl.reason LIKE CONCAT('trip_points_scan:', ?, '%')
+               OR cl.reason LIKE CONCAT('trip_points_normal:', ?, '%'))
+               $dateFilterSql
+            GROUP BY s.id, s.name, s.image_url, s.class
+            HAVING total_points > 0
+            ORDER BY total_points DESC
+            LIMIT ?
+        ");
+        $stmt->bind_param('iii', $tripId, $tripId, $limit);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        $list = [];
+        while ($row = $res->fetch_assoc()) {
+            $list[] = [
+                'student_id' => intval($row['id']),
+                'name' => $row['name'],
+                'profile_photo' => $row['profile_photo'],
+                'class' => $row['class'],
+                'total_points' => intval($row['total_points'])
+            ];
+        }
+        
+        sendJSON([
+            'success' => true,
+            'leaderboard' => $list
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Internal server error: ' . $e->getMessage()]);
+    }
+}
 
 function updateTripPointsConfig()
 
@@ -4810,6 +4870,12 @@ try {
         case 'getRecentTripPointsScans':
 
             getRecentTripPointsScans();
+
+            break;
+
+        case 'getTripLeaderboard':
+
+            getTripLeaderboard();
 
             break;
 

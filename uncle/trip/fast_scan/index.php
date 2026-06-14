@@ -768,15 +768,15 @@ $tripTitle = $trip['title'];
                     
                     const signChar = sh.points >= 0 ? '+' : '';
                     html += `
-                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:10px 14px; text-align:right;">
+                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem;">
                             <span style="display:flex; align-items:center; gap:10px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start; text-align:right;">
                                     <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.75rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
+                                    ${sh.desc ? `<span style="font-size:0.72rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:6px; font-size:0.85rem;">
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:6px; font-size:0.8rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -793,15 +793,15 @@ $tripTitle = $trip['title'];
                     const activeClass = idx === 0 ? 'active' : '';
                     const signChar = sh.points >= 0 ? '+' : '';
                     html += `
-                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem;">
+                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem;">
                             <span style="display:flex; align-items:center; gap:8px;">
-                                <i class="${sh.icon || 'fas fa-star'}" style="font-size: 0.95rem;"></i>
+                                <i class="${sh.icon || 'fas fa-star'}" style="font-size: 0.9rem;"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start; text-align:right;">
                                     <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.7rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
+                                    ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 6px; border-radius:4px; font-size:0.8rem;">
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 6px; border-radius:4px; font-size:0.78rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -1110,6 +1110,43 @@ $tripTitle = $trip['title'];
                 changeAmount = scanAmount * scanSign;
             }
 
+            // Check same shortcut/amount in 15 minutes
+            const now = Date.now();
+            const duplicateScan = scansLog.find(item => {
+                if (String(item.studentId) !== String(studentId)) return false;
+                if (item.change !== changeAmount) return false;
+                if (item.actionNote !== actionName) return false;
+                
+                if (!item.createdAt) return false;
+                let logTime;
+                if (item.createdAt instanceof Date) {
+                    logTime = item.createdAt.getTime();
+                } else {
+                    logTime = new Date(item.createdAt.replace(' ', 'T')).getTime();
+                }
+                if (isNaN(logTime)) return false;
+                const diffMs = now - logTime;
+                return diffMs >= 0 && diffMs < 15 * 60 * 1000;
+            });
+
+            if (duplicateScan) {
+                playErrorSound();
+                let logTime;
+                if (duplicateScan.createdAt instanceof Date) {
+                    logTime = duplicateScan.createdAt.getTime();
+                } else {
+                    logTime = new Date(duplicateScan.createdAt.replace(' ', 'T')).getTime();
+                }
+                const elapsedMin = Math.floor((now - logTime) / 60000);
+                const elapsedSec = Math.floor(((now - logTime) % 60000) / 1000);
+                const agoStr = elapsedMin > 0 ? `${elapsedMin} دقيقة` : `${elapsedSec} ثانية`;
+                
+                const confirmMsg = `تنبيه: هذا الطفل حصل على نفس هذا الاختصار (${actionName || changeAmount}) منذ ${agoStr}. هل تريد بالتأكيد إضافة النقاط مرة أخرى؟`;
+                if (!confirm(confirmMsg)) {
+                    return;
+                }
+            }
+
             // Instantly append to recent list in "Processing" state to feel extremely responsive
             const tempLogId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
             const tempEntry = {
@@ -1121,7 +1158,8 @@ $tripTitle = $trip['title'];
                 profilePhoto: null,
                 uncleId: currentUncleId,
                 uncleName: 'مسوحاتي الخاصة',
-                actionNote: actionName
+                actionNote: actionName,
+                createdAt: new Date()
             };
             addOrUpdateLogEntry(tempEntry);
 
@@ -1158,7 +1196,8 @@ $tripTitle = $trip['title'];
                         status: 'success',
                         studentName: res.student_name,
                         new_points: res.new_points,
-                        profilePhoto: res.profile_photo || tempEntry.profilePhoto
+                        profilePhoto: res.profile_photo || tempEntry.profilePhoto,
+                        createdAt: new Date()
                     };
                     
                     showToast(`تم التسجيل بنجاح: ${res.student_name} (${changeAmount > 0 ? '+' : ''}${changeAmount})`, 'success');
@@ -1220,6 +1259,43 @@ $tripTitle = $trip['title'];
             }
         }
 
+        function formatLogTime(timeVal) {
+            if (!timeVal) return '';
+            let date;
+            if (timeVal instanceof Date) {
+                date = timeVal;
+            } else {
+                date = new Date(String(timeVal).replace(' ', 'T'));
+            }
+            if (isNaN(date.getTime())) return timeVal;
+
+            const diffMs = Date.now() - date.getTime();
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHr = Math.floor(diffMin / 60);
+            const diffDays = Math.floor(diffHr / 24);
+
+            let timeAgo = '';
+            if (diffSec < 60) {
+                timeAgo = 'منذ ثوانٍ';
+            } else if (diffMin < 60) {
+                timeAgo = `منذ ${diffMin} د`;
+            } else if (diffHr < 24) {
+                timeAgo = `منذ ${diffHr} س`;
+            } else {
+                timeAgo = `منذ ${diffDays} يوم`;
+            }
+
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const oClock = `${hours}:${minutes} ${ampm}`;
+
+            return `${timeAgo} (${oClock})`;
+        }
+
         function addOrUpdateLogEntry(entry) {
             const idx = scansLog.findIndex(item => item.id === entry.id);
             if (idx > -1) {
@@ -1236,10 +1312,17 @@ $tripTitle = $trip['title'];
             renderScansList();
         }
 
-        async function undoScan(logId, studentId, amount) {
+        async function undoScan(logId, studentId, amount, event) {
             // Confirm undo
             const btns = document.querySelectorAll(`[data-id="${logId}"]`);
             btns.forEach(btn => btn.disabled = true);
+
+            let clickedBtn = event ? event.currentTarget : null;
+            let originalBtnHtml = '';
+            if (clickedBtn) {
+                originalBtnHtml = clickedBtn.innerHTML;
+                clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            }
 
             const undoAmount = -1 * amount;
 
@@ -1252,6 +1335,9 @@ $tripTitle = $trip['title'];
 
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (clickedBtn) {
+                    clickedBtn.innerHTML = originalBtnHtml;
+                }
                 if (res.success) {
                     showToast(`تم التراجع بنجاح!`, 'success');
                     // Remove this scan from list
@@ -1263,6 +1349,9 @@ $tripTitle = $trip['title'];
                     btns.forEach(btn => btn.disabled = false);
                 }
             } catch (e) {
+                if (clickedBtn) {
+                    clickedBtn.innerHTML = originalBtnHtml;
+                }
                 showToast("حدث خطأ أثناء الاتصال بالسيرفر للتراجع", 'error');
                 btns.forEach(btn => btn.disabled = false);
             }
@@ -1287,7 +1376,8 @@ $tripTitle = $trip['title'];
                 const noteSuffix = item.actionNote 
                     ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
                     : '';
-                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${noteSuffix}${uncleSuffix}`;
+                const timeStr = item.createdAt ? ` <span style="font-size:0.7rem;color:var(--text-3);margin-right:6px;"><i class="far fa-clock"></i> ${formatLogTime(item.createdAt)}</span>` : '';
+                statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${timeStr}${noteSuffix}${uncleSuffix}`;
             }
 
             let photoHtml = item.profilePhoto 
@@ -1299,7 +1389,7 @@ $tripTitle = $trip['title'];
             if (item.uncleId === currentUncleId || currentUncleId === null) {
                 if (item.status === 'success') {
                     actionButtons += `
-                        <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change})" title="تراجع عن هذه العملية">
+                        <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change}, event)" title="تراجع عن هذه العملية">
                             <i class="fas fa-undo"></i> تراجع
                         </button>
                     `;
@@ -1314,7 +1404,7 @@ $tripTitle = $trip['title'];
             }
 
             return `
-                <div class="scan-item">
+                <div class="scan-item" onclick="if(!event.target.closest('button')) window.location.href='/uncle/trip/points/?trip_id=${tripId}&student_id=${item.studentId}'" style="cursor: pointer;">
                     ${photoHtml}
                     <div class="scan-info">
                         <div class="scan-name">${item.studentName}</div>
@@ -1425,7 +1515,8 @@ $tripTitle = $trip['title'];
                             profilePhoto: s.profile_photo,
                             uncleId: s.uncle_id,
                             uncleName: s.uncle_name,
-                            actionNote: actionNote
+                            actionNote: actionNote,
+                            createdAt: s.created_at
                         };
                     });
                 }

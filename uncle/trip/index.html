@@ -676,6 +676,112 @@
             color: var(--text-3);
             transition: all 0.2s;
         }
+        .btn-leaderboard {
+            background: #f59e0b !important;
+        }
+        .btn-leaderboard:hover {
+            background: #d97706 !important;
+            box-shadow: 0 25px 50px rgba(245, 158, 11, 0.3) !important;
+        }
+        .scan-item {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 12px;
+            border: 1.5px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s var(--ease);
+            box-shadow: var(--shadow-sm);
+        }
+        .scan-photo {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-3);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border-solid);
+        }
+        .scan-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .scan-name {
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: right;
+        }
+        .scan-status {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-align: right;
+        }
+        .scan-badge {
+            font-weight: 900;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .scan-badge.plus {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .scan-badge.minus {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .scan-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .scan-action-btn {
+            border: 1px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--t);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .scan-action-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-bg);
+        }
+        .scan-action-btn.undo:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 650px) {
+            .split-scans-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -714,7 +820,7 @@
             </div>
 
             <!-- Scanner & Display Tools -->
-            <div class="scanner-tools-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 25px; width: 100%;">
+            <div class="scanner-tools-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px; width: 100%;">
                 <!-- Standard Scanner (Points) -->
                 <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; background: var(--success); text-decoration: none; min-width: 0; width: 100%;">
                     <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
@@ -741,6 +847,14 @@
                     </span>
                     <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">شاشة الترحيب</span>
                 </button>
+
+                <!-- Leaderboard Button -->
+                <button class="btn-camera-big btn-leaderboard" onclick="openLeaderboard()" title="لوحة الصدارة" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
+                    <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-trophy fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
+                    </span>
+                    <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">لوحة الصدارة</span>
+                </button>
             </div>
 
             <div id="loadingDetails" class="loading">
@@ -751,6 +865,46 @@
             <div id="fieldsBreadcrumbs" style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:12px; border:1px solid var(--border);">
             </div>
             <div class="fields-grid" id="fieldsGrid"></div>
+
+            <!-- Split Scans Columns -->
+            <div class="split-scans-container" style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
+                <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>سجل المسوحات الأخير بالرحلة</span>
+                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
+                        <i class="fas fa-sync-alt"></i> تحديث
+                    </button>
+                </div>
+                
+                <!-- Search bar -->
+                <div class="search-wrap" style="margin-bottom: 15px; position: relative;">
+                    <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 10px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
+                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
+                </div>
+
+                <div class="split-scans-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <!-- Right Column (First in RTL): My Scans -->
+                    <div class="scans-column">
+                        <div class="scans-column-title" style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                            <span>عمليات مسحي الخاصة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
+                        </div>
+                        <div class="scans-list" id="myScansList">
+                            <!-- My scanned items will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Left Column (Second in RTL): All Uncles' Scans -->
+                    <div class="scans-column">
+                        <div class="scans-column-title" style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                            <span>جميع مسوحات الأعمام بالرحلة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
+                        </div>
+                        <div class="scans-list" id="allScansList">
+                            <!-- All scanned items will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="printArea"></div>
@@ -785,15 +939,21 @@
 
         <script>
             const API_URL = '/api.php';
+            let tripId = null;
             let currentTrip = null;
             let regsList = [];
             let filterPath = []; // Array of { type: 'field'|'choice'|'subfield', name: string, fieldName?: string, choiceVal?: string }
             let currentFilter = null;
 
+            // Scan history state
+            let scansLog = [];
+            let currentUncleId = null;
+            let searchQuery = "";
+
             document.addEventListener('DOMContentLoaded', () => {
                 // Get trip ID from URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
-                const tripId = urlParams.get('trip_id');
+                tripId = urlParams.get('trip_id');
 
                 if (tripId) {
                     openTrip(tripId);
@@ -826,6 +986,9 @@
                         regsList = res.trip.registrations || [];
                         document.getElementById('detailTripTitle').textContent = currentTrip.title;
                         renderFieldCards();
+                        if (typeof loadRecentScans === 'function') {
+                            loadRecentScans();
+                        }
                     } else {
                         document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
                     }
@@ -1478,6 +1641,280 @@
             function openWelcomeScreen() {
                 if (currentTrip && currentTrip.id) {
                     window.open(`/uncle/trip/welcome/?trip_id=${currentTrip.id}`, '_blank');
+                }
+            }
+
+            function openLeaderboard() {
+                if (currentTrip && currentTrip.id) {
+                    window.location.href = `/uncle/trip/leaderboard/?trip_id=${currentTrip.id}`;
+                }
+            }
+
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20px';
+                toast.style.right = '20px';
+                toast.style.background = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--danger)' : 'var(--brand)');
+                toast.style.color = '#fff';
+                toast.style.padding = '12px 24px';
+                toast.style.borderRadius = '12px';
+                toast.style.boxShadow = 'var(--shadow-lg)';
+                toast.style.zIndex = '100000';
+                toast.style.direction = 'rtl';
+                toast.style.fontWeight = '700';
+                toast.style.fontSize = '0.9rem';
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.transform = 'translateY(100px)';
+                toast.style.opacity = '0';
+                toast.textContent = message;
+
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(0)';
+                    toast.style.opacity = '1';
+                }, 50);
+
+                setTimeout(() => {
+                    toast.style.transform = 'translateY(100px)';
+                    toast.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+
+            function formatLogTime(timeVal) {
+                if (!timeVal) return '';
+                let date;
+                if (timeVal instanceof Date) {
+                    date = timeVal;
+                } else {
+                    date = new Date(String(timeVal).replace(' ', 'T'));
+                }
+                if (isNaN(date.getTime())) return timeVal;
+
+                const diffMs = Date.now() - date.getTime();
+                const diffSec = Math.floor(diffMs / 1000);
+                const diffMin = Math.floor(diffSec / 60);
+                const diffHr = Math.floor(diffMin / 60);
+                const diffDays = Math.floor(diffHr / 24);
+
+                let timeAgo = '';
+                if (diffSec < 60) {
+                    timeAgo = 'منذ ثوانٍ';
+                } else if (diffMin < 60) {
+                    timeAgo = `منذ ${diffMin} د`;
+                } else if (diffHr < 24) {
+                    timeAgo = `منذ ${diffHr} س`;
+                } else {
+                    timeAgo = `منذ ${diffDays} يوم`;
+                }
+
+                let hours = date.getHours();
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'م' : 'ص';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                const oClock = `${hours}:${minutes} ${ampm}`;
+
+                return `${timeAgo} (${oClock})`;
+            }
+
+            async function loadRecentScans() {
+                try {
+                    const res = await fetch(`${API_URL}?action=getRecentTripPointsScans&trip_id=${tripId}`).then(r => r.json());
+                    if (res.success && res.scans) {
+                        currentUncleId = res.current_uncle_id;
+
+                        const undoneLogIds = new Set();
+                        res.scans.forEach(s => {
+                            if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
+                                const parts = s.reason.split(':');
+                                if (parts.length >= 3) {
+                                    const originalLogId = parseInt(parts[2], 10);
+                                    if (!isNaN(originalLogId)) {
+                                        undoneLogIds.add(originalLogId);
+                                    }
+                                }
+                            }
+                        });
+
+                        const activeScans = res.scans.filter(s => {
+                            if (s.reason && (s.reason.startsWith('trip_points_scan_undo:') || s.reason.startsWith('trip_points_normal_undo:'))) {
+                                return false;
+                            }
+                            if (undoneLogIds.has(s.log_id)) {
+                                return false;
+                            }
+                            return true;
+                        });
+
+                        scansLog = activeScans.map(s => {
+                            let actionNote = '';
+                            if (s.reason) {
+                                const parts = s.reason.split(':');
+                                if (parts.length >= 3) {
+                                    actionNote = parts.slice(2).join(':');
+                                }
+                            }
+                            return {
+                                id: s.log_id,
+                                studentId: s.student_id,
+                                studentName: s.student_name,
+                                change: s.change_amount,
+                                status: 'success',
+                                profilePhoto: s.profile_photo,
+                                uncleId: s.uncle_id,
+                                uncleName: s.uncle_name,
+                                actionNote: actionNote,
+                                createdAt: s.created_at
+                            };
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error loading recent scans:", e);
+                }
+                renderScansList();
+            }
+
+            function renderScansList() {
+                const myListEl = document.getElementById('myScansList');
+                const allListEl = document.getElementById('allScansList');
+                const myCountEl = document.getElementById('myCount');
+                const allCountEl = document.getElementById('allCount');
+
+                const filtered = scansLog.filter(item => {
+                    if (!searchQuery) return true;
+                    return item.studentName.toLowerCase().includes(searchQuery) || 
+                           String(item.studentId).includes(searchQuery);
+                });
+
+                const myScans = filtered.filter(item => item.uncleId === currentUncleId);
+                const allScans = filtered;
+
+                myCountEl.textContent = myScans.length + ' طفل';
+                allCountEl.textContent = allScans.length + ' طفل';
+
+                if (myScans.length === 0) {
+                    myListEl.innerHTML = `
+                        <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                            <i class="fas fa-user" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                            <div>لا توجد مسوحات خاصة بك.</div>
+                        </div>
+                    `;
+                } else {
+                    myListEl.innerHTML = myScans.map(renderScanItemHTML).join('');
+                }
+
+                if (allScans.length === 0) {
+                    allListEl.innerHTML = `
+                        <div style="text-align:center;padding:30px 10px;color:var(--text-3);font-size:0.85rem;">
+                            <i class="fas fa-users" style="font-size: 1.6rem; margin-bottom: 6px; opacity: 0.5;"></i>
+                            <div>لا توجد مسوحات للرحلة.</div>
+                        </div>
+                    `;
+                } else {
+                    allListEl.innerHTML = allScans.map(renderScanItemHTML).join('');
+                }
+            }
+
+            function renderScanItemHTML(item) {
+                let badgeClass = item.change > 0 ? 'plus' : 'minus';
+                let formattedChange = item.change > 0 ? `+${item.change}` : item.change;
+                
+                let statusHtml = '';
+                if (item.status === 'processing') {
+                    statusHtml = `<i class="fas fa-spinner fa-spin" style="color:var(--brand);"></i> جاري التسجيل...`;
+                } else if (item.status === 'error') {
+                    statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
+                } else {
+                    const uncleSuffix = (item.uncleId !== currentUncleId && item.uncleName) 
+                        ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
+                        : '';
+                    const noteSuffix = item.actionNote 
+                        ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
+                        : '';
+                    const timeStr = item.createdAt ? ` <span style="font-size:0.7rem;color:var(--text-3);margin-right:6px;"><i class="far fa-clock"></i> ${formatLogTime(item.createdAt)}</span>` : '';
+                    statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${timeStr}${noteSuffix}${uncleSuffix}`;
+                }
+
+                let photoHtml = item.profilePhoto 
+                    ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\'scan-photo\'><i class=\'fas fa-user\'></i></div>'">`
+                    : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
+
+                let actionButtons = '';
+                if (item.uncleId === currentUncleId || currentUncleId === null) {
+                    if (item.status === 'success') {
+                        actionButtons += `
+                            <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change}, event)" title="تراجع عن هذه العملية">
+                                <i class="fas fa-undo"></i> تراجع
+                            </button>
+                        `;
+                    }
+                }
+
+                return `
+                    <div class="scan-item" onclick="if(!event.target.closest('button')) window.location.href='/uncle/trip/points/?trip_id=${tripId}&student_id=${item.studentId}'" style="cursor: pointer;">
+                        ${photoHtml}
+                        <div class="scan-info">
+                            <div class="scan-name">${item.studentName}</div>
+                            <div class="scan-status">${statusHtml}</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                            <div class="scan-badge ${badgeClass}">${formattedChange}</div>
+                            <div class="scan-actions">
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function filterScansList() {
+                searchQuery = document.getElementById('scanSearchInput').value.trim().toLowerCase();
+                renderScansList();
+            }
+
+            async function undoScan(logId, studentId, amount, event) {
+                const btns = document.querySelectorAll(`[data-id="${logId}"]`);
+                btns.forEach(btn => btn.disabled = true);
+
+                let clickedBtn = event ? event.currentTarget : null;
+                let originalBtnHtml = '';
+                if (clickedBtn) {
+                    originalBtnHtml = clickedBtn.innerHTML;
+                    clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                }
+
+                const undoAmount = -1 * amount;
+
+                const fd = new FormData();
+                fd.append('action', 'processFastScanPoints');
+                fd.append('trip_id', tripId);
+                fd.append('student_id', studentId);
+                fd.append('amount', undoAmount);
+                fd.append('undoing_log_id', logId);
+
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    if (clickedBtn) {
+                        clickedBtn.innerHTML = originalBtnHtml;
+                    }
+                    if (res.success) {
+                        showToast(`تم التراجع بنجاح!`, 'success');
+                        scansLog = scansLog.filter(item => String(item.id) !== String(logId));
+                        renderScansList();
+                    } else {
+                        showToast("فشل التراجع: " + res.message, 'error');
+                        btns.forEach(btn => btn.disabled = false);
+                    }
+                } catch (e) {
+                    if (clickedBtn) {
+                        clickedBtn.innerHTML = originalBtnHtml;
+                    }
+                    showToast("حدث خطأ أثناء الاتصال بالسيرفر للتراجع", 'error');
+                    btns.forEach(btn => btn.disabled = false);
                 }
             }
         </script>

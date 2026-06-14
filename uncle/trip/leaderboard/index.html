@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+
+<head>
+    <!-- Instant Theme Bootstrap -->
+    <script>
+        (function () {
+            var t = localStorage.getItem('app_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+
+            var phpType = localStorage.getItem('churchType') || 'kids';
+            if (phpType === 'youth') {
+                var s = document.createElement('style');
+                s.id = 'youth-theme-boot';
+                s.textContent = ':root{--brand:#7c3aed!important;--brand-dark:#5b21b6!important;--brand-light:#c4b5fd!important;--brand-bg:#ede9fe!important;--brand-glow:rgba(124,58,237,.18)!important;}';
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+
+    <!-- Font Ready Guard -->
+    <style id="font-guard">
+        body {
+            visibility: hidden
+        }
+    </style>
+    <script>
+        (function () {
+            var show = function () {
+                var g = document.getElementById('font-guard');
+                if (g) g.remove();
+            };
+            if (document.fonts && document.fonts.ready) {
+                var timer = setTimeout(show, 300);
+                document.fonts.ready.then(function () {
+                    clearTimeout(timer);
+                    show();
+                });
+            } else {
+                setTimeout(show, 50);
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#5b6cf5">
+    <title>لوحة صدارة نقاط الرحلة</title>
+    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Brand */
+            --brand: #5b6cf5;
+            --brand-dark: #4354e8;
+            --brand-light: #a5b0ff;
+            --brand-bg: #eef0ff;
+            --brand-glow: rgba(91, 108, 245, .18);
+
+            /* Semantic */
+            --success: #10b981;
+            --success-dark: #059669;
+            --success-bg: #d1fae5;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --warning-bg: #fef3c7;
+
+            /* Surface */
+            --bg: #f3f4f9;
+            --surface: #ffffff;
+            --surface-2: #f7f8fc;
+            --surface-3: #eef0f8;
+            --border: rgba(91, 108, 245, .12);
+            --border-solid: #e4e6f0;
+            --text: #1a1d2e;
+            --text-2: #4b5068;
+            --text-3: #8b90a8;
+
+            /* Shadows */
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .07);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .10);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .14);
+
+            /* Radius */
+            --r-xs: 6px;
+            --r-sm: 10px;
+            --r-md: 14px;
+            --r-lg: 18px;
+            --r-xl: 24px;
+            --r-2xl: 32px;
+            --r-full: 9999px;
+
+            /* Motion */
+            --t: .22s;
+            --ease: cubic-bezier(.4, 0, .2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f1117;
+            --surface: #181b26;
+            --surface-2: #1e2132;
+            --surface-3: #252840;
+            --border: rgba(91, 108, 245, .18);
+            --border-solid: #2a2d42;
+            --text: #e8eaf6;
+            --text-2: #9299be;
+            --text-3: #565c7a;
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .4);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .5);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .6);
+            --brand-bg: rgba(91, 108, 245, .15);
+            --success-bg: rgba(16, 185, 129, .15);
+            --danger-bg: rgba(239, 68, 68, .15);
+            --warning-bg: rgba(245, 158, 11, .15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, 'Arabic Typesetting', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background var(--t) var(--ease), color var(--t) var(--ease);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        [data-theme="dark"] body::before {
+            background:
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .08) 0%, transparent 60%);
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 300;
+            background: var(--bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 0 16px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: background var(--t) var(--ease);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-btn {
+            background: var(--surface);
+            color: var(--text-2);
+            border: 1px solid var(--border-solid);
+            padding: 8px 16px;
+            border-radius: var(--r-md);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--t) var(--ease);
+        }
+
+        .topbar-btn:hover {
+            background: var(--surface-2);
+            color: var(--text);
+            border-color: var(--text-3);
+        }
+
+        .hero-greeting {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-wrap {
+            flex: 1;
+            padding: 20px 16px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .filters-panel {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            padding: 16px;
+            border: 1px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-2);
+        }
+
+        .time-filters {
+            display: flex;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: var(--r-md);
+            gap: 4px;
+        }
+
+        .time-pill {
+            padding: 6px 14px;
+            border-radius: var(--r-sm);
+            border: none;
+            background: none;
+            color: var(--text-2);
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+
+        .time-pill.active {
+            background: var(--brand);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .limit-select {
+            padding: 6px 12px;
+            border-radius: var(--r-sm);
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+            transition: all var(--t);
+        }
+
+        .limit-select:focus {
+            border-color: var(--brand);
+        }
+
+        /* Leaderboard Podiums styling */
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 16px;
+            margin: 15px 0 30px;
+            padding: 10px 0;
+        }
+
+        .podium-spot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 150px;
+            position: relative;
+            cursor: pointer;
+            transition: transform var(--t) var(--ease);
+        }
+
+        .podium-spot:hover {
+            transform: translateY(-4px);
+        }
+
+        .podium-photo-wrap {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .podium-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: var(--r-full);
+            object-fit: cover;
+            border: 3px solid;
+            background: var(--surface-2);
+            box-shadow: var(--shadow-md);
+        }
+
+        .first-spot .podium-photo {
+            width: 90px;
+            height: 90px;
+            border-color: #ffd700;
+        }
+
+        .second-spot .podium-photo {
+            border-color: #c0c0c0;
+        }
+
+        .third-spot .podium-photo {
+            border-color: #cd7f32;
+        }
+
+        .podium-badge {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            border-radius: var(--r-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .first-spot .podium-badge { background: #ffd700; color: #000; }
+        .second-spot .podium-badge { background: #c0c0c0; }
+        .third-spot .podium-badge { background: #cd7f32; }
+
+        .podium-name {
+            font-weight: 800;
+            font-size: 0.88rem;
+            color: var(--text);
+            text-align: center;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .first-spot .podium-name {
+            font-size: 1rem;
+        }
+
+        .podium-class {
+            font-size: 0.7rem;
+            color: var(--text-3);
+            margin-top: 1px;
+        }
+
+        .podium-score {
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: var(--brand);
+            background: var(--brand-bg);
+            padding: 2px 8px;
+            border-radius: var(--r-xs);
+            margin-top: 4px;
+        }
+
+        .first-spot .podium-score {
+            font-size: 1.1rem;
+            color: var(--warning-dark);
+            background: var(--warning-bg);
+        }
+
+        /* List Items styling */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .leader-item {
+            background: var(--surface);
+            border-radius: var(--r-md);
+            padding: 12px 16px;
+            border: 1px solid var(--border-solid);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .leader-item:hover {
+            border-color: var(--brand-light);
+            transform: translateX(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .leader-rank {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--text-3);
+            width: 25px;
+            text-align: center;
+        }
+
+        .leader-photo {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--r-sm);
+            object-fit: cover;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
+        }
+
+        .leader-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .leader-name {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .leader-class {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+
+        .leader-points {
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--brand);
+            background: var(--brand-bg);
+            padding: 4px 12px;
+            border-radius: var(--r-sm);
+        }
+
+        .loading-view {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-3);
+            font-size: 1rem;
+        }
+
+        .no-data-view {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-3);
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            border: 1px solid var(--border-solid);
+        }
+
+        .no-data-icon {
+            font-size: 3rem;
+            color: var(--text-3);
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .podium-container {
+                gap: 8px;
+            }
+            .first-spot .podium-photo {
+                width: 76px;
+                height: 76px;
+            }
+            .podium-photo {
+                width: 58px;
+                height: 58px;
+            }
+            .hero-greeting {
+                font-size: 1.1rem;
+            }
+            .time-pill {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <div class="topbar">
+        <div class="hero-greeting">
+            <i class="fas fa-trophy" style="color: var(--warning);"></i>
+            <span>لوحة صدارة النقاط</span>
+        </div>
+        <button class="topbar-btn" id="btnBack">
+            <i class="fas fa-arrow-left"></i> عودة
+        </button>
+    </div>
+
+    <div class="page-wrap">
+        <!-- Filters panel -->
+        <div class="filters-panel">
+            <div class="filter-row">
+                <span class="filter-title"><i class="far fa-calendar-alt"></i> النطاق الزمني:</span>
+                <div class="time-filters">
+                    <button class="time-pill active" data-time="overall">الكل</button>
+                    <button class="time-pill" data-time="today">اليوم</button>
+                    <button class="time-pill" data-time="yesterday">أمس</button>
+                </div>
+            </div>
+            <div class="filter-row">
+                <span class="filter-title"><i class="fas fa-list-ol"></i> الحد الأقصى للترتيب:</span>
+                <select class="limit-select" id="limitSelect">
+                    <option value="10">أفضل 10 أطفال</option>
+                    <option value="20">أفضل 20 طفل</option>
+                    <option value="50">أفضل 50 طفل</option>
+                    <option value="100">أفضل 100 طفل</option>
+                    <option value="1000">الكل</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Leaderboard dynamic content -->
+        <div id="leaderboardContent">
+            <!-- Shimmer / Spinner -->
+            <div class="loading-view" id="loadingView">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 2.2rem; color: var(--brand); margin-bottom: 10px;"></i>
+                <div>جاري تحميل لوحة الصدارة...</div>
+            </div>
+
+            <!-- Podiums (will render here) -->
+            <div id="podiumSection" style="display:none;"></div>
+
+            <!-- List view (will render here) -->
+            <div id="listSection" class="list-container" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api.php';
+        const urlParams = new URLSearchParams(window.location.search);
+        const tripId = urlParams.get('trip_id');
+
+        let currentTimeFilter = 'overall';
+        let currentLimit = 10;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!tripId) {
+                alert('عذراً، هذا الرابط غير صحيح. يجب إرفاق معرف الرحلة.');
+                window.location.href = '/uncle/dashboard/';
+                return;
+            }
+
+            // Setup Back Button
+            document.getElementById('btnBack').addEventListener('click', () => {
+                window.location.href = `/uncle/trip/?trip_id=${tripId}`;
+            });
+
+            // Setup limit select change handler
+            const limitSelect = document.getElementById('limitSelect');
+            limitSelect.addEventListener('change', (e) => {
+                currentLimit = parseInt(e.target.value, 10);
+                loadLeaderboard();
+            });
+
+            // Setup time filter pill click handlers
+            const pills = document.querySelectorAll('.time-pill');
+            pills.forEach(pill => {
+                pill.addEventListener('click', (e) => {
+                    pills.forEach(p => p.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentTimeFilter = e.target.getAttribute('data-time');
+                    loadLeaderboard();
+                });
+            });
+
+            // Initial load
+            loadLeaderboard();
+        });
+
+        async function loadLeaderboard() {
+            const loadingView = document.getElementById('loadingView');
+            const podiumSection = document.getElementById('podiumSection');
+            const listSection = document.getElementById('listSection');
+
+            loadingView.style.display = 'block';
+            podiumSection.style.display = 'none';
+            listSection.style.display = 'none';
+
+            try {
+                const url = `${API_URL}?action=getTripLeaderboard&trip_id=${tripId}&limit=${currentLimit}&time_filter=${currentTimeFilter}`;
+                const res = await fetch(url).then(r => r.json());
+
+                if (res.success && res.leaderboard) {
+                    renderLeaderboard(res.leaderboard);
+                } else {
+                    renderEmptyState(res.message || 'لا توجد بيانات متاحة حالياً.');
+                }
+            } catch (e) {
+                console.error(e);
+                renderEmptyState('حدث خطأ أثناء الاتصال بالسيرفر.');
+            } finally {
+                loadingView.style.display = 'none';
+            }
+        }
+
+        function renderLeaderboard(list) {
+            const podiumSection = document.getElementById('podiumSection');
+            const listSection = document.getElementById('listSection');
+
+            if (list.length === 0) {
+                renderEmptyState('لا يوجد أطفال لديهم نقاط مضافة في هذا النطاق الزمني حالياً.');
+                return;
+            }
+
+            // 1. Podium spots for top 3
+            let podiumHtml = '';
+            if (list.length > 0) {
+                const top3 = [];
+                // Reorder to: 2nd, 1st, 3rd for correct podium visual presentation
+                if (list[1]) top3.push({ item: list[1], index: 1, spotClass: 'second-spot', badge: '٢' });
+                if (list[0]) top3.push({ item: list[0], index: 0, spotClass: 'first-spot', badge: '١' });
+                if (list[2]) top3.push({ item: list[2], index: 2, spotClass: 'third-spot', badge: '٣' });
+
+                podiumHtml = '<div class="podium-container">';
+                top3.forEach(spot => {
+                    const student = spot.item;
+                    const photoHtml = student.profile_photo 
+                        ? `<img src="${student.profile_photo}" class="podium-photo" onerror="this.outerHTML='<div class=\'podium-photo\' style=\'display:flex;align-items:center;justify-content:center;color:var(--text-3);\'><i class=\'fas fa-user\' style=\'font-size:1.6rem;\'></i></div>'">`
+                        : `<div class="podium-photo" style="display:flex;align-items:center;justify-content:center;color:var(--text-3);"><i class="fas fa-user" style="font-size:1.6rem;"></i></div>`;
+
+                    podiumHtml += `
+                        <div class="podium-spot ${spot.spotClass}" onclick="navigateToProfile('${student.student_id}')">
+                            <div class="podium-photo-wrap">
+                                ${photoHtml}
+                                <div class="podium-badge">${spot.badge}</div>
+                            </div>
+                            <div class="podium-name">${student.name}</div>
+                            <div class="podium-class">${student.class || 'بدون فصل'}</div>
+                            <div class="podium-score">${student.total_points} ن</div>
+                        </div>
+                    `;
+                });
+                podiumHtml += '</div>';
+                podiumSection.innerHTML = podiumHtml;
+                podiumSection.style.display = 'flex';
+                podiumSection.style.justifyContent = 'center';
+            }
+
+            // 2. List items for the rest (rank > 3)
+            let listHtml = '';
+            const restList = list.slice(3);
+            if (restList.length > 0 || list.length <= 3) {
+                listHtml = restList.map((student, idx) => {
+                    const rank = idx + 4;
+                    const photoHtml = student.profile_photo 
+                        ? `<img src="${student.profile_photo}" class="leader-photo" onerror="this.outerHTML='<div class=\'leader-photo\' style=\'display:flex;align-items:center;justify-content:center;color:var(--text-3);\'><i class=\'fas fa-user\' style=\'font-size:1.2rem;\'></i></div>'">`
+                        : `<div class="leader-photo" style="display:flex;align-items:center;justify-content:center;color:var(--text-3);"><i class="fas fa-user" style="font-size:1.2rem;"></i></div>`;
+
+                    return `
+                        <div class="leader-item" onclick="navigateToProfile('${student.student_id}')">
+                            <div class="leader-rank">${rank}</div>
+                            ${photoHtml}
+                            <div class="leader-info">
+                                <div class="leader-name">${student.name}</div>
+                                <div class="leader-class">${student.class || 'بدون فصل'}</div>
+                            </div>
+                            <div class="leader-points">${student.total_points} نقطة</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            listSection.innerHTML = listHtml;
+            listSection.style.display = listHtml ? 'flex' : 'none';
+        }
+
+        function renderEmptyState(message) {
+            const podiumSection = document.getElementById('podiumSection');
+            const listSection = document.getElementById('listSection');
+            
+            podiumSection.style.display = 'none';
+            listSection.innerHTML = `
+                <div class="no-data-view">
+                    <i class="fas fa-trophy no-data-icon"></i>
+                    <div style="font-weight: 800; font-size: 1rem; color: var(--text-2); margin-bottom: 6px;">لا توجد صدارة بعد</div>
+                    <div style="font-size: 0.85rem; color: var(--text-3);">${message}</div>
+                </div>
+            `;
+            listSection.style.display = 'block';
+        }
+
+        function navigateToProfile(studentId) {
+            window.location.href = `/uncle/trip/points/?trip_id=${tripId}&student_id=${studentId}`;
+        }
+    </script>
+</body>
+
+</html>
