@@ -905,8 +905,12 @@
                 oninput="topbarSearchHandler()">
             <div class="topbar-search-results" id="topbarSearchResults"></div>
         </div>
-        <div class="topbar-actions">
-            <button class="topbar-btn" onclick="startScannerV2()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+        <div class="topbar-actions" style="display: flex; align-items: center; gap: 6px;">
+            <select id="scanModeSelect" style="border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; outline: none; cursor: pointer; font-family: 'Cairo', sans-serif;" onchange="localStorage.setItem('points_scan_mode', this.value)">
+                <option value="profile">فتح بروفايل الطفل</option>
+                <option value="fast">مسح نقاط سريع فوري</option>
+            </select>
+            <button class="topbar-btn" onclick="startScannerV2()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
                 <span class="fa-stack" style="font-size: 0.85rem; width: 1.5em; height: 1.5em; line-height: 1.5em; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
                     <i class="fas fa-expand fa-stack-2x" style="font-size: 1.3rem;"></i>
                     <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.75rem;"></i>
@@ -975,9 +979,9 @@
             <div class="control-panel" id="controlPanelWrapper">
                 <div class="section-title">اختر قيمة النقاط</div>
                 <div class="points-selector">
-                    <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
                     <div class="point-chip" data-val="30" onclick="selectPoint(30)">30</div>
                     <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
+                    <div class="point-chip" data-val="80" onclick="selectPoint(80)">80</div>
                     <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
                 </div>
 
@@ -1054,7 +1058,7 @@
 
         let studentData = null;
         let tripData = null;
-        let currentSelectedPoint = 10;
+        let currentSelectedPoint = 30;
         let allStudents = [];
 
         // Dynamic scan feed state variables
@@ -1070,9 +1074,16 @@
                 return;
             }
 
+            // Restore scanning mode preference
+            const savedScanMode = localStorage.getItem('points_scan_mode') || 'profile';
+            const modeSelect = document.getElementById('scanModeSelect');
+            if (modeSelect) {
+                modeSelect.value = savedScanMode;
+            }
+
             // Load preferred point value
             const savedPoint = localStorage.getItem('trip_game_preferred_point');
-            if (savedPoint && [10, 30, 50, 100].includes(parseInt(savedPoint))) {
+            if (savedPoint && [30, 50, 80, 100].includes(parseInt(savedPoint))) {
                 currentSelectedPoint = parseInt(savedPoint);
             }
 
@@ -1729,9 +1740,9 @@
                     <div style="margin-top:14px; border-top:1.5px solid var(--border); padding-top:12px;">
                         <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">أو اختر قيمة للنقاط مباشرة:</div>
                         <div class="points-selector" style="grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px;">
-                            <div class="point-chip" data-val="10" onclick="selectPoint(10)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">10</div>
                             <div class="point-chip" data-val="30" onclick="selectPoint(30)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">30</div>
                             <div class="point-chip" data-val="50" onclick="selectPoint(50)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">50</div>
+                            <div class="point-chip" data-val="80" onclick="selectPoint(80)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">80</div>
                             <div class="point-chip" data-val="100" onclick="selectPoint(100)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">100</div>
                         </div>
                         <div class="action-row" style="gap: 6px;">
@@ -1748,9 +1759,9 @@
                 wrapper.innerHTML = `
                     <div class="section-title">اختر قيمة النقاط</div>
                     <div class="points-selector">
-                        <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
                         <div class="point-chip" data-val="30" onclick="selectPoint(30)">30</div>
                         <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
+                        <div class="point-chip" data-val="80" onclick="selectPoint(80)">80</div>
                         <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
                     </div>
 

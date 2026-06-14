@@ -495,33 +495,22 @@ function processGameQRCode()
         if ($changeAmount !== 0) {
             $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
             if ($undoingLogId > 0) {
-                // Find original log reason to use the correct undo prefix
-                $origStmt = $conn->prepare("SELECT reason FROM coupon_logs WHERE id = ? LIMIT 1");
-                $origStmt->bind_param("i", $undoingLogId);
-                $origStmt->execute();
-                $origRes = $origStmt->get_result();
-                $origReason = "";
-                if ($origRes->num_rows > 0) {
-                    $origReason = $origRes->fetch_assoc()['reason'] ?? '';
-                }
-                if (strpos($origReason, 'trip_points_scan:') === 0) {
-                    $reason = "trip_points_scan_undo:" . $tripId . ":" . $undoingLogId;
-                } else {
-                    $reason = "trip_points_normal_undo:" . $tripId . ":" . $undoingLogId;
-                }
+                $delStmt = $conn->prepare("DELETE FROM coupon_logs WHERE id = ?");
+                $delStmt->bind_param("i", $undoingLogId);
+                $delStmt->execute();
             } else {
                 $reason = "trip_points_normal:" . $tripId;
                 if (!empty($actionName)) {
                     $reason .= ":" . $actionName;
                 }
+                $logStmt = $conn->prepare("
+                    INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
+                    VALUES (?, ?, ?, ?, ?, 'manual', ?)
+                ");
+                $logStmt->bind_param("iiiiis", $studentId, $uncleId, $current, $new, $changeAmount, $reason);
+                $logStmt->execute();
+                $logId = $conn->insert_id;
             }
-            $logStmt = $conn->prepare("
-                INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
-                VALUES (?, ?, ?, ?, ?, 'manual', ?)
-            ");
-            $logStmt->bind_param("iiiiis", $studentId, $uncleId, $current, $new, $changeAmount, $reason);
-            $logStmt->execute();
-            $logId = $conn->insert_id;
 
             // Audit log
             $auditReason = "نقاط بالرحلة (مسح عادي): " . ($changeAmount > 0 ? "+" . $changeAmount : $changeAmount);
@@ -654,7 +643,7 @@ function processFastScanPoints()
         $conn = getDBConnection();
 
         // 1. Load student details
-        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url FROM students WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url, student_class FROM students WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $studentId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -727,34 +716,25 @@ function processFastScanPoints()
 
         // 4. Log the points change in coupon_logs using trip_points_scan reason
         $actionName = sanitize($_REQUEST['action_name'] ?? '');
+        $logId = 0;
         $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
         if ($undoingLogId > 0) {
-            // Find the original log's reason to determine the correct undo prefix
-            $origStmt = $conn->prepare("SELECT reason FROM coupon_logs WHERE id = ? LIMIT 1");
-            $origStmt->bind_param("i", $undoingLogId);
-            $origStmt->execute();
-            $origRes = $origStmt->get_result();
-            $origReason = "";
-            if ($origRes->num_rows > 0) {
-                $origReason = $origRes->fetch_assoc()['reason'] ?? '';
-            }
-            if (strpos($origReason, 'trip_points_normal:') === 0) {
-                $reason = "trip_points_normal_undo:" . $tripId . ":" . $undoingLogId;
-            } else {
-                $reason = "trip_points_scan_undo:" . $tripId . ":" . $undoingLogId;
-            }
+            $delStmt = $conn->prepare("DELETE FROM coupon_logs WHERE id = ?");
+            $delStmt->bind_param("i", $undoingLogId);
+            $delStmt->execute();
         } else {
             $reason = "trip_points_scan:" . $tripId;
             if (!empty($actionName)) {
                 $reason .= ":" . $actionName;
             }
+            $logStmt = $conn->prepare("
+                INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
+                VALUES (?, ?, ?, ?, ?, 'manual', ?)
+            ");
+            $logStmt->bind_param("iiiiis", $studentId, $uncleId, $oldCount, $newCount, $amount, $reason);
+            $logStmt->execute();
+            $logId = $conn->insert_id;
         }
-        $logStmt = $conn->prepare("
-            INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
-            VALUES (?, ?, ?, ?, ?, 'manual', ?)
-        ");
-        $logStmt->bind_param("iiiiis", $studentId, $uncleId, $oldCount, $newCount, $amount, $reason);
-        $logStmt->execute();
 
         // 5. Audit log
         $auditReason = "مسح سريع نقاط بالرحلة: " . ($amount > 0 ? "+" . $amount : $amount);
@@ -765,8 +745,9 @@ function processFastScanPoints()
 
         sendJSON([
             'success' => true,
-            'log_id' => $conn->insert_id,
+            'log_id' => $logId,
             'student_name' => $student['name'],
+            'student_class' => $student['student_class'],
             'new_points' => $newCount,
             'change' => $amount,
             'profile_photo' => $student['image_url']

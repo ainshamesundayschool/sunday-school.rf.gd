@@ -668,7 +668,7 @@ $tripTitle = $trip['title'];
         const pointsConfig = <?php echo json_encode($trip['points_config'] ? json_decode($trip['points_config'], true) : null); ?>;
         
         let activeShortcut = null;
-        let scanAmount = 10;
+        let scanAmount = 30;
         let scanSign = 1; // 1 for addition, -1 for subtraction
         let scannerSource = 'camera';
         let html5QrcodeScanner = null;
@@ -815,9 +815,9 @@ $tripTitle = $trip['title'];
                             </button>
                         </div>
                         <div class="option-group" style="margin-bottom: 8px; gap: 4px;">
-                            <button type="button" class="option-btn direct-btn" onclick="setAmount(10)" style="padding: 6px 2px; font-size: 0.88rem;">10</button>
                             <button type="button" class="option-btn direct-btn" onclick="setAmount(30)" style="padding: 6px 2px; font-size: 0.88rem;">30</button>
                             <button type="button" class="option-btn direct-btn" onclick="setAmount(50)" style="padding: 6px 2px; font-size: 0.88rem;">50</button>
+                            <button type="button" class="option-btn direct-btn" onclick="setAmount(80)" style="padding: 6px 2px; font-size: 0.88rem;">80</button>
                             <button type="button" class="option-btn direct-btn" onclick="setAmount(100)" style="padding: 6px 2px; font-size: 0.88rem;">100</button>
                         </div>
                     </div>
@@ -837,9 +837,9 @@ $tripTitle = $trip['title'];
                     </div>
 
                     <div class="option-group" style="margin-bottom: 12px;">
-                        <button type="button" class="option-btn direct-btn active" onclick="setAmount(10)">10</button>
-                        <button type="button" class="option-btn direct-btn" onclick="setAmount(30)">30</button>
+                        <button type="button" class="option-btn direct-btn active" onclick="setAmount(30)">30</button>
                         <button type="button" class="option-btn direct-btn" onclick="setAmount(50)">50</button>
+                        <button type="button" class="option-btn direct-btn" onclick="setAmount(80)">80</button>
                         <button type="button" class="option-btn direct-btn" onclick="setAmount(100)">100</button>
                     </div>
                 `;
