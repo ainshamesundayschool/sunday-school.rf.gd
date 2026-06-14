@@ -643,7 +643,7 @@ function processFastScanPoints()
         $conn = getDBConnection();
 
         // 1. Load student details
-        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url, student_class FROM students WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url, class FROM students WHERE id = ? LIMIT 1");
         $stmt->bind_param('i', $studentId);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -747,7 +747,7 @@ function processFastScanPoints()
             'success' => true,
             'log_id' => $logId,
             'student_name' => $student['name'],
-            'student_class' => $student['student_class'],
+            'student_class' => $student['class'],
             'new_points' => $newCount,
             'change' => $amount,
             'profile_photo' => $student['image_url']
