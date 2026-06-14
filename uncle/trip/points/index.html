@@ -2431,8 +2431,8 @@
         }
 
         async function undoScan(logId, studentId, amount) {
-            const btn = document.querySelector(`[data-id="${logId}"]`);
-            if (btn) btn.disabled = true;
+            const btns = document.querySelectorAll(`[data-id="${logId}"]`);
+            btns.forEach(btn => btn.disabled = true);
 
             const undoAmount = -1 * amount;
 
@@ -2454,7 +2454,7 @@
                 }
             } else {
                 showToast("فشل التراجع: " + res.message, 'error');
-                if (btn) btn.disabled = false;
+                btns.forEach(btn => btn.disabled = false);
             }
         }
 

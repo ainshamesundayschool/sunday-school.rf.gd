@@ -1231,8 +1231,8 @@ $tripTitle = $trip['title'];
 
         async function undoScan(logId, studentId, amount) {
             // Confirm undo
-            const btn = document.querySelector(`[data-id="${logId}"]`);
-            if (btn) btn.disabled = true;
+            const btns = document.querySelectorAll(`[data-id="${logId}"]`);
+            btns.forEach(btn => btn.disabled = true);
 
             const undoAmount = -1 * amount;
 
@@ -1253,11 +1253,11 @@ $tripTitle = $trip['title'];
                     renderScansList();
                 } else {
                     showToast("فشل التراجع: " + res.message, 'error');
-                    if (btn) btn.disabled = false;
+                    btns.forEach(btn => btn.disabled = false);
                 }
             } catch (e) {
                 showToast("حدث خطأ أثناء الاتصال بالسيرفر للتراجع", 'error');
-                if (btn) btn.disabled = false;
+                btns.forEach(btn => btn.disabled = false);
             }
         }
 

@@ -419,6 +419,29 @@ function processGameQRCode()
 
         $current = intval($points[$tripId] ?? 0);
 
+        $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
+        if ($undoingLogId > 0) {
+            $logCheck = $conn->prepare("SELECT id, change_amount FROM coupon_logs WHERE id = ? LIMIT 1");
+            $logCheck->bind_param("i", $undoingLogId);
+            $logCheck->execute();
+            $logRes = $logCheck->get_result();
+            if ($logRes->num_rows === 0) {
+                // If it is already deleted/undone, return success but do NOT alter the points!
+                sendJSON([
+                    'success' => true,
+                    'message' => 'تم التراجع عن هذه العملية بالفعل',
+                    'points' => $current,
+                    'is_naughty' => !empty($points["n_{$tripId}"])
+                ]);
+                return;
+            }
+            $logRow = $logRes->fetch_assoc();
+            $origChange = intval($logRow['change_amount']);
+            
+            $amount = abs($origChange);
+            $game_action = ($origChange > 0) ? 'decrement' : 'increment';
+        }
+
 
 
         if ($game_action === 'increment') {
@@ -703,6 +726,30 @@ function processFastScanPoints()
             $points = [];
         }
         $oldCount = intval($points[$tripId] ?? 0);
+
+        $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
+        if ($undoingLogId > 0) {
+            $logCheck = $conn->prepare("SELECT id, change_amount FROM coupon_logs WHERE id = ? LIMIT 1");
+            $logCheck->bind_param("i", $undoingLogId);
+            $logCheck->execute();
+            $logRes = $logCheck->get_result();
+            if ($logRes->num_rows === 0) {
+                // If it is already deleted/undone, return success but do NOT alter the points!
+                sendJSON([
+                    'success' => true,
+                    'message' => 'تم التراجع عن هذه العملية بالفعل',
+                    'student_name' => $student['name'],
+                    'student_class' => $student['class'],
+                    'student_points' => $oldCount
+                ]);
+                return;
+            }
+            $logRow = $logRes->fetch_assoc();
+            $origChange = intval($logRow['change_amount']);
+            
+            $amount = -1 * $origChange;
+        }
+
         $newCount = max(0, $oldCount + $amount);
         $points[$tripId] = $newCount;
         $newJson = json_encode($points, JSON_UNESCAPED_UNICODE);
