@@ -22359,7 +22359,7 @@ function updateTrip()
             ");
             // Corrected type specifier string: index 15 (has_rooms) is i, index 16 (rooms_config) is s
             $stmt->bind_param(
-                "sssssddsisiiissiii",
+                "sssssddsisiiisissii",
                 $title,
                 $description,
                 $type,
