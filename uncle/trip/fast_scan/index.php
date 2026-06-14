@@ -980,13 +980,25 @@ $tripTitle = $trip['title'];
         function getKidIdFromQrText(decodedText) {
             if (!decodedText) return '';
             try {
-                const cleaned = String(decodedText).trim();
-                if (cleaned.includes('://') || cleaned.includes('?')) {
-                    const url = new URL(cleaned, window.location.origin);
-                    const id = url.searchParams.get('student_id') ||
-                               url.searchParams.get('studentId') ||
-                               url.searchParams.get('id');
-                    if (id) return id.trim();
+                let cleaned = String(decodedText).trim();
+                if (cleaned.includes('?') || cleaned.includes('/') || cleaned.includes('=')) {
+                    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+                        if (cleaned.startsWith('/')) {
+                            cleaned = window.location.origin + cleaned;
+                        } else {
+                            cleaned = 'https://' + cleaned;
+                        }
+                    }
+                    try {
+                        const url = new URL(cleaned);
+                        const id = url.searchParams.get('student_id') ||
+                                   url.searchParams.get('studentId') ||
+                                   url.searchParams.get('id');
+                        if (id) return id.trim();
+                    } catch (urlErr) {
+                        const match = cleaned.match(/[?&](student_id|studentId|id)=([^&]+)/);
+                        if (match) return match[2].trim();
+                    }
                 }
                 if (/^\d+$/.test(cleaned)) {
                     return cleaned;
@@ -1091,15 +1103,14 @@ $tripTitle = $trip['title'];
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 
                 if (res.success) {
-                    tempEntry.id = res.log_id; // Set actual database log ID
-                    tempEntry.status = 'success';
-                    tempEntry.studentName = res.student_name;
-                    tempEntry.new_points = res.new_points;
-                    
-                    // Set photo from API response
-                    if (res.profile_photo) {
-                        tempEntry.profilePhoto = res.profile_photo;
-                    }
+                    const successEntry = {
+                        ...tempEntry,
+                        id: res.log_id,
+                        status: 'success',
+                        studentName: res.student_name,
+                        new_points: res.new_points,
+                        profilePhoto: res.profile_photo || tempEntry.profilePhoto
+                    };
                     
                     showToast(`تم التسجيل بنجاح: ${res.student_name} (${changeAmount > 0 ? '+' : ''}${changeAmount})`, 'success');
                     
@@ -1114,9 +1125,9 @@ $tripTitle = $trip['title'];
                     // Update the temporary entry in scansLog by searching for tempLogId
                     const idx = scansLog.findIndex(item => item.id === tempLogId);
                     if (idx > -1) {
-                        scansLog[idx] = tempEntry;
+                        scansLog[idx] = successEntry;
                     } else {
-                        scansLog.unshift(tempEntry);
+                        scansLog.unshift(successEntry);
                     }
                     renderScansList();
                 } else {

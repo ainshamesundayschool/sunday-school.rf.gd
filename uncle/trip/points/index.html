@@ -1464,13 +1464,25 @@
         function getKidIdFromQrText(decodedText) {
             if (!decodedText) return '';
             try {
-                const cleaned = String(decodedText).trim();
-                if (cleaned.includes('://') || cleaned.includes('?')) {
-                    const url = new URL(cleaned, window.location.origin);
-                    const id = url.searchParams.get('student_id') ||
-                               url.searchParams.get('studentId') ||
-                               url.searchParams.get('id');
-                    if (id) return id.trim();
+                let cleaned = String(decodedText).trim();
+                if (cleaned.includes('?') || cleaned.includes('/') || cleaned.includes('=')) {
+                    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+                        if (cleaned.startsWith('/')) {
+                            cleaned = window.location.origin + cleaned;
+                        } else {
+                            cleaned = 'https://' + cleaned;
+                        }
+                    }
+                    try {
+                        const url = new URL(cleaned);
+                        const id = url.searchParams.get('student_id') ||
+                                   url.searchParams.get('studentId') ||
+                                   url.searchParams.get('id');
+                        if (id) return id.trim();
+                    } catch (urlErr) {
+                        const match = cleaned.match(/[?&](student_id|studentId|id)=([^&]+)/);
+                        if (match) return match[2].trim();
+                    }
                 }
                 if (/^\d+$/.test(cleaned)) {
                     return cleaned;
