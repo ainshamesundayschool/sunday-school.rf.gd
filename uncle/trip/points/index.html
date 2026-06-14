@@ -888,6 +888,61 @@
                 gap: 16px;
             }
         }
+        .modal-shortcut-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+            min-height: 38px;
+        }
+        .modal-shortcut-btn.active {
+            border-color: var(--brand) !important;
+            background: var(--brand-bg) !important;
+            color: var(--brand-dark) !important;
+        }
+        .modal-direct-btn {
+            flex: 1;
+            padding: 6px 4px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text-2);
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .modal-direct-btn.active {
+            border-color: var(--brand) !important;
+            background: var(--brand-bg) !important;
+            color: var(--brand-dark) !important;
+        }
+        .scanner-source-tab {
+            flex: 1;
+            padding: 8px 4px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--text-3);
+            transition: all 0.2s;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -906,10 +961,6 @@
             <div class="topbar-search-results" id="topbarSearchResults"></div>
         </div>
         <div class="topbar-actions" style="display: flex; align-items: center; gap: 6px;">
-            <select id="scanModeSelect" style="border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; outline: none; cursor: pointer; font-family: 'Cairo', sans-serif;" onchange="localStorage.setItem('points_scan_mode', this.value)">
-                <option value="profile">فتح بروفايل الطفل</option>
-                <option value="fast">مسح نقاط سريع فوري</option>
-            </select>
             <button class="topbar-btn" onclick="startScannerV2()" title="مسح QR" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
                 <span class="fa-stack" style="font-size: 0.85rem; width: 1.5em; height: 1.5em; line-height: 1.5em; display: inline-flex; align-items: center; justify-content: center; margin: 0;">
                     <i class="fas fa-expand fa-stack-2x" style="font-size: 1.3rem;"></i>
@@ -1035,14 +1086,65 @@
 
     <!-- Scanner Modal -->
     <div id="scannerModal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column; padding:10px;">
         <div
-            style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
-            <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+            style="background:var(--surface); padding:15px; border-radius:16px; width:100%; max-width:400px; text-align:center; display:flex; flex-direction:column; gap:10px; max-height:95vh; overflow-y:auto; scrollbar-width:none;">
+            <h3 style="font-weight: 800; font-size:1.1rem; color:var(--text);"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+            
+            <!-- Scan Mode Switcher -->
+            <div style="display:flex; background:var(--surface-3); padding:3px; border-radius:10px; gap:4px; direction:rtl; flex-shrink:0;">
+                <button type="button" id="modalScanMode_profile" onclick="setModalScanMode('profile')" style="flex:1; padding:8px 4px; border-radius:8px; border:none; background:var(--surface); font-weight:700; font-size:0.8rem; cursor:pointer; color:var(--brand); transition:all 0.2s;">
+                    <i class="fas fa-user-circle"></i> فتح بروفايل الطفل
+                </button>
+                <button type="button" id="modalScanMode_fast" onclick="setModalScanMode('fast')" style="flex:1; padding:8px 4px; border-radius:8px; border:none; background:none; font-weight:700; font-size:0.8rem; cursor:pointer; color:var(--text-2); transition:all 0.2s;">
+                    <i class="fas fa-bolt"></i> مسح نقاط سريع فوري
+                </button>
+            </div>
+
+            <!-- Scanner Source Selector -->
+            <div style="display:flex; background:var(--surface-3); padding:3px; border-radius:10px; gap:4px; direction:rtl; flex-shrink:0;">
+                <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1; padding:8px 4px; border-radius:8px; border:none; background:var(--surface); font-weight:700; font-size:0.82rem; cursor:pointer; color:var(--brand); transition:all 0.2s;">
+                    <i class="fas fa-camera"></i> الكاميرا
+                </button>
+                <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1; padding:8px 4px; border-radius:8px; border:none; background:none; font-weight:700; font-size:0.82rem; cursor:pointer; color:var(--text-3); transition:all 0.2s;">
+                    <i class="fas fa-barcode"></i> ماسح خارجي
+                </button>
+            </div>
+
             <div id="reader"
-                style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
+                style="width:100%; height:200px; background:#000; border-radius: 12px; overflow: hidden; flex-shrink:0;"></div>
+            
+            <!-- Modal Fast Scan Controls -->
+            <div id="modalFastScanControls" style="display:none; text-align:right; border-top:1px solid var(--border); padding-top:10px; flex-direction:column; gap:8px;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--text-3); margin-bottom:4px; text-align:center;">إعدادات المسح الفوري السريع:</div>
+                
+                <!-- Custom Shortcuts Grid inside Modal -->
+                <div id="modalShortcutsGrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; max-height:140px; overflow-y:auto; direction:rtl;">
+                    <!-- Shortcuts will be populated here -->
+                </div>
+                
+                <!-- Standard Points Row -->
+                <div style="margin-top:4px; direction:rtl;">
+                    <div style="font-size:0.7rem; font-weight:700; color:var(--text-3); margin-bottom:4px;">أو نقاط مباشرة:</div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <!-- Sign Selector -->
+                        <div style="display:flex; background:var(--surface-3); padding:2px; border-radius:8px; gap:2px; direction:rtl; width:90px; flex-shrink:0;">
+                            <button type="button" id="modalSign_plus" onclick="setModalSign('plus')" style="flex:1; padding:4px; border-radius:6px; border:none; background:var(--success); color:white; font-weight:800; font-size:0.7rem; cursor:pointer;">+</button>
+                            <button type="button" id="modalSign_minus" onclick="setModalSign('minus')" style="flex:1; padding:4px; border-radius:6px; border:none; background:none; color:var(--text-2); font-weight:800; font-size:0.7rem; cursor:pointer;">-</button>
+                        </div>
+                        <!-- Chips -->
+                        <div style="display:flex; gap:4px; flex:1;">
+                            <button type="button" class="modal-direct-btn active" onclick="setModalAmount(30)" style="flex:1; padding:6px; border-radius:8px; border:1.5px solid var(--brand); background:var(--brand-bg); color:var(--brand-dark); font-weight:800; font-size:0.8rem; cursor:pointer;">30</button>
+                            <button type="button" class="modal-direct-btn" onclick="setModalAmount(50)" style="flex:1; padding:6px; border-radius:8px; border:1.5px solid var(--border-solid); background:var(--surface); color:var(--text-2); font-weight:800; font-size:0.8rem; cursor:pointer;">50</button>
+                            <button type="button" class="modal-direct-btn" onclick="setModalAmount(80)" style="flex:1; padding:6px; border-radius:8px; border:1.5px solid var(--border-solid); background:var(--surface); color:var(--text-2); font-weight:800; font-size:0.8rem; cursor:pointer;">80</button>
+                            <button type="button" class="modal-direct-btn" onclick="setModalAmount(100)" style="flex:1; padding:6px; border-radius:8px; border:1.5px solid var(--border-solid); background:var(--surface); color:var(--text-2); font-weight:800; font-size:0.8rem; cursor:pointer;">100</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button class="topbar-btn" onclick="stopScanner()"
-                style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
+                style="margin-top:10px; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger); font-weight:700;"><i
                     class="fas fa-times"></i> إلغاء</button>
         </div>
     </div>
@@ -1351,28 +1453,293 @@
 
         // QR Code Scanner Logic
         let html5QrcodeScanner = null;
+        let modalScanMode = localStorage.getItem('points_scan_mode') || 'profile';
+        let modalScanAmount = 30;
+        let modalScanSign = 1;
+        let modalActiveShortcut = null;
+        let scannerSource = 'camera';
+        let lastScannedText = '';
+        let lastScannedTime = 0;
 
         function getKidIdFromQrText(decodedText) {
             if (!decodedText) return '';
             try {
-                const url = new URL(decodedText, window.location.origin);
-                return (
-                    url.searchParams.get('student_id') ||
-                    url.searchParams.get('studentId') ||
-                    url.searchParams.get('id') ||
-                    ''
-                ).trim();
+                const cleaned = String(decodedText).trim();
+                if (cleaned.includes('://') || cleaned.includes('?')) {
+                    const url = new URL(cleaned, window.location.origin);
+                    const id = url.searchParams.get('student_id') ||
+                               url.searchParams.get('studentId') ||
+                               url.searchParams.get('id');
+                    if (id) return id.trim();
+                }
+                if (/^\d+$/.test(cleaned)) {
+                    return cleaned;
+                }
+                return cleaned;
             } catch (e) {
                 return '';
             }
         }
 
-        function startScannerV2() {
-            document.getElementById('scannerModal').style.display = 'flex';
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
+        function playSuccessSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const playNote = (freq, startTime, duration) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.08, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.start(startTime);
+                    osc.stop(startTime + duration);
+                };
+                const now = audioCtx.currentTime;
+                playNote(523.25, now, 0.12); // C5
+                playNote(659.25, now + 0.06, 0.12); // E5
+                playNote(783.99, now + 0.12, 0.24); // G5
+            } catch(e) {}
+        }
+
+        function playErrorSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        function setModalScanMode(mode) {
+            modalScanMode = mode;
+            localStorage.setItem('points_scan_mode', mode);
+            
+            const profBtn = document.getElementById('modalScanMode_profile');
+            const fastBtn = document.getElementById('modalScanMode_fast');
+            const controls = document.getElementById('modalFastScanControls');
+            
+            if (mode === 'fast') {
+                fastBtn.style.background = 'var(--surface)';
+                fastBtn.style.color = 'var(--brand)';
+                profBtn.style.background = 'none';
+                profBtn.style.color = 'var(--text-2)';
+                if (controls) controls.style.display = 'flex';
+                
+                // Initialize default selections if not set
+                if (modalActiveShortcut === null && modalScanAmount === 30) {
+                    let pointsConfig = null;
+                    if (typeof tripData !== 'undefined' && tripData && tripData.points_config) {
+                        try { pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config; } catch (e) {}
+                    }
+                    if (pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0) {
+                        selectModalShortcut(0);
+                    } else {
+                        setModalAmount(30);
+                    }
+                } else if (modalActiveShortcut) {
+                    let pointsConfig = null;
+                    if (typeof tripData !== 'undefined' && tripData && tripData.points_config) {
+                        try { pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config; } catch (e) {}
+                    }
+                    const idx = pointsConfig && Array.isArray(pointsConfig.shortcuts) ? pointsConfig.shortcuts.findIndex(sh => sh.name === modalActiveShortcut.name && sh.points === modalActiveShortcut.points) : -1;
+                    if (idx > -1) selectModalShortcut(idx);
+                    else setModalAmount(30);
+                } else {
+                    setModalAmount(modalScanAmount);
+                }
+                
+                renderModalShortcuts();
+            } else {
+                profBtn.style.background = 'var(--surface)';
+                profBtn.style.color = 'var(--brand)';
+                fastBtn.style.background = 'none';
+                fastBtn.style.color = 'var(--text-2)';
+                if (controls) controls.style.display = 'none';
             }
-            const activeTripId = tripId || currentTrip?.id || '';
+        }
+
+        function setModalSign(sign) {
+            modalScanSign = sign === 'plus' ? 1 : -1;
+            modalActiveShortcut = null;
+            
+            document.querySelectorAll('.modal-shortcut-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const plusBtn = document.getElementById('modalSign_plus');
+            const minusBtn = document.getElementById('modalSign_minus');
+            
+            if (sign === 'plus') {
+                plusBtn.style.background = 'var(--success)';
+                plusBtn.style.color = 'white';
+                minusBtn.style.background = 'none';
+                minusBtn.style.color = 'var(--text-2)';
+            } else {
+                minusBtn.style.background = 'var(--danger)';
+                minusBtn.style.color = 'white';
+                plusBtn.style.background = 'none';
+                plusBtn.style.color = 'var(--text-2)';
+            }
+            
+            document.querySelectorAll('.modal-direct-btn').forEach(btn => {
+                if (parseInt(btn.textContent.trim(), 10) === modalScanAmount) {
+                    btn.classList.add('active');
+                    btn.style.borderColor = 'var(--brand)';
+                    btn.style.background = 'var(--brand-bg)';
+                    btn.style.color = 'var(--brand-dark)';
+                }
+            });
+        }
+
+        function setModalAmount(amount) {
+            modalScanAmount = amount;
+            modalActiveShortcut = null;
+            
+            document.querySelectorAll('.modal-shortcut-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.querySelectorAll('.modal-direct-btn').forEach(btn => {
+                if (parseInt(btn.textContent.trim(), 10) === amount) {
+                    btn.classList.add('active');
+                    btn.style.borderColor = 'var(--brand)';
+                    btn.style.background = 'var(--brand-bg)';
+                    btn.style.color = 'var(--brand-dark)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.borderColor = 'var(--border-solid)';
+                    btn.style.background = 'var(--surface)';
+                    btn.style.color = 'var(--text-2)';
+                }
+            });
+            
+            setModalSign(modalScanSign === 1 ? 'plus' : 'minus');
+        }
+
+        function selectModalShortcut(index) {
+            let pointsConfig = null;
+            if (typeof tripData !== 'undefined' && tripData && tripData.points_config) {
+                try { pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config; } catch (e) {}
+            }
+            if (!pointsConfig || !Array.isArray(pointsConfig.shortcuts)) return;
+            
+            modalActiveShortcut = pointsConfig.shortcuts[index];
+            
+            const btns = document.querySelectorAll('.modal-shortcut-btn');
+            btns.forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            document.querySelectorAll('.modal-direct-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('modalSign_plus').style.background = 'none';
+            document.getElementById('modalSign_plus').style.color = 'var(--text-2)';
+            document.getElementById('modalSign_minus').style.background = 'none';
+            document.getElementById('modalSign_minus').style.color = 'var(--text-2)';
+        }
+
+        function renderModalShortcuts() {
+            const grid = document.getElementById('modalShortcutsGrid');
+            if (!grid) return;
+            
+            let pointsConfig = null;
+            if (typeof tripData !== 'undefined' && tripData && tripData.points_config) {
+                try { pointsConfig = typeof tripData.points_config === 'string' ? JSON.parse(tripData.points_config) : tripData.points_config; } catch (e) {}
+            }
+            
+            const hasShortcuts = pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
+            
+            if (!hasShortcuts) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; font-size:0.75rem; color:var(--text-3); padding:10px;">لا توجد اختصارات مصممة للرحلة.</div>';
+                return;
+            }
+            
+            let html = '';
+            pointsConfig.shortcuts.forEach((sh, idx) => {
+                const isActive = modalActiveShortcut && modalActiveShortcut.name === sh.name && modalActiveShortcut.points === sh.points;
+                const activeClass = isActive ? 'active' : '';
+                const signChar = sh.points >= 0 ? '+' : '';
+                html += `
+                    <button type="button" class="modal-shortcut-btn ${activeClass}" onclick="selectModalShortcut(${idx})">
+                        <span style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <i class="${sh.icon || 'fas fa-star'}"></i>
+                            <span>${sh.name}</span>
+                        </span>
+                        <span style="font-weight:900; background:rgba(0,0,0,0.05); padding:1px 4px; border-radius:4px; font-size:0.75rem; shrink:0; margin-right:4px;">
+                            ${signChar}${sh.points}
+                        </span>
+                    </button>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        function switchScannerSource(source) {
+            scannerSource = source;
+            localStorage.setItem('scanner_source_preference', source);
+            
+            document.querySelectorAll('.scanner-source-tab').forEach(btn => {
+                btn.style.background = 'none';
+                btn.style.color = 'var(--text-3)';
+            });
+            const activeBtn = document.getElementById('scannerSourceTab_' + source);
+            if (activeBtn) {
+                activeBtn.style.background = 'var(--surface)';
+                activeBtn.style.color = 'var(--brand)';
+            }
+            
+            const readerEl = document.getElementById('reader');
+            if (source === 'usb') {
+                if (html5QrcodeScanner) {
+                    const scanner = html5QrcodeScanner;
+                    html5QrcodeScanner = null;
+                    scanner.stop().then(() => {}).catch(() => {});
+                }
+                if (readerEl) {
+                    readerEl.style.minHeight = '140px';
+                    readerEl.style.background = 'var(--surface-3)';
+                    readerEl.style.border = '2px dashed var(--border-solid)';
+                    readerEl.style.display = 'flex';
+                    readerEl.style.flexDirection = 'column';
+                    readerEl.style.alignItems = 'center';
+                    readerEl.style.justifyContent = 'center';
+                    readerEl.style.color = 'var(--brand)';
+                    readerEl.style.gap = '8px';
+                    readerEl.style.padding = '20px';
+                    readerEl.innerHTML = `
+                        <i class="fas fa-barcode" style="font-size: 2.2rem; opacity: 0.85;"></i>
+                        <div style="font-weight: 800; font-size: 0.9rem;">الماسح الخارجي نشط</div>
+                        <div style="font-size: 0.72rem; color: var(--text-3); text-align: center; max-width: 260px; line-height: 1.3;">قم بتوجيه القارئ الخارجي نحو الكود والمسح.</div>
+                    `;
+                }
+            } else {
+                if (readerEl) {
+                    readerEl.style.minHeight = '200px';
+                    readerEl.style.background = '#000';
+                    readerEl.style.border = 'none';
+                    readerEl.innerHTML = '';
+                }
+                restartCameraOnly();
+            }
+        }
+
+        async function restartCameraOnly() {
+            if (html5QrcodeScanner) return;
+            const modal = document.getElementById('scannerModal');
+            if (!modal || modal.style.display === 'none') return;
+            if (scannerSource !== 'camera') return;
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const activeTripId = tripId || (typeof tripData !== 'undefined' ? tripData.id : null) || '';
+            
             html5QrcodeScanner.start(
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -1387,107 +1754,117 @@
                             reader.style.removeProperty('border');
                             reader.style.removeProperty('box-shadow');
                         }
-                        html5QrcodeScanner.stop().then(async () => {
-                            document.getElementById('scannerModal').style.display = 'none';
-
-                            const scannedStudentId = getKidIdFromQrText(decodedText);
-                            if (!scannedStudentId) {
-                                showToast('الكود الممسوح غير صحيح', 'error');
-                                return;
-                            }
-
-                            let parsedUrl = null;
-                            try {
-                                parsedUrl = new URL(decodedText, window.location.origin);
-                            } catch (e) { }
-                            const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
-
-                            if (String(scannedTripId || activeTripId) === String(activeTripId)) {
-                                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
-                                return;
-                            }
-
-                            showToast('هذا الكود لا يخص الرحلة الحالية', 'warning');
-                        });
+                        handleScannedText(decodedText);
                     }, 500);
                 },
-                (errorMessage) => {
-                    // Ignore parse errors
-                }
-            ).catch(async (err) => {
-                await customAlert("حدث خطأ في الوصول للكاميرا: " + err);
+                (errorMessage) => {}
+            ).catch((err) => {
+                alert("حدث خطأ في الوصول للكاميرا: " + err);
                 stopScanner();
             });
         }
 
-        function startScanner() {
-            document.getElementById('scannerModal').style.display = 'flex';
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
+        async function handleScannedText(decodedText) {
+            const scannedStudentId = getKidIdFromQrText(decodedText);
+            if (!scannedStudentId) {
+                playErrorSound();
+                showToast('الكود الممسوح غير صحيح', 'error');
+                return;
             }
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                async (decodedText, decodedResult) => {
+            
+            let parsedUrl = null;
+            try {
+                parsedUrl = new URL(decodedText, window.location.origin);
+            } catch (e) { }
+            const scannedTripId = parsedUrl ? parsedUrl.searchParams.get('trip_id') : null;
+            const activeTripId = tripId || (typeof tripData !== 'undefined' ? tripData.id : null) || '';
+            
+            if (scannedTripId && String(scannedTripId) !== String(activeTripId)) {
+                playErrorSound();
+                showToast('هذا الكود لا يخص الرحلة الحالية', 'warning');
+                return;
+            }
+            
+            if (modalScanMode === 'fast') {
+                const now = Date.now();
+                if (scannedStudentId === lastScannedText && (now - lastScannedTime < 3000)) {
+                    return;
+                }
+                lastScannedText = scannedStudentId;
+                lastScannedTime = now;
+                
+                let changeAmount = 0;
+                let actionName = '';
+                if (modalActiveShortcut) {
+                    changeAmount = modalActiveShortcut.points;
+                    actionName = modalActiveShortcut.name;
+                } else {
+                    changeAmount = modalScanAmount * modalScanSign;
+                }
+                
+                executeFastScanPoints(scannedStudentId, changeAmount, actionName);
+            } else {
+                if (html5QrcodeScanner) {
+                    const scanner = html5QrcodeScanner;
+                    html5QrcodeScanner = null;
+                    try { await scanner.stop(); } catch(e){}
+                }
+                document.getElementById('scannerModal').style.display = 'none';
+                window.location.href = `/uncle/trip/points/?trip_id=${activeTripId}&student_id=${scannedStudentId}`;
+            }
+        }
+
+        async function executeFastScanPoints(scannedStudentId, changeAmount, actionName) {
+            const activeTripId = tripId || (typeof tripData !== 'undefined' ? tripData.id : null) || '';
+            const fd = new FormData();
+            fd.append('action', 'processFastScanPoints');
+            fd.append('trip_id', activeTripId);
+            fd.append('student_id', scannedStudentId);
+            fd.append('amount', changeAmount);
+            if (actionName) {
+                fd.append('action_name', actionName);
+            }
+            
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    playSuccessSound();
                     const reader = document.getElementById('reader');
                     if (reader) {
                         reader.style.setProperty('border', '3px solid #10b981', 'important');
                         reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
-                    }
-                    setTimeout(() => {
-                        if (reader) {
+                        setTimeout(() => {
                             reader.style.removeProperty('border');
                             reader.style.removeProperty('box-shadow');
-                        }
-                        // Success
-                        html5QrcodeScanner.stop().then(async () => {
-                            document.getElementById('scannerModal').style.display = 'none';
-                            
-                            let parsedUrl;
-                            try {
-                                parsedUrl = new URL(decodedText);
-                            } catch (e) {
-                                showToast('الكود الممسوح غير صحيح', 'error');
-                                return;
-                            }
-                            const scannedTripId = parsedUrl.searchParams.get('trip_id');
-                            const scannedStudentId = parsedUrl.searchParams.get('student_id');
-                            
-                            if (!scannedTripId || !scannedStudentId) {
-                                showToast('الكود الممسوح غير صحيح', 'error');
-                                return;
-                            }
-
-                            if (String(scannedTripId) === String(tripId)) {
-                                // Same trip - navigate directly
-                                window.location.href = decodedText;
-                                return;
-                            }
-
-                            // Different trip - check church
-                            showToast('جاري التحقق من كود الرحلة...', 'info');
-                            const res = await apiCall('getTripDetails', { trip_id: scannedTripId });
-                            const currentChurchId = tripData ? tripData.church_id : null;
-                            if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
-                                // Same church, different trip -> Ask to redirect
-                                if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
-                                    window.location.href = decodedText;
-                                }
-                            } else {
-                                // Different church or unauthorized -> Block and alert
-                                await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
-                                showToast('كود غير صالح لكنيستك', 'error');
-                            }
-                        });
-                    }, 500);
-                },
-                (errorMessage) => {
-                    // Ignore parse errors
+                        }, 500);
+                    }
+                    showToast(`تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`, 'success');
+                    
+                    if (typeof loadRecentScans === 'function') {
+                        loadRecentScans();
+                    }
+                    if (typeof window.studentId !== 'undefined' && String(scannedStudentId) === String(window.studentId)) {
+                        fetchPoints();
+                    }
+                } else {
+                    playErrorSound();
+                    showToast('فشل التسجيل: ' + res.message, 'error');
                 }
-            ).catch(async (err) => {
-                await customAlert("حدث خطأ في الوصول للكاميرا: " + err);
-                stopScanner();
-            });
+            } catch (err) {
+                playErrorSound();
+                showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
+            }
+        }
+
+        function startScannerV2() {
+            document.getElementById('scannerModal').style.display = 'flex';
+            setModalScanMode(modalScanMode);
+            const pref = localStorage.getItem('scanner_source_preference') || 'camera';
+            switchScannerSource(pref);
+        }
+
+        function startScanner() {
+            startScannerV2();
         }
 
         function stopScanner() {
@@ -1497,10 +1874,43 @@
                 }).catch(e => {
                     document.getElementById('scannerModal').style.display = 'none';
                 });
+                html5QrcodeScanner = null;
             } else {
                 document.getElementById('scannerModal').style.display = 'none';
             }
         }
+
+        // Global USB keyboard barcode listener inside the modal
+        (function() {
+            let scanBuffer = '';
+            let lastKeyTime = 0;
+            const SCAN_TIMEOUT = 50;
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.altKey || e.metaKey) return;
+                
+                const modal = document.getElementById('scannerModal');
+                const isModalActive = modal && modal.style.display === 'flex';
+                if (!isModalActive || scannerSource !== 'usb') return;
+
+                const now = Date.now();
+                if (e.key.length === 1) {
+                    if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
+                        scanBuffer += e.key;
+                        lastKeyTime = now;
+                    } else {
+                        scanBuffer = e.key;
+                        lastKeyTime = now;
+                    }
+                } else if (e.key === 'Enter') {
+                    if (scanBuffer.length > 0) {
+                        e.preventDefault();
+                        handleScannedText(scanBuffer);
+                        scanBuffer = '';
+                    }
+                }
+            });
+        })();
 
         // Fireworks animation
         function fireworks() {

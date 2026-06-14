@@ -621,6 +621,61 @@
         .breadcrumb-item { cursor:pointer; color:var(--primary); font-weight:700; transition:opacity 0.2s; }
         .breadcrumb-item:hover { opacity:0.8; }
         .breadcrumb-item.active { color:var(--text); cursor:default; }
+        .modal-shortcut-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+            min-height: 38px;
+        }
+        .modal-shortcut-btn.active {
+            border-color: var(--brand) !important;
+            background: var(--brand-bg) !important;
+            color: var(--brand-dark) !important;
+        }
+        .modal-direct-btn {
+            flex: 1;
+            padding: 6px 4px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text-2);
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .modal-direct-btn.active {
+            border-color: var(--brand) !important;
+            background: var(--brand-bg) !important;
+            color: var(--brand-dark) !important;
+        }
+        .scanner-source-tab {
+            flex: 1;
+            padding: 8px 4px;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--text-3);
+            transition: all 0.2s;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
