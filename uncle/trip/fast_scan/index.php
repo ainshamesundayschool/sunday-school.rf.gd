@@ -405,6 +405,12 @@ $tripTitle = $trip['title'];
             position: relative;
         }
 
+        #reader video, #reader canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
         .toast-skip-btn {
             background: var(--brand);
             color: white;
