@@ -397,18 +397,12 @@ $tripTitle = $trip['title'];
 
         #reader {
             width: 100%;
-            aspect-ratio: 1 / 1;
+            min-height: 280px;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
             border: 1.5px solid var(--border-solid);
             position: relative;
-        }
-
-        #reader video, #reader canvas {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
         }
 
         .toast-skip-btn {
@@ -623,8 +617,14 @@ $tripTitle = $trip['title'];
             </div>
         </div>
 
-        <!-- Search bar -->
-        <div class="search-wrap" style="margin-top: 15px; margin-bottom: 10px; position: relative;">
+        <!-- Search bar & Refresh Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <div style="font-weight: 800; font-size: 1.05rem; color: var(--text);">سجل المسوحات الأخير</div>
+            <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 6px 12px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 700; margin: 0; height: 32px; border: 1.5px solid var(--border);">
+                <i class="fas fa-sync-alt"></i> تحديث
+            </button>
+        </div>
+        <div class="search-wrap" style="margin-top: 10px; margin-bottom: 10px; position: relative;">
             <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 10px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
             <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
         </div>

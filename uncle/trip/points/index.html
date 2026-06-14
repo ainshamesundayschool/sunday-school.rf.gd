@@ -943,6 +943,11 @@
             color: var(--text-3);
             transition: all 0.2s;
         }
+        #reader video, #reader canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -1046,7 +1051,12 @@
 
             <!-- Split Scans Columns -->
             <div class="split-scans-container" style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
-                <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem;">سجل المسوحات الأخير بالرحلة</div>
+                <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>سجل المسوحات الأخير بالرحلة</span>
+                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
+                        <i class="fas fa-sync-alt"></i> تحديث
+                    </button>
+                </div>
                 
                 <!-- Search bar -->
                 <div class="search-wrap" style="margin-bottom: 15px; position: relative;">
@@ -1140,6 +1150,14 @@
                             <button type="button" class="modal-direct-btn" onclick="setModalAmount(100)" style="flex:1; padding:6px; border-radius:8px; border:1.5px solid var(--border-solid); background:var(--surface); color:var(--text-2); font-weight:800; font-size:0.8rem; cursor:pointer;">100</button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Modal Scan History -->
+            <div style="margin-top:8px; border-top:1px solid var(--border); padding-top:8px; display:flex; flex-direction:column; gap:4px; max-height:130px; flex-shrink:0;">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--text-3); text-align:right;">المسوحات الأخيرة في السريع:</div>
+                <div id="modalRecentScansList" style="overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding:2px; direction:rtl; scrollbar-width:none;">
+                    <!-- Scans populate here -->
                 </div>
             </div>
 
@@ -1460,6 +1478,7 @@
         let scannerSource = 'camera';
         let lastScannedText = '';
         let lastScannedTime = 0;
+        const modalCooldowns = {};
 
         function getKidIdFromQrText(decodedText) {
             if (!decodedText) return '';
@@ -1804,6 +1823,17 @@
                 }
                 lastScannedText = scannedStudentId;
                 lastScannedTime = now;
+
+                // Check Cooldown
+                if (modalCooldowns[scannedStudentId] && (now - modalCooldowns[scannedStudentId] < 15000)) {
+                    playErrorSound();
+                    showToast(
+                        `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassModalCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
+                        'warning',
+                        8000
+                    );
+                    return;
+                }
                 
                 let changeAmount = 0;
                 let actionName = '';
@@ -1841,6 +1871,10 @@
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 if (res.success) {
                     playSuccessSound();
+                    
+                    // Lock student cooldown on success
+                    modalCooldowns[scannedStudentId] = Date.now();
+
                     const reader = document.getElementById('reader');
                     if (reader) {
                         reader.style.setProperty('border', '3px solid #10b981', 'important');
@@ -1867,6 +1901,21 @@
                 showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
             }
         }
+
+        window.bypassModalCooldown = function(studentId) {
+            dismissToast();
+            delete modalCooldowns[studentId];
+            
+            let changeAmount = 0;
+            let actionName = '';
+            if (modalActiveShortcut) {
+                changeAmount = modalActiveShortcut.points;
+                actionName = modalActiveShortcut.name;
+            } else {
+                changeAmount = modalScanAmount * modalScanSign;
+            }
+            executeFastScanPoints(studentId, changeAmount, actionName);
+        };
 
         function startScannerV2() {
             document.getElementById('scannerModal').style.display = 'flex';
@@ -2307,6 +2356,21 @@
                 `;
             } else {
                 allListEl.innerHTML = allScans.map(renderScanItemHTML).join('');
+            }
+
+            // Update modal recent scans list
+            const modalListEl = document.getElementById('modalRecentScansList');
+            if (modalListEl) {
+                const myRecentScans = scansLog.filter(item => item.uncleId === currentUncleId).slice(0, 10);
+                if (myRecentScans.length === 0) {
+                    modalListEl.innerHTML = `
+                        <div style="text-align:center;padding:15px;color:var(--text-3);font-size:0.75rem;">
+                            لا توجد مسوحات مؤخراً.
+                        </div>
+                    `;
+                } else {
+                    modalListEl.innerHTML = myRecentScans.map(renderScanItemHTML).join('');
+                }
             }
         }
 
