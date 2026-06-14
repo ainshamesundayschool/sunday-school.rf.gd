@@ -681,10 +681,79 @@ $tripTitle = $trip['title'];
         // Scanned kids log array
         let scansLog = [];
 
+        // Toast notifications handlers
+        let toastTimeout = null;
+        function showToast(msg, type = 'info', duration = 3000) {
+            const t = document.getElementById('toastNotify');
+            if (!t) return;
+            
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            
+            t.className = 'toast-notify show ' + type;
+            
+            let icon = '<i class="fas fa-info-circle"></i>';
+            if (type === 'success') {
+                icon = '<i class="fas fa-check-circle" style="color:var(--success)"></i>';
+            } else if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle" style="color:var(--danger)"></i>';
+            } else if (type === 'warning') {
+                icon = '<i class="fas fa-exclamation-triangle" style="color:var(--warning, #f59e0b)"></i>';
+            }
+            
+            t.innerHTML = `${icon} <span>${msg}</span>`;
+            
+            if (duration > 0) {
+                toastTimeout = setTimeout(() => {
+                    t.classList.remove('show');
+                }, duration);
+            }
+        }
+
+        function dismissToast() {
+            const t = document.getElementById('toastNotify');
+            if (t) {
+                t.classList.remove('show');
+            }
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+        }
+
+        // External USB Barcode Scanner Input Buffer
+        let barcodeBuffer = '';
+        let lastKeyTime = 0;
+        document.addEventListener('keydown', (e) => {
+            if (scannerSource !== 'usb') return;
+            
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                return;
+            }
+
+            const now = Date.now();
+            if (now - lastKeyTime > 100) {
+                barcodeBuffer = '';
+            }
+            lastKeyTime = now;
+
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.length > 0) {
+                    e.preventDefault();
+                    handleScannedText(barcodeBuffer);
+                    barcodeBuffer = '';
+                }
+            } else if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+            }
+        });
+
         function initializeSettings() {
             const area = document.getElementById('settingsControlsArea');
-            if (pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0) {
-                // Render custom shortcuts
+            const hasShortcuts = pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
+            
+            if (pointsConfig && pointsConfig.points_type === 'shortcuts' && hasShortcuts) {
+                // Render custom shortcuts only
                 let html = `<div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">`;
                 pointsConfig.shortcuts.forEach((sh, idx) => {
                     const activeClass = idx === 0 ? 'active' : '';
@@ -708,8 +777,54 @@ $tripTitle = $trip['title'];
                 });
                 html += `</div>`;
                 area.innerHTML = html;
+            } else if (pointsConfig && pointsConfig.points_type === 'combined' && hasShortcuts) {
+                // Render combined layout (Shortcuts first, then compact standard direct layout)
+                activeShortcut = pointsConfig.shortcuts[0];
+                
+                let html = `<div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">`;
+                pointsConfig.shortcuts.forEach((sh, idx) => {
+                    const activeClass = idx === 0 ? 'active' : '';
+                    const signChar = sh.points >= 0 ? '+' : '';
+                    html += `
+                        <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem;">
+                            <span style="display:flex; align-items:center; gap:8px;">
+                                <i class="${sh.icon || 'fas fa-star'}" style="font-size: 0.95rem;"></i>
+                                <span style="display:flex; flex-direction:column; align-items:flex-start; text-align:right;">
+                                    <span style="font-weight:700;">${sh.name}</span>
+                                    ${sh.desc ? `<span style="font-size:0.7rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
+                                </span>
+                            </span>
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 6px; border-radius:4px; font-size:0.8rem;">
+                                ${signChar}${sh.points}
+                            </span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+
+                // Add compact direct options
+                html += `
+                    <div style="margin-top: 10px; border-top: 1.5px solid var(--border-solid); padding-top: 8px;">
+                        <div style="font-size:0.75rem; font-weight:700; color:var(--text-3); margin-bottom:6px;">أو نقاط مباشرة:</div>
+                        <div class="sign-toggle" style="margin-bottom: 8px; padding: 2px; gap: 2px;">
+                            <button type="button" class="sign-btn plus" onclick="setSign('plus')" style="padding: 6px; font-size: 0.8rem;">
+                                <i class="fas fa-plus"></i> إضافة
+                            </button>
+                            <button type="button" class="sign-btn minus" onclick="setSign('minus')" style="padding: 6px; font-size: 0.8rem;">
+                                <i class="fas fa-minus"></i> خصم
+                            </button>
+                        </div>
+                        <div class="option-group" style="margin-bottom: 8px; gap: 4px;">
+                            <button type="button" class="option-btn direct-btn" onclick="setAmount(10)" style="padding: 6px 2px; font-size: 0.88rem;">10</button>
+                            <button type="button" class="option-btn direct-btn" onclick="setAmount(30)" style="padding: 6px 2px; font-size: 0.88rem;">30</button>
+                            <button type="button" class="option-btn direct-btn" onclick="setAmount(50)" style="padding: 6px 2px; font-size: 0.88rem;">50</button>
+                            <button type="button" class="option-btn direct-btn" onclick="setAmount(100)" style="padding: 6px 2px; font-size: 0.88rem;">100</button>
+                        </div>
+                    </div>
+                `;
+                area.innerHTML = html;
             } else {
-                // Render standard direct points controls
+                // Direct mode only
                 activeShortcut = null;
                 area.innerHTML = `
                     <div class="sign-toggle">
@@ -733,35 +848,73 @@ $tripTitle = $trip['title'];
 
         function selectShortcut(index) {
             activeShortcut = pointsConfig.shortcuts[index];
-            const buttons = document.querySelectorAll('.shortcut-action-btn');
-            buttons.forEach((btn, idx) => {
+            
+            // Set active class on shortcut buttons
+            document.querySelectorAll('.shortcut-action-btn').forEach((btn, idx) => {
                 if (idx === index) {
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
                 }
             });
+            
+            // Remove active classes from direct buttons
+            document.querySelectorAll('.direct-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sign-btn').forEach(btn => btn.classList.remove('active'));
         }
 
         function setAmount(val) {
             scanAmount = val;
+            activeShortcut = null;
+            
+            // Remove active class from shortcuts
+            document.querySelectorAll('.shortcut-action-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Set active class on direct buttons
             document.querySelectorAll('.direct-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (parseInt(btn.textContent, 10) === val) {
                     btn.classList.add('active');
                 }
             });
+            
+            // Ensure sign button is active
+            if (scanSign === 1) {
+                document.querySelector('.sign-btn.plus').classList.add('active');
+                document.querySelector('.sign-btn.minus').classList.remove('active');
+            } else {
+                document.querySelector('.sign-btn.plus').classList.remove('active');
+                document.querySelector('.sign-btn.minus').classList.add('active');
+            }
         }
 
         function setSign(sign) {
             if (sign === 'plus') {
                 scanSign = 1;
+            } else {
+                scanSign = -1;
+            }
+            activeShortcut = null;
+            
+            // Remove active class from shortcuts
+            document.querySelectorAll('.shortcut-action-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Set active class on sign buttons
+            if (scanSign === 1) {
                 document.querySelector('.sign-btn.plus').classList.add('active');
                 document.querySelector('.sign-btn.minus').classList.remove('active');
             } else {
-                scanSign = -1;
                 document.querySelector('.sign-btn.plus').classList.remove('active');
                 document.querySelector('.sign-btn.minus').classList.add('active');
+            }
+            
+            // Ensure direct button is active
+            let hasActiveDirect = false;
+            document.querySelectorAll('.direct-btn').forEach(btn => {
+                if (btn.classList.contains('active')) hasActiveDirect = true;
+            });
+            if (!hasActiveDirect) {
+                setAmount(scanAmount);
             }
         }
 

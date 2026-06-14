@@ -1670,24 +1670,11 @@
                 } catch (e) {}
             }
             
-            const hasShortcuts = pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
+            const hasShortcuts = pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
             
-            let toggleHtml = '';
-            if (hasShortcuts) {
-                toggleHtml = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:var(--surface-3, #f8f9fa); padding:10px 14px; border-radius:12px; border:1px solid var(--border-solid, var(--border));">
-                        <span style="font-size:0.85rem; font-weight:700; color:var(--text-2, var(--text));"><i class="fas fa-th-large"></i> أزرار الاختصارات المخصصة</span>
-                        <button type="button" class="btn btn-sm" onclick="toggleShortcutsView()" style="padding:4px 10px; font-size:0.75rem; font-weight:700; border-radius:6px; background:${showShortcuts ? 'var(--brand, #10b981)' : 'var(--border)'}; color:#fff; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: all 0.2s;">
-                            <i class="fas ${showShortcuts ? 'fa-toggle-on' : 'fa-toggle-off'}" style="font-size:1.1rem;"></i>
-                            <span>${showShortcuts ? 'نشطة' : 'معطلة'}</span>
-                        </button>
-                    </div>
-                `;
-            }
-            
-            if (hasShortcuts && showShortcuts) {
-                // Render shortcuts layout
-                let html = toggleHtml + `
+            if (hasShortcuts && pointsConfig.points_type === 'shortcuts') {
+                // Render shortcuts layout ONLY
+                let html = `
                     <div class="section-title">إجراءات سريعة للنقاط</div>
                     <div style="display:flex; flex-direction:column; gap:10px;">
                 `;
@@ -1711,9 +1698,54 @@
                 });
                 html += `</div>`;
                 wrapper.innerHTML = html;
+            } else if (hasShortcuts && pointsConfig.points_type === 'combined') {
+                // Render combined layout (Shortcuts first, then compact standard direct layout)
+                let html = `
+                    <div class="section-title" style="font-size:0.85rem; margin-bottom:8px;">إجراءات سريعة للنقاط</div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                `;
+                pointsConfig.shortcuts.forEach((sh, idx) => {
+                    const signChar = sh.points >= 0 ? '+' : '';
+                    const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
+                    html += `
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:10px 14px; text-align:right; font-size:0.95rem; height:auto; border-radius:10px;">
+                            <span style="display:flex; align-items:center; gap:10px;">
+                                <i class="${sh.icon || 'fas fa-star'}"></i>
+                                <span style="display:flex; flex-direction:column; align-items:flex-start;">
+                                    <span style="font-weight:700;">${sh.name}</span>
+                                    ${sh.desc ? `<span style="font-size:0.7rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
+                                </span>
+                            </span>
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:6px; font-size:0.85rem;">
+                                ${signChar}${sh.points}
+                            </span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                
+                // Append COMPACT direct buttons
+                html += `
+                    <div style="margin-top:14px; border-top:1.5px solid var(--border); padding-top:12px;">
+                        <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">أو اختر قيمة للنقاط مباشرة:</div>
+                        <div class="points-selector" style="grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px;">
+                            <div class="point-chip" data-val="10" onclick="selectPoint(10)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">10</div>
+                            <div class="point-chip" data-val="30" onclick="selectPoint(30)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">30</div>
+                            <div class="point-chip" data-val="50" onclick="selectPoint(50)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">50</div>
+                            <div class="point-chip" data-val="100" onclick="selectPoint(100)" style="padding: 6px 0; font-size: 0.95rem; border-radius: 8px;">100</div>
+                        </div>
+                        <div class="action-row" style="gap: 6px;">
+                            <button class="btn-action btn-add" onclick="executeAction('increment')" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
+                            <button class="btn-action btn-sub" onclick="executeAction('decrement')" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
+                        </div>
+                    </div>
+                `;
+                
+                wrapper.innerHTML = html;
+                updatePointChips();
             } else {
                 // Render standard layout
-                wrapper.innerHTML = toggleHtml + `
+                wrapper.innerHTML = `
                     <div class="section-title">اختر قيمة النقاط</div>
                     <div class="points-selector">
                         <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
@@ -1729,11 +1761,6 @@
                 `;
                 updatePointChips();
             }
-        }
-
-        function toggleShortcutsView() {
-            showShortcuts = !showShortcuts;
-            renderControlPanel();
         }
 
         async function executeShortcutAction(index) {

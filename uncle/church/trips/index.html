@@ -9995,8 +9995,8 @@
             pointsConfig = typeof t.points_config === 'string' ? JSON.parse(t.points_config) : t.points_config;
           } catch(e) {}
         }
-        if (pointsConfig && pointsConfig.points_type === 'shortcuts') {
-          document.getElementById('editTripPointsType').value = 'shortcuts';
+        if (pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined')) {
+          document.getElementById('editTripPointsType').value = pointsConfig.points_type;
           if (Array.isArray(pointsConfig.shortcuts)) {
             pointsConfig.shortcuts.forEach(s => {
               addShortcutRow('edit', s.name, s.points, s.icon, s.desc || '');
@@ -10037,7 +10037,7 @@
 
       function toggleEditTripPointsType() {
         const pointsType = document.getElementById('editTripPointsType').value;
-        document.getElementById('editTripShortcutsArea').style.display = pointsType === 'shortcuts' ? 'block' : 'none';
+        document.getElementById('editTripShortcutsArea').style.display = (pointsType === 'shortcuts' || pointsType === 'combined') ? 'block' : 'none';
       }
 
       function escHtml(str) {
@@ -10135,7 +10135,7 @@
         let pointsConfig = null;
         if (hasGame) {
           const pointsType = document.getElementById('editTripPointsType').value;
-          if (pointsType === 'shortcuts') {
+          if (pointsType === 'shortcuts' || pointsType === 'combined') {
             const shortcuts = [];
             document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
               const icon = row.querySelector('.shortcut-icon').value;
@@ -10146,7 +10146,7 @@
                 shortcuts.push({ icon, name, desc, points });
               }
             });
-            pointsConfig = JSON.stringify({ points_type: 'shortcuts', shortcuts });
+            pointsConfig = JSON.stringify({ points_type: pointsType, shortcuts });
           } else {
             pointsConfig = JSON.stringify({ points_type: 'direct' });
           }
@@ -14382,13 +14382,11 @@
                 </select>
 
                 <div id="editTripPointsGameSettingsWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
-                  <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label" style="font-weight:700;">نظام توزيع النقاط</label>
                     <select id="editTripPointsType" class="form-select" style="width:100%;" onchange="toggleEditTripPointsType()">
                       <option value="direct">نقاط مباشرة (10، 30، 50، 100)</option>
-                      <option value="shortcuts">أزرار وإجراءات مخصصة (اختصارات)</option>
+                      <option value="shortcuts">أزرار وإجراءات مخصصة (اختصارات) فقط</option>
+                      <option value="combined">دمج الاختصارات والأسلوب المباشر معاً (Combined)</option>
                     </select>
-                  </div>
                   <div id="editTripShortcutsArea" style="display:none; border-top:1px dashed var(--border); padding-top:12px; margin-top:10px;">
                     <div style="font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:10px;">الاختصارات المخصصة المتاحة:</div>
                     <div id="editTripShortcutsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
