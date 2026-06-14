@@ -1012,22 +1012,50 @@ $tripTitle = $trip['title'];
         let lastScannedText = '';
         let lastScannedTime = 0;
 
+        function playSuccessSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const playNote = (freq, startTime, duration) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.08, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.start(startTime);
+                    osc.stop(startTime + duration);
+                };
+                const now = audioCtx.currentTime;
+                playNote(523.25, now, 0.12); // C5
+                playNote(659.25, now + 0.06, 0.12); // E5
+                playNote(783.99, now + 0.12, 0.24); // G5
+            } catch(e) {}
+        }
+
+        function playErrorSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
         async function handleScannedText(decodedText) {
             const studentId = getKidIdFromQrText(decodedText);
             if (!studentId) {
+                playErrorSound();
                 showToast("الكود الممسوح غير صحيح", 'error');
                 return;
-            }
-
-            // Flash scanner green
-            const reader = document.getElementById('reader');
-            if (reader) {
-                reader.style.setProperty('border', '3px solid #10b981', 'important');
-                reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
-                setTimeout(() => {
-                    reader.style.removeProperty('border');
-                    reader.style.removeProperty('box-shadow');
-                }, 500);
             }
 
             // Camera debounce: ignore duplicate scans of same code within 3 seconds
@@ -1040,6 +1068,7 @@ $tripTitle = $trip['title'];
 
             // Check Cooldown
             if (cooldowns[studentId] && (now - cooldowns[studentId] < COOLDOWN_DURATION)) {
+                playErrorSound();
                 showToast(
                     `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassCooldown('${studentId}')">skip</button>`,
                     'warning',
@@ -1103,6 +1132,19 @@ $tripTitle = $trip['title'];
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 
                 if (res.success) {
+                    playSuccessSound();
+                    
+                    // Flash scanner green
+                    const reader = document.getElementById('reader');
+                    if (reader && scannerSource === 'camera') {
+                        reader.style.setProperty('border', '3px solid #10b981', 'important');
+                        reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                        setTimeout(() => {
+                            reader.style.removeProperty('border');
+                            reader.style.removeProperty('box-shadow');
+                        }, 500);
+                    }
+
                     const successEntry = {
                         ...tempEntry,
                         id: res.log_id,
@@ -1131,6 +1173,19 @@ $tripTitle = $trip['title'];
                     }
                     renderScansList();
                 } else {
+                    playErrorSound();
+                    
+                    // Flash scanner red
+                    const reader = document.getElementById('reader');
+                    if (reader && scannerSource === 'camera') {
+                        reader.style.setProperty('border', '3px solid #ef4444', 'important');
+                        reader.style.setProperty('box-shadow', '0 0 25px rgba(239, 68, 68, 0.7)', 'important');
+                        setTimeout(() => {
+                            reader.style.removeProperty('border');
+                            reader.style.removeProperty('box-shadow');
+                        }, 500);
+                    }
+
                     // Remove from log list because it failed
                     scansLog = scansLog.filter(item => item.id !== tempLogId);
                     renderScansList();
@@ -1138,6 +1193,19 @@ $tripTitle = $trip['title'];
                 }
 
             } catch (err) {
+                playErrorSound();
+                
+                // Flash scanner red
+                const reader = document.getElementById('reader');
+                if (reader && scannerSource === 'camera') {
+                    reader.style.setProperty('border', '3px solid #ef4444', 'important');
+                    reader.style.setProperty('box-shadow', '0 0 25px rgba(239, 68, 68, 0.7)', 'important');
+                    setTimeout(() => {
+                        reader.style.removeProperty('border');
+                        reader.style.removeProperty('box-shadow');
+                    }, 500);
+                }
+
                 // Remove from log list because it failed
                 scansLog = scansLog.filter(item => item.id !== tempLogId);
                 renderScansList();
