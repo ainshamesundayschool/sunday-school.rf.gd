@@ -672,6 +672,7 @@ $tripTitle = $trip['title'];
         let scanSign = 1; // 1 for addition, -1 for subtraction
         let scannerSource = 'camera';
         let html5QrcodeScanner = null;
+        let currentUncleId = null;
 
         // Keep track of scanned kids for cooldown: { studentId: timestamp }
         const cooldowns = {};

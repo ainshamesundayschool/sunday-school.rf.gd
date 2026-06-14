@@ -797,11 +797,12 @@ function getLatestTripPointsScan()
             SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, s.name as student_name, s.image_url as profile_photo
             FROM coupon_logs cl
             JOIN students s ON cl.student_id = s.id
-            WHERE cl.reason = ?
+            WHERE (cl.reason LIKE CONCAT('trip_points_scan:', ?, '%')
+               OR cl.reason LIKE CONCAT('trip_points_normal:', ?, '%'))
             ORDER BY cl.id DESC
             LIMIT 1
         ");
-        $stmt->bind_param('s', $reason);
+        $stmt->bind_param('ii', $tripId, $tripId);
         $stmt->execute();
         $res = $stmt->get_result();
 
