@@ -1122,7 +1122,7 @@
             </div>
 
             <div id="reader"
-                style="width:100%; height:200px; background:#000; border-radius: 12px; overflow: hidden; flex-shrink:0;"></div>
+                style="width:100%; aspect-ratio: 1/1; background:#000; border-radius: 12px; overflow: hidden; flex-shrink:0; border: 2px solid var(--border-solid); box-shadow: var(--shadow-sm);"></div>
             
             <!-- Modal Fast Scan Controls -->
             <div id="modalFastScanControls" style="display:none; text-align:right; border-top:1px solid var(--border); padding-top:10px; flex-direction:column; gap:8px;">
@@ -1154,7 +1154,7 @@
             </div>
 
             <!-- Modal Scan History -->
-            <div style="margin-top:8px; border-top:1px solid var(--border); padding-top:8px; display:flex; flex-direction:column; gap:4px; max-height:130px; flex-shrink:0;">
+            <div id="modalRecentScansWrapper" style="display:none; margin-top:8px; border-top:1px solid var(--border); padding-top:8px; flex-direction:column; gap:4px; max-height:220px; flex-shrink:0;">
                 <div style="font-size:0.72rem; font-weight:700; color:var(--text-3); text-align:right;">المسوحات الأخيرة في السريع:</div>
                 <div id="modalRecentScansList" style="overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding:2px; direction:rtl; scrollbar-width:none;">
                     <!-- Scans populate here -->
@@ -1557,6 +1557,7 @@
             const profBtn = document.getElementById('modalScanMode_profile');
             const fastBtn = document.getElementById('modalScanMode_fast');
             const controls = document.getElementById('modalFastScanControls');
+            const historyWrapper = document.getElementById('modalRecentScansWrapper');
             
             if (mode === 'fast') {
                 fastBtn.style.background = 'var(--surface)';
@@ -1564,6 +1565,7 @@
                 profBtn.style.background = 'none';
                 profBtn.style.color = 'var(--text-2)';
                 if (controls) controls.style.display = 'flex';
+                if (historyWrapper) historyWrapper.style.display = 'flex';
                 
                 // Initialize default selections if not set
                 if (modalActiveShortcut === null && modalScanAmount === 30) {
@@ -1595,6 +1597,7 @@
                 fastBtn.style.background = 'none';
                 fastBtn.style.color = 'var(--text-2)';
                 if (controls) controls.style.display = 'none';
+                if (historyWrapper) historyWrapper.style.display = 'none';
             }
         }
 
@@ -1922,6 +1925,9 @@
             setModalScanMode(modalScanMode);
             const pref = localStorage.getItem('scanner_source_preference') || 'camera';
             switchScannerSource(pref);
+            if (typeof loadRecentScans === 'function') {
+                loadRecentScans();
+            }
         }
 
         function startScanner() {
