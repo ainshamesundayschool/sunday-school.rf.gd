@@ -1061,6 +1061,7 @@
         let scansLog = [];
         let currentUncleId = null;
         let searchQuery = "";
+        let showShortcuts = true;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!tripId || !studentId) {
@@ -1669,9 +1670,24 @@
                 } catch (e) {}
             }
             
-            if (pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0) {
+            const hasShortcuts = pointsConfig && pointsConfig.points_type === 'shortcuts' && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
+            
+            let toggleHtml = '';
+            if (hasShortcuts) {
+                toggleHtml = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:var(--surface-3, #f8f9fa); padding:10px 14px; border-radius:12px; border:1px solid var(--border-solid, var(--border));">
+                        <span style="font-size:0.85rem; font-weight:700; color:var(--text-2, var(--text));"><i class="fas fa-th-large"></i> أزرار الاختصارات المخصصة</span>
+                        <button type="button" class="btn btn-sm" onclick="toggleShortcutsView()" style="padding:4px 10px; font-size:0.75rem; font-weight:700; border-radius:6px; background:${showShortcuts ? 'var(--brand, #10b981)' : 'var(--border)'}; color:#fff; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: all 0.2s;">
+                            <i class="fas ${showShortcuts ? 'fa-toggle-on' : 'fa-toggle-off'}" style="font-size:1.1rem;"></i>
+                            <span>${showShortcuts ? 'نشطة' : 'معطلة'}</span>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            if (hasShortcuts && showShortcuts) {
                 // Render shortcuts layout
-                let html = `
+                let html = toggleHtml + `
                     <div class="section-title">إجراءات سريعة للنقاط</div>
                     <div style="display:flex; flex-direction:column; gap:10px;">
                 `;
@@ -1697,7 +1713,7 @@
                 wrapper.innerHTML = html;
             } else {
                 // Render standard layout
-                wrapper.innerHTML = `
+                wrapper.innerHTML = toggleHtml + `
                     <div class="section-title">اختر قيمة النقاط</div>
                     <div class="points-selector">
                         <div class="point-chip" data-val="10" onclick="selectPoint(10)">10</div>
@@ -1713,6 +1729,11 @@
                 `;
                 updatePointChips();
             }
+        }
+
+        function toggleShortcutsView() {
+            showShortcuts = !showShortcuts;
+            renderControlPanel();
         }
 
         async function executeShortcutAction(index) {
