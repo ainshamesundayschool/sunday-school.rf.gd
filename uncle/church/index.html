@@ -13098,6 +13098,32 @@
                 document.getElementById('editTripPointsType').value = 'direct';
             }
             toggleEditTripPointsGame();
+
+            const editContainer = document.getElementById('editTripFieldsContainer');
+            editContainer.innerHTML = '';
+            parseCustomFieldsString(t.custom_fields).forEach(f => {
+                if (f === 'السكن') return; // Managed natively
+                const iconClass = (t.custom_field_icons && (t.custom_field_icons[f] || (typeof t.custom_field_icons === 'string' && JSON.parse(t.custom_field_icons)[f]))) ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons[f] : JSON.parse(t.custom_field_icons)[f]) : 'fas fa-tag';
+                addCustomFieldTagWithValue('editTripFieldsContainer', f, iconClass);
+            });
+
+            document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
+            toggleTripRoomsConfigurator('edit').then(() => {
+                if (t.has_rooms == 1 && t.rooms_config) {
+                    try {
+                        const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            const templateId = parsed[0].rooms_template_id || 'custom';
+                            document.getElementById('editTripRoomsTemplate').value = templateId;
+                            onRoomsTemplateChange('edit');
+                            populateRoomsWizardFromConfig('edit', parsed);
+                        }
+                    } catch (e) { console.error(e); }
+                }
+            });
+
+            toggleEditTripDates(); recalcEditTripPrice();
+            openModal('editTripModal');
         }
 
         function toggleEditTripPointsGame() {
@@ -13150,34 +13176,6 @@
                 </button>
             `;
             container.appendChild(rowDiv);
-        }
-
-        function dummyPlaceholderForNextFunc() {
-            const editContainer = document.getElementById('editTripFieldsContainer');
-            editContainer.innerHTML = '';
-            parseCustomFieldsString(t.custom_fields).forEach(f => {
-                if (f === 'السكن') return; // Managed natively
-                const iconClass = (t.custom_field_icons && (t.custom_field_icons[f] || (typeof t.custom_field_icons === 'string' && JSON.parse(t.custom_field_icons)[f]))) ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons[f] : JSON.parse(t.custom_field_icons)[f]) : 'fas fa-tag';
-                addCustomFieldTagWithValue('editTripFieldsContainer', f, iconClass);
-            });
-
-            document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
-            toggleTripRoomsConfigurator('edit').then(() => {
-                if (t.has_rooms == 1 && t.rooms_config) {
-                    try {
-                        const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            const templateId = parsed[0].rooms_template_id || 'custom';
-                            document.getElementById('editTripRoomsTemplate').value = templateId;
-                            onRoomsTemplateChange('edit');
-                            populateRoomsWizardFromConfig('edit', parsed);
-                        }
-                    } catch (e) { console.error(e); }
-                }
-            });
-
-            toggleEditTripDates(); recalcEditTripPrice();
-            openModal('editTripModal');
         }
 
         function showAddPaymentModal(regId, name, price, paid) {

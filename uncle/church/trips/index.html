@@ -10006,6 +10006,25 @@
           document.getElementById('editTripPointsType').value = 'direct';
         }
         toggleEditTripPointsGame();
+
+        document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
+        toggleTripRoomsConfigurator('edit').then(() => {
+          if (t.has_rooms == 1 && t.rooms_config) {
+            try {
+              const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                const templateId = parsed[0].rooms_template_id || 'custom';
+                document.getElementById('editTripRoomsTemplate').value = templateId;
+                onRoomsTemplateChange('edit');
+                populateRoomsWizardFromConfig('edit', parsed);
+              }
+            } catch (e) { console.error(e); }
+          }
+        });
+
+        toggleEditTripDates();
+        recalcEditTripPrice();
+        openModal('editTripModal');
       }
 
       function toggleEditTripPointsGame() {
@@ -10058,28 +10077,6 @@
           </button>
         `;
         container.appendChild(rowDiv);
-      }
-
-      function dummyPlaceholderForNextFunc() {
-
-        document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
-        toggleTripRoomsConfigurator('edit').then(() => {
-          if (t.has_rooms == 1 && t.rooms_config) {
-            try {
-              const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                const templateId = parsed[0].rooms_template_id || 'custom';
-                document.getElementById('editTripRoomsTemplate').value = templateId;
-                onRoomsTemplateChange('edit');
-                populateRoomsWizardFromConfig('edit', parsed);
-              }
-            } catch (e) { console.error(e); }
-          }
-        });
-
-        toggleEditTripDates();
-        recalcEditTripPrice();
-        openModal('editTripModal');
       }
 
       async function updateTrip(e) {
