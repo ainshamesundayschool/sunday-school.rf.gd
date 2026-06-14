@@ -694,7 +694,10 @@ $tripTitle = $trip['title'];
                         <button type="button" class="option-btn shortcut-action-btn ${activeClass}" onclick="selectShortcut(${idx})" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:10px 14px; text-align:right;">
                             <span style="display:flex; align-items:center; gap:10px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
-                                <span>${sh.name}</span>
+                                <span style="display:flex; flex-direction:column; align-items:flex-start; text-align:right;">
+                                    <span style="font-weight:700;">${sh.name}</span>
+                                    ${sh.desc ? `<span style="font-size:0.75rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
+                                </span>
                             </span>
                             <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:6px; font-size:0.85rem;">
                                 ${signChar}${sh.points}

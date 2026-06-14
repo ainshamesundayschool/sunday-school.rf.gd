@@ -9999,7 +9999,7 @@
           document.getElementById('editTripPointsType').value = 'shortcuts';
           if (Array.isArray(pointsConfig.shortcuts)) {
             pointsConfig.shortcuts.forEach(s => {
-              addShortcutRow('edit', s.name, s.points, s.icon);
+              addShortcutRow('edit', s.name, s.points, s.icon, s.desc || '');
             });
           }
         } else {
@@ -10045,7 +10045,7 @@
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
       }
 
-      function addShortcutRow(mode, name = '', points = '', icon = 'fas fa-star') {
+      function addShortcutRow(mode, name = '', points = '', icon = 'fas fa-star', desc = '') {
         const container = document.getElementById('editTripShortcutsList');
         const rowId = 'shortcut_row_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
         
@@ -10070,8 +10070,9 @@
             <option value="fas fa-plus" ${icon === 'fas fa-plus' ? 'selected' : ''}>➕</option>
             <option value="fas fa-minus" ${icon === 'fas fa-minus' ? 'selected' : ''}>➖</option>
           </select>
-          <input type="text" class="form-input shortcut-name" placeholder="اسم الإجراء (مثال: حضور مبكر)" value="${escHtml(name)}" style="flex:2; min-width:120px;" required>
-          <input type="number" class="form-input shortcut-points" placeholder="النقاط (مثال: 15 أو -5)" value="${points}" style="width:80px; flex-shrink:0;" required>
+          <input type="text" class="form-input shortcut-name" placeholder="الاسم (مثال: حضور مبكر)" value="${escHtml(name)}" style="flex:2; min-width:120px;" required>
+          <input type="text" class="form-input shortcut-desc" placeholder="الوصف (اختياري)" value="${escHtml(desc)}" style="flex:2; min-width:120px;">
+          <input type="number" class="form-input shortcut-points" placeholder="النقاط" value="${points}" style="width:80px; flex-shrink:0;" required>
           <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove()" style="padding: 8px 10px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink:0;" title="حذف">
             <i class="fas fa-trash"></i>
           </button>
@@ -10139,9 +10140,10 @@
             document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
               const icon = row.querySelector('.shortcut-icon').value;
               const name = row.querySelector('.shortcut-name').value.trim();
+              const desc = row.querySelector('.shortcut-desc').value.trim();
               const points = parseInt(row.querySelector('.shortcut-points').value || 0);
               if (name) {
-                shortcuts.push({ icon, name, points });
+                shortcuts.push({ icon, name, desc, points });
               }
             });
             pointsConfig = JSON.stringify({ points_type: 'shortcuts', shortcuts });

@@ -1682,7 +1682,10 @@
                         <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx})" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:14px; text-align:right; font-size:1.0rem; height:auto; border-radius:12px;">
                             <span style="display:flex; align-items:center; gap:12px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
-                                <span>${sh.name}</span>
+                                <span style="display:flex; flex-direction:column; align-items:flex-start;">
+                                    <span style="font-weight:700;">${sh.name}</span>
+                                    ${sh.desc ? `<span style="font-size:0.75rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
+                                </span>
                             </span>
                             <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:0.9rem;">
                                 ${signChar}${sh.points}

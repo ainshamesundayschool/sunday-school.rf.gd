@@ -22076,6 +22076,14 @@ function updateTrip()
 
         }
 
+        $pointsConfig = $_POST['points_config'] ?? null;
+
+        if ($pointsConfig === '' || $pointsConfig === 'null') {
+
+            $pointsConfig = null;
+
+        }
+
         $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
 
         if (in_array(strtolower($customFields), ['0', 'null', 'undefined'], true)) {
@@ -22346,12 +22354,12 @@ function updateTrip()
                     start_date = ?, end_date = ?, price = ?, 
                     discount = ?, discount_type = ?, max_participants = ?, 
                     status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-                    has_rooms = ?, rooms_config = ?, updated_at = NOW()
+                    has_rooms = ?, rooms_config = ?, points_config = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             // Corrected type specifier string: index 15 (has_rooms) is i, index 16 (rooms_config) is s
             $stmt->bind_param(
-                "sssssddsisiiisisii",
+                "sssssddsisiiissiii",
                 $title,
                 $description,
                 $type,
@@ -22368,6 +22376,7 @@ function updateTrip()
                 $customFieldIcons,
                 $hasRooms,
                 $roomsConfig,
+                $pointsConfig,
                 $tripId,
                 $churchId
             );
