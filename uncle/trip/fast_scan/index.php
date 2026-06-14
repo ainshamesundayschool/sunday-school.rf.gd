@@ -686,6 +686,7 @@ $tripTitle = $trip['title'];
 
         // Scanned kids log array
         let scansLog = [];
+        let searchQuery = '';
 
         // Toast notifications handlers
         let toastTimeout = null;
