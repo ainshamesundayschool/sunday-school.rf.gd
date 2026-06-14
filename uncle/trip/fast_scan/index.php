@@ -1255,7 +1255,7 @@ $tripTitle = $trip['title'];
                 if (res.success) {
                     showToast(`تم التراجع بنجاح!`, 'success');
                     // Remove this scan from list
-                    scansLog = scansLog.filter(item => item.id !== logId);
+                    scansLog = scansLog.filter(item => String(item.id) !== String(logId));
                     delete cooldowns[studentId];
                     renderScansList();
                 } else {
