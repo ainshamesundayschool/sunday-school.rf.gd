@@ -812,16 +812,9 @@ $tripTitle = $trip['title'];
             
             html5QrcodeScanner = new Html5Qrcode("reader");
             
-            // Define a dynamic square scan box that fits beautifully inside the reader container
-            const qrboxSquare = function(viewfinderWidth, viewfinderHeight) {
-                let size = Math.min(viewfinderWidth, viewfinderHeight) - 40;
-                if (size < 160) size = 160;
-                return { width: size, height: size };
-            };
-
             html5QrcodeScanner.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: qrboxSquare },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText, decodedResult) => {
                     handleScannedText(decodedText);
                 },
