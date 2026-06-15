@@ -104,12 +104,12 @@
             --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
 
             /* Radius */
-            --r-xs: 4px;
-            --r-sm: 6px;
-            --r-md: 10px;
-            --r-lg: 12px;
-            --r-xl: 16px;
-            --r-2xl: 20px;
+            --r-xs: 6px;
+            --r-sm: 10px;
+            --r-md: 14px;
+            --r-lg: 18px;
+            --r-xl: 24px;
+            --r-2xl: 32px;
             --r-full: 9999px;
 
             /* Motion */
@@ -207,7 +207,7 @@
         .topbar-logo {
             width: 32px;
             height: 32px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             background: var(--brand-bg);
             display: flex;
             align-items: center;
@@ -622,7 +622,7 @@
         .scan-photo {
             width: 36px;
             height: 36px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             object-fit: cover;
             background: var(--surface-2);
             display: flex;
@@ -661,7 +661,7 @@
             font-weight: 900;
             font-size: 0.85rem;
             padding: 3px 8px;
-            border-radius: 6px;
+            border-radius: var(--r-xs);
         }
         .scan-badge.plus {
             background: var(--success-bg);
@@ -682,7 +682,7 @@
             font-weight: 700;
             font-size: 0.68rem;
             padding: 4px 8px;
-            border-radius: 6px;
+            border-radius: var(--r-xs);
             cursor: pointer;
             transition: all var(--t);
             display: flex;
@@ -775,6 +775,15 @@
             color: var(--text-3);
             font-size: 0.75rem;
             flex-shrink: 0;
+        }
+
+        /* Generic Card Styling */
+        .card {
+            background: var(--surface);
+            border-radius: var(--r-xl);
+            padding: 16px;
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
         }
 
         /* Profile points manager view card */
@@ -918,7 +927,7 @@
             background: var(--bg);
             color: var(--text-3);
             padding: 2px 8px;
-            border-radius: 12px;
+            border-radius: var(--r-md);
             font-size: 0.7rem;
             font-weight: 700;
             border: 1px solid var(--border);
@@ -958,7 +967,7 @@
         }
         .point-chip {
             padding: 6px 0;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             font-size: 0.95rem;
             font-weight: 800;
             border: 2px solid var(--border-solid);
@@ -983,7 +992,7 @@
         }
         .btn-action {
             padding: 10px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             font-size: 0.95rem;
             font-weight: 800;
             border: none;
@@ -1028,7 +1037,7 @@
             color: white;
             font-size: 0.65rem;
             padding: 1px 6px;
-            border-radius: 4px;
+            border-radius: var(--r-xs);
             font-weight: 800;
             margin-right: 6px;
             display: none;
@@ -1062,7 +1071,7 @@
         }
         .option-btn {
             padding: 6px 2px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             border: 2px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
@@ -1081,14 +1090,14 @@
             display: flex;
             background: var(--surface-3);
             padding: 3px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             margin-bottom: 8px;
             gap: 4px;
         }
         .sign-btn {
             flex: 1;
             padding: 6px;
-            border-radius: 6px;
+            border-radius: var(--r-xs);
             border: none;
             background: none;
             font-weight: 800;
@@ -1114,7 +1123,7 @@
             width: 100%;
             min-height: 200px;
             background: #000;
-            border-radius: 10px;
+            border-radius: var(--r-md);
             overflow: hidden;
             position: relative;
         }
@@ -1140,7 +1149,7 @@
             background: var(--text);
             color: white;
             padding: 8px 16px;
-            border-radius: 50px;
+            border-radius: var(--r-lg);
             font-weight: 600;
             font-size: 0.85rem;
             box-shadow: var(--shadow-lg);
@@ -1164,7 +1173,7 @@
             color: white;
             border: none;
             padding: 2px 6px;
-            border-radius: 4px;
+            border-radius: var(--r-xs);
             font-size: 0.65rem;
             cursor: pointer;
             margin-right: 4px;
@@ -1218,7 +1227,7 @@
         <div id="viewTripDetails" class="view-section active">
             <div class="hero-strip" style="justify-content: flex-start; gap: 12px;">
                 <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
-                    style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;"><i
+                    style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;"><i
                         class="fas fa-arrow-right"></i> عودة</button>
                 <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
                 <div id="adminActions" style="display:none; align-items:center; gap:10px; margin-right: auto;">
@@ -1272,7 +1281,7 @@
             </div>
 
             <!-- Custom Fields as Cards -->
-            <div id="fieldsBreadcrumbs" style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:12px; border:1px solid var(--border);">
+            <div id="fieldsBreadcrumbs" style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:var(--r-lg); border:1px solid var(--border);">
             </div>
             <div class="fields-grid" id="fieldsGrid"></div>
 
@@ -1280,14 +1289,14 @@
             <div class="split-scans-container" style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
                 <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>سجل المسوحات الأخير بالرحلة</span>
-                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
+                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: var(--r-sm); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
                         <i class="fas fa-sync-alt"></i> تحديث
                     </button>
                 </div>
                 
                 <!-- Search bar -->
                 <div class="search-wrap" style="margin-bottom: 15px; position: relative;">
-                    <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 10px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
+                    <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..." oninput="filterScansList()" style="width: 100%; padding: 10px 14px 10px 38px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
                     <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
                 </div>
 
@@ -1320,11 +1329,11 @@
         <!-- VIEW: GROUP FILTER -->
         <div id="viewGroupFilter" class="view-section">
             <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
-                <button class="topbar-btn" onclick="navigateTo('dashboard')" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;">
+                <button class="topbar-btn" onclick="navigateTo('dashboard')" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
                 </button>
                 <div class="hero-greeting" id="filterLabel">جاري التحميل...</div>
-                <span id="kidsCountLabel" style="font-size:0.75rem; color:var(--text-3); font-weight:700; margin-right: auto; padding: 4px 8px; background:var(--surface-3); border-radius: 6px;"></span>
+                <span id="kidsCountLabel" style="font-size:0.75rem; color:var(--text-3); font-weight:700; margin-right: auto; padding: 4px 8px; background:var(--surface-3); border-radius: var(--r-sm);"></span>
             </div>
             <div class="kids-list" id="kidsList"></div>
         </div>
@@ -1332,7 +1341,7 @@
         <!-- VIEW: STUDENT PROFILE -->
         <div id="viewStudentProfile" class="view-section">
             <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
-                <button class="topbar-btn" onclick="goBackFromProfile()" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;">
+                <button class="topbar-btn" onclick="goBackFromProfile()" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
                 </button>
                 <div class="hero-greeting">ملف الطفل النقاط</div>
@@ -1391,12 +1400,12 @@
         <!-- VIEW: FAST SCAN -->
         <div id="viewFastScan" class="view-section">
             <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
-                <button class="topbar-btn" onclick="navigateTo('dashboard')" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:10px;margin:0;">
+                <button class="topbar-btn" onclick="navigateTo('dashboard')" style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
                 </button>
                 <div class="hero-greeting">الماسح السريع للنقاط</div>
                 
-                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3);padding:3px;border-radius:10px;margin-bottom:0;gap:4px;direction:rtl;margin-right:auto;flex:1;max-width:200px;">
+                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3);padding:3px;border-radius:var(--r-md);margin-bottom:0;gap:4px;direction:rtl;margin-right:auto;flex:1;max-width:200px;">
                     <button type="button" id="fast_tab_camera" class="scanner-source-tab" onclick="switchFastScanSource('camera')">
                         <i class="fas fa-camera"></i> الكاميرا
                     </button>
@@ -1419,7 +1428,7 @@
                     </div>
                     <div id="fastScanControlsArea"></div>
                     
-                    <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); font-size: 0.72rem; color: var(--text-2); font-weight: 700; margin-top:10px;">
+                    <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); font-size: 0.72rem; color: var(--text-2); font-weight: 700; margin-top:10px;">
                         <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
                         <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة.</div>
                     </div>
@@ -1430,7 +1439,7 @@
             <div class="split-scans-container" style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
                 <div class="section-title" style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>سجل المسوحات الأخير بالرحلة</span>
-                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
+                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل" style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: var(--r-sm); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
                         <i class="fas fa-sync-alt"></i> تحديث
                     </button>
                 </div>
@@ -1465,21 +1474,21 @@
         <div id="scannerModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
             <div
-                style="background:var(--surface); padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
+                style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:400px; text-align:center;">
                 <h3 style="margin-bottom:15px; font-weight: 800;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
                 
                 <!-- Scanner source selector (Camera vs. USB) -->
-                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3, #e5e7eb);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;direction:rtl;">
-                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
+                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3, #e5e7eb);padding:4px;border-radius:var(--r-md);margin-bottom:12px;gap:4px;direction:rtl;">
+                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1;padding:8px;border-radius:var(--r-sm);border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
                         <i class="fas fa-camera"></i> الكاميرا
                     </button>
-                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
+                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1;padding:8px;border-radius:var(--r-sm);border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--muted, #888);transition:all 0.2s;">
                         <i class="fas fa-barcode"></i> ماسح خارجي
                     </button>
                 </div>
 
                 <div id="reader"
-                    style="width:100%; min-height:300px; background:#000; border-radius: 12px; overflow: hidden;"></div>
+                    style="width:100%; min-height:300px; background:#000; border-radius: var(--r-lg); overflow: hidden;"></div>
                 <button class="topbar-btn" onclick="stopScanner()"
                     style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
                         class="fas fa-times"></i> إلغاء</button>
@@ -1887,7 +1896,7 @@
                     const signChar = sh.points >= 0 ? '+' : '';
                     const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
                     html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem; height:auto; border-radius:8px;">
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem; height:auto; border-radius:var(--r-sm);">
                             <span style="display:flex; align-items:center; gap:12px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start;">
@@ -1895,7 +1904,7 @@
                                     ${sh.desc ? `<span style="font-size:0.72rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:6px; font-size:0.85rem;">
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:var(--r-xs); font-size:0.85rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -1912,7 +1921,7 @@
                     const signChar = sh.points >= 0 ? '+' : '';
                     const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
                     html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:8px;">
+                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:var(--r-sm);">
                             <span style="display:flex; align-items:center; gap:10px;">
                                 <i class="${sh.icon || 'fas fa-star'}"></i>
                                 <span style="display:flex; flex-direction:column; align-items:flex-start;">
@@ -1920,7 +1929,7 @@
                                     ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:6px; font-size:0.78rem;">
+                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:var(--r-xs); font-size:0.78rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -1938,8 +1947,8 @@
                             <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
                         </div>
                         <div class="action-row" style="gap: 6px;">
-                            <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
-                            <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: 8px; border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
+                            <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
+                            <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
                         </div>
                     </div>
                 `;
@@ -2163,7 +2172,7 @@
                                     ${sh.desc ? `<span style="font-size:0.72rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:6px; font-size:0.8rem;">
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 8px; border-radius:var(--r-xs); font-size:0.8rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -2187,7 +2196,7 @@
                                     ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.75; font-weight:normal; display:block;">${sh.desc}</span>` : ''}
                                 </span>
                             </span>
-                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 6px; border-radius:6px; font-size:0.78rem;">
+                            <span style="font-weight:900; background:var(--brand-bg); padding:2px 6px; border-radius:var(--r-xs); font-size:0.78rem;">
                                 ${signChar}${sh.points}
                             </span>
                         </button>
@@ -2419,7 +2428,7 @@
                 if (activeCooldown.change === changeAmount && activeCooldown.actionNote === actionName) {
                     playErrorSound();
                     showToast(
-                        `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassFastScanCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
+                        `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassFastScanCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:var(--r-xs);font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
                         'warning'
                     );
                     return;
@@ -3170,7 +3179,7 @@
                 const box = document.createElement('div');
                 box.style = `
                     background: var(--surface, #ffffff);
-                    border-radius: 16px;
+                    border-radius: var(--r-xl);
                     padding: 24px;
                     width: 90%; max-width: 400px;
                     box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
@@ -3185,7 +3194,7 @@
                     <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text, #1f2937); margin-bottom: 16px; line-height: 1.5; text-align: center;">${message}</h3>
                     <button id="customAlertBtn" style="
                         background: var(--brand, #4f46e5); color: white;
-                        border: none; padding: 10px 24px; border-radius: 8px;
+                        border: none; padding: 10px 24px; border-radius: var(--r-sm);
                         font-weight: 700; font-size: 1rem; cursor: pointer;
                         transition: background 0.15s; width: 100%;
                     ">موافق</button>
@@ -3226,7 +3235,7 @@
                 const box = document.createElement('div');
                 box.style = `
                     background: var(--surface, #ffffff);
-                    border-radius: 16px;
+                    border-radius: var(--r-xl);
                     padding: 24px;
                     width: 90%; max-width: 400px;
                     box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
@@ -3242,13 +3251,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <button id="customConfirmYes" style="
                             background: var(--brand, #4f46e5); color: white;
-                            border: none; padding: 10px 16px; border-radius: 8px;
+                            border: none; padding: 10px 16px; border-radius: var(--r-sm);
                             font-weight: 700; font-size: 1rem; cursor: pointer;
                             transition: background 0.15s;
                         ">${yesLabel}</button>
                         <button id="customConfirmNo" style="
                             background: var(--bg, #f3f4f6); color: var(--text-2, #4b5563);
-                            border: 1px solid var(--border, #e5e7eb); padding: 10px 16px; border-radius: 8px;
+                            border: 1px solid var(--border, #e5e7eb); padding: 10px 16px; border-radius: var(--r-sm);
                             font-weight: 700; font-size: 1rem; cursor: pointer;
                             transition: background 0.15s;
                         ">${noLabel}</button>
@@ -3392,10 +3401,10 @@
                 statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
             } else {
                 const uncleSuffix = item.uncleName 
-                    ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
+                    ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>` 
                     : '';
                 const noteSuffix = item.actionNote 
-                    ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:4px;margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
+                    ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
                     : '';
                 const timeStr = item.createdAt ? ` <span style="font-size:0.7rem;color:var(--text-3);margin-right:6px;"><i class="far fa-clock"></i> ${formatLogTime(item.createdAt)}</span>` : '';
                 statusHtml = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> تم الحفظ</span>${timeStr}${noteSuffix}${uncleSuffix}`;
