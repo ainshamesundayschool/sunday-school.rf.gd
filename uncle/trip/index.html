@@ -531,6 +531,17 @@
             background: #d97706 !important;
         }
 
+        .split-scans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            min-width: 0;
+        }
+        .scans-column {
+            min-width: 0;
+        }
+
         /* Compact History Scan lists */
         .scan-item {
             background: var(--surface);
@@ -1423,6 +1434,24 @@
             } catch (e) {
                 console.error("API Call error:", e);
                 return { success: false, message: "Network connection error" };
+            }
+        }
+        function updatePointsDisplay(points, isNaughty) {
+            const display = document.getElementById('pointsDisplay');
+            if (!display) return;
+            display.textContent = points;
+            
+            const btnNaughty = document.getElementById('btnNaughty');
+            const btnNaughtyLabel = document.getElementById('btnNaughtyLabel');
+            
+            if (isNaughty) {
+                display.classList.add('naughty');
+                if (btnNaughty) btnNaughty.classList.add('active');
+                if (btnNaughtyLabel) btnNaughtyLabel.textContent = 'إلغاء الشغب';
+            } else {
+                display.classList.remove('naughty');
+                if (btnNaughty) btnNaughty.classList.remove('active');
+                if (btnNaughtyLabel) btnNaughtyLabel.textContent = 'تعيين شغب';
             }
         }
         let tripId = null;
