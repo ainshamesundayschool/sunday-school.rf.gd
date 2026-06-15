@@ -69,7 +69,6 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Essential tokens from dashboard */
         :root {
             /* Brand */
             --brand: #5b6cf5;
@@ -105,12 +104,12 @@
             --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
 
             /* Radius */
-            --r-xs: 6px;
-            --r-sm: 10px;
-            --r-md: 14px;
-            --r-lg: 18px;
-            --r-xl: 24px;
-            --r-2xl: 32px;
+            --r-xs: 4px;
+            --r-sm: 6px;
+            --r-md: 10px;
+            --r-lg: 12px;
+            --r-xl: 16px;
+            --r-2xl: 20px;
             --r-full: 9999px;
 
             /* Motion */
@@ -151,7 +150,6 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding-bottom: 20px;
             transition: background var(--t) var(--ease), color var(--t) var(--ease);
             position: relative;
         }
@@ -183,27 +181,28 @@
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 0 16px;
-            height: 58px;
+            padding: 0 10px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
             transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
+            border-bottom: 1px solid var(--border);
         }
 
         .topbar-brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-decoration: none;
             flex-shrink: 0;
         }
 
         .topbar-logo {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             background: var(--brand-bg);
             display: flex;
             align-items: center;
@@ -213,23 +212,23 @@
         }
 
         .topbar-title {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 800;
             color: var(--text);
         }
 
         .topbar-search-container {
             flex: 1;
-            max-width: 300px;
+            max-width: 260px;
             position: relative;
         }
 
         .topbar-search-input {
             width: 100%;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: 1.5px solid var(--border-solid);
             border-radius: var(--r-md);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             background: var(--bg);
             color: var(--text);
             transition: all var(--t) var(--ease);
@@ -250,7 +249,7 @@
             border: 1px solid var(--border-solid);
             border-radius: var(--r-md);
             margin-top: 5px;
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
             display: none;
             z-index: 400;
@@ -262,10 +261,12 @@
         }
 
         .search-result-item {
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.85rem;
+            text-align: right;
         }
 
         .search-result-item:hover {
@@ -280,20 +281,20 @@
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .topbar-btn {
-            height: 38px;
-            padding: 0 12px;
-            border-radius: var(--r-md);
+            height: 32px;
+            padding: 0 10px;
+            border-radius: var(--r-sm);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: var(--surface);
             border: 1.5px solid var(--border-solid);
             color: var(--text-2);
-            font-size: 0.88rem;
+            font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
             text-decoration: none;
@@ -307,57 +308,62 @@
             border-color: var(--brand);
         }
 
+        /* Views management */
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+        }
+
         .page-wrap {
-            max-width: 1440px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
         }
 
         .hero-strip {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
+            margin-bottom: 12px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .hero-greeting {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Camera Button */
+        /* Camera Button compact styling */
         .btn-camera-big {
-            padding: 30px;
-            border-radius: var(--r-xl);
+            padding: 10px 4px;
+            border-radius: var(--r-md);
             background: var(--success);
             color: white;
             border: none;
             cursor: pointer;
-            font-size: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            box-shadow: var(--shadow-lg);
+            gap: 4px;
             transition: all var(--t) var(--spring);
-            font-weight: 900;
+            font-weight: 800;
             flex-direction: column;
             text-decoration: none;
-            margin: 0 auto 20px;
-            width: fit-content;
-            min-width: 200px;
+            margin: 0;
+            width: 100%;
+            min-width: 0;
+            box-shadow: none;
         }
 
         .btn-camera-big:hover {
             background: var(--success-dark);
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-camera-big:active {
-            transform: translateY(-2px) scale(0.98);
+            transform: translateY(-2px);
         }
 
         .btn-coupon-fast {
@@ -366,7 +372,6 @@
 
         .btn-coupon-fast:hover {
             background: #4338ca !important;
-            box-shadow: 0 25px 50px rgba(91, 108, 245, 0.3) !important;
         }
 
         .btn-welcome-screen {
@@ -375,267 +380,105 @@
 
         .btn-welcome-screen:hover {
             background: #6d28d9 !important;
-            box-shadow: 0 25px 50px rgba(139, 92, 246, 0.3) !important;
         }
 
         .btn-camera-text {
-            font-size: 1.2rem;
+            font-size: 0.75rem;
         }
 
-        /* Custom Field Cards */
+        /* Custom Field Cards compact */
         .fields-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .field-card {
             background: var(--surface);
-            border-radius: var(--r-xl);
-            padding: 20px;
-            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: 10px;
+            border: 1.5px solid var(--border-solid);
             box-shadow: var(--shadow-sm);
             transition: all var(--t) var(--spring);
+            cursor: pointer;
         }
 
         .field-card:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
             border-color: var(--brand);
         }
 
         .field-card-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border);
+            text-align: center;
+            gap: 4px;
         }
 
         .field-card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--r-lg);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-sm);
             background: var(--brand-bg);
             color: var(--brand);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             flex-shrink: 0;
         }
 
         .field-card-title {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--text);
-        }
-
-        .field-card-count {
-            font-size: 0.75rem;
-            color: var(--text-3);
-            font-weight: 700;
-        }
-
-        .kids-in-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .kid-item {
-            background: var(--bg);
-            border-radius: var(--r-md);
-            padding: 8px 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .kid-item:hover {
-            background: var(--brand-bg);
-            transform: translateX(-5px);
-        }
-
-        .kid-avatar-sm {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--brand-light);
-            color: var(--brand);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 0.8rem;
             font-weight: 800;
-            flex-shrink: 0;
-            object-fit: cover;
-        }
-
-        .kid-name-sm {
-            font-size: 0.85rem;
-            font-weight: 700;
             color: var(--text);
-            flex: 1;
-            min-width: 0;
+            max-width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .kid-points-sm {
-            font-size: 0.75rem;
-            color: var(--success);
-            font-weight: 800;
+        .field-card-count {
+            font-size: 0.7rem;
+            color: var(--text-3);
+            font-weight: 700;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: var(--text-3);
             display: none;
+            font-size: 0.9rem;
         }
 
         .loading i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
         }
 
-        /* Print Styles */
-        @media screen {
-            #printArea {
-                display: none !important;
-            }
-        }
-
-        @media print {
-            @page {
-                size: auto;
-                margin: 4mm;
-            }
-
-            body * {
-                visibility: hidden !important;
-            }
-            #printArea, #printArea * {
-                visibility: visible !important;
-            }
-            #printArea {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                display: flex !important;
-                flex-wrap: wrap !important;
-                justify-content: center !important;
-                gap: 20px !important;
-                padding: 20px !important;
-                background: white !important;
-            }
-
-            .print-card {
-                border: 2px dashed #000;
-                padding: 15px;
-                text-align: center;
-                border-radius: 10px;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                display: flex !important;
-                flex-direction: column;
-                justify-content: space-between;
-                align-items: center;
-                width: 260px;
-                height: 360px;
-                margin: 0 !important;
-                box-sizing: border-box;
-                background: #fff;
-            }
-
-            .print-card img.avatar {
-                width: 70px;
-                height: 70px;
-                border-radius: 50%;
-                margin: 0;
-                object-fit: cover;
-                display: block !important;
-            }
-
-            .print-card h3 {
-                font-size: 13px;
-                font-weight: 700;
-                margin: 0;
-                color: #000 !important;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
-            }
-
-            .print-card h2 {
-                font-size: 18px;
-                font-weight: 800;
-                margin: 0;
-                color: #000 !important;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
-            }
-
-            .print-card .custom-info {
-                font-size: 11px;
-                font-weight: bold;
-                color: #000 !important;
-                margin: 0;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 6px;
-                width: 100%;
-            }
-
-            .print-card div[id^="qrcode_"] {
-                width: 130px;
-                height: 130px;
-                display: flex !important;
-                justify-content: center;
-                align-items: center;
-                margin: 0 auto;
-            }
-
-            .print-card div[id^="qrcode_"] canvas {
-                display: none !important;
-            }
-
-            .print-card div[id^="qrcode_"] img {
-                width: 130px !important;
-                height: 130px !important;
-                display: block !important;
-                margin: 0 auto;
-            }
-        }
-        .breadcrumb-item { cursor:pointer; color:var(--primary); font-weight:700; transition:opacity 0.2s; }
+        .breadcrumb-item { cursor:pointer; color:var(--brand); font-weight:700; transition:opacity 0.2s; font-size: 0.75rem; }
         .breadcrumb-item:hover { opacity:0.8; }
         .breadcrumb-item.active { color:var(--text); cursor:default; }
+        
+        /* Modal direct and shortcuts buttons */
         .modal-shortcut-btn {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 10px;
-            border-radius: 8px;
+            padding: 5px 8px;
+            border-radius: var(--r-sm);
             border: 1.5px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             text-align: right;
-            min-height: 38px;
+            min-height: 32px;
         }
         .modal-shortcut-btn.active {
             border-color: var(--brand) !important;
@@ -644,13 +487,13 @@
         }
         .modal-direct-btn {
             flex: 1;
-            padding: 6px 4px;
-            border-radius: 8px;
+            padding: 5px 4px;
+            border-radius: var(--r-sm);
             border: 1.5px solid var(--border-solid);
             background: var(--surface);
             color: var(--text-2);
             font-weight: 800;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
@@ -662,17 +505,17 @@
         }
         .scanner-source-tab {
             flex: 1;
-            padding: 8px 4px;
-            border-radius: 8px;
+            padding: 6px 4px;
+            border-radius: var(--r-sm);
             border: none;
             background: none;
             font-weight: 700;
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
             color: var(--text-3);
             transition: all 0.2s;
         }
@@ -681,30 +524,32 @@
         }
         .btn-leaderboard:hover {
             background: #d97706 !important;
-            box-shadow: 0 25px 50px rgba(245, 158, 11, 0.3) !important;
         }
+
+        /* Compact History Scan lists */
         .scan-item {
             background: var(--surface);
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: var(--r-md);
+            padding: 8px 10px;
             border: 1.5px solid var(--border-solid);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             animation: slideIn 0.3s var(--ease);
             box-shadow: var(--shadow-sm);
+            margin-bottom: 8px;
         }
         .scan-photo {
-            width: 46px;
-            height: 46px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             object-fit: cover;
             background: var(--surface-2);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-3);
-            font-size: 1.1rem;
+            font-size: 1rem;
             flex-shrink: 0;
             border: 1px solid var(--border-solid);
         }
@@ -714,27 +559,30 @@
         }
         .scan-name {
             font-weight: 800;
-            font-size: 0.9rem;
-            margin-bottom: 2px;
+            font-size: 0.85rem;
+            margin-bottom: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: right;
         }
         .scan-status {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 700;
             color: var(--text-3);
             display: flex;
             align-items: center;
             gap: 4px;
             text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .scan-badge {
             font-weight: 900;
-            font-size: 0.9rem;
-            padding: 4px 10px;
-            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 3px 8px;
+            border-radius: 6px;
         }
         .scan-badge.plus {
             background: var(--success-bg);
@@ -746,21 +594,21 @@
         }
         .scan-actions {
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
         .scan-action-btn {
             border: 1px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
             font-weight: 700;
-            font-size: 0.75rem;
-            padding: 6px 10px;
-            border-radius: 8px;
+            font-size: 0.68rem;
+            padding: 4px 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all var(--t);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
         .scan-action-btn:hover {
             border-color: var(--brand);
@@ -772,6 +620,479 @@
             color: var(--danger);
             background: var(--danger-bg);
         }
+
+        /* Kids List (group_filter) */
+        .kids-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .kid-card {
+            background: var(--surface);
+            border-radius: var(--r-md);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all var(--t) var(--spring);
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+        }
+        .kid-card:hover {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+            transform: translateX(-3px);
+        }
+        .kid-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--brand-light);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 900;
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+        .kid-info {
+            flex: 1;
+            min-width: 0;
+            text-align: right;
+        }
+        .kid-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kid-meta {
+            font-size: 0.72rem;
+            color: var(--text-3);
+            margin-top: 1px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kid-points {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--success-bg);
+            color: var(--success-dark);
+            padding: 3px 8px;
+            border-radius: var(--r-full);
+            font-size: 0.8rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .kid-arrow {
+            color: var(--text-3);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        /* Profile points manager view card */
+        .profile-card {
+            background: var(--surface);
+            border-radius: var(--r-lg);
+            padding: 15px 12px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            margin-bottom: 10px;
+            border: 1.5px solid var(--border-solid);
+            transition: all var(--t) var(--spring);
+        }
+        .btn-naughty-sm {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            height: 28px;
+            border-radius: var(--r-full);
+            background: var(--surface-3);
+            color: var(--text-2);
+            border: 1px solid var(--border-solid);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--t) var(--spring);
+            z-index: 10;
+            padding: 4px 8px;
+            gap: 4px;
+            font-weight: 700;
+        }
+        .btn-naughty-sm:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .btn-naughty-sm.active {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 8px var(--danger);
+        }
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--brand-light);
+            background: var(--brand-light);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .info-col {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+        }
+        .name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .class-name {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+        .points-display {
+            background: var(--surface);
+            color: var(--brand-dark);
+            font-size: 1.6rem;
+            font-weight: 900;
+            padding: 4px 14px;
+            border-radius: var(--r-full);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--brand);
+            transition: all var(--t) var(--spring);
+            position: relative;
+            min-width: 80px;
+            min-height: 44px;
+            text-align: center;
+        }
+        .points-display.naughty {
+            background: var(--danger-bg);
+            color: var(--danger-dark);
+            border-color: var(--danger);
+        }
+        .points-display.settling {
+            opacity: 0.7;
+            pointer-events: none;
+            color: transparent !important;
+        }
+        .points-display.settling::after {
+            content: "\\f110";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            animation: fa-spin 1s infinite linear;
+            z-index: 2;
+            color: var(--brand-dark) !important;
+        }
+        .points-display.naughty.settling::after {
+            color: var(--danger-dark) !important;
+        }
+        .custom-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .tag {
+            background: var(--bg);
+            color: var(--text-3);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tag:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-bg);
+        }
+        .control-panel {
+            background: var(--surface);
+            border-radius: var(--r-md);
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-solid);
+            flex-shrink: 0;
+        }
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-3);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .points-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .point-chip {
+            padding: 6px 0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            border: 2px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .point-chip.selected {
+            border-color: var(--brand);
+            background: var(--brand-light);
+            color: var(--brand-dark);
+            transform: scale(1.04);
+        }
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-action {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-action:active {
+            transform: scale(0.96);
+        }
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-add {
+            background: var(--success);
+            color: white;
+            border-bottom: 2px solid var(--success-dark);
+        }
+        .btn-add:hover {
+            background: var(--success-dark);
+        }
+        .btn-sub {
+            background: var(--warning);
+            color: white;
+            border-bottom: 2px solid var(--warning-dark);
+        }
+        .btn-sub:hover {
+            background: var(--warning-dark);
+        }
+        .control-panel .shortcut-btn {
+            transition: all var(--t) var(--ease);
+        }
+        .control-panel .shortcut-btn:hover {
+            transform: translateY(-1px);
+        }
+        .naughty-tag {
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            margin-right: 6px;
+            display: none;
+            animation: tagPulse 2s infinite;
+        }
+        @keyframes tagPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .naughty-tag.show {
+            display: inline-block;
+        }
+
+        /* Fast scan view top grid */
+        .top-row-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 600px) {
+            .top-row-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .option-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .option-btn {
+            padding: 6px 2px;
+            border-radius: 8px;
+            border: 2px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all var(--t);
+            text-align: center;
+        }
+        .option-btn.active {
+            border-color: var(--brand);
+            background: var(--brand-bg);
+            color: var(--brand);
+        }
+        .sign-toggle {
+            display: flex;
+            background: var(--surface-3);
+            padding: 3px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            gap: 4px;
+        }
+        .sign-btn {
+            flex: 1;
+            padding: 6px;
+            border-radius: 6px;
+            border: none;
+            background: none;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-3);
+            transition: all var(--t);
+        }
+        .sign-btn.plus.active {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .sign-btn.minus.active {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        #fastReader {
+            width: 100%;
+            min-height: 200px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        #fastReader video, #fastReader canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-lg);
+            transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 100010;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .toast.show {
+            bottom: 16px;
+        }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); }
+        .toast-skip-btn {
+            background: rgba(255,255,255,0.25);
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            margin-right: 4px;
+            font-weight: 700;
+        }
+
+        #fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
         @keyframes slideIn {
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -779,7 +1100,7 @@
         @media (max-width: 650px) {
             .split-scans-grid {
                 grid-template-columns: 1fr !important;
-                gap: 16px;
+                gap: 8px;
             }
         }
     </style>
@@ -831,7 +1152,7 @@
                 </button>
 
                 <!-- Fast Points Scanner -->
-                <button class="btn-camera-big btn-coupon-fast" onclick="openFastCouponScanner()" title="الماسح السريع للنقاط" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
+                <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')" title="الماسح السريع للنقاط" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
                     <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fas fa-bolt fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
                         <i class="fas fa-star fa-stack-1x" style="font-size: 0.8rem; color: white;"></i>
@@ -1315,7 +1636,7 @@
                 }
 
                 let avatarHtml = img
-                    ? `<img src="${img}" class="kid-avatar" onerror="this.outerHTML='<div class=\'kid-avatar\'>${init}</div>'">`
+                    ? `<img src="${img}" class="kid-avatar" onerror="this.outerHTML='<div class=\\'kid-avatar\\'>${init}</div>'">`
                     : `<div class="kid-avatar">${init}</div>`;
 
                 return `
@@ -1694,7 +2015,7 @@
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                showToast("حدث خطأ في الوصول للكاميرا: " + err, "error");
+                alert("حدث خطأ في الوصول للكاميرا: " + err);
                 switchFastScanSource('usb');
             });
         }
@@ -1805,25 +2126,10 @@
             if (activeCooldown && (now - activeCooldown.time < 15000)) {
                 if (activeCooldown.change === changeAmount && activeCooldown.actionNote === actionName) {
                     playErrorSound();
-                    
-                    const kid = regsList.find(r => String(r.student_id) === String(scannedStudentId));
-                    const kidName = kid ? kid.student_name : 'طفل';
-                    const kidImg = kid ? kid.student_image : '';
-                    const kidInit = kidName.charAt(0);
-                    
-                    const imgHtml = kidImg 
-                        ? `<img src="${kidImg}" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.25);" onerror="this.outerHTML='<div style=\"width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.2);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;\">${kidInit}</div>'">`
-                        : `<div style="width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800;">${kidInit}</div>`;
-
-                    const toastMessage = `
-                        <div style="display: flex; align-items: center; gap: 8px; direction: rtl; width: 100%;">
-                            ${imgHtml}
-                            <span style="font-size: 0.78rem; font-weight: 700; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${kidName}</span>
-                            <span style="font-size: 0.68rem; color: #fee2e2; background: rgba(239, 68, 68, 0.2); padding: 2px 6px; border-radius: 4px; font-weight: 700;">مكرر</span>
-                            <button class="toast-skip-btn" onclick="bypassFastScanCooldown('${scannedStudentId}')" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; cursor: pointer; font-weight: 800; margin-right: auto; margin-left: 0; transition: background 0.2s;">تخطي</button>
-                        </div>
-                    `;
-                    showToast(toastMessage, 'warning');
+                    showToast(
+                        `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassFastScanCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:4px;font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
+                        'warning'
+                    );
                     return;
                 }
             }
@@ -2255,7 +2561,7 @@
                 },
                 (errorMessage) => {}
             ).catch((err) => {
-                showToast("حدث خطأ في الوصول للكاميرا: " + err, "error");
+                alert("حدث خطأ في الوصول للكاميرا: " + err);
                 stopScanner();
             });
         }
@@ -2270,7 +2576,7 @@
 
             const scannedStudentId = getKidIdFromQrText(decodedText);
             if (!scannedStudentId) {
-                showToast('الكود الممسوح غير صحيح', 'error');
+                alert('الكود الممسوح غير صحيح');
                 return;
             }
             
@@ -2376,19 +2682,16 @@
             
             t.className = 'toast show ' + type;
             
-            if (msg.trim().startsWith('<')) {
-                t.innerHTML = msg;
-            } else {
-                let icon = '<i class="fas fa-info-circle"></i>';
-                if (type === 'success') {
-                    icon = '<i class="fas fa-check-circle"></i>';
-                } else if (type === 'error') {
-                    icon = '<i class="fas fa-exclamation-circle"></i>';
-                } else if (type === 'warning') {
-                    icon = '<i class="fas fa-exclamation-triangle"></i>';
-                }
-                t.innerHTML = `${icon} <span id="toastMsg">${msg}</span>`;
+            let icon = '<i class="fas fa-info-circle"></i>';
+            if (type === 'success') {
+                icon = '<i class="fas fa-check-circle"></i>';
+            } else if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+            } else if (type === 'warning') {
+                icon = '<i class="fas fa-exclamation-triangle"></i>';
             }
+            
+            t.innerHTML = `${icon} <span id="toastMsg">${msg}</span>`;
             
             if (duration > 0) {
                 toastTimeout = setTimeout(() => {
@@ -2656,7 +2959,7 @@
             }
 
             let photoHtml = item.profilePhoto 
-                ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\'scan-photo\'><i class=\'fas fa-user\'></i></div>'">`
+                ? `<img src="${item.profilePhoto}" class="scan-photo" onerror="this.outerHTML='<div class=\\'scan-photo\\'><i class=\\'fas fa-user\\'></i></div>'">`
                 : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
 
             let actionButtons = '';
@@ -2905,7 +3208,7 @@
         // External components redirection links
         function printQRCards() {
             if (!currentTrip || !currentTrip.id) {
-                showToast('لم يتم تحميل بيانات الرحلة بعد', 'error');
+                alert('لم يتم تحميل بيانات الرحلة بعد');
                 return;
             }
             window.location.href = `/uncle/church/trips/#trips?trip_id=${encodeURIComponent(currentTrip.id)}&action=print`;
