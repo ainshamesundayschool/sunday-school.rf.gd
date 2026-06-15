@@ -387,16 +387,68 @@
             background: #6d28d9 !important;
         }
 
-        .normal-tool-btn {
-            background: var(--surface-2);
-            color: var(--text-2);
-            border: 1.5px solid var(--border-solid);
+        .btn-welcome-pill {
+            background: rgba(139, 92, 246, 0.07);
+            color: #8b5cf6;
+            border: 1.5px solid rgba(139, 92, 246, 0.2);
+            transition: all var(--t) var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            border-radius: var(--r-md);
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            margin: 0;
+            width: 100%;
+        }
+        .btn-welcome-pill:hover {
+            background: #8b5cf6 !important;
+            color: white !important;
+            border-color: #8b5cf6 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.25);
+        }
+        .btn-welcome-pill i {
+            color: #8b5cf6;
             transition: all var(--t) var(--ease);
         }
+        .btn-welcome-pill:hover i {
+            color: white !important;
+        }
 
-        .normal-tool-btn:hover {
-            background: var(--border-solid) !important;
-            transform: translateY(-1px);
+        .btn-leaderboard-pill {
+            background: rgba(245, 158, 11, 0.07);
+            color: #d97706;
+            border: 1.5px solid rgba(245, 158, 11, 0.2);
+            transition: all var(--t) var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            border-radius: var(--r-md);
+            font-weight: 800;
+            font-size: 0.82rem;
+            cursor: pointer;
+            margin: 0;
+            width: 100%;
+        }
+        .btn-leaderboard-pill:hover {
+            background: #f59e0b !important;
+            color: white !important;
+            border-color: #f59e0b !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25);
+        }
+        .btn-leaderboard-pill i {
+            color: #f59e0b;
+            transition: all var(--t) var(--ease);
+        }
+        .btn-leaderboard-pill:hover i {
+            color: white !important;
         }
 
         .btn-camera-text {
@@ -1202,14 +1254,14 @@
                 <!-- Normal Buttons Row -->
                 <div class="other-tools-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
                     <!-- Welcome Display Screen -->
-                    <button class="normal-tool-btn" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: var(--r-md); font-weight: 700; font-size: 0.82rem; cursor: pointer; margin: 0; width: 100%;">
-                        <i class="fas fa-tv" style="color: #8b5cf6;"></i>
+                    <button class="btn-welcome-pill" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
+                        <i class="fas fa-tv"></i>
                         <span>شاشة الترحيب</span>
                     </button>
 
                     <!-- Leaderboard Button -->
-                    <button class="normal-tool-btn" onclick="openLeaderboard()" title="لوحة الصدارة" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: var(--r-md); font-weight: 700; font-size: 0.82rem; cursor: pointer; margin: 0; width: 100%;">
-                        <i class="fas fa-trophy" style="color: #f59e0b;"></i>
+                    <button class="btn-leaderboard-pill" onclick="openLeaderboard()" title="لوحة الصدارة">
+                        <i class="fas fa-trophy"></i>
                         <span>لوحة الصدارة</span>
                     </button>
                 </div>
