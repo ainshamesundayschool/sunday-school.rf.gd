@@ -146,6 +146,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
         body {
             background: var(--bg);
             color: var(--text);
@@ -570,13 +575,11 @@
             font-size: 0.68rem;
             font-weight: 700;
             color: var(--text-3);
-            display: flex;
-            align-items: center;
-            gap: 4px;
             text-align: right;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: block;
         }
         .scan-badge {
             font-weight: 900;
@@ -812,7 +815,7 @@
             color: transparent !important;
         }
         .points-display.settling::after {
-            content: "\\f110";
+            content: "\f110";
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
             position: absolute;
@@ -1039,9 +1042,16 @@
             overflow: hidden;
             position: relative;
         }
-        #fastReader video, #fastReader canvas {
+        #reader, #fastReader {
             width: 100% !important;
-            height: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+        }
+        #reader video, #reader canvas, #reader img,
+        #fastReader video, #fastReader canvas, #fastReader img {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
             object-fit: cover !important;
         }
 
@@ -1064,6 +1074,8 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
+            max-width: calc(100% - 24px);
+            box-sizing: border-box;
         }
         .toast.show {
             bottom: 16px;
@@ -1402,6 +1414,17 @@
 
         <script>
         const API_URL = '/api.php';
+        async function apiCall(action, params = {}) {
+            const fd = new FormData();
+            fd.append('action', action);
+            Object.entries(params).forEach(([k, v]) => fd.append(k, v));
+            try {
+                return await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            } catch (e) {
+                console.error("API Call error:", e);
+                return { success: false, message: "Network connection error" };
+            }
+        }
         let tripId = null;
         let currentTrip = null;
         let regsList = [];
