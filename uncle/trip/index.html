@@ -387,6 +387,18 @@
             background: #6d28d9 !important;
         }
 
+        .normal-tool-btn {
+            background: var(--surface-2);
+            color: var(--text-2);
+            border: 1.5px solid var(--border-solid);
+            transition: all var(--t) var(--ease);
+        }
+
+        .normal-tool-btn:hover {
+            background: var(--border-solid) !important;
+            transform: translateY(-1px);
+        }
+
         .btn-camera-text {
             font-size: 0.75rem;
         }
@@ -1165,41 +1177,42 @@
             </div>
 
             <!-- Scanner & Display Tools -->
-            <div class="scanner-tools-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px; width: 100%;">
-                <!-- Standard Scanner (Points) -->
-                <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; background: var(--success); text-decoration: none; min-width: 0; width: 100%;">
-                    <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-expand fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                        <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.9rem; color: white;"></i>
-                    </span>
-                    <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">نقاط الرحلة</span>
-                </button>
+            <div class="scanner-tools-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; width: 100%;">
+                <!-- Scanner Hero Buttons -->
+                <div class="scanner-hero-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
+                    <!-- Standard Scanner (Points - Profile Icon) -->
+                    <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; background: var(--success); text-decoration: none; min-width: 0; width: 100%;">
+                        <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-expand fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
+                            <i class="fas fa-user fa-stack-1x" style="font-size: 0.85rem; color: white;"></i>
+                        </span>
+                        <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">نقاط الرحلة</span>
+                    </button>
 
-                <!-- Fast Points Scanner -->
-                <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')" title="الماسح السريع للنقاط" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
-                    <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-bolt fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                        <i class="fas fa-star fa-stack-1x" style="font-size: 0.8rem; color: white;"></i>
-                    </span>
-                    <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">الماسح السريع</span>
-                </button>
+                    <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
+                    <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')" title="الماسح السريع للنقاط" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
+                        <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-expand fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
+                            <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.9rem; color: white;"></i>
+                        </span>
+                        <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">الماسح السريع</span>
+                    </button>
+                </div>
 
-                <!-- Welcome Display Screen -->
-                <button class="btn-camera-big btn-welcome-screen" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
-                    <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-tv fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                        <i class="fas fa-volume-up fa-stack-1x" style="font-size: 0.8rem; color: white;"></i>
-                    </span>
-                    <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">شاشة الترحيب</span>
-                </button>
+                <!-- Normal Buttons Row -->
+                <div class="other-tools-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
+                    <!-- Welcome Display Screen -->
+                    <button class="normal-tool-btn" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: var(--r-md); font-weight: 700; font-size: 0.82rem; cursor: pointer; margin: 0; width: 100%;">
+                        <i class="fas fa-tv" style="color: #8b5cf6;"></i>
+                        <span>شاشة الترحيب</span>
+                    </button>
 
-                <!-- Leaderboard Button -->
-                <button class="btn-camera-big btn-leaderboard" onclick="openLeaderboard()" title="لوحة الصدارة" style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
-                    <span class="fa-stack" style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-trophy fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                    </span>
-                    <span class="btn-camera-text" style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">لوحة الصدارة</span>
-                </button>
+                    <!-- Leaderboard Button -->
+                    <button class="normal-tool-btn" onclick="openLeaderboard()" title="لوحة الصدارة" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: var(--r-md); font-weight: 700; font-size: 0.82rem; cursor: pointer; margin: 0; width: 100%;">
+                        <i class="fas fa-trophy" style="color: #f59e0b;"></i>
+                        <span>لوحة الصدارة</span>
+                    </button>
+                </div>
             </div>
 
             <div id="loadingDetails" class="loading">
@@ -2645,8 +2658,145 @@
         }
 
         // Search Bar Handlers
+        function normalizeArabic(text) {
+            if (!text) return '';
+            let s = String(text).trim().toLowerCase();
+            s = s.replace(/[\u064b-\u0652]/g, '');
+            s = s.replace(/[أإآا]/g, 'ا');
+            s = s.replace(/ة/g, 'ه');
+            s = s.replace(/[ىي]/g, 'ي');
+            s = s.replace(/ؤ/g, 'ء');
+            s = s.replace(/ئ/g, 'ء');
+            s = s.replace(/گ/g, 'ك');
+            s = s.replace(/پ/g, 'ب');
+            s = s.replace(/ژ/g, 'ز');
+            s = s.replace(/چ/g, 'ج');
+            s = s.replace(/ڤ/g, 'ف');
+            return s;
+        }
+
+        function francoToArabic(text) {
+            if (!text) return '';
+            let raw = String(text).trim().toLowerCase();
+            if (!/^[a-z0-9\s]+$/i.test(raw)) return '';
+            
+            let res = raw;
+            res = res.replace(/3/g, 'ع');
+            res = res.replace(/2/g, 'ء');
+            res = res.replace(/7/g, 'ح');
+            res = res.replace(/5/g, 'خ');
+            res = res.replace(/6/g, 'ط');
+            res = res.replace(/9/g, 'ص');
+            res = res.replace(/4/g, 'ش');
+            res = res.replace(/8/g, 'ق');
+            res = res.replace(/ou/g, 'و');
+            res = res.replace(/oo/g, 'و');
+            res = res.replace(/ee/g, 'ي');
+            res = res.replace(/ea/g, 'ي');
+            res = res.replace(/kh/g, 'خ');
+            res = res.replace(/sh/g, 'ش');
+            res = res.replace(/th/g, 'ث');
+            res = res.replace(/gh/g, 'غ');
+            res = res.replace(/ph/g, 'ف');
+            res = res.replace(/ch/g, 'ش');
+            
+            res = res.replace(/a/g, 'ا');
+            res = res.replace(/b/g, 'ب');
+            res = res.replace(/t/g, 'ت');
+            res = res.replace(/s/g, 'س');
+            res = res.replace(/j/g, 'ج');
+            res = res.replace(/h/g, 'ه');
+            res = res.replace(/d/g, 'د');
+            res = res.replace(/r/g, 'ر');
+            res = res.replace(/z/g, 'ز');
+            res = res.replace(/f/g, 'ف');
+            res = res.replace(/k/g, 'ك');
+            res = res.replace(/l/g, 'ل');
+            res = res.replace(/m/g, 'م');
+            res = res.replace(/n/g, 'ن');
+            res = res.replace(/w/g, 'و');
+            res = res.replace(/y/g, 'ي');
+            res = res.replace(/e/g, 'ي');
+            res = res.replace(/i/g, 'ي');
+            res = res.replace(/o/g, 'و');
+            res = res.replace(/u/g, 'و');
+            res = res.replace(/g/g, 'ج');
+            res = res.replace(/p/g, 'ب');
+            res = res.replace(/v/g, 'ف');
+            res = res.replace(/x/g, 'كس');
+            res = res.replace(/q/g, 'ق');
+            
+            return normalizeArabic(res);
+        }
+
+        function getMatchScore(student, query) {
+            const qNormalized = normalizeArabic(query);
+            const qRaw = query.trim().toLowerCase();
+            const qFranco = francoToArabic(query);
+
+            let maxScore = 0;
+            const fields = [
+                { val: student.student_name, weight: 1.0 },
+                { val: student.student_class, weight: 0.7 },
+                { val: student.student_id, weight: 1.1 },
+                { val: student.student_phone, weight: 1.1 },
+                { val: student.student_emergency_phone, weight: 1.1 }
+            ];
+
+            fields.forEach(field => {
+                if (!field.val) return;
+                const target = String(field.val);
+                const tNormalized = normalizeArabic(target);
+                const tRaw = target.toLowerCase();
+                let currentScore = 0;
+
+                if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
+                else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
+                else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
+                else if (qFranco && tNormalized === qFranco) currentScore = 92;
+                else if (qFranco && tNormalized.startsWith(qFranco)) currentScore = 72;
+                else if (qFranco && tNormalized.includes(qFranco)) currentScore = 52;
+                else {
+                    let score = 0, queryIdx = 0;
+                    for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
+                        if (tNormalized[i] === qNormalized[queryIdx]) { queryIdx++; score++; }
+                    }
+                    if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
+
+                    if (qFranco) {
+                        let fScore = 0, fIdx = 0;
+                        for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
+                            if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
+                        }
+                        if (fIdx === qFranco.length) {
+                            currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
+                        }
+
+                        let rScore = 0, rIdx = 0;
+                        for (let i = 0; i < qFranco.length && rIdx < tNormalized.length; i++) {
+                            if (qFranco[i] === tNormalized[rIdx]) { rIdx++; rScore++; }
+                        }
+                        if (rIdx === tNormalized.length) {
+                            const ratio = tNormalized.length / qFranco.length;
+                            currentScore = Math.max(currentScore, ratio * 70);
+                        }
+                    }
+                }
+                maxScore = Math.max(maxScore, currentScore * field.weight);
+            });
+            return maxScore;
+        }
+
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.topbar-search-container');
+            if (container && !container.contains(e.target)) {
+                const resultsDiv = document.getElementById('topbarSearchResults');
+                if (resultsDiv) resultsDiv.classList.remove('show');
+            }
+        });
+
         function topbarSearchHandler() {
-            const searchTerm = document.getElementById('topbarSearch').value.toLowerCase().trim();
+            const searchTerm = document.getElementById('topbarSearch').value.trim();
             const resultsDiv = document.getElementById('topbarSearchResults');
 
             if (!searchTerm) {
@@ -2654,20 +2804,34 @@
                 return;
             }
 
-            const filtered = regsList.filter(r => {
-                const name = r.student_name || '';
-                return name.toLowerCase().includes(searchTerm);
-            });
+            let results = regsList.map(r => ({ ...r, _searchScore: getMatchScore(r, searchTerm) }))
+                .filter(r => r._searchScore > 0)
+                .sort((a, b) => b._searchScore - a._searchScore)
+                .slice(0, 15);
 
-            if (filtered.length === 0) {
-                resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا توجد نتائج</div>';
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default; text-align:center; padding:12px; color:var(--text-3);">لا توجد نتائج</div>';
                 resultsDiv.classList.add('show');
                 return;
             }
 
-            resultsDiv.innerHTML = filtered.map(r => {
+            resultsDiv.innerHTML = results.map(r => {
                 const name = r.student_name || '؟';
-                return `<div class="search-result-item" onclick="openKidPoints('${tripId}', '${r.student_id}')">${name}</div>`;
+                const cls = r.student_class || 'بدون فصل';
+                const img = r.student_image || '';
+                const photo = img 
+                    ? `<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
+
+                return `
+                <div class="search-result-item" onclick="openKidPoints('${tripId}', '${r.student_id}')" style="display:flex; align-items:center; gap:10px;">
+                    ${photo}
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fas fa-chalkboard-teacher" style="margin-left:4px;"></i>${cls}</div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
+                </div>`;
             }).join('');
 
             resultsDiv.classList.add('show');
