@@ -587,10 +587,11 @@
             font-weight: 700;
             color: var(--text-3);
             text-align: right;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
         }
         .scan-badge {
             font-weight: 900;
@@ -1443,15 +1444,18 @@
             
             const btnNaughty = document.getElementById('btnNaughty');
             const btnNaughtyLabel = document.getElementById('btnNaughtyLabel');
+            const naughtyTag = document.getElementById('naughtyTag');
             
             if (isNaughty) {
                 display.classList.add('naughty');
                 if (btnNaughty) btnNaughty.classList.add('active');
                 if (btnNaughtyLabel) btnNaughtyLabel.textContent = 'إلغاء الشغب';
+                if (naughtyTag) naughtyTag.classList.add('show');
             } else {
                 display.classList.remove('naughty');
                 if (btnNaughty) btnNaughty.classList.remove('active');
                 if (btnNaughtyLabel) btnNaughtyLabel.textContent = 'تعيين شغب';
+                if (naughtyTag) naughtyTag.classList.remove('show');
             }
         }
         let tripId = null;
@@ -1892,6 +1896,177 @@
                     </div>
                 `;
                 updatePointChips();
+            }
+        }
+
+        function updatePointChips() {
+            document.querySelectorAll('#viewStudentProfile .point-chip').forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'));
+                if (val === currentSelectedPoint) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        }
+
+        function selectPoint(val) {
+            currentSelectedPoint = parseInt(val);
+            localStorage.setItem('trip_game_preferred_point', currentSelectedPoint);
+            updatePointChips();
+        }
+
+        async function executeAction(action, event) {
+            if (isUpdating) return;
+            isUpdating = true;
+            
+            const display = document.getElementById('pointsDisplay');
+            const oldHtml = display ? display.innerHTML : '';
+            if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const res = await apiCall('processGameQRCode', {
+                    trip_id: tripId,
+                    student_id: currentStudentId,
+                    game_action: action,
+                    amount: currentSelectedPoint
+                });
+                
+                if (res.success) {
+                    playSuccessSound();
+                    showToast('تم تعديل النقاط بنجاح', 'success');
+                    updatePointsDisplay(res.points, res.is_naughty);
+                    
+                    // Update local cache
+                    const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                    if (matchIdx > -1) {
+                        let pts = {};
+                        try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch(e){}
+                        pts[tripId] = res.points;
+                        pts["n_" + tripId] = res.is_naughty;
+                        regsList[matchIdx].trip_points = JSON.stringify(pts);
+                        regsList[matchIdx].trip_points_val = res.points;
+                    }
+                    
+                    await loadRecentScans();
+                } else {
+                    playErrorSound();
+                    showToast(res.message || 'فشل تعديل النقاط', 'error');
+                    if (display) display.innerHTML = oldHtml;
+                }
+            } catch (e) {
+                playErrorSound();
+                showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                if (display) display.innerHTML = oldHtml;
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        async function executeShortcutAction(idx, event) {
+            if (isUpdating) return;
+            
+            let pointsConfig = null;
+            if (currentTrip && currentTrip.points_config) {
+                try {
+                    pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                } catch (e) {}
+            }
+            if (!pointsConfig || !pointsConfig.shortcuts || !pointsConfig.shortcuts[idx]) {
+                showToast('اختصار غير صالح', 'error');
+                return;
+            }
+            
+            const sh = pointsConfig.shortcuts[idx];
+            const action = sh.points >= 0 ? 'increment' : 'decrement';
+            const amount = Math.abs(sh.points);
+            
+            isUpdating = true;
+            const display = document.getElementById('pointsDisplay');
+            const oldHtml = display ? display.innerHTML : '';
+            if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const res = await apiCall('processGameQRCode', {
+                    trip_id: tripId,
+                    student_id: currentStudentId,
+                    game_action: action,
+                    amount: amount,
+                    action_name: sh.name
+                });
+                
+                if (res.success) {
+                    playSuccessSound();
+                    showToast(`تم تسجيل: ${sh.name}`, 'success');
+                    updatePointsDisplay(res.points, res.is_naughty);
+                    
+                    // Update local cache
+                    const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                    if (matchIdx > -1) {
+                        let pts = {};
+                        try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch(e){}
+                        pts[tripId] = res.points;
+                        pts["n_" + tripId] = res.is_naughty;
+                        regsList[matchIdx].trip_points = JSON.stringify(pts);
+                        regsList[matchIdx].trip_points_val = res.points;
+                    }
+                    
+                    await loadRecentScans();
+                } else {
+                    playErrorSound();
+                    showToast(res.message || 'فشل تعديل النقاط', 'error');
+                    if (display) display.innerHTML = oldHtml;
+                }
+            } catch (e) {
+                playErrorSound();
+                showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                if (display) display.innerHTML = oldHtml;
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        async function markNaughty(event) {
+            if (isUpdating) return;
+            isUpdating = true;
+            
+            const display = document.getElementById('pointsDisplay');
+            const oldHtml = display ? display.innerHTML : '';
+            if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const res = await apiCall('processGameQRCode', {
+                    trip_id: tripId,
+                    student_id: currentStudentId,
+                    game_action: 'naughty'
+                });
+                
+                if (res.success) {
+                    playSuccessSound();
+                    showToast(res.is_naughty ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
+                    updatePointsDisplay(res.points, res.is_naughty);
+                    
+                    // Update local cache
+                    const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                    if (matchIdx > -1) {
+                        let pts = {};
+                        try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch(e){}
+                        pts[tripId] = res.points;
+                        pts["n_" + tripId] = res.is_naughty;
+                        regsList[matchIdx].trip_points = JSON.stringify(pts);
+                        regsList[matchIdx].trip_points_val = res.points;
+                    }
+                } else {
+                    playErrorSound();
+                    showToast(res.message || 'فشل تعديل حالة الشغب', 'error');
+                    if (display) display.innerHTML = oldHtml;
+                }
+            } catch (e) {
+                playErrorSound();
+                showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                if (display) display.innerHTML = oldHtml;
+            } finally {
+                isUpdating = false;
             }
         }
 
@@ -3077,17 +3252,20 @@
                     scansLog = scansLog.filter(item => String(item.id) !== String(logId));
                     renderScansList();
                     
+                    const resolvedPoints = (res.new_points !== undefined) ? res.new_points : res.student_points;
+                    
                     if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
-                        updatePointsDisplay(res.student_points, false);
+                        const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                        updatePointsDisplay(resolvedPoints, isNaughtyNow);
                     }
                     
                     const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
                     if (matchIdx > -1) {
                         let pts = {};
                         try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch(e){}
-                        pts[tripId] = res.student_points;
+                        pts[tripId] = resolvedPoints;
                         regsList[matchIdx].trip_points = JSON.stringify(pts);
-                        regsList[matchIdx].trip_points_val = res.student_points;
+                        regsList[matchIdx].trip_points_val = resolvedPoints;
                     }
                 } else {
                     showToast("فشل التراجع: " + res.message, 'error');
@@ -3105,37 +3283,67 @@
         // Time calculations for scan history
         function formatLogTime(timeVal) {
             if (!timeVal) return '';
-            let date;
+            
+            let timeStr = '';
             if (timeVal instanceof Date) {
-                date = timeVal;
+                const y = timeVal.getFullYear();
+                const m = String(timeVal.getMonth() + 1).padStart(2, '0');
+                const d = String(timeVal.getDate()).padStart(2, '0');
+                const hh = String(timeVal.getHours()).padStart(2, '0');
+                const mm = String(timeVal.getMinutes()).padStart(2, '0');
+                const ss = String(timeVal.getSeconds()).padStart(2, '0');
+                timeStr = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
             } else {
-                date = new Date(String(timeVal).replace(' ', 'T'));
+                timeStr = String(timeVal);
             }
-            if (isNaN(date.getTime())) return timeVal;
 
-            const diffMs = Date.now() - date.getTime();
+            const parts = timeStr.split(/[- :]/);
+            if (parts.length < 5) return timeStr;
+
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+            const hours = parseInt(parts[3], 10);
+            const minutes = parseInt(parts[4], 10);
+            const seconds = parts[5] ? parseInt(parts[5], 10) : 0;
+
+            const localLogDate = new Date(year, month - 1, day, hours, minutes, seconds);
+            const localNowDate = new Date();
+
+            if (isNaN(localLogDate.getTime())) return timeStr;
+
+            const diffMs = localNowDate.getTime() - localLogDate.getTime();
             const diffSec = Math.floor(diffMs / 1000);
             const diffMin = Math.floor(diffSec / 60);
             const diffHr = Math.floor(diffMin / 60);
             const diffDays = Math.floor(diffHr / 24);
 
             let timeAgo = '';
-            if (diffSec < 60) {
+            if (diffSec < 10) {
+                timeAgo = 'الآن';
+            } else if (diffSec < 60) {
                 timeAgo = 'منذ ثوانٍ';
+            } else if (diffMin === 1) {
+                timeAgo = 'منذ دقيقة';
+            } else if (diffMin === 2) {
+                timeAgo = 'منذ دقيقتين';
             } else if (diffMin < 60) {
-                timeAgo = `منذ ${diffMin} د`;
+                timeAgo = `منذ ${diffMin} دقيقة`;
+            } else if (diffHr === 1) {
+                timeAgo = 'منذ ساعة';
+            } else if (diffHr === 2) {
+                timeAgo = 'منذ ساعتين';
             } else if (diffHr < 24) {
-                timeAgo = `منذ ${diffHr} س`;
+                timeAgo = `منذ ${diffHr} ساعة`;
             } else {
                 timeAgo = `منذ ${diffDays} يوم`;
             }
 
-            let hours = date.getHours();
-            const minutes = date.getMinutes().toString().padStart(2, '0');
             const ampm = hours >= 12 ? 'م' : 'ص';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            const oClock = `${hours}:${minutes} ${ampm}`;
+            let displayHours = hours % 12;
+            displayHours = displayHours ? displayHours : 12;
+            const displayMinutes = String(minutes).padStart(2, '0');
+            const oClock = `${displayHours}:${displayMinutes} ${ampm}`;
 
             return `${timeAgo} (${oClock})`;
         }
