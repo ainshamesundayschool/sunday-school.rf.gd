@@ -2171,14 +2171,14 @@
                 container.innerHTML = html;
             }
 
-            const pref = localStorage.getItem('fast_scanner_source_preference') || 'camera';
+            const pref = localStorage.getItem('scanner_source_preference') || 'camera';
             switchFastScanSource(pref);
             loadRecentScans();
         }
 
         function switchFastScanSource(source) {
             fastScanSource = source;
-            localStorage.setItem('fast_scanner_source_preference', source);
+            localStorage.setItem('scanner_source_preference', source);
             
             document.querySelectorAll('#viewFastScan .scanner-source-tab').forEach(btn => {
                 btn.classList.remove('active');
