@@ -6568,9 +6568,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tools-link {
             flex: 0 0 auto;
-            background: transparent;
-            border: none;
-            box-shadow: none;
+            background: rgba(255, 255, 255, .78);
+            border: 1px solid var(--border-solid);
             color: var(--text-2);
             font-family: inherit;
             cursor: pointer;
@@ -6578,18 +6577,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 2px;
-            padding: 0 4px;
+            gap: 1px;
+            padding: 2px 6px;
+            border-radius: var(--r-md, 10px);
             transition: all var(--t) var(--ease);
             white-space: nowrap;
+            box-shadow:
+                0 .5px 0 rgba(255, 255, 255, .72) inset,
+                0 4px 10px rgba(15, 23, 42, .035);
         }
 
         .home-tools-link:hover {
-            transform: translateY(-1px);
+            transform: translateY(-1px) scale(.995);
+            border-color: var(--brand);
             color: var(--brand);
-            background: transparent;
-            border: none;
-            box-shadow: none;
+            background: var(--brand-bg);
+            box-shadow:
+                0 .5px 0 rgba(255, 255, 255, .74) inset,
+                0 5px 12px rgba(91, 108, 245, .06);
         }
 
         .home-tools-rail {
@@ -9385,7 +9390,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="background: transparent; border: none; box-shadow: none; color: var(--text-2); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; flex-shrink: 0; gap: 1px;">
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="flex-shrink: 0;">
                             <i class="fas fa-grip-horizontal" style="font-size: 1.05rem; display: block;"></i>
                             <span style="font-size: 0.52rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض الكل</span>
                         </button>
