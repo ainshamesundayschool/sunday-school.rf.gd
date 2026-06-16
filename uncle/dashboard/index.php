@@ -9138,7 +9138,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="allToolsModal">
         <div class="modal" style="max-width:760px">
             <div class="modal-header">
-                <h3><i class="fas fa-th"></i> كل الأدوات</h3>
+                <h3><i class="fas fa-grid-2"></i> كل الأدوات</h3>
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
             <div class="tools-grid">
@@ -9386,7 +9386,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
                         <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="background: transparent; border: none; box-shadow: none; color: var(--text-2); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; flex-shrink: 0; gap: 2px;">
-                            <i class="fas fa-th" style="font-size: 1.55rem; display: block;"></i>
+                            <i class="fas fa-grid-2" style="font-size: 1.55rem; display: block;"></i>
                             <span style="font-size: 0.65rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض الكل</span>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
