@@ -9348,12 +9348,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="topbar-btn" onclick="showHelpModal()" title="دليل مساعدة الخدمة">
                     <i class="fas fa-question-circle"></i>
                 </button>
-                <?php if ($showSettings): ?>
-                    <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
-                        <i class="fa-solid fa-gear"></i>
-                    </a>
-                <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
                     style="position:relative; overflow:visible;">
@@ -9368,6 +9362,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
+                <?php if ($showSettings): ?>
+                    <!-- Admin / Church settings -->
+                    <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
+                        <i class="fa-solid fa-gear"></i>
+                    </a>
+                <?php endif; ?>
 
                 <div class="topbar-avatar-btn" id="uncleChip"
                     style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
@@ -9387,7 +9387,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
                         <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="padding: 7px 10px; min-width: 32px; justify-content: center;">
-                            <i class="fas fa-grid-2"></i>
+                            <i class="fas fa-th"></i>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
@@ -9439,7 +9439,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
                     <button id="toggleStatsBtn" onclick="toggleStats()" style="margin-right: auto;">
-                        <i class="fas fa-chevron-down" id="statsCollapseIcon"></i>
+                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات
                     </button>
                 </div>
 
@@ -11861,16 +11861,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function toggleStats() {
             const row = document.getElementById('mainStatsRow');
-            const icon = document.getElementById('statsCollapseIcon');
-            if (!row) return;
+            const btn = document.getElementById('toggleStatsBtn');
+            if (!row || !btn) return;
             const isHidden = row.style.display === 'none';
             if (isHidden) {
                 row.style.display = 'grid';
-                if (icon) icon.className = 'fas fa-chevron-up';
+                btn.innerHTML = '<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء الإحصائيات';
                 localStorage.setItem('statsCollapsed', 'false');
             } else {
                 row.style.display = 'none';
-                if (icon) icon.className = 'fas fa-chevron-down';
+                btn.innerHTML = '<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات';
                 localStorage.setItem('statsCollapsed', 'true');
             }
         }
@@ -12171,16 +12171,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Apply stats collapse state
             const row = document.getElementById('mainStatsRow');
-            const icon = document.getElementById('statsCollapseIcon');
-            if (row) {
+            const btn = document.getElementById('toggleStatsBtn');
+            if (row && btn) {
                 const isStored = localStorage.getItem('statsCollapsed') !== null;
                 const statsCollapsed = isStored ? (localStorage.getItem('statsCollapsed') === 'true') : true;
                 if (statsCollapsed) {
                     row.style.display = 'none';
-                    if (icon) icon.className = 'fas fa-chevron-down';
+                    btn.innerHTML = '<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات';
                 } else {
                     row.style.display = 'grid';
-                    if (icon) icon.className = 'fas fa-chevron-up';
+                    btn.innerHTML = '<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء الإحصائيات';
                 }
             }
         }
