@@ -3283,7 +3283,7 @@
                     if (!isModalActive || scannerSourceModal !== 'usb') return;
 
                     const now = Date.now();
-                    if (e.key.length === 1) {
+                    if (e.key && e.key.length === 1) {
                         if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
                             scanBuffer += e.key;
                             lastKeyTime = now;
@@ -3850,7 +3850,7 @@
                     }
 
                     const now = Date.now();
-                    if (e.key.length === 1) {
+                    if (e.key && e.key.length === 1) {
                         if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
                             scanBuffer += e.key;
                             lastKeyTime = now;

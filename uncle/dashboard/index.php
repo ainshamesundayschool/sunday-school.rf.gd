@@ -14204,7 +14204,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 const now = Date.now();
-                if (e.key.length === 1) {
+                if (e.key && e.key.length === 1) {
                     if (scanBuffer === '' || (now - lastKeyTime) < SCAN_TIMEOUT) {
                         scanBuffer += e.key;
                         lastKeyTime = now;
