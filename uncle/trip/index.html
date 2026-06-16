@@ -1678,6 +1678,22 @@
 
         <script>
             const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
+            const pathPrefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (pathPrefix) {
+                    document.querySelectorAll('a[href^="/uncle/"], a[href^="/login/"]').forEach(a => {
+                        a.setAttribute('href', pathPrefix + a.getAttribute('href'));
+                    });
+                    document.querySelectorAll('button[onclick]').forEach(btn => {
+                        const onc = btn.getAttribute('onclick');
+                        if (onc && (onc.includes("'/uncle/") || onc.includes("'/login/"))) {
+                            btn.setAttribute('onclick', onc.replace(/'\/(uncle|login)/g, `'${pathPrefix}/$1`));
+                        }
+                    });
+                }
+            });
+
             async function apiCall(action, params = {}) {
                 const fd = new FormData();
                 fd.append('action', action);
@@ -1761,7 +1777,7 @@
                     }
                     openTrip(tripId);
                 } else {
-                    window.location.href = '/uncle/dashboard/';
+                    window.location.href = pathPrefix + '/uncle/dashboard/';
                 }
             });
 
@@ -3236,7 +3252,7 @@
                     const currentChurchId = currentTrip ? currentTrip.church_id : null;
                     if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
                         if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
-                            window.location.href = `/uncle/trip/index.html?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
+                            window.location.href = pathPrefix + `/uncle/trip/index.html?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
                         }
                     } else {
                         await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
@@ -3874,18 +3890,18 @@
                     alert('لم يتم تحميل بيانات الرحلة بعد');
                     return;
                 }
-                window.location.href = `/uncle/church/trips/#trips?trip_id=${encodeURIComponent(currentTrip.id)}&action=print`;
+                window.location.href = pathPrefix + `/uncle/church/trips/#trips?trip_id=${encodeURIComponent(currentTrip.id)}&action=print`;
             }
 
             function openWelcomeScreen() {
                 if (currentTrip && currentTrip.id) {
-                    window.open(`/uncle/trip/welcome/?trip_id=${currentTrip.id}`, '_blank');
+                    window.open(pathPrefix + `/uncle/trip/welcome/?trip_id=${currentTrip.id}`, '_blank');
                 }
             }
 
             function openLeaderboard() {
                 if (currentTrip && currentTrip.id) {
-                    window.location.href = `/uncle/trip/leaderboard/?trip_id=${currentTrip.id}`;
+                    window.location.href = pathPrefix + `/uncle/trip/leaderboard/?trip_id=${currentTrip.id}`;
                 }
             }
 

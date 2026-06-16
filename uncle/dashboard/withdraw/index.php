@@ -3,6 +3,9 @@ ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 
+$isTestingEnv = (strpos($_SERVER['REQUEST_URI'], '/testing/') !== false || strpos($_SERVER['SCRIPT_NAME'], '/testing/') !== false);
+$pathPrefix = $isTestingEnv ? '/testing' : '';
+
 // Robust local session directory to prevent aggressive shared hosting garbage collection
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
@@ -24,7 +27,7 @@ ini_set('session.cookie_lifetime', 315360000);
 session_start();
 $isHttps = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443));
 if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
-    header("Location: /login/");
+    header("Location: " . $pathPrefix . "/login/");
     exit();
 }
 $churchName = $_SESSION['church_name'] ?? 'الكنيسة';

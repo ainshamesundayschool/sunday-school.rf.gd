@@ -3,6 +3,9 @@ ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 
+$isTestingEnv = (strpos($_SERVER['REQUEST_URI'], '/testing/') !== false || strpos($_SERVER['SCRIPT_NAME'], '/testing/') !== false);
+$pathPrefix = $isTestingEnv ? '/testing' : '';
+
 // Robust local session directory to prevent aggressive shared hosting garbage collection
 $rootPath = dirname(__FILE__);
 while ($rootPath && !file_exists($rootPath . '/api.php')) {
@@ -41,6 +44,7 @@ if (!$hasSession && !$isLoginPage) { ?>
         // if the server explicitly says the user doesn't exist. Never redirects offline.
         (function () {
             var KEY = '_ss_restoring';
+            var prefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
 
             // Already reloaded once after restore — don't loop
             if (sessionStorage.getItem(KEY) === '1') {
@@ -54,14 +58,14 @@ if (!$hasSession && !$isLoginPage) { ?>
             var un = localStorage.getItem('uncleUsername');
 
             // No credentials at all → go to login
-            if (!cl && !ul) { window.location.href = '/login/'; return; }
+            if (!cl && !ul) { window.location.href = prefix + '/login/'; return; }
 
             // Build restore request
             var fd = new FormData();
             fd.append('action', 'restore_session');
             if (cl && cc) fd.append('church_code', cc);
             else if (ul && un) fd.append('username', un);
-            else { window.location.href = '/login/'; return; }
+            else { window.location.href = prefix + '/login/'; return; }
 
             // Mark that we're attempting a restore so the reload won't loop
             sessionStorage.setItem(KEY, '1');
@@ -89,7 +93,7 @@ if (!$hasSession && !$isLoginPage) { ?>
                         sessionStorage.removeItem(KEY);
                         ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
                             .forEach(function (k) { localStorage.removeItem(k); });
-                        window.location.href = '/login/';
+                        window.location.href = prefix + '/login/';
                     } else {
                         // Any other failure (DB error, network hiccup, etc.) — stay on page
                         // Don't clear credentials — let the app work with cached data offline
@@ -106,11 +110,11 @@ if (!$hasSession && !$isLoginPage) { ?>
 
 if ($isLoginPage && $hasSession) {
     if ($hasChurchId) {
-        header("Location: /uncle/church/dashboard/");
+        header("Location: " . $pathPrefix . "/uncle/church/dashboard/");
         exit();
     } elseif ($hasUncleId) {
         $role = $_SESSION['uncle_role'] ?? 'uncle';
-        header("Location: " . ($role === 'developer' ? "/uncle/dev/" : "/uncle/dashboard/"));
+        header("Location: " . $pathPrefix . ($role === 'developer' ? "/uncle/dev/" : "/uncle/dashboard/"));
         exit();
     }
 }
@@ -9006,7 +9010,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="padding:8px 14px;font-size:.82rem;display:none" title="تثبيت التطبيق">
                         <i class="fas fa-download" style="color:var(--success)"></i> تثبيت التطبيق
                     </button>
-                    <a href="/leaderboard/" class="btn btn-secondary"
+                    <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
                         <i class="fas fa-crown"></i> الأوائل
                     </a>
@@ -9148,12 +9152,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
             <div class="tools-grid">
-                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/withdraw/'">
+                <button class="tool-card" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'">
                     <span class="tool-card-icon"><i class="fas fa-star"></i></span>
                     <span class="tool-card-name">سحب كوبونات</span>
                     <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
-                <button class="tool-card" onclick="window.location.href='/uncle/dashboard/tasks/'">
+                <button class="tool-card" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
                     <span class="tool-card-name">المهام</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
@@ -9183,7 +9187,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">اقتراحات الإخوات</span>
                     <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
                 </button>
-                <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();window.location.href='/uncle/church/?action=bulkAdd'">
+                <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();window.location.href='<?php echo $pathPrefix; ?>/uncle/church/?action=bulkAdd'">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
@@ -9369,7 +9373,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
+                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات">
                         <i class="fa-solid fa-gear"></i>
                     </a>
                 <?php endif; ?>
@@ -9396,14 +9400,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span style="font-size: 0.52rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض الكل</span>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
-                        <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
+                        <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
+                        <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
                         <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
                         <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
                         <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
+                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                         <button class="home-tool-chip" onclick="showHelpModal()" style="background:rgba(91,108,245,0.08);color:var(--brand);border-color:rgba(91,108,245,0.25);"><i class="fas fa-question-circle"></i> دليل المساعدة</button>
                     </div>
                 </div>
@@ -9492,10 +9496,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="footer-copy" style="text-align: center; direction: rtl;">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ - كُورِنْثُوسَ الأُولَى ١٥:‏٥٨</div>
                     </div>
                     <div class="footer-links">
-                        <a href="/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
+                        <a href="<?php echo $pathPrefix; ?>/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
                         <a href="https://api.whatsapp.com/send?phone=201037011355" class="footer-link"><i
                                 class="fab fa-whatsapp"></i> تواصل</a>
-                        <a href="/about" class="footer-link"><i class="fas fa-info-circle"></i> حول</a>
+                        <a href="<?php echo $pathPrefix; ?>/about" class="footer-link"><i class="fas fa-info-circle"></i> حول</a>
                     </div>
                 </footer>
             </div>
@@ -9616,7 +9620,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i
                                     class="fas fa-table"></i> جداول أطفال الفصل</button>
                             <button class="dropdown-item"
-                                onclick="window.location.href='/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
                                     class="fas fa-tasks"></i> مهام الفصل <span class="tasks-notif-dot"
                                     id="tasksSubmissionDot" style="display:none; position:static; margin-right:auto;"></span></button>
                             <button class="dropdown-item coupon"
@@ -11167,8 +11171,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
             fetch(API_URL + '?action=logout')
-                .then(() => { localStorage.clear(); window.location.href = '/'; })
-                .catch(() => { window.location.href = '/'; });
+                .then(() => { localStorage.clear(); window.location.href = '<?php echo $pathPrefix; ?>/'; })
+                .catch(() => { window.location.href = '<?php echo $pathPrefix; ?>/'; });
         }
 
         // ── CLASS NAVIGATION PERMISSION ───────────────────────────────
@@ -12281,11 +12285,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             container.innerHTML = activeTrips.map(t => {
                 const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
                 const img = t.image_url || '';
-                const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\'trip-slim-img\' style=\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\'><i class=\'fas fa-map-marked-alt\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
+                const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\\'trip-slim-img\\' style=\\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\\'><i class=\\'fas fa-map-marked-alt\\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
                 const registeredCount = t.registered_count || 0;
                 const kidsCountHtml = `<span class="trip-slim-kids-count"><i class="fas fa-users"></i> ${registeredCount} طفل</span>`;
+                const tripBaseUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/uncle/trip/' : '/uncle/trip/';
                 return `
-                    <a href="/uncle/trip/?trip_id=${t.id}" class="trip-slim-card">
+                    <a href="${tripBaseUrl}?trip_id=${t.id}" class="trip-slim-card">
                         ${imgHtml}
                         <div class="trip-slim-info">
                             <div class="trip-slim-name">${t.title}</div>
@@ -15626,7 +15631,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let tpHtml = '<div class="detail-row"><div class="detail-icon teal"><i class="fas fa-qrcode"></i></div><div class="detail-label">نقاط الرحلات / المؤتمرات</div><div class="detail-val" style="display:flex;flex-direction:column;gap:6px;width:100%;">';
             if (!tpList.length) tpHtml += 'لا توجد نقاط مسجّلة';
             else tpHtml += tpList.map(item => `
-                <div onclick="window.location.href='/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" 
+                <div onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" 
                      style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-3);border:1px solid var(--border-solid);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" 
                      onmouseover="this.style.background='var(--surface-4)';this.style.borderColor='var(--brand)'" 
                      onmouseout="this.style.background='var(--surface-3)';this.style.borderColor='var(--border-solid)'">
@@ -20925,15 +20930,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 let actionBtnHtml = '';
                 if (typeof feature.action === 'string') {
+                    let processedAction = feature.action;
+                    const pathPrefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
+                    if (pathPrefix) {
+                        processedAction = processedAction
+                            .replace(/window\.location\.href\s*=\s*'\/(uncle|login)/g, `window.location.href='${pathPrefix}/$1`)
+                            .replace(/window\.open\s*\(\s*'\/(audit\.php|leaderboard|church-register\.html|user\/registration)/g, `window.open('${pathPrefix}/$1`);
+                    }
                     if (feature.action.startsWith('window.location.href') || feature.action.startsWith('window.open')) {
                         actionBtnHtml = `
-                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                            <button onclick="${processedAction}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
                                 <span>انتقال</span> <i class="fas fa-external-link-alt" style="font-size:0.65rem;"></i>
                             </button>
                         `;
                     } else {
                         actionBtnHtml = `
-                            <button onclick="${feature.action}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
+                            <button onclick="${processedAction}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
                                 <span>فتح الأداة</span> <i class="fas fa-arrow-left" style="font-size:0.65rem;"></i>
                             </button>
                         `;
