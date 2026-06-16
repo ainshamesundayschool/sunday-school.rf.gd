@@ -9386,8 +9386,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 50%; flex-shrink: 0;">
-                            <i class="fas fa-th"></i>
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: 50%; flex-shrink: 0; background: transparent; border: none; box-shadow: none; color: var(--text-2);">
+                            <i class="fas fa-grip-horizontal" style="font-size: 1.25rem;"></i>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
