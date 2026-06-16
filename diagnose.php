@@ -5,23 +5,34 @@ ini_set('display_errors', 1);
 echo "<h1>System Diagnostic Tool</h1>";
 
 // 1. Check config.php
-$configPath = __DIR__ . '/config.php';
+$configRoot = __DIR__;
+while ($configRoot && !file_exists($configRoot . '/api.php')) {
+    $configParent = dirname($configRoot);
+    if ($configParent === $configRoot) {
+        break;
+    }
+    $configRoot = $configParent;
+}
+$isTesting = (strpos($configRoot, '/testing') !== false);
+$configName = $isTesting ? 'config-testing.php' : 'config.php';
+
+$configPath = $configRoot . '/' . $configName;
 if (!file_exists($configPath)) {
-    $configPath = dirname(__DIR__) . '/config.php';
+    $configPath = dirname($configRoot) . '/' . $configName;
     if (!file_exists($configPath)) {
-        echo "<p style='color:red;'>❌ <b>config.php</b> does not exist in root or parent folder!</p>";
+        echo "<p style='color:red;'>❌ <b>$configName</b> does not exist in root or parent folder!</p>";
         exit;
     } else {
-        echo "<p style='color:green;'>✅ <b>config.php</b> exists in parent folder (safe from Git clean).</p>";
+        echo "<p style='color:green;'>✅ <b>$configName</b> exists in parent folder (safe from Git clean).</p>";
     }
 } else {
-    echo "<p style='color:green;'>✅ <b>config.php</b> exists in root folder.</p>";
+    echo "<p style='color:green;'>✅ <b>$configName</b> exists in root folder.</p>";
 }
 
 // 2. Try including config.php
 try {
     require_once $configPath;
-    echo "<p style='color:green;'>✅ <b>config.php</b> included successfully.</p>";
+    echo "<p style='color:green;'>✅ <b>$configName</b> included successfully.</p>";
 } catch (Throwable $e) {
     echo "<p style='color:red;'>❌ Error including <b>config.php</b>: " . $e->getMessage() . "</p>";
     exit;

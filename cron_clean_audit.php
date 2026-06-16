@@ -5,11 +5,22 @@
 header('Content-Type: text/plain; charset=utf-8');
 
 try {
-    $configFile = __DIR__ . '/config.php';
+    $configRoot = __DIR__;
+    while ($configRoot && !file_exists($configRoot . '/api.php')) {
+        $configParent = dirname($configRoot);
+        if ($configParent === $configRoot) {
+            break;
+        }
+        $configRoot = $configParent;
+    }
+    $isTesting = (strpos($configRoot, '/testing') !== false);
+    $configName = $isTesting ? 'config-testing.php' : 'config.php';
+
+    $configFile = $configRoot . '/' . $configName;
     if (!is_file($configFile)) {
-        $configFile = dirname(__DIR__) . '/config.php';
+        $configFile = dirname($configRoot) . '/' . $configName;
         if (!is_file($configFile)) {
-            throw new Exception("Configuration file not found.");
+            throw new Exception("Configuration file ($configName) not found.");
         }
     }
     require_once $configFile;
