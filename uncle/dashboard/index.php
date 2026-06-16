@@ -1031,11 +1031,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Footer */
         .site-footer {
-            background: var(--surface);
-            border-radius: var(--r-xl);
-            border: 1px solid var(--border);
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
             padding: 16px 20px;
-            margin-top: 20px;
+            margin-top: auto;
+        }
+
+        #classesView {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 100px);
         }
 
         .footer-inner {
@@ -9344,7 +9351,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="/uncle/church/" title="لوحة الإدارة والإعدادات">
-                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        <i class="fa-solid fa-gear"></i>
                     </a>
                 <?php endif; ?>
                 <!-- Unified notification bell (unread count + push permission) -->
@@ -9379,7 +9386,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tool-chip" onclick="startKidQrScan('general')" style="background:var(--brand);color:white;border-color:var(--brand);font-weight:bold;"><i class="fas fa-qrcode"></i> مسح QR عام</button>
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="padding: 7px 10px; min-width: 32px; justify-content: center;">
+                            <i class="fas fa-grid-2"></i>
+                        </button>
+                        <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
@@ -9389,9 +9399,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
                         <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
                         <button class="home-tool-chip" onclick="showHelpModal()" style="background:rgba(91,108,245,0.08);color:var(--brand);border-color:rgba(91,108,245,0.25);"><i class="fas fa-question-circle"></i> دليل المساعدة</button>
-                        <button class="home-tools-link" onclick="showAllToolsModal()">
-                            كل الأدوات <i class="fas fa-arrow-left"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -9422,18 +9429,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="section-head" id="tripsSectionHead"
                     style="display:none; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsView()"
+                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
                         style="font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
-                        <i class="fas fa-th-large"></i>
-                        <span>عرض شبكي</span>
+                        <i class="fas fa-chevron-down" id="tripsCollapseIcon"></i>
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
-                    <button id="toggleStatsBtn" onclick="toggleStats()">
-                        <i class="fas fa-chart-line"></i> عرض الإحصائيات
+                    <button id="toggleStatsBtn" onclick="toggleStats()" style="margin-right: auto;">
+                        <i class="fas fa-chevron-down" id="statsCollapseIcon"></i>
                     </button>
                 </div>
 
@@ -9473,14 +9479,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="classes-grid" id="classesGrid"></div>
 
                 <footer class="site-footer">
-                    <div class="footer-inner">
+                    <div class="footer-inner" style="flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px;">
                         <a href="https://sunday-school.online/" class="footer-brand">
                             <div class="footer-logo"><img src="/logo.png" alt="" onerror="this.style.display='none'">
                             </div>
                             <span class="footer-name">Sunday School 2026</span>
                         </a>
-                        <div class="footer-copy">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ<br><span>كُورِنْثُوسَ
-                                الأُولَى ١٥:‏٥٨</span></div>
+                        <div class="footer-copy" style="text-align: center; direction: rtl;">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ - كُورِنْثُوسَ الأُولَى ١٥:‏٥٨</div>
                     </div>
                     <div class="footer-links">
                         <a href="/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
@@ -11535,7 +11540,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             combinedGroupLabel = '';
             combinedStudents = [];
             localStorage.removeItem('currentClass'); // Clear so home screen reopens to classes grid
-            document.getElementById('classesView').style.display = 'block';
+            document.getElementById('classesView').style.display = 'flex';
             document.getElementById('classView').classList.remove('active');
             currentClass = '';
             location.hash = ''; // Clear hash so next open goes to classes grid
@@ -11856,11 +11861,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function toggleStats() {
             const row = document.getElementById('mainStatsRow');
-            const btn = document.getElementById('toggleStatsBtn');
-            if (!row || !btn) return;
+            const icon = document.getElementById('statsCollapseIcon');
+            if (!row) return;
             const isHidden = row.style.display === 'none';
-            row.style.display = isHidden ? 'grid' : 'none';
-            btn.innerHTML = isHidden ? '<i class="fas fa-times"></i> إخفاء الإحصائيات' : '<i class="fas fa-chart-line"></i> عرض الإحصائيات';
+            if (isHidden) {
+                row.style.display = 'grid';
+                if (icon) icon.className = 'fas fa-chevron-up';
+                localStorage.setItem('statsCollapsed', 'false');
+            } else {
+                row.style.display = 'none';
+                if (icon) icon.className = 'fas fa-chevron-down';
+                localStorage.setItem('statsCollapsed', 'true');
+            }
         }
 
         function renderTodayBirthdayBanner() {
@@ -12156,6 +12168,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (se('totalClasses')) se('totalClasses').textContent = classNames.length;
             if (se('birthdaysThisMonth')) se('birthdaysThisMonth').textContent = births;
             if (se('averageCoupons')) se('averageCoupons').textContent = avgC;
+
+            // Apply stats collapse state
+            const row = document.getElementById('mainStatsRow');
+            const icon = document.getElementById('statsCollapseIcon');
+            if (row) {
+                const isStored = localStorage.getItem('statsCollapsed') !== null;
+                const statsCollapsed = isStored ? (localStorage.getItem('statsCollapsed') === 'true') : true;
+                if (statsCollapsed) {
+                    row.style.display = 'none';
+                    if (icon) icon.className = 'fas fa-chevron-down';
+                } else {
+                    row.style.display = 'grid';
+                    if (icon) icon.className = 'fas fa-chevron-up';
+                }
+            }
         }
 
         let isFetchingTrips = false;
@@ -12233,19 +12260,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!container || !head) return;
 
             head.style.display = 'flex';
-            container.style.display = 'flex';
+            container.classList.add('expanded'); // Always grid view when shown
 
-            const isExpanded = localStorage.getItem('tripsViewExpanded') === 'true';
-            if (isExpanded) {
-                container.classList.add('expanded');
-                container.style.display = '';
-                const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+            // Restore collapsed state
+            const isCollapsed = localStorage.getItem('tripsCollapsed') === 'true';
+            if (isCollapsed) {
+                container.style.display = 'none';
+                const icon = document.getElementById('tripsCollapseIcon');
+                if (icon) icon.className = 'fas fa-chevron-down';
             } else {
-                container.classList.remove('expanded');
-                container.style.display = 'flex';
-                const btn = document.getElementById('toggleTripsViewBtn');
-                if (btn) btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+                container.style.display = '';
+                const icon = document.getElementById('tripsCollapseIcon');
+                if (icon) icon.className = 'fas fa-chevron-up';
             }
 
             container.innerHTML = activeTrips.map(t => {
@@ -12269,22 +12295,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).join('');
         }
 
-
-
-        function toggleTripsView() {
+        function toggleTripsCollapse() {
             const container = document.getElementById('tripsContainer');
-            const btn = document.getElementById('toggleTripsViewBtn');
-            if (!container || !btn) return;
-
-            const isExpanded = container.classList.toggle('expanded');
-            localStorage.setItem('tripsViewExpanded', isExpanded ? 'true' : 'false');
-
-            if (isExpanded) {
+            const icon = document.getElementById('tripsCollapseIcon');
+            if (!container || !icon) return;
+            const isCollapsed = container.style.display === 'none';
+            if (isCollapsed) {
                 container.style.display = '';
-                btn.innerHTML = `<i class="fas fa-list"></i> <span>عرض شريطي</span>`;
+                icon.className = 'fas fa-chevron-up';
+                localStorage.setItem('tripsCollapsed', 'false');
             } else {
-                container.style.display = 'flex';
-                btn.innerHTML = `<i class="fas fa-th-large"></i> <span>عرض شبكي</span>`;
+                container.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+                localStorage.setItem('tripsCollapsed', 'true');
             }
         }
 
@@ -19524,7 +19547,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Global exposure
         Object.assign(window, {
             showClassView, showClassesView, showCombinedClassView, showAllTogetherView, markStudentAttendance, showStudentDetails,
-            showSheetModal, showCustomExportModal, showAllKidsCustomExport, toggleStats, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
+            showSheetModal, showCustomExportModal, showAllKidsCustomExport, toggleStats, toggleTripsCollapse, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
             showImageModal, hideImageModal, showAddPersonModal, showBirthdayModal, showBirthdaysByMonth,
             showPastFridaysModal, loadFridayAttendance, performSearch, clearSearch, showRegistrationDetails,
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
