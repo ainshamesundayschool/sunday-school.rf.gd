@@ -6568,34 +6568,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tools-link {
             flex: 0 0 auto;
-            border: 1px dashed rgba(91, 108, 245, .28);
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-            color: #fff;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            color: var(--text-2);
             font-family: inherit;
-            font-size: .68rem;
-            font-weight: 800;
             cursor: pointer;
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            padding: 7px 10px;
-            border-radius: 999px;
+            gap: 2px;
+            padding: 0 4px;
             transition: all var(--t) var(--ease);
-            box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .22) inset,
-                0 6px 14px rgba(91, 108, 245, .14);
             white-space: nowrap;
         }
 
         .home-tools-link:hover {
             transform: translateY(-1px);
-            border-color: rgba(91, 108, 245, .18);
-            filter: brightness(1.03);
+            color: var(--brand);
+            background: transparent;
+            border: none;
+            box-shadow: none;
         }
 
         .home-tools-rail {
             display: flex;
+            align-items: center;
             gap: 5px;
             overflow-x: auto;
             padding: 2px 0 4px;
@@ -9139,7 +9138,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="allToolsModal">
         <div class="modal" style="max-width:760px">
             <div class="modal-header">
-                <h3><i class="fas fa-grid-2"></i> كل الأدوات</h3>
+                <h3><i class="fas fa-th"></i> كل الأدوات</h3>
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
             <div class="tools-grid">
@@ -9386,8 +9385,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: 50%; flex-shrink: 0; background: transparent; border: none; box-shadow: none; color: var(--text-2);">
-                            <i class="fas fa-grip-horizontal" style="font-size: 1.25rem;"></i>
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="background: transparent; border: none; box-shadow: none; color: var(--text-2); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; flex-shrink: 0; gap: 2px;">
+                            <i class="fas fa-th" style="font-size: 1.55rem; display: block;"></i>
+                            <span style="font-size: 0.65rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض الكل</span>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
