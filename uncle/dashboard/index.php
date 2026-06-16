@@ -9386,8 +9386,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 10px; flex-shrink: 0;">
-                            <i class="fa-solid fa-table-cells"></i>
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 50%; flex-shrink: 0;">
+                            <i class="fas fa-th-large"></i>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
@@ -12502,6 +12502,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let isDragging = false;
             let isSwipingDown = false;
             let initialScrollTop = 0;
+            let startedOnHeader = false;
 
             const onStart = e => {
                 const target = e.target;
@@ -12524,6 +12525,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 isSwipingDown = false;
                 velocityY = 0;
                 initialScrollTop = modal.scrollTop;
+                startedOnHeader = !!(target.closest('.modal-header') || target.closest('.modal-head'));
 
                 modal.style.transition = 'none';
                 overlay.style.transition = 'none';
@@ -12547,9 +12549,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const dyTotal = t.clientY - startY;
                     const dxTotal = t.clientX - startX;
 
-                    if (initialScrollTop <= 0 && isAtTop && dyTotal > 10 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
-                        isSwipingDown = true;
-                        swipeStartY = startY;
+                    if (dyTotal > 10 && Math.abs(dyTotal) > Math.abs(dxTotal)) {
+                        if (startedOnHeader || (initialScrollTop <= 0 && isAtTop)) {
+                            isSwipingDown = true;
+                            swipeStartY = startY;
+                        }
                     }
                 }
 
