@@ -1677,7 +1677,7 @@
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
         <script>
-            const API_URL = '/api.php';
+            const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
             async function apiCall(action, params = {}) {
                 const fd = new FormData();
                 fd.append('action', action);

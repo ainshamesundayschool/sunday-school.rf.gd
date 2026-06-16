@@ -663,10 +663,11 @@ position: absolute;
         history.replaceState(null, '', location.pathname + location.hash);
     }
 
-    const API = '/api.php';
+    const isTestingEnv = window.location.pathname.indexOf('/testing/') !== -1;
+    const API = isTestingEnv ? '/testing/api.php' : '/api.php';
     async function getBuildVersion() {
         try {
-            const resp = await fetch('/version.php', { cache: 'no-store' });
+            const resp = await fetch(isTestingEnv ? '/testing/version.php' : '/version.php', { cache: 'no-store' });
             if (resp.ok) {
                 const data = await resp.json();
                 if (data && data.version) return data.version;
@@ -693,7 +694,7 @@ position: absolute;
             }).catch(function(){});
         })();
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register(isTestingEnv ? '/testing/sw.js' : '/sw.js').catch(() => {});
         });
     }
 

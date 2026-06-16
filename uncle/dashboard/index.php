@@ -66,7 +66,8 @@ if (!$hasSession && !$isLoginPage) { ?>
             // Mark that we're attempting a restore so the reload won't loop
             sessionStorage.setItem(KEY, '1');
 
-            fetch('/api.php', { method: 'POST', body: fd, credentials: 'include' })
+            var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
+            fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     if (d.success) {
@@ -10762,7 +10763,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ════════════════════════════════════════════ -->
     <script>
         'use strict';
-        const API_URL = '/api.php';
+        const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
         const APP_VERSION = '1.0.1';
         const couponPresetValues = [10, 30, 50, 100];
 
