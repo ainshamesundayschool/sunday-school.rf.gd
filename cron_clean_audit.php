@@ -7,7 +7,10 @@ header('Content-Type: text/plain; charset=utf-8');
 try {
     $configFile = __DIR__ . '/config.php';
     if (!is_file($configFile)) {
-        throw new Exception("Configuration file not found.");
+        $configFile = dirname(__DIR__) . '/config.php';
+        if (!is_file($configFile)) {
+            throw new Exception("Configuration file not found.");
+        }
     }
     require_once $configFile;
 

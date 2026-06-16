@@ -28,7 +28,11 @@ if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
     exit();
 }
 
-require_once '../../../config.php';
+if (file_exists(__DIR__ . '/../../../config.php')) {
+    require_once __DIR__ . '/../../../config.php';
+} else {
+    require_once __DIR__ . '/../../../../config.php';
+}
 
 $tripId = intval($_GET['trip_id'] ?? 0);
 if ($tripId <= 0) {
