@@ -560,9 +560,8 @@
 
         /* ── FOOTER ── */
         .site-footer {
-            background:rgba(255,255,255,.95); backdrop-filter:blur(20px);
-            border-radius:var(--r-xl); border:1px solid rgba(255,255,255,.85);
-            box-shadow:var(--sh-md); padding:18px 22px; margin-top:10px;
+            background:transparent; border-radius:0; border:none;
+            box-shadow:none; padding:18px 22px; margin-top:10px;
         }
         .footer-inner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
         .footer-brand { display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit; }
@@ -738,17 +737,17 @@
 
     </div><!-- end .content-grid -->
 
-    <!-- Footer inside card -->
-    <div class="card" style="animation:fadeUp .7s ease .4s both">
+    <!-- Footer -->
+    <div style="animation:fadeUp .7s ease .4s both">
         <footer class="site-footer" style="margin-top:0;box-shadow:none;border-radius:0;background:transparent;backdrop-filter:none;border:none;">
-            <div class="footer-inner">
+            <div class="footer-inner" style="flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px;">
                 <a href="/" class="footer-brand">
                     <div class="brand-icon">
                         <img src="/logo.png" alt="Logo" onerror="this.parentElement.innerHTML='<i class=\'fas fa-cross\' style=\'color:#fff;font-size:15px\'></i>'">
                     </div>
                     <span class="brand-name">Sunday School 2026</span>
                 </a>
-                <div class="footer-copy">"مُكْثِرِينَ فِي عَمَلِ ٱلرَّبِّ كُلَّ حِينٍ"<br><span>كُورِنْثُوسَ ٱلأُولَى ١٥:‏٥٨</span></div>
+                <div class="footer-copy" style="text-align: center; direction: rtl;">"مُكْثِرِينَ فِي عَمَلِ ٱلرَّبِّ كُلَّ حِينٍ" - كُورِنْثُوسَ ٱلأُولَى ١٥:‏٥٨</div>
             </div>
             <div class="footer-links">
                 <a href="/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
