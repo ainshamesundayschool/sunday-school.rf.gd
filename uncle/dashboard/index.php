@@ -9386,8 +9386,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
                 <div class="home-tools-wrap">
                     <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="padding: 7px 10px; min-width: 32px; justify-content: center;">
-                            <i class="fas fa-th"></i>
+                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="padding: 7px 10px; min-width: 32px; justify-content: center; border-radius: 8px;">
+                            <i class="fa-solid fa-grip"></i>
                         </button>
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
@@ -9426,12 +9426,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead"
-                    style="display:none; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="section-title">الرحلات / المؤتمرات المتاحة</span>
-                    <button class="btn btn-sm btn-ghost" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
-                        style="font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border-solid); background: var(--surface-3); color: var(--text-2); display: flex; align-items: center; gap: 5px; cursor: pointer; transition: all var(--t) var(--ease); font-weight: 700; height: 28px; box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset, 0 6px 14px rgba(15, 23, 42, .05);">
-                        <i class="fas fa-chevron-down" id="tripsCollapseIcon"></i>
+                <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px;">
+                    <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()" style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <span class="section-title" style="margin-bottom: 0;">الرحلات / المؤتمرات المتاحة</span>
+                        <i class="fas fa-chevron-down" id="tripsCollapseIcon" style="color: var(--text-3); font-size: 0.85rem; transition: transform var(--t) var(--ease);"></i>
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
