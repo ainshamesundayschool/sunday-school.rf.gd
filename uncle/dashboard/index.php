@@ -6578,7 +6578,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: center;
             gap: 1px;
-            padding: 2px 6px;
+            padding: 7px 9px;
             border-radius: var(--r-md, 10px);
             transition: all var(--t) var(--ease);
             white-space: nowrap;

@@ -18,6 +18,7 @@ jobs:
           port: 21
           security: loose
           server-dir: /
+          timeout: 600000
           exclude: |
             **/.git*
             **/.git*/**
