@@ -2171,8 +2171,10 @@
                 document.querySelectorAll('#viewStudentProfile .point-chip').forEach(chip => {
                     const val = parseInt(chip.getAttribute('data-val'));
                     if (val === currentSelectedPoint) {
+                        chip.classList.add('selected');
                         chip.classList.add('active');
                     } else {
+                        chip.classList.remove('selected');
                         chip.classList.remove('active');
                     }
                 });

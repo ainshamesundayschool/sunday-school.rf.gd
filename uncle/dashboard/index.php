@@ -11342,9 +11342,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setupLiveSearch();
             updateSaveBtns();
             loadClassUncles(className);
-            // Hide back button if uncle can't navigate
+            // Keep back button always visible so uncles can navigate back to their classes list
             const backBtn = document.getElementById('backBtn');
-            if (backBtn) backBtn.style.display = canNavigateClasses() ? 'inline-flex' : 'none';
+            if (backBtn) backBtn.style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
