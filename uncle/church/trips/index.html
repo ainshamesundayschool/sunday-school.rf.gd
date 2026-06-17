@@ -3822,6 +3822,20 @@
     }
 
     /* ── PRINT MODAL ────────────────────────────────────────────────── */
+    .app-dialog .modal-box {
+      max-width: 400px !important;
+      border-radius: var(--radius-xl, 16px) !important;
+      margin: 10vh auto !important;
+      height: auto !important;
+    }
+
+    .app-dialog-message {
+      font-size: 0.88rem;
+      color: var(--text-2);
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
     #printSettingsModal .modal-box {
       max-width: min(96vw, 1680px) !important;
       width: 96vw !important;
@@ -10270,13 +10284,19 @@
         if (!select) return;
         select.innerHTML = '';
         const standardFields = [
-          { key: 'student_class', label: 'الفصل' },
-          { key: 'student_phone', label: 'رقم التليفون' },
-          { key: 'student_emergency_phone', label: 'تليفون الطوارئ' },
-          { key: 'student_address', label: 'العنوان' },
-          { key: 'student_birthday', label: 'عيد الميلاد' },
-          { key: 'student_age', label: 'السن' },
-          { key: 'student_medical_notes', label: 'ملاحظات طبية' }
+          { key: 'church_header', label: 'اسم الكنيسة والشعار', icon: 'fas fa-church' },
+          { key: 'trip_title', label: 'عنوان الرحلة', icon: 'fas fa-route' },
+          { key: 'trip_image', label: 'صورة الرحلة', icon: 'fas fa-image' },
+          { key: 'student_image', label: 'صورة الطفل', icon: 'fas fa-user-circle' },
+          { key: 'student_name', label: 'اسم الطفل', icon: 'fas fa-user' },
+          { key: 'student_id', label: 'كود الطفل ID', icon: 'fas fa-id-badge' },
+          { key: 'student_class', label: 'الفصل', icon: 'fas fa-graduation-cap' },
+          { key: 'student_phone', label: 'رقم التليفون', icon: 'fas fa-phone' },
+          { key: 'student_emergency_phone', label: 'تليفون الطوارئ', icon: 'fas fa-phone-alt' },
+          { key: 'student_address', label: 'العنوان', icon: 'fas fa-map-marker-alt' },
+          { key: 'student_birthday', label: 'عيد الميلاد', icon: 'fas fa-birthday-cake' },
+          { key: 'student_age', label: 'السن', icon: 'fas fa-calendar-alt' },
+          { key: 'student_medical_notes', label: 'ملاحظات طبية', icon: 'fas fa-notes-medical' }
         ];
         const tripId = document.getElementById('printTripId').value;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
@@ -10285,7 +10305,8 @@
           fields.forEach(f => {
             standardFields.push({
               key: 'custom_field_' + f,
-              label: `${f} (حقل مخصص للرحلة)`
+              label: `${f} (حقل مخصص للرحلة)`,
+              icon: 'fas fa-tag'
             });
           });
         }
@@ -10296,6 +10317,7 @@
           unusedFields.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.key;
+            opt.dataset.icon = f.icon || 'fas fa-tag';
             opt.textContent = f.label;
             select.appendChild(opt);
           });
@@ -10306,8 +10328,10 @@
         const select = document.getElementById('printAddInfoSelect');
         if (!select || !select.value) return;
         const key = select.value;
-        const label = select.options[select.selectedIndex].text.split(' (')[0];
-        cardExtraFields.push({ key, label, placement: 'front' });
+        const opt = select.options[select.selectedIndex];
+        const label = opt.text.split(' (')[0];
+        const icon = opt.dataset.icon || 'fas fa-tag';
+        cardExtraFields.push({ key, label, placement: 'front', icon });
         renderPrintExtraFieldsList();
         populatePrintExtraFieldsDropdown();
         updatePrintPreview();
@@ -10336,7 +10360,7 @@
           const row = document.createElement('div');
           row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg, #f8fafc); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:0.8rem; direction:rtl; gap:8px;';
           row.innerHTML = `
-            <span><i class="fas fa-tag" style="color:var(--primary); margin-left:6px;"></i> ${f.label}</span>
+            <span><i class="${f.icon || 'fas fa-tag'}" style="color:var(--primary); margin-left:6px; width:16px; text-align:center;"></i> ${f.label}</span>
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-size:0.75rem; color:var(--muted);">الموضع:</span>
               <select onchange="updateExtraFieldPlacement('${f.key}', this.value)" style="height:26px; font-size:0.75rem; padding:0 4px; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
@@ -10351,7 +10375,7 @@
       }
 
       function syncPrintSettingsUI() {
-        const showTripImgChecked = document.getElementById('printShowTripImage')?.checked;
+        const showTripImgChecked = cardExtraFields.some(f => f.key === 'trip_image');
         const tripImageSubSettings = document.getElementById('printTripImageSubSettings');
         if (tripImageSubSettings) tripImageSubSettings.style.display = showTripImgChecked ? 'flex' : 'none';
 
@@ -10361,7 +10385,7 @@
         if (bgOptions) bgOptions.style.display = tripImgAsBgChecked && showTripImgChecked ? 'flex' : 'none';
         if (inlineOptions) inlineOptions.style.display = showTripImgChecked && !tripImgAsBgChecked ? 'block' : 'none';
 
-        const showStudentImgChecked = document.getElementById('printShowStudentImg')?.checked;
+        const showStudentImgChecked = cardExtraFields.some(f => f.key === 'student_image');
         const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
         if (avatarFallbackRow) avatarFallbackRow.style.display = showStudentImgChecked ? 'flex' : 'none';
 
@@ -10502,6 +10526,13 @@
         readabilityBgShadow = true,
         extraFields = []
       }) {
+        const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+        const showTripImage = extraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
+        const showTripTitle = extraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
+        const showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+        const showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+        const showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+
         const {
           isLandscape,
           scaledWidth,
@@ -10661,19 +10692,12 @@
             const frontFields = extraFields.filter(f => f.placement === 'front');
             if (frontFields.length > 0) {
               const itemsHtml = frontFields.map(field => {
+                if (['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(field.key)) {
+                  return '';
+                }
                 const val = getStudentFieldValue(r, field.key, trip);
                 if (val === null || val === undefined || String(val).trim() === '') return '';
-                let iconClass = 'fas fa-info-circle';
-                if (field.key === 'student_class' || field.key === 'class' || field.key === 'الفصل') iconClass = 'fas fa-graduation-cap';
-                else if (field.key === 'student_phone' || field.key === 'phone' || field.key === 'رقم التليفون') iconClass = 'fas fa-phone';
-                else if (field.key === 'student_emergency_phone' || field.key === 'emergency_phone' || field.key === 'تليفون الطوارئ') iconClass = 'fas fa-phone-alt';
-                else if (field.key === 'student_address' || field.key === 'address' || field.key === 'العنوان') iconClass = 'fas fa-map-marker-alt';
-                else if (field.key === 'student_birthday' || field.key === 'birthday' || field.key === 'تاريخ الميلاد' || field.key === 'عيد الميلاد') iconClass = 'fas fa-birthday-cake';
-                else if (field.key === 'student_age' || field.key === 'age' || field.key === 'السن') iconClass = 'fas fa-calendar-alt';
-                else if (field.key === 'coupons' || field.key === 'كوبونات') iconClass = 'fas fa-coins';
-                else if (field.key === 'student_medical_notes' || field.key === 'medical_notes' || field.key === 'medical_note' || field.key === 'ملاحظات طبية') iconClass = 'fas fa-notes-medical';
-                else if (field.key === 'national_id' || field.key === 'الرقم القومي') iconClass = 'fas fa-id-card';
-                else if (field.key === 'stage' || field.key === 'المرحلة') iconClass = 'fas fa-layer-group';
+                let iconClass = field.icon || 'fas fa-info-circle';
                 
                 if (field.key.startsWith('custom_field_') && trip && trip.custom_field_icons) {
                   const fName = field.key.replace('custom_field_', '');
@@ -10863,11 +10887,11 @@
       function generateBackCardMarkup(opts) {
         const {
           r, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-          baseWidth, baseHeight, textReadability, extraFields = [], trip = null
+          baseWidth, baseHeight, textReadability, extraFields = [], trip = null, showAvatarWhenNoPhoto = true
         } = opts;
 
         const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
-        const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, sLogo } = layout;
+        const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, fH2, fCustom, sLogo, sAvatar, sTripImg } = layout;
 
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
         const cardRadius = isCardRounded ? 10 : 0;
@@ -10906,66 +10930,106 @@
         let innerContentHtml = '';
 
         if (extraFields && extraFields.length > 0 && r) {
-          const itemsHtml = extraFields.map(field => {
-            const val = getStudentFieldValue(r, field.key, trip);
-            if (val === null || val === undefined || String(val).trim() === '') return '';
-            let iconClass = 'fas fa-info-circle';
-            if (field.key === 'student_class' || field.key === 'class' || field.key === 'الفصل') iconClass = 'fas fa-graduation-cap';
-            else if (field.key === 'student_phone' || field.key === 'phone' || field.key === 'رقم التليفون') iconClass = 'fas fa-phone';
-            else if (field.key === 'student_emergency_phone' || field.key === 'emergency_phone' || field.key === 'تليفون الطوارئ') iconClass = 'fas fa-phone-alt';
-            else if (field.key === 'student_address' || field.key === 'address' || field.key === 'العنوان') iconClass = 'fas fa-map-marker-alt';
-            else if (field.key === 'student_birthday' || field.key === 'birthday' || field.key === 'تاريخ الميلاد' || field.key === 'عيد الميلاد') iconClass = 'fas fa-birthday-cake';
-            else if (field.key === 'student_age' || field.key === 'age' || field.key === 'السن') iconClass = 'fas fa-calendar-alt';
-            else if (field.key === 'coupons' || field.key === 'كوبونات') iconClass = 'fas fa-coins';
-            else if (field.key === 'student_medical_notes' || field.key === 'medical_notes' || field.key === 'medical_note' || field.key === 'ملاحظات طبية') iconClass = 'fas fa-notes-medical';
-            else if (field.key === 'national_id' || field.key === 'الرقم القومي') iconClass = 'fas fa-id-card';
-            else if (field.key === 'stage' || field.key === 'المرحلة') iconClass = 'fas fa-layer-group';
-            
-            if (field.key.startsWith('custom_field_') && trip && trip.custom_field_icons) {
-              const fName = field.key.replace('custom_field_', '');
-              const meta = trip.custom_field_icons[fName];
-              if (meta) {
-                iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
+          const showChurch = extraFields.some(f => f.key === 'church_header');
+          const showTripImage = extraFields.some(f => f.key === 'trip_image');
+          const showTripTitle = extraFields.some(f => f.key === 'trip_title');
+          const showStudentImg = extraFields.some(f => f.key === 'student_image');
+          const showStudentName = extraFields.some(f => f.key === 'student_name');
+          const showStudentId = extraFields.some(f => f.key === 'student_id');
+
+          let headerHtml = '';
+          if (showChurch) {
+            headerHtml = `
+              <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                  <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                  <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+              </div>
+            `;
+          }
+
+          let tripHtml = '';
+          if (showTripImage || showTripTitle) {
+            const inlineRadius = (typeof tripImgRounded !== 'undefined' && tripImgRounded) ? `${8 * scale}px` : '0px';
+            const imgHtml = (showTripImage && trip && trip.image_url) ? `<img src="${trip.image_url}" style="width:${sTripImg * 1.45}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">` : '';
+            const titleHtml = (showTripTitle && trip && trip.title) ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${escHtml(trip.title)}</h3>` : '';
+            tripHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${imgHtml}${titleHtml}</div>`;
+          }
+
+          let studentHtml = '';
+          if (showStudentImg || showStudentName) {
+            let avatarHtml = '';
+            if (showStudentImg) {
+              const hasRawImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
+              const imgUrl = hasRawImg ? r.student_image : '/profile_default..webp';
+              const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+              if (showAvatarFallback) {
+                avatarHtml = `
+                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                      <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
+                      <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
+                    </svg>
+                    <img src="${imgUrl}" class="avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; position:absolute; inset:0; z-index:2;" onerror="this.style.display='none'">
+                  </div>`;
+              } else {
+                avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
               }
             }
-            return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-          }).filter(Boolean).join(' | ');
+            const nameHtml = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${escHtml(r.student_name || r.guest_name || 'طفل')}</h2>` : '';
+            studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
+          }
 
-          const numItems = extraFields.length;
-          const dynamicFontSize = numItems <= 2 ? fH3 : fChurch;
-          const dynamicGap = numItems <= 2 ? `${8 * scale}px` : `${4 * scale}px`;
+          let idHtml = '';
+          if (showStudentId) {
+            const sid = r.student_id || r.guest_id || r.id || '';
+            idHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+          }
 
-          const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
-          const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
-          const readPadding = `${readabilityPadding * scale}px`;
-          const readabilityBgShadow = opts.readabilityBgShadow !== false;
-          const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
+          let textFieldsHtml = '';
+          const textFields = extraFields.filter(f => !['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(f.key));
+          if (textFields.length > 0) {
+            const itemsHtml = textFields.map(field => {
+              const val = getStudentFieldValue(r, field.key, trip);
+              if (val === null || val === undefined || String(val).trim() === '') return '';
+              const iconClass = field.icon || 'fas fa-info-circle';
+              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+            }).filter(Boolean).join(' | ');
 
-          let extraInfoContainer = '';
-          if (itemsHtml) {
-            if (textReadability === 'rect') {
-              extraInfoContainer = `
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; box-sizing:border-box; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center;">
-                    ${itemsHtml}
-                </div>
-              `;
-            } else {
-              extraInfoContainer = `
-                <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
-                    ${itemsHtml}
-                </div>
-              `;
+            if (itemsHtml) {
+              const numItems = textFields.length;
+              const dynamicFontSize = numItems <= 2 ? fH3 : fChurch;
+              const dynamicGap = numItems <= 2 ? `${8 * scale}px` : `${4 * scale}px`;
+
+              const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
+              const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
+              const readPadding = `${readabilityPadding * scale}px`;
+              const readabilityBgShadow = opts.readabilityBgShadow !== false;
+              const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
+
+              if (textReadability === 'rect') {
+                textFieldsHtml = `
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
+                      ${itemsHtml}
+                  </div>
+                `;
+              } else {
+                textFieldsHtml = `
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
+                      ${itemsHtml}
+                  </div>
+                `;
+              }
             }
           }
 
           innerContentHtml = `
           <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; padding:${4 * scale}px 0;">
-              <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                  <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                  <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
-              </div>
-              <div style="flex:1; display:flex; align-items:center; justify-content:center; width:100%;">
-                  ${extraInfoContainer}
+              ${headerHtml}
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; gap:${6 * scale}px; overflow:hidden;">
+                  ${tripHtml}
+                  ${studentHtml}
+                  ${idHtml}
+                  ${textFieldsHtml}
               </div>
               <div style="margin-top:auto; font-weight:700; color:${fontColor}; font-size:${Math.max(6.5, 8 * scale)}px; font-family:'Outfit', 'Segoe UI', sans-serif; opacity:0.6; text-align:center; width:100%;">
                   sunday-school.online
@@ -11026,13 +11090,13 @@
         const gapX = document.getElementById('printGapX').value + 'px';
         const gapY = document.getElementById('printGapY').value + 'px';
         const padding = document.getElementById('printPadding').value;
-        const showChurch = document.getElementById('printShowChurch').checked;
-        const showTripImage = document.getElementById('printShowTripImage').checked;
-        const showTripTitle = document.getElementById('printShowTripTitle').checked;
-        const showStudentImg = document.getElementById('printShowStudentImg').checked;
-        const showStudentName = document.getElementById('printShowStudentName').checked;
-        const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
-        const showCustom = document.getElementById('printShowCustom').checked;
+        const showChurch = cardExtraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+        const showTripImage = cardExtraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
+        const showTripTitle = cardExtraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
+        const showStudentImg = cardExtraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+        const showStudentName = cardExtraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+        const showStudentId = cardExtraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+        const showCustom = false;
 
         const tripImgAsBg = document.getElementById('printTripImgAsBg')?.checked || false;
         const tripImgOverlayColor = document.getElementById('printTripImgOverlayColor')?.value || '#000000';
@@ -11092,7 +11156,8 @@
             extraFields: cardExtraFields.filter(f => f.placement === 'back'),
             trip,
             readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
-            readabilityBgShadow
+            readabilityBgShadow,
+            showAvatarWhenNoPhoto
           });
         }
 
@@ -11115,7 +11180,13 @@
 
       async function printQRCards(tripId) {
         document.getElementById('printTripId').value = tripId;
-        cardExtraFields = [];
+        cardExtraFields = [
+          { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+          { key: 'trip_title', label: 'عنوان الرحلة', placement: 'front', icon: 'fas fa-route' },
+          { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
+          { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
+          { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' }
+        ];
         renderPrintExtraFieldsList();
         openModal('printSettingsModal');
         document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
@@ -14722,8 +14793,8 @@
           <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
           <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
         </div>
+        <input type="hidden" id="printTripId">
         <div class="modal-body">
-          <input type="hidden" id="printTripId">
 
           <!-- Settings Panel -->
           <div id="printSettingsFormPanel"
@@ -14846,33 +14917,29 @@
               </div>
             </div>
 
-            <!-- Section 2: Card Contents Checklist -->
+            <!-- Section 2: Card Contents Customizer -->
             <div
               style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
               <h4
                 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                <i class="fas fa-list-ul"></i> محتويات البطاقة
+                <i class="fas fa-list-ul"></i> محتويات وتخصيص بيانات البطاقة
               </h4>
 
               <div style="display:flex; flex-direction:column; gap:10px;">
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowChurch" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>اسم الكنيسة والشعار</span>
-                </label>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowTripImage"
-                    style="accent-color:var(--primary); width:16px; height:16px;"
-                    onchange="const show = this.checked; document.getElementById('printTripImageSubSettings').style.display = show ? 'flex' : 'none'; updatePrintPreview();">
-                  <span>صورة الرحلة (إن وجدت)</span>
-                </label>
+                <!-- Avatar Fallback Sub-option -->
+                <div id="printAvatarFallbackRow"
+                  style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:var(--bg); border-radius:6px;">
+                  <label
+                    style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); width:100%;">
+                    <input type="checkbox" id="printShowAvatarFallback" checked
+                      style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                    <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
+                  </label>
+                </div>
 
                 <!-- Trip Image Sub Settings -->
                 <div id="printTripImageSubSettings"
-                  style="display:none; flex-direction:column; gap:10px; padding:8px 14px 8px 0; border-right:2px solid var(--primary); margin-right:6px; font-size:0.8rem; background:var(--bg); border-radius:6px;">
+                  style="display:none; flex-direction:column; gap:10px; padding:8px 14px; border-right:2px solid var(--primary); margin-right:6px; font-size:0.8rem; background:var(--bg); border-radius:6px;">
                   <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text);">
                     <input type="checkbox" id="printTripImgAsBg"
                       style="accent-color:var(--primary); width:14px; height:14px;"
@@ -14912,53 +14979,6 @@
 
                 <label
                   style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowTripTitle" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>عنوان الرحلة</span>
-                </label>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowStudentImg" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;"
-                    onchange="document.getElementById('printAvatarFallbackRow').style.display = this.checked ? 'flex' : 'none'; updatePrintPreview()">
-                  <span>صورة الطفل</span>
-                </label>
-
-                <!-- Avatar Fallback Sub-option -->
-                <div id="printAvatarFallbackRow"
-                  style="display:flex; align-items:center; gap:8px; padding:4px 14px 4px 0; border-right:2px solid var(--primary); margin-right:6px; background:var(--bg); border-radius:6px;">
-                  <label
-                    style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
-                    <input type="checkbox" id="printShowAvatarFallback" checked
-                      style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
-                    <span>عرض أيقونة افتراضية للأطفال بدون صورة</span>
-                  </label>
-                </div>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowStudentName" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>اسم الطفل</span>
-                </label>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowStudentId" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>عرض كود الطفل (ID)</span>
-                </label>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
-                  <input type="checkbox" id="printShowCustom" checked
-                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>البيانات الإضافية</span>
-                </label>
-
-                <label
-                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text);">
                   <input type="checkbox" id="printCardRounded" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>حواف دائرية للكارت (Rounded Corners)</span>
@@ -14974,8 +14994,8 @@
                 <!-- Dynamic Card Fields Selection -->
                 <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:12px; display:flex; flex-direction:column; gap:8px; text-align:right; direction:rtl;">
                   <label style="font-weight:800; display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text);">
-                    <i class="fas fa-info-circle" style="color:var(--primary);"></i>
-                    <span>إضافة معلومات إضافية للبطاقة</span>
+                    <i class="fas fa-cog" style="color:var(--primary);"></i>
+                    <span>ترتيب وتخصيص عناصر الكارت (الوجه / الظهر):</span>
                   </label>
                   <div style="display:flex; gap:8px; align-items:center;">
                     <select id="printAddInfoSelect" class="form-select" style="flex:1; height:36px; padding:0 8px; border:1px solid var(--border); border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;">
