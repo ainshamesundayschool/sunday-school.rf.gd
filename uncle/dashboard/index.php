@@ -10862,6 +10862,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let kidQrScanSeen = new Set();
         let kidQrScanEntries = [];
 
+        // Sound effects
+        function playSuccessSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const playNote = (freq, startTime, duration) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.08, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.start(startTime);
+                    osc.stop(startTime + duration);
+                };
+                const now = audioCtx.currentTime;
+                playNote(523.25, now, 0.12); // C5
+                playNote(659.25, now + 0.06, 0.12); // E5
+                playNote(783.99, now + 0.12, 0.24); // G5
+            } catch (e) { }
+        }
+
+        function playErrorSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) { }
+        }
+
         // ── NEVER LOGOUT — silent session restore ─────────────────────
         function silentSessionRestore() {
             const cl = localStorage.getItem('loggedIn') === 'true';
@@ -13914,21 +13953,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     list.innerHTML = '<div style="text-align:center;padding:18px 12px;color:var(--text-3);font-size:.84rem;background:var(--surface-2);border:1px dashed var(--border);border-radius:12px">لم يتم مسح أي طفل بعد</div>';
                 } else {
                     if (summary) {
-                        summary.innerHTML = kidQrScanMode === 'coupons'
-                            ? `<div style="background:var(--coupon-bg);border:1px solid rgba(124,58,237,.16);color:var(--coupon-dark);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">تم اختيار <strong>${kidQrScanAmount}</strong> كوبون لكل طفل ممسوح.</div>`
+                        const alertHtml = kidQrScanMode === 'coupons'
+                            ? `<div style="background:var(--coupon-bg);border:1px solid rgba(124,58,237,.16);color:var(--coupon-dark);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5;margin-bottom:10px;">تم اختيار <strong>${kidQrScanAmount}</strong> كوبون لكل طفل ممسوح.</div>`
                             : kidQrScanMode === 'attendance'
-                                ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
+                                ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5;margin-bottom:10px;">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
                                 : '';
+                        
+                        summary.innerHTML = alertHtml + `
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:6px;direction:rtl;">
+                                <span style="font-weight:800;font-size:0.85rem;color:var(--text-2)">الأطفال الممسوحون (${kidQrScanEntries.length})</span>
+                                <button type="button" onclick="clearAllKidQrScans()" style="color:var(--danger);font-size:0.75rem;padding:2px 8px;border:none;background:none;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px;margin-right:auto;">
+                                    <i class="fas fa-trash-alt"></i> مسح الكل
+                                </button>
+                            </div>
+                        `;
                     }
-                    list.innerHTML = kidQrScanEntries.map(entry => `
+                    list.innerHTML = kidQrScanEntries.map((entry, idx) => `
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
-                            <div style="min-width:0">
+                            <div style="min-width:0;flex:1">
                                 <div style="font-weight:800;color:var(--text);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${entry.name}</div>
                                 <div style="font-size:.74rem;color:var(--text-3);margin-top:2px">${entry.className || ''}</div>
                             </div>
-                            <div style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${entry.scanType === 'coupons' ? 'var(--coupon-bg)' : 'var(--success-bg)'};color:${entry.scanType === 'coupons' ? 'var(--coupon-dark)' : 'var(--success)'};font-weight:800;font-size:.8rem">
-                                <i class="fas ${entry.scanType === 'coupons' ? 'fa-star' : 'fa-user-check'}"></i>
-                                ${entry.scanType === 'coupons' ? `+${entry.amount}` : 'حاضر'}
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:${entry.scanType === 'coupons' ? 'var(--coupon-bg)' : 'var(--success-bg)'};color:${entry.scanType === 'coupons' ? 'var(--coupon-dark)' : 'var(--success)'};font-weight:800;font-size:.8rem">
+                                    <i class="fas ${entry.scanType === 'coupons' ? 'fa-star' : 'fa-user-check'}"></i>
+                                    ${entry.scanType === 'coupons' ? `+${entry.amount}` : 'حاضر'}
+                                </div>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="deleteKidQrScanEntry(${idx})" title="حذف من السجل" style="color:var(--danger);padding:4px 8px;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:none;cursor:pointer;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
                     `).join('');
@@ -13936,12 +13989,92 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function deleteKidQrScanEntry(index) {
+            if (index < 0 || index >= kidQrScanEntries.length) return;
+            const entry = kidQrScanEntries[index];
+            
+            // Undo the changes made by the entry
+            if (entry.scanType === 'attendance') {
+                const srvStatus = originalAttendanceData[entry.id] || 'pending';
+                markStudentAttendance(entry.id, srvStatus, true);
+            } else if (entry.scanType === 'coupons') {
+                const amount = entry.amount || 0;
+                const cur = parseInt(couponData[entry.id] || 0);
+                const newVal = cur - amount;
+                couponData[entry.id] = newVal;
+                if (newVal !== 0) {
+                    changedCouponStudents.add(entry.id);
+                } else {
+                    changedCouponStudents.delete(entry.id);
+                }
+                saveCouponDataForClass(entry.className);
+                if (currentClass) {
+                    renderAttendanceList(currentClass);
+                    updateClassStats();
+                }
+                updateSaveBtns();
+            }
+            
+            // Remove the composite ID and scan type from kidQrScanSeen
+            const seenKey = entry.id + '_' + entry.scanType;
+            kidQrScanSeen.delete(seenKey);
+            
+            // Remove from the array
+            kidQrScanEntries.splice(index, 1);
+            
+            // Refresh UI
+            refreshKidQrScanUI();
+            showToast('تم إزالة الطفل من السجل', 'info');
+        }
+
+        function clearAllKidQrScans() {
+            if (!kidQrScanEntries.length) return;
+            
+            // Loop backwards to undo all entries
+            for (let i = kidQrScanEntries.length - 1; i >= 0; i--) {
+                const entry = kidQrScanEntries[i];
+                if (entry.scanType === 'attendance') {
+                    const srvStatus = originalAttendanceData[entry.id] || 'pending';
+                    markStudentAttendance(entry.id, srvStatus, true);
+                } else if (entry.scanType === 'coupons') {
+                    const amount = entry.amount || 0;
+                    const cur = parseInt(couponData[entry.id] || 0);
+                    const newVal = cur - amount;
+                    couponData[entry.id] = newVal;
+                    if (newVal !== 0) {
+                        changedCouponStudents.add(entry.id);
+                    } else {
+                        changedCouponStudents.delete(entry.id);
+                    }
+                    saveCouponDataForClass(entry.className);
+                }
+            }
+            
+            // Clear lists/states
+            kidQrScanSeen.clear();
+            kidQrScanEntries = [];
+            
+            if (currentClass) {
+                renderAttendanceList(currentClass);
+                updateClassStats();
+            }
+            updateSaveBtns();
+            
+            // Refresh UI
+            refreshKidQrScanUI();
+            showToast('تم مسح السجل بالكامل', 'info');
+        }
+
         function recordKidQrScan(studentId) {
             const id = String(studentId || '').trim();
-            if (!id) return false;
+            if (!id) {
+                playErrorSound();
+                return false;
+            }
 
             const student = findStudentById(id);
             if (!student) {
+                playErrorSound();
                 showToast('لم يتم العثور على الطفل في هذه الصفحة', 'warning');
                 return false;
             }
@@ -13962,18 +14095,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const seenKey = studentCompositeId + '_' + kidQrScanMode;
             if (kidQrScanSeen.has(seenKey)) {
+                playErrorSound();
                 showToast('تمت إضافة هذا الطفل بالفعل في هذا الوضع', 'info');
                 return false;
             }
 
-            if (kidQrScanMode !== 'profile') {
-                if (currentClass) {
-                    const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
-                    const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
-                    if (!inCurrentView) {
-                        showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
-                        return false;
-                    }
+            // If in class view, restrict to children in the class
+            if (currentClass) {
+                const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+                const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
+                if (!inCurrentView) {
+                    playErrorSound();
+                    showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
+                    return false;
                 }
             }
 
@@ -14009,15 +14143,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 updateSaveBtns();
             } else if (kidQrScanMode === 'profile' || kidQrScanMode === 'profile-in-class') {
-                if (kidQrScanMode === 'profile-in-class' && currentClass) {
-                    const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
-                    const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
-                    if (!inCurrentView) {
-                        showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
-                        return false;
-                    }
-                }
                 kidQrScanEntries.push({ id: studentCompositeId, name, className, scanType: 'profile' });
+                playSuccessSound();
                 setTimeout(() => {
                     stopKidQrScan();
                     showStudentDetails(name);
@@ -14025,6 +14152,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return true;
             }
 
+            playSuccessSound();
             refreshKidQrScanUI();
             showToast(`تم مسح ${name}`, 'success');
             return true;
@@ -14223,13 +14351,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         const kidId = getKidIdFromQrText(scanBuffer);
                         if (kidId) {
                             e.preventDefault();
-                            if (!isModalActive) {
-                                const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
-                                startKidQrScan(savedMode).then(() => {
-                                    recordKidQrScan(kidId);
-                                });
+                            
+                            const studentModal = document.getElementById('studentModal');
+                            const isStudentModalOpen = studentModal && studentModal.classList.contains('active');
+                            
+                            if (isStudentModalOpen) {
+                                const student = findStudentById(kidId);
+                                if (student) {
+                                    const studentCompositeId = getStudentId(student);
+                                    if (currentClass) {
+                                        const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+                                        const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
+                                        if (!inCurrentView) {
+                                            playErrorSound();
+                                            showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
+                                            scanBuffer = '';
+                                            return;
+                                        }
+                                    }
+                                    playSuccessSound();
+                                    hideStudentModal();
+                                    showStudentDetails(student['الاسم']);
+                                } else {
+                                    playErrorSound();
+                                    showToast('لم يتم العثور على الطفل', 'warning');
+                                }
                             } else {
-                                recordKidQrScan(kidId);
+                                if (!isModalActive) {
+                                    const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
+                                    startKidQrScan(savedMode).then(() => {
+                                        recordKidQrScan(kidId);
+                                    });
+                                } else {
+                                    recordKidQrScan(kidId);
+                                }
                             }
                             scanBuffer = '';
                         }
