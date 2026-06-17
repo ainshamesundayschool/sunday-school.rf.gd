@@ -3224,6 +3224,7 @@
 
                 const scannedStudentId = getKidIdFromQrText(decodedText);
                 if (!scannedStudentId) {
+                    playErrorSound();
                     alert('الكود الممسوح غير صحيح');
                     return;
                 }
@@ -3236,11 +3237,13 @@
                 const activeTripId = currentTrip?.id || '';
 
                 if (activeTripId && String(scannedTripId || activeTripId) === String(activeTripId)) {
+                    playSuccessSound();
                     navigateTo('student_profile', { student_id: scannedStudentId });
                     return;
                 }
 
                 if (!scannedTripId) {
+                    playSuccessSound();
                     navigateTo('student_profile', { student_id: scannedStudentId });
                     return;
                 }
@@ -3253,13 +3256,16 @@
                     const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                     const currentChurchId = currentTrip ? currentTrip.church_id : null;
                     if (res.success && res.trip && currentChurchId && String(res.trip.church_id) === String(currentChurchId)) {
+                        playSuccessSound();
                         if (await customConfirm(`هذا الكود يخص رحلة أخرى ("${res.trip.title}") لنفس الكنيسة. هل تريد الانتقال إليها لتسجيل النقاط؟`, 'نعم، انتقال', 'إلغاء')) {
                             window.location.href = pathPrefix + `/uncle/trip/index.html?trip_id=${scannedTripId}&student_id=${scannedStudentId}`;
                         }
                     } else {
+                        playErrorSound();
                         await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
                     }
                 } catch (err) {
+                    playErrorSound();
                     await customAlert('عذراً، هذا الكود يخص رحلة لكنيسة أخرى ولا يمكن تشغيله في كنيستك.');
                 }
             }

@@ -9139,6 +9139,24 @@
                                 <input type="checkbox" id="printBackCard" checked style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                                 <span>توليد ظهر الكارت (Generate Back Card)</span>
                             </label>
+
+                            <!-- Dynamic Card Fields Selection -->
+                            <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:12px; display:flex; flex-direction:column; gap:8px; text-align:right; direction:rtl;">
+                                <label style="font-weight:800; display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text);">
+                                    <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                                    <span>إضافة معلومات إضافية للبطاقة</span>
+                                </label>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <select id="printAddInfoSelect" class="form-select" style="flex:1; height:36px; padding:0 8px; border:1px solid var(--border); border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;">
+                                    </select>
+                                    <button type="button" class="btn btn-primary" onclick="addPrintExtraField()" style="height:36px; width:36px; min-width:36px; display:flex; align-items:center; justify-content:center; padding:0; border-radius:6px;">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <!-- List of active extra fields with remove buttons -->
+                                <div id="printExtraFieldsList" style="display:flex; flex-direction:column; gap:6px;">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -19023,6 +19041,125 @@
             if (ctrl) ctrl.style.display = style === 'dashed' ? 'grid' : 'none';
         }
 
+        let cardExtraFields = [];
+
+        function getStudentFieldValue(s, key, trip = null) {
+            if (!s) return '';
+            if (key.startsWith('church_custom_')) {
+                const customIdx = key.replace('church_custom_', '');
+                const customInfo = typeof s.custom_info === 'string' ? JSON.parse(s.custom_info || '{}') : (s.custom_info || {});
+                return customInfo['field_' + customIdx] || customInfo[customIdx] || '';
+            }
+            if (key.startsWith('custom_field_')) {
+                const fieldName = key.replace('custom_field_', '');
+                const customData = typeof s.custom_data === 'string' ? JSON.parse(s.custom_data || '{}') : (s.custom_data || {});
+                return customData[fieldName] || '';
+            }
+            switch(key) {
+                case 'class':
+                case 'student_class':
+                    return s.student_class || s.class || s['الفصل'] || s['الفصل الدراسى'] || '';
+                case 'phone':
+                case 'student_phone':
+                    return s.student_phone || s.phone || s['رقم التليفون'] || s['الهاتف'] || '';
+                case 'emergency_phone':
+                case 'student_emergency_phone':
+                    return s.student_emergency_phone || s.emergency_phone || s['تليفون الطوارئ'] || '';
+                case 'address':
+                case 'student_address':
+                    return s.student_address || s.address || s['العنوان'] || '';
+                case 'birthday':
+                case 'student_birthday':
+                    return s.student_birthday || s.birthday || s['تاريخ الميلاد'] || s['عيد الميلاد'] || '';
+                case 'age':
+                case 'student_age':
+                    return s.student_age || s.age || s['السن'] || '';
+                case 'medical_notes':
+                case 'student_medical_notes':
+                    return s.student_medical_notes || s.medical_notes || s.medical_note || s['ملاحظات طبية'] || '';
+                case 'coupons':
+                    return s.coupons || s['كوبونات'] || s['إجمالي الكوبونات'] || '';
+                case 'national_id':
+                    return s.national_id || s['الرقم القومي'] || '';
+                case 'stage':
+                    return s.stage || s['المرحلة'] || '';
+                default:
+                    return s[key] || '';
+            }
+        }
+
+        function populatePrintExtraFieldsDropdown() {
+            const select = document.getElementById('printAddInfoSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            
+            const standardFields = [
+                { key: 'class', label: 'الفصل' },
+                { key: 'phone', label: 'رقم التليفون' },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ' },
+                { key: 'address', label: 'العنوان' },
+                { key: 'birthday', label: 'تاريخ الميلاد' },
+                { key: 'age', label: 'السن' },
+                { key: 'coupons', label: 'الكوبونات' },
+                { key: 'national_id', label: 'الرقم القومي' },
+                { key: 'stage', label: 'المرحلة' }
+            ];
+
+            if (window._currentCustomFields && window._currentCustomFields.length) {
+                window._currentCustomFields.forEach((cf, idx) => {
+                    standardFields.push({
+                        key: 'church_custom_' + idx,
+                        label: `${cf.name || ('حقل مخصص ' + (idx + 1))} (حقل مخصص)`
+                    });
+                });
+            }
+
+            const unusedFields = standardFields.filter(f => !cardExtraFields.some(x => x.key === f.key));
+            if (unusedFields.length === 0) {
+                select.innerHTML = '<option value="">لا توجد حقول إضافية</option>';
+            } else {
+                unusedFields.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.key;
+                    opt.textContent = f.label;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function addPrintExtraField() {
+            const select = document.getElementById('printAddInfoSelect');
+            if (!select || !select.value) return;
+            const key = select.value;
+            const label = select.options[select.selectedIndex].text.split(' (')[0];
+            cardExtraFields.push({ key, label });
+            renderPrintExtraFieldsList();
+            populatePrintExtraFieldsDropdown();
+            updatePrintPreview();
+        }
+
+        function removePrintExtraField(key) {
+            cardExtraFields = cardExtraFields.filter(f => f.key !== key);
+            renderPrintExtraFieldsList();
+            populatePrintExtraFieldsDropdown();
+            updatePrintPreview();
+        }
+
+        function renderPrintExtraFieldsList() {
+            const container = document.getElementById('printExtraFieldsList');
+            if (!container) return;
+            container.innerHTML = '';
+            cardExtraFields.forEach(f => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg, #f8fafc); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:0.8rem; direction:rtl;';
+                row.innerHTML = `
+                    <span><i class="fas fa-tag" style="color:var(--primary); margin-left:6px;"></i> ${f.label}</span>
+                    <button type="button" onclick="removePrintExtraField('${f.key}')" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:0.9rem; padding:0 4px;"><i class="fas fa-trash-alt"></i></button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
         function syncPrintSettingsUI() {
             const showStudentImgChecked = document.getElementById('printShowStudentImg')?.checked;
             const avatarFallbackRow = document.getElementById('printAvatarFallbackRow');
@@ -19132,7 +19269,8 @@
             textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
             baseWidth, baseHeight,
             readabilityBgColor = '#ffffff', readabilityBgOpacity = '92', readabilityPadding = 6, readabilityWidth = 'fitted',
-            readabilityBgShadow = true
+            readabilityBgShadow = true,
+            extraFields = []
         }) {
             const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
             const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
@@ -19249,21 +19387,59 @@
             }
 
             let studentInfoGroupHtml = '';
-            if (showStudentImg || showStudentName) {
+            if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
                 const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
-                const hasAnyStudentContent = !!avatarHtml || showStudentName;
+                
+                const availW = scaledWidth - 2 * scaledPadding;
+                const availH = scaledHeight - 2 * scaledPadding;
+                let extraInfoHtml = '';
+                if (extraFields && extraFields.length > 0) {
+                    const itemsHtml = extraFields.map(field => {
+                        const val = getStudentFieldValue(s, field.key);
+                        if (val === null || val === undefined || String(val).trim() === '') return '';
+                        let iconClass = 'fas fa-info-circle';
+                        if (field.key === 'student_class' || field.key === 'class' || field.key === 'الفصل') iconClass = 'fas fa-graduation-cap';
+                        else if (field.key === 'student_phone' || field.key === 'phone' || field.key === 'رقم التليفون') iconClass = 'fas fa-phone';
+                        else if (field.key === 'student_emergency_phone' || field.key === 'emergency_phone' || field.key === 'تليفون الطوارئ') iconClass = 'fas fa-phone-alt';
+                        else if (field.key === 'student_address' || field.key === 'address' || field.key === 'العنوان') iconClass = 'fas fa-map-marker-alt';
+                        else if (field.key === 'student_birthday' || field.key === 'birthday' || field.key === 'تاريخ الميلاد' || field.key === 'عيد الميلاد') iconClass = 'fas fa-birthday-cake';
+                        else if (field.key === 'student_age' || field.key === 'age' || field.key === 'السن') iconClass = 'fas fa-calendar-alt';
+                        else if (field.key === 'coupons' || field.key === 'كوبونات') iconClass = 'fas fa-coins';
+                        else if (field.key === 'student_medical_notes' || field.key === 'medical_notes' || field.key === 'medical_note' || field.key === 'ملاحظات طبية') iconClass = 'fas fa-notes-medical';
+                        else if (field.key === 'national_id' || field.key === 'الرقم القومي') iconClass = 'fas fa-id-card';
+                        else if (field.key === 'stage' || field.key === 'المرحلة') iconClass = 'fas fa-layer-group';
+                        
+                        if (field.key.startsWith('church_custom_')) {
+                            const customIdx = field.key.replace('church_custom_', '');
+                            if (window._currentCustomFields && window._currentCustomFields[customIdx]) {
+                                const icon = window._currentCustomFields[customIdx].icon;
+                                if (icon) iconClass = icon.startsWith('fa-') ? 'fas ' + icon : icon;
+                            }
+                        }
+                        return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                    }).filter(Boolean).join(' | ');
+                    
+                    if (itemsHtml) {
+                        const fCustom = Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
+                        extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                    }
+                }
+
+                const hasAnyStudentContent = !!avatarHtml || showStudentName || !!extraInfoHtml;
 
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only' && hasAnyStudentContent) {
                     studentInfoGroupHtml = `
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                                 ${avatarHtml}
                                 ${nameTag}
+                                ${extraInfoHtml}
                         </div>
                     `;
                 } else {
                     studentInfoGroupHtml = `
                         ${avatarHtml}
                         ${nameTag}
+                        ${extraInfoHtml}
                     `;
                 }
             }
@@ -19541,7 +19717,8 @@
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
                     baseWidth, baseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
-                    readabilityBgShadow
+                    readabilityBgShadow,
+                    extraFields: cardExtraFields
                 });
             }).join('');
 
@@ -19755,9 +19932,12 @@
             }
             updatePrintSelectedCount();
 
+            cardExtraFields = [];
+            renderPrintExtraFieldsList();
             openModal('printSettingsModal');
             document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
             
+            populatePrintExtraFieldsDropdown();
             syncPrintSettingsUI();
             updatePrintPreview();
         }
@@ -19930,7 +20110,8 @@
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
                     baseWidth, baseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
-                    readabilityBgShadow
+                    readabilityBgShadow,
+                    extraFields: cardExtraFields
                 });
             }
 
