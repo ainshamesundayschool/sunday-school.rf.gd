@@ -9331,7 +9331,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان</h4>
                             <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة الكلية: 100</span>
                         </div>
-                        <div style="display:flex; gap:8px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <div id="sheetExamRefLinkContainer" style="display:inline-flex; align-items:center; gap:4px;"></div>
                             <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
                             <input type="file" id="sheetRefFileInput" style="display:none;" onchange="handleSheetRefUpload()" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                             <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
@@ -21499,6 +21500,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     document.getElementById('sheetExamName').textContent = resp.exam.name;
                     document.getElementById('sheetExamTotalDegree').textContent = 'الدرجة الكلية: ' + resp.exam.total_degree;
                     
+                    const refBtnText = document.getElementById('sheetRefBtnText');
+                    if (refBtnText) {
+                        refBtnText.textContent = resp.exam.reference_url ? 'تغيير المرجع ✓' : 'ملف المرجع';
+                    }
+                    
+                    const refLinkContainer = document.getElementById('sheetExamRefLinkContainer');
+                    if (refLinkContainer) {
+                        if (resp.exam.reference_url) {
+                            const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(resp.exam.reference_url);
+                            if (isImg) {
+                                refLinkContainer.innerHTML = `<img src="${resp.exam.reference_url}" style="width:34px; height:34px; object-fit:cover; border-radius:6px; border:1px solid var(--border-solid); cursor:pointer; transition:transform 0.2s;" onclick="window.open('${resp.exam.reference_url}', '_blank')" title="عرض صورة المرجع" class="hover-scale">`;
+                            } else {
+                                refLinkContainer.innerHTML = `<a href="${resp.exam.reference_url}" target="_blank" style="color:var(--brand); font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:2px; padding:6px 10px; background:var(--surface-3); border-radius:6px; border:1px solid var(--border-solid); text-decoration:none;"><i class="fas fa-file-alt"></i> عرض المرجع</a>`;
+                            }
+                        } else {
+                            refLinkContainer.innerHTML = '';
+                        }
+                    }
+                    
                     // Reset filter values
                     document.getElementById('sheetSearchInput').value = '';
                     document.getElementById('sheetClassFilter').value = '';
@@ -21621,6 +21641,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const input = document.getElementById(`answers-file-input-${studentId}`);
             if (input.files.length === 0) return;
             
+            // Check if student degree has been filled first
+            const degreeInput = document.querySelector(`.sheet-degree-input[data-student-id="${studentId}"]`);
+            const degreeVal = degreeInput ? degreeInput.value.trim() : '';
+            if (degreeVal === '') {
+                showToast('الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة', 'warning');
+                input.value = '';
+                return;
+            }
+            
             const file = input.files[0];
             const fd = new FormData();
             fd.append('action', 'uploadStudentAnswersPicture');
@@ -21679,15 +21708,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function saveSheetDegrees() {
             const inputs = document.querySelectorAll('.sheet-degree-input');
             const degrees = [];
+            let hasError = false;
             
             inputs.forEach(input => {
                 const studentId = input.getAttribute('data-student-id');
                 const val = input.value.trim();
+                if (val !== '') {
+                    const parsedDeg = parseFloat(val);
+                    if (parsedDeg > activeExamTotalDegree) {
+                        showToast(`الدرجة المدخلة لا يمكن أن تزيد عن درجة الامتحان الكلية (${activeExamTotalDegree})`, 'error');
+                        input.style.borderColor = 'var(--danger)';
+                        hasError = true;
+                    } else if (parsedDeg < 0) {
+                        showToast('الدرجة المدخلة لا يمكن أن تكون أقل من الصفر', 'error');
+                        input.style.borderColor = 'var(--danger)';
+                        hasError = true;
+                    } else {
+                        input.style.borderColor = '';
+                    }
+                } else {
+                    input.style.borderColor = '';
+                }
                 degrees.push({
                     student_id: parseInt(studentId, 10),
                     degree: val === '' ? null : parseFloat(val)
                 });
             });
+            
+            if (hasError) return;
             
             const fd = new FormData();
             fd.append('action', 'savePaperExamDegrees');
@@ -21752,6 +21800,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!input) return;
             
             const val = input.value.trim();
+            
+            // Check if entered degree exceeds total degree
+            if (currentStudentForEdit && Array.isArray(currentStudentForEdit.paper_exams)) {
+                const exam = currentStudentForEdit.paper_exams.find(e => e.id === examId);
+                if (exam && val !== '') {
+                    const parsedDeg = parseFloat(val);
+                    if (parsedDeg > exam.total_degree) {
+                        showToast(`الدرجة المدخلة لا يمكن أن تزيد عن درجة الامتحان الكلية (${exam.total_degree})`, 'error');
+                        input.style.borderColor = 'var(--danger)';
+                        return;
+                    } else if (parsedDeg < 0) {
+                        showToast('الدرجة المدخلة لا يمكن أن تكون أقل من الصفر', 'error');
+                        input.style.borderColor = 'var(--danger)';
+                        return;
+                    } else {
+                        input.style.borderColor = '';
+                    }
+                } else {
+                    input.style.borderColor = '';
+                }
+            }
+            
             const fd = new FormData();
             fd.append('action', 'saveStudentPaperExamDegree');
             fd.append('student_id', studentId);
@@ -21778,6 +21848,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function uploadModalAnswersPic(studentId, examId) {
             const input = document.getElementById(`modal-answers-file-input-${examId}`);
             if (input.files.length === 0) return;
+            
+            // Enforce that degree is set first
+            const degreeInput = document.getElementById(`modal-degree-input-${examId}`);
+            const degreeVal = degreeInput ? degreeInput.value.trim() : '';
+            if (degreeVal === '') {
+                showToast('الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة', 'warning');
+                input.value = '';
+                return;
+            }
             
             const file = input.files[0];
             const fd = new FormData();

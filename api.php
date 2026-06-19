@@ -19020,6 +19020,12 @@ function savePaperExam() {
 
     if ($id > 0) {
         if ($referenceUrl !== null) {
+            // Delete all written student degrees for this exam so they can start again
+            $delDeg = $conn->prepare("DELETE FROM paper_exam_degrees WHERE paper_exam_id = ?");
+            $delDeg->bind_param("i", $id);
+            $delDeg->execute();
+            $delDeg->close();
+
             $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ?, reference_url = ? WHERE id = ? AND church_id = ?");
             $stmt->bind_param("siisii", $name, $totalDegree, $classId, $referenceUrl, $id, $churchId);
         } else {
@@ -19031,7 +19037,8 @@ function savePaperExam() {
         if (function_exists('writeAuditLog')) {
             writeAuditLog('exam_edit', 'exam', $id, $name, null, null, "تعديل امتحان ورقي: " . $name);
         }
-        sendJSON(['success' => true, 'message' => 'تم تعديل الامتحان بنجاح', 'id' => $id]);
+        $msg = $referenceUrl !== null ? 'تم تعديل الامتحان وحذف جميع درجات الطلاب السابقة بنجاح' : 'تم تعديل الامتحان بنجاح';
+        sendJSON(['success' => true, 'message' => $msg, 'id' => $id]);
     } else {
         $stmt = $conn->prepare("INSERT INTO paper_exams (church_id, class_id, name, total_degree, reference_url) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("iisis", $churchId, $classId, $name, $totalDegree, $referenceUrl);
@@ -19094,7 +19101,7 @@ function getPaperExamDegrees() {
         sendJSON(['success' => false, 'message' => 'معرف الامتحان مطلوب']);
     }
 
-    $check = $conn->prepare("SELECT name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
+    $check = $conn->prepare("SELECT name, total_degree, reference_url FROM paper_exams WHERE id = ? AND church_id = ?");
     $check->bind_param("ii", $examId, $churchId);
     $check->execute();
     $exam = $check->get_result()->fetch_assoc();
@@ -19150,7 +19157,8 @@ function getPaperExamDegrees() {
         'exam' => [
             'id' => $examId,
             'name' => $exam['name'],
-            'total_degree' => floatval($exam['total_degree'])
+            'total_degree' => floatval($exam['total_degree']),
+            'reference_url' => $exam['reference_url']
         ],
         'students' => $students
     ]);
@@ -19184,6 +19192,8 @@ function savePaperExamDegrees() {
         sendJSON(['success' => false, 'message' => 'بيانات الدرجات غير صالحة']);
     }
 
+    $totalDegree = floatval($exam['total_degree']);
+
     $stmt = $conn->prepare("
         INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree)
         VALUES (?, ?, ?)
@@ -19207,6 +19217,12 @@ function savePaperExamDegrees() {
             $stmtUpdate->close();
         } else {
             $degree = floatval($degreeStr);
+            if ($degree > $totalDegree) {
+                sendJSON(['success' => false, 'message' => "الدرجة المدخلة ({$degree}) لا يمكن أن تزيد عن درجة الامتحان الكلية ({$totalDegree})"]);
+            }
+            if ($degree < 0) {
+                sendJSON(['success' => false, 'message' => "الدرجة المدخلة لا يمكن أن تكون أقل من الصفر"]);
+            }
             $stmt->bind_param("iid", $examId, $studentId, $degree);
             $stmt->execute();
             $count++;
@@ -19247,7 +19263,7 @@ function saveStudentPaperExamDegree() {
         sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
     }
 
-    $checkExam = $conn->prepare("SELECT name FROM paper_exams WHERE id = ? AND church_id = ?");
+    $checkExam = $conn->prepare("SELECT name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
     $checkExam->bind_param("ii", $examId, $churchId);
     $checkExam->execute();
     $exam = $checkExam->get_result()->fetch_assoc();
@@ -19256,6 +19272,8 @@ function saveStudentPaperExamDegree() {
     if (!$exam) {
         sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
     }
+
+    $totalDegree = floatval($exam['total_degree']);
 
     if ($degreeStr === null || $degreeStr === '') {
         $stmt = $conn->prepare("
@@ -19276,6 +19294,12 @@ function saveStudentPaperExamDegree() {
         sendJSON(['success' => true, 'message' => 'تم مسح درجة الامتحان للطفل بنجاح']);
     } else {
         $degree = floatval($degreeStr);
+        if ($degree > $totalDegree) {
+            sendJSON(['success' => false, 'message' => "الدرجة المدخلة ({$degree}) لا يمكن أن تزيد عن درجة الامتحان الكلية ({$totalDegree})"]);
+        }
+        if ($degree < 0) {
+            sendJSON(['success' => false, 'message' => "الدرجة المدخلة لا يمكن أن تكون أقل من الصفر"]);
+        }
         $stmt = $conn->prepare("
             INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree)
             VALUES (?, ?, ?)
@@ -19322,6 +19346,17 @@ function uploadStudentAnswersPicture() {
 
     if (!$exam) {
         sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    // Enforce that degree is set before uploading answers sheet
+    $checkDegree = $conn->prepare("SELECT degree FROM paper_exam_degrees WHERE paper_exam_id = ? AND student_id = ?");
+    $checkDegree->bind_param("ii", $examId, $studentId);
+    $checkDegree->execute();
+    $degRow = $checkDegree->get_result()->fetch_assoc();
+    $checkDegree->close();
+
+    if (!$degRow || $degRow['degree'] === null) {
+        sendJSON(['success' => false, 'message' => 'الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة']);
     }
 
     if (!isset($_FILES['answers_file']) || $_FILES['answers_file']['error'] !== UPLOAD_ERR_OK) {
