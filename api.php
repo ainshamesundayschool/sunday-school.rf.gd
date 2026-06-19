@@ -18869,6 +18869,30 @@ function getStudentProfile()
             $examsRes = $examsStmt->get_result();
             $paperExams = [];
             $studentClassId = intval($row['class_id']);
+            if ($studentClassId === 0 && !empty($row['class']) && $row['class'] !== 'بدون فصل') {
+                $cName = $row['class'];
+                $cStmt = $conn->prepare("SELECT id FROM church_classes WHERE (arabic_name = ? OR code = ?) AND church_id = ?");
+                if ($cStmt) {
+                    $cStmt->bind_param("ssi", $cName, $cName, $row['church_id']);
+                    $cStmt->execute();
+                    $cRes = $cStmt->get_result()->fetch_assoc();
+                    if ($cRes) {
+                        $studentClassId = intval($cRes['id']);
+                    } else {
+                        $cStmt2 = $conn->prepare("SELECT id FROM classes WHERE arabic_name = ? OR code = ?");
+                        if ($cStmt2) {
+                            $cStmt2->bind_param("ss", $cName, $cName);
+                            $cStmt2->execute();
+                            $cRes2 = $cStmt2->get_result()->fetch_assoc();
+                            if ($cRes2) {
+                                $studentClassId = intval($cRes2['id']);
+                            }
+                            $cStmt2->close();
+                        }
+                    }
+                    $cStmt->close();
+                }
+            }
             while ($exRow = $examsRes->fetch_assoc()) {
                 $classIdsStr = trim($exRow['class_ids'] ?? '');
                 $showExam = false;

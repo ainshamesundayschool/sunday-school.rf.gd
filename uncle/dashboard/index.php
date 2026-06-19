@@ -15136,6 +15136,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         return;
                     }
                     const full = resp.student;
+                    currentStudentForEdit = full;
                     buildStudentDetailsFromProfile(full);
                 } catch (e) {
                     buildStudentDetailsFromCache(s);
@@ -15935,11 +15936,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Notes List -->
                 <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
-                    ${notesList.length === 0 ? `
-                        <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
-                            لا توجد ملاحظات مسجلة لهذا الطفل.
-                        </div>
-                    ` : notesList.map(note => {
+                    ${notesList.length === 0 ? '' : notesList.map(note => {
                         const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) : '---';
                         return `
                             <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
@@ -21526,6 +21523,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('paperExamsListView').style.display = 'none';
             document.getElementById('paperExamSheetView').style.display = 'none';
             document.getElementById('paperExamFormView').style.display = 'block';
+
+            // Reset checkboxes and Select All
+            const selectAllCb = document.getElementById('paper-exam-select-all-classes');
+            if (selectAllCb) selectAllCb.checked = false;
+            document.querySelectorAll('input[name="paper_exam_class_cb"]').forEach(cb => {
+                cb.checked = false;
+            });
         }
 
         function hidePaperExamForm() {
@@ -21546,6 +21550,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             if (paperExamClassList) {
                 paperExamClassList.innerHTML = '';
+
+                // Add Select All checkbox at the top
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:var(--brand); cursor:pointer; padding:4px 0; border-bottom:1px dashed var(--border-solid); margin-bottom:4px;";
+
+                const selectAllCb = document.createElement('input');
+                selectAllCb.type = 'checkbox';
+                selectAllCb.id = 'paper-exam-select-all-classes';
+                selectAllCb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
+
+                const selectAllSpan = document.createElement('span');
+                selectAllSpan.textContent = 'تحديد الكل';
+
+                selectAllCb.addEventListener('change', function() {
+                    const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAllCb.checked;
+                    });
+                });
+
+                selectAllLabel.appendChild(selectAllCb);
+                selectAllLabel.appendChild(selectAllSpan);
+                paperExamClassList.appendChild(selectAllLabel);
+
                 classes.forEach(c => {
                     const id = `class-cb-${c.id}`;
                     const label = document.createElement('label');
@@ -21557,6 +21585,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     cb.value = c.id;
                     cb.id = id;
                     cb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
+                    
+                    cb.addEventListener('change', function() {
+                        const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
+                        const allChecked = Array.from(checkboxes).every(x => x.checked);
+                        selectAllCb.checked = allChecked;
+                    });
                     
                     const span = document.createElement('span');
                     span.textContent = c.arabic_name || c.code;
@@ -21684,9 +21718,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('paperExamClassId').value = classId || '';
             
             const classIds = classIdsStr ? classIdsStr.split(',') : [];
-            document.querySelectorAll('input[name="paper_exam_class_cb"]').forEach(cb => {
-                cb.checked = classIds.includes(cb.value);
+            let allChecked = true;
+            const checkboxes = document.querySelectorAll('input[name="paper_exam_class_cb"]');
+            checkboxes.forEach(cb => {
+                const checked = classIds.includes(cb.value);
+                cb.checked = checked;
+                if (!checked) allChecked = false;
             });
+            const selectAllCb = document.getElementById('paper-exam-select-all-classes');
+            if (selectAllCb) {
+                selectAllCb.checked = (checkboxes.length > 0 && allChecked);
+            }
 
             document.getElementById('paperExamFormTitle').textContent = 'تعديل الامتحان: ' + name;
             
