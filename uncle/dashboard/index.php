@@ -9298,11 +9298,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <input type="hidden" id="paperExamId" value="0">
                         <div class="form-group">
                             <label class="form-label">اسم الامتحان</label>
-                            <input type="text" id="paperExamName" class="form-input" required placeholder="مثال: امتحان نصف العام">
+                            <input type="text" id="paperExamName" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">الدرجة الكلية</label>
-                            <input type="number" id="paperExamTotalDegree" class="form-input" required min="1" placeholder="مثال: 100">
+                            <input type="number" id="paperExamTotalDegree" class="form-input" required min="1">
                         </div>
                         <input type="hidden" id="paperExamClassId" value="">
                         <div class="form-group">
@@ -9941,7 +9941,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
                     </div>
-                    <button type="button" class="btn btn-outline" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()" style="padding: 0 12px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface-2); color: var(--text); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border-solid)'">
+                    <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()" style="padding: 0 16px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: 50px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; font-family: 'Cairo', sans-serif;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border-solid)'">
                         <i class="fas fa-filter"></i>
                         <span style="font-size: 0.8rem; font-weight: 700;">تصفية</span>
                         <span id="activeFiltersBadge" style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.68rem; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 800; margin-right: 4px;">0</span>
@@ -15903,9 +15903,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
                         <i class="fas fa-sticky-note"></i> الملاحظات (${notesList.length})
                     </h4>
-                    <button class="btn btn-ghost" onclick="toggleAddNoteArea()" style="font-size:0.75rem; padding:4px 10px; border-radius:6px;">
-                        <i class="fas fa-plus"></i> إضافة ملاحظة
-                    </button>
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة ملاحظة" onclick="toggleAddNoteArea()"><i class="fas fa-sticky-note"></i> <i class="fas fa-plus"></i></button>
                 </div>
                 
                 <!-- Add Note Area (Hidden by default) -->
@@ -16049,9 +16047,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const paperExamsList = full.paper_exams || [];
             let paperExamsHtml = `
             <div class="student-paper-exams-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
-                    <i class="fas fa-file-invoice"></i> الدرجات والامتحانات الورقية (${paperExamsList.length})
-                </h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-file-invoice"></i> الدرجات والامتحانات الورقية (${paperExamsList.length})
+                    </h4>
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إدارة الامتحانات الورقية" onclick="showPaperExamsModal()"><i class="fas fa-file-invoice"></i> <i class="fas fa-plus"></i></button>
+                </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     ${paperExamsList.length === 0 ? `
                         <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
