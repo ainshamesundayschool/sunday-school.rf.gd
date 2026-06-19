@@ -17042,7 +17042,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const filterSiblings = document.getElementById('filterSiblingsSelect')?.value || 'all';
             if (filterSiblings !== 'all') {
                 list = list.filter(s => {
-                    const hasSiblings = (s.sibling_group_id && s.sibling_group_id !== '0') || (s['sibling_group_id'] && s['sibling_group_id'] !== '0');
+                    const group = getSiblingGroupInfo(s);
+                    const hasSiblings = !!(group && group.id && group.id !== '0' && group.id !== 0 && group.status !== 'deleted');
                     return filterSiblings === 'has_siblings' ? hasSiblings : !hasSiblings;
                 });
             }
