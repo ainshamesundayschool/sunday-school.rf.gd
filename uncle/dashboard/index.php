@@ -9335,6 +9335,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div id="sheetExamRefLinkContainer" style="display:inline-flex; align-items:center; gap:4px;"></div>
                             <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
                             <input type="file" id="sheetRefFileInput" style="display:none;" onchange="handleSheetRefUpload()" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            
+                            <!-- CSV Import Button -->
+                            <button class="btn btn-ghost" style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;" onclick="triggerCsvImport()"><i class="fas fa-file-csv"></i> استيراد CSV</button>
+                            <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()" accept=".csv">
+                            
                             <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
                         </div>
                     </div>
@@ -21783,6 +21788,42 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     showToast(resp.message || 'فشل الرفع', 'error');
                 }
             } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        function triggerCsvImport() {
+            document.getElementById('sheetCsvFileInput').click();
+        }
+
+        async function handleCsvImport() {
+            const input = document.getElementById('sheetCsvFileInput');
+            if (input.files.length === 0) return;
+            
+            const file = input.files[0];
+            if (!confirm(`هل تريد بالتأكيد استيراد الدرجات من الملف "${file.name}"؟`)) {
+                input.value = '';
+                return;
+            }
+            
+            const fd = new FormData();
+            fd.append('action', 'importPaperExamDegreesCSV');
+            fd.append('paper_exam_id', activeExamId);
+            fd.append('csv_file', file);
+            
+            showToast('جارٍ استيراد الملف...', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                input.value = '';
+                if (resp.success) {
+                    showToast(resp.message, 'success');
+                    openExamSheet(activeExamId);
+                } else {
+                    showToast(resp.message || 'فشل استيراد الملف', 'error');
+                }
+            } catch (e) {
+                input.value = '';
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
         }

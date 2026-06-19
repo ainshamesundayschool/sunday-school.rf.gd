@@ -3667,6 +3667,10 @@ try {
             deleteStudentAnswersPicture();
             break;
 
+        case 'importPaperExamDegreesCSV':
+            importPaperExamDegreesCSV();
+            break;
+
         case 'getSiblingGroupMembers':
             getSiblingGroupMembers();
             break;
@@ -18260,8 +18264,6 @@ function kidLoginByPhoneWithPassword()
 
         }
 
-
-
         $sha256Hash = hash('sha256', $password); // legacy
 
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
@@ -18913,7 +18915,6 @@ function getStudentProfile()
         sendJSON(['success' => false, 'message' => 'خطأ في تحميل الملف الشخصي']);
 
     }
-
 }
 
 function ensurePaperExamTables($conn) {
@@ -18935,7 +18936,7 @@ function ensurePaperExamTables($conn) {
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `paper_exam_id` int(11) NOT NULL,
         `student_id` int(11) NOT NULL,
-        `degree` float NOT NULL,
+        `degree` float DEFAULT NULL,
         `answers_picture` varchar(500) DEFAULT NULL,
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
         `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -18944,7 +18945,229 @@ function ensurePaperExamTables($conn) {
         KEY `student_id` (`student_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-    $conn->query("ALTER TABLE `paper_exam_degrees` ADD COLUMN IF NOT EXISTS `answers_picture` varchar(500) DEFAULT NULL AFTER `degree`");
+    // MySQL 5.7 safe column checks
+    $checkCol = $conn->query("SHOW COLUMNS FROM `paper_exam_degrees` LIKE 'answers_picture'");
+    if ($checkCol && $checkCol->num_rows === 0) {
+        $conn->query("ALTER TABLE `paper_exam_degrees` ADD COLUMN `answers_picture` varchar(500) DEFAULT NULL AFTER `degree`");
+    }
+
+    $checkDeg = $conn->query("SHOW COLUMNS FROM `paper_exam_degrees` LIKE 'degree'");
+    if ($checkDeg && $row = $checkDeg->fetch_assoc()) {
+        if (strtoupper($row['Null']) === 'NO') {
+            $conn->query("ALTER TABLE `paper_exam_degrees` MODIFY COLUMN `degree` float DEFAULT NULL");
+        }
+    }
+}
+
+function importPaperExamDegreesCSV() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    
+    $churchId = getChurchId();
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+    
+    if ($examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الامتحان مطلوب']);
+    }
+    
+    // Check if exam exists
+    $stmt = $conn->prepare("SELECT id, name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
+    $stmt->bind_param("ii", $examId, $churchId);
+    $stmt->execute();
+    $exam = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+    
+    if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+        sendJSON(['success' => false, 'message' => 'لم يتم رفع أي ملف']);
+    }
+    
+    $fileTmpPath = $_FILES['csv_file']['tmp_name'];
+    $file = fopen($fileTmpPath, 'r');
+    if (!$file) {
+        sendJSON(['success' => false, 'message' => 'فشل فتح الملف']);
+    }
+    
+    // Detect UTF-8 BOM
+    $bom = fread($file, 3);
+    if ($bom !== "\xEF\xBB\xBF") {
+        rewind($file);
+    }
+    
+    // Read header row
+    $headerRow = fgetcsv($file);
+    if (!$headerRow) {
+        fclose($file);
+        sendJSON(['success' => false, 'message' => 'ملف CSV فارغ']);
+    }
+    
+    // Normalize headers
+    $headers = array_map(function ($h) {
+        $cleaned = trim(str_replace('"', '', $h));
+        $cleaned = str_replace("\xEF\xBB\xBF", "", $cleaned);
+        return mb_strtolower($cleaned, 'UTF-8');
+    }, $headerRow);
+    
+    $colId = false;
+    $colName = false;
+    $colDegree = false;
+    
+    foreach ($headers as $idx => $header) {
+        if (in_array($header, ['id', 'student_id', 'معرف', 'كود', 'معرف الطفل'])) {
+            $colId = $idx;
+        } elseif (in_array($header, ['name', 'الاسم', 'الاسم كامل', 'اسم الطفل'])) {
+            $colName = $idx;
+        } elseif (in_array($header, ['degree', 'الدرجة', 'درجة', 'النتيجة', 'الدرجه'])) {
+            $colDegree = $idx;
+        }
+    }
+    
+    // Fallbacks
+    if ($colId === false && count($headers) > 0) {
+        if (strpos($headers[0], 'id') !== false || strpos($headers[0], 'معرف') !== false) {
+            $colId = 0;
+        }
+    }
+    if ($colName === false && count($headers) > 1) {
+        if (strpos($headers[1], 'الاسم') !== false || strpos($headers[1], 'name') !== false) {
+            $colName = 1;
+        }
+    }
+    if ($colDegree === false && count($headers) > 2) {
+        if (strpos($headers[2], 'درجة') !== false || strpos($headers[2], 'degree') !== false) {
+            $colDegree = 2;
+        }
+    }
+    
+    if ($colDegree === false) {
+        if (count($headers) >= 2) {
+            $colDegree = count($headers) - 1;
+        } else {
+            fclose($file);
+            sendJSON(['success' => false, 'message' => 'تعذر تحديد عمود الدرجة في الملف. يرجى كتابة رأس العمود باسم "الالدرجة"']);
+        }
+    }
+    
+    if ($colId === false && $colName === false) {
+        fclose($file);
+        sendJSON(['success' => false, 'message' => 'تعذر تحديد عمود معرف الطفل أو اسمه. يرجى كتابة رأس العمود باسم "الاسم" أو "id"']);
+    }
+    
+    // Get students for mapping
+    $studentsList = [];
+    if ($colName !== false) {
+        $stmtStu = $conn->prepare("SELECT id, name FROM students WHERE church_id = ?");
+        $stmtStu->bind_param("i", $churchId);
+        $stmtStu->execute();
+        $resStu = $stmtStu->get_result();
+        while ($sRow = $resStu->fetch_assoc()) {
+            $studentsList[normalizeArabicNamePHP($sRow['name'])] = intval($sRow['id']);
+        }
+        $stmtStu->close();
+    }
+    
+    $importedCount = 0;
+    $errors = [];
+    $rowNum = 1;
+    
+    while (($row = fgetcsv($file)) !== false) {
+        $rowNum++;
+        if (empty($row) || (count($row) === 1 && empty($row[0]))) {
+            continue;
+        }
+        
+        $studentId = null;
+        $studentName = '';
+        
+        if ($colId !== false && isset($row[$colId]) && trim($row[$colId]) !== '') {
+            $candidateId = intval(trim($row[$colId]));
+            $stmtCheck = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ?");
+            $stmtCheck->bind_param("ii", $candidateId, $churchId);
+            $stmtCheck->execute();
+            $checkRes = $stmtCheck->get_result()->fetch_assoc();
+            $stmtCheck->close();
+            if ($checkRes) {
+                $studentId = $candidateId;
+            }
+        }
+        
+        if (!$studentId && $colName !== false && isset($row[$colName]) && trim($row[$colName]) !== '') {
+            $studentName = trim($row[$colName]);
+            $normName = normalizeArabicNamePHP($studentName);
+            if (isset($studentsList[$normName])) {
+                $studentId = $studentsList[$normName];
+            } else {
+                $found = false;
+                foreach ($studentsList as $cachedName => $cachedId) {
+                    if (strpos($cachedName, $normName) !== false || strpos($normName, $cachedName) !== false) {
+                        $studentId = $cachedId;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $errors[] = "السطر $rowNum: لم يتم العثور على طفل باسم '$studentName'";
+                    continue;
+                }
+            }
+        }
+        
+        if (!$studentId) {
+            $errors[] = "السطر $rowNum: لم يتم العثور على طفل مطابق";
+            continue;
+        }
+        
+        $degreeVal = null;
+        if ($colDegree !== false && isset($row[$colDegree]) && trim($row[$colDegree]) !== '') {
+            $rawDegree = trim($row[$colDegree]);
+            if (is_numeric($rawDegree)) {
+                $degreeVal = floatval($rawDegree);
+            }
+        }
+        
+        if ($degreeVal === null) {
+            $errors[] = "السطر $rowNum: الدرجة فارغة أو غير صالحة";
+            continue;
+        }
+        
+        if ($degreeVal > $exam['total_degree'] || $degreeVal < 0) {
+            $errors[] = "السطر $rowNum: الدرجة ($degreeVal) تجاوزت الحد الكلي ({$exam['total_degree']})";
+            continue;
+        }
+        
+        $stmtSave = $conn->prepare("
+            INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE degree = VALUES(degree)
+        ");
+        $stmtSave->bind_param("iid", $examId, $studentId, $degreeVal);
+        $stmtSave->execute();
+        $stmtSave->close();
+        
+        $importedCount++;
+    }
+    
+    fclose($file);
+    
+    $msg = "تم استيراد $importedCount درجات بنجاح.";
+    if (!empty($errors)) {
+        $msg .= " (تنبيهات: " . implode(", ", array_slice($errors, 0, 3));
+        if (count($errors) > 3) {
+            $msg .= " وأخرى";
+        }
+        $msg .= ")";
+    }
+    
+    sendJSON([
+        'success' => true,
+        'message' => $msg,
+        'imported_count' => $importedCount,
+        'errors' => $errors
+    ]);
 }
 
 function getPaperExams() {
