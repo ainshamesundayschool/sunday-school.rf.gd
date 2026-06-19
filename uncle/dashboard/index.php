@@ -9346,23 +9346,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             
                             <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
                         </div>
-                    </div>
+                     </div>
 
-                    <!-- CSV Tips Alert Box -->
-                    <div id="sheetCsvTipsBox" class="glass-card" style="padding: 10px 14px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface-3); display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; color: var(--text-2); direction: rtl; text-align: right; position: relative;">
-                        <button type="button" class="btn btn-ghost" style="position: absolute; left: 8px; top: 8px; padding: 4px; font-size: 0.75rem; color: var(--text-3); min-width: unset; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('sheetCsvTipsBox').style.display='none'" title="إغلاق"><i class="fas fa-times"></i></button>
-                        <div style="font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                            <i class="fas fa-info-circle" style="font-size:0.85rem;"></i> تعليمات استيراد درجات الامتحان عبر CSV:
-                        </div>
-                        <ul style="margin: 0; padding-right: 18px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; list-style-type: disc;">
-                            <li>يجب أن يحتوي الملف على عمود للدرجات برأس عمود باسم: <strong>الدرجة</strong> أو <strong>degree</strong>.</li>
-                            <li>للتعرف على الأطفال بدقة، يرجى كتابة رأس عمود باسم: <strong>id</strong> أو <strong>معرف الطفل</strong> أو <strong>كود</strong> (يحتوي على معرّف الطفل).</li>
-                            <li>كبديل للمعرّف، يمكن التعرف على الطفل بالاسم إذا كان الملف يحتوي على عمود باسم: <strong>الاسم</strong> أو <strong>الاسم كامل</strong>.</li>
-                            <li>يرجى التأكد من حفظ الملف بتنسيق <strong>UTF-8 CSV</strong> لكي تظهر الحروف العربية بشكل صحيح ولا يحدث خطأ بالأسماء.</li>
-                        </ul>
-                    </div>
-
-                    <!-- Search + Filter + Sort row -->
+                     <!-- Search + Filter + Sort row -->
                     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                         <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:6px 10px; border:1.5px solid var(--border-solid);">
                             <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
