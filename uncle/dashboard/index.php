@@ -9926,8 +9926,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <div class="class-inline-search-wrap">
-                    <div class="inline-search-box">
+                <div class="class-inline-search-wrap" style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                    <div class="inline-search-box" style="flex: 1;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off">
@@ -9936,6 +9936,56 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                         <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
+                    </div>
+                    <button type="button" class="btn btn-outline" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()" style="padding: 0 12px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface-2); color: var(--text); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border-solid)'">
+                        <i class="fas fa-filter"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700;">تصفية</span>
+                        <span id="activeFiltersBadge" style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.68rem; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 800; margin-right: 4px;">0</span>
+                    </button>
+                </div>
+
+                <!-- Filters Panel -->
+                <div class="class-filters-panel" id="classFiltersPanel" style="display: none; background: var(--surface-2); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; width: 100%;">
+                    <!-- Gender Filter -->
+                    <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-venus-mars"></i> النوع</label>
+                        <select id="filterGenderSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                            <option value="all">الكل</option>
+                            <option value="male">بنين (أولاد)</option>
+                            <option value="female">بنات</option>
+                        </select>
+                    </div>
+                    <!-- Attendance Filter -->
+                    <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-check-circle"></i> حالة الحضور اليوم</label>
+                        <select id="filterAttendanceSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                            <option value="all">الكل</option>
+                            <option value="present">حضور</option>
+                            <option value="absent">غياب</option>
+                            <option value="pending">غير مسجل</option>
+                        </select>
+                    </div>
+                    <!-- Sibling Filter -->
+                    <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-users"></i> صلة الإخوة</label>
+                        <select id="filterSiblingsSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                            <option value="all">الكل</option>
+                            <option value="has_siblings">لديه إخوة</option>
+                            <option value="no_siblings">ليس لديه إخوة</option>
+                        </select>
+                    </div>
+                    <!-- Coupons Filter -->
+                    <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-star"></i> الكوبونات</label>
+                        <select id="filterCouponsSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                            <option value="all">الكل</option>
+                            <option value="has_coupons">لديه كوبونات (&gt; 0)</option>
+                            <option value="no_coupons">ليس لديه كوبونات (0)</option>
+                        </select>
+                    </div>
+                    <!-- Reset Button -->
+                    <div style="flex: 1; min-width: 120px; display: flex; align-items: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="resetClassFilters()" style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-sm); font-family: Cairo,sans-serif;"><i class="fas fa-undo"></i> إعادة تعيين</button>
                     </div>
                 </div>
 
@@ -13252,6 +13302,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const dbId = Number(getStudentDbId(s));
                 const sid = getStudentId(s);
                 const st = attendanceData[sid] || 'pending';
+                const gender = (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
                 
                 let select = false;
                 if (filter === 'all') {
@@ -13261,6 +13312,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else if (filter === 'present' && st === 'present') {
                     select = true;
                 } else if (filter === 'absent' && st === 'absent') {
+                    select = true;
+                } else if (filter === 'boys' && gender === 'male') {
+                    select = true;
+                } else if (filter === 'girls' && gender === 'female') {
                     select = true;
                 }
                 
@@ -16916,14 +16971,104 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
             return arr;
         }
+        function toggleClassFiltersPanel() {
+            const panel = document.getElementById('classFiltersPanel');
+            const btn = document.getElementById('classFiltersToggleBtn');
+            if (!panel || !btn) return;
+            if (panel.style.display === 'none') {
+                panel.style.display = 'flex';
+                btn.style.borderColor = 'var(--brand)';
+                btn.style.background = 'var(--surface-3)';
+            } else {
+                panel.style.display = 'none';
+                btn.style.borderColor = 'var(--border-solid)';
+                btn.style.background = 'var(--surface-2)';
+            }
+        }
+
+        function applyClassFilters() {
+            if (currentClass) {
+                renderAttendanceList(currentClass);
+            }
+        }
+
+        function resetClassFilters() {
+            const g = document.getElementById('filterGenderSelect');
+            const a = document.getElementById('filterAttendanceSelect');
+            const s = document.getElementById('filterSiblingsSelect');
+            const c = document.getElementById('filterCouponsSelect');
+            if (g) g.value = 'all';
+            if (a) a.value = 'all';
+            if (s) s.value = 'all';
+            if (c) c.value = 'all';
+            applyClassFilters();
+        }
+
         function filterAndSortActiveStudents() {
             let list = getActiveViewStudents();
+            
+            // 1. Live text search query
             if (searchQuery) {
                 list = list
                     .map(s => ({ ...s, _classSearchScore: getMatchScore(s, searchQuery) }))
                     .filter(s => s._classSearchScore > 0)
                     .sort((a, b) => b._classSearchScore - a._classSearchScore);
             }
+            
+            // 2. Gender Filter
+            const filterGender = document.getElementById('filterGenderSelect')?.value || 'all';
+            if (filterGender !== 'all') {
+                list = list.filter(s => {
+                    const g = (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
+                    return g === filterGender;
+                });
+            }
+            
+            // 3. Attendance Filter
+            const filterAttendance = document.getElementById('filterAttendanceSelect')?.value || 'all';
+            if (filterAttendance !== 'all') {
+                list = list.filter(s => {
+                    const sid = getStudentId(s);
+                    const st = attendanceData[sid] || 'pending';
+                    return st === filterAttendance;
+                });
+            }
+            
+            // 4. Sibling Filter
+            const filterSiblings = document.getElementById('filterSiblingsSelect')?.value || 'all';
+            if (filterSiblings !== 'all') {
+                list = list.filter(s => {
+                    const hasSiblings = (s.sibling_group_id && s.sibling_group_id !== '0') || (s['sibling_group_id'] && s['sibling_group_id'] !== '0');
+                    return filterSiblings === 'has_siblings' ? hasSiblings : !hasSiblings;
+                });
+            }
+            
+            // 5. Coupons Filter
+            const filterCoupons = document.getElementById('filterCouponsSelect')?.value || 'all';
+            if (filterCoupons !== 'all') {
+                list = list.filter(s => {
+                    const coupons = parseInt(s.coupons || s['كوبونات'] || 0, 10);
+                    return filterCoupons === 'has_coupons' ? coupons > 0 : coupons === 0;
+                });
+            }
+            
+            // Update active filters badge
+            let activeFiltersCount = 0;
+            if (filterGender !== 'all') activeFiltersCount++;
+            if (filterAttendance !== 'all') activeFiltersCount++;
+            if (filterSiblings !== 'all') activeFiltersCount++;
+            if (filterCoupons !== 'all') activeFiltersCount++;
+            
+            const badge = document.getElementById('activeFiltersBadge');
+            if (badge) {
+                if (activeFiltersCount > 0) {
+                    badge.textContent = activeFiltersCount;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
             return sortStudentsForCurrentView(list);
         }
 
