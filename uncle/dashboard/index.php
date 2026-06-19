@@ -6876,6 +6876,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: #fff !important;
         }
 
+        #syncToTodayBtn {
+            transition: all var(--t) var(--ease);
+        }
+        #syncToTodayBtn:hover {
+            background: var(--success) !important;
+            color: #fff !important;
+            border-color: var(--success) !important;
+        }
+
         /* ── Birthday indicator on attendance row ── */
         .attendance-item.bday-row {
             border-top: 3px solid #db2777 !important;
@@ -9726,9 +9735,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="fas fa-arrow-right"></i></button>
                         <h2 class="class-title-text" id="className">الفصل</h2>
                     </div>
-                    <div class="date-chip" id="dateChip" onclick="showPastFridaysModal()">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="currentDateText">جاري...</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button class="btn btn-ghost" id="syncToTodayBtn" style="display:none; color:var(--success); padding:0 12px; min-width:unset; height:36px; font-size:0.82rem; font-weight:700; align-items:center; gap:6px; border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-md); background:var(--surface-3); font-family:Cairo,sans-serif;" onclick="resetToCurrentFriday()" title="العودة لليوم">
+                            <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
+                        </button>
+                        <div class="date-chip" id="dateChip" onclick="showPastFridaysModal()">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span id="currentDateText">جاري...</span>
+                        </div>
                     </div>
                 </div>
 
@@ -11620,9 +11634,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('className').textContent = 'الفصل: ' + className;
             clearSearch();
             loadCouponDataForClass(className);
-            const sf = localStorage.getItem('selectedFriday');
-            if (sf) { currentFriday = sf; document.getElementById('currentDateText').textContent = sf; loadAttendanceDataForClass(className, sf); }
-            else { updateCurrentDateDisplay(); loadAttendanceDataForClass(className); }
+            updateCurrentDateDisplay();
+            loadAttendanceDataForClass(className, currentFriday);
             loadPendingRegistrationsForClass(className);
 
             // If students array is empty (offline, first load), show placeholder until data arrives
@@ -11696,9 +11709,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (backBtn) backBtn.style.display = 'inline-flex';
 
             // Set date
-            const sf = localStorage.getItem('selectedFriday');
-            if (sf) { currentFriday = sf; document.getElementById('currentDateText').textContent = sf; }
-            else updateCurrentDateDisplay();
+            updateCurrentDateDisplay();
 
             // Load local coupon/attendance data using the group label as key
             loadCouponDataForClass(groupLabel);
@@ -12474,9 +12485,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             currentClass = '__ALL__';
 
             // Restore last selected date if any
-            const sf = localStorage.getItem('selectedFriday');
-            if (sf) { currentFriday = sf; document.getElementById('currentDateText').textContent = sf; }
-            else updateCurrentDateDisplay();
+            updateCurrentDateDisplay();
 
             // Show back button
             const backBtn = document.getElementById('backBtn');
@@ -16481,15 +16490,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
             d.setDate(today.getDate() - diff);
             const computedFriday = formatDateDDMMYYYY(d);
             
-            // Auto-switch to the new date if a new attendance settled date has become available
+            // Calculate previous attendance date (exactly 1 cycle/7 days ago)
+            const prevD = new Date(d);
+            prevD.setDate(d.getDate() - 7);
+            const previousFriday = formatDateDDMMYYYY(prevD);
+
             const sf = localStorage.getItem('selectedFriday');
-            if (sf && sf !== computedFriday) {
-                localStorage.removeItem('selectedFriday');
+            let resolvedFriday = computedFriday;
+            if (sf) {
+                if (sf === previousFriday) {
+                    // Revert to new one automatically if the uncle was on the last date
+                    localStorage.removeItem('selectedFriday');
+                    resolvedFriday = computedFriday;
+                } else if (sf === computedFriday) {
+                    resolvedFriday = computedFriday;
+                } else {
+                    // Different older date. Do not auto-revert! Keep the cached date.
+                    resolvedFriday = sf;
+                }
             }
 
-            currentFriday = computedFriday;
+            currentFriday = resolvedFriday;
             const el = document.getElementById('currentDateText');
             if (el) el.textContent = currentFriday;
+
+            // Show or hide the sync/revert button next to the date chip
+            const syncBtn = document.getElementById('syncToTodayBtn');
+            if (syncBtn) {
+                if (currentFriday !== computedFriday) {
+                    syncBtn.style.display = 'inline-flex';
+                } else {
+                    syncBtn.style.display = 'none';
+                }
+            }
         }
 
         // ── Custom dates storage ──────────────────────────────────────
@@ -16701,8 +16734,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getCurrentFriday() { return getCurrentAttendanceDay(); }
         function loadFridayAttendance(date) {
             localStorage.setItem('selectedFriday', date);
-            currentFriday = date;
-            document.getElementById('currentDateText').textContent = date;
+            updateCurrentDateDisplay();
 
             if (isCombinedView) {
                 if (currentClass === '__ALL__') {
