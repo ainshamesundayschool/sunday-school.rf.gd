@@ -9374,6 +9374,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <select id="sheetSortSelect" onchange="sortSheetStudents()" style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
                             <option value="name_asc">الاسم (أ - ي)</option>
                             <option value="name_desc">الاسم (ي - أ)</option>
+                            <option value="class_asc">الفصل</option>
                             <option value="degree_desc">الدرجة (الأعلى للأقل)</option>
                             <option value="degree_asc">الدرجة (الأقل للأعلى)</option>
                             <option value="no_degree">غير مرصود أولاً</option>
@@ -21843,7 +21844,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     // Reset filter values
                     document.getElementById('sheetSearchInput').value = '';
                     document.getElementById('sheetClassFilter').value = '';
-                    document.getElementById('sheetSortSelect').value = 'name_asc';
+                    document.getElementById('sheetSortSelect').value = localStorage.getItem('paper_exams_sheet_sort') || 'name_asc';
                     
                     filterSheetStudents();
                 } else {
@@ -21876,6 +21877,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const sortMode = document.getElementById('sheetSortSelect').value;
             const query = document.getElementById('sheetSearchInput').value.trim();
             
+            // Save sorting choice in localStorage
+            localStorage.setItem('paper_exams_sheet_sort', sortMode);
+            
             filteredExamStudents.sort((a, b) => {
                 // If there's a search query, first order by search score relevance!
                 if (query) {
@@ -21887,6 +21891,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return a.name.localeCompare(b.name, 'ar');
                 } else if (sortMode === 'name_desc') {
                     return b.name.localeCompare(a.name, 'ar');
+                } else if (sortMode === 'class_asc') {
+                    const classComp = (a.class_name || '').localeCompare(b.class_name || '', 'ar');
+                    if (classComp !== 0) return classComp;
+                    return a.name.localeCompare(b.name, 'ar'); // secondary sort by name
                 } else if (sortMode === 'degree_desc') {
                     const degA = a.degree !== null ? a.degree : -1;
                     const degB = b.degree !== null ? b.degree : -1;
@@ -22165,7 +22173,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function downloadPaperExamCsvTemplate() {
-            if (!activeExamStudents || activeExamStudents.length === 0) {
+            if (!filteredExamStudents || filteredExamStudents.length === 0) {
                 showToast('لا توجد بيانات طلاب لتصديرها كقالب', 'error');
                 return;
             }
@@ -22177,7 +22185,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             csvContent += '"معرف الطفل","الاسم","الفصل","الدرجة"\n';
             
             // Student Rows
-            activeExamStudents.forEach(student => {
+            filteredExamStudents.forEach(student => {
                 const id = student.id;
                 const name = (student.name || '').replace(/"/g, '""');
                 const className = (student.class_name || '').replace(/"/g, '""');

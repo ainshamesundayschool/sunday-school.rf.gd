@@ -7891,16 +7891,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function renderPaperExams(s) {
       const list = s.paper_exams || [];
       const el = document.getElementById('paperExamsList');
-      if (!el) return;
+      const container = document.getElementById('scPaperExams');
+      if (!el || !container) return;
       
       if (!list.length) {
-        el.innerHTML = `
-          <div style="text-align:center; padding:16px; color:var(--text-3); font-size:0.85rem; font-style:italic;">
-            لا توجد امتحانات مسجلة.
-          </div>
-        `;
+        container.style.display = 'none';
         return;
       }
+      
+      container.style.display = 'block';
       
       el.innerHTML = list.map(exam => {
         const degreeText = exam.degree !== null ? `${exam.degree} / ${exam.total_degree}` : 'غير مرصود بعد';
