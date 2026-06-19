@@ -9456,6 +9456,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
                             <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
                             <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                            <hr style="margin: 4px 0; border: none; border-top: 1px solid var(--border-solid);">
+                            <button class="dropdown-item" style="color: var(--brand);" onclick="bulkSelectByFilter('boys');closeAllDropdowns()"><i class="fas fa-mars"></i> الأولاد</button>
+                            <button class="dropdown-item" style="color: #ec4899;" onclick="bulkSelectByFilter('girls');closeAllDropdowns()"><i class="fas fa-venus"></i> البنات</button>
                         </div>
                     </div>
                 </div>
@@ -9951,7 +9954,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-venus-mars"></i> النوع</label>
                         <select id="filterGenderSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
                             <option value="all">الكل</option>
-                            <option value="male">بنين (أولاد)</option>
+                            <option value="male">أولاد</option>
                             <option value="female">بنات</option>
                         </select>
                     </div>
