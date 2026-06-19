@@ -8872,6 +8872,67 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -webkit-transform: scaleX(1) !important;
             width: 100% !important;
             height: 100% !important;
+        /* ── Paper Exams Styles ── */
+        .paper-exam-card {
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+        .paper-exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--brand);
+        }
+        .paper-exam-card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0;
+        }
+        .paper-exam-card-meta {
+            font-size: 0.8rem;
+            color: var(--text-3);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .paper-exam-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+        .sheet-degree-input {
+            width: 70px;
+            text-align: center;
+            padding: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .sheet-degree-input:focus {
+            border-color: var(--brand);
+        }
+        .sheet-student-row {
+            border-bottom: 1px solid var(--border-solid);
+            transition: background 0.2s;
+        }
+        .sheet-student-row:hover {
+            background: var(--surface-2);
+        }
+        .sheet-student-cell {
+            padding: 8px 10px;
+            vertical-align: middle;
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -9162,6 +9223,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">المهام</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
                 </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showPaperExamsModal()">
+                    <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-file-invoice"></i></span>
+                    <span class="tool-card-name">الامتحانات الورقية</span>
+                    <span class="tool-card-desc">إدارة درجات ورصد الامتحانات الورقية للأطفال.</span>
+                </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showAllKidsCustomExport()">
                     <span class="tool-card-icon"><i class="fas fa-file-export"></i></span>
                     <span class="tool-card-name">تصدير مخصص</span>
@@ -9197,6 +9263,121 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">دليل مساعدة الخدمة</span>
                     <span class="tool-card-desc">اعرف تفاصيل كل ميزة في الخدمة.</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paper Exams Modal -->
+    <div class="modal-overlay" id="paperExamsModal" style="z-index: 1000020;">
+        <div class="modal modal-lg" style="max-width: 850px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-file-invoice" style="color:var(--brand);"></i> 
+                    <span>الامتحانات الورقية</span>
+                </h3>
+                <button class="close-btn" onclick="closePaperExamsModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="paperExamsModalBody" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
+                <!-- Main list view -->
+                <div id="paperExamsListView">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h4 style="margin:0; font-weight:700; color:var(--text);">الامتحانات المسجلة</h4>
+                        <button class="btn btn-primary" onclick="showAddPaperExamForm()">
+                            <i class="fas fa-plus"></i> إضافة امتحان جديد
+                        </button>
+                    </div>
+                    <div id="paperExamsList" class="tools-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Add/Edit form view -->
+                <div id="paperExamFormView" style="display:none;">
+                    <h4 id="paperExamFormTitle" style="margin-bottom:16px; font-weight:700; color:var(--text);">إضافة امتحان جديد</h4>
+                    <form id="paperExamForm" onsubmit="handlePaperExamFormSubmit(event)">
+                        <input type="hidden" id="paperExamId" value="0">
+                        <div class="form-group">
+                            <label class="form-label">اسم الامتحان</label>
+                            <input type="text" id="paperExamName" class="form-input" required placeholder="مثال: امتحان نصف العام">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الدرجة الكلية</label>
+                            <input type="number" id="paperExamTotalDegree" class="form-input" required min="1" placeholder="مثال: 100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الفصل المخصص له (اختياري)</label>
+                            <select id="paperExamClassId" class="form-input">
+                                <option value="">كل الفصول</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ملف/صورة الامتحان كمرجع (اختياري)</label>
+                            <input type="file" id="paperExamRefFile" class="form-input" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <div id="paperExamExistingRef" style="margin-top:8px; font-size:0.8rem; color:var(--text-3); display:none;">
+                                يوجد ملف مرفوع بالفعل: <a href="#" id="paperExamExistingRefLink" target="_blank" style="color:var(--brand); text-decoration:underline;">عرض الملف</a>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:20px;">
+                            <button type="submit" class="btn btn-success" style="flex:1;"><i class="fas fa-save"></i> حفظ</button>
+                            <button type="button" class="btn btn-secondary" onclick="hidePaperExamForm()" style="flex:1;"><i class="fas fa-times"></i> إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sheet view -->
+                <div id="paperExamSheetView" style="display:none; height:100%; flex-direction:column; gap:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
+                        <div>
+                            <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان</h4>
+                            <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة الكلية: 100</span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
+                            <input type="file" id="sheetRefFileInput" style="display:none;" onchange="handleSheetRefUpload()" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
+                        </div>
+                    </div>
+
+                    <!-- Search + Filter + Sort row -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:6px 10px; border:1.5px solid var(--border-solid);">
+                            <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
+                            <input id="sheetSearchInput" type="text" placeholder="بحث باسم الطفل..." style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.82rem; color:var(--text); width:100%; outline:none;" oninput="filterSheetStudents()">
+                        </div>
+                        <select id="sheetClassFilter" onchange="filterSheetStudents()" style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
+                            <option value="">كل الفصول</option>
+                        </select>
+                        <select id="sheetSortSelect" onchange="sortSheetStudents()" style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
+                            <option value="name_asc">الاسم (أ - ي)</option>
+                            <option value="name_desc">الاسم (ي - أ)</option>
+                            <option value="degree_desc">الدرجة (الأعلى للأقل)</option>
+                            <option value="degree_asc">الدرجة (الأقل للأعلى)</option>
+                            <option value="no_degree">غير مرصود أولاً</option>
+                        </select>
+                    </div>
+
+                    <!-- Sheet table container -->
+                    <div style="flex:1; overflow-y:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
+                        <table style="width:100%; border-collapse:collapse; text-align:right; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
+                                    <th style="padding:10px; width:50px; text-align:center;">الصورة</th>
+                                    <th style="padding:10px; text-align:right;">الاسم</th>
+                                    <th style="padding:10px; width:120px; text-align:right;">الفصل</th>
+                                    <th style="padding:10px; width:150px; text-align:center;">ورقة الإجابة</th>
+                                    <th style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sheetStudentsTableBody">
+                                <!-- Filled dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                        <button class="btn btn-success" onclick="saveSheetDegrees()" style="padding:10px 24px;"><i class="fas fa-save"></i> حفظ جميع الدرجات</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -9402,6 +9583,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
                         <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
                         <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
+                        <button class="home-tool-chip" onclick="showPaperExamsModal()"><i class="fas fa-file-invoice"></i> الامتحانات الورقية</button>
                         <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
                         <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
                         <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
@@ -15798,77 +15980,53 @@ if ($hasUncleId && $uncleRole === 'uncle')
             `).join('');
             tpHtml += '</div></div>';
 
-            // Render Notes Section
-            const notesList = info._notes || [];
-            let notesHtml = `
-            <div class="student-notes-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-sticky-note"></i> الملاحظات (${notesList.length})
-                    </h4>
-                    <button class="btn btn-ghost" onclick="toggleAddNoteArea()" style="font-size:0.75rem; padding:4px 10px; border-radius:6px;">
-                        <i class="fas fa-plus"></i> إضافة ملاحظة
-                    </button>
-                </div>
-                
-                <!-- Add Note Area (Hidden by default) -->
-                <div id="addNoteArea" class="glass-card" style="display:none; margin-bottom:14px; padding:12px; border: 1px solid var(--border-solid); border-radius:10px;">
-                    <div class="form-group" style="margin-bottom:8px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">نوع الملاحظة (العنوان)</label>
-                        
-                        <!-- Suggestions pills -->
-                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; direction:rtl;">
-                            ${['زيارة منزلية', 'متابعة تلفونية', 'احتياج مالي', 'مستلزمات مدرسية', 'طلب صلاة', 'أخرى'].map(sugg => `
-                                <span class="badge" onclick="selectNoteTitleSuggestion('${sugg}')" style="cursor:pointer; font-size:0.68rem; padding:4px 8px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">
-                                    ${sugg}
-                                </span>
-                            `).join('')}
-                        </div>
-                        <input type="text" id="noteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." style="font-size:0.8rem; padding:6px 10px;">
-                    </div>
-                    <div class="form-group" style="margin-bottom:8px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">تفاصيل الملاحظة (الوصف)</label>
-                        <textarea id="noteDescInput" class="form-input" rows="3" placeholder="تفاصيل الملاحظة..." style="font-size:0.8rem; padding:6px 10px; font-family:inherit; resize:vertical;"></textarea>
-                    </div>
-                    <div class="form-group" style="margin-bottom:10px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">التاريخ (اختياري)</label>
-                        <input type="date" id="noteDateInput" class="form-input" style="font-size:0.8rem; padding:6px 10px;">
-                    </div>
-                    <div style="display:flex; gap:6px; justify-content:flex-end;">
-                        <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
-                        <button class="btn" onclick="submitStudentNote(${full.id || full.id})" style="font-size:0.75rem; padding:4px 12px; background:var(--brand); color:#fff;">حفظ</button>
-                    </div>
-                </div>
-
-                <!-- Notes List -->
-                <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
-                    ${notesList.length === 0 ? `
+            // Paper Exams section inside modal details
+            const paperExamsList = full.paper_exams || [];
+            let paperExamsHtml = `
+            <div class="student-paper-exams-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-file-invoice"></i> الدرجات والامتحانات الورقية (${paperExamsList.length})
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${paperExamsList.length === 0 ? `
                         <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
-                            لا توجد ملاحظات مسجلة لهذا الطفل.
+                            لا توجد امتحانات ورقية مسجلة.
                         </div>
-                    ` : notesList.map(note => {
-                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) : '---';
-                        return `
-                            <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                                    <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
-                                    <button onclick="deleteStudentNote(${full.id || full.id}, '${note.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px;" title="حذف الملاحظة">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 6px 0; line-height:1.4; white-space:pre-wrap;">${escHtml(note.description)}</p>
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-3); font-weight:600;">
-                                    <span>بواسطة: ${escHtml(note.created_by || 'خادم')}</span>
-                                    <span>التاريخ: ${noteDateStr}</span>
+                    ` : paperExamsList.map(exam => `
+                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                                <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(exam.name)}</span>
+                                <div style="display:flex; gap:8px; align-items:center; font-size:0.75rem;">
+                                    <span style="color:var(--text-3);">الدرجة الكلية: ${exam.total_degree}</span>
+                                    ${exam.reference_url ? `<a href="${exam.reference_url}" target="_blank" style="color:var(--brand); font-weight:700;"><i class="fas fa-external-link-alt"></i> ورقة الامتحان</a>` : ''}
                                 </div>
                             </div>
-                        `;
-                    }).join('')}
+                            
+                            <!-- Answers Paper Picture Section -->
+                            <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
+                                ${exam.answers_picture ? `
+                                    <img src="${exam.answers_picture}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border-solid); cursor:pointer;" onclick="window.open('${exam.answers_picture}', '_blank')">
+                                    <button class="btn btn-ghost" style="padding:4px; color:var(--danger); font-size:0.75rem;" onclick="deleteModalAnswersPic(${full.id}, ${exam.id})"><i class="fas fa-trash-alt"></i></button>
+                                ` : `
+                                    <button class="btn btn-ghost" style="color:var(--brand); padding:4px; display:flex; align-items:center; gap:2px;" onclick="triggerModalAnswersPicUpload(${exam.id})">
+                                        <i class="fas fa-camera"></i> <span style="font-size:0.7rem; font-weight:700;">إجابة الطفل</span>
+                                    </button>
+                                `}
+                                <input type="file" id="modal-answers-file-input-${exam.id}" style="display:none;" accept="image/*" onchange="uploadModalAnswersPic(${full.id}, ${exam.id})">
+                            </div>
+
+                            <!-- Score input section -->
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <input type="number" step="any" min="0" max="${exam.total_degree}" class="form-input" style="width:65px; text-align:center; padding:5px 6px; font-family:Cairo,sans-serif; font-size:0.8rem; height:32px;" value="${exam.degree !== null ? exam.degree : ''}" placeholder="---" id="modal-degree-input-${exam.id}">
+                                <button class="btn btn-primary" style="padding:5px 8px; height:32px; font-size:0.75rem;" onclick="saveModalExamDegree(${full.id}, ${exam.id})"><i class="fas fa-check"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml + notesHtml;
+            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml + paperExamsHtml + notesHtml;
         }
 
         // Open a small prompt to update points for a given trip and student
@@ -21136,6 +21294,534 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 listContainer.appendChild(card);
             });
+        }
+
+        // ── PAPER EXAMS FUNCTIONS ─────────────────────────────────────
+        let activeExamStudents = []; // holds students list for the current active exam
+        let filteredExamStudents = []; // holds the sorted/filtered list of students
+        let activeExamId = 0;
+        let activeExamTotalDegree = 100;
+
+        function showPaperExamsModal() {
+            openModal('paperExamsModal');
+            backToExamsList();
+            populateClassDropdowns();
+        }
+
+        function closePaperExamsModal() {
+            closeModal('paperExamsModal');
+        }
+
+        function showAddPaperExamForm() {
+            document.getElementById('paperExamId').value = '0';
+            document.getElementById('paperExamForm').reset();
+            document.getElementById('paperExamFormTitle').textContent = 'إضافة امتحان جديد';
+            document.getElementById('paperExamExistingRef').style.display = 'none';
+            document.getElementById('paperExamsListView').style.display = 'none';
+            document.getElementById('paperExamSheetView').style.display = 'none';
+            document.getElementById('paperExamFormView').style.display = 'block';
+        }
+
+        function hidePaperExamForm() {
+            document.getElementById('paperExamFormView').style.display = 'none';
+            document.getElementById('paperExamsListView').style.display = 'block';
+        }
+
+        function backToExamsList() {
+            document.getElementById('paperExamSheetView').style.display = 'none';
+            document.getElementById('paperExamFormView').style.display = 'none';
+            document.getElementById('paperExamsListView').style.display = 'block';
+            loadPaperExamsList();
+        }
+
+        function populateClassDropdowns() {
+            const paperExamClassSelect = document.getElementById('paperExamClassId');
+            const sheetClassSelect = document.getElementById('sheetClassFilter');
+            
+            if (paperExamClassSelect) {
+                paperExamClassSelect.innerHTML = '<option value="">كل الفصول</option>';
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.arabic_name || c.code;
+                    paperExamClassSelect.appendChild(opt);
+                });
+            }
+            
+            if (sheetClassSelect) {
+                sheetClassSelect.innerHTML = '<option value="">كل الفصول</option>';
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.arabic_name || c.code;
+                    opt.textContent = c.arabic_name || c.code;
+                    sheetClassSelect.appendChild(opt);
+                });
+            }
+        }
+
+        async function loadPaperExamsList() {
+            const listContainer = document.getElementById('paperExamsList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الامتحانات…</div>';
+            
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getPaperExams');
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                
+                if (resp.success && resp.exams) {
+                    if (resp.exams.length === 0) {
+                        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
+                        return;
+                    }
+                    listContainer.innerHTML = resp.exams.map(exam => `
+                        <div class="tool-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:16px; min-height:140px;">
+                            <div>
+                                <h4 style="margin:0 0 6px 0; font-weight:800; color:var(--text);">${escHtml(exam.name)}</h4>
+                                <div style="font-size:0.78rem; color:var(--text-3); display:flex; flex-direction:column; gap:4px;">
+                                    <span>الدرجة الكلية: <strong>${exam.total_degree}</strong></span>
+                                    <span>الفصل: <strong>${escHtml(exam.class_name)}</strong></span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;">
+                                <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px; flex:1;" onclick="openExamSheet(${exam.id})">
+                                    <i class="fas fa-list-ol"></i> رصد الدرجات
+                                </button>
+                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
+                                    <i class="fas fa-edit" style="color:var(--text);"></i>
+                                </button>
+                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem; color:var(--danger);" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--danger);">فشل تحميل الامتحانات.</div>';
+                }
+            } catch (e) {
+                listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--danger);">خطأ في الاتصال بالخادم.</div>';
+            }
+        }
+
+        async function handlePaperExamFormSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…';
+            btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('action', 'savePaperExam');
+            fd.append('id', document.getElementById('paperExamId').value);
+            fd.append('name', document.getElementById('paperExamName').value);
+            fd.append('total_degree', document.getElementById('paperExamTotalDegree').value);
+            fd.append('class_id', document.getElementById('paperExamClassId').value);
+            
+            const fileInput = document.getElementById('paperExamRefFile');
+            if (fileInput.files.length > 0) {
+                fd.append('reference_file', fileInput.files[0]);
+            }
+
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast(resp.message, 'success');
+                    backToExamsList();
+                } else {
+                    showToast(resp.message || 'فشل حفظ الامتحان', 'error');
+                }
+            } catch (err) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        function editPaperExam(id, name, totalDegree, classId, refUrl) {
+            showAddPaperExamForm();
+            document.getElementById('paperExamId').value = id;
+            document.getElementById('paperExamName').value = name;
+            document.getElementById('paperExamTotalDegree').value = totalDegree;
+            document.getElementById('paperExamClassId').value = classId;
+            document.getElementById('paperExamFormTitle').textContent = 'تعديل الامتحان: ' + name;
+            
+            const refContainer = document.getElementById('paperExamExistingRef');
+            const refLink = document.getElementById('paperExamExistingRefLink');
+            if (refUrl) {
+                refLink.href = refUrl;
+                refContainer.style.display = 'block';
+            } else {
+                refContainer.style.display = 'none';
+            }
+        }
+
+        async function deletePaperExam(id, name) {
+            if (!confirm(`هل أنت متأكد من حذف امتحان "${name}"؟ سيتم حذف جميع درجات الأطفال المسجلة له نهائياً!`)) return;
+            
+            try {
+                const fd = new FormData();
+                fd.append('action', 'deletePaperExam');
+                fd.append('id', id);
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast(resp.message, 'success');
+                    loadPaperExamsList();
+                } else {
+                    showToast(resp.message || 'فشل حذف الامتحان', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function openExamSheet(examId) {
+            activeExamId = examId;
+            document.getElementById('paperExamsListView').style.display = 'none';
+            document.getElementById('paperExamFormView').style.display = 'none';
+            
+            const sheetView = document.getElementById('paperExamSheetView');
+            sheetView.style.display = 'flex';
+            
+            document.getElementById('sheetStudentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الأطفال...</td></tr>';
+            
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getPaperExamDegrees');
+                fd.append('paper_exam_id', examId);
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                
+                if (resp.success && resp.students) {
+                    activeExamStudents = resp.students;
+                    activeExamTotalDegree = resp.exam.total_degree;
+                    
+                    document.getElementById('sheetExamName').textContent = resp.exam.name;
+                    document.getElementById('sheetExamTotalDegree').textContent = 'الدرجة الكلية: ' + resp.exam.total_degree;
+                    
+                    // Reset filter values
+                    document.getElementById('sheetSearchInput').value = '';
+                    document.getElementById('sheetClassFilter').value = '';
+                    document.getElementById('sheetSortSelect').value = 'name_asc';
+                    
+                    filterSheetStudents();
+                } else {
+                    document.getElementById('sheetStudentsTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger);">${resp.message || 'فشل تحميل البيانات'}</td></tr>`;
+                }
+            } catch (e) {
+                document.getElementById('sheetStudentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger);">خطأ في الاتصال بالخادم</td></tr>';
+            }
+        }
+
+        function filterSheetStudents() {
+            const query = normalizeArabic(document.getElementById('sheetSearchInput').value.trim());
+            const classId = document.getElementById('sheetClassFilter').value;
+            
+            filteredExamStudents = activeExamStudents.filter(stu => {
+                const matchesSearch = !query || normalizeArabic(stu.name).includes(query);
+                const matchesClass = !classId || stu.class_name === classId;
+                return matchesSearch && matchesClass;
+            });
+            
+            sortSheetStudents();
+        }
+
+        function sortSheetStudents() {
+            const sortMode = document.getElementById('sheetSortSelect').value;
+            
+            filteredExamStudents.sort((a, b) => {
+                if (sortMode === 'name_asc') {
+                    return a.name.localeCompare(b.name, 'ar');
+                } else if (sortMode === 'name_desc') {
+                    return b.name.localeCompare(a.name, 'ar');
+                } else if (sortMode === 'degree_desc') {
+                    const degA = a.degree !== null ? a.degree : -1;
+                    const degB = b.degree !== null ? b.degree : -1;
+                    return degB - degA;
+                } else if (sortMode === 'degree_asc') {
+                    const degA = a.degree !== null ? a.degree : 999999;
+                    const degB = b.degree !== null ? b.degree : 999999;
+                    return degA - degB;
+                } else if (sortMode === 'no_degree') {
+                    const hasA = a.degree !== null ? 1 : 0;
+                    const hasB = b.degree !== null ? 1 : 0;
+                    if (hasA !== hasB) return hasA - hasB;
+                    return a.name.localeCompare(b.name, 'ar');
+                }
+                return 0;
+            });
+            
+            renderSheetTable();
+        }
+
+        function renderSheetTable() {
+            const body = document.getElementById('sheetStudentsTableBody');
+            if (!body) return;
+            
+            if (filteredExamStudents.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-3);">لا توجد نتائج مطابقة للتصفية.</td></tr>';
+                return;
+            }
+            
+            body.innerHTML = filteredExamStudents.map(student => {
+                const gender = student.gender === 'female' ? 'female' : 'male';
+                const avatar = student.image_url 
+                    ? `<img src="${student.image_url}" style="width:34px; height:34px; object-fit:cover; border-radius:50%; border:1px solid var(--border-solid);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
+                    : '';
+                const fallback = `<div class="table-avatar-fallback ${gender}" style="width:34px; height:34px; border-radius:50%; display:${student.image_url ? 'none' : 'flex'}; align-items:center; justify-content:center; background:rgba(120,120,120,0.1); color:var(--text-2); font-size:0.8rem; margin:0 auto;"><i class="fas fa-user"></i></div>`;
+                
+                let answersPicHtml = '';
+                if (student.answers_picture) {
+                    answersPicHtml = `
+                        <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                            <img src="${student.answers_picture}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border-solid); cursor:pointer;" onclick="window.open('${student.answers_picture}', '_blank')">
+                            <button class="btn btn-ghost" style="padding:4px; color:var(--danger);" onclick="deleteAnswersPic(${student.id}, ${activeExamId})" title="حذف ورقة الإجابة"><i class="fas fa-trash-alt" style="font-size:0.75rem;"></i></button>
+                            <button class="btn btn-ghost" style="padding:4px;" onclick="triggerAnswersPicUpload(${student.id})" title="تغيير ورقة الإجابة"><i class="fas fa-edit" style="font-size:0.75rem;"></i></button>
+                        </div>
+                    `;
+                } else {
+                    answersPicHtml = `
+                        <button class="btn btn-ghost" style="color:var(--brand); padding:4px;" onclick="triggerAnswersPicUpload(${student.id})" title="رفع ورقة الإجابة">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:1.1rem;"></i>
+                        </button>
+                    `;
+                }
+                
+                return `
+                    <tr style="border-bottom:1px solid var(--border-solid);">
+                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                            <div style="position:relative; width:34px; height:34px; margin:0 auto;">
+                                ${avatar}
+                                ${fallback}
+                            </div>
+                        </td>
+                        <td style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${escHtml(student.name)}</td>
+                        <td style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
+                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                            ${answersPicHtml}
+                            <input type="file" id="answers-file-input-${student.id}" style="display:none;" accept="image/*" onchange="uploadAnswersPic(${student.id}, ${activeExamId})">
+                        </td>
+                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                            <input type="number" step="any" min="0" max="${activeExamTotalDegree}" class="form-input sheet-degree-input" 
+                                   style="width:80px; text-align:center; margin:0 auto; padding:6px; font-family:Cairo,sans-serif; font-size:0.85rem;" 
+                                   data-student-id="${student.id}" 
+                                   value="${student.degree !== null ? student.degree : ''}" 
+                                   placeholder="غير مرصود">
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function triggerAnswersPicUpload(studentId) {
+            document.getElementById(`answers-file-input-${studentId}`).click();
+        }
+
+        async function uploadAnswersPic(studentId, examId) {
+            const input = document.getElementById(`answers-file-input-${studentId}`);
+            if (input.files.length === 0) return;
+            
+            const file = input.files[0];
+            const fd = new FormData();
+            fd.append('action', 'uploadStudentAnswersPicture');
+            fd.append('student_id', studentId);
+            fd.append('paper_exam_id', examId);
+            fd.append('answers_file', file);
+            
+            showToast('جارٍ رفع ورقة الإجابة…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast('تم رفع ورقة الإجابة بنجاح', 'success');
+                    
+                    const student = activeExamStudents.find(s => s.id === studentId);
+                    if (student) {
+                        student.answers_picture = resp.answers_picture;
+                    }
+                    filterSheetStudents();
+                } else {
+                    showToast(resp.message || 'فشل رفع ورقة الإجابة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function deleteAnswersPic(studentId, examId) {
+            if (!confirm('هل تريد حذف صورة ورقة الإجابة بالفعل؟')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'deleteStudentAnswersPicture');
+            fd.append('student_id', studentId);
+            fd.append('paper_exam_id', examId);
+            
+            showToast('جارٍ الحذف…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast('تم حذف ورقة الإجابة بنجاح', 'success');
+                    
+                    const student = activeExamStudents.find(s => s.id === studentId);
+                    if (student) {
+                        student.answers_picture = null;
+                    }
+                    filterSheetStudents();
+                } else {
+                    showToast(resp.message || 'فشل حذف ورقة الإجابة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function saveSheetDegrees() {
+            const inputs = document.querySelectorAll('.sheet-degree-input');
+            const degrees = [];
+            
+            inputs.forEach(input => {
+                const studentId = input.getAttribute('data-student-id');
+                const val = input.value.trim();
+                degrees.push({
+                    student_id: parseInt(studentId, 10),
+                    degree: val === '' ? null : parseFloat(val)
+                });
+            });
+            
+            const fd = new FormData();
+            fd.append('action', 'savePaperExamDegrees');
+            fd.append('paper_exam_id', activeExamId);
+            fd.append('degrees', JSON.stringify(degrees));
+            
+            showToast('جارٍ حفظ الدرجات…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast(resp.message, 'success');
+                    openExamSheet(activeExamId);
+                } else {
+                    showToast(resp.message || 'فشل حفظ الدرجات', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        function triggerRefUploadFromSheet() {
+            document.getElementById('sheetRefFileInput').click();
+        }
+
+        async function handleSheetRefUpload() {
+            const input = document.getElementById('sheetRefFileInput');
+            if (input.files.length === 0) return;
+            
+            const file = input.files[0];
+            const fd = new FormData();
+            fd.append('action', 'savePaperExam');
+            fd.append('id', activeExamId);
+            const examCard = activeExamStudents.length > 0 ? {
+                name: document.getElementById('sheetExamName').textContent,
+                total_degree: activeExamTotalDegree
+            } : null;
+            
+            if (!examCard) return;
+            
+            fd.append('name', examCard.name);
+            fd.append('total_degree', examCard.total_degree);
+            fd.append('reference_file', file);
+            
+            showToast('جارٍ رفع ملف المرجع…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast('تم رفع ملف المرجع بنجاح', 'success');
+                    openExamSheet(activeExamId);
+                } else {
+                    showToast(resp.message || 'فشل الرفع', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function saveModalExamDegree(studentId, examId) {
+            const input = document.getElementById(`modal-degree-input-${examId}`);
+            if (!input) return;
+            
+            const val = input.value.trim();
+            const fd = new FormData();
+            fd.append('action', 'saveStudentPaperExamDegree');
+            fd.append('student_id', studentId);
+            fd.append('paper_exam_id', examId);
+            fd.append('degree', val);
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast(resp.message, 'success');
+                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                } else {
+                    showToast(resp.message || 'فشل الحفظ', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        function triggerModalAnswersPicUpload(examId) {
+            document.getElementById(`modal-answers-file-input-${examId}`).click();
+        }
+
+        async function uploadModalAnswersPic(studentId, examId) {
+            const input = document.getElementById(`modal-answers-file-input-${examId}`);
+            if (input.files.length === 0) return;
+            
+            const file = input.files[0];
+            const fd = new FormData();
+            fd.append('action', 'uploadStudentAnswersPicture');
+            fd.append('student_id', studentId);
+            fd.append('paper_exam_id', examId);
+            fd.append('answers_file', file);
+            
+            showToast('جارٍ رفع ورقة الإجابة…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast('تم رفع ورقة الإجابة بنجاح', 'success');
+                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                } else {
+                    showToast(resp.message || 'فشل الرفع', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function deleteModalAnswersPic(studentId, examId) {
+            if (!confirm('هل تريد حذف صورة ورقة الإجابة بالفعل؟')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'deleteStudentAnswersPicture');
+            fd.append('student_id', studentId);
+            fd.append('paper_exam_id', examId);
+            
+            showToast('جارٍ الحذف…', 'info');
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (resp.success) {
+                    showToast('تم حذف ورقة الإجابة بنجاح', 'success');
+                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                } else {
+                    showToast(resp.message || 'فشل حذف ورقة الإجابة', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
         }
 
     </script>

@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .view-other-mode #scSiblings,
     .view-other-mode #scUncles,
     .view-other-mode #scTasks,
+    .view-other-mode #scPaperExams,
     .view-other-mode .stats-bar {
       display: none !important;
     }
@@ -4211,6 +4212,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
     </div>
 
+    <!-- Paper Exams -->
+    <div class="sc" id="scPaperExams" style="display:none">
+      <div class="sc-head">
+        <div class="sc-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-file-invoice"></i></div>
+        <div class="sc-label">
+          <div class="sc-title">الامتحانات الورقية</div>
+          <div class="sc-sub" id="paperExamsSub">درجات الامتحانات التحريرية وأوراق الإجابات</div>
+        </div>
+      </div>
+      <div class="sc-body">
+        <div id="paperExamsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+
 
 
     <!-- Announcements -->
@@ -4929,6 +4944,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         has_password: s.has_password === true || s.has_password === 1 || s.has_password === '1',
         custom_info: s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : null,
         trip_points: (function () { try { if (!s.trip_points) return {}; return (typeof s.trip_points === 'string' ? JSON.parse(s.trip_points) : s.trip_points) || {} } catch (e) { return {} } })(),
+        paper_exams: s.paper_exams || [],
       };
     }
 
@@ -4946,6 +4962,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       loadTrips(false);
       loadAnn();
       loadAtt();
+      document.getElementById('scPaperExams').style.display = 'block';
+      renderPaperExams(s);
       showMain();
       syncViewMode();
     }
@@ -4959,6 +4977,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('scAtt').style.display = 'block';
       document.getElementById('scTasks').style.display = 'block';
       document.getElementById('scTrips').style.display = 'block';
+      document.getElementById('scPaperExams').style.display = 'block';
       document.getElementById('settingsTop').style.display = 'flex';
       document.getElementById('avatarEdit').classList.add('show');
 
@@ -4973,6 +4992,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       loadTasks();
       loadTrips(true);
       loadAnn();
+      renderPaperExams(s);
       showMain();
       syncViewMode();
     }
@@ -7734,6 +7754,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         hideLoad();
         toast('خطأ في الاتصال بالسيرفر', 'err');
       }
+    }
+
+    function renderPaperExams(s) {
+      const list = s.paper_exams || [];
+      const el = document.getElementById('paperExamsList');
+      if (!el) return;
+      
+      if (!list.length) {
+        el.innerHTML = `
+          <div style="text-align:center; padding:16px; color:var(--text-3); font-size:0.85rem; font-style:italic;">
+            لا توجد امتحانات مسجلة.
+          </div>
+        `;
+        return;
+      }
+      
+      el.innerHTML = list.map(exam => {
+        const degreeText = exam.degree !== null ? `${exam.degree} / ${exam.total_degree}` : 'غير مرصود بعد';
+        const degreeColor = exam.degree !== null 
+            ? (exam.degree >= exam.total_degree * 0.5 ? 'var(--ok)' : 'var(--danger)') 
+            : 'var(--text-3)';
+            
+        let refLinkHtml = '';
+        if (exam.reference_url) {
+          refLinkHtml = `
+            <a href="${exam.reference_url}" target="_blank" class="badge" style="background:var(--brand-bg); color:var(--brand); display:inline-flex; align-items:center; gap:4px; font-weight:700; text-decoration:none; padding:4px 8px; border-radius:12px; font-size:0.72rem; cursor:pointer;">
+              <i class="fas fa-external-link-alt"></i> ورقة الامتحان
+            </a>
+          `;
+        }
+        
+        let answersPicHtml = '';
+        if (exam.answers_picture) {
+          answersPicHtml = `
+            <a href="${exam.answers_picture}" target="_blank" class="badge" style="background:#dcfce7; color:#15803d; display:inline-flex; align-items:center; gap:4px; font-weight:700; text-decoration:none; padding:4px 8px; border-radius:12px; font-size:0.72rem; cursor:pointer;">
+              <i class="fas fa-image"></i> ورقة إجابتك
+            </a>
+          `;
+        }
+        
+        return `
+          <div class="glass-card" style="padding:12px; border:1px solid var(--bdr); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px; box-sizing:border-box;">
+            <div style="display:flex; flex-direction:column; gap:4px; text-align:right;">
+              <strong style="font-size:0.88rem; color:var(--txt);">${esc(exam.name)}</strong>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                ${refLinkHtml}
+                ${answersPicHtml}
+              </div>
+            </div>
+            <div style="font-weight:900; font-size:0.95rem; color:${degreeColor}; white-space:nowrap;">
+              ${degreeText}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     // loadAnn was combined and moved to the primary section above.

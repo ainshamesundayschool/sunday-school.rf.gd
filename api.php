@@ -3635,6 +3635,38 @@ try {
 
             break;
 
+        case 'getPaperExams':
+            getPaperExams();
+            break;
+
+        case 'savePaperExam':
+            savePaperExam();
+            break;
+
+        case 'deletePaperExam':
+            deletePaperExam();
+            break;
+
+        case 'getPaperExamDegrees':
+            getPaperExamDegrees();
+            break;
+
+        case 'savePaperExamDegrees':
+            savePaperExamDegrees();
+            break;
+
+        case 'saveStudentPaperExamDegree':
+            saveStudentPaperExamDegree();
+            break;
+
+        case 'uploadStudentAnswersPicture':
+            uploadStudentAnswersPicture();
+            break;
+
+        case 'deleteStudentAnswersPicture':
+            deleteStudentAnswersPicture();
+            break;
+
         case 'getSiblingGroupMembers':
             getSiblingGroupMembers();
             break;
@@ -18822,7 +18854,31 @@ function getStudentProfile()
             }
             $row['trip_points_details'] = $tripPointsDetails;
 
-
+            ensurePaperExamTables($conn);
+            $examsStmt = $conn->prepare("
+                SELECT pe.id, pe.name, pe.total_degree, pe.reference_url, ped.degree, ped.answers_picture, pe.created_at
+                FROM paper_exams pe
+                LEFT JOIN paper_exam_degrees ped ON pe.id = ped.paper_exam_id AND ped.student_id = ?
+                WHERE pe.church_id = ?
+                ORDER BY pe.created_at DESC
+            ");
+            $examsStmt->bind_param("ii", $studentId, $row['church_id']);
+            $examsStmt->execute();
+            $examsRes = $examsStmt->get_result();
+            $paperExams = [];
+            while ($exRow = $examsRes->fetch_assoc()) {
+                $paperExams[] = [
+                    'id' => intval($exRow['id']),
+                    'name' => $exRow['name'],
+                    'total_degree' => floatval($exRow['total_degree']),
+                    'reference_url' => $exRow['reference_url'],
+                    'degree' => $exRow['degree'] !== null ? floatval($exRow['degree']) : null,
+                    'answers_picture' => $exRow['answers_picture'],
+                    'created_at' => $exRow['created_at']
+                ];
+            }
+            $examsStmt->close();
+            $row['paper_exams'] = $paperExams;
 
             sendJSON([
 
@@ -18858,6 +18914,507 @@ function getStudentProfile()
 
     }
 
+}
+
+function ensurePaperExamTables($conn) {
+    $conn->query("CREATE TABLE IF NOT EXISTS `paper_exams` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `church_id` int(11) NOT NULL,
+        `class_id` int(11) DEFAULT NULL,
+        `name` varchar(255) NOT NULL,
+        `total_degree` int(11) NOT NULL,
+        `reference_url` varchar(500) DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+        PRIMARY KEY (`id`),
+        KEY `church_id` (`church_id`),
+        KEY `class_id` (`class_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS `paper_exam_degrees` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `paper_exam_id` int(11) NOT NULL,
+        `student_id` int(11) NOT NULL,
+        `degree` float NOT NULL,
+        `answers_picture` varchar(500) DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `exam_student` (`paper_exam_id`, `student_id`),
+        KEY `student_id` (`student_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $conn->query("ALTER TABLE `paper_exam_degrees` ADD COLUMN IF NOT EXISTS `answers_picture` varchar(500) DEFAULT NULL AFTER `degree`");
+}
+
+function getPaperExams() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+
+    $stmt = $conn->prepare("
+        SELECT pe.id, pe.name, pe.total_degree, pe.class_id, pe.reference_url, pe.created_at,
+               COALESCE(cc.arabic_name, cl.arabic_name) AS class_name
+        FROM paper_exams pe
+        LEFT JOIN church_classes cc ON cc.id = pe.class_id AND cc.church_id = pe.church_id
+        LEFT JOIN classes cl ON cl.id = pe.class_id
+        WHERE pe.church_id = ?
+        ORDER BY pe.created_at DESC
+    ");
+    $stmt->bind_param("i", $churchId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $exams = [];
+    while ($row = $res->fetch_assoc()) {
+        $exams[] = [
+            'id' => intval($row['id']),
+            'name' => $row['name'],
+            'total_degree' => floatval($row['total_degree']),
+            'class_id' => $row['class_id'] !== null ? intval($row['class_id']) : null,
+            'class_name' => $row['class_name'] ?? 'كل الفصول',
+            'reference_url' => $row['reference_url'],
+            'created_at' => $row['created_at']
+        ];
+    }
+    $stmt->close();
+    sendJSON(['success' => true, 'exams' => $exams]);
+}
+
+function savePaperExam() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+
+    $churchId = getChurchId();
+    $id = intval($_POST['id'] ?? 0);
+    $classId = isset($_POST['class_id']) && $_POST['class_id'] !== '' ? intval($_POST['class_id']) : null;
+    $name = trim($_POST['name'] ?? '');
+    $totalDegree = intval($_POST['total_degree'] ?? 0);
+
+    if (empty($name) || $totalDegree <= 0) {
+        sendJSON(['success' => false, 'message' => 'الرجاء إدخال اسم الامتحان والدرجة الكلية']);
+    }
+
+    $referenceUrl = null;
+    if (isset($_FILES['reference_file']) && $_FILES['reference_file']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['reference_file'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        $fileType = mime_content_type($file['tmp_name']);
+        if (!in_array($fileType, $allowedTypes)) {
+            sendJSON(['success' => false, 'message' => 'نوع الملف غير مدعوم. المسموح به: صور، PDF، Word']);
+        }
+        $uploadDir = __DIR__ . '/uploads/exams/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = "exam_" . time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            $baseUrl = 'https://' . $_SERVER['HTTP_HOST'];
+            $referenceUrl = $baseUrl . '/uploads/exams/' . $filename;
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حفظ الملف المرفوع']);
+        }
+    }
+
+    if ($id > 0) {
+        if ($referenceUrl !== null) {
+            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ?, reference_url = ? WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("siisii", $name, $totalDegree, $classId, $referenceUrl, $id, $churchId);
+        } else {
+            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ? WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("siiii", $name, $totalDegree, $classId, $id, $churchId);
+        }
+        $stmt->execute();
+        $stmt->close();
+        if (function_exists('writeAuditLog')) {
+            writeAuditLog('exam_edit', 'exam', $id, $name, null, null, "تعديل امتحان ورقي: " . $name);
+        }
+        sendJSON(['success' => true, 'message' => 'تم تعديل الامتحان بنجاح', 'id' => $id]);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO paper_exams (church_id, class_id, name, total_degree, reference_url) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iisis", $churchId, $classId, $name, $totalDegree, $referenceUrl);
+        $stmt->execute();
+        $newId = $stmt->insert_id;
+        $stmt->close();
+        if (function_exists('writeAuditLog')) {
+            writeAuditLog('exam_add', 'exam', $newId, $name, null, null, "إضافة امتحان ورقي جديد: " . $name);
+        }
+        sendJSON(['success' => true, 'message' => 'تم إضافة الامتحان بنجاح', 'id' => $newId]);
+    }
+}
+
+function deletePaperExam() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+    $id = intval($_POST['id'] ?? 0);
+
+    if ($id <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الامتحان غير صالح']);
+    }
+
+    $check = $conn->prepare("SELECT name FROM paper_exams WHERE id = ? AND church_id = ?");
+    $check->bind_param("ii", $id, $churchId);
+    $check->execute();
+    $exam = $check->get_result()->fetch_assoc();
+    $check->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    $delDeg = $conn->prepare("DELETE FROM paper_exam_degrees WHERE paper_exam_id = ?");
+    $delDeg->bind_param("i", $id);
+    $delDeg->execute();
+    $delDeg->close();
+
+    $delExam = $conn->prepare("DELETE FROM paper_exams WHERE id = ? AND church_id = ?");
+    $delExam->bind_param("ii", $id, $churchId);
+    $delExam->execute();
+    $delExam->close();
+
+    if (function_exists('writeAuditLog')) {
+        writeAuditLog('exam_delete', 'exam', $id, $exam['name'], null, null, "حذف امتحان ورقي: " . $exam['name']);
+    }
+    sendJSON(['success' => true, 'message' => 'تم حذف الامتحان وجميع درجاته بنجاح']);
+}
+
+function getPaperExamDegrees() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+    $classId = isset($_POST['class_id']) && $_POST['class_id'] !== '' ? intval($_POST['class_id']) : null;
+
+    if ($examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الامتحان مطلوب']);
+    }
+
+    $check = $conn->prepare("SELECT name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
+    $check->bind_param("ii", $examId, $churchId);
+    $check->execute();
+    $exam = $check->get_result()->fetch_assoc();
+    $check->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    $sql = "
+        SELECT s.id, s.name, s.image_url, s.gender,
+               COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class_name,
+               ped.degree, ped.answers_picture
+        FROM students s
+        LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+        LEFT JOIN classes cl ON cl.id = s.class_id
+        LEFT JOIN paper_exam_degrees ped ON ped.paper_exam_id = ? AND ped.student_id = s.id
+        WHERE s.church_id = ? AND s.enrollment_status = 'active'
+    ";
+    
+    $params = [$examId, $churchId];
+    $types = "ii";
+
+    if ($classId !== null && $classId > 0) {
+        $sql .= " AND s.class_id = ?";
+        $params[] = $classId;
+        $types .= "i";
+    }
+
+    $sql .= " ORDER BY s.name ASC";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    
+    $students = [];
+    while ($row = $res->fetch_assoc()) {
+        $students[] = [
+            'id' => intval($row['id']),
+            'name' => $row['name'],
+            'image_url' => $row['image_url'],
+            'gender' => $row['gender'],
+            'class_name' => $row['class_name'] ?? '---',
+            'degree' => $row['degree'] !== null ? floatval($row['degree']) : null,
+            'answers_picture' => $row['answers_picture']
+        ];
+    }
+    $stmt->close();
+
+    sendJSON([
+        'success' => true,
+        'exam' => [
+            'id' => $examId,
+            'name' => $exam['name'],
+            'total_degree' => floatval($exam['total_degree'])
+        ],
+        'students' => $students
+    ]);
+}
+
+function savePaperExamDegrees() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+    $degreesRaw = $_POST['degrees'] ?? '[]';
+    $degrees = json_decode($degreesRaw, true);
+
+    if ($examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الامتحان مطلوب']);
+    }
+
+    $check = $conn->prepare("SELECT name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
+    $check->bind_param("ii", $examId, $churchId);
+    $check->execute();
+    $exam = $check->get_result()->fetch_assoc();
+    $check->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    if (!is_array($degrees)) {
+        sendJSON(['success' => false, 'message' => 'بيانات الدرجات غير صالحة']);
+    }
+
+    $stmt = $conn->prepare("
+        INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE degree = VALUES(degree)
+    ");
+
+    $count = 0;
+    foreach ($degrees as $item) {
+        $studentId = intval($item['student_id'] ?? 0);
+        $degreeStr = isset($item['degree']) && $item['degree'] !== '' ? $item['degree'] : null;
+        if ($studentId <= 0) continue;
+
+        if ($degreeStr === null || $degreeStr === '') {
+            $stmtUpdate = $conn->prepare("
+                UPDATE paper_exam_degrees 
+                SET degree = NULL 
+                WHERE paper_exam_id = ? AND student_id = ?
+            ");
+            $stmtUpdate->bind_param("ii", $examId, $studentId);
+            $stmtUpdate->execute();
+            $stmtUpdate->close();
+        } else {
+            $degree = floatval($degreeStr);
+            $stmt->bind_param("iid", $examId, $studentId, $degree);
+            $stmt->execute();
+            $count++;
+        }
+    }
+    $stmt->close();
+
+    // Clean up rows where both degree and answers_picture are NULL
+    $conn->query("DELETE FROM paper_exam_degrees WHERE degree IS NULL AND answers_picture IS NULL");
+
+    if (function_exists('writeAuditLog')) {
+        writeAuditLog('exam_degrees_save', 'exam', $examId, $exam['name'], null, null, "تحديث درجات لعدد {$count} طفل");
+    }
+    sendJSON(['success' => true, 'message' => 'تم حفظ درجات الامتحان بنجاح']);
+}
+
+function saveStudentPaperExamDegree() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+
+    $studentId = intval($_POST['student_id'] ?? 0);
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+    $degreeStr = isset($_POST['degree']) && $_POST['degree'] !== '' ? $_POST['degree'] : null;
+
+    if ($studentId <= 0 || $examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الطفل والامتحان مطلوبان']);
+    }
+
+    $checkStu = $conn->prepare("SELECT name FROM students WHERE id = ? AND church_id = ?");
+    $checkStu->bind_param("ii", $studentId, $churchId);
+    $checkStu->execute();
+    $student = $checkStu->get_result()->fetch_assoc();
+    $checkStu->close();
+
+    if (!$student) {
+        sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+    }
+
+    $checkExam = $conn->prepare("SELECT name FROM paper_exams WHERE id = ? AND church_id = ?");
+    $checkExam->bind_param("ii", $examId, $churchId);
+    $checkExam->execute();
+    $exam = $checkExam->get_result()->fetch_assoc();
+    $checkExam->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    if ($degreeStr === null || $degreeStr === '') {
+        $stmt = $conn->prepare("
+            UPDATE paper_exam_degrees 
+            SET degree = NULL 
+            WHERE paper_exam_id = ? AND student_id = ?
+        ");
+        $stmt->bind_param("ii", $examId, $studentId);
+        $stmt->execute();
+        $stmt->close();
+
+        // Clean up rows where both degree and answers_picture are NULL
+        $conn->query("DELETE FROM paper_exam_degrees WHERE degree IS NULL AND answers_picture IS NULL");
+
+        if (function_exists('writeAuditLog')) {
+            writeAuditLog('exam_degree_delete', 'student', $studentId, $student['name'], null, null, "حذف درجة امتحان {$exam['name']}");
+        }
+        sendJSON(['success' => true, 'message' => 'تم مسح درجة الامتحان للطفل بنجاح']);
+    } else {
+        $degree = floatval($degreeStr);
+        $stmt = $conn->prepare("
+            INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE degree = VALUES(degree)
+        ");
+        $stmt->bind_param("iid", $examId, $studentId, $degree);
+        $stmt->execute();
+        $stmt->close();
+        if (function_exists('writeAuditLog')) {
+            writeAuditLog('exam_degree_save', 'student', $studentId, $student['name'], null, ['degree' => $degree], "رصد درجة امتحان {$exam['name']} للطفل بقيمة {$degree}");
+        }
+        sendJSON(['success' => true, 'message' => 'تم حفظ درجة الامتحان للطفل بنجاح']);
+    }
+}
+
+function uploadStudentAnswersPicture() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+
+    $studentId = intval($_POST['student_id'] ?? 0);
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+
+    if ($studentId <= 0 || $examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الطفل والامتحان مطلوبان']);
+    }
+
+    $checkStu = $conn->prepare("SELECT name FROM students WHERE id = ? AND church_id = ?");
+    $checkStu->bind_param("ii", $studentId, $churchId);
+    $checkStu->execute();
+    $student = $checkStu->get_result()->fetch_assoc();
+    $checkStu->close();
+
+    if (!$student) {
+        sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+    }
+
+    $checkExam = $conn->prepare("SELECT name FROM paper_exams WHERE id = ? AND church_id = ?");
+    $checkExam->bind_param("ii", $examId, $churchId);
+    $checkExam->execute();
+    $exam = $checkExam->get_result()->fetch_assoc();
+    $checkExam->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    if (!isset($_FILES['answers_file']) || $_FILES['answers_file']['error'] !== UPLOAD_ERR_OK) {
+        sendJSON(['success' => false, 'message' => 'لم يتم رفع أي ملف']);
+    }
+
+    $file = $_FILES['answers_file'];
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $fileType = mime_content_type($file['tmp_name']);
+    if (!in_array($fileType, $allowedTypes)) {
+        sendJSON(['success' => false, 'message' => 'نوع الملف غير مدعوم. المسموح به: صور فقط']);
+    }
+
+    $uploadDir = __DIR__ . '/uploads/answers/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = "answers_" . $examId . "_" . $studentId . "_" . time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+    
+    if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+        $baseUrl = 'https://' . $_SERVER['HTTP_HOST'];
+        $answersUrl = $baseUrl . '/uploads/answers/' . $filename;
+
+        $stmt = $conn->prepare("
+            INSERT INTO paper_exam_degrees (paper_exam_id, student_id, degree, answers_picture)
+            VALUES (?, ?, NULL, ?)
+            ON DUPLICATE KEY UPDATE answers_picture = VALUES(answers_picture)
+        ");
+        $stmt->bind_param("iis", $examId, $studentId, $answersUrl);
+        $stmt->execute();
+        $stmt->close();
+
+        if (function_exists('writeAuditLog')) {
+            writeAuditLog('exam_answers_upload', 'student', $studentId, $student['name'], null, null, "رفع صورة ورقة إجابة للامتحان {$exam['name']}");
+        }
+
+        sendJSON(['success' => true, 'message' => 'تم رفع ورقة الإجابة بنجاح', 'answers_picture' => $answersUrl]);
+    } else {
+        sendJSON(['success' => false, 'message' => 'فشل في حفظ الملف المرفوع']);
+    }
+}
+
+function deleteStudentAnswersPicture() {
+    checkAuth();
+    $conn = getDBConnection();
+    ensurePaperExamTables($conn);
+    $churchId = getChurchId();
+
+    $studentId = intval($_POST['student_id'] ?? 0);
+    $examId = intval($_POST['paper_exam_id'] ?? 0);
+
+    if ($studentId <= 0 || $examId <= 0) {
+        sendJSON(['success' => false, 'message' => 'معرف الطفل والامتحان مطلوبان']);
+    }
+
+    $checkStu = $conn->prepare("SELECT name FROM students WHERE id = ? AND church_id = ?");
+    $checkStu->bind_param("ii", $studentId, $churchId);
+    $checkStu->execute();
+    $student = $checkStu->get_result()->fetch_assoc();
+    $checkStu->close();
+
+    if (!$student) {
+        sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
+    }
+
+    $checkExam = $conn->prepare("SELECT name FROM paper_exams WHERE id = ? AND church_id = ?");
+    $checkExam->bind_param("ii", $examId, $churchId);
+    $checkExam->execute();
+    $exam = $checkExam->get_result()->fetch_assoc();
+    $checkExam->close();
+
+    if (!$exam) {
+        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+    }
+
+    $stmt = $conn->prepare("
+        UPDATE paper_exam_degrees 
+        SET answers_picture = NULL 
+        WHERE paper_exam_id = ? AND student_id = ?
+    ");
+    $stmt->bind_param("ii", $examId, $studentId);
+    $stmt->execute();
+    $stmt->close();
+
+    // Clean up rows where both degree and answers_picture are NULL
+    $conn->query("DELETE FROM paper_exam_degrees WHERE degree IS NULL AND answers_picture IS NULL");
+
+    if (function_exists('writeAuditLog')) {
+        writeAuditLog('exam_answers_delete', 'student', $studentId, $student['name'], null, null, "حذف صورة ورقة إجابة للامتحان {$exam['name']}");
+    }
+
+    sendJSON(['success' => true, 'message' => 'تم حذف ورقة الإجابة بنجاح']);
 }
 
 // ===== SEARCH KIDS BY NAME =====
