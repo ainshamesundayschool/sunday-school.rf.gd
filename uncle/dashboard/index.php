@@ -16018,7 +16018,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                             <!-- Score input section -->
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <input type="number" step="any" min="0" max="${exam.total_degree}" class="form-input" style="width:65px; text-align:center; padding:5px 6px; font-family:Cairo,sans-serif; font-size:0.8rem; height:32px;" value="${exam.degree !== null ? exam.degree : ''}" placeholder="---" id="modal-degree-input-${exam.id}">
+                                <input type="number" step="any" min="0" max="${exam.total_degree}" class="form-input" style="width:65px; text-align:center; padding:5px 6px; font-family:Cairo,sans-serif; font-size:0.8rem; height:32px;" value="${exam.degree !== null ? exam.degree : ''}" placeholder="---" id="modal-degree-input-${exam.id}" oninput="validateDegreeInput(this, ${exam.total_degree})">
                                 <button class="btn btn-primary" style="padding:5px 8px; height:32px; font-size:0.75rem;" onclick="saveModalExamDegree(${full.id}, ${exam.id})"><i class="fas fa-check"></i></button>
                             </div>
                         </div>
@@ -21626,7 +21626,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                    style="width:80px; text-align:center; margin:0 auto; padding:6px; font-family:Cairo,sans-serif; font-size:0.85rem;" 
                                    data-student-id="${student.id}" 
                                    value="${student.degree !== null ? student.degree : ''}" 
-                                   placeholder="غير مرصود">
+                                   placeholder="غير مرصود"
+                                   oninput="validateDegreeInput(this, ${activeExamTotalDegree})">
                         </td>
                     </tr>
                 `;
@@ -21640,15 +21641,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function uploadAnswersPic(studentId, examId) {
             const input = document.getElementById(`answers-file-input-${studentId}`);
             if (input.files.length === 0) return;
-            
-            // Check if student degree has been filled first
-            const degreeInput = document.querySelector(`.sheet-degree-input[data-student-id="${studentId}"]`);
-            const degreeVal = degreeInput ? degreeInput.value.trim() : '';
-            if (degreeVal === '') {
-                showToast('الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة', 'warning');
-                input.value = '';
-                return;
-            }
             
             const file = input.files[0];
             const fd = new FormData();
@@ -21849,15 +21841,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const input = document.getElementById(`modal-answers-file-input-${examId}`);
             if (input.files.length === 0) return;
             
-            // Enforce that degree is set first
-            const degreeInput = document.getElementById(`modal-degree-input-${examId}`);
-            const degreeVal = degreeInput ? degreeInput.value.trim() : '';
-            if (degreeVal === '') {
-                showToast('الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة', 'warning');
-                input.value = '';
-                return;
-            }
-            
             const file = input.files[0];
             const fd = new FormData();
             fd.append('action', 'uploadStudentAnswersPicture');
@@ -21902,6 +21885,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
         }
+
+        function validateDegreeInput(input, maxDegree) {
+            const val = input.value.trim();
+            if (val !== '') {
+                const parsed = parseFloat(val);
+                if (parsed > maxDegree || parsed < 0) {
+                    input.style.borderColor = 'var(--danger)';
+                    input.style.boxShadow = '0 0 0 2px rgba(220, 38, 38, 0.2)';
+                } else {
+                    input.style.borderColor = '';
+                    input.style.boxShadow = '';
+                }
+            } else {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            }
+        }
+        window.validateDegreeInput = validateDegreeInput;
 
     </script>
 </body>

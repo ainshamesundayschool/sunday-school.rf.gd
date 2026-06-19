@@ -19348,17 +19348,6 @@ function uploadStudentAnswersPicture() {
         sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
     }
 
-    // Enforce that degree is set before uploading answers sheet
-    $checkDegree = $conn->prepare("SELECT degree FROM paper_exam_degrees WHERE paper_exam_id = ? AND student_id = ?");
-    $checkDegree->bind_param("ii", $examId, $studentId);
-    $checkDegree->execute();
-    $degRow = $checkDegree->get_result()->fetch_assoc();
-    $checkDegree->close();
-
-    if (!$degRow || $degRow['degree'] === null) {
-        sendJSON(['success' => false, 'message' => 'الرجاء إدخال درجة الطفل وحفظها أولاً قبل رفع ورقة الإجابة']);
-    }
-
     if (!isset($_FILES['answers_file']) || $_FILES['answers_file']['error'] !== UPLOAD_ERR_OK) {
         sendJSON(['success' => false, 'message' => 'لم يتم رفع أي ملف']);
     }
