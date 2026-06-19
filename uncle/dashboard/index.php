@@ -6861,6 +6861,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 600;
         }
 
+        .bday-banner-chip.today {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #10b981 !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
+        }
+        [data-theme="dark"] .bday-banner-chip.today {
+            background: rgba(16, 185, 129, 0.25) !important;
+            color: #34d399 !important;
+            border-color: rgba(16, 185, 129, 0.5) !important;
+        }
+        .bday-banner-chip.today:hover {
+            background: #10b981 !important;
+            color: #fff !important;
+        }
+
         /* ── Birthday indicator on attendance row ── */
         .attendance-item.bday-row {
             border-top: 3px solid #db2777 !important;
@@ -12172,24 +12187,83 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function getWeekBirthdays() {
+            const today = new Date();
+            const todayDay = today.getDate(), todayMonth = today.getMonth();
+            const jsDay = dbDayToJsDay(churchAttendanceDay || 'Friday');
+            
+            // Next celebration date (closest configured attendance day, today or future)
+            let celebrationDate = new Date(today);
+            let diff = (jsDay - today.getDay() + 7) % 7;
+            celebrationDate.setDate(today.getDate() + diff);
+
+            // Generate the 7 dates of the week cycle (from Saturday to Friday, or equivalent)
+            const cycleDates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(celebrationDate);
+                d.setDate(celebrationDate.getDate() - i);
+                cycleDates.push(d);
+            }
+
+            const srcList = allStudentsData.length ? allStudentsData : students;
+            const results = [];
+
+            srcList.forEach(s => {
+                if (!s['عيد الميلاد']) return;
+                const parts = s['عيد الميلاد'].split('/');
+                if (parts.length < 2) return;
+                const bdayDay = parseInt(parts[0]);
+                const bdayMonth = parseInt(parts[1]) - 1; // 0-based
+
+                // Find if this birth day/month matches any date in the cycle
+                const matchDate = cycleDates.find(d => d.getDate() === bdayDay && d.getMonth() === bdayMonth);
+                if (matchDate) {
+                    const isToday = bdayDay === todayDay && bdayMonth === todayMonth;
+                    
+                    // Determine weekday name in Arabic
+                    const arabicDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                    const dayName = arabicDays[matchDate.getDay()];
+
+                    results.push({
+                        student: s,
+                        isToday,
+                        dayName,
+                        birthDateStr: s['عيد الميلاد'],
+                        matchDate
+                    });
+                }
+            });
+
+            // Sort results by the cycle day order (from Saturday to Friday)
+            results.sort((a, b) => {
+                const idxA = cycleDates.indexOf(a.matchDate);
+                const idxB = cycleDates.indexOf(b.matchDate);
+                return idxB - idxA;
+            });
+
+            return results;
+        }
+
         function renderTodayBirthdayBanner() {
             const banner = document.getElementById('todayBirthdayBanner');
             const list = document.getElementById('todayBirthdayList');
             const title = document.getElementById('todayBirthdayTitle');
             if (!banner || !list) return;
-            const kids = getTodayBirthdays();
-            if (!kids.length) { banner.classList.remove('show'); return; }
+            const items = getWeekBirthdays();
+            if (!items.length) { banner.classList.remove('show'); return; }
             const label = window.IS_YOUTH ? 'شباب' : 'أطفال';
-            title.textContent = `🎂 أعياد ميلاد اليوم! (${kids.length} ${label})`;
-            list.innerHTML = kids.map(s => {
+            title.textContent = `🎂 أعياد ميلاد هذا الأسبوع! (${items.length} ${label})`;
+            list.innerHTML = items.map(item => {
+                const s = item.student;
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '';
                 const photo = s['photo'] || s['الصورة'] || '';
                 const safe = name.replace(/'/g, "\\'");
                 const avatar = photo ? `/uncle/dashboard/uploads/${photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
-                return `<div class="bday-banner-chip" onclick="showStudentDetails('${safe}')">
+                return `<div class="bday-banner-chip${item.isToday ? ' today' : ''}" onclick="showStudentDetails('${safe}')">
                     <img src="${avatar}" class="bday-chip-img">
                     <span>${name}</span>
+                    ${item.isToday ? `<span class="bday-chip-class" style="color:#10b981; font-weight:800;">اليوم!</span>` : `<span class="bday-chip-class" style="color:var(--text-2); font-weight:600;">(يوم ${item.dayName})</span>`}
                     ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
                 </div>`;
             }).join('');
@@ -16405,7 +16479,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Find the most recent occurrence of the configured day (today or before)
             let diff = (today.getDay() - jsDay + 7) % 7;
             d.setDate(today.getDate() - diff);
-            currentFriday = formatDateDDMMYYYY(d);
+            const computedFriday = formatDateDDMMYYYY(d);
+            
+            // Auto-switch to the new date if a new attendance settled date has become available
+            const sf = localStorage.getItem('selectedFriday');
+            if (sf && sf !== computedFriday) {
+                localStorage.removeItem('selectedFriday');
+            }
+
+            currentFriday = computedFriday;
             const el = document.getElementById('currentDateText');
             if (el) el.textContent = currentFriday;
         }
