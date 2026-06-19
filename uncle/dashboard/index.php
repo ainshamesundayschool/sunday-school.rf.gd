@@ -9341,8 +9341,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="btn btn-ghost" style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;" onclick="triggerCsvImport()"><i class="fas fa-file-csv"></i> استيراد CSV</button>
                             <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()" accept=".csv">
                             
+                            <!-- CSV Template Download Button -->
+                            <button class="btn btn-ghost" style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;" onclick="downloadPaperExamCsvTemplate()"><i class="fas fa-download"></i> تحميل القالب</button>
+                            
                             <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
                         </div>
+                    </div>
+
+                    <!-- CSV Tips Alert Box -->
+                    <div id="sheetCsvTipsBox" class="glass-card" style="padding: 10px 14px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface-3); display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; color: var(--text-2); direction: rtl; text-align: right; position: relative;">
+                        <button type="button" class="btn btn-ghost" style="position: absolute; left: 8px; top: 8px; padding: 4px; font-size: 0.75rem; color: var(--text-3); min-width: unset; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById('sheetCsvTipsBox').style.display='none'" title="إغلاق"><i class="fas fa-times"></i></button>
+                        <div style="font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                            <i class="fas fa-info-circle" style="font-size:0.85rem;"></i> تعليمات استيراد درجات الامتحان عبر CSV:
+                        </div>
+                        <ul style="margin: 0; padding-right: 18px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; list-style-type: disc;">
+                            <li>يجب أن يحتوي الملف على عمود للدرجات برأس عمود باسم: <strong>الدرجة</strong> أو <strong>degree</strong>.</li>
+                            <li>للتعرف على الأطفال بدقة، يرجى كتابة رأس عمود باسم: <strong>id</strong> أو <strong>معرف الطفل</strong> أو <strong>كود</strong> (يحتوي على معرّف الطفل).</li>
+                            <li>كبديل للمعرّف، يمكن التعرف على الطفل بالاسم إذا كان الملف يحتوي على عمود باسم: <strong>الاسم</strong> أو <strong>الاسم كامل</strong>.</li>
+                            <li>يرجى التأكد من حفظ الملف بتنسيق <strong>UTF-8 CSV</strong> لكي تظهر الحروف العربية بشكل صحيح ولا يحدث خطأ بالأسماء.</li>
+                        </ul>
                     </div>
 
                     <!-- Search + Filter + Sort row -->
@@ -22145,6 +22162,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 input.value = '';
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
+        }
+
+        function downloadPaperExamCsvTemplate() {
+            if (!activeExamStudents || activeExamStudents.length === 0) {
+                showToast('لا توجد بيانات طلاب لتصديرها كقالب', 'error');
+                return;
+            }
+            
+            // Build CSV content with UTF-8 BOM to ensure Arabic characters open correctly in Excel
+            let csvContent = "\uFEFF";
+            
+            // Header Row
+            csvContent += '"معرف الطفل","الاسم","الفصل","الدرجة"\n';
+            
+            // Student Rows
+            activeExamStudents.forEach(student => {
+                const id = student.id;
+                const name = (student.name || '').replace(/"/g, '""');
+                const className = (student.class_name || '').replace(/"/g, '""');
+                const degree = student.degree !== null ? student.degree : '';
+                
+                csvContent += `"${id}","${name}","${className}","${degree}"\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            
+            const examNameClean = (document.getElementById('sheetExamName').textContent || 'exam').trim().replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+            link.setAttribute("download", `قالب_درجات_${examNameClean}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         async function saveModalExamDegree(studentId, examId) {
