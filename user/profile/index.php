@@ -7387,15 +7387,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         .trim();
     }
 
+        function francoToArabic(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+            if (!/[a-z0-9]/.test(s)) return "";
+            const multiMap = [
+                ['sh', 'ش'], ['ch', 'تش'], ['kh', 'خ'], ['gh', 'غ'],
+                ['th', 'ث'], ['dh', 'ذ'], ['zh', 'ج'],
+                ['ph', 'ف'],
+                ['ou', 'و'], ['oo', 'و'], ['ee', 'ي'], ['ei', 'اي'],
+                ['aa', 'ا'], ['ii', 'ي'],
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+            const singleMap = {
+                'a': 'ا', 'b': 'ب', 't': 'ت', 'g': 'ج', 'j': 'ج',
+                'h': 'ح', 'd': 'د', 'r': 'ر', 'z': 'ز', 's': 'س',
+                'c': 'ك',
+                'f': 'ف', 'q': 'ق', 'k': 'ك', 'l': 'ل', 'm': 'م',
+                'n': 'ن', 'w': 'و', 'u': 'و', 'o': 'و',
+                'y': 'ي', 'i': 'ي', 'e': 'ي',
+                'x': 'اكس', 'v': 'ف', 'p': 'ب',
+                '2': 'ء', '3': 'ع', '4': 'ش', '5': 'خ',
+                '6': 'ط', '7': 'ح', '8': 'غ', '9': 'ق',
+            };
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    result += ch;
+                }
+            }
+            return normalizeArabic(result);
+        }
+
+        function arabicToLatin(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+            if (!/[\u0600-\u06FF]/.test(s)) return "";
+            s = normalizeArabic(s);
+            const multiMap = [
+                ['ش', 'sh'], ['خ', 'kh'], ['غ', 'gh'], ['ث', 'th'],
+                ['ذ', 'dh'], ['ج', 'g'], ['ف', 'f'], ['ع', '3'],
+                ['ط', '6'], ['ح', '7']
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+            const singleMap = {
+                'ا': 'a', 'ب': 'b', 'ت': 't', 'ة': 'a',
+                'د': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ص': 's', 'ض': 'd',
+                'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+                'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'y', 'ئ': 'e', 'ء': '2', 'ؤ': 'o'
+            };
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    result += ch;
+                }
+            }
+            return result;
+        }
+
     function getMatchScore(friend, query) {
       const qNormalized = normalizeArabic(query);
       const qRaw = query.trim().toLowerCase();
+      const qFranco = francoToArabic(query);
+      const qLatin = arabicToLatin(query);
       
       let maxScore = 0;
       const fields = [
-        { val: friend.name, weight: 1.0 },
-        { val: friend.class, weight: 0.7 },
-        { val: friend.id?.toString(), weight: 1.1 }
+        { val: friend.name || friend['الاسم'], weight: 1.0 },
+        { val: friend.class || friend['الفصل'], weight: 0.7 },
+        { val: (friend.id || friend['_studentId'] || friend['معرف'])?.toString(), weight: 1.1 }
       ];
 
       fields.forEach(field => {
@@ -7403,6 +7477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const target = field.val.toString();
         const tNormalized = normalizeArabic(target);
         const tRaw = target.toLowerCase();
+        const tLatin = arabicToLatin(target);
 
         let currentScore = 0;
         if (tRaw === qRaw || tNormalized === qNormalized) {
@@ -7411,6 +7486,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           currentScore = 80;
         } else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) {
           currentScore = 60;
+        } else if (qFranco && tNormalized === qFranco) {
+          currentScore = 92;
+        } else if (qFranco && tNormalized.startsWith(qFranco)) {
+          currentScore = 72;
+        } else if (qFranco && tNormalized.includes(qFranco)) {
+          currentScore = 52;
+        } else if (qLatin && tRaw === qLatin) {
+          currentScore = 92;
+        } else if (qLatin && tRaw.startsWith(qLatin)) {
+          currentScore = 72;
+        } else if (qLatin && tRaw.includes(qLatin)) {
+          currentScore = 52;
+        } else if (tLatin && tLatin === qRaw) {
+          currentScore = 90;
+        } else if (tLatin && tLatin.startsWith(qRaw)) {
+          currentScore = 70;
+        } else if (tLatin && tLatin.includes(qRaw)) {
+          currentScore = 50;
         } else {
           let score = 0;
           let queryIdx = 0;
@@ -7422,6 +7515,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           }
           if (queryIdx === qNormalized.length) {
             currentScore = (score / tNormalized.length) * 40;
+          }
+          if (qFranco) {
+            let fScore = 0, fIdx = 0;
+            for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
+              if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
+            }
+            if (fIdx === qFranco.length) {
+              currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
+            }
+            let rScore = 0, rIdx = 0;
+            for (let i = 0; i < qFranco.length && rIdx < tNormalized.length; i++) {
+              if (qFranco[i] === tNormalized[rIdx]) { rIdx++; rScore++; }
+            }
+            if (rIdx === tNormalized.length) {
+              const ratio = tNormalized.length / qFranco.length;
+              currentScore = Math.max(currentScore, ratio * 70);
+            }
           }
         }
         maxScore = Math.max(maxScore, currentScore * field.weight);

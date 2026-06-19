@@ -18858,7 +18858,7 @@ function getStudentProfile()
 
             ensurePaperExamTables($conn);
             $examsStmt = $conn->prepare("
-                SELECT pe.id, pe.name, pe.total_degree, pe.reference_url, ped.degree, ped.answers_picture, pe.created_at
+                SELECT pe.id, pe.name, pe.total_degree, pe.class_ids, pe.reference_url, ped.degree, ped.answers_picture, pe.created_at
                 FROM paper_exams pe
                 LEFT JOIN paper_exam_degrees ped ON pe.id = ped.paper_exam_id AND ped.student_id = ?
                 WHERE pe.church_id = ?
@@ -18868,16 +18868,30 @@ function getStudentProfile()
             $examsStmt->execute();
             $examsRes = $examsStmt->get_result();
             $paperExams = [];
+            $studentClassId = intval($row['class_id']);
             while ($exRow = $examsRes->fetch_assoc()) {
-                $paperExams[] = [
-                    'id' => intval($exRow['id']),
-                    'name' => $exRow['name'],
-                    'total_degree' => floatval($exRow['total_degree']),
-                    'reference_url' => $exRow['reference_url'],
-                    'degree' => $exRow['degree'] !== null ? floatval($exRow['degree']) : null,
-                    'answers_picture' => $exRow['answers_picture'],
-                    'created_at' => $exRow['created_at']
-                ];
+                $classIdsStr = trim($exRow['class_ids'] ?? '');
+                $showExam = false;
+                if ($classIdsStr === '') {
+                    // Assigned to ALL classes
+                    $showExam = true;
+                } else {
+                    $classIdsArr = explode(',', $classIdsStr);
+                    if (in_array(strval($studentClassId), $classIdsArr)) {
+                        $showExam = true;
+                    }
+                }
+                if ($showExam) {
+                    $paperExams[] = [
+                        'id' => intval($exRow['id']),
+                        'name' => $exRow['name'],
+                        'total_degree' => floatval($exRow['total_degree']),
+                        'reference_url' => $exRow['reference_url'],
+                        'degree' => $exRow['degree'] !== null ? floatval($exRow['degree']) : null,
+                        'answers_picture' => $exRow['answers_picture'],
+                        'created_at' => $exRow['created_at']
+                    ];
+                }
             }
             $examsStmt->close();
             $row['paper_exams'] = $paperExams;
@@ -18922,6 +18936,7 @@ function ensurePaperExamTables($conn) {
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `church_id` int(11) NOT NULL,
         `class_id` int(11) DEFAULT NULL,
+        `class_ids` varchar(500) DEFAULT NULL,
         `name` varchar(255) NOT NULL,
         `total_degree` int(11) NOT NULL,
         `reference_url` varchar(500) DEFAULT NULL,
@@ -18949,6 +18964,11 @@ function ensurePaperExamTables($conn) {
     $checkCol = $conn->query("SHOW COLUMNS FROM `paper_exam_degrees` LIKE 'answers_picture'");
     if ($checkCol && $checkCol->num_rows === 0) {
         $conn->query("ALTER TABLE `paper_exam_degrees` ADD COLUMN `answers_picture` varchar(500) DEFAULT NULL AFTER `degree`");
+    }
+
+    $checkClassIds = $conn->query("SHOW COLUMNS FROM `paper_exams` LIKE 'class_ids'");
+    if ($checkClassIds && $checkClassIds->num_rows === 0) {
+        $conn->query("ALTER TABLE `paper_exams` ADD COLUMN `class_ids` varchar(500) DEFAULT NULL AFTER `class_id`");
     }
 
     $checkDeg = $conn->query("SHOW COLUMNS FROM `paper_exam_degrees` LIKE 'degree'");
@@ -19177,7 +19197,7 @@ function getPaperExams() {
     $churchId = getChurchId();
 
     $stmt = $conn->prepare("
-        SELECT pe.id, pe.name, pe.total_degree, pe.class_id, pe.reference_url, pe.created_at,
+        SELECT pe.id, pe.name, pe.total_degree, pe.class_id, pe.class_ids, pe.reference_url, pe.created_at,
                COALESCE(cc.arabic_name, cl.arabic_name) AS class_name
         FROM paper_exams pe
         LEFT JOIN church_classes cc ON cc.id = pe.class_id AND cc.church_id = pe.church_id
@@ -19195,6 +19215,7 @@ function getPaperExams() {
             'name' => $row['name'],
             'total_degree' => floatval($row['total_degree']),
             'class_id' => $row['class_id'] !== null ? intval($row['class_id']) : null,
+            'class_ids' => $row['class_ids'],
             'class_name' => $row['class_name'] ?? 'كل الفصول',
             'reference_url' => $row['reference_url'],
             'created_at' => $row['created_at']
@@ -19212,6 +19233,7 @@ function savePaperExam() {
     $churchId = getChurchId();
     $id = intval($_POST['id'] ?? 0);
     $classId = isset($_POST['class_id']) && $_POST['class_id'] !== '' ? intval($_POST['class_id']) : null;
+    $classIds = isset($_POST['class_ids']) ? trim($_POST['class_ids']) : null;
     $name = trim($_POST['name'] ?? '');
     $totalDegree = intval($_POST['total_degree'] ?? 0);
 
@@ -19249,11 +19271,11 @@ function savePaperExam() {
             $delDeg->execute();
             $delDeg->close();
 
-            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ?, reference_url = ? WHERE id = ? AND church_id = ?");
-            $stmt->bind_param("siisii", $name, $totalDegree, $classId, $referenceUrl, $id, $churchId);
+            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ?, class_ids = ?, reference_url = ? WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("siissii", $name, $totalDegree, $classId, $classIds, $referenceUrl, $id, $churchId);
         } else {
-            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ? WHERE id = ? AND church_id = ?");
-            $stmt->bind_param("siiii", $name, $totalDegree, $classId, $id, $churchId);
+            $stmt = $conn->prepare("UPDATE paper_exams SET name = ?, total_degree = ?, class_id = ?, class_ids = ? WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("siisii", $name, $totalDegree, $classId, $classIds, $id, $churchId);
         }
         $stmt->execute();
         $stmt->close();
@@ -19263,8 +19285,8 @@ function savePaperExam() {
         $msg = $referenceUrl !== null ? 'تم تعديل الامتحان وحذف جميع درجات الطلاب السابقة بنجاح' : 'تم تعديل الامتحان بنجاح';
         sendJSON(['success' => true, 'message' => $msg, 'id' => $id]);
     } else {
-        $stmt = $conn->prepare("INSERT INTO paper_exams (church_id, class_id, name, total_degree, reference_url) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisis", $churchId, $classId, $name, $totalDegree, $referenceUrl);
+        $stmt = $conn->prepare("INSERT INTO paper_exams (church_id, class_id, class_ids, name, total_degree, reference_url) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iissis", $churchId, $classId, $classIds, $name, $totalDegree, $referenceUrl);
         $stmt->execute();
         $newId = $stmt->insert_id;
         $stmt->close();

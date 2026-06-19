@@ -9304,11 +9304,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <label class="form-label">الدرجة الكلية</label>
                             <input type="number" id="paperExamTotalDegree" class="form-input" required min="1" placeholder="مثال: 100">
                         </div>
+                        <input type="hidden" id="paperExamClassId" value="">
                         <div class="form-group">
-                            <label class="form-label">الفصل المخصص له (اختياري)</label>
-                            <select id="paperExamClassId" class="form-input">
-                                <option value="">كل الفصول</option>
-                            </select>
+                            <label class="form-label">الفصول المخصصة للامتحان (اختياري - عدم تحديد أي فصل يعني كل الفصول)</label>
+                            <div id="paperExamClassIdsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--surface-3); border: 1.5px solid var(--border-solid); border-radius: var(--r-sm);">
+                                <!-- checkboxes will be populated dynamically -->
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">ملف/صورة الامتحان كمرجع (اختياري)</label>
@@ -20313,18 +20314,60 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return normalizeArabic(result);
         }
 
+        function arabicToLatin(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+            // Check if the input contains any Arabic characters; if not, skip
+            if (!/[\u0600-\u06FF]/.test(s)) return "";
+
+            // Normalize first to simplify maps
+            s = normalizeArabic(s);
+
+            // Multi-character maps (important combinations)
+            const multiMap = [
+                ['ش', 'sh'], ['خ', 'kh'], ['غ', 'gh'], ['ث', 'th'],
+                ['ذ', 'dh'], ['ج', 'g'], ['ف', 'f'], ['ع', '3'],
+                ['ط', '6'], ['ح', '7']
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+
+            // Single-character maps
+            const singleMap = {
+                'ا': 'a', 'ب': 'b', 'ت': 't', 'ة': 'a',
+                'د': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ص': 's', 'ض': 'd',
+                'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+                'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'y', 'ئ': 'e', 'ء': '2', 'ؤ': 'o'
+            };
+
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    result += ch;
+                }
+            }
+            return result;
+        }
+
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
             const qFranco = francoToArabic(query); // Franco → Arabic conversion
+            const qLatin = arabicToLatin(query);   // Arabic → Latin conversion
 
             let maxScore = 0;
             const fields = [
-                { val: student['الاسم'], weight: 1.0 },
-                { val: student['الفصل'], weight: 0.7 },
+                { val: student['الاسم'] || student['name'], weight: 1.0 },
+                { val: student['الفصل'] || student['class'] || student['class_name'], weight: 0.7 },
                 { val: student['_studentId'] || student['id'] || student['معرف'] || student['id_student'], weight: 1.1 },
-                { val: student['رقم التليفون'], weight: 1.1 },
-                { val: student['تليفون الطوارئ'], weight: 1.1 }
+                { val: student['رقم التليفون'] || student['phone'], weight: 1.1 },
+                { val: student['تليفون الطوارئ'] || student['emergency_phone'], weight: 1.1 }
             ];
 
             fields.forEach(field => {
@@ -20332,15 +20375,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const target = String(field.val);
                 const tNormalized = normalizeArabic(target);
                 const tRaw = target.toLowerCase();
+                const tLatin = arabicToLatin(target); // Convert target name to Latin if it's Arabic
                 let currentScore = 0;
 
                 if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
                 else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
                 else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
-                // Franco Arabic matching (slightly lower score since it's a transliteration guess)
+                // Franco Arabic matching (transliterated English query vs Arabic name field)
                 else if (qFranco && tNormalized === qFranco) currentScore = 92;
                 else if (qFranco && tNormalized.startsWith(qFranco)) currentScore = 72;
                 else if (qFranco && tNormalized.includes(qFranco)) currentScore = 52;
+                // Latin conversion matching (transliterated Arabic query vs English/Latin name field)
+                else if (qLatin && tRaw === qLatin) currentScore = 92;
+                else if (qLatin && tRaw.startsWith(qLatin)) currentScore = 72;
+                else if (qLatin && tRaw.includes(qLatin)) currentScore = 52;
+                // Target conversion matching (English/Latin query vs transliterated Arabic target name)
+                else if (tLatin && tLatin === qRaw) currentScore = 90;
+                else if (tLatin && tLatin.startsWith(qRaw)) currentScore = 70;
+                else if (tLatin && tLatin.includes(qRaw)) currentScore = 50;
                 else {
                     let score = 0, queryIdx = 0;
                     for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
@@ -20359,13 +20411,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
 
                         // Reverse: target chars found in order inside Franco query
-                        // Handles extra vowels from transliteration, e.g. "peter"→"بيتير" matching "بيتر"
                         let rScore = 0, rIdx = 0;
                         for (let i = 0; i < qFranco.length && rIdx < tNormalized.length; i++) {
                             if (qFranco[i] === tNormalized[rIdx]) { rIdx++; rScore++; }
                         }
                         if (rIdx === tNormalized.length) {
-                            // All target chars found in Franco — score based on how tight the match is
                             const ratio = tNormalized.length / qFranco.length;
                             currentScore = Math.max(currentScore, ratio * 70);
                         }
@@ -21489,16 +21539,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function populateClassDropdowns() {
-            const paperExamClassSelect = document.getElementById('paperExamClassId');
+            const paperExamClassList = document.getElementById('paperExamClassIdsList');
             const sheetClassSelect = document.getElementById('sheetClassFilter');
             
-            if (paperExamClassSelect) {
-                paperExamClassSelect.innerHTML = '<option value="">كل الفصول</option>';
+            if (paperExamClassList) {
+                paperExamClassList.innerHTML = '';
                 classes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.arabic_name || c.code;
-                    paperExamClassSelect.appendChild(opt);
+                    const id = `class-cb-${c.id}`;
+                    const label = document.createElement('label');
+                    label.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text); cursor:pointer; padding:4px 0;";
+                    
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = 'paper_exam_class_cb';
+                    cb.value = c.id;
+                    cb.id = id;
+                    cb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
+                    
+                    const span = document.createElement('span');
+                    span.textContent = c.arabic_name || c.code;
+                    
+                    label.appendChild(cb);
+                    label.appendChild(span);
+                    paperExamClassList.appendChild(label);
                 });
             }
             
@@ -21511,6 +21574,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     sheetClassSelect.appendChild(opt);
                 });
             }
+        }
+
+        function getExamClassesLabel(exam) {
+            if (!exam.class_ids) {
+                return 'كل الفصول';
+            }
+            const ids = exam.class_ids.split(',');
+            const names = [];
+            ids.forEach(id => {
+                const found = classes.find(c => String(c.id) === String(id));
+                if (found) {
+                    names.push(found.arabic_name || found.code);
+                }
+            });
+            return names.length > 0 ? names.join('، ') : 'كل الفصول';
         }
 
         async function loadPaperExamsList() {
@@ -21534,14 +21612,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <h4 style="margin:0 0 6px 0; font-weight:800; color:var(--text);">${escHtml(exam.name)}</h4>
                                 <div style="font-size:0.78rem; color:var(--text-3); display:flex; flex-direction:column; gap:4px;">
                                     <span>الدرجة الكلية: <strong>${exam.total_degree}</strong></span>
-                                    <span>الفصل: <strong>${escHtml(exam.class_name)}</strong></span>
+                                    <span>الفصل: <strong>${escHtml(getExamClassesLabel(exam))}</strong></span>
                                 </div>
                             </div>
                             <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;">
                                 <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px; flex:1;" onclick="openExamSheet(${exam.id})">
                                     <i class="fas fa-list-ol"></i> رصد الدرجات
                                 </button>
-                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
+                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
                                     <i class="fas fa-edit" style="color:var(--text);"></i>
                                 </button>
                                 <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem; color:var(--danger);" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
@@ -21570,7 +21648,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fd.append('id', document.getElementById('paperExamId').value);
             fd.append('name', document.getElementById('paperExamName').value);
             fd.append('total_degree', document.getElementById('paperExamTotalDegree').value);
-            fd.append('class_id', document.getElementById('paperExamClassId').value);
+            
+            const checkedClassIds = Array.from(document.querySelectorAll('input[name="paper_exam_class_cb"]:checked')).map(cb => cb.value);
+            fd.append('class_ids', checkedClassIds.join(','));
+            fd.append('class_id', checkedClassIds.length === 1 ? checkedClassIds[0] : '');
             
             const fileInput = document.getElementById('paperExamRefFile');
             if (fileInput.files.length > 0) {
@@ -21593,12 +21674,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        function editPaperExam(id, name, totalDegree, classId, refUrl) {
+        function editPaperExam(id, name, totalDegree, classId, classIdsStr, refUrl) {
             showAddPaperExamForm();
             document.getElementById('paperExamId').value = id;
             document.getElementById('paperExamName').value = name;
             document.getElementById('paperExamTotalDegree').value = totalDegree;
-            document.getElementById('paperExamClassId').value = classId;
+            document.getElementById('paperExamClassId').value = classId || '';
+            
+            const classIds = classIdsStr ? classIdsStr.split(',') : [];
+            document.querySelectorAll('input[name="paper_exam_class_cb"]').forEach(cb => {
+                cb.checked = classIds.includes(cb.value);
+            });
+
             document.getElementById('paperExamFormTitle').textContent = 'تعديل الامتحان: ' + name;
             
             const refContainer = document.getElementById('paperExamExistingRef');
@@ -21687,22 +21774,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function filterSheetStudents() {
-            const query = normalizeArabic(document.getElementById('sheetSearchInput').value.trim());
+            const query = document.getElementById('sheetSearchInput').value.trim();
             const classId = document.getElementById('sheetClassFilter').value;
             
-            filteredExamStudents = activeExamStudents.filter(stu => {
-                const matchesSearch = !query || normalizeArabic(stu.name).includes(query);
-                const matchesClass = !classId || stu.class_name === classId;
-                return matchesSearch && matchesClass;
-            });
+            if (query) {
+                filteredExamStudents = activeExamStudents
+                    .map(stu => ({ ...stu, _sheetSearchScore: getMatchScore(stu, query) }))
+                    .filter(stu => stu._sheetSearchScore > 0)
+                    .filter(stu => !classId || stu.class_name === classId);
+            } else {
+                filteredExamStudents = activeExamStudents.filter(stu => {
+                    return !classId || stu.class_name === classId;
+                });
+            }
             
             sortSheetStudents();
         }
 
         function sortSheetStudents() {
             const sortMode = document.getElementById('sheetSortSelect').value;
+            const query = document.getElementById('sheetSearchInput').value.trim();
             
             filteredExamStudents.sort((a, b) => {
+                // If there's a search query, first order by search score relevance!
+                if (query) {
+                    const scoreDiff = (b._sheetSearchScore || 0) - (a._sheetSearchScore || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+                }
+                
                 if (sortMode === 'name_asc') {
                     return a.name.localeCompare(b.name, 'ar');
                 } else if (sortMode === 'name_desc') {
