@@ -1220,9 +1220,98 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 .trim();
         }
 
+        function francoToArabic(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+            if (!/[a-z0-9]/.test(s)) return "";
+            const multiMap = [
+                ['sh', 'ش'], ['ch', 'تش'], ['kh', 'خ'], ['gh', 'غ'],
+                ['th', 'ث'], ['dh', 'ذ'], ['zh', 'ج'],
+                ['ph', 'ف'],
+                ['ou', 'و'], ['oo', 'و'], ['ee', 'ي'], ['ei', 'اي'],
+                ['aa', 'ا'], ['ii', 'ي'],
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+            const singleMap = {
+                'a': 'ا', 'b': 'ب', 't': 'ت', 'g': 'ج', 'j': 'ج',
+                'h': 'ح', 'd': 'د', 'r': 'ر', 'z': 'ز', 's': 'س',
+                'c': 'ك',
+                'f': 'ف', 'q': 'ق', 'k': 'ك', 'l': 'ل', 'm': 'م',
+                'n': 'ن', 'w': 'و', 'u': 'و', 'o': 'و',
+                'y': 'ي', 'i': 'ي', 'e': 'ي',
+                'x': 'اكس', 'v': 'ف', 'p': 'ب',
+                '2': 'ء', '3': 'ع', '4': 'ش', '5': 'خ',
+                '6': 'ط', '7': 'ح', '8': 'غ', '9': 'ق',
+            };
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    result += ch;
+                }
+            }
+            return normalizeArabic(result);
+        }
+
+        function arabicToLatin(text) {
+            if (!text) return "";
+            let s = text.toLowerCase().trim();
+            if (!/[\u0600-\u06FF]/.test(s)) return "";
+            s = normalizeArabic(s);
+            const multiMap = [
+                ['ش', 'sh'], ['خ', 'kh'], ['غ', 'gh'], ['ث', 'th'],
+                ['ذ', 'dh'], ['ج', 'g'], ['ف', 'f'], ['ع', '3'],
+                ['ط', '6'], ['ح', '7']
+            ];
+            for (const [from, to] of multiMap) {
+                s = s.split(from).join(to);
+            }
+            const singleMap = {
+                'ا': 'a', 'ب': 'b', 'ت': 't', 'ة': 'a',
+                'د': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ص': 's', 'ض': 'd',
+                'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+                'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'y', 'ئ': 'e', 'ء': '2', 'ؤ': 'o'
+            };
+            let result = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s[i];
+                if (singleMap[ch]) {
+                    result += singleMap[ch];
+                } else if (ch === ' ' || ch === '-' || ch === '_') {
+                    result += ' ';
+                } else {
+                    result += ch;
+                }
+            }
+            return result;
+        }
+
+        function phoneticClean(str) {
+            if (!str) return "";
+            let s = str.toLowerCase().trim();
+            s = s.replace(/p/g, 'b');
+            s = s.replace(/v/g, 'f');
+            s = s.replace(/c/g, 'k');
+            s = s.replace(/q/g, 'k');
+            s = s.replace(/j/g, 'g');
+            s = s.replace(/z/g, 's');
+            s = s.replace(/x/g, 'ks');
+            s = s.replace(/[aeiouywh]/g, '');
+            return s;
+        }
+
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
+            const qFranco = francoToArabic(query);
+            const qLatin = arabicToLatin(query);
+            const qPhonetic = phoneticClean(query.includes(' ') ? query : (qLatin || qRaw));
 
             let maxScore = 0;
 
@@ -1241,6 +1330,8 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 const target = field.val.toString();
                 const tNormalized = normalizeArabic(target);
                 const tRaw = target.toLowerCase();
+                const tLatin = arabicToLatin(target);
+                const tPhonetic = phoneticClean(tLatin || tRaw);
 
                 let currentScore = 0;
 
@@ -1255,6 +1346,38 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                 // Contains
                 else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) {
                     currentScore = 60;
+                }
+                // Franco Arabic matching
+                else if (qFranco && tNormalized === qFranco) {
+                    currentScore = 92;
+                } else if (qFranco && tNormalized.startsWith(qFranco)) {
+                    currentScore = 72;
+                } else if (qFranco && tNormalized.includes(qFranco)) {
+                    currentScore = 52;
+                }
+                // Latin conversion matching
+                else if (qLatin && tRaw === qLatin) {
+                    currentScore = 92;
+                } else if (qLatin && tRaw.startsWith(qLatin)) {
+                    currentScore = 72;
+                } else if (qLatin && tRaw.includes(qLatin)) {
+                    currentScore = 52;
+                }
+                // Target conversion matching
+                else if (tLatin && tLatin === qRaw) {
+                    currentScore = 90;
+                } else if (tLatin && tLatin.startsWith(qRaw)) {
+                    currentScore = 70;
+                } else if (tLatin && tLatin.includes(qRaw)) {
+                    currentScore = 50;
+                }
+                // Phonetic consonant matching
+                else if (qPhonetic && tPhonetic && tPhonetic === qPhonetic) {
+                    currentScore = 88;
+                } else if (qPhonetic && tPhonetic && tPhonetic.startsWith(qPhonetic)) {
+                    currentScore = 68;
+                } else if (qPhonetic && tPhonetic && tPhonetic.includes(qPhonetic)) {
+                    currentScore = 48;
                 }
                 // Fuzzy subsequence
                 else {

@@ -7459,11 +7459,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             return result;
         }
 
+        function phoneticClean(str) {
+            if (!str) return "";
+            let s = str.toLowerCase().trim();
+            s = s.replace(/p/g, 'b');
+            s = s.replace(/v/g, 'f');
+            s = s.replace(/c/g, 'k');
+            s = s.replace(/q/g, 'k');
+            s = s.replace(/j/g, 'g');
+            s = s.replace(/z/g, 's');
+            s = s.replace(/x/g, 'ks');
+            s = s.replace(/[aeiouywh]/g, '');
+            return s;
+        }
+
     function getMatchScore(friend, query) {
       const qNormalized = normalizeArabic(query);
       const qRaw = query.trim().toLowerCase();
       const qFranco = francoToArabic(query);
       const qLatin = arabicToLatin(query);
+      const qPhonetic = phoneticClean(query.includes(' ') ? query : (qLatin || qRaw));
       
       let maxScore = 0;
       const fields = [
@@ -7478,6 +7493,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const tNormalized = normalizeArabic(target);
         const tRaw = target.toLowerCase();
         const tLatin = arabicToLatin(target);
+        const tPhonetic = phoneticClean(tLatin || tRaw);
 
         let currentScore = 0;
         if (tRaw === qRaw || tNormalized === qNormalized) {
@@ -7504,6 +7520,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           currentScore = 70;
         } else if (tLatin && tLatin.includes(qRaw)) {
           currentScore = 50;
+        } else if (qPhonetic && tPhonetic && tPhonetic === qPhonetic) {
+          currentScore = 88;
+        } else if (qPhonetic && tPhonetic && tPhonetic.startsWith(qPhonetic)) {
+          currentScore = 68;
+        } else if (qPhonetic && tPhonetic && tPhonetic.includes(qPhonetic)) {
+          currentScore = 48;
         } else {
           let score = 0;
           let queryIdx = 0;

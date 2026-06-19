@@ -20354,11 +20354,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return result;
         }
 
+        function phoneticClean(str) {
+            if (!str) return "";
+            let s = str.toLowerCase().trim();
+            s = s.replace(/p/g, 'b');      // p and b are equivalent in Arabic transliteration
+            s = s.replace(/v/g, 'f');      // v and f/ph
+            s = s.replace(/c/g, 'k');      // c and k
+            s = s.replace(/q/g, 'k');      // q and k
+            s = s.replace(/j/g, 'g');      // j and g (e.g. George)
+            s = s.replace(/z/g, 's');      // z and s (e.g. Girgis/Gerges)
+            s = s.replace(/x/g, 'ks');
+            s = s.replace(/[aeiouywh]/g, ''); // strip all vowels and silent letters (h, w)
+            return s;
+        }
+
         function getMatchScore(student, query) {
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
             const qFranco = francoToArabic(query); // Franco → Arabic conversion
             const qLatin = arabicToLatin(query);   // Arabic → Latin conversion
+            const qPhonetic = phoneticClean(query.includes(' ') ? query : (qLatin || qRaw));
 
             let maxScore = 0;
             const fields = [
@@ -20375,6 +20390,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const tNormalized = normalizeArabic(target);
                 const tRaw = target.toLowerCase();
                 const tLatin = arabicToLatin(target); // Convert target name to Latin if it's Arabic
+                const tPhonetic = phoneticClean(tLatin || tRaw);
                 let currentScore = 0;
 
                 if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
@@ -20392,6 +20408,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 else if (tLatin && tLatin === qRaw) currentScore = 90;
                 else if (tLatin && tLatin.startsWith(qRaw)) currentScore = 70;
                 else if (tLatin && tLatin.includes(qRaw)) currentScore = 50;
+                // Phonetic consonant matching
+                else if (qPhonetic && tPhonetic && tPhonetic === qPhonetic) currentScore = 88;
+                else if (qPhonetic && tPhonetic && tPhonetic.startsWith(qPhonetic)) currentScore = 68;
+                else if (qPhonetic && tPhonetic && tPhonetic.includes(qPhonetic)) currentScore = 48;
                 else {
                     let score = 0, queryIdx = 0;
                     for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
@@ -21879,6 +21899,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
             
+            const query = document.getElementById('sheetSearchInput').value.trim();
+            
             body.innerHTML = filteredExamStudents.map(student => {
                 const gender = student.gender === 'female' ? 'female' : 'male';
                 const avatar = student.image_url 
@@ -21903,6 +21925,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     `;
                 }
                 
+                let nameHtml = escHtml(student.name);
+                if (query) {
+                    const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    nameHtml = nameHtml.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
+                }
+                
                 return `
                     <tr style="border-bottom:1px solid var(--border-solid);">
                         <td style="padding:8px; text-align:center; vertical-align:middle;">
@@ -21911,7 +21939,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 ${fallback}
                             </div>
                         </td>
-                        <td style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${escHtml(student.name)}</td>
+                        <td style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${nameHtml}</td>
                         <td style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
                         <td style="padding:8px; text-align:center; vertical-align:middle;">
                             ${answersPicHtml}
