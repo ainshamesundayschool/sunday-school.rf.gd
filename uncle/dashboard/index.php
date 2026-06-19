@@ -12064,7 +12064,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (r.data && Array.isArray(r.data)) students = r.data;
                 else if (r.allStudents && Array.isArray(r.allStudents)) students = r.allStudents;
                 allStudentsData = students;
-                if (r.classes && Array.isArray(r.classes)) classes = r.classes;
+                if (r.classes && Array.isArray(r.classes)) {
+                    classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                }
                 saveDataToLocalStorage();
                 // Prune photo cache: drop entries for URLs no longer in student data
                 if (window._prunePhotoCache) {
@@ -12116,7 +12118,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const d = JSON.parse(cached);
                     students = d.students || d.allStudents || [];
                     allStudentsData = d.allStudents || d.students || students;
-                    if (d.classes && d.classes.length) classes = d.classes;
+                    if (d.classes && d.classes.length) {
+                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                    }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
@@ -20033,7 +20037,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const d = JSON.parse(cached);
                     students = d.students || d.allStudents || [];
                     allStudentsData = d.allStudents || d.students || students;
-                    if (d.classes && d.classes.length) classes = d.classes;
+                    if (d.classes && d.classes.length) {
+                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                    }
                     displayClasses(); // also calls renderTodayBirthdayBanner()
                     updateDashboardStats();
                     updateCurrentDateDisplay();
@@ -20263,6 +20269,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.body.style.overflow = _notifPanelOpen ? 'hidden' : '';
             }
             if (_notifPanelOpen) { loadUnifiedNotifications(); renderNotifPanel(); }
+        }
+
+        function getClassOrderWeight(name) {
+            if (!name) return 999;
+            const clean = name.trim();
+            if (clean.includes('حضانة')) return 1;
+            if (clean.includes('أولى') || clean.includes('اولى')) return 2;
+            if (clean.includes('تانية') || clean.includes('ثانية')) return 3;
+            if (clean.includes('تالتة') || clean.includes('ثالثة')) return 4;
+            if (clean.includes('رابعة')) return 5;
+            if (clean.includes('خامسة')) return 6;
+            if (clean.includes('سادسة') || clean.includes('سادسه')) return 7;
+            if (clean.includes('سابعة')) return 8;
+            if (clean.includes('ثامنة')) return 9;
+            return 100 + clean.localeCompare('', 'ar');
         }
 
         // ── INTELLIGENT SEARCH ──────────────────────────────────────────
@@ -21892,8 +21913,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else if (sortMode === 'name_desc') {
                     return b.name.localeCompare(a.name, 'ar');
                 } else if (sortMode === 'class_asc') {
-                    const classComp = (a.class_name || '').localeCompare(b.class_name || '', 'ar');
-                    if (classComp !== 0) return classComp;
+                    const classWeightA = getClassOrderWeight(a.class_name);
+                    const classWeightB = getClassOrderWeight(b.class_name);
+                    if (classWeightA !== classWeightB) return classWeightA - classWeightB;
                     return a.name.localeCompare(b.name, 'ar'); // secondary sort by name
                 } else if (sortMode === 'degree_desc') {
                     const degA = a.degree !== null ? a.degree : -1;
