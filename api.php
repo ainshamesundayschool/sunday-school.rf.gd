@@ -19016,14 +19016,18 @@ function importPaperExamDegreesCSV() {
     }
     
     // Check if exam exists
-    $stmt = $conn->prepare("SELECT id, name, total_degree FROM paper_exams WHERE id = ? AND church_id = ?");
-    $stmt->bind_param("ii", $examId, $churchId);
+    $stmt = $conn->prepare("SELECT id, name, total_degree, church_id FROM paper_exams WHERE id = ?");
+    $stmt->bind_param("i", $examId);
     $stmt->execute();
     $exam = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     
     if (!$exam) {
-        sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
+        sendJSON(['success' => false, 'message' => "الامتحان غير موجود (معرف: {$examId})"]);
+    }
+    
+    if (intval($exam['church_id']) !== $churchId) {
+        sendJSON(['success' => false, 'message' => "الامتحان غير تابع لكنيستك (كنيسة الامتحان: {$exam['church_id']}، كنيسة الجلسة: {$churchId})"]);
     }
     
     if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
