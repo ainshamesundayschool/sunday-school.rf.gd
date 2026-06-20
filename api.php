@@ -41698,15 +41698,19 @@ function sendPushNotificationAction()
 
 
 
-        $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
-
-        if (!$tbl) {
-
-            sendJSON(['success' => false, 'message' => 'No subscriptions table']);
-
-            return;
-
-        }
+        $conn->query("
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                church_id  INT NOT NULL DEFAULT 0,
+                uncle_id   INT DEFAULT NULL,
+                endpoint   TEXT NOT NULL,
+                p256dh     TEXT NOT NULL,
+                auth       VARCHAR(100) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_endpoint (endpoint(200))
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ");
 
 
 
