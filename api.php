@@ -1127,6 +1127,15 @@ if (file_exists($configRoot . '/' . $configName)) {
 
 require_once 'audit.php';
 
+if (file_exists($configRoot . '/vendor/autoload.php')) {
+    require_once $configRoot . '/vendor/autoload.php';
+} elseif (file_exists(dirname($configRoot) . '/vendor/autoload.php')) {
+    require_once dirname($configRoot) . '/vendor/autoload.php';
+} elseif (file_exists('vendor/autoload.php')) {
+    require_once 'vendor/autoload.php';
+}
+
+
 
 
 // ── Auto-Gender Detection & Migration ─────────────────────────────

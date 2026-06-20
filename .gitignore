@@ -31,3 +31,8 @@ db_migrations/20260606_migrate_domains.sql
 db_migrations/20260610_add_rooms_support.sql
 u430683844_testingServer.sql
 db_migrations/20260619_add_paper_exams.sql
+
+# Composer
+vendor/
+composer.phar
+
