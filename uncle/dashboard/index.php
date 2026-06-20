@@ -11136,6 +11136,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let kidQrScanAmount = 0;
         let kidQrScanSeen = new Set();
         let kidQrScanEntries = [];
+        let kidQrScanInProgress = false;
 
         // Sound effects
         function playSuccessSound() {
@@ -14497,6 +14498,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function stopKidQrScan() {
+            kidQrScanInProgress = false;
             kidQrLastScanTime = 0;
             kidQrLastScanText = '';
             const modal = document.getElementById('kidQrScannerModal');
@@ -14599,18 +14601,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { facingMode: 'environment' },
                     { fps: 10, qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; } },
                     async (decodedText) => {
+                        if (kidQrScanInProgress) return;
+                        kidQrScanInProgress = true;
+
                         const now = Date.now();
                         const kidId = getKidIdFromQrText(decodedText);
                         if (!kidId) {
                             showToast('QR غير صالح', 'error');
+                            kidQrScanInProgress = false;
                             return;
                         }
                         if (kidId === kidQrLastScanText && (now - kidQrLastScanTime < 3000)) {
+                            kidQrScanInProgress = false;
                             return;
                         }
                         kidQrLastScanTime = now;
                         kidQrLastScanText = kidId;
-                        recordKidQrScan(kidId);
+                        
+                        const success = recordKidQrScan(kidId);
+                        if (!success) {
+                            kidQrScanInProgress = false;
+                        } else {
+                            setTimeout(() => {
+                                kidQrScanInProgress = false;
+                            }, 1500);
+                        }
                     },
                     () => { }
                 );
@@ -14641,7 +14656,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 initialTabMode = savedMode;
             } else if (normalizedMode !== 'profile' && !currentClass) {
                 showToast('اختر فصلًا أولًا', 'info');
-                return;
+                return false;
             }
 
             // Open modal first so DOM elements exist
@@ -14654,6 +14669,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Load scanner source preference from localStorage
             const pref = localStorage.getItem('scanner_source_preference') || 'camera';
             switchScannerSource(pref);
+
+            return true;
         }
 
         // Global USB/Wireless Keyboard Scanner Listener
@@ -14716,9 +14733,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 }
                             } else {
                                 if (!isModalActive) {
-                                    const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
-                                    startKidQrScan(savedMode).then(() => {
-                                        recordKidQrScan(kidId);
+                                    const savedMode = currentClass 
+                                        ? (localStorage.getItem('scanner_mode_preference') || 'attendance')
+                                        : 'profile';
+                                    startKidQrScan(savedMode).then((success) => {
+                                        if (success) {
+                                            recordKidQrScan(kidId);
+                                        }
                                     });
                                 } else {
                                     recordKidQrScan(kidId);

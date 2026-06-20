@@ -1762,6 +1762,7 @@
             // Scanner Modal camera
             let htmlQrcodeScannerModal = null;
             let scannerSourceModal = 'camera';
+            let modalScanInProgress = false;
 
             // Cooldown notification timer
             let toastTimeout = null;
@@ -3271,6 +3272,9 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
+                        if (modalScanInProgress) return;
+                        modalScanInProgress = true;
+
                         const reader = document.getElementById('reader');
                         if (reader) {
                             reader.style.setProperty('border', '3px solid #10b981', 'important');
@@ -3281,8 +3285,9 @@
                                 reader.style.removeProperty('border');
                                 reader.style.removeProperty('box-shadow');
                             }
-                            handleScannedText(decodedText);
                         }, 500);
+
+                        handleScannedText(decodedText);
                     },
                     (errorMessage) => { }
                 ).catch((err) => {
@@ -3292,6 +3297,7 @@
             }
 
             async function handleScannedText(decodedText) {
+                modalScanInProgress = false;
                 if (htmlQrcodeScannerModal) {
                     const scanner = htmlQrcodeScannerModal;
                     htmlQrcodeScannerModal = null;
@@ -3358,6 +3364,7 @@
             }
 
             function stopScanner() {
+                modalScanInProgress = false;
                 if (htmlQrcodeScannerModal) {
                     htmlQrcodeScannerModal.stop().then(() => {
                         document.getElementById('scannerModal').style.display = 'none';
