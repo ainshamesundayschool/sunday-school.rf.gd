@@ -7808,6 +7808,34 @@
                     </div>
                 </div>
 
+                <!-- Send Developer Message -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-bullhorn dev-icon"></i> إرسال رسالة من المطور (Broadcast Message)</div>
+                    </div>
+                    <div class="card-body">
+                        <form id="devBroadcastForm" onsubmit="sendDevBroadcastMessage(event)">
+                            <div class="form-grid">
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">الكنيسة المستهدفة *</label>
+                                    <select id="devBroadcastTarget" class="form-select" style="width:100%;">
+                                        <option value="all">جميع الكنائس (All Churches)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">عنوان الرسالة *</label>
+                                    <input type="text" id="devBroadcastTitle" class="form-input" required placeholder="مثال: تحديث جديد للنظام 🚀" value="تحديث جديد للنظام 🚀">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">محتوى الرسالة *</label>
+                                    <textarea id="devBroadcastBody" class="form-input" required rows="4" placeholder="اكتب محتوى الرسالة هنا..." style="resize:vertical;"></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-dev" style="margin-top:16px;"><i class="fas fa-paper-plane"></i> إرسال البث</button>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Stats -->
                 <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
                     <div class="stat-card">
@@ -15502,6 +15530,15 @@
                 document.getElementById('devTotalChurches').textContent = allChurchesCache.length;
                 document.getElementById('devTotalStudents').textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.student_count) || 0), 0);
                 document.getElementById('devTotalUncles').textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.uncle_count) || 0), 0);
+
+                // Populate devBroadcastTarget dropdown dynamically
+                const targetSel = document.getElementById('devBroadcastTarget');
+                if (targetSel) {
+                    targetSel.innerHTML = '<option value="all">جميع الكنائس (All Churches)</option>';
+                    allChurchesCache.forEach(ch => {
+                        targetSel.innerHTML += `<option value="${ch.id}">${escHtml(ch.church_name)} (${ch.church_code})</option>`;
+                    });
+                }
             } else showToast('خطأ في تحميل الكنائس', 'error');
         }
 
@@ -15621,6 +15658,38 @@
             if (d.success) { showToast('تم إضافة الكنيسة بنجاح', 'success'); e.target.reset(); document.getElementById('newChurchTypeKids').checked = true; _updateChurchTypeRadioStyle('new'); loadAllChurches(); }
             else showToast(d.message || 'فشل في إضافة الكنيسة', 'error');
             btn.innerHTML = '<i class="fas fa-plus"></i> إضافة كنيسة'; btn.disabled = false;
+        }
+
+        async function sendDevBroadcastMessage(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+
+            const targetVal = document.getElementById('devBroadcastTarget').value;
+            const toChurchId = targetVal === 'all' ? 0 : parseInt(targetVal);
+            const subject = document.getElementById('devBroadcastTitle').value;
+            const body = document.getElementById('devBroadcastBody').value;
+
+            const fd = new FormData();
+            fd.append('action', 'sendDeveloperMessage');
+            fd.append('to_church_id', toChurchId);
+            fd.append('subject', subject);
+            fd.append('body', body);
+
+            try {
+                const r = await fetch(API_URL, { method: 'POST', body: fd }).then(res => res.json());
+                if (r.success) {
+                    showToast('تم إرسال رسالة المطور بنجاح', 'success');
+                    document.getElementById('devBroadcastBody').value = '';
+                } else {
+                    showToast(r.message || 'فشل في إرسال الرسالة', 'error');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال البث';
+                btn.disabled = false;
+            }
         }
 
         function openEditChurchModal(id, name, code, email, churchType) {

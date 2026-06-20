@@ -4809,9 +4809,25 @@ try {
 
 
 
+        case 'deletePushSubscription':
+
+            deletePushSubscription();
+
+            break;
+
+
+
         case 'sendPushNotification':
 
             sendPushNotificationAction();
+
+            break;
+
+
+
+        case 'checkDailyUnclesNotifications':
+
+            checkDailyUnclesNotifications();
 
             break;
 
@@ -8498,6 +8514,12 @@ function updateCoupons()
 
                     auditCouponChange($studentId, $studentName, $oldTotal, $totalCoupons, 'تعديل دفعة (التزام)');
 
+                    _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$totalCoupons}", [
+                        'notifType' => 'coupons',
+                        'url' => '/user/',
+                        'student_ids' => (string)$studentId
+                    ]);
+
                     $successCount++;
 
                 } else {
@@ -10131,6 +10153,13 @@ function addAnnouncement()
             // ► AUDIT
 
             auditAnnouncementAdd($insertedId, $text);
+
+            $extra = ['notifType' => 'announcement', 'url' => '/user/'];
+            if ($class !== 'الجميع') {
+                $classNamesList = array_map('trim', explode(',', $class));
+                $extra['class_names'] = $classNamesList;
+            }
+            _sendWebPushToKids($conn, $churchId, 'إعلان جديد 📢', $text, $extra);
 
 
 
@@ -14053,6 +14082,14 @@ function submitRegistrationRequest()
 
             );
 
+            _sendWebPushToChurch(
+                $conn,
+                $churchId,
+                'طفل جديد في الفصل 🎉',
+                "تم إضافة $name تلقائياً إلى فصل $finalClassName",
+                ['notifType' => 'registration', 'url' => '/uncle/dashboard/']
+            );
+
 
 
             sendJSON([
@@ -14147,6 +14184,14 @@ function submitRegistrationRequest()
 
                     null
 
+                );
+
+                _sendWebPushToChurch(
+                    $conn,
+                    $churchId,
+                    'طلب تسجيل جديد 📋',
+                    "تم استلام طلب تسجيل جديد: $name — فصل: $class",
+                    ['notifType' => 'registration', 'url' => '/uncle/dashboard/']
                 );
 
 
@@ -20231,7 +20276,12 @@ function updateCouponsKids()
 
                 auditCouponChange($studentId, $student['name'] ?? '', $oldCount, $coupons, 'تعديل يدوي');
 
-
+                $churchId = getChurchId();
+                _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
+                    'notifType' => 'coupons',
+                    'url' => '/user/',
+                    'student_ids' => (string)$studentId
+                ]);
 
                 sendJSON(['success' => true, 'message' => 'تم تحديث الكوبونات بنجاح']);
 
@@ -21091,11 +21141,14 @@ function updateCouponsWithReason()
 
 
 
-            // ► AUDIT
-
             auditCouponChange($studentId, $sName, $oldTotal, $coupons, $reason ?? 'تعديل يدوي');
 
-
+            $churchId = getChurchId();
+            _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
+                'notifType' => 'coupons',
+                'url' => '/user/',
+                'student_ids' => (string)$studentId
+            ]);
 
             sendJSON(['success' => true, 'message' => 'تم تحديث الكوبونات بنجاح']);
 
@@ -38401,7 +38454,24 @@ function createTask()
 
         $conn->commit();
 
-
+        if ($status === 'published') {
+            $extra = ['notifType' => 'task', 'url' => '/user/'];
+            if ($assignTo === 'specific') {
+                $dec = json_decode($specificIds, true);
+                if (is_array($dec) && !empty($dec)) {
+                    $cleanIds = implode(',', array_map('intval', $dec));
+                    $extra['student_ids'] = $cleanIds;
+                }
+            } else {
+                if (!empty($classIds)) {
+                    $cleanClassIds = implode(',', array_map('intval', explode(',', $classIds)));
+                    $extra['class_ids'] = $cleanClassIds;
+                } else if ($classId) {
+                    $extra['class_ids'] = (string)$classId;
+                }
+            }
+            _sendWebPushToKids($conn, $churchId, 'مهمة جديدة 📝', "مهمة جديدة: {$title}", $extra);
+        }
 
         if (function_exists('writeAuditLog')) {
 
@@ -39032,6 +39102,23 @@ function updateTask()
                 $annStmt->bind_param('isss', $churchId, $annText, $notifiedClass, $notifiedStudents);
                 $annStmt->execute();
             }
+
+            $extra = ['notifType' => 'task', 'url' => '/user/'];
+            if ($assignTo === 'specific') {
+                $dec = json_decode($specificIds, true);
+                if (is_array($dec) && !empty($dec)) {
+                    $cleanIds = implode(',', array_map('intval', $dec));
+                    $extra['student_ids'] = $cleanIds;
+                }
+            } else {
+                if (!empty($classIds)) {
+                    $cleanClassIds = implode(',', array_map('intval', explode(',', $classIds)));
+                    $extra['class_ids'] = $cleanClassIds;
+                } else if ($classId) {
+                    $extra['class_ids'] = (string)$classId;
+                }
+            }
+            _sendWebPushToKids($conn, $churchId, 'تحديث مهمة 📝', "تم تحديث المهمة: {$title}", $extra);
         }
 
         $conn->commit();
@@ -39962,6 +40049,14 @@ function submitTaskAnswers()
 
             $taskId
 
+        );
+
+        _sendWebPushToChurch(
+            $conn,
+            $churchId,
+            'تسليم مهمة جديدة 📝',
+            "{$stuName} سلّم مهمة «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
+            ['notifType' => 'task_submission', 'url' => '/uncle/dashboard/']
         );
 
 
@@ -41508,7 +41603,18 @@ function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra = [])
 
                     $sub['auth'],
 
-                    json_encode(array_merge(['title' => $title, 'body' => $body], $extra))
+                    json_encode(array_merge([
+                        'title' => $title,
+                        'body' => $body,
+                        'type' => $extra['notifType'] ?? 'general',
+                        'notifType' => $extra['notifType'] ?? 'general',
+                        'icon' => '/logo.png',
+                        'badge' => '/badge.png'
+                    ], $extra)),
+
+                    $vapid,
+
+                    $vapidPub
 
                 );
 
@@ -41526,66 +41632,6 @@ function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra = [])
 
 
 
-function markDevMessageRead()
-
-{
-
-    try {
-
-        $conn = getDBConnection();
-
-        $id = (int) ($_POST['id'] ?? 0);
-
-        ensureDevMessagesTable($conn);
-
-        $conn->query("UPDATE developer_messages SET is_read=1 WHERE id=$id");
-
-        sendJSON(['success' => true]);
-
-    } catch (Exception $e) {
-
-        sendJSON(['success' => false, 'message' => $e->getMessage()]);
-
-    }
-
-}
-
-
-
-function deleteDevMessage()
-
-{
-
-    try {
-
-        $conn = getDBConnection();
-
-        $id = (int) ($_POST['id'] ?? 0);
-
-        ensureDevMessagesTable($conn);
-
-        $conn->query("UPDATE developer_messages SET is_deleted=1 WHERE id=$id");
-
-        sendJSON(['success' => true]);
-
-    } catch (Exception $e) {
-
-        sendJSON(['success' => false, 'message' => $e->getMessage()]);
-
-    }
-
-}
-
-
-
-// ════════════════════════════════════════════════════════════════
-
-// PUSH SUBSCRIPTIONS  (web push / service worker)
-
-// ════════════════════════════════════════════════════════════════
-
-
-
 function savePushSubscription()
 
 {
@@ -41600,7 +41646,8 @@ function savePushSubscription()
 
         $auth = $_POST['auth'] ?? '';
 
-        $uncleId = isset($_SESSION['uncle_id']) ? (int) $_SESSION['uncle_id'] : null;
+        $uncleId = isset($_SESSION['uncle_id']) ? (int) $_SESSION['uncle_id'] : (isset($_POST['uncle_id']) && $_POST['uncle_id'] !== '' ? (int)$_POST['uncle_id'] : null);
+        $studentId = isset($_POST['student_id']) && $_POST['student_id'] !== '' ? (int)$_POST['student_id'] : null;
 
         $churchId = getChurchId();
 
@@ -41643,18 +41690,59 @@ function savePushSubscription()
         ");
 
 
+        $colCheck = $conn->query("SHOW COLUMNS FROM push_subscriptions LIKE 'student_id'");
+        if ($colCheck && $colCheck->num_rows === 0) {
+            $conn->query("ALTER TABLE push_subscriptions ADD COLUMN student_id INT DEFAULT NULL AFTER uncle_id");
+        }
+
 
         $stmt = $conn->prepare("
 
-            INSERT INTO push_subscriptions (church_id, uncle_id, endpoint, p256dh, auth)
+            INSERT INTO push_subscriptions (church_id, uncle_id, student_id, endpoint, p256dh, auth)
 
-            VALUES (?,?,?,?,?)
+            VALUES (?,?,?,?,?,?)
 
-            ON DUPLICATE KEY UPDATE church_id=VALUES(church_id), uncle_id=VALUES(uncle_id), p256dh=VALUES(p256dh), auth=VALUES(auth), updated_at=NOW()
+            ON DUPLICATE KEY UPDATE church_id=VALUES(church_id), uncle_id=VALUES(uncle_id), student_id=VALUES(student_id), p256dh=VALUES(p256dh), auth=VALUES(auth), updated_at=NOW()
 
         ");
 
-        $stmt->bind_param('iisss', $churchId, $uncleId, $endpoint, $p256dh, $auth);
+        $stmt->bind_param('iiisss', $churchId, $uncleId, $studentId, $endpoint, $p256dh, $auth);
+
+        $stmt->execute();
+
+        sendJSON(['success' => true]);
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function deletePushSubscription()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $endpoint = $_POST['endpoint'] ?? '';
+
+        if (!$endpoint) {
+
+            sendJSON(['success' => false, 'message' => 'endpoint مطلوب']);
+
+            return;
+
+        }
+
+        $stmt = $conn->prepare("DELETE FROM push_subscriptions WHERE endpoint = ?");
+
+        $stmt->bind_param('s', $endpoint);
 
         $stmt->execute();
 
@@ -41732,7 +41820,7 @@ function sendPushNotificationAction()
 
         } else {
 
-            $stmt = $conn->prepare("SELECT endpoint,p256dh,auth FROM push_subscriptions WHERE church_id=? LIMIT 50");
+            $stmt = $conn->prepare("SELECT endpoint,p256dh,auth FROM push_subscriptions WHERE church_id=? AND uncle_id IS NOT NULL LIMIT 50");
 
             $stmt->bind_param('i', $churchId);
 
@@ -41751,6 +41839,8 @@ function sendPushNotificationAction()
             'body' => $body,
 
             'url' => $url,
+
+            'type' => $notifType,
 
             'notifType' => $notifType,
 
@@ -41786,15 +41876,139 @@ function sendPushNotificationAction()
 
 
 
-// Low-level Web Push delivery using VAPID + ece content encoding
+// Helper: send web push to all devices subscribed for kids
+
+function _sendWebPushToKids($conn, $churchId, $title, $body, $extra = [])
+
+{
+
+    try {
+
+        $vapid = defined('VAPID_PRIVATE_KEY') ? VAPID_PRIVATE_KEY : (getenv('VAPID_PRIVATE_KEY') ?: '');
+
+        $vapidPub = defined('VAPID_PUBLIC_KEY') ? VAPID_PUBLIC_KEY : (getenv('VAPID_PUBLIC_KEY') ?: '');
+
+        if (!$vapid || !$vapidPub) return;
+
+
+
+        $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
+
+        if (!$tbl) return;
+
+
+
+        $classIds = isset($extra['class_ids']) ? $extra['class_ids'] : null;
+
+        $classNames = isset($extra['class_names']) ? $extra['class_names'] : null;
+
+        $studentIds = isset($extra['student_ids']) ? $extra['student_ids'] : null;
+
+
+
+        $sql = "SELECT p.endpoint, p.p256dh, p.auth, p.student_id FROM push_subscriptions p ";
+
+        if ($classIds) {
+
+            $sql .= " JOIN students s ON p.student_id = s.id WHERE p.church_id = ? AND p.student_id IS NOT NULL AND s.class_id IN ($classIds) ";
+
+        } else if ($classNames) {
+
+            $placeholders = [];
+
+            foreach ($classNames as $name) {
+
+                $placeholders[] = '?';
+
+            }
+
+            $namesPlaceholder = implode(',', $placeholders);
+
+            $sql .= " JOIN students s ON p.student_id = s.id WHERE p.church_id = ? AND p.student_id IS NOT NULL AND s.class IN ($namesPlaceholder) ";
+
+        } else if ($studentIds) {
+
+            $sql .= " WHERE p.church_id = ? AND p.student_id IN ($studentIds) ";
+
+        } else {
+
+            $sql .= " WHERE p.church_id = ? AND p.student_id IS NOT NULL ";
+
+        }
+
+        $sql .= " LIMIT 100 ";
+
+
+
+        $stmt = $conn->prepare($sql);
+
+        if ($classNames) {
+
+            $bindTypes = 'i' . str_repeat('s', count($classNames));
+
+            $bindArgs = array_merge([$churchId], $classNames);
+
+            $stmt->bind_param($bindTypes, ...$bindArgs);
+
+        } else {
+
+            $stmt->bind_param('i', $churchId);
+
+        }
+
+        $stmt->execute();
+
+        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+
+
+        if (!$subs) return;
+
+
+
+        $payload = json_encode(array_merge([
+
+            'title' => $title,
+
+            'body' => $body,
+
+            'type' => $extra['notifType'] ?? 'general',
+
+            'notifType' => $extra['notifType'] ?? 'general',
+
+            'icon' => '/logo.png',
+
+            'badge' => '/badge.png'
+
+        ], $extra));
+
+
+
+        if (function_exists('_pushToEndpoint')) {
+
+            foreach ($subs as $sub) {
+
+                _pushToEndpoint($sub['endpoint'], $sub['p256dh'], $sub['auth'], $payload, $vapid, $vapidPub);
+
+            }
+
+        }
+
+    } catch (Exception $e) {
+
+        error_log("_sendWebPushToKids error: " . $e->getMessage());
+
+    }
+
+}
+
+
 
 function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidPub)
 
 {
 
     try {
-
-        // Use minishlink/web-push if composer is available, otherwise use curl directly
 
         if (class_exists('\\Minishlink\\WebPush\\WebPush')) {
 
@@ -41833,10 +42047,6 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
             return true;
 
         }
-
-        // Fallback: call our own send-via-Node helper if available
-
-        // (Set PUSH_HELPER_URL in config to a small Node.js micro-service)
 
         $helperUrl = defined('PUSH_HELPER_URL') ? PUSH_HELPER_URL : getenv('PUSH_HELPER_URL');
 
@@ -41877,6 +42087,248 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
         error_log("_pushToEndpoint error: " . $e->getMessage());
 
         return false;
+
+    }
+
+}
+
+
+
+function checkDailyUnclesNotifications()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $churchId = getChurchId();
+
+        if ($churchId <= 0) {
+
+            sendJSON(['success' => false, 'message' => 'Church ID not found']);
+
+            return;
+
+        }
+
+
+
+        // Auto-create daily_notification_logs table
+
+        $conn->query("
+
+            CREATE TABLE IF NOT EXISTS daily_notification_logs (
+
+                id INT AUTO_INCREMENT PRIMARY KEY,
+
+                church_id INT NOT NULL,
+
+                check_date DATE NOT NULL,
+
+                notification_type VARCHAR(50) NOT NULL,
+
+                UNIQUE KEY uq_church_date_type (church_id, check_date, notification_type)
+
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+        ");
+
+
+
+        $todayStr = date('Y-m-d');
+
+
+
+        // 1. Check birthdays today
+
+        $chkBday = $conn->query("SELECT id FROM daily_notification_logs WHERE church_id=$churchId AND check_date='$todayStr' AND notification_type='birthday' LIMIT 1");
+
+        if ($chkBday && $chkBday->num_rows === 0) {
+
+            $dayNow = (int)date('d');
+
+            $monthNow = (int)date('m');
+
+            $bdayStudents = [];
+
+            
+
+            $stuQ = $conn->query("SELECT name, birthday FROM students WHERE church_id=$churchId");
+
+            if ($stuQ) {
+
+                while ($sRow = $stuQ->fetch_assoc()) {
+
+                    if (!empty($sRow['birthday'])) {
+
+                        $p = explode('/', $sRow['birthday']);
+
+                        if (count($p) >= 2 && (int)$p[0] === $dayNow && (int)$p[1] === $monthNow) {
+
+                            $bdayStudents[] = $sRow['name'];
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+
+
+            if (!empty($bdayStudents)) {
+
+                _sendWebPushToChurch($conn, $churchId, "🎂 أعياد ميلاد اليوم (" . count($bdayStudents) . ")", implode('، ', $bdayStudents), [
+
+                    'notifType' => 'birthday',
+
+                    'url' => '/uncle/dashboard/'
+
+                ]);
+
+            }
+
+            $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'birthday')");
+
+        }
+
+
+
+        // 2. Check unsaved attendance
+
+        $chkAtt = $conn->query("SELECT id FROM daily_notification_logs WHERE church_id=$churchId AND check_date='$todayStr' AND notification_type='attendance' LIMIT 1");
+
+        if ($chkAtt && $chkAtt->num_rows === 0) {
+
+            $attDayRow = $conn->query("SELECT attendance_day FROM church_settings WHERE church_id=$churchId LIMIT 1")->fetch_assoc();
+
+            $attDay = $attDayRow ? (int)$attDayRow['attendance_day'] : 5; // default 5 (Friday)
+
+            
+
+            $todayDayOfWeek = (int)date('N');
+
+            if ($todayDayOfWeek === $attDay) {
+
+                $classesQ = $conn->query("SELECT id, arabic_name FROM church_classes WHERE church_id=$churchId AND is_active=1");
+
+                $unsavedClasses = [];
+
+                if ($classesQ) {
+
+                    while ($cRow = $classesQ->fetch_assoc()) {
+
+                        $cId = (int)$cRow['id'];
+
+                        $attQ = $conn->query("
+
+                            SELECT a.id FROM attendance a
+
+                            JOIN students s ON a.student_id = s.id
+
+                            WHERE s.church_id = $churchId AND s.class_id = $cId AND a.attendance_date = '$todayStr'
+
+                            LIMIT 1
+
+                        ");
+
+                        if ($attQ && $attQ->num_rows === 0) {
+
+                            $stuCount = $conn->query("SELECT id FROM students WHERE church_id=$churchId AND class_id=$cId LIMIT 1");
+
+                            if ($stuCount && $stuCount->num_rows > 0) {
+
+                                $unsavedClasses[] = $cRow['arabic_name'];
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                
+
+                if (!empty($unsavedClasses)) {
+
+                    _sendWebPushToChurch($conn, $churchId, "⚠️ غياب تسجيل الحضور", "لم يتم تسجيل حضور اليوم للفصول: " . implode('، ', $unsavedClasses), [
+
+                        'notifType' => 'sync',
+
+                        'url' => '/uncle/dashboard/'
+
+                    ]);
+
+                }
+
+                $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");
+
+            }
+
+        }
+
+
+
+        sendJSON(['success' => true]);
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function markDevMessageRead()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        ensureDevMessagesTable($conn);
+
+        $conn->query("UPDATE developer_messages SET is_read=1 WHERE id=$id");
+
+        sendJSON(['success' => true]);
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function deleteDevMessage()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        ensureDevMessagesTable($conn);
+
+        $conn->query("UPDATE developer_messages SET is_deleted=1 WHERE id=$id");
+
+        sendJSON(['success' => true]);
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
 
     }
 

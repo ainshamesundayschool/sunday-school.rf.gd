@@ -22,6 +22,11 @@ if (is_writable($sessionPath)) {
 ini_set('session.gc_maxlifetime', 315360000);
 ini_set('session.cookie_lifetime', 315360000);
 session_start();
+
+// Include config.php for VAPID keys
+if (file_exists($rootPath . '/config.php')) {
+  require_once $rootPath . '/config.php';
+}
 $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
   session_destroy();
@@ -3904,7 +3909,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       transform: scale(1.2);
     }
     
-
+    /* Toggle Switch Styling */
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider-toggle {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bdr);
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider-toggle:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .switch-toggle input:checked + .slider-toggle {
+      background-color: var(--brand);
+    }
+    .switch-toggle input:checked + .slider-toggle:before {
+      transform: translateX(-22px); /* RTL slide direction */
+    }
 
   </style>
     <script src="/js/og-meta.js"></script>
@@ -4439,6 +4484,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div class="ss-item-label">تغيير الصورة الشخصية</div>
           <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
+        <div class="ss-item" id="notifToggleItem" style="display:none">
+          <div class="ss-item-ico" style="background:#ffe4e6;color:#e11d48;"><i class="fas fa-bell"></i></div>
+          <div class="ss-item-label">إشعارات الهاتف</div>
+          <label class="switch-toggle" style="margin-left: auto; display: inline-block;">
+            <input type="checkbox" id="phoneNotifToggle">
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
       </div>
       <div class="ss-divider"></div>
       <div class="ss-items">
@@ -4857,6 +4910,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       else if (URL_ID) await initPublic(URL_ID);
       else noProfile('يرجى تسجيل الدخول أو استخدام رابط المعرّف');
       setupOvClose();
+      if (!IS_PUBLIC && _creds) {
+        _initPushNotifications();
+      }
     });
 
     async function api(p) {
@@ -7052,6 +7108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('bottomNavBar').style.display = 'flex';
       closeOv('switchOv');
       toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
+      if (!IS_PUBLIC && _creds) {
+        _initPushNotifications();
+      }
     }
 
     // ── Logout ────────────────────────────────────────────────────────
@@ -7940,6 +7999,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           </div>
         `;
       }).join('');
+    }
+
+    const VAPID_PUBLIC_KEY = '<?= defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_KEY : "" ?>';
+
+    function _urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    async function _initPushNotifications() {
+      const toggleRow = document.getElementById('notifToggleItem');
+      const checkbox = document.getElementById('phoneNotifToggle');
+      if (!toggleRow || !checkbox) return;
+
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.warn("Push notifications not supported on this browser.");
+        toggleRow.style.display = 'none';
+        return;
+      }
+
+      // Check current permission
+      if (Notification.permission === 'denied') {
+        checkbox.checked = false;
+        checkbox.disabled = true;
+        toggleRow.style.display = 'flex';
+        return;
+      }
+
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        checkbox.checked = !!sub;
+        toggleRow.style.display = 'flex';
+
+        // Remove old event listener and bind new one
+        checkbox.onchange = async () => {
+          if (checkbox.checked) {
+            // Subscribe
+            try {
+              let permission = Notification.permission;
+              if (permission !== 'granted') {
+                permission = await Notification.requestPermission();
+              }
+              if (permission !== 'granted') {
+                toast('تم رفض إذن الإشعارات ✕', 'err');
+                checkbox.checked = false;
+                return;
+              }
+
+              if (!VAPID_PUBLIC_KEY) {
+                console.error("VAPID Key not found");
+                return;
+              }
+
+              const newSub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+              });
+
+              // Save on backend
+              const res = await api({
+                action: 'savePushSubscription',
+                endpoint: newSub.endpoint,
+                p256dh: newSub.toJSON().keys?.p256dh || '',
+                auth: newSub.toJSON().keys?.auth || '',
+                student_id: student.id
+              });
+
+              if (res.success) {
+                toast('تم تفعيل الإشعارات بنجاح ✓', 'ok');
+              } else {
+                toast(res.message || 'فشل في حفظ الاشتراك', 'err');
+                checkbox.checked = false;
+                await newSub.unsubscribe();
+              }
+            } catch (err) {
+              console.error("Subscription failed:", err);
+              toast('فشل في تفعيل الإشعارات ✕', 'err');
+              checkbox.checked = false;
+            }
+          } else {
+            // Unsubscribe
+            try {
+              const currentSub = await reg.pushManager.getSubscription();
+              if (currentSub) {
+                await currentSub.unsubscribe();
+                await api({
+                  action: 'deletePushSubscription',
+                  endpoint: currentSub.endpoint
+                });
+              }
+              toast('تم إلغاء تفعيل الإشعارات ✓', 'ok');
+            } catch (err) {
+              console.error("Unsubscription failed:", err);
+              toast('فشل في إلغاء الإشعارات ✕', 'err');
+              checkbox.checked = true;
+            }
+          }
+        };
+      } catch (e) {
+        console.error("Error setting up push notifications:", e);
+      }
     }
 
     // loadAnn was combined and moved to the primary section above.

@@ -398,11 +398,20 @@ self.addEventListener('notificationclick', e => {
     e.notification.close();
     const { url, type, className } = e.notification.data || {};
     if (e.action === 'dismiss') return;
+    
+    const isUserPath = url && url.includes('/user/');
+    const targetSubstring = isUserPath ? '/user/' : '/uncle/';
+    const defaultUrl = isUserPath ? '/user/' : '/uncle/dashboard/';
+
     e.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-            const open = list.find(c => c.url.includes('/uncle/'));
-            if (open) { open.focus(); open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className }); }
-            else self.clients.openWindow(url || '/uncle/dashboard/');
+            const open = list.find(c => c.url.includes(targetSubstring));
+            if (open) { 
+                open.focus(); 
+                open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className }); 
+            } else {
+                self.clients.openWindow(url || defaultUrl);
+            }
         })
     );
 });

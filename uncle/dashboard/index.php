@@ -12036,6 +12036,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             updateCurrentDateDisplay();
             setTimeout(() => { setupBirthdayInputListeners(); setupLiveSearch(); setupAllStudentsSearch(); }, 800);
 
+            // Trigger once-daily checks for birthdays and unsaved attendance
+            makeApiCall({ action: 'checkDailyUnclesNotifications' }, console.log, console.error);
+
             // Remove the pre-boot style hide tag to restore normal render flexibility
             const preBoot = document.getElementById('pre-boot-hide');
             if (preBoot) preBoot.remove();
