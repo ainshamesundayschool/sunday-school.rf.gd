@@ -2136,42 +2136,69 @@
                     html += `</div>`;
                 }
 
-                // 2. Direct points selector
-                if (modes.includes('direct') && directPoints.length > 0) {
+                // 2. Direct points selector / Custom point entry unified layout
+                const showDirect = modes.includes('direct') && directPoints.length > 0;
+                const showCustom = modes.includes('custom');
+
+                if (showDirect || showCustom) {
+                    if (!window.activePointsInputMode || (window.activePointsInputMode === 'direct' && !showDirect) || (window.activePointsInputMode === 'custom' && !showCustom)) {
+                        window.activePointsInputMode = showDirect ? 'direct' : 'custom';
+                    }
+
+                    html += `<div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">`;
+
+                    if (showDirect && showCustom) {
+                        html += `
+                            <div class="points-mode-tabs" style="display:flex; background:var(--surface-3); padding:3px; border-radius:var(--r-md); margin-bottom:12px; gap:4px; direction:rtl;">
+                                <button type="button" id="pts_tab_direct" class="scanner-source-tab" onclick="switchPointsInputMode('direct')" style="flex:1; padding:6px 4px; border-radius:var(--r-sm); border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
+                                    <i class="fas fa-list-ol"></i> قيم جاهزة
+                                </button>
+                                <button type="button" id="pts_tab_custom" class="scanner-source-tab" onclick="switchPointsInputMode('custom')" style="flex:1; padding:6px 4px; border-radius:var(--r-sm); border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
+                                    <i class="fas fa-keyboard"></i> كتابة يدوية
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    // Direct container
+                    const directDisp = (!showDirect) ? 'none' : ((showCustom && window.activePointsInputMode !== 'direct') ? 'none' : 'block');
                     html += `
-                        <div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">
-                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">اختر قيمة للنقاط مباشرة:</div>
+                        <div id="directPointsContainer" style="display: ${directDisp};">
+                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">اختر قيمة للنقاط:</div>
                             <div class="points-selector" style="grid-template-columns: repeat(${Math.min(directPoints.length, 5)}, 1fr); gap: 6px; margin-bottom: 8px;">
                                 ${directPoints.map(val => `
                                     <div class="point-chip" data-val="${val}" onclick="selectPoint(${val})">${val}</div>
                                 `).join('')}
                             </div>
-                            <div class="action-row" style="gap: 6px; margin-bottom:8px;">
-                                <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
-                                <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
+                        </div>
+                    `;
+
+                    // Custom container
+                    const customDisp = (!showCustom) ? 'none' : ((showDirect && window.activePointsInputMode !== 'custom') ? 'none' : 'block');
+                    html += `
+                        <div id="customPointsContainer" style="display: ${customDisp};">
+                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">إدخال قيمة نقاط مخصصة:</div>
+                            <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+                                <input type="number" id="customPointsInputVal" class="form-input" style="flex:1; font-size:0.9rem; padding:8px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); height:38px; text-align:center;">
                             </div>
                         </div>
                     `;
-                }
 
-                // 3. Custom point entry
-                if (modes.includes('custom')) {
+                    // Action row
                     html += `
-                        <div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">
-                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">إدخال قيمة نقاط مخصصة:</div>
-                            <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
-                                <input type="number" id="customPointsInputVal" class="form-input"  style="flex:1; font-size:0.9rem; padding:8px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); height:38px; text-align:center;">
-                            </div>
-                            <div class="action-row" style="gap: 6px;">
-                                <button class="btn-action btn-add" onclick="executeCustomPointsAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة نقاط</button>
-                                <button class="btn-action btn-sub" onclick="executeCustomPointsAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم نقاط</button>
-                            </div>
+                        <div class="action-row" style="gap: 6px; margin-top:10px;">
+                            <button class="btn-action btn-add" onclick="executePointsAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة نقاط</button>
+                            <button class="btn-action btn-sub" onclick="executePointsAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم نقاط</button>
                         </div>
+                    </div>
                     `;
                 }
 
                 wrapper.innerHTML = html;
-                if (modes.includes('direct')) {
+                if (showDirect && showCustom) {
+                    switchPointsInputMode(window.activePointsInputMode);
+                }
+                if (showDirect) {
                     const preferred = parseInt(localStorage.getItem('trip_game_preferred_point'));
                     if (preferred && directPoints.includes(preferred)) {
                         currentSelectedPoint = preferred;
@@ -2201,60 +2228,46 @@
                 updatePointChips();
             }
 
-            async function executeAction(action, event) {
-                if (isUpdating) return;
-                isUpdating = true;
-
-                const display = document.getElementById('pointsDisplay');
-                const oldHtml = display ? display.innerHTML : '';
-                if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-                try {
-                    const res = await apiCall('processGameQRCode', {
-                        trip_id: tripId,
-                        student_id: currentStudentId,
-                        game_action: action,
-                        amount: currentSelectedPoint
-                    });
-
-                    if (res.success) {
-                        playSuccessSound();
-                        showToast('تم تعديل النقاط بنجاح', 'success');
-                        updatePointsDisplay(res.points, res.is_naughty);
-
-                        // Update local cache
-                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                        if (matchIdx > -1) {
-                            let pts = {};
-                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                            pts[tripId] = res.points;
-                            pts["n_" + tripId] = res.is_naughty;
-                            regsList[matchIdx].trip_points = JSON.stringify(pts);
-                            regsList[matchIdx].trip_points_val = res.points;
-                        }
-
-                        await loadRecentScans();
+            function switchPointsInputMode(mode) {
+                window.activePointsInputMode = mode;
+                const btnDirect = document.getElementById('pts_tab_direct');
+                const btnCustom = document.getElementById('pts_tab_custom');
+                if (btnDirect && btnCustom) {
+                    if (mode === 'direct') {
+                        btnDirect.style.background = 'var(--surface)';
+                        btnDirect.style.color = 'var(--brand)';
+                        btnCustom.style.background = 'none';
+                        btnCustom.style.color = 'var(--text-3)';
                     } else {
-                        playErrorSound();
-                        showToast(res.message || 'فشل تعديل النقاط', 'error');
-                        if (display) display.innerHTML = oldHtml;
+                        btnCustom.style.background = 'var(--surface)';
+                        btnCustom.style.color = 'var(--brand)';
+                        btnDirect.style.background = 'none';
+                        btnDirect.style.color = 'var(--text-3)';
                     }
-                } catch (e) {
-                    playErrorSound();
-                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
-                    if (display) display.innerHTML = oldHtml;
-                } finally {
-                    isUpdating = false;
+                }
+                const directContainer = document.getElementById('directPointsContainer');
+                const customContainer = document.getElementById('customPointsContainer');
+                if (directContainer) {
+                    directContainer.style.display = (mode === 'direct') ? 'block' : 'none';
+                }
+                if (customContainer) {
+                    customContainer.style.display = (mode === 'custom') ? 'block' : 'none';
                 }
             }
 
-            async function executeCustomPointsAction(action, event) {
-                const input = document.getElementById('customPointsInputVal');
-                const val = parseInt(input?.value || 0);
-                if (isNaN(val) || val <= 0) {
-                    showToast('يرجى إدخال قيمة نقاط صالحة أكبر من الصفر', 'warning');
-                    return;
+            async function executePointsAction(action, event) {
+                let val = 0;
+                if (window.activePointsInputMode === 'direct') {
+                    val = currentSelectedPoint;
+                } else if (window.activePointsInputMode === 'custom') {
+                    const input = document.getElementById('customPointsInputVal');
+                    val = parseInt(input?.value || 0);
+                    if (isNaN(val) || val <= 0) {
+                        showToast('يرجى إدخال قيمة نقاط صالحة أكبر من الصفر', 'warning');
+                        return;
+                    }
                 }
+
                 if (isUpdating) return;
                 isUpdating = true;
 
@@ -2286,7 +2299,10 @@
                             regsList[matchIdx].trip_points_val = res.points;
                         }
 
-                        if (input) input.value = '';
+                        if (window.activePointsInputMode === 'custom') {
+                            const input = document.getElementById('customPointsInputVal');
+                            if (input) input.value = '';
+                        }
                         await loadRecentScans();
                     } else {
                         playErrorSound();
