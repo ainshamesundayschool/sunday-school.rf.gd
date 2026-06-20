@@ -11327,13 +11327,13 @@
         const gapX = gapXVal + 'px';
         const gapY = gapYVal + 'px';
         const padding = document.getElementById('printPadding').value;
-        const showChurch = document.getElementById('printShowChurch').checked;
-        const showTripImage = document.getElementById('printShowTripImage').checked;
-        const showTripTitle = document.getElementById('printShowTripTitle').checked;
-        const showStudentImg = document.getElementById('printShowStudentImg').checked;
-        const showStudentName = document.getElementById('printShowStudentName').checked;
-        const showStudentId = document.getElementById('printShowStudentId')?.checked || false;
-        const showCustom = document.getElementById('printShowCustom').checked;
+        const showChurch = cardExtraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+        const showTripImage = cardExtraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
+        const showTripTitle = cardExtraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
+        const showStudentImg = cardExtraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+        const showStudentName = cardExtraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+        const showStudentId = cardExtraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+        const showCustom = false;
 
         const tripImgAsBg = document.getElementById('printTripImgAsBg')?.checked || false;
         const tripImgOverlayColor = document.getElementById('printTripImgOverlayColor')?.value || '#000000';
