@@ -1757,6 +1757,7 @@
             let fastScanLastText = '';
             let fastScanLastTime = 0;
             const fastScanCooldowns = {};
+            let fastScanInProgress = false;
 
             // Scanner Modal camera
             let htmlQrcodeScannerModal = null;
@@ -2497,18 +2498,30 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
+                        if (fastScanInProgress) return;
+                        fastScanInProgress = true;
+
                         const reader = document.getElementById('fastReader');
                         if (reader) {
                             reader.style.setProperty('border', '3px solid #10b981', 'important');
                             reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
                         }
+
+                        // Local animation feedback duration (600ms)
                         setTimeout(() => {
                             if (reader) {
                                 reader.style.removeProperty('border');
                                 reader.style.removeProperty('box-shadow');
                             }
-                            handleFastScanText(decodedText);
-                        }, 500);
+                        }, 600);
+
+                        // Process scanned text immediately
+                        handleFastScanText(decodedText);
+
+                        // Cooldown to prevent multiple scans within 1.5 seconds
+                        setTimeout(() => {
+                            fastScanInProgress = false;
+                        }, 1500);
                     },
                     (errorMessage) => { }
                 ).catch((err) => {
@@ -2518,6 +2531,7 @@
             }
 
             function stopFastScanCamera() {
+                fastScanInProgress = false;
                 if (fastScanScanner) {
                     const scanner = fastScanScanner;
                     fastScanScanner = null;
@@ -2587,6 +2601,7 @@
                 if (!scannedStudentId) {
                     playErrorSound();
                     showToast('الكود الممسوح غير صحيح', 'error');
+                    fastScanInProgress = false;
                     return;
                 }
 
@@ -2600,6 +2615,7 @@
                 if (scannedTripId && String(scannedTripId) !== String(activeTripId)) {
                     playErrorSound();
                     showToast('هذا الكود لا يخص الرحلة الحالية', 'warning');
+                    fastScanInProgress = false;
                     return;
                 }
 
@@ -2627,6 +2643,7 @@
                             `تم مسح هذا الطفل مؤخراً! <button class="toast-skip-btn" onclick="bypassFastScanCooldown('${scannedStudentId}')" style="background:var(--brand);color:white;border:none;padding:2px 6px;border-radius:var(--r-xs);font-size:0.65rem;cursor:pointer;margin-right:6px;font-weight:700;">تخطي</button>`,
                             'warning'
                         );
+                        fastScanInProgress = false;
                         return;
                     }
                 }
@@ -2657,7 +2674,7 @@
                         };
 
                         const reader = document.getElementById('fastReader');
-                        if (reader && fastScanSource === 'camera') {
+                        if (reader && fastScanSource === 'usb') {
                             reader.style.setProperty('border', '3px solid #10b981', 'important');
                             reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
                             setTimeout(() => {
