@@ -2083,88 +2083,101 @@
 
                 const hasShortcuts = pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
 
-                if (hasShortcuts && pointsConfig.points_type === 'shortcuts') {
-                    let html = `
-                    <div class="section-title">إجراءات سريعة للنقاط</div>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                `;
-                    pointsConfig.shortcuts.forEach((sh, idx) => {
-                        const signChar = sh.points >= 0 ? '+' : '';
-                        const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
-                        html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:8px 12px; text-align:right; font-size:0.88rem; height:auto; border-radius:var(--r-sm);">
-                            <span style="display:flex; align-items:center; gap:12px;">
-                                <i class="${sh.icon || 'fas fa-star'}"></i>
-                                <span style="display:flex; flex-direction:column; align-items:flex-start;">
-                                    <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.72rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
-                                </span>
-                            </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:var(--r-xs); font-size:0.85rem;">
-                                ${signChar}${sh.points}
-                            </span>
-                        </button>
-                    `;
-                    });
-                    html += `</div>`;
-                    wrapper.innerHTML = html;
-                } else if (hasShortcuts && pointsConfig.points_type === 'combined') {
-                    let html = `
-                    <div class="section-title" style="font-size:0.85rem; margin-bottom:8px;">إجراءات سريعة للنقاط</div>
-                    <div style="display:flex; flex-direction:column; gap:8px;">
-                `;
-                    pointsConfig.shortcuts.forEach((sh, idx) => {
-                        const signChar = sh.points >= 0 ? '+' : '';
-                        const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
-                        html += `
-                        <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:var(--r-sm);">
-                            <span style="display:flex; align-items:center; gap:10px;">
-                                <i class="${sh.icon || 'fas fa-star'}"></i>
-                                <span style="display:flex; flex-direction:column; align-items:flex-start;">
-                                    <span style="font-weight:700;">${sh.name}</span>
-                                    ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
-                                </span>
-                            </span>
-                            <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:var(--r-xs); font-size:0.78rem;">
-                                ${signChar}${sh.points}
-                            </span>
-                        </button>
-                    `;
-                    });
-                    html += `</div>`;
+                let modes = [];
+                let directPoints = [30, 50, 80, 100];
+                let shortcuts = [];
 
-                    html += `
-                    <div style="margin-top:14px; border-top:1.5px solid var(--border); padding-top:12px;">
-                        <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">أو اختر قيمة للنقاط مباشرة:</div>
-                        <div class="points-selector" style="grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px;">
-                            <div class="point-chip" data-val="30" onclick="selectPoint(30)">30</div>
-                            <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
-                            <div class="point-chip" data-val="80" onclick="selectPoint(80)">80</div>
-                            <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
-                        </div>
-                        <div class="action-row" style="gap: 6px;">
-                            <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
-                            <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
-                        </div>
-                    </div>
-                `;
+                if (pointsConfig) {
+                    if (Array.isArray(pointsConfig.modes)) {
+                        modes = pointsConfig.modes;
+                    } else {
+                        const type = pointsConfig.points_type || 'direct';
+                        if (type === 'direct') modes = ['direct'];
+                        else if (type === 'shortcuts') modes = ['shortcuts'];
+                        else if (type === 'combined') modes = ['direct', 'shortcuts'];
+                    }
 
-                    wrapper.innerHTML = html;
-                    updatePointChips();
+                    if (Array.isArray(pointsConfig.direct_points) && pointsConfig.direct_points.length > 0) {
+                        directPoints = pointsConfig.direct_points;
+                    }
+                    if (Array.isArray(pointsConfig.shortcuts)) {
+                        shortcuts = pointsConfig.shortcuts;
+                    }
                 } else {
-                    wrapper.innerHTML = `
-                    <div class="section-title">اختر قيمة النقاط</div>
-                    <div class="points-selector">
-                        <div class="point-chip" data-val="30" onclick="selectPoint(30)">30</div>
-                        <div class="point-chip" data-val="50" onclick="selectPoint(50)">50</div>
-                        <div class="point-chip" data-val="80" onclick="selectPoint(80)">80</div>
-                        <div class="point-chip" data-val="100" onclick="selectPoint(100)">100</div>
-                    </div>
-                    <div class="action-row">
-                        <button class="btn-action btn-add" onclick="executeAction('increment', event)"><i class="fas fa-plus"></i> إضافة</button>
-                        <button class="btn-action btn-sub" onclick="executeAction('decrement', event)"><i class="fas fa-minus"></i> خصم</button>
-                    </div>
-                `;
+                    modes = ['direct'];
+                }
+
+                let html = '';
+
+                // 1. Shortcuts
+                if (modes.includes('shortcuts') && shortcuts.length > 0) {
+                    html += `
+                        <div class="section-title" style="font-size:0.85rem; margin-bottom:8px;">إجراءات سريعة للنقاط</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                    `;
+                    shortcuts.forEach((sh, idx) => {
+                        const signChar = sh.points >= 0 ? '+' : '';
+                        const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
+                        html += `
+                            <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:var(--r-sm);">
+                                <span style="display:flex; align-items:center; gap:10px;">
+                                    <i class="${sh.icon || 'fas fa-star'}"></i>
+                                    <span style="display:flex; flex-direction:column; align-items:flex-start;">
+                                        <span style="font-weight:700;">${sh.name}</span>
+                                        ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
+                                    </span>
+                                </span>
+                                <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:var(--r-xs); font-size:0.78rem;">
+                                    ${signChar}${sh.points}
+                                </span>
+                            </button>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                // 2. Direct points selector
+                if (modes.includes('direct') && directPoints.length > 0) {
+                    html += `
+                        <div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">
+                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">اختر قيمة للنقاط مباشرة:</div>
+                            <div class="points-selector" style="grid-template-columns: repeat(${Math.min(directPoints.length, 5)}, 1fr); gap: 6px; margin-bottom: 8px;">
+                                ${directPoints.map(val => `
+                                    <div class="point-chip" data-val="${val}" onclick="selectPoint(${val})">${val}</div>
+                                `).join('')}
+                            </div>
+                            <div class="action-row" style="gap: 6px; margin-bottom:8px;">
+                                <button class="btn-action btn-add" onclick="executeAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة</button>
+                                <button class="btn-action btn-sub" onclick="executeAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 3. Custom point entry
+                if (modes.includes('custom')) {
+                    html += `
+                        <div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">
+                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">إدخال قيمة نقاط مخصصة:</div>
+                            <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+                                <input type="number" id="customPointsInputVal" class="form-input" placeholder="مثال: 15" style="flex:1; font-size:0.9rem; padding:8px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); height:38px; text-align:center;">
+                            </div>
+                            <div class="action-row" style="gap: 6px;">
+                                <button class="btn-action btn-add" onclick="executeCustomPointsAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة نقاط</button>
+                                <button class="btn-action btn-sub" onclick="executeCustomPointsAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم نقاط</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                wrapper.innerHTML = html;
+                if (modes.includes('direct')) {
+                    const preferred = parseInt(localStorage.getItem('trip_game_preferred_point'));
+                    if (preferred && directPoints.includes(preferred)) {
+                        currentSelectedPoint = preferred;
+                    } else {
+                        currentSelectedPoint = directPoints[0];
+                    }
                     updatePointChips();
                 }
             }
@@ -2220,6 +2233,60 @@
                             regsList[matchIdx].trip_points_val = res.points;
                         }
 
+                        await loadRecentScans();
+                    } else {
+                        playErrorSound();
+                        showToast(res.message || 'فشل تعديل النقاط', 'error');
+                        if (display) display.innerHTML = oldHtml;
+                    }
+                } catch (e) {
+                    playErrorSound();
+                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
+                    if (display) display.innerHTML = oldHtml;
+                } finally {
+                    isUpdating = false;
+                }
+            }
+
+            async function executeCustomPointsAction(action, event) {
+                const input = document.getElementById('customPointsInputVal');
+                const val = parseInt(input?.value || 0);
+                if (isNaN(val) || val <= 0) {
+                    showToast('يرجى إدخال قيمة نقاط صالحة أكبر من الصفر', 'warning');
+                    return;
+                }
+                if (isUpdating) return;
+                isUpdating = true;
+
+                const display = document.getElementById('pointsDisplay');
+                const oldHtml = display ? display.innerHTML : '';
+                if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const res = await apiCall('processGameQRCode', {
+                        trip_id: tripId,
+                        student_id: currentStudentId,
+                        game_action: action,
+                        amount: val
+                    });
+
+                    if (res.success) {
+                        playSuccessSound();
+                        showToast('تم تعديل النقاط بنجاح', 'success');
+                        updatePointsDisplay(res.points, res.is_naughty);
+
+                        // Update local cache
+                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                        if (matchIdx > -1) {
+                            let pts = {};
+                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                            pts[tripId] = res.points;
+                            pts["n_" + tripId] = res.is_naughty;
+                            regsList[matchIdx].trip_points = JSON.stringify(pts);
+                            regsList[matchIdx].trip_points_val = res.points;
+                        }
+
+                        if (input) input.value = '';
                         await loadRecentScans();
                     } else {
                         playErrorSound();
@@ -3154,6 +3221,7 @@
                     const name = r.student_name || '؟';
                     const cls = r.student_class || 'بدون فصل';
                     const img = r.student_image || '';
+                    const chName = r.church_name || r.student_church_name || '';
                     const photo = img
                         ? `<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
                         : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
@@ -3163,7 +3231,10 @@
                     ${photo}
                     <div style="flex:1; overflow:hidden;">
                         <div style="font-weight:700; color:var(--text); font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
-                        <div style="font-size:0.75rem; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fas fa-chalkboard-teacher" style="margin-left:4px;"></i>${cls}</div>
+                        <div style="font-size:0.75rem; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <i class="fas fa-chalkboard-teacher" style="margin-left:4px;"></i>${cls}
+                            ${chName ? ` | <i class="fas fa-church" style="margin-left:4px; margin-right:4px;"></i>${chName}` : ''}
+                        </div>
                     </div>
                     <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
                 </div>`;

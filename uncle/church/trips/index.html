@@ -5763,6 +5763,7 @@
       function getCustomExportDefaultFields() {
         const fields = [
           { key: 'photo', label: 'الصورة الشخصية', type: 'photo', selected: false },
+          { key: 'qrcode', label: 'كود QR', type: 'qrcode', selected: false },
           { key: 'name', label: 'الاسم', source: 'student_name', selected: true },
           { key: 'class', label: 'الفصل', source: 'student_class', selected: true },
           { key: 'gender', label: 'النوع', type: 'gender', selected: false },
@@ -5926,6 +5927,18 @@
 
       function getCustomExportCellValue(r, field, forCsv = false) {
         const isGuest = r.guest_id ? true : false;
+
+        if (field.type === 'qrcode') {
+          if (isGuest) return '';
+          const studentId = getStudentDbId(r);
+          if (!studentId) return '';
+          const text = `${window.location.origin}/user/profile/?id=${encodeURIComponent(studentId)}`;
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(text)}`;
+          if (forCsv) return qrUrl ? `=IMAGE("${qrUrl.replace(/"/g, '""')}")` : '';
+          return qrUrl
+            ? `<img class="custom-export-qr" src="${qrUrl}" crossorigin="anonymous" referrerpolicy="no-referrer" alt="" style="width:50px; height:50px; display:block; margin:0 auto;">`
+            : '';
+        }
 
         if (field.type === 'photo') {
           const url = isGuest ? '' : getAbsolutePhotoUrl(r.student_image || '');
@@ -6285,7 +6298,7 @@
       }
 
       function waitForCustomExportImages(root) {
-        const imgs = [...root.querySelectorAll('img.custom-export-photo')];
+        const imgs = [...root.querySelectorAll('img.custom-export-photo, img.custom-export-qr')];
         if (!imgs.length) return Promise.resolve();
         return Promise.all(imgs.map(img => {
           if (img.complete) return Promise.resolve();
@@ -10009,16 +10022,46 @@
             pointsConfig = typeof t.points_config === 'string' ? JSON.parse(t.points_config) : t.points_config;
           } catch(e) {}
         }
-        if (pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined')) {
-          document.getElementById('editTripPointsType').value = pointsConfig.points_type;
+        
+        // Reset checkmarks
+        document.getElementById('editTripModeDirect').checked = false;
+        document.getElementById('editTripModeShortcuts').checked = false;
+        document.getElementById('editTripModeCustom').checked = false;
+        document.getElementById('editTripDirectPointsList').value = "30,50,80,100";
+
+        if (pointsConfig) {
+          if (Array.isArray(pointsConfig.modes)) {
+            pointsConfig.modes.forEach(mode => {
+              const cb = document.getElementById('editTripMode' + mode.charAt(0).toUpperCase() + mode.slice(1));
+              if (cb) cb.checked = true;
+            });
+            if (pointsConfig.direct_points) {
+              const pts = Array.isArray(pointsConfig.direct_points) ? pointsConfig.direct_points.join(',') : String(pointsConfig.direct_points);
+              document.getElementById('editTripDirectPointsList').value = pts;
+            }
+          } else {
+            // Legacy schema migration on load
+            const legacyType = pointsConfig.points_type || 'direct';
+            if (legacyType === 'direct') {
+              document.getElementById('editTripModeDirect').checked = true;
+            } else if (legacyType === 'shortcuts') {
+              document.getElementById('editTripModeShortcuts').checked = true;
+            } else if (legacyType === 'combined') {
+              document.getElementById('editTripModeDirect').checked = true;
+              document.getElementById('editTripModeShortcuts').checked = true;
+            }
+          }
+
           if (Array.isArray(pointsConfig.shortcuts)) {
             pointsConfig.shortcuts.forEach(s => {
               addShortcutRow('edit', s.name, s.points, s.icon, s.desc || '');
             });
           }
         } else {
-          document.getElementById('editTripPointsType').value = 'direct';
+          document.getElementById('editTripModeDirect').checked = true;
         }
+
+        updatePointsModesUI();
         toggleEditTripPointsGame();
 
         document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
@@ -10045,13 +10088,28 @@
         const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
         document.getElementById('editTripPointsGameSettingsWrap').style.display = hasGame ? 'block' : 'none';
         if (hasGame) {
-          toggleEditTripPointsType();
+          updatePointsModesUI();
         }
       }
 
-      function toggleEditTripPointsType() {
-        const pointsType = document.getElementById('editTripPointsType').value;
-        document.getElementById('editTripShortcutsArea').style.display = (pointsType === 'shortcuts' || pointsType === 'combined') ? 'block' : 'none';
+      function toggleSelectAllPointsModes(checked) {
+        document.querySelectorAll('.points-mode-cb').forEach(cb => {
+          cb.checked = checked;
+        });
+        updatePointsModesUI();
+      }
+
+      function updatePointsModesUI() {
+        const isDirect = document.getElementById('editTripModeDirect').checked;
+        const isShortcuts = document.getElementById('editTripModeShortcuts').checked;
+        
+        document.getElementById('editTripDirectPointsWrap').style.display = isDirect ? 'block' : 'none';
+        document.getElementById('editTripShortcutsArea').style.display = isShortcuts ? 'block' : 'none';
+        
+        // Update select all checkbox status
+        const checkboxes = [...document.querySelectorAll('.points-mode-cb')];
+        const allChecked = checkboxes.every(cb => cb.checked);
+        document.getElementById('editTripPointsSelectAll').checked = allChecked;
       }
 
       function escHtml(str) {
@@ -10148,9 +10206,18 @@
         const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
         let pointsConfig = null;
         if (hasGame) {
-          const pointsType = document.getElementById('editTripPointsType').value;
-          if (pointsType === 'shortcuts' || pointsType === 'combined') {
-            const shortcuts = [];
+          const modes = [];
+          if (document.getElementById('editTripModeDirect').checked) modes.push('direct');
+          if (document.getElementById('editTripModeShortcuts').checked) modes.push('shortcuts');
+          if (document.getElementById('editTripModeCustom').checked) modes.push('custom');
+
+          const directPointsRaw = document.getElementById('editTripDirectPointsList').value;
+          const direct_points = directPointsRaw.split(',')
+            .map(x => parseInt(x.trim()))
+            .filter(x => !isNaN(x) && x > 0);
+
+          const shortcuts = [];
+          if (modes.includes('shortcuts')) {
             document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
               const icon = row.querySelector('.shortcut-icon').value;
               const name = row.querySelector('.shortcut-name').value.trim();
@@ -10160,10 +10227,21 @@
                 shortcuts.push({ icon, name, desc, points });
               }
             });
-            pointsConfig = JSON.stringify({ points_type: pointsType, shortcuts });
-          } else {
-            pointsConfig = JSON.stringify({ points_type: 'direct' });
           }
+
+          let legacyPointsType = 'direct';
+          if (modes.includes('direct') && modes.includes('shortcuts')) {
+            legacyPointsType = 'combined';
+          } else if (modes.includes('shortcuts')) {
+            legacyPointsType = 'shortcuts';
+          }
+
+          pointsConfig = JSON.stringify({
+            points_type: legacyPointsType,
+            modes,
+            direct_points,
+            shortcuts
+          });
         }
 
         fd.append('custom_fields', customFields);
@@ -14704,11 +14782,33 @@
                 </select>
 
                 <div id="editTripPointsGameSettingsWrap" style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
-                    <select id="editTripPointsType" class="form-select" style="width:100%;" onchange="toggleEditTripPointsType()">
-                      <option value="direct">نقاط مباشرة (10، 30، 50، 100)</option>
-                      <option value="shortcuts">أزرار وإجراءات مخصصة (اختصارات) فقط</option>
-                      <option value="combined">دمج الاختصارات والأسلوب المباشر معاً (Combined)</option>
-                    </select>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+                      <label style="font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:4px;">خيارات وأنماط إضافة النقاط:</label>
+                      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <input type="checkbox" id="editTripPointsSelectAll" onchange="toggleSelectAllPointsModes(this.checked)" style="accent-color:var(--primary); width:16px; height:16px; cursor:pointer;">
+                        <label for="editTripPointsSelectAll" style="font-size:0.85rem; font-weight:700; cursor:pointer;">تحديد الكل</label>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:6px; margin-right:12px; margin-top:4px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" class="points-mode-cb" id="editTripModeDirect" value="direct" onchange="updatePointsModesUI()" style="accent-color:var(--primary); width:15px; height:15px; cursor:pointer;">
+                          <label for="editTripModeDirect" style="font-size:0.8rem; font-weight:600; cursor:pointer;">القيم المباشرة (أزرار نقاط افتراضية)</label>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" class="points-mode-cb" id="editTripModeShortcuts" value="shortcuts" onchange="updatePointsModesUI()" style="accent-color:var(--primary); width:15px; height:15px; cursor:pointer;">
+                          <label for="editTripModeShortcuts" style="font-size:0.8rem; font-weight:600; cursor:pointer;">أزرار وإجراءات مخصصة (اختصارات)</label>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" class="points-mode-cb" id="editTripModeCustom" value="custom" onchange="updatePointsModesUI()" style="accent-color:var(--primary); width:15px; height:15px; cursor:pointer;">
+                          <label for="editTripModeCustom" style="font-size:0.8rem; font-weight:600; cursor:pointer;">إدخال يدوي لنقاط مخصصة (كتابة يدوية)</label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Direct Points Configuration -->
+                    <div id="editTripDirectPointsWrap" style="display:none; border-top:1px dashed var(--border); padding-top:12px; margin-top:10px; margin-bottom:10px;">
+                      <label class="form-label" style="font-weight:700;">النقاط الافتراضية المتاحة (مفصولة بفاصلة):</label>
+                      <input type="text" id="editTripDirectPointsList" class="form-input" placeholder="مثال: 30,50,80,100" value="30,50,80,100">
+                    </div>
                   <div id="editTripShortcutsArea" style="display:none; border-top:1px dashed var(--border); padding-top:12px; margin-top:10px;">
                     <div style="font-weight:700; font-size:0.85rem; color:var(--text); margin-bottom:10px;">الاختصارات المخصصة المتاحة:</div>
                     <div id="editTripShortcutsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">

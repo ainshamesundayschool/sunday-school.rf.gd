@@ -17257,6 +17257,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getCustomExportDefaultFields() {
             const fields = [
                 { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
+                { key: 'qrcode', label: 'كود QR', type: 'qrcode', selected: false },
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
                 { key: 'class', label: 'الفصل', source: 'الفصل', selected: true },
                 { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
@@ -17366,6 +17367,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             catch (e) { return versioned; }
         }
         function getCustomExportCellValue(s, field, forCsv = false) {
+            if (field.type === 'qrcode') {
+                const studentId = getStudentDbId(s);
+                if (!studentId) return '';
+                const text = `${window.location.origin}/user/profile/?id=${encodeURIComponent(studentId)}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(text)}`;
+                if (forCsv) return qrUrl ? `=IMAGE("${qrUrl.replace(/"/g, '""')}")` : '';
+                return qrUrl
+                    ? `<img class="custom-export-qr" src="${qrUrl}" crossorigin="anonymous" referrerpolicy="no-referrer" alt="" style="width:50px; height:50px; display:block; margin:0 auto;">`
+                    : '';
+            }
             if (field.type === 'photo') {
                 const url = getAbsolutePhotoUrl(s['صورة'] || '');
                 if (forCsv) return url ? `=IMAGE("${url.replace(/"/g, '""')}")` : '';
@@ -17526,7 +17537,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showToast('تم تصدير CSV — الصور تظهر كمعادلة IMAGE في برامج الجداول', 'success');
         }
         function waitForCustomExportImages(root) {
-            const imgs = [...root.querySelectorAll('img.custom-export-photo')];
+            const imgs = [...root.querySelectorAll('img.custom-export-photo, img.custom-export-qr')];
             if (!imgs.length) return Promise.resolve();
             return Promise.all(imgs.map(img => {
                 if (img.complete) return Promise.resolve();
