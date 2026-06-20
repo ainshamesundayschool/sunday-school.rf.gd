@@ -33,6 +33,6 @@ u430683844_testingServer.sql
 db_migrations/20260619_add_paper_exams.sql
 
 # Composer
-vendor/
 composer.phar
+
 

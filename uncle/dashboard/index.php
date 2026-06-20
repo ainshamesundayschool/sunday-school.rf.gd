@@ -26,6 +26,11 @@ ini_set('session.gc_maxlifetime', 315360000);
 ini_set('session.cookie_lifetime', 315360000);
 session_start();
 
+if (file_exists($rootPath . '/config.php')) {
+    require_once $rootPath . '/config.php';
+}
+
+
 // Ensure HTML pages revalidate so clients pick up updates promptly
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
