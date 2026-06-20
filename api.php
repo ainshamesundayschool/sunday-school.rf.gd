@@ -1351,6 +1351,16 @@ function detectGenderFromName($name) {
 // Custom error handler
 
 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    // Check if error is suppressed with @ operator
+    if (!(error_reporting() & $errno)) {
+        return false;
+    }
+
+    // Do not crash on notices and deprecations
+    if ($errno === E_NOTICE || $errno === E_USER_NOTICE || $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED) {
+        error_log("PHP Notice/Deprecation: $errstr in $errfile on line $errline");
+        return true; // continue execution
+    }
 
     $error = "PHP Error [$errno]: $errstr in $errfile on line $errline";
 
