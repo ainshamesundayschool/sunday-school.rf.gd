@@ -43,7 +43,7 @@
     </script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
@@ -189,8 +189,10 @@
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 0 10px;
-            height: 50px;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: 10px;
+            padding-right: 10px;
+            height: calc(50px + env(safe-area-inset-top, 0px));
             display: flex;
             align-items: center;
             justify-content: space-between;
