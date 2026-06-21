@@ -6462,7 +6462,7 @@
                     </div>
 
 
-                    <div class="overview-grid">
+                    <div class="overview-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
@@ -6523,6 +6523,19 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-chalkboard"></i> الفصول</div>
+                                <button class="btn btn-primary btn-sm" onclick="switchTabByName('attendance')"><i
+                                        class="fas fa-calendar-check"></i> الحضور</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="classes-grid" id="classesOverview"></div>
                             </div>
                         </div>
 
@@ -10998,6 +11011,7 @@
 
         function renderClassesOverview(distribution) {
             const container = document.getElementById('classesOverview');
+            if (!container) return;
 
             if (!distribution || !distribution.length) {
                 container.innerHTML = `
