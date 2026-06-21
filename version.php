@@ -54,6 +54,11 @@ if (!$version) {
         $root . '/login/index.html',
         $root . '/uncle/dashboard/index.php',
         $root . '/uncle/church/index.html',
+        $root . '/user/profile/index.php',
+        $root . '/user/index.html',
+        $root . '/user/login/index.html',
+        $root . '/user/registration/index.html',
+        $root . '/uncle/registration/index.html',
     ];
     $latest = 0;
     foreach ($watchFiles as $file) {

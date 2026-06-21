@@ -13,6 +13,14 @@ const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
     '/manifest.json','/manifest.webmanifest',
+    '/','/index.html',
+    '/login/','/login/index.html',
+    '/user/','/user/index.html',
+    '/user/profile/','/user/profile/index.php',
+    '/user/login/','/user/login/index.html',
+    '/user/registration/','/user/registration/index.html',
+    '/uncle/registration/','/uncle/registration/index.html',
+    '/uncle/church/registration/','/uncle/church/registration/index.html',
     '/uncle/dashboard','/uncle/dashboard/','/uncle/dashboard/index.php',
     '/uncle/church',
     '/uncle/church/','/uncle/church/index.html',
@@ -84,7 +92,12 @@ self.addEventListener('fetch', e => {
         isSameOrigin && (
             url.pathname.startsWith('/uncle/dashboard') ||
             url.pathname.startsWith('/uncle/church') ||
-            url.pathname.startsWith('/uncle/trip')
+            url.pathname.startsWith('/uncle/trip') ||
+            url.pathname.startsWith('/uncle/registration') ||
+            url.pathname.startsWith('/user/profile') ||
+            url.pathname.startsWith('/user') ||
+            url.pathname.startsWith('/login') ||
+            url.pathname === '/'
         );
     const isSessionSensitive =
         isSameOrigin && (
@@ -218,7 +231,7 @@ self.addEventListener('fetch', e => {
                     return r;
                 } catch (_) {
                     const cached = await _matchOfflineShell(e.request, url);
-                    if (cached && (isOfflineShellFriendly || !isSessionSensitive)) return cached;
+                    if (cached) return cached;
                     return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
                         status: 503,
                         headers: { 'Content-Type': 'text/html; charset=utf-8' }
@@ -278,6 +291,8 @@ async function _matchOfflineShell(request, url) {
         fallbackCandidates.push('/uncle/dashboard/', '/uncle/dashboard/index.php', '/uncle/church/', '/uncle/church/index.html');
     } else if (sameOriginPath.startsWith('/uncle/church/trips')) {
         fallbackCandidates.push('/uncle/church/trips/', '/uncle/church/trips/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/church/registration')) {
+        fallbackCandidates.push('/uncle/church/registration/', '/uncle/church/registration/index.html');
     } else if (sameOriginPath.startsWith('/uncle/church')) {
         fallbackCandidates.push('/uncle/church/', '/uncle/church/index.html');
     } else if (sameOriginPath.startsWith('/uncle/trip/filter')) {
@@ -286,6 +301,20 @@ async function _matchOfflineShell(request, url) {
         fallbackCandidates.push('/uncle/trip/points/', '/uncle/trip/points/index.html');
     } else if (sameOriginPath.startsWith('/uncle/trip')) {
         fallbackCandidates.push('/uncle/trip/', '/uncle/trip/index.html');
+    } else if (sameOriginPath.startsWith('/uncle/registration')) {
+        fallbackCandidates.push('/uncle/registration/', '/uncle/registration/index.html');
+    } else if (sameOriginPath.startsWith('/user/profile')) {
+        fallbackCandidates.push('/user/profile/', '/user/profile/index.php');
+    } else if (sameOriginPath.startsWith('/user/login')) {
+        fallbackCandidates.push('/user/login/', '/user/login/index.html');
+    } else if (sameOriginPath.startsWith('/user/registration')) {
+        fallbackCandidates.push('/user/registration/', '/user/registration/index.html');
+    } else if (sameOriginPath.startsWith('/user')) {
+        fallbackCandidates.push('/user/', '/user/index.html');
+    } else if (sameOriginPath.startsWith('/login')) {
+        fallbackCandidates.push('/login/', '/login/index.html');
+    } else if (sameOriginPath === '' || sameOriginPath === '/') {
+        fallbackCandidates.push('/', '/index.html');
     }
 
     for (const candidate of fallbackCandidates) {
