@@ -12428,9 +12428,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const s = item.student;
                 const name = s['الاسم'] || '---';
                 const cls = s['الفصل'] || '';
-                const photo = s['photo'] || s['الصورة'] || '';
+                const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
                 const safe = name.replace(/'/g, "\\'");
-                const avatar = photo ? `/uncle/dashboard/uploads/${photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
+                const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
                 return `<div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${index}" onclick="showStudentDetails('${safe}')">
                     <img src="${avatar}" class="bday-chip-img">
                     <span>${name}</span>
