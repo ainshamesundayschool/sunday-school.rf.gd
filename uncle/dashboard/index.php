@@ -19381,7 +19381,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 // Background sync completed — reload data so UI reflects server state
                 if (d.type === 'SYNC_COMPLETE') {
-                    showToast(`✅ تمت المزامنة — رُفع ${d.count} تغيير في الخلفية`, 'success', { dur: 5000 });
+                    const uName = d.uncleName || '';
+                    const msg = uName 
+                        ? `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅` 
+                        : `✅ تمت المزامنة — رُفع ${d.count} تغيير في الخلفية`;
+                    showToast(msg, 'success', { dur: 5000 });
                     setTimeout(() => { if (navigator.onLine) loadData(); }, 800);
                 }
 
@@ -19789,6 +19793,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     meta: {
                         apiUrl: (typeof API_URL !== 'undefined' ? API_URL : '/api.php'),
                         uncleId: window.currentUncle?.id || '',
+                        uncleName: window.currentUncle?.name || '',
                         lastRegCount: 0   // SW will update this after first check
                     }
                 });

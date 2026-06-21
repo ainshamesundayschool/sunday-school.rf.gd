@@ -24144,7 +24144,11 @@ function getTripDetails()
 
             'trip' => $trip,
 
-            'user_role' => $_SESSION['uncle_role'] ?? 'uncle'
+            'user_role' => $_SESSION['uncle_role'] ?? 'uncle',
+
+            'uncle_id' => $_SESSION['uncle_id'] ?? null,
+
+            'uncle_name' => $_SESSION['uncle_name'] ?? null
 
         ]);
 

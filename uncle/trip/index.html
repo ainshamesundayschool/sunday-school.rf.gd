@@ -1676,7 +1676,7 @@
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+        <script src="/js/html5-qrcode.min.js" type="text/javascript"></script>
 
         <script>
             const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
@@ -1694,7 +1694,40 @@
                         }
                     });
                 }
+
+                // Register Service Worker and listen to messages
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW Registration failed:', err));
+                    navigator.serviceWorker.addEventListener('message', e => {
+                        if (e.data?.type === 'SYNC_COMPLETE') {
+                            const uName = e.data.uncleName || 'خادمنا';
+                            showToast(`تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅`, 'success', 6000);
+                            if (tripId) {
+                                openTrip(tripId);
+                            }
+                            if (typeof loadRecentScans === 'function') {
+                                loadRecentScans();
+                            }
+                        }
+                    });
+                }
             });
+
+            async function _sendUnclMetaToSW(uncleName, uncleId) {
+                if (!('serviceWorker' in navigator)) return;
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    if (!reg.active) return;
+                    reg.active.postMessage({
+                        type: 'SET_UNCLE_META',
+                        meta: {
+                            apiUrl: API_URL,
+                            uncleId: uncleId || '',
+                            uncleName: uncleName || ''
+                        }
+                    });
+                } catch (err) { }
+            }
 
             async function apiCall(action, params = {}) {
                 const fd = new FormData();
@@ -1799,6 +1832,10 @@
 
                     if (res.success && res.trip) {
                         currentTrip = res.trip;
+
+                        if (res.uncle_name) {
+                            _sendUnclMetaToSW(res.uncle_name, res.uncle_id);
+                        }
 
                         if (['admin', 'developer', 'dev'].includes(res.user_role)) {
                             const adminActions = document.getElementById('adminActions');
@@ -2285,25 +2322,51 @@
                         amount: val
                     });
 
-                    if (res.success) {
+                    if (res.success || res.offline) {
                         playSuccessSound();
-                        showToast('تم تعديل النقاط بنجاح', 'success');
-                        updatePointsDisplay(res.points, res.is_naughty);
+                        if (res.offline) {
+                            showToast(res.message || 'محفوظ محلياً — سيُرفع عند الاتصال', 'warning');
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
+                                let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
+                                let newVal = oldVal;
+                                if (action === 'increment') {
+                                    newVal = oldVal + val;
+                                } else if (action === 'decrement') {
+                                    newVal = Math.max(0, oldVal - val);
+                                } else if (action === 'naughty') {
+                                    isNaughtyNow = !isNaughtyNow;
+                                }
+                                pts[tripId] = newVal;
+                                pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = newVal;
+                                regsList[matchIdx].trip_points_naughty = isNaughtyNow ? 1 : 0;
+                                updatePointsDisplay(newVal, isNaughtyNow);
+                            }
+                        } else {
+                            showToast('تم تعديل النقاط بنجاح', 'success');
+                            updatePointsDisplay(res.points, res.is_naughty);
 
-                        // Update local cache
-                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                        if (matchIdx > -1) {
-                            let pts = {};
-                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                            pts[tripId] = res.points;
-                            pts["n_" + tripId] = res.is_naughty;
-                            regsList[matchIdx].trip_points = JSON.stringify(pts);
-                            regsList[matchIdx].trip_points_val = res.points;
+                            // Update local cache
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                pts[tripId] = res.points;
+                                pts["n_" + tripId] = res.is_naughty ? 1 : 0;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = res.points;
+                                regsList[matchIdx].trip_points_naughty = res.is_naughty ? 1 : 0;
+                            }
                         }
 
                         if (window.activePointsInputMode === 'custom') {
-                            const input = document.getElementById('customPointsInputVal');
-                            if (input) input.value = '';
+                             const input = document.getElementById('customPointsInputVal');
+                             if (input) input.value = '';
                         }
                         await loadRecentScans();
                     } else {
@@ -2398,24 +2461,42 @@
                         game_action: 'naughty'
                     });
 
-                    if (res.success) {
+                    if (res.success || res.offline) {
                         playSuccessSound();
-                        showToast(res.is_naughty ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
-                        updatePointsDisplay(res.points, res.is_naughty);
+                        if (res.offline) {
+                            showToast(res.message || 'محفوظ محلياً — سيُرفع عند الاتصال', 'warning');
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
+                                isNaughtyNow = !isNaughtyNow;
+                                pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_naughty = isNaughtyNow ? 1 : 0;
+                                updatePointsDisplay(parseInt(regsList[matchIdx].trip_points_val) || 0, isNaughtyNow);
+                            }
+                        } else {
+                            showToast(res.is_naughty ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
+                            updatePointsDisplay(res.points, res.is_naughty);
 
-                        // Update local cache
-                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                        if (matchIdx > -1) {
-                            let pts = {};
-                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                            pts[tripId] = res.points;
-                            pts["n_" + tripId] = res.is_naughty;
-                            regsList[matchIdx].trip_points = JSON.stringify(pts);
-                            regsList[matchIdx].trip_points_val = res.points;
+                            // Update local cache
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                pts[tripId] = res.points;
+                                pts["n_" + tripId] = res.is_naughty ? 1 : 0;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = res.points;
+                                regsList[matchIdx].trip_points_naughty = res.is_naughty ? 1 : 0;
+                            }
                         }
+
+                        await loadRecentScans();
                     } else {
                         playErrorSound();
-                        showToast(res.message || 'فشل تعديل حالة الشغب', 'error');
+                        showToast(res.message || 'فشل تعديل شغب الطفل', 'error');
                         if (display) display.innerHTML = oldHtml;
                     }
                 } catch (e) {
@@ -2750,7 +2831,7 @@
 
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                    if (res.success) {
+                    if (res.success || res.offline) {
                         playSuccessSound();
 
                         fastScanCooldowns[scannedStudentId] = {
@@ -2769,16 +2850,49 @@
                             }, 500);
                         }
 
-                        let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`;
-                        showToast(msg, 'success');
+                        if (res.offline) {
+                            const localStudent = regsList.find(r => String(r.student_id) === String(scannedStudentId));
+                            const studentName = localStudent ? localStudent.name : `طالب ${scannedStudentId}`;
+                            let msg = `محفوظ محلياً — تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
+                            showToast(msg, 'warning');
 
-                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
-                        if (matchIdx > -1) {
-                            let pts = {};
-                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                            pts[tripId] = res.new_points;
-                            regsList[matchIdx].trip_points = JSON.stringify(pts);
-                            regsList[matchIdx].trip_points_val = res.new_points;
+                            // Let's add a temporary scan log item locally!
+                            const tempLogId = 'temp_' + Date.now();
+                            scansLog.unshift({
+                                id: tempLogId,
+                                studentId: scannedStudentId,
+                                studentName: studentName,
+                                change: changeAmount,
+                                status: 'pending',
+                                profilePhoto: localStudent ? localStudent.photo : '',
+                                uncleId: currentUncleId,
+                                uncleName: 'أنا',
+                                actionNote: actionName,
+                                createdAt: new Date().toISOString()
+                            });
+
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
+                                const newVal = Math.max(0, oldVal + changeAmount);
+                                pts[tripId] = newVal;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = newVal;
+                            }
+                        } else {
+                            let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`;
+                            showToast(msg, 'success');
+
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                pts[tripId] = res.new_points;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = res.new_points;
+                            }
                         }
 
                         loadRecentScans();
@@ -3782,6 +3896,11 @@
                     statusHtml = `<i class="fas fa-spinner fa-spin" style="color:var(--brand);"></i> جاري التسجيل...`;
                 } else if (item.status === 'error') {
                     statusHtml = `<span style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> ${item.errorMsg || 'فشل'}</span>`;
+                } else if (item.status === 'pending') {
+                    const noteSuffix = item.actionNote
+                        ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
+                        : '';
+                    statusHtml = `<span style="color:var(--warning);"><i class="fas fa-clock"></i> محفوظ محلياً — سيُرفع عند الاتصال</span>${noteSuffix}`;
                 } else {
                     const uncleSuffix = item.uncleName
                         ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>`
@@ -3853,27 +3972,48 @@
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                     if (clickedBtn) {
-                        clickedBtn.innerHTML = originalBtnHtml;
+                         clickedBtn.innerHTML = originalBtnHtml;
                     }
-                    if (res.success) {
-                        showToast(`تم التراجع بنجاح!`, 'success');
-                        scansLog = scansLog.filter(item => String(item.id) !== String(logId));
-                        renderScansList();
+                    if (res.success || res.offline) {
+                        if (res.offline) {
+                            showToast(`محفوظ محلياً — تم التراجع بنجاح!`, 'warning');
+                            scansLog = scansLog.filter(item => String(item.id) !== String(logId));
+                            renderScansList();
 
-                        const resolvedPoints = (res.new_points !== undefined) ? res.new_points : res.student_points;
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
+                                const newVal = Math.max(0, oldVal + undoAmount);
+                                pts[tripId] = newVal;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = newVal;
+                                if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
+                                    const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                                    updatePointsDisplay(newVal, isNaughtyNow);
+                                }
+                            }
+                        } else {
+                            showToast(`تم التراجع بنجاح!`, 'success');
+                            scansLog = scansLog.filter(item => String(item.id) !== String(logId));
+                            renderScansList();
 
-                        if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
-                            const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                            updatePointsDisplay(resolvedPoints, isNaughtyNow);
-                        }
+                            const resolvedPoints = (res.new_points !== undefined) ? res.new_points : res.student_points;
 
-                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
-                        if (matchIdx > -1) {
-                            let pts = {};
-                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                            pts[tripId] = resolvedPoints;
-                            regsList[matchIdx].trip_points = JSON.stringify(pts);
-                            regsList[matchIdx].trip_points_val = resolvedPoints;
+                            if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
+                                const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                                updatePointsDisplay(resolvedPoints, isNaughtyNow);
+                            }
+
+                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
+                            if (matchIdx > -1) {
+                                let pts = {};
+                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                pts[tripId] = resolvedPoints;
+                                regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                regsList[matchIdx].trip_points_val = resolvedPoints;
+                            }
                         }
                     } else {
                         showToast("فشل التراجع: " + res.message, 'error');

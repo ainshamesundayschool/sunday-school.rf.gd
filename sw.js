@@ -1,14 +1,14 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v14                     ║
+// ║  Sunday School PWA — Service Worker v15                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v14';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v15';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
 // Only these API actions should be queued for background sync.
 // Everything else (login, photo upload, settings) should fail normally when offline.
-const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
+const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons', 'processGameQRCode', 'processFastScanPoints'];
 
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
@@ -33,8 +33,12 @@ const SHELL_URLS = [
     '/uncle/trip/filter/','/uncle/trip/filter/index.html',
     '/uncle/trip/points',
     '/uncle/trip/points/','/uncle/trip/points/index.html',
+    '/js/html5-qrcode.min.js',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-regular-400.woff2',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2',
     'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js',
@@ -447,7 +451,12 @@ self.addEventListener('notificationclick', e => {
 
 // ── MESSAGE from page ─────────────────────────────────────────
 self.addEventListener('message', e => {
-    if (e.data?.type === 'SET_UNCLE_META') _idbSetMeta(e.data.meta).catch(() => {});
+    if (e.data?.type === 'SET_UNCLE_META') {
+        _idbGetMeta().then(existing => {
+            const merged = { ...existing, ...e.data.meta };
+            return _idbSetMeta(merged);
+        }).catch(() => {});
+    }
     if (e.data?.type === 'FLUSH_QUEUE') {
         _flushQueue().catch(() => {});
     }
@@ -504,14 +513,18 @@ async function _flushQueue() {
 
     if (!flushed) return;
 
+    const uncleMeta = await _idbGetMeta() || {};
+    const uncleName = uncleMeta.uncleName || '';
+
     // Tell open windows (they show a toast)
     const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    allClients.forEach(c => c.postMessage({ type: 'SYNC_COMPLETE', count: flushed }));
+    allClients.forEach(c => c.postMessage({ type: 'SYNC_COMPLETE', count: flushed, uncleName }));
 
     // Show system notification only if app is closed / all tabs hidden
     const anyVisible = allClients.some(c => c.visibilityState === 'visible');
     if (!anyVisible) {
-        self.registration.showNotification('مدارس الأحد — تم المزامنة ✅', {
+        const title = `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uncleName || 'خادمنا'} ✅`;
+        self.registration.showNotification(title, {
             body: `رُفع ${flushed} تغيير محفوظ محلياً بنجاح`,
             icon: '/logo.png', badge: '/logo.png',
             dir: 'rtl', lang: 'ar',
