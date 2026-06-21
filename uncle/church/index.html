@@ -6462,7 +6462,7 @@
                     </div>
 
 
-                    <div class="overview-grid" style="grid-template-columns: 1fr;">
+                    <div class="overview-grid">
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
@@ -6522,6 +6522,19 @@
                                             <div class="qa-desc">تعديل الفصول والبيانات الأساسية</div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-history"></i> الأنشطة الأخيرة</div>
+                            </div>
+                            <div class="card-body" id="recentActivity" style="max-height: 380px; overflow-y: auto;">
+                                <div class="empty-state">
+                                    <i class="fas fa-history"></i>
+                                    <h3>لا توجد أنشطة حديثة</h3>
+                                    <p style="color:var(--muted); font-size:0.85rem;">سيظهر هنا آخر عمليات الحضور</p>
                                 </div>
                             </div>
                         </div>
@@ -10943,6 +10956,7 @@
 
         function renderRecentActivity(activities) {
             const container = document.getElementById('recentActivity');
+            if (!container) return;
 
             if (!activities || !activities.length) {
                 container.innerHTML = `

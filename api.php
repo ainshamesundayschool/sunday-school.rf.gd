@@ -42036,15 +42036,15 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
 
             $webPush->queueNotification($sub, $payload);
 
+            $success = true;
             foreach ($webPush->flush() as $r) {
-
-                if (!$r->isSuccess())
-
-                    return false;
-
+                if (!$r->isSuccess()) {
+                    error_log("WebPush notification failed for endpoint " . $r->getEndpoint() . ": " . $r->getReason());
+                    $success = false;
+                }
             }
 
-            return true;
+            return $success;
 
         }
 
