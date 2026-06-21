@@ -1711,6 +1711,15 @@
                         }
                     });
                 }
+
+                // Flush queue + reload data when coming back online
+                window.addEventListener('online', async () => {
+                    try {
+                        const reg = await navigator.serviceWorker.ready;
+                        if (reg.active) reg.active.postMessage({ type: 'FLUSH_QUEUE' });
+                    } catch (e) { }
+                    setTimeout(() => { if (navigator.onLine && tripId) openTrip(tripId); }, 1000);
+                });
             });
 
             async function _sendUnclMetaToSW(uncleName, uncleId) {

@@ -482,9 +482,18 @@ async function _maybeQueueRequest(req) {
     } catch(err) { return false; }
 }
 
-// Extracts a field value from a URL-encoded FormData string
+// Extracts a field value from a URL-encoded or multipart FormData string
 function _parseFormField(body, field) {
     try {
+        if (!body) return '';
+        // If it's multipart/form-data
+        if (body.includes('Content-Disposition: form-data;')) {
+            const escapedField = field.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp('name="' + escapedField + '"(?:\\r?\\n)+([^\\r\\n]+)', 'i');
+            const match = body.match(regex);
+            return match ? match[1].trim() : '';
+        }
+        // Fallback to URL-encoded query string
         const params = new URLSearchParams(body);
         return params.get(field) || '';
     } catch(_) { return ''; }
