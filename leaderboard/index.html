@@ -207,6 +207,87 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 .refresh-btn.spinning i{animation:spin 0.8s linear infinite;}
 @media(max-width:600px){.lb-row{grid-template-columns:34px 42px 1fr 64px;gap:10px;padding:12px 13px;}.champion-card{padding:34px 22px 28px;}.podium{gap:8px;height:172px;}}
 
+.lb-row.rank-1 {
+  border-color: rgba(245, 197, 24, 0.6) !important;
+  background: linear-gradient(135deg, var(--surface), rgba(245, 197, 24, 0.12)) !important;
+  box-shadow: 0 0 20px rgba(245, 197, 24, 0.15) !important;
+}
+.lb-row.rank-1 .lb-rank {
+  color: var(--gold) !important;
+  font-size: 1.45rem;
+}
+.lb-row.rank-2 {
+  border-color: rgba(200, 208, 220, 0.5) !important;
+  background: linear-gradient(135deg, var(--surface), rgba(200, 208, 220, 0.1)) !important;
+  box-shadow: 0 0 15px rgba(200, 208, 220, 0.08) !important;
+}
+.lb-row.rank-2 .lb-rank {
+  color: var(--silver) !important;
+  font-size: 1.35rem;
+}
+.lb-row.rank-3 {
+  border-color: rgba(224, 138, 60, 0.5) !important;
+  background: linear-gradient(135deg, var(--surface), rgba(224, 138, 60, 0.1)) !important;
+  box-shadow: 0 0 12px rgba(224, 138, 60, 0.08) !important;
+}
+.lb-row.rank-3 .lb-rank {
+  color: var(--bronze) !important;
+  font-size: 1.25rem;
+}
+
+/* Fullscreen active styles */
+body.fullscreen-active {
+  padding: 20px 40px !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+body.fullscreen-active .page {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  height: calc(100vh - 40px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+body.fullscreen-active .topbar {
+  margin-bottom: 12px !important;
+}
+body.fullscreen-active .page-header {
+  display: none !important;
+}
+body.fullscreen-active .bottom-bar {
+  display: none !important;
+}
+body.fullscreen-active #mainContent {
+  flex: 1 !important;
+  overflow: hidden !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+body.fullscreen-active .lb-list {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  height: 100% !important;
+  max-height: calc(100vh - 120px) !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  align-content: flex-start !important;
+}
+body.fullscreen-active .lb-row {
+  width: calc(50% - 6px) !important;
+  margin-bottom: 0 !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+@media(max-width: 768px){
+  body.fullscreen-active .lb-row {
+    width: 100% !important;
+  }
+}
+
 /* ═══ LOGIN MODAL ═══ */
 .modal-overlay{
   position:fixed;inset:0;z-index:800;
@@ -594,108 +675,56 @@ function renderPage(students,attMap,churchName){
     return;
   }
   const sorted=[...students].sort((a,b)=>{const cd=(b['كوبونات']||0)-(a['كوبونات']||0);if(cd!==0)return cd;return(attMap[b['_studentId']]||0)-(attMap[a['_studentId']]||0);});
-  const top10=sorted.slice(0,10),champion=top10[0];
+  const top10=sorted.slice(0,10);
   const maxAtt=Math.max(...top10.map(s=>attMap[s['_studentId']]||0),1);
   let html='';
 
-  // CHAMPION
-  const cAtt=attMap[champion['_studentId']]||0,cInit=initials(champion['الاسم']);
-  html+=`<div class="champion-wrap"><div class="champion-card" id="championCard">
-    <div class="particles"></div>
-    <div class="champ-rank-badge">1</div>
-    <div class="crown-icon"><i class="fas fa-crown"></i></div>
-    <div class="champion-ring">
-      <svg class="ring-svg" viewBox="0 0 140 140" fill="none">
-        <circle cx="70" cy="70" r="64" stroke="rgba(245,197,24,0.13)" stroke-width="2"/>
-        <circle cx="70" cy="70" r="64" stroke="url(#cg)" stroke-width="3" stroke-dasharray="90 310" stroke-linecap="round"/>
-        <circle cx="70" cy="70" r="52" stroke="rgba(245,197,24,0.08)" stroke-width="1" stroke-dasharray="20 15"/>
-        <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f5c518"/><stop offset="100%" stop-color="#ff9500"/></linearGradient></defs>
-      </svg>
-      <div class="champion-avatar">${champion['صورة']?`<img src="${esc(champion['صورة'])}" onerror="this.style.display='none'">${cInit}`:cInit}</div>
-    </div>
-    <div class="champion-name">${esc(champion['الاسم'])}</div>
-    <div class="champion-class"><i class="fas fa-graduation-cap"></i> ${esc(champion['الفصل']||'---')}</div>
-    <div class="champion-stats">
-      <div class="champ-stat">
-        <div class="champ-stat-icon"><i class="fas fa-coins"></i></div>
-        <span class="champ-stat-val gold count-up" data-target="${champion['كوبونات']||0}">0</span>
-        <div class="champ-stat-lbl">كوبون</div>
-      </div>
-      <div class="champ-stat">
-        <div class="champ-stat-icon"><i class="fas fa-calendar-check"></i></div>
-        <span class="champ-stat-val teal count-up" data-target="${cAtt}">0</span>
-        <div class="champ-stat-lbl">يوم حضور</div>
-      </div>
-    </div>
-  </div></div>`;
+  html+=`<div class="lb-list" id="lbList">`;
+  top10.forEach((s,idx)=>{
+    const rank=idx+1,att3=attMap[s['_studentId']]||0,attPct=Math.round((att3/maxAtt)*100);
+    const init3=initials(s['الاسم']),col3=avCol(rank-1),coupons=s['كوبونات']||0;
+    
+    let rankClass='';
+    let couponColor='#a0aac4';
+    if(rank===1){ rankClass='rank-1'; couponColor='var(--gold)'; }
+    else if(rank===2){ rankClass='rank-2'; couponColor='var(--silver)'; }
+    else if(rank===3){ rankClass='rank-3'; couponColor='var(--bronze)'; }
+    else if(rank===4){ couponColor='#e8c040'; }
+    else if(rank===5){ couponColor='#e0883c'; }
 
-  // PODIUM
-  if(top10.length>=2){
-    html+=`<div class="podium-section"><div class="section-label"><i class="fas fa-medal"></i> المنصة الثلاثية</div><div class="podium">`;
-    const order=[top10[1],top10[0],top10.length>2?top10[2]:null];
-    const cls=['p2','p1','p3'];
-    const medalIcons=[
-      `<i class="fas fa-medal" style="color:var(--silver)"></i>`,
-      `<i class="fas fa-trophy" style="color:var(--gold)"></i>`,
-      `<i class="fas fa-medal" style="color:var(--bronze)"></i>`
-    ];
-    const ranks=[2,1,3];
-    order.forEach((s,i)=>{
-      if(!s){html+=`<div class="podium-item ${cls[i]}"></div>`;return;}
-      const att2=attMap[s['_studentId']]||0,init2=initials(s['الاسم']),col2=avCol(ranks[i]-1);
-      html+=`<div class="podium-item ${cls[i]}">
-        <div class="podium-avatar">${s['صورة']?`<img src="${esc(s['صورة'])}" onerror="this.style.display='none'"><div class="podium-avatar-inner ${col2}" style="display:none;">${init2}</div>`:`<div class="podium-avatar-inner ${col2}">${init2}</div>`}</div>
-        <div class="podium-name">${esc(s['الاسم'])}</div>
-        <div class="podium-coupons"><i class="fas fa-coins" style="font-size:0.62rem;opacity:0.7;margin-left:3px;"></i>${fmtNum(s['كوبونات']||0)}</div>
-        <div class="podium-base">
-          <div class="podium-medal">${medalIcons[i]}</div>
-          <div class="podium-rank-num">${ranks[i]}</div>
-          <div class="podium-days"><i class="fas fa-calendar-check" style="margin-left:3px;font-size:0.55rem;"></i>${att2}</div>
+    html+=`<div class="lb-row ${rankClass}" style="--att-pct:${attPct}%;animation-delay:${idx*0.07}s;">
+      <div class="lb-rank ${rank===4?'r4':rank===5?'r5':''}">${rank}</div>
+      <div class="lb-avatar">${s['صورة']?`<img src="${esc(s['صورة'])}" onerror="this.style.display='none'"><div class="lb-avatar-inner ${col3}" style="display:none;">${init3}</div>`:`<div class="lb-avatar-inner ${col3}">${init3}</div>`}</div>
+      <div class="lb-info">
+        <div class="lb-name">${esc(s['الاسم'])}</div>
+        <div class="lb-meta">
+          <span class="lb-class"><i class="fas fa-chalkboard" style="font-size:0.58rem;margin-left:3px;"></i>${esc(s['الفصل']||'---')}</span>
+          <span class="lb-days"><i class="fas fa-calendar-check" style="margin-left:3px;"></i>${att3} يوم</span>
+          ${s['_churchName'] ? `
+            <span class="lb-church" style="color: var(--teal); font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fas fa-church" style="font-size: 0.65rem;"></i> ${esc(s['_churchName'])}
+            </span>
+          ` : ''}
         </div>
-      </div>`;
-    });
-    html+=`</div></div>`;
-  }
-
-  // LIST 4-10
-  const rest=top10.slice(3);
-  if(rest.length){
-    html+=`<div class="section-label" style="margin:8px 0 14px;"><i class="fas fa-list-ol"></i> المراكز 4 – 10</div><div class="lb-list" id="lbList">`;
-    rest.forEach((s,idx)=>{
-      const rank=idx+4,att3=attMap[s['_studentId']]||0,attPct=Math.round((att3/maxAtt)*100);
-      const init3=initials(s['الاسم']),col3=avCol(rank-1),coupons=s['كوبونات']||0;
-      const couponColor=rank===4?'#e8c040':rank===5?'#e0883c':'#a0aac4';
-      html+=`<div class="lb-row" style="--att-pct:${attPct}%;animation-delay:${idx*0.07}s;">
-        <div class="lb-rank ${rank===4?'r4':rank===5?'r5':''}">${rank}</div>
-        <div class="lb-avatar">${s['صورة']?`<img src="${esc(s['صورة'])}" onerror="this.style.display='none'"><div class="lb-avatar-inner ${col3}" style="display:none;">${init3}</div>`:`<div class="lb-avatar-inner ${col3}">${init3}</div>`}</div>
-        <div class="lb-info">
-          <div class="lb-name">${esc(s['الاسم'])}</div>
-          <div class="lb-meta">
-            <span class="lb-class"><i class="fas fa-chalkboard" style="font-size:0.58rem;margin-left:3px;"></i>${esc(s['الفصل']||'---')}</span>
-            <span class="lb-days"><i class="fas fa-calendar-check"></i>${att3} يوم</span>
-          </div>
-          <div class="att-bar"><div class="att-bar-fill" data-width="${attPct}"></div></div>
-        </div>
-        <div class="lb-right">
-          <span class="lb-coupons count-up" data-target="${coupons}" style="color:${couponColor}">0</span>
-          <div class="lb-coupon-lbl"><i class="fas fa-coins" style="font-size:0.55rem;margin-left:2px;"></i>كوبون</div>
-        </div>
-      </div>`;
-    });
-    html+=`</div>`;
-  }
+        <div class="att-bar"><div class="att-bar-fill" data-width="${attPct}"></div></div>
+      </div>
+      <div class="lb-right">
+        <span class="lb-coupons count-up" data-target="${coupons}" style="color:${couponColor}">0</span>
+        <div class="lb-coupon-lbl"><i class="fas fa-coins" style="font-size:0.55rem;margin-left:2px;"></i>كوبون</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
 
   document.getElementById('mainContent').innerHTML=html;
 
   requestAnimationFrame(()=>{
-    spawnParticles(document.getElementById('championCard'));
-    document.querySelectorAll('.champion-stats .count-up').forEach(el=>animateCount(el,parseInt(el.dataset.target)||0,1600));
-    setTimeout(()=>document.querySelectorAll('#lbList .count-up').forEach(el=>animateCount(el,parseInt(el.dataset.target)||0,1000)),350);
+    document.querySelectorAll('#lbList .count-up').forEach(el=>animateCount(el,parseInt(el.dataset.target)||0,1000));
     const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.08});
     document.querySelectorAll('.lb-row').forEach(r=>io.observe(r));
     setTimeout(()=>document.querySelectorAll('.att-bar-fill').forEach(el=>{el.style.width=el.dataset.width+'%';}),500);
-    const card=document.getElementById('championCard');
-    if(card){const rect=card.getBoundingClientRect();setTimeout(()=>confetti(rect.left+rect.width/2,rect.top+rect.height/3,65),800);}
+    const rank1Row = document.querySelector('.lb-row.rank-1');
+    if(rank1Row){const rect=rank1Row.getBoundingClientRect();setTimeout(()=>confetti(rect.left+rect.width/2,rect.top+rect.height/3,65),800);}
   });
 }
 
@@ -719,18 +748,24 @@ async function loadLeaderboard(manual=false){
 
 // ══ FULLSCREEN ══
 function toggleFullscreen(){
-  const btn=document.getElementById('fullscreenBtn');
   if(!document.fullscreenElement){
     document.documentElement.requestFullscreen().catch(()=>{});
-    btn.querySelector('i').className='fas fa-compress';btn.classList.add('active');
   } else {
     document.exitFullscreen();
-    btn.querySelector('i').className='fas fa-expand';btn.classList.remove('active');
   }
 }
 document.addEventListener('fullscreenchange',()=>{
   const btn=document.getElementById('fullscreenBtn');
-  if(!document.fullscreenElement){btn.querySelector('i').className='fas fa-expand';btn.classList.remove('active');}
+  const isFull=!!document.fullscreenElement;
+  if(isFull){
+    btn.querySelector('i').className='fas fa-compress';
+    btn.classList.add('active');
+    document.body.classList.add('fullscreen-active');
+  } else {
+    btn.querySelector('i').className='fas fa-expand';
+    btn.classList.remove('active');
+    document.body.classList.remove('fullscreen-active');
+  }
 });
 
 // ══ SESSION UI ══

@@ -947,13 +947,14 @@ function getTripLeaderboard()
         }
         
         $stmt = $conn->prepare("
-            SELECT s.id, s.name, s.image_url as profile_photo, s.class, SUM(cl.change_amount) as total_points
+            SELECT s.id, s.name, s.image_url as profile_photo, s.class, c.church_name, SUM(cl.change_amount) as total_points
             FROM coupon_logs cl
             JOIN students s ON cl.student_id = s.id
+            LEFT JOIN churches c ON s.church_id = c.id
             WHERE (cl.reason LIKE CONCAT('trip_points_scan:', ?, '%')
                OR cl.reason LIKE CONCAT('trip_points_normal:', ?, '%'))
                $dateFilterSql
-            GROUP BY s.id, s.name, s.image_url, s.class
+            GROUP BY s.id, s.name, s.image_url, s.class, c.church_name
             HAVING total_points > 0
             ORDER BY total_points DESC
             LIMIT ?
@@ -969,6 +970,7 @@ function getTripLeaderboard()
                 'name' => $row['name'],
                 'profile_photo' => $row['profile_photo'],
                 'class' => $row['class'],
+                'church_name' => $row['church_name'],
                 'total_points' => intval($row['total_points'])
             ];
         }
