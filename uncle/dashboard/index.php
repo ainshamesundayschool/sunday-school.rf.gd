@@ -12061,52 +12061,122 @@ if ($hasUncleId && $uncleRole === 'uncle')
             grid.innerHTML = '<div class="skeleton-loader">' + Array(4).fill('<div class="skeleton-row cls"></div>').join('') + '</div>';
         }
 
+        function prefetchStudentPhotos(studentList) {
+            if (!navigator.onLine) return;
+            studentList.forEach(s => {
+                const rawUrl = s['صورة'] || '';
+                if (rawUrl) {
+                    const photoUrl = (typeof window.photoUrl === 'function') ? window.photoUrl(rawUrl) : rawUrl;
+                    if (photoUrl) {
+                        fetch(photoUrl, { priority: 'low' }).catch(() => {});
+                    }
+                }
+            });
+        }
+
         // ── DATA LOADING ──────────────────────────────────────────────
         function loadData() {
-            // If offline, go straight to cache — don't flash a skeleton over content
-            // that's already rendered from the DOMContentLoaded pre-render.
+            // Try to load and show cached local data immediately (silently)
+            const cached = localStorage.getItem('lastStudentsData');
+            let cacheLoaded = false;
+            if (cached) {
+                try {
+                    const d = JSON.parse(cached);
+                    students = d.students || d.allStudents || [];
+                    allStudentsData = d.allStudents || d.students || students;
+                    if (d.classes && d.classes.length) {
+                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                    }
+                    updateDashboardStats();
+                    loadDashboardTrips();
+                    if (!currentClass) {
+                        displayClasses();
+                    } else {
+                        renderTodayBirthdayBanner();
+                    }
+                    updateCurrentDateDisplay();
+                    if (currentClass) {
+                        loadAttendanceDataForClass(currentClass);
+                        renderAttendanceList(currentClass);
+                        updateClassStats();
+                        loadClassUncles(currentClass);
+                        loadPendingRegistrationsForClass(currentClass);
+                    }
+                    // Restore hash view
+                    if (window._pendingHashRestore) {
+                        const { type, value } = window._pendingHashRestore;
+                        window._pendingHashRestore = null;
+                        if (type === 'class') {
+                            const found = students.some(s => s['الفصل'] === value);
+                            if (found) showClassViewInternal(value);
+                            else if (value) showClassViewInternal(value);
+                        } else if (type === 'combined' && value) {
+                            showCombinedClassView(value);
+                        }
+                    }
+                    setTimeout(updateSaveBtns, 300);
+                    cacheLoaded = true;
+                } catch (e) {
+                    console.error("Cache load error:", e);
+                }
+            }
+
             if (!navigator.onLine) {
                 isDashboardDataLoading = false;
-                _loadDataFromCache();
+                if (!cacheLoaded) {
+                    _loadDataFromCache();
+                }
                 return;
             }
 
             isDashboardDataLoading = true;
-            const grid = document.getElementById('classesGrid');
-            if (grid && !currentClass && (!students || !students.length)) {
-                renderClassesSkeleton();
-            }
-            const list = document.getElementById('attendanceList');
-            if (list && currentClass && (!students || !students.length)) {
-                list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(5).fill('<div class="skeleton-row"></div>').join('') + '</div>';
+            if (!cacheLoaded) {
+                const grid = document.getElementById('classesGrid');
+                if (grid && !currentClass) {
+                    renderClassesSkeleton();
+                }
+                const list = document.getElementById('attendanceList');
+                if (list && currentClass) {
+                    list.innerHTML = '<div class="skeleton-loader" style="grid-column:1/-1">' + Array(5).fill('<div class="skeleton-row"></div>').join('') + '</div>';
+                }
             }
 
             makeApiCall({ action: 'getData' }, r => {
-                if (r.data && Array.isArray(r.data)) students = r.data;
-                else if (r.allStudents && Array.isArray(r.allStudents)) students = r.allStudents;
-                allStudentsData = students;
-                if (r.classes && Array.isArray(r.classes)) {
-                    classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                const freshString = JSON.stringify(r);
+                const dataChanged = cached !== freshString;
+
+                if (dataChanged || !cacheLoaded) {
+                    if (r.data && Array.isArray(r.data)) students = r.data;
+                    else if (r.allStudents && Array.isArray(r.allStudents)) students = r.allStudents;
+                    allStudentsData = students;
+                    if (r.classes && Array.isArray(r.classes)) {
+                        classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                    }
+                    
+                    try {
+                        localStorage.setItem('lastStudentsData', freshString);
+                    } catch (e) {}
+
+                    if (window._prunePhotoCache) {
+                        const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
+                        window._prunePhotoCache(activeUrls);
+                    }
+
+                    updateDashboardStats();
+                    loadDashboardTrips();
+                    if (!currentClass) displayClasses();
+                    else renderTodayBirthdayBanner();
+                    _maybeSendBirthdayNotification();
+                    if (currentClass) {
+                        loadAttendanceDataForClass(currentClass);
+                        renderAttendanceList(currentClass);
+                        updateClassStats();
+                        loadClassUncles(currentClass);
+                        loadPendingRegistrationsForClass(currentClass);
+                    }
+                    prefetchStudentPhotos(students);
                 }
-                saveDataToLocalStorage();
-                // Prune photo cache: drop entries for URLs no longer in student data
-                if (window._prunePhotoCache) {
-                    const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
-                    window._prunePhotoCache(activeUrls);
-                }
-                updateDashboardStats();
-                loadDashboardTrips();
-                if (!currentClass) displayClasses(); // skip if class view already open
-                else renderTodayBirthdayBanner(); // always refresh birthday banner
-                _maybeSendBirthdayNotification(); // send push if today has birthdays
-                if (currentClass) {
-                    loadAttendanceDataForClass(currentClass);
-                    renderAttendanceList(currentClass);
-                    updateClassStats();
-                    loadClassUncles(currentClass);
-                    loadPendingRegistrationsForClass(currentClass);
-                }
-                // Restore hash-requested view now that real data is available
+
                 if (window._pendingHashRestore) {
                     const { type, value } = window._pendingHashRestore;
                     window._pendingHashRestore = null;
@@ -12126,8 +12196,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 setTimeout(updateSaveBtns, 300);
                 isDashboardDataLoading = false;
             }, () => {
-                // Network failed — fall back to cached data
-                _loadDataFromCache();
+                if (!cacheLoaded) {
+                    _loadDataFromCache();
+                } else {
+                    isDashboardDataLoading = false;
+                    showToast('فشلت مزامنة البيانات مع السيرفر، تعمل حالياً من الذاكرة المحلية', 'warning');
+                }
             });
         }
 
@@ -19527,13 +19601,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!VAPID_PUBLIC_KEY) return;
             try {
                 let sub = await reg.pushManager.getSubscription();
+                let needsResubscribe = false;
+                if (sub) {
+                    if (sub.options && sub.options.applicationServerKey) {
+                        const currentKeyUint8 = _urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+                        const subKey = new Uint8Array(sub.options.applicationServerKey);
+                        let mismatch = subKey.length !== currentKeyUint8.length;
+                        if (!mismatch) {
+                            for (let i = 0; i < subKey.length; i++) {
+                                if (subKey[i] !== currentKeyUint8[i]) {
+                                    mismatch = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (mismatch) {
+                            try {
+                                await sub.unsubscribe();
+                            } catch (unsubErr) { }
+                            sub = null;
+                            needsResubscribe = true;
+                        }
+                    } else {
+                        needsResubscribe = true;
+                    }
+                }
                 if (!sub) {
                     sub = await reg.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
                     });
+                    needsResubscribe = true;
                 }
-                await _savePushSubscriptionToServer(sub);
+                const savedEndpoint = localStorage.getItem('push_sub_saved_endpoint');
+                if (needsResubscribe || !savedEndpoint || savedEndpoint !== sub.endpoint) {
+                    await _savePushSubscriptionToServer(sub);
+                    localStorage.setItem('push_sub_saved_endpoint', sub.endpoint);
+                }
             } catch (e) { }
         }
 

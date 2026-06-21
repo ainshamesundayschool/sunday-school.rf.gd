@@ -8037,8 +8037,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const reg = await navigator.serviceWorker.ready;
         let sub = await reg.pushManager.getSubscription();
+        let needsResubscribe = false;
+        if (sub) {
+          if (sub.options && sub.options.applicationServerKey) {
+            const currentKeyUint8 = _urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+            const subKey = new Uint8Array(sub.options.applicationServerKey);
+            let mismatch = subKey.length !== currentKeyUint8.length;
+            if (!mismatch) {
+              for (let i = 0; i < subKey.length; i++) {
+                if (subKey[i] !== currentKeyUint8[i]) {
+                  mismatch = true;
+                  break;
+                }
+              }
+            }
+            if (mismatch) {
+              try {
+                await sub.unsubscribe();
+              } catch (unsubErr) { }
+              sub = null;
+              needsResubscribe = true;
+            }
+          } else {
+            needsResubscribe = true;
+          }
+        }
+
+        if (Notification.permission === 'granted' && (!sub || needsResubscribe)) {
+          if (VAPID_PUBLIC_KEY) {
+            try {
+              sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+              });
+              needsResubscribe = true;
+            } catch (err) {
+              console.error("Auto push subscription on load failed:", err);
+            }
+          }
+        }
+
         checkbox.checked = !!sub;
         toggleRow.style.display = 'flex';
+
+        if (sub) {
+          const savedEndpoint = localStorage.getItem('push_sub_saved_endpoint');
+          if (needsResubscribe || !savedEndpoint || savedEndpoint !== sub.endpoint) {
+            try {
+              const res = await api({
+                action: 'savePushSubscription',
+                endpoint: sub.endpoint,
+                p256dh: sub.toJSON().keys?.p256dh || '',
+                auth: sub.toJSON().keys?.auth || '',
+                student_id: student.id
+              });
+              if (res.success) {
+                localStorage.setItem('push_sub_saved_endpoint', sub.endpoint);
+              }
+            } catch (saveErr) {
+              console.error("Failed to save auto subscription:", saveErr);
+            }
+          }
+        }
 
         // Remove old event listener and bind new one
         checkbox.onchange = async () => {
@@ -8076,10 +8136,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
               if (res.success) {
                 toast('تم تفعيل الإشعارات بنجاح ✓', 'ok');
+                localStorage.setItem('push_sub_saved_endpoint', newSub.endpoint);
               } else {
                 toast(res.message || 'فشل في حفظ الاشتراك', 'err');
                 checkbox.checked = false;
-                await newSub.unsubscribe();
+                try {
+                  await newSub.unsubscribe();
+                } catch (e) { }
               }
             } catch (err) {
               console.error("Subscription failed:", err);
@@ -8091,11 +8154,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             try {
               const currentSub = await reg.pushManager.getSubscription();
               if (currentSub) {
-                await currentSub.unsubscribe();
+                try {
+                  await currentSub.unsubscribe();
+                } catch (e) { }
                 await api({
                   action: 'deletePushSubscription',
                   endpoint: currentSub.endpoint
                 });
+                localStorage.removeItem('push_sub_saved_endpoint');
               }
               toast('تم إلغاء تفعيل الإشعارات ✓', 'ok');
             } catch (err) {
