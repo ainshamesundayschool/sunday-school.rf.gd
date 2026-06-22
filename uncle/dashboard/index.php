@@ -9625,8 +9625,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
             </div>
             <div class="topbar-actions">
-                <button class="topbar-btn" onclick="showHelpModal()" title="دليل مساعدة الخدمة">
-                    <i class="fas fa-question-circle"></i>
+                <!-- Unified Download and Notifications Button -->
+                <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()" title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
+                    <i class="fas fa-download"></i>
                 </button>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
@@ -19602,9 +19603,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── Push subscription bootstrap ──────────────────────────────
         async function _initPushSubscription(reg) {
-            if (Notification.permission === 'granted') {
+            const perm = ('Notification' in window) ? Notification.permission : 'denied';
+            if (perm === 'default') {
+                try {
+                    const newPerm = await Notification.requestPermission();
+                    if (newPerm === 'granted') {
+                        await _doSubscribe(reg);
+                        _maybeSendBirthdayNotification();
+                    }
+                } catch (e) { }
+            } else if (perm === 'granted') {
                 await _doSubscribe(reg);
-                // Check for today's birthdays and send notification if not sent yet today
                 _maybeSendBirthdayNotification();
             }
             _updateNotifBtnVisibility();
@@ -19754,6 +19763,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const offlineNotifBtn = document.getElementById('offlineNotifBtn');
             if (offlineNotifBtn) offlineNotifBtn.style.display = (pushSupported && isDefault && isStandalone) ? 'flex' : 'none';
+
+            // Dynamically update the unified topbarDownloadBtn title
+            const dlBtn = document.getElementById('topbarDownloadBtn');
+            if (dlBtn) {
+                if (!pushSupported) {
+                    dlBtn.title = "تنزيل التطبيق";
+                } else if (perm === 'granted') {
+                    navigator.serviceWorker.ready.then(async reg => {
+                        const sub = await reg.pushManager.getSubscription();
+                        if (sub) {
+                            dlBtn.title = "تنزيل التطبيق / إيقاف الإشعارات";
+                        } else {
+                            dlBtn.title = "تنزيل التطبيق / تفعيل الإشعارات";
+                        }
+                    }).catch(() => {
+                        dlBtn.title = "تنزيل التطبيق والإشعارات";
+                    });
+                } else if (perm === 'default') {
+                    dlBtn.title = "تنزيل التطبيق / تفعيل الإشعارات";
+                } else {
+                    dlBtn.title = "تنزيل التطبيق (الإشعارات محظورة)";
+                }
+            }
         }
 
         async function _savePushSubscriptionToServer(sub) {
@@ -19866,6 +19898,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function closePwaModal() {
             document.getElementById('pwaInstallModal').classList.remove('show');
+        }
+
+        async function handleTopbarDownloadClick() {
+            // 1. Download as app (PWA installation):
+            triggerPwaInstall();
+
+            // 2. Enable or disable notifications:
+            if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+                showToast('المتصفح لا يدعم الإشعارات', 'warning');
+                return;
+            }
+
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                let sub = await reg.pushManager.getSubscription();
+
+                if (Notification.permission === 'default') {
+                    // Ask permission
+                    await requestNotifPermission();
+                } else if (Notification.permission === 'granted') {
+                    if (sub) {
+                        // Unsubscribe (disable)
+                        await sub.unsubscribe();
+                        await makeApiCallRaw({
+                            action: 'deletePushSubscription',
+                            endpoint: sub.endpoint
+                        });
+                        localStorage.removeItem('push_sub_saved_endpoint');
+                        showToast('❌ تم إيقاف الإشعارات', 'info');
+                    } else {
+                        // Subscribe (enable)
+                        await _doSubscribe(reg);
+                        showToast('✅ تم تفعيل الإشعارات بنجاح!', 'success');
+                        _maybeSendBirthdayNotification();
+                    }
+                    _updateNotifBtnVisibility();
+                } else if (Notification.permission === 'denied') {
+                    showToast('الإشعارات محظورة في إعدادات المتصفح', 'warning');
+                }
+            } catch (e) {
+                console.error("Error toggling notifications:", e);
+            }
         }
 
         // Offline/online detection
@@ -20403,7 +20477,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showAccountModal, hideAccountModal, showUncleHistory, showResetModal, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             // New
-            shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV, triggerPwaInstall, doPwaInstall, closePwaModal,
+            shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV, triggerPwaInstall, doPwaInstall, closePwaModal, handleTopbarDownloadClick,
             toggleAbsentDropdown, executeAbsentAction,
             toggleCustomExportField, moveCustomExportField, renderCustomExportPreview,
             exportCustomAsCSV, exportCustomPreviewAsImage, exportCustomPreviewAsPdf,

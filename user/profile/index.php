@@ -8063,6 +8063,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           }
         }
 
+        if (Notification.permission === 'default') {
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted' && VAPID_PUBLIC_KEY) {
+              sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+              });
+              needsResubscribe = true;
+            }
+          } catch (err) {
+            console.error("Auto push subscription on load failed:", err);
+          }
+        }
+
         if (Notification.permission === 'granted' && (!sub || needsResubscribe)) {
           if (VAPID_PUBLIC_KEY) {
             try {
