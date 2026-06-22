@@ -1540,11 +1540,31 @@
                 margin-bottom: auto;
                 transform: translateY(-60px);
             }
+            .top-row-grid {
+                gap: 8px !important;
+            }
+            .top-row-grid > .card:first-child {
+                background: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                margin-bottom: 5px !important;
+            }
+            .top-row-grid > .card:last-child {
+                padding: 12px !important;
+            }
             #fastReader {
                 aspect-ratio: 1 / 1 !important;
-                width: 100% !important;
+                width: 180px !important;
+                height: 180px !important;
                 min-height: unset !important;
                 height: unset !important;
+                border-radius: 20px !important;
+                box-shadow: var(--shadow-md) !important;
+                overflow: hidden !important;
             }
             #fastReader video,
             #fastReader canvas,
