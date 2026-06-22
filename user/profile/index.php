@@ -3994,6 +3994,132 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       transform: translateX(-22px); /* RTL slide direction */
     }
 
+    /* ── PWA install modal ── */
+    #pwaInstallModal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        backdrop-filter: blur(8px);
+        z-index: 9999997;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        font-family: inherit;
+    }
+
+    #pwaInstallModal.show {
+        display: flex;
+    }
+
+    .pwa-install-sheet {
+        background: var(--surface, #fff);
+        border-radius: var(--r-2xl, 24px) var(--r-2xl, 24px) 0 0;
+        padding: 24px 20px 36px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 -8px 40px rgba(0, 0, 0, .25);
+        animation: sheetUp .35s ease-out;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .pwa-icon-big {
+        width: 84px;
+        height: 84px;
+        border-radius: 22px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        background: linear-gradient(135deg, #5b6cf5, #8b5cf6);
+        box-shadow:
+            0 0 0 6px rgba(181, 190, 248, .22),
+            0 0 0 12px rgba(181, 190, 248, .08),
+            0 8px 28px rgba(181, 190, 248, .50);
+        animation: pwaIconPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pwaIconPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 6px rgba(181, 190, 248, .25), 0 0 0 12px rgba(181, 190, 248, .10), 0 8px 28px rgba(181, 190, 248, .45);
+        }
+        50% {
+            box-shadow: 0 0 0 9px rgba(181, 190, 248, .30), 0 0 0 18px rgba(181, 190, 248, .08), 0 8px 36px rgba(181, 190, 248, .60);
+        }
+    }
+
+    .pwa-steps {
+        background: var(--surface-3, #f3f4f6);
+        border-radius: var(--r-lg, 16px);
+        padding: 14px;
+        margin: 16px 0;
+        text-align: right;
+    }
+
+    .pwa-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 6px 0;
+        font-size: .84rem;
+        color: var(--text-2, #4b5563);
+    }
+
+    .pwa-step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--brand, #5b6cf5);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .7rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .pwa-btn {
+        width: 100%;
+        height: 44px;
+        border-radius: var(--r-full, 9999px);
+        font-weight: 800;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .pwa-btn-primary {
+        background: var(--brand, #5b6cf5);
+        color: #fff;
+    }
+    
+    .pwa-btn-primary:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+    
+    .pwa-btn-ghost {
+        background: transparent;
+        color: var(--text-3, #888);
+    }
+    
+    .pwa-btn-ghost:hover {
+        background: var(--surface-3, #f3f4f6);
+    }
+
+    @keyframes sheetUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
   </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -4011,6 +4137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <i class="fas fa-church"></i><span id="churchName"></span>
       </div>
       <div class="hero-actions-top">
+        <div class="hero-ico-btn" id="topbarDownloadBtn" style="display:none" onclick="triggerPwaInstall()"
+          title="تنزيل التطبيق"><i class="fas fa-download"></i></div>
         <div class="hero-ico-btn" id="notifBtnTop" style="display:none; position:relative;" onclick="openOv('notifOv')"
           title="الإشعارات">
           <i class="fas fa-bell"></i>
@@ -4539,6 +4667,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <input type="checkbox" id="phoneNotifToggle">
             <span class="slider-toggle"></span>
           </label>
+        </div>
+        <div class="ss-item" id="settingsPwaBtn" style="display:none" onclick="closeOv('settingsOv');setTimeout(()=>triggerPwaInstall(),180)">
+          <div class="ss-item-ico" style="background:#e0f2fe;color:#0369a1;"><i class="fas fa-download"></i></div>
+          <div class="ss-item-label">تنزيل التطبيق كـ App</div>
+          <i class="fas fa-chevron-left ss-item-arr"></i>
         </div>
       </div>
       <div class="ss-divider"></div>
@@ -8202,7 +8335,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW Registration failed:', err));
       });
     }
+
+    let _pwaPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      _pwaPrompt = e;
+      const btn = document.getElementById('settingsPwaBtn');
+      if (btn) btn.style.display = 'flex';
+      const topBtn = document.getElementById('topbarDownloadBtn');
+      if (topBtn) topBtn.style.display = 'flex';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      _pwaPrompt = null;
+      const btn = document.getElementById('settingsPwaBtn');
+      if (btn) btn.style.display = 'none';
+      const topBtn = document.getElementById('topbarDownloadBtn');
+      if (topBtn) topBtn.style.display = 'none';
+      closePwaModal();
+      toast('✅ تم تثبيت التطبيق بنجاح!', 'ok');
+    });
+
+    function triggerPwaInstall() {
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      const stepsEl = document.getElementById('pwaSteps');
+      const installBtn = document.getElementById('pwaInstallNowBtn');
+
+      if (_pwaPrompt) {
+        if (stepsEl) stepsEl.innerHTML = `
+          <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط "تثبيت الآن" أدناه</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">2</div><div>وافق على طلب التثبيت</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">3</div><div>افتح التطبيق من الشاشة الرئيسية</div></div>`;
+        if (installBtn) installBtn.style.display = 'flex';
+      } else if (isIOS) {
+        if (stepsEl) stepsEl.innerHTML = `
+          <div style="font-weight:700;color:var(--brand, #5b6cf5);margin-bottom:8px;font-size:.84rem">على iPhone / iPad:</div>
+          <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط زر المشاركة <i class="fas fa-share-square" style="color:var(--brand, #5b6cf5)"></i> في أسفل المتصفح</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "إضافة إلى الشاشة الرئيسية"</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">3</div><div>اضغط "إضافة" — سيظهر أيقونة التطبيق</div></div>`;
+        if (installBtn) installBtn.style.display = 'none';
+      } else {
+        if (stepsEl) stepsEl.innerHTML = `
+          <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط قائمة المتصفح ⋮ أو ⋯</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"</div></div>
+          <div class="pwa-step"><div class="pwa-step-num">3</div><div>وافق على التثبيت</div></div>`;
+        if (installBtn) installBtn.style.display = 'none';
+      }
+      const modal = document.getElementById('pwaInstallModal');
+      if (modal) modal.classList.add('show');
+    }
+
+    async function doPwaInstall() {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      const { outcome } = await _pwaPrompt.userChoice;
+      if (outcome === 'accepted') {
+        _pwaPrompt = null;
+        closePwaModal();
+      }
+    }
+
+    function closePwaModal() {
+      const modal = document.getElementById('pwaInstallModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    function checkPwaSupport() {
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      if (isIOS) {
+        const btn = document.getElementById('settingsPwaBtn');
+        if (btn) btn.style.display = 'flex';
+        const topBtn = document.getElementById('topbarDownloadBtn');
+        if (topBtn) topBtn.style.display = 'flex';
+      }
+    }
+    
+    // Call on load
+    window.addEventListener('load', checkPwaSupport);
   </script>
+
+  <!-- PWA INSTALL MODAL -->
+  <div id="pwaInstallModal" onclick="if(event.target===this)closePwaModal()">
+      <div class="pwa-install-sheet">
+          <div class="pwa-icon-big">
+              <img src="/logo.png" alt="مدارس الأحد" style="width:84px;height:84px;object-fit:cover;display:block"
+                  onerror="this.outerHTML='<i class=\'fas fa-cross\' style=\'font-size:2rem;color:#fff\'></i>'">
+          </div>
+          <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تثبيت التطبيق</h3>
+          <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px">ثبّت Sunday School على شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت</p>
+          <div class="pwa-steps" id="pwaSteps">
+              <!-- filled by JS based on OS -->
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+              <button class="pwa-btn pwa-btn-primary" id="pwaInstallNowBtn" onclick="doPwaInstall()"><i class="fas fa-download"></i> تثبيت الآن</button>
+              <button class="pwa-btn pwa-btn-ghost" onclick="closePwaModal()">ليس الآن</button>
+          </div>
+      </div>
+  </div>
 </body>
 
 </html>
