@@ -20180,6 +20180,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         window.addEventListener('online', _updateOnlineStatus);
         window.addEventListener('offline', _updateOnlineStatus);
         document.addEventListener('DOMContentLoaded', async () => {
+            localStorage.setItem('lastVisitedPortal', 'uncle_dashboard');
             // On first load: only show the offline banner if we're already offline.
             // Do NOT run the "came back online" reconnect logic — that's for transitions only.
             const onlineNow = await _isActuallyOnline(true);

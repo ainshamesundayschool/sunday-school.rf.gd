@@ -2,7 +2,7 @@
   "name": "Sunday School",
   "short_name": "Sunday School",
   "description": "Sunday School management system",
-  "start_url": "/uncle/dashboard/",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

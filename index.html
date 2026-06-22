@@ -2,6 +2,18 @@
 <html lang="ar" dir="rtl">
 
 <head>
+    <script>
+        (function() {
+            var lastPortal = localStorage.getItem('lastVisitedPortal');
+            if (lastPortal === 'kid') {
+                window.location.replace('/user/profile/');
+            } else if (lastPortal === 'uncle_dashboard') {
+                window.location.replace('/uncle/dashboard/');
+            } else if (lastPortal === 'uncle_church') {
+                window.location.replace('/uncle/church/');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="/manifest.json">

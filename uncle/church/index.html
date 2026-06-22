@@ -10407,6 +10407,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            localStorage.setItem('lastVisitedPortal', 'uncle_church');
             const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
             if (isDev) {
                 document.querySelectorAll('.dev-only').forEach(el => {
@@ -10550,7 +10551,7 @@
                     ['loggedIn', 'uncleLoggedIn', 'loginType', 'churchCode', 'church_code',
                         'churchName', 'churchId', 'church_id', 'uncleId', 'uncle_id',
                         'uncleName', 'uncleRole', 'role', 'uncleImage', 'uncleUsername',
-                        'assignedClasses', 'lastStudentsData', 'churchSettings', 'currentClass'].forEach(k => localStorage.removeItem(k));
+                        'assignedClasses', 'lastStudentsData', 'churchSettings', 'currentClass', 'lastVisitedPortal'].forEach(k => localStorage.removeItem(k));
                     window.location.href = '/login/';
                 });
         }

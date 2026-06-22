@@ -4019,7 +4019,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       content: "";
       height: 18px;
       width: 18px;
-      left: 3px;
+      right: 3px;
       bottom: 3px;
       background-color: white;
       transition: .3s;
@@ -5196,6 +5196,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
+      if (!IS_PUBLIC) {
+        localStorage.setItem('lastVisitedPortal', 'kid');
+      }
       if (IS_PUBLIC) {
         // Hide private tabs in public mode
         ['send', 'tasks', 'family'].forEach(tab => {
@@ -7373,7 +7376,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // ── Logout ────────────────────────────────────────────────────────
     function doLogout() {
       closeOv('settingsOv');
-      ['savedUsername', 'savedPassword', 'rememberMe', 'userPhone', 'loginType'].forEach(k => localStorage.removeItem(k));
+      ['savedUsername', 'savedPassword', 'rememberMe', 'userPhone', 'loginType', 'lastVisitedPortal'].forEach(k => localStorage.removeItem(k));
       const fd = new FormData(); fd.append('action', 'logout');
       fetch(location.href, { method: 'POST', body: fd }).finally(() => location.href = '/user/login');
     }

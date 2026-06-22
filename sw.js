@@ -134,7 +134,7 @@ self.addEventListener('fetch', e => {
                     return new Response(JSON.stringify({
                         name: 'Sunday School',
                         short_name: 'Sunday School',
-                        start_url: '/uncle/dashboard/',
+                        start_url: '/',
                         display: 'standalone',
                         icons: []
                     }), {
