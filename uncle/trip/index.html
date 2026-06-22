@@ -364,10 +364,9 @@
             text-overflow: ellipsis;
         }
 
-        /* Camera Button compact styling */
         .btn-camera-big {
             padding: 10px 4px;
-            border-radius: var(--r-md);
+            border-radius: 16px;
             background: var(--success);
             color: white;
             border: none;
@@ -629,7 +628,7 @@
 
         .field-card {
             background: var(--surface);
-            border-radius: var(--r-xs);
+            border-radius: 14px;
             padding: 5px 6px;
             border: 1.5px solid var(--border-solid);
             box-shadow: var(--shadow-sm);
@@ -654,7 +653,7 @@
         .field-card-icon {
             width: 22px;
             height: 22px;
-            border-radius: var(--r-xs);
+            border-radius: 10px;
             background: var(--brand-bg);
             color: var(--brand);
             display: flex;
@@ -1190,9 +1189,9 @@
         }
 
         .point-chip {
-            padding: 6px 0;
-            border-radius: var(--r-sm);
-            font-size: 0.95rem;
+            padding: 4px 0;
+            border-radius: 12px;
+            font-size: 0.85rem;
             font-weight: 800;
             border: 2px solid var(--border-solid);
             background: var(--surface-2);
@@ -1496,14 +1495,9 @@
                 <div class="topbar-subtitle">لوحة الرحلة</div>
             </div>
         </a>
-        <div class="topbar-search-container">
-            <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث بالاسم..."
-                oninput="topbarSearchHandler()">
-            <div class="topbar-search-results" id="topbarSearchResults"></div>
-        </div>
         <div class="topbar-actions">
             <!-- Trip history button at the top -->
-            <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل المسوحات بالرحلة" style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
+            <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة" style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
                 <i class="fas fa-history"></i>
                 <span style="font-family:'Cairo',sans-serif; font-weight:700;">سجل الرحلة</span>
             </button>
@@ -1528,6 +1522,16 @@
                         <i class="fas fa-print"></i> طباعة الكروت
                     </button>
                 </div>
+            </div>
+
+            <!-- Center Search Bar in Middle of Screen -->
+            <div class="body-search-container" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
+                <div style="position: relative;">
+                    <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث عن طفل بالاسم..."
+                        oninput="topbarSearchHandler()" style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
+                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+                </div>
+                <div class="topbar-search-results" id="topbarSearchResults" style="border-radius: 16px; margin-top: 8px;"></div>
             </div>
 
             <!-- Scanner & Display Tools -->
@@ -1634,40 +1638,42 @@
                 </div>
 
                 <div id="customTags" class="custom-tags"></div>
-            </div>
 
-            <div class="control-panel" id="studentProfileControlPanelWrapper">
-                <!-- Loaded dynamically -->
+                <!-- Control panel wrapper inside the profile card -->
+                <div id="studentProfileControlPanelWrapper" style="border-top: 1.5px dashed var(--border-solid); margin-top: 12px; padding-top: 12px; width: 100%;">
+                    <!-- Loaded dynamically -->
+                </div>
             </div>
 
             <!-- Student specific history -->
-            <div class="split-scans-container"
+            <div class="split-scans-container" id="profileHistoryContainer"
                 style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
-                <div class="section-title"
-                    style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span>سجل نقاط هذا الطفل بالرحلة</span>
+                <div class="section-header" onclick="toggleProfileHistoryCollapse()"
+                    style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history" style="margin-left:6px; color: var(--brand);"></i>سجل نقاط هذا الطفل بالرحلة</span>
+                    <i id="profileHistoryChevron" class="fas fa-chevron-up" style="color: var(--text-3); transition: transform 0.3s;"></i>
                 </div>
-                <div class="split-scans-grid">
-                    <!-- Right Column: My Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>عمليات مسحي الخاصة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0
-                                طفل</span>
+                <div id="profileHistoryContent" style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
+                    <div class="split-scans-grid">
+                        <!-- Right Column: My Scans -->
+                        <div class="scans-column">
+                            <div class="scans-column-title"
+                                style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                                <span>نقاطي المضافة بالرحلة</span>
+                                <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
+                            </div>
+                            <div class="scans-list" id="myScansList"></div>
                         </div>
-                        <div class="scans-list" id="myScansList"></div>
-                    </div>
 
-                    <!-- Left Column: All Uncles' Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>جميع مسوحات الأعمام بالرحلة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0
-                                طفل</span>
+                        <!-- Left Column: All Uncles' Scans -->
+                        <div class="scans-column">
+                            <div class="scans-column-title"
+                                style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
+                                <span>جميع نقاط الأعمام بالرحلة</span>
+                                <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
+                            </div>
+                            <div class="scans-list" id="allScansList"></div>
                         </div>
-                        <div class="scans-list" id="allScansList"></div>
                     </div>
                 </div>
             </div>
@@ -1723,6 +1729,23 @@
         <div id="toast" class="toast"><i class="fas fa-info-circle"></i> <span id="toastMsg">رسالة</span></div>
         <canvas id="fireworks"></canvas>
 
+        <!-- Shortcuts Info Modal -->
+        <div id="shortcutsInfoModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
+            <div
+                style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:380px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
+                    <h3 style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-info-circle" style="color:var(--brand);"></i> دليل الإجراءات السريعة
+                    </h3>
+                    <button onclick="closeShortcutsInfoModal()" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                </div>
+                <div id="shortcutsInfoModalBody" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; text-align:right;">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
         <!-- Scanner Modal -->
         <div id="scannerModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
@@ -1760,7 +1783,7 @@
                 <div class="modal-header">
                     <h3>
                         <i class="fas fa-history" style="color: var(--brand);"></i>
-                        <span style="font-family:'Cairo',sans-serif;">سجل المسوحات بالرحلة</span>
+                        <span style="font-family:'Cairo',sans-serif;">سجل نقاط الرحلة</span>
                     </h3>
                     <button class="close-btn" onclick="closeTripHistoryModal()">×</button>
                 </div>
@@ -1768,7 +1791,7 @@
                     <!-- Refresh Button and Search Wrap -->
                     <div style="display: flex; gap: 8px; align-items: center; width: 100%; flex-shrink: 0;">
                         <div class="search-wrap" style="position: relative; flex: 1;">
-                            <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..."
+                            <input type="text" id="scanSearchInput" placeholder="البحث في عمليات النقاط بالاسم..."
                                 oninput="filterScansList()"
                                 style="width: 100%; padding: 8px 10px 8px 32px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.8rem; transition: all var(--t); outline: none;">
                             <i class="fas fa-search"
@@ -1786,7 +1809,7 @@
                         <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
                             <div class="scans-column-title"
                                 style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
-                                <span>مسوحاتي الخاصة</span>
+                                <span>نقاطي المضافة</span>
                                 <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
                             </div>
                             <div class="scans-list" id="myScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
@@ -1798,7 +1821,7 @@
                         <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
                             <div class="scans-column-title"
                                 style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
-                                <span>جميع مسوحات الأعمام</span>
+                                <span>جميع نقاط الأعمام</span>
                                 <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
                             </div>
                             <div class="scans-list" id="allScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
@@ -2398,6 +2421,7 @@
 
                 renderStudentProfileControlPanel();
                 loadRecentScans();
+                initProfileHistoryState();
             }
 
             function renderStudentProfileControlPanel() {
@@ -2440,24 +2464,23 @@
                 // 1. Shortcuts
                 if (modes.includes('shortcuts') && shortcuts.length > 0) {
                     html += `
-                        <div class="section-title" style="font-size:0.85rem; margin-bottom:8px;">إجراءات سريعة للنقاط</div>
-                        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px;">
+                            <div class="section-title" style="font-size:0.85rem; margin:0; font-weight:700; color:var(--text-2);">إجراءات سريعة للنقاط</div>
+                            <button type="button" onclick="showShortcutsInfoModal(event)" style="background: none; border: none; color: var(--brand); cursor: pointer; padding: 2px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                        <div class="shortcuts-grid" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 12px; max-width: 320px; margin-left: auto; margin-right: auto;">
                     `;
+                    const shColors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#14b8a6', '#f43f5e'];
                     shortcuts.forEach((sh, idx) => {
                         const signChar = sh.points >= 0 ? '+' : '';
-                        const btnClass = sh.points >= 0 ? 'btn-add' : 'btn-sub';
+                        const customBg = shColors[idx % shColors.length];
                         html += `
-                            <button class="btn-action ${btnClass} shortcut-btn" onclick="executeShortcutAction(${idx}, event)" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:6px 10px; text-align:right; font-size:0.82rem; height:auto; border-radius:var(--r-sm);">
-                                <span style="display:flex; align-items:center; gap:10px;">
-                                    <i class="${sh.icon || 'fas fa-star'}"></i>
-                                    <span style="display:flex; flex-direction:column; align-items:flex-start;">
-                                        <span style="font-weight:700;">${sh.name}</span>
-                                        ${sh.desc ? `<span style="font-size:0.68rem; opacity:0.85; font-weight:normal;">${sh.desc}</span>` : ''}
-                                    </span>
-                                </span>
-                                <span style="font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:var(--r-xs); font-size:0.78rem;">
-                                    ${signChar}${sh.points}
-                                </span>
+                            <button class="shortcut-square-btn" onclick="executeShortcutAction(${idx}, event)" style="width:62px; height:62px; border-radius:12px; background:${customBg}; border:none; color:white; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                                <i class="${sh.icon || 'fas fa-star'}" style="font-size:1.15rem;"></i>
+                                <span class="name" style="font-size:0.65rem; font-weight:800; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 3px;">${sh.name}</span>
+                                <span class="value" style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:6px; font-family:'Outfit',sans-serif;">${signChar}${sh.points}</span>
                             </button>
                         `;
                     });
@@ -2473,15 +2496,15 @@
                         window.activePointsInputMode = showDirect ? 'direct' : 'custom';
                     }
 
-                    html += `<div style="margin-top:10px; padding-top:10px; border-top:1.5px solid var(--border);">`;
+                    html += `<div style="max-width: 260px; margin: 10px auto 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; border-top: 1px dashed var(--border-solid); padding-top: 10px;">`;
 
                     if (showDirect && showCustom) {
                         html += `
-                            <div class="points-mode-tabs" style="display:flex; background:var(--surface-3); padding:3px; border-radius:var(--r-md); margin-bottom:12px; gap:4px; direction:rtl;">
-                                <button type="button" id="pts_tab_direct" class="scanner-source-tab" onclick="switchPointsInputMode('direct')" style="flex:1; padding:6px 4px; border-radius:var(--r-sm); border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
+                            <div class="points-mode-tabs" style="display:flex; background:var(--surface-3); padding:2px; border-radius:12px; margin-bottom:8px; gap:2px; direction:rtl; width: 100%; box-sizing: border-box;">
+                                <button type="button" id="pts_tab_direct" class="scanner-source-tab" onclick="switchPointsInputMode('direct')" style="flex:1; padding:4px; border-radius:10px; border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
                                     <i class="fas fa-list-ol"></i> قيم جاهزة
                                 </button>
-                                <button type="button" id="pts_tab_custom" class="scanner-source-tab" onclick="switchPointsInputMode('custom')" style="flex:1; padding:6px 4px; border-radius:var(--r-sm); border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
+                                <button type="button" id="pts_tab_custom" class="scanner-source-tab" onclick="switchPointsInputMode('custom')" style="flex:1; padding:4px; border-radius:10px; border:none; font-weight:700; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all 0.2s;">
                                     <i class="fas fa-keyboard"></i> كتابة يدوية
                                 </button>
                             </div>
@@ -2491,9 +2514,8 @@
                     // Direct container
                     const directDisp = (!showDirect) ? 'none' : ((showCustom && window.activePointsInputMode !== 'direct') ? 'none' : 'block');
                     html += `
-                        <div id="directPointsContainer" style="display: ${directDisp};">
-                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">اختر قيمة للنقاط:</div>
-                            <div class="points-selector" style="grid-template-columns: repeat(${Math.min(directPoints.length, 5)}, 1fr); gap: 6px; margin-bottom: 8px;">
+                        <div id="directPointsContainer" style="display: ${directDisp}; width: 100%;">
+                            <div class="points-selector" style="display: grid; grid-template-columns: repeat(${directPoints.length}, 1fr); gap: 5px; margin-bottom: 8px;">
                                 ${directPoints.map(val => `
                                     <div class="point-chip" data-val="${val}" onclick="selectPoint(${val})">${val}</div>
                                 `).join('')}
@@ -2504,19 +2526,16 @@
                     // Custom container
                     const customDisp = (!showCustom) ? 'none' : ((showDirect && window.activePointsInputMode !== 'custom') ? 'none' : 'block');
                     html += `
-                        <div id="customPointsContainer" style="display: ${customDisp};">
-                            <div class="section-title" style="font-size:0.75rem; margin-bottom:6px; font-weight:700;">إدخال قيمة نقاط مخصصة:</div>
-                            <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
-                                <input type="number" id="customPointsInputVal" class="form-input" style="flex:1; font-size:0.9rem; padding:8px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); height:38px; text-align:center;">
-                            </div>
+                        <div id="customPointsContainer" style="display: ${customDisp}; width: 100%;">
+                            <input type="number" id="customPointsInputVal" class="form-input" placeholder="نقاط مخصصة..." style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--border-solid); height: 32px; text-align: center; box-sizing: border-box; margin-bottom: 8px; outline: none; background: var(--surface); color: var(--text);">
                         </div>
                     `;
 
                     // Action row
                     html += `
-                        <div class="action-row" style="gap: 6px; margin-top:10px;">
-                            <button class="btn-action btn-add" onclick="executePointsAction('increment', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--success-dark);"><i class="fas fa-plus"></i> إضافة نقاط</button>
-                            <button class="btn-action btn-sub" onclick="executePointsAction('decrement', event)" style="padding: 8px; font-size: 0.95rem; border-radius: var(--r-sm); border-bottom: 2px solid var(--warning-dark);"><i class="fas fa-minus"></i> خصم نقاط</button>
+                        <div class="action-row" style="display: flex; gap: 8px; width: 100%;">
+                            <button class="btn-action btn-add" onclick="executePointsAction('increment', event)" style="flex: 1; padding: 6px 10px; font-size: 0.82rem; border-radius: 18px; font-weight: 800; border: none; background: var(--success); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='none'"><i class="fas fa-plus-circle"></i> إضافة</button>
+                            <button class="btn-action btn-sub" onclick="executePointsAction('decrement', event)" style="flex: 1; padding: 6px 10px; font-size: 0.82rem; border-radius: 18px; font-weight: 800; border: none; background: var(--danger); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='none'"><i class="fas fa-minus-circle"></i> خصم</button>
                         </div>
                     </div>
                     `;
@@ -2534,6 +2553,78 @@
                         currentSelectedPoint = directPoints[0];
                     }
                     updatePointChips();
+                }
+            }
+
+            function showShortcutsInfoModal(e) {
+                if (e) e.stopPropagation();
+                let pointsConfig = null;
+                if (currentTrip && currentTrip.points_config) {
+                    try {
+                        pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                    } catch (err) { }
+                }
+                const shortcuts = (pointsConfig && Array.isArray(pointsConfig.shortcuts)) ? pointsConfig.shortcuts : [];
+                const body = document.getElementById('shortcutsInfoModalBody');
+                if (!body) return;
+
+                if (shortcuts.length === 0) {
+                    body.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-3); font-size:0.85rem;">لا توجد إجراءات سريعة مضافة للرحلة.</div>';
+                } else {
+                    body.innerHTML = shortcuts.map(sh => `
+                        <div style="display:flex; align-items:center; gap:12px; padding:10px; border-radius:12px; border:1.5px solid var(--border-solid); background:var(--bg);">
+                            <div style="width:36px; height:36px; border-radius:50%; background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.0rem; flex-shrink:0;"><i class="${sh.icon || 'fas fa-star'}"></i></div>
+                            <div style="flex:1; text-align:right; overflow:hidden;">
+                                <div style="font-weight:700; color:var(--text); font-size:0.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${sh.name}</div>
+                                <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px; font-weight:normal; line-height:1.2;">${sh.desc || 'لا يوجد وصف'}</div>
+                            </div>
+                            <div style="font-weight:900; color:${sh.points >= 0 ? 'var(--success)' : 'var(--danger)'}; font-size:0.95rem; font-family:'Outfit',sans-serif; flex-shrink:0; padding-right:8px;">
+                                ${sh.points >= 0 ? '+' : ''}${sh.points}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                document.getElementById('shortcutsInfoModal').style.setProperty('display', 'flex', 'important');
+            }
+
+             function closeShortcutsInfoModal() {
+                const modal = document.getElementById('shortcutsInfoModal');
+                if (modal) modal.style.display = 'none';
+            }
+
+            function toggleProfileHistoryCollapse() {
+                const content = document.getElementById('profileHistoryContent');
+                const chevron = document.getElementById('profileHistoryChevron');
+                if (!content || !chevron) return;
+
+                const isCollapsed = content.style.display === 'none';
+                if (isCollapsed) {
+                    content.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                    localStorage.setItem('trip_profile_history_collapsed', 'false');
+                } else {
+                    content.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                    localStorage.setItem('trip_profile_history_collapsed', 'true');
+                }
+            }
+
+            function initProfileHistoryState() {
+                const content = document.getElementById('profileHistoryContent');
+                const chevron = document.getElementById('profileHistoryChevron');
+                if (!content || !chevron) return;
+
+                const isCollapsed = localStorage.getItem('trip_profile_history_collapsed') === 'true';
+                if (isCollapsed) {
+                    content.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                } else {
+                    content.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
                 }
             }
 
@@ -3642,8 +3733,8 @@
                 return maxScore;
             }
 
-            document.addEventListener('click', function (e) {
-                const container = document.querySelector('.topbar-search-container');
+             document.addEventListener('click', function (e) {
+                const container = document.querySelector('.body-search-container');
                 if (container && !container.contains(e.target)) {
                     const resultsDiv = document.getElementById('topbarSearchResults');
                     if (resultsDiv) resultsDiv.classList.remove('show');
@@ -4184,7 +4275,7 @@
                 if (!myListEl || !allListEl) return;
 
                 const filtered = scansLog.filter(item => {
-                    if (currentView === 'student_profile' && String(item.studentId) !== String(currentStudentId)) {
+                    if (!isModalOpen && currentView === 'student_profile' && String(item.studentId) !== String(currentStudentId)) {
                         return false;
                     }
                     if (!searchQuery) return true;
@@ -4201,7 +4292,7 @@
                 if (myScans.length === 0) {
                     myListEl.innerHTML = `
                     <div style="text-align:center;padding:15px;color:var(--text-3);font-size:0.75rem;">
-                        لا توجد مسوحات خاصة بك.
+                        لا توجد نقاط مضافة خاصة بك.
                     </div>
                 `;
                 } else {
@@ -4211,7 +4302,7 @@
                 if (allScans.length === 0) {
                     allListEl.innerHTML = `
                     <div style="text-align:center;padding:15px;color:var(--text-3);font-size:0.75rem;">
-                        لا توجد مسوحات للرحلة.
+                        لا توجد نقاط مضافة للرحلة.
                     </div>
                 `;
                 } else {
