@@ -11034,8 +11034,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="message">رسالة نصية</option>
                                     <option value="button">زر برابط</option>
                                 </select></div>
-                                <div class="form-group" style="margin:0"><label class="form-label">الفصل</label><select
-                                    class="form-input" id="announcementClass" multiple size="4">
+                            <div class="form-group" style="margin:0"><label class="form-label">الجمهور المستهدف</label><select
+                                    class="form-input" id="announcementTargetType">
+                                    <option value="kids">الأطفال فقط (Kids Only)</option>
+                                    <option value="uncles">الخدام فقط (Uncles Only)</option>
+                                    <option value="both">الكل - خدام وأطفال (Both)</option>
+                                </select></div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px">
+                                <div class="form-group" style="margin:0;grid-column:1/-1;"><label class="form-label">الفصل (للأطفال/الكل)</label><select
+                                    class="form-input" id="announcementClass" multiple size="4" style="height:auto;">
                                     <option value="الجميع">جميع الفصول</option>
                                     <option value="حضانة">حضانة</option>
                                     <option value="أولى">أولى</option>
@@ -11046,11 +11054,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="سادسة">سادسة</option>
                                 </select></div>
                         </div>
-                        <div class="form-group"><label class="form-label">النص</label><input type="text"
-                                class="form-input" id="announcementText" placeholder="نص الإعلان..." required></div>
+                        <div class="form-group"><label class="form-label">النص الرئيسي (أو العنوان)</label><input type="text"
+                                class="form-input" id="announcementText" placeholder="مثال: رحلة ترفيهية 🎡" required></div>
                         <div id="linkFieldContainer" style="display:none" class="form-group"><label
                                 class="form-label">الرابط</label><input type="url" class="form-input"
                                 id="announcementLink" placeholder="https://..."></div>
+                        <div class="form-group"><label class="form-label">نص زر التوجيه (اختياري)</label><input type="text"
+                                class="form-input" id="announcementButtonText" placeholder="مثال: فتح الرابط"></div>
+                        <div class="form-group"><label class="form-label">رابط الصورة (اختياري)</label><input type="url"
+                                class="form-input" id="announcementImageUrl" placeholder="https://example.com/image.png"></div>
+                        <div class="form-group"><label class="form-label">الوصف التفصيلي (اختياري)</label><textarea
+                                class="form-input" id="announcementDescription" placeholder="اكتب تفاصيل الإعلان هنا..." rows="3"></textarea></div>
                         <div class="form-group"><label class="form-label">أطفال محددين <small
                                     style="color:var(--text-3)">(اختياري)</small></label><input type="text"
                                 class="form-input" id="announcementStudents" placeholder="اتركه فارغاً للجميع" readonly>
@@ -18371,7 +18385,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let active = 0;
             body.innerHTML = anns.map(a => {
                 const isActive = a['منشط'] === true || a['منشط'] === 'TRUE' || a['منشط'] === 'true' || a['منشط'] === 1 || a['منشط'] === '1'; if (isActive) active++;
-                return `<tr><td><span class="badge ${a['النوع'] === 'button' ? 'btn-coupon' : 'btn-info'}" style="font-size:.72rem">${a['النوع'] === 'button' ? '<i class="fas fa-link"></i> زر' : '<i class="fas fa-comment"></i> رسالة'}</span></td><td style="max-width:180px;word-break:break-word;color:var(--text)">${a['النص'] || ''} ${a['الرابط'] ? `<br><a href="${a['الرابط']}" target="_blank" style="color:var(--brand);font-size:.74rem">${a['الرابط']}</a>` : ''}</td><td style="color:var(--text)">${a['الفصل'] === 'الجميع' ? 'الكل' : (a['الفصل'] || 'الكل')}</td><td style="font-size:.74rem;color:var(--text-3)">${a['أسماء الأطفال'] || 'الجميع'}</td><td><span class="badge ${isActive ? 'btn-success' : 'btn-danger'}" style="cursor:pointer;font-size:.72rem" onclick="toggleAnnouncementStatus(${a.rowIndex},${!isActive})">${isActive ? '<i class="fas fa-check"></i> منشط' : '<i class="fas fa-times"></i> معطل'}</span></td><td style="font-size:.72rem;color:var(--text-3)">${a['تاريخ الإضافة'] || ''}</td><td><button class="btn btn-danger btn-xs" onclick="deleteAnnouncement(${a.rowIndex},'${(a['النص'] || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button></td></tr>`;
+                
+                let targetBadge = '';
+                const tgt = a['الجمهور المستهدف'] || 'kids';
+                if (tgt === 'uncles') targetBadge = `<span class="badge btn-secondary" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-user-shield"></i> خدام</span>`;
+                else if (tgt === 'both') targetBadge = `<span class="badge btn-primary" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-users"></i> الكل</span>`;
+                else targetBadge = `<span class="badge btn-dev" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-child"></i> أطفال</span>`;
+                
+                let detailsHtml = '';
+                if (a['الوصف التفصيلي']) {
+                    detailsHtml += `<div style="font-size:.76rem;color:var(--text-3);margin-top:4px;white-space:pre-wrap;">${a['الوصف التفصيلي']}</div>`;
+                }
+                if (a['رابط الصورة']) {
+                    detailsHtml += `<div style="margin-top:4px;"><img src="${a['رابط الصورة']}" style="max-height:60px;border-radius:4px;border:1px solid var(--border-solid);"/></div>`;
+                }
+                if (a['نص الزر'] || a['الرابط']) {
+                    const btnTxt = a['نص الزر'] || 'فتح الرابط';
+                    detailsHtml += `<div style="margin-top:4px;"><a href="${a['الرابط'] || '#'}" target="_blank" class="btn btn-xs btn-coupon" style="display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-external-link-alt"></i> ${btnTxt}</a></div>`;
+                }
+                
+                return `<tr>
+                    <td>
+                        <span class="badge ${a['النوع'] === 'button' ? 'btn-coupon' : 'btn-info'}" style="font-size:.72rem">
+                            ${a['النوع'] === 'button' ? '<i class="fas fa-link"></i> زر' : '<i class="fas fa-comment"></i> رسالة'}
+                        </span>
+                        <br>
+                        ${targetBadge}
+                    </td>
+                    <td style="max-width:180px;word-break:break-word;color:var(--text)">
+                        <div style="font-weight:700;">${a['النص'] || ''}</div>
+                        ${detailsHtml}
+                    </td>
+                    <td style="color:var(--text)">${a['الفصل'] === 'الجميع' ? 'الكل' : (a['الفصل'] || 'الكل')}</td>
+                    <td style="font-size:.74rem;color:var(--text-3)">${a['أسماء الأطفال'] || 'الجميع'}</td>
+                    <td>
+                        <span class="badge ${isActive ? 'btn-success' : 'btn-danger'}" style="cursor:pointer;font-size:.72rem" onclick="toggleAnnouncementStatus(${a.rowIndex},${!isActive})">
+                            ${isActive ? '<i class="fas fa-check"></i> منشط' : '<i class="fas fa-times"></i> معطل'}
+                        </span>
+                    </td>
+                    <td style="font-size:.72rem;color:var(--text-3)">${a['تاريخ الإضافة'] || ''}</td>
+                    <td>
+                        <button class="btn btn-danger btn-xs" onclick="deleteAnnouncement(${a.rowIndex},'${(a['النص'] || '').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
             }).join('');
             if (cnt) cnt.textContent = active;
         }
@@ -18640,6 +18698,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const type = document.getElementById('announcementType').value;
                 const text = document.getElementById('announcementText').value.trim();
                 const link = document.getElementById('announcementLink').value.trim();
+                const button_text = document.getElementById('announcementButtonText').value.trim();
+                const image_url = document.getElementById('announcementImageUrl').value.trim();
+                const description = document.getElementById('announcementDescription').value.trim();
+                const target_type = document.getElementById('announcementTargetType').value;
+
                 const classEl = document.getElementById('announcementClass');
                 const cls = classEl ? Array.from(classEl.selectedOptions || []).map(o => o.value).filter(Boolean) : ['الجميع'];
                 let stds = document.getElementById('announcementStudents').value.trim();
@@ -18651,7 +18714,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const hasPhotoOnly = document.getElementById('announcementHasPhotoOnly')?.checked ? '1' : '0';
                 if (!text) { showToast('أدخل نص الإعلان', 'error'); return; } if (type === 'button' && !link) { showToast('أدخل رابطاً للزر', 'error'); return; }
                 showLoading('...');
-                makeApiCall({ action: 'addAnnouncement', type, text, link, classes: cls, students: stds, hasPhotoOnly }, r => { showToast(r.message, 'success'); document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); loadAnnouncements(); }, () => showToast('فشل', 'error'));
+                makeApiCall({ 
+                    action: 'addAnnouncement', 
+                    type, 
+                    text, 
+                    link, 
+                    button_text,
+                    image_url,
+                    description,
+                    target_type,
+                    classes: cls, 
+                    students: stds, 
+                    hasPhotoOnly 
+                }, r => { 
+                    showToast(r.message, 'success'); 
+                    document.getElementById('addAnnouncementForm').reset(); 
+                    document.getElementById('linkFieldContainer').style.display = 'none'; 
+                    resetAnnouncementStudentPicker(); 
+                    loadAnnouncements(); 
+                }, () => showToast('فشل', 'error'));
             });
             on('clearAnnouncementForm', 'click', () => { document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); });
             on('announcementType', 'change', () => { document.getElementById('linkFieldContainer').style.display = document.getElementById('announcementType').value === 'button' ? 'block' : 'none'; });

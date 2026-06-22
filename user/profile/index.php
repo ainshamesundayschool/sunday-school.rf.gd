@@ -6806,14 +6806,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         // 2. Render the Announcements Section Card (if present)
         const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-        const activeAnns = anns.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
+        const activeAnns = anns.filter(ann => {
+          const idKey = isNaN(ann.id) ? String(ann.id) : parseInt(ann.id);
+          return !dismissedIds.includes(idKey);
+        });
 
         if (activeAnns.length > 0) {
           if (annSub) annSub.textContent = `${activeAnns.length} إعلان${activeAnns.length > 1 ? 'ات' : ''} موجه ليك`;
           if (annBadge) annBadge.textContent = String(activeAnns.length);
 
           const latestCard = activeAnns[0];
-          const buttonCount = activeAnns.filter(a => a.type === 'button' && a.link).length;
+          const buttonCount = activeAnns.filter(a => (a.type === 'button' || a.type === 'developer') && a.link).length;
           const messageCount = activeAnns.length - buttonCount;
           const remainingAnns = activeAnns.slice(1);
 
@@ -6822,25 +6825,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             remainingHtml = `
               <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-3); margin: 15px 0 10px 0; border-bottom: 1.5px solid var(--bdr); padding-bottom: 6px;">الإعلانات السابقة</div>
               <div class="ann-list">
-                ${remainingAnns.map(a => `
+                ${remainingAnns.map(a => {
+                  const imgHtml = a.image_url ? `<div style="margin: 8px 0;"><img src="${esc(a.image_url)}" style="max-width:100%; border-radius:12px; border:1px solid var(--bdr); max-height:180px; object-fit:cover;"/></div>` : '';
+                  const descHtml = a.description ? `<div style="font-size:0.8rem; color:var(--text-2); line-height:1.5; margin-bottom:8px; white-space:pre-wrap;">${esc(a.description)}</div>` : '';
+                  const linkHtml = a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> ${esc(a.button_text || 'فتح الرابط')}</a>` : '';
+                  
+                  return `
                   <div class="ann-item">
                     <div class="ann-top">
-                      <span class="ann-type ${a.type === 'button' ? 'link' : ''}">
-                        <i class="fas fa-${a.type === 'button' ? 'link' : 'comment-dots'}"></i>
-                        ${a.type === 'button' ? 'إعلان برابط' : 'إعلان نصي'}
+                      <span class="ann-type ${a.type === 'button' ? 'link' : (a.type === 'developer' ? 'dev' : '')}">
+                        <i class="fas fa-${a.type === 'button' ? 'link' : (a.type === 'developer' ? 'code' : 'comment-dots')}"></i>
+                        ${a.type === 'button' ? 'إعلان برابط' : (a.type === 'developer' ? 'رسالة المطور' : 'إعلان نصي')}
                       </span>
                       <span class="ann-date">${fmtDate(a.created_at)}</span>
                     </div>
-                    <div class="ann-text">${esc(a.text)}</div>
+                    <div class="ann-text" style="font-weight:700;">${esc(a.text)}</div>
+                    ${imgHtml}
+                    ${descHtml}
                     <div class="ann-footer">
                       <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
-                      ${a.type === 'button' && a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> فتح الإعلان</a>` : ''}
-                      <button onclick="dismissSingleAnn(${a.id})" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
+                      ${linkHtml}
+                      <button onclick="dismissSingleAnn('${a.id}')" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
                     </div>
-                  </div>`).join('')}
+                  </div>`;
+                }).join('')}
               </div>
             `;
           }
+
+          const latestImgHtml = latestCard.image_url ? `<div style="margin:12px 0;"><img src="${esc(latestCard.image_url)}" style="max-width:100%; border-radius:16px; border:1px solid var(--bdr); max-height:240px; object-fit:cover;"/></div>` : '';
+          const latestDescHtml = latestCard.description ? `<div style="font-size:0.88rem; color:var(--t2); line-height:1.6; margin-bottom:12px; white-space:pre-wrap;">${esc(latestCard.description)}</div>` : '';
+          const latestLinkHtml = latestCard.link ? `<a href="${esc(latestCard.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> ${esc(latestCard.button_text || 'فتح الرابط')}</a>` : '';
 
           if (cardList) {
             cardList.innerHTML = `
@@ -6848,16 +6863,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <div class="ann-summary">
               <div class="ann-highlight">
                 <div class="ann-highlight-badge"><i class="fas fa-sparkles"></i> أحدث إعلان</div>
-                <div class="ann-highlight-title">${latestCard.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك'}</div>
-                <div class="ann-highlight-text">${esc(latestCard.text)}</div>
+                <div class="ann-highlight-title">${latestCard.type === 'developer' ? 'رسالة من مطور النظام 💻' : (latestCard.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك')}</div>
+                <div class="ann-highlight-text" style="font-weight:800; font-size:1.1rem; margin-bottom:8px;">${esc(latestCard.text)}</div>
+                ${latestImgHtml}
+                ${latestDescHtml}
                 <div class="ann-highlight-meta">
-                  <span class="ann-type ${latestCard.type === 'button' ? 'link' : ''}">
-                    <i class="fas fa-${latestCard.type === 'button' ? 'link' : 'comment-dots'}"></i>
-                    ${latestCard.type === 'button' ? 'رابط سريع' : 'رسالة'}
+                  <span class="ann-type ${latestCard.type === 'button' ? 'link' : (latestCard.type === 'developer' ? 'dev' : '')}">
+                    <i class="fas fa-${latestCard.type === 'button' ? 'link' : (latestCard.type === 'developer' ? 'code' : 'comment-dots')}"></i>
+                    ${latestCard.type === 'button' ? 'رابط سريع' : (latestCard.type === 'developer' ? 'رسالة المطور' : 'رسالة')}
                   </span>
                   <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latestCard.created_at)}</span>
-                  ${latestCard.type === 'button' && latestCard.link ? `<a href="${esc(latestCard.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> فتح الرابط</a>` : ''}
-                  <button onclick="dismissSingleAnn(${latestCard.id})" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
+                  ${latestLinkHtml}
+                  <button onclick="dismissSingleAnn('${latestCard.id}')" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
                 </div>
               </div>
               <div class="ann-summary-card">
@@ -6908,11 +6925,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
 
         const latest = activeAnns[0];
-        latestBannerAnnId = parseInt(latest.id);
+        latestBannerAnnId = isNaN(latest.id) ? String(latest.id) : parseInt(latest.id);
 
         let linkBtn = '';
-        if (latest.type === 'button' && latest.link) {
-          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> فتح الرابط</a>`;
+        if (latest.link) {
+          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> ${esc(latest.button_text || 'فتح الرابط')}</a>`;
         }
 
         if (bannerList) {
@@ -6934,8 +6951,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function dismissSingleAnn(annId) {
       if (!student) return;
       const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-      if (!dismissedIds.includes(parseInt(annId))) {
-        dismissedIds.push(parseInt(annId));
+      const idKey = isNaN(annId) ? String(annId) : parseInt(annId);
+      if (!dismissedIds.includes(idKey)) {
+        dismissedIds.push(idKey);
         localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
       }
       loadAnn();
@@ -6944,8 +6962,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function dismissAnnBanner() {
       if (!student) return;
       const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-      if (latestBannerAnnId && !dismissedIds.includes(latestBannerAnnId)) {
-        dismissedIds.push(latestBannerAnnId);
+      const idKey = isNaN(latestBannerAnnId) ? String(latestBannerAnnId) : parseInt(latestBannerAnnId);
+      if (latestBannerAnnId && !dismissedIds.includes(idKey)) {
+        dismissedIds.push(idKey);
         localStorage.setItem('dismissedAnns_' + student.id, JSON.stringify(dismissedIds));
       }
       loadAnn();

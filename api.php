@@ -10006,7 +10006,16 @@ function getAllAnnouncements()
 
         $conn = getDBConnection();
 
-        $stmt = $conn->prepare("\n            SELECT id, type, text as 'النص', link as 'الرابط', class as 'الفصل', student_names as 'أسماء الأطفال', is_active as 'منشط',\n            DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as 'تاريخ الإضافة'\n            FROM announcements \n            WHERE church_id = ?\n            ORDER BY created_at DESC\n        ");
+        ensureAnnouncementsTable($conn);
+
+        $stmt = $conn->prepare("
+            SELECT id, type, text as 'النص', link as 'الرابط', class as 'الفصل', student_names as 'أسماء الأطفال', is_active as 'منشط',
+            button_text as 'نص الزر', image_url as 'رابط الصورة', description as 'الوصف التفصيلي', target_type as 'الجمهور المستهدف',
+            DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as 'تاريخ الإضافة'
+            FROM announcements 
+            WHERE church_id = ?
+            ORDER BY created_at DESC
+        ");
 
         $stmt->bind_param("si", $cairoTimeZone, $churchId);
 
@@ -10049,20 +10058,17 @@ function getAllAnnouncements()
 
 
 function addAnnouncement()
-
 {
-
     try {
-
         $churchId = getChurchId();
-
         $type = sanitize($_POST['type'] ?? 'message');
-
         $text = sanitize($_POST['text'] ?? '');
-
         $link = sanitize($_POST['link'] ?? '');
-
         $students = sanitize($_POST['students'] ?? '');
+        $buttonText = sanitize($_POST['button_text'] ?? '');
+        $imageUrl = sanitize($_POST['image_url'] ?? '');
+        $description = sanitize($_POST['description'] ?? '');
+        $targetType = sanitize($_POST['target_type'] ?? 'kids');
 
         // Accept either `classes` (array/JSON/comma-list) or legacy `class` single value.
         $classesRaw = $_POST['classes'] ?? $_POST['class'] ?? 'الجميع';
@@ -10096,113 +10102,77 @@ function addAnnouncement()
         // Normalize stored class value: single 'الجميع' or comma-separated list
         $class = in_array('الجميع', $classes, true) ? 'الجميع' : implode(',', array_unique($classes));
 
-
-
         $conn = getDBConnection();
-
-
+        ensureAnnouncementsTable($conn);
 
         // Insert with current timestamp (UTC)
-
         $stmt = $conn->prepare("
-
-            INSERT INTO announcements (church_id, type, text, link, class, student_names, created_at)
-
-            VALUES (?, ?, ?, ?, ?, ?, NOW())
-
+            INSERT INTO announcements (church_id, type, text, link, class, student_names, button_text, image_url, description, target_type, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
-
-        $stmt->bind_param("isssss", $churchId, $type, $text, $link, $class, $students);
-
-
+        $stmt->bind_param("isssssssss", $churchId, $type, $text, $link, $class, $students, $buttonText, $imageUrl, $description, $targetType);
 
         if ($stmt->execute()) {
-
             $insertedId = $conn->insert_id;
 
-
-
             // Fetch the created timestamp converted to Cairo time
-
             $cairoTimeZone = '+02:00';
-
             $timeStmt = $conn->prepare("
-
                 SELECT DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', ?), '%d/%m/%Y %h:%i %p') as added_time 
-
                 FROM announcements 
-
                 WHERE id = ?
-
             ");
-
             $timeStmt->bind_param("si", $cairoTimeZone, $insertedId);
-
             $timeStmt->execute();
-
             $timeResult = $timeStmt->get_result();
-
             $timeData = $timeResult->fetch_assoc();
 
-
-
             // Get current Cairo time as fallback
-
             $cairoTime = new DateTime('now', new DateTimeZone('Africa/Cairo'));
-
             $defaultTime = $cairoTime->format('d/m/Y h:i A');
 
-
-
             $addedTime = $timeData['added_time'] ?? $defaultTime;
-
             // Replace AM/PM with Arabic
-
             $addedTime = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $addedTime);
 
-
-
             // ► AUDIT
-
             auditAnnouncementAdd($insertedId, $text);
 
-            $extra = ['notifType' => 'announcement', 'url' => '/user/'];
+            $extra = [
+                'notifType' => 'announcement',
+                'url' => '/user/',
+                'redirect_url' => $link,
+                'button_text' => $buttonText,
+                'image_url' => $imageUrl,
+                'description' => $description,
+                'target_type' => $targetType
+            ];
             if ($class !== 'الجميع') {
                 $classNamesList = array_map('trim', explode(',', $class));
                 $extra['class_names'] = $classNamesList;
             }
-            _sendWebPushToKids($conn, $churchId, 'إعلان جديد 📢', $text, $extra);
 
-
+            if ($targetType === 'kids' || $targetType === 'both') {
+                _sendWebPushToKids($conn, $churchId, 'إعلان جديد 📢', $text, $extra);
+            }
+            if ($targetType === 'uncles' || $targetType === 'both') {
+                _sendWebPushToChurch($conn, $churchId, 'إعلان جديد 📢', $text, $extra);
+            }
 
             sendJSON([
-
                 'success' => true,
-
                 'message' => 'تم إضافة الإعلان بنجاح',
-
                 'added_at' => $addedTime,
-
                 'announcement_id' => $insertedId
-
             ]);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'فشل في إضافة الإعلان: ' . $stmt->error]);
-
         }
 
-
-
     } catch (Exception $e) {
-
         error_log("addAnnouncement error: " . $e->getMessage());
-
         sendJSON(['success' => false, 'message' => 'خطأ في إضافة الإعلان: ' . $e->getMessage()]);
-
     }
-
 }
 
 function toggleAnnouncement()
@@ -12396,61 +12366,42 @@ function rejectRegistration()
 }
 
 function getAnnouncementsForStudent()
-
 {
-
     try {
-
         $churchId = intval($_POST['churchId'] ?? $_GET['churchId'] ?? 0);
-
         $studentClass = sanitize($_POST['studentClass'] ?? $_GET['studentClass'] ?? '');
-
         $studentName = sanitize($_POST['studentName'] ?? $_GET['studentName'] ?? '');
 
-
-
         if ($churchId === 0) {
-
             sendJSON(['success' => false, 'message' => 'معرف الكنيسة مطلوب']);
-
         }
 
-
-
         $conn = getDBConnection();
-
-
+        ensureAnnouncementsTable($conn);
+        ensureDevMessagesTable($conn);
 
         // Set Cairo timezone
-
         $conn->query("SET time_zone = '+02:00'");
 
-
-
+        // 1. Fetch from Announcements table
         $stmt = $conn->prepare("
-
             SELECT 
-
                 id, 
-
                 type, 
-
                 text, 
-
                 link, 
-
                 class, 
-
                 student_names,
-
-                DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+02:00'), '%d/%m/%Y %h:%i %p') as created_at
-
+                button_text,
+                image_url,
+                description,
+                target_type,
+                DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+02:00'), '%d/%m/%Y %h:%i %p') as created_at,
+                UNIX_TIMESTAMP(created_at) as ts
             FROM announcements
-
             WHERE church_id = ?
-
             AND is_active = 1
-
+            AND (target_type = 'kids' OR target_type = 'both')
             AND (
                 (
                     (student_names IS NULL OR student_names = '')
@@ -12469,78 +12420,94 @@ function getAnnouncementsForStudent()
                     )
                 )
             )
-
             ORDER BY created_at DESC
-
         ");
 
-
-
-        $stmt->bind_param("issss", $churchId, $studentClass, $studentClass, $studentName, $studentName);
-
+        $stmt->bind_param("isssss", $churchId, $studentClass, $studentClass, $studentName, $studentName);
         $stmt->execute();
-
         $result = $stmt->get_result();
 
-
-
         $announcements = [];
-
         while ($row = $result->fetch_assoc()) {
-
-            // Replace AM/PM with Arabic
-
             if (!empty($row['created_at'])) {
-
                 $row['created_at'] = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $row['created_at']);
-
             }
-
             $announcements[] = [
-
                 'id' => $row['id'],
-
                 'type' => $row['type'],
-
                 'text' => $row['text'],
-
                 'link' => $row['link'],
-
                 'class' => $row['class'],
-
                 'student_names' => $row['student_names'],
-
-                'created_at' => $row['created_at']
-
+                'button_text' => $row['button_text'],
+                'image_url' => $row['image_url'],
+                'description' => $row['description'],
+                'target_type' => $row['target_type'],
+                'created_at' => $row['created_at'],
+                'ts' => $row['ts']
             ];
-
         }
 
+        // 2. Fetch Developer messages targeting kids/both for this church (or broadcast 0)
+        $devStmt = $conn->prepare("
+            SELECT 
+                id, 
+                redirect_url as link, 
+                subject as text, 
+                body as description,
+                button_text,
+                image_url,
+                target_type,
+                DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+02:00'), '%d/%m/%Y %h:%i %p') as created_at,
+                UNIX_TIMESTAMP(created_at) as ts
+            FROM developer_messages
+            WHERE is_deleted = 0
+            AND (to_church_id = ? OR to_church_id = 0)
+            AND (target_type = 'kids' OR target_type = 'both')
+            ORDER BY created_at DESC
+            LIMIT 50
+        ");
+        $devStmt->bind_param("i", $churchId);
+        $devStmt->execute();
+        $devResult = $devStmt->get_result();
 
+        while ($row = $devResult->fetch_assoc()) {
+            if (!empty($row['created_at'])) {
+                $row['created_at'] = str_replace(['AM', 'PM'], ['صباحاً', 'مساءً'], $row['created_at']);
+            }
+            // Map developer message to look like a special announcement of type 'developer'
+            $announcements[] = [
+                'id' => 'dev_' . $row['id'],
+                'type' => 'developer',
+                'text' => $row['text'], // Subject is title
+                'link' => $row['link'], // redirect_url is link
+                'class' => 'الجميع',
+                'student_names' => '',
+                'button_text' => $row['button_text'],
+                'image_url' => $row['image_url'],
+                'description' => $row['description'], // Detailed body is description
+                'target_type' => $row['target_type'],
+                'created_at' => $row['created_at'],
+                'ts' => $row['ts']
+            ];
+        }
+
+        // 3. Sort by timestamp descending
+        usort($announcements, function($a, $b) {
+            return $b['ts'] <=> $a['ts'];
+        });
 
         sendJSON([
-
             'success' => true,
-
             'announcements' => $announcements,
-
             'count' => count($announcements)
-
         ]);
 
-
-
     } catch (Exception $e) {
-
         error_log("getAnnouncementsForStudent error: " . $e->getMessage());
-
         sendJSON(['success' => false, 'message' => 'خطأ في جلب الإعلانات']);
-
     }
-
 }
-
-
 
 function getPublicStats()
 
@@ -41383,6 +41350,16 @@ function ensureDevMessagesTable($conn)
 
             `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+            `redirect_url`   VARCHAR(500) NULL,
+
+            `button_text`    VARCHAR(100) NULL,
+
+            `image_url`      VARCHAR(500) NULL,
+
+            `description`    TEXT NULL,
+
+            `target_type`    VARCHAR(50) DEFAULT 'uncles',
+
             INDEX idx_target (`to_church_id`, `is_deleted`),
 
             INDEX idx_read (`is_deleted`, `is_read`)
@@ -41404,6 +41381,106 @@ function ensureDevMessagesTable($conn)
         $conn->query("ALTER TABLE developer_messages DROP COLUMN from_church_id");
 
         $conn->query("ALTER TABLE developer_messages DROP COLUMN from_name");
+
+    }
+
+    if (!in_array('redirect_url', $colNames)) {
+
+        $conn->query("ALTER TABLE developer_messages ADD COLUMN redirect_url VARCHAR(500) NULL");
+
+    }
+
+    if (!in_array('button_text', $colNames)) {
+
+        $conn->query("ALTER TABLE developer_messages ADD COLUMN button_text VARCHAR(100) NULL");
+
+    }
+
+    if (!in_array('image_url', $colNames)) {
+
+        $conn->query("ALTER TABLE developer_messages ADD COLUMN image_url VARCHAR(500) NULL");
+
+    }
+
+    if (!in_array('description', $colNames)) {
+
+        $conn->query("ALTER TABLE developer_messages ADD COLUMN description TEXT NULL");
+
+    }
+
+    if (!in_array('target_type', $colNames)) {
+
+        $conn->query("ALTER TABLE developer_messages ADD COLUMN target_type VARCHAR(50) DEFAULT 'uncles'");
+
+    }
+
+}
+
+
+
+function ensureAnnouncementsTable($conn)
+
+{
+
+    $conn->query("
+
+        CREATE TABLE IF NOT EXISTS `announcements` (
+
+            `id`             INT AUTO_INCREMENT PRIMARY KEY,
+
+            `church_id`      INT NOT NULL,
+
+            `type`           VARCHAR(50) NOT NULL DEFAULT 'message',
+
+            `text`           TEXT NOT NULL,
+
+            `link`           VARCHAR(500) NULL,
+
+            `class`          VARCHAR(200) DEFAULT 'الجميع',
+
+            `student_names`  TEXT NULL,
+
+            `is_active`      TINYINT(1) NOT NULL DEFAULT 1,
+
+            `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            `button_text`    VARCHAR(100) NULL,
+
+            `image_url`      VARCHAR(500) NULL,
+
+            `description`    TEXT NULL,
+
+            `target_type`    VARCHAR(50) DEFAULT 'kids'
+
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+    ");
+
+    $cols = $conn->query("SHOW COLUMNS FROM announcements")->fetch_all(MYSQLI_ASSOC);
+
+    $colNames = array_column($cols, 'Field');
+
+    if (!in_array('button_text', $colNames)) {
+
+        $conn->query("ALTER TABLE announcements ADD COLUMN button_text VARCHAR(100) NULL");
+
+    }
+
+    if (!in_array('image_url', $colNames)) {
+
+        $conn->query("ALTER TABLE announcements ADD COLUMN image_url VARCHAR(500) NULL");
+
+    }
+
+    if (!in_array('description', $colNames)) {
+
+        $conn->query("ALTER TABLE announcements ADD COLUMN description TEXT NULL");
+
+    }
+
+    if (!in_array('target_type', $colNames)) {
+
+        $conn->query("ALTER TABLE announcements ADD COLUMN target_type VARCHAR(50) DEFAULT 'kids'");
 
     }
 
@@ -41437,6 +41514,16 @@ function sendDeveloperMessage()
 
         $body = sanitize($_POST['body'] ?? '');
 
+        $redirectUrl = sanitize($_POST['redirect_url'] ?? '');
+
+        $buttonText = sanitize($_POST['button_text'] ?? '');
+
+        $imageUrl = sanitize($_POST['image_url'] ?? '');
+
+        $description = sanitize($_POST['description'] ?? '');
+
+        $targetType = sanitize($_POST['target_type'] ?? 'uncles');
+
 
 
         if (!$subject || !$body) {
@@ -41451,9 +41538,9 @@ function sendDeveloperMessage()
 
         ensureDevMessagesTable($conn);
 
-        $stmt = $conn->prepare("INSERT INTO developer_messages (to_church_id, subject, body) VALUES (?,?,?)");
+        $stmt = $conn->prepare("INSERT INTO developer_messages (to_church_id, subject, body, redirect_url, button_text, image_url, description, target_type) VALUES (?,?,?,?,?,?,?,?)");
 
-        $stmt->bind_param('iss', $toChurchId, $subject, $body);
+        $stmt->bind_param('isssssss', $toChurchId, $subject, $body, $redirectUrl, $buttonText, $imageUrl, $description, $targetType);
 
         $stmt->execute();
 
@@ -41461,27 +41548,41 @@ function sendDeveloperMessage()
 
 
 
-        // Push a notification to the targeted church(es)
+        // Build notification payload
+
+        $pushPayload = [
+
+            'notifType' => 'developer_message',
+
+            'redirect_url' => $redirectUrl,
+
+            'button_text' => $buttonText,
+
+            'image_url' => $imageUrl,
+
+            'description' => $description,
+
+            'target_type' => $targetType
+
+        ];
+
+
+
+        // Send to targeted church(es)
+
+        $targetChurches = [];
 
         if ($toChurchId > 0) {
 
-            pushNotification($conn, $toChurchId, 'developer_message', $subject, $body, 'developer_message', $msgId);
-
-            // Also send web push to subscribed devices of that church
-
-            _sendWebPushToChurch($conn, $toChurchId, $subject, $body, ['notifType' => 'developer_message']);
+            $targetChurches[] = $toChurchId;
 
         } else {
 
-            // Broadcast — push to ALL churches
+            $chRows = $conn->query("SELECT id FROM churches WHERE 1 LIMIT 200")->fetch_all(MYSQLI_ASSOC);
 
-            $churches = $conn->query("SELECT id FROM churches WHERE 1 LIMIT 200")->fetch_all(MYSQLI_ASSOC);
+            foreach ($chRows as $ch) {
 
-            foreach ($churches as $ch) {
-
-                pushNotification($conn, (int) $ch['id'], 'developer_message', $subject, $body, 'developer_message', $msgId);
-
-                _sendWebPushToChurch($conn, (int) $ch['id'], $subject, $body, ['notifType' => 'developer_message']);
+                $targetChurches[] = (int)$ch['id'];
 
             }
 
@@ -41489,7 +41590,31 @@ function sendDeveloperMessage()
 
 
 
-        sendJSON(['success' => true, 'message' => 'تم الإرسال للكنيسة/الكنائس بنجاح']);
+        foreach ($targetChurches as $chId) {
+
+            // Uncles
+
+            if ($targetType === 'uncles' || $targetType === 'both') {
+
+                pushNotification($conn, $chId, 'developer_message', $subject, $body, 'developer_message', $msgId);
+
+                _sendWebPushToChurch($conn, $chId, $subject, $body, $pushPayload);
+
+            }
+
+            // Kids
+
+            if ($targetType === 'kids' || $targetType === 'both') {
+
+                _sendWebPushToKids($conn, $chId, $subject, $body, $pushPayload);
+
+            }
+
+        }
+
+
+
+        sendJSON(['success' => true, 'message' => 'تم الإرسال بنجاح']);
 
     } catch (Exception $e) {
 

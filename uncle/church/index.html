@@ -7849,12 +7849,36 @@
                                     </select>
                                 </div>
                                 <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">الجمهور المستهدف *</label>
+                                    <select id="devBroadcastTargetType" class="form-select" style="width:100%;">
+                                        <option value="uncles">الخدام فقط (Uncles Only)</option>
+                                        <option value="kids">الأطفال فقط (Kids Only)</option>
+                                        <option value="both">الكل - خدام وأطفال (Both)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
                                     <label class="form-label">عنوان الرسالة *</label>
                                     <input type="text" id="devBroadcastTitle" class="form-input" required placeholder="مثال: تحديث جديد للنظام 🚀" value="تحديث جديد للنظام 🚀">
                                 </div>
                                 <div class="form-group" style="grid-column:1/-1;">
                                     <label class="form-label">محتوى الرسالة *</label>
-                                    <textarea id="devBroadcastBody" class="form-input" required rows="4" placeholder="اكتب محتوى الرسالة هنا..." style="resize:vertical;"></textarea>
+                                    <textarea id="devBroadcastBody" class="form-input" required rows="2" placeholder="اكتب محتوى الرسالة هنا..." style="resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">رابط الصورة (اختياري)</label>
+                                    <input type="url" id="devBroadcastImageUrl" class="form-input" placeholder="https://example.com/image.png">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">رابط التوجيه / الزر (اختياري)</label>
+                                    <input type="url" id="devBroadcastRedirectUrl" class="form-input" placeholder="https://example.com/page">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">نص زر التوجيه (اختياري)</label>
+                                    <input type="text" id="devBroadcastButtonText" class="form-input" placeholder="مثال: فتح الرابط">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <label class="form-label">الوصف التفصيلي (اختياري)</label>
+                                    <textarea id="devBroadcastDescription" class="form-input" rows="3" placeholder="اكتب الوصف التفصيلي أو محتوى إضافي هنا..." style="resize:vertical;"></textarea>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-dev" style="margin-top:16px;"><i class="fas fa-paper-plane"></i> إرسال البث</button>
@@ -15697,18 +15721,32 @@
             const toChurchId = targetVal === 'all' ? 0 : parseInt(targetVal);
             const subject = document.getElementById('devBroadcastTitle').value;
             const body = document.getElementById('devBroadcastBody').value;
+            const targetType = document.getElementById('devBroadcastTargetType').value;
+            const imageUrl = document.getElementById('devBroadcastImageUrl').value.trim();
+            const redirectUrl = document.getElementById('devBroadcastRedirectUrl').value.trim();
+            const buttonText = document.getElementById('devBroadcastButtonText').value.trim();
+            const description = document.getElementById('devBroadcastDescription').value.trim();
 
             const fd = new FormData();
             fd.append('action', 'sendDeveloperMessage');
             fd.append('to_church_id', toChurchId);
             fd.append('subject', subject);
             fd.append('body', body);
+            fd.append('target_type', targetType);
+            fd.append('image_url', imageUrl);
+            fd.append('redirect_url', redirectUrl);
+            fd.append('button_text', buttonText);
+            fd.append('description', description);
 
             try {
                 const r = await fetch(API_URL, { method: 'POST', body: fd }).then(res => res.json());
                 if (r.success) {
                     showToast('تم إرسال رسالة المطور بنجاح', 'success');
                     document.getElementById('devBroadcastBody').value = '';
+                    document.getElementById('devBroadcastImageUrl').value = '';
+                    document.getElementById('devBroadcastRedirectUrl').value = '';
+                    document.getElementById('devBroadcastButtonText').value = '';
+                    document.getElementById('devBroadcastDescription').value = '';
                 } else {
                     showToast(r.message || 'فشل في إرسال الرسالة', 'error');
                 }
