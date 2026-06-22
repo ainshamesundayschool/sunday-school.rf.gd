@@ -23,7 +23,19 @@
         body {
             visibility: hidden
         }
-    </style>
+    
+        /* Hide scrollbar for shortcuts slider */
+        .shortcuts-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .shortcuts-slider {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .btn-camera-big:active {
+            transform: scale(0.97);
+        }
+</style>
     <script>
         (function () {
             var show = function () {
@@ -1530,40 +1542,7 @@
                 </div>
             </div>
 
-            <!-- Scanner & Display Tools at the top -->
-            <div class="scanner-tools-container"
-                style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; width: 100%;">
-                <!-- Scanner Hero Buttons centered with a max-width for better look -->
-                <div class="scanner-hero-row"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 360px;">
-                    <!-- Standard Scanner (Points - Profile Icon) -->
-                    <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
-                        style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; background: var(--success); text-decoration: none; min-width: 0; width: 100%;">
-                        <span class="fa-stack"
-                            style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-expand fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                            <i class="fas fa-user fa-stack-1x" style="font-size: 0.85rem; color: white;"></i>
-                        </span>
-                        <span class="btn-camera-text"
-                            style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">بروفايل
-                            الطفل</span>
-                    </button>
 
-                    <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
-                    <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')"
-                        title="الماسح السريع للنقاط"
-                        style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-decoration: none; min-width: 0; width: 100%;">
-                        <span class="fa-stack"
-                            style="font-size: 1.0rem; width: 2em; height: 2em; line-height: 2em; display: inline-flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-expand fa-stack-2x" style="font-size: 1.6rem; color: white;"></i>
-                            <i class="fas fa-qrcode fa-stack-1x" style="font-size: 0.9rem; color: white;"></i>
-                        </span>
-                        <span class="btn-camera-text"
-                            style="margin-top: 2px; color: white; font-size: 0.78rem; font-weight: 800; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">الماسح
-                            السريع</span>
-                    </button>
-                </div>
-            </div>
 
             <div id="loadingDetails" class="loading">
                 <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
@@ -1575,6 +1554,7 @@
             </div>
             <div class="fields-grid" id="fieldsGrid"></div>
 
+
             <!-- Center Search Bar under Filters -->
             <div class="main-search-wrap" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
                 <div style="position: relative;">
@@ -1583,6 +1563,30 @@
                     <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
                 </div>
                 <div class="topbar-search-results" id="topbarSearchResultsMain" style="border-radius: 16px; margin-top: 8px;"></div>
+            </div>
+
+            <!-- Scanner Buttons Under Search (Smaller, Fit Content, Centered) -->
+            <div class="scanner-tools-container"
+                style="display: flex; justify-content: center; align-items: center; gap: 8px; margin: 10px auto 20px auto; width: 100%;">
+                <div class="scanner-hero-row"
+                    style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                    <!-- Standard Scanner (Points - Profile Icon) -->
+                    <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
+                        style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; background: var(--success); text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
+                        <i class="fas fa-user" style="font-size: 0.85rem; color: white;"></i>
+                        <span class="btn-camera-text"
+                            style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">بروفايل الطفل</span>
+                    </button>
+
+                    <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
+                    <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')"
+                        title="الماسح السريع للنقاط"
+                        style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
+                        <i class="fas fa-qrcode" style="font-size: 0.85rem; color: white;"></i>
+                        <span class="btn-camera-text"
+                            style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">الماسح السريع</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Small Icons Underneath Search Bar -->
@@ -1599,11 +1603,7 @@
                 </button>
             </div>
 
-            <!-- Print cards footer text link -->
-            <div id="adminActions" style="display:none; justify-content:center; align-items:center; margin-top:30px; padding:15px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center; gap:6px;">
-                <i class="fas fa-print" style="color:var(--brand); font-size:0.95rem;"></i>
-                <span>يمكنك طباعة كروت الـ QR للأطفال الخاصة بهذه الرحلة <a href="#" onclick="event.preventDefault(); printQRCards();" style="color:var(--brand); text-decoration:underline; font-weight:800;">من هنا</a>.</span>
-            </div>
+
 
         </div>
 
@@ -1747,6 +1747,11 @@
                 </div>
             </div>
 
+            <!-- Print cards footer text link (at the absolute end of the page wrapper) -->
+            <div id="adminActions" style="display:none; justify-content:center; align-items:center; margin-top:40px; padding:20px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center; gap:6px;">
+                <i class="fas fa-print" style="color:var(--brand); font-size:0.95rem;"></i>
+                <span>يمكنك طباعة كروت الـ QR للأطفال الخاصة بهذه الرحلة <a href="#" onclick="event.preventDefault(); printQRCards();" style="color:var(--brand); text-decoration:underline; font-weight:800;">من هنا</a>.</span>
+            </div>
         </div>
 
         <div id="printArea"></div>
@@ -2446,6 +2451,10 @@
                 }
 
                 renderStudentProfileControlPanel();
+                const slider = document.getElementById('shortcutsSlider');
+                if (slider) {
+                    initDragScroll(slider);
+                }
                 loadRecentScans();
                 initProfileHistoryState();
             }
@@ -2489,28 +2498,59 @@
 
                 // 1. Shortcuts
                 if (modes.includes('shortcuts') && shortcuts.length > 0) {
+                    const storedLayout = localStorage.getItem('trip_shortcuts_view_mode') || 'slider';
+                    const iconClass = storedLayout === 'slider' ? 'fa-th-large' : 'fa-arrows-alt-h';
+                    const titleText = storedLayout === 'slider' ? 'عرض شبكي' : 'عرض شريطي';
+
                     html += `
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
                             <div class="section-title" style="font-size:0.85rem; margin:0; font-weight:700; color:var(--text-2);">إجراءات سريعة للنقاط</div>
-                            <button type="button" onclick="showShortcutsInfoModal(event)" style="background: none; border: none; color: var(--brand); cursor: pointer; padding: 2px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+                            <button type="button" onclick="showShortcutsInfoModal(event)" style="background: none; border: none; color: var(--brand); cursor: pointer; padding: 2px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;" title="دليل الإجراءات">
                                 <i class="fas fa-info-circle"></i>
                             </button>
+                            <button type="button" id="toggleShortcutsLayoutBtn" onclick="toggleShortcutsLayout(event)" style="background: none; border: none; color: var(--brand); cursor: pointer; padding: 2px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; margin-right: 4px;" title="${titleText}">
+                                <i class="fas ${iconClass}"></i>
+                            </button>
                         </div>
-                        <div class="shortcuts-grid" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 12px; max-width: 320px; margin-left: auto; margin-right: auto;">
                     `;
+
+                    if (storedLayout === 'slider') {
+                        html += `
+                            <div class="shortcuts-slider-wrapper" style="position: relative; width: 100%; max-width: 100%; margin: 8px 0; overflow: hidden;">
+                                <div id="shortcutsSlider" class="shortcuts-slider" style="display: flex; flex-direction: row; gap: 8px; overflow-x: auto; scroll-behavior: smooth; padding: 6px 10px; width: 100%; box-sizing: border-box; -webkit-overflow-scrolling: touch; cursor: grab; -ms-overflow-style: none; scrollbar-width: none;">
+                        `;
+                    } else {
+                        html += `
+                            <div class="shortcuts-grid" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 12px; max-width: 100%; width:100%; margin-left: auto; margin-right: auto; padding: 4px 10px; box-sizing: border-box;">
+                        `;
+                    }
+
                     const shColors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#14b8a6', '#f43f5e'];
                     shortcuts.forEach((sh, idx) => {
                         const signChar = sh.points >= 0 ? '+' : '';
                         const customBg = shColors[idx % shColors.length];
+                        
+                        // Vertical rectangle styling with horizontal alignment of contents:
+                        // Row layout: [Icon] [Name] [Points]
                         html += `
-                            <button class="shortcut-square-btn" onclick="executeShortcutAction(${idx}, event)" style="width:auto; min-width:62px; height:auto; min-height:64px; padding:8px 12px; border-radius:12px; background:${customBg}; border:none; color:white !important; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-                                <i class="${sh.icon || 'fas fa-star'}" style="font-size:1.1rem; color:white !important;"></i>
-                                <span class="name" style="font-size:0.65rem; font-weight:800; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 3px; line-height:1.4; display:inline-block; color:white !important;">${sh.name}</span>
-                                <span class="value" style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:6px; font-family:'Outfit',sans-serif; color:white !important; line-height:1.2;">${signChar}${sh.points}</span>
+                            <button class="shortcut-square-btn" onclick="executeShortcutAction(${idx}, event)" style="flex-shrink:0; padding:8px 12px; border-radius:12px; background:${customBg}; border:none; color:white !important; cursor:pointer; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:8px; height:42px; min-width:110px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm); outline:none;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                                <div style="display:flex; align-items:center; gap:6px; color:white !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">
+                                    <i class="${sh.icon || 'fas fa-star'}" style="font-size:0.95rem; color:white !important; flex-shrink:0;"></i>
+                                    <span class="name" style="font-size:0.75rem; font-weight:800; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:white !important;">${sh.name}</span>
+                                </div>
+                                <span class="value" style="font-size:0.75rem; font-weight:900; background:rgba(255,255,255,0.25); padding:2px 6px; border-radius:6px; font-family:'Outfit',sans-serif; color:white !important; line-height:1.2; flex-shrink:0;">${signChar}${sh.points}</span>
                             </button>
                         `;
                     });
-                    html += `</div>`;
+
+                    if (storedLayout === 'slider') {
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `</div>`;
+                    }
                 }
 
                 // 2. Direct points selector / Custom point entry unified layout
@@ -2616,6 +2656,50 @@
              function closeShortcutsInfoModal() {
                 const modal = document.getElementById('shortcutsInfoModal');
                 if (modal) modal.style.display = 'none';
+            }
+
+            function initDragScroll(slider) {
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+
+                slider.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    slider.style.cursor = 'grabbing';
+                    startX = e.pageX - slider.offsetLeft;
+                    scrollLeft = slider.scrollLeft;
+                });
+                slider.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    slider.style.cursor = 'grab';
+                });
+                slider.addEventListener('mouseup', () => {
+                    isDown = false;
+                    slider.style.cursor = 'grab';
+                });
+                slider.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - slider.offsetLeft;
+                    const walk = (x - startX) * 1.5;
+                    slider.scrollLeft = scrollLeft - walk;
+                });
+            }
+
+            function toggleShortcutsLayout(e) {
+                if (e) e.stopPropagation();
+                const current = localStorage.getItem('trip_shortcuts_view_mode') || 'slider';
+                const next = current === 'slider' ? 'grid' : 'slider';
+                localStorage.setItem('trip_shortcuts_view_mode', next);
+                renderStudentProfileControlPanel();
+                
+                // Initialize drag-scroll if switched back to slider
+                if (next === 'slider') {
+                    setTimeout(() => {
+                        const slider = document.getElementById('shortcutsSlider');
+                        if (slider) initDragScroll(slider);
+                    }, 50);
+                }
             }
 
             function toggleProfileHistoryCollapse() {
