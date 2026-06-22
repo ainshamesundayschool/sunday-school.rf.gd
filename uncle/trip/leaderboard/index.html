@@ -45,7 +45,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#5b6cf5">
-    <title>لوحة صدارة نقاط الرحلة</title>
+    <title>لوحة أوائل نقاط الرحلة</title>
     <link rel="apple-touch-icon" href="/logo.png">
     <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
@@ -652,16 +652,18 @@
 <body>
     <!-- Top Navigation Bar -->
     <div class="topbar">
-        <div class="hero-greeting">
-            <i class="fas fa-trophy" style="color: var(--warning);"></i>
-            <span>لوحة صدارة النقاط</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="topbar-btn" id="btnBack" style="margin: 0; padding: 6px 12px; font-size: 0.82rem; height: 36px; border-radius: var(--r-md); display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-arrow-right"></i> عودة
+            </button>
+            <div class="hero-greeting" style="font-size: 1.1rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-trophy" style="color: var(--warning);"></i>
+                <span>لوحة أوائل النقاط</span>
+            </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <button class="topbar-btn" id="btnFullscreen" title="ملء الشاشة">
+            <button class="topbar-btn" id="btnFullscreen" title="ملء الشاشة" style="height: 36px; padding: 6px 12px; font-size: 0.82rem;">
                 <i class="fas fa-expand"></i> ملء الشاشة
-            </button>
-            <button class="topbar-btn" id="btnBack">
-                <i class="fas fa-arrow-left"></i> عودة
             </button>
         </div>
     </div>
@@ -694,7 +696,7 @@
             <!-- Shimmer / Spinner -->
             <div class="loading-view" id="loadingView">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 2.2rem; color: var(--brand); margin-bottom: 10px;"></i>
-                <div>جاري تحميل لوحة الصدارة...</div>
+                <div>جاري تحميل لوحة الأوائل...</div>
             </div>
 
             <!-- Podiums (will render here) -->
@@ -857,7 +859,7 @@
             listSection.innerHTML = `
                 <div class="no-data-view">
                     <i class="fas fa-trophy no-data-icon"></i>
-                    <div style="font-weight: 800; font-size: 1rem; color: var(--text-2); margin-bottom: 6px;">لا توجد صدارة بعد</div>
+                    <div style="font-weight: 800; font-size: 1rem; color: var(--text-2); margin-bottom: 6px;">لا توجد أوائل بعد</div>
                     <div style="font-size: 0.85rem; color: var(--text-3);">${message}</div>
                 </div>
             `;

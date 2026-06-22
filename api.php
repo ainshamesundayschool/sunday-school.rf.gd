@@ -45036,8 +45036,8 @@ function _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $s
                 }
             }
             
-            $title = "🏆 تحديث صدارة الرحلة!";
-            $body = "البطل {$studentName} صعد للمركز الـ {$newRank} في لوحة صدارة رحلة {$tripTitle}! 🎉";
+            $title = "🏆 تحديث لوحة الأوائل!";
+            $body = "{$studentName} صعد للمركز الـ {$newRank} في لوحة أوائل رحلة {$tripTitle}! 🎉";
             $extra = [
                 'notifType' => 'leaderboard_upgrade',
                 'trip_id' => $tripId,

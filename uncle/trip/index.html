@@ -1594,7 +1594,7 @@
                 </button>
 
                 <!-- Leaderboard Circular Icon -->
-                <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الصدارة">
+                <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الأوائل">
                     <i class="fas fa-trophy"></i>
                 </button>
             </div>
@@ -1676,25 +1676,27 @@
                     <i id="profileHistoryChevron" class="fas fa-chevron-up" style="color: var(--text-3); transition: transform 0.3s;"></i>
                 </div>
                 <div id="profileHistoryContent" style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
-                    <div class="split-scans-grid">
-                        <!-- Right Column: My Scans -->
-                        <div class="scans-column">
-                            <div class="scans-column-title"
-                                style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                                <span>نقاطي المضافة بالرحلة</span>
-                                <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
-                            </div>
-                            <div class="scans-list" id="myScansList"></div>
+                    <!-- Tab Buttons for Profile History -->
+                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
+                        <button type="button" class="history-tab-btn active" onclick="switchProfileHistoryTab('all')" id="profHistTabAll" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                            <span>جميع نقاط الأعمام</span>
+                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                        <button type="button" class="history-tab-btn" onclick="switchProfileHistoryTab('my')" id="profHistTabMy" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                            <span>نقاطي المضافة</span>
+                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                    </div>
+
+                    <div class="history-columns-wrapper" style="width: 100%;">
+                        <!-- All Uncles' Scans (Default First Tab) -->
+                        <div class="scans-column" id="profHistColAll" style="display: block;">
+                            <div class="scans-list" id="allScansList"></div>
                         </div>
 
-                        <!-- Left Column: All Uncles' Scans -->
-                        <div class="scans-column">
-                            <div class="scans-column-title"
-                                style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                                <span>جميع نقاط الأعمام بالرحلة</span>
-                                <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
-                            </div>
-                            <div class="scans-list" id="allScansList"></div>
+                        <!-- My Scans -->
+                        <div class="scans-column" id="profHistColMy" style="display: none;">
+                            <div class="scans-list" id="myScansList"></div>
                         </div>
                     </div>
                 </div>
@@ -1825,29 +1827,30 @@
                         </button>
                     </div>
 
-                    <!-- Split Scans Grid inside Modal -->
-                    <div class="split-scans-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; overflow: hidden; flex: 1; min-height: 0;">
-                        <!-- Right Column: My Scans -->
-                        <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
-                            <div class="scans-column-title"
-                                style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
-                                <span>نقاطي المضافة</span>
-                                <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
-                            </div>
-                            <div class="scans-list" id="myScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
-                                <!-- My scanned items will appear here -->
+                    <!-- Tab Buttons for Modal History -->
+                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); gap: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0;">
+                        <button type="button" class="history-tab-btn active" onclick="switchModalHistoryTab('all')" id="modalHistTabAll" style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                            <span>جميع نقاط الأعمام</span>
+                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                        <button type="button" class="history-tab-btn" onclick="switchModalHistoryTab('my')" id="modalHistTabMy" style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                            <span>نقاطي المضافة</span>
+                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                    </div>
+
+                    <div class="history-columns-wrapper" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; width: 100%;">
+                        <!-- All Uncles' Scans (Default First Tab) -->
+                        <div class="scans-column" id="modalHistColAll" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+                            <div class="scans-list" id="allScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                                <!-- All scanned items will appear here -->
                             </div>
                         </div>
 
-                        <!-- Left Column: All Uncles' Scans -->
-                        <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
-                            <div class="scans-column-title"
-                                style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
-                                <span>جميع نقاط الأعمام</span>
-                                <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
-                            </div>
-                            <div class="scans-list" id="allScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
-                                <!-- All scanned items will appear here -->
+                        <!-- My Scans -->
+                        <div class="scans-column" id="modalHistColMy" style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+                            <div class="scans-list" id="myScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                                <!-- My scanned items will appear here -->
                             </div>
                         </div>
                     </div>
@@ -2238,6 +2241,7 @@
                 const modal = document.getElementById('tripHistoryModal');
                 if (modal) {
                     modal.style.display = 'flex';
+                    switchModalHistoryTab('all');
                     loadRecentScans();
                 }
             }
@@ -2648,6 +2652,109 @@
                     content.style.display = 'block';
                     chevron.classList.remove('fa-chevron-down');
                     chevron.classList.add('fa-chevron-up');
+                }
+                switchProfileHistoryTab('all');
+            }
+
+            function switchProfileHistoryTab(tab) {
+                const tabAll = document.getElementById('profHistTabAll');
+                const tabMy = document.getElementById('profHistTabMy');
+                const colAll = document.getElementById('profHistColAll');
+                const colMy = document.getElementById('profHistColMy');
+                if (!tabAll || !tabMy || !colAll || !colMy) return;
+
+                const allBadge = tabAll.querySelector('.tab-count-badge');
+                const myBadge = tabMy.querySelector('.tab-count-badge');
+
+                if (tab === 'all') {
+                    tabAll.classList.add('active');
+                    tabAll.style.background = 'var(--surface)';
+                    tabAll.style.color = 'var(--text)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--brand-glow)';
+                        allBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabMy.classList.remove('active');
+                    tabMy.style.background = 'none';
+                    tabMy.style.color = 'var(--text-3)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--border-solid)';
+                        myBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colAll.style.display = 'block';
+                    colMy.style.display = 'none';
+                } else {
+                    tabMy.classList.add('active');
+                    tabMy.style.background = 'var(--surface)';
+                    tabMy.style.color = 'var(--text)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--brand-glow)';
+                        myBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabAll.classList.remove('active');
+                    tabAll.style.background = 'none';
+                    tabAll.style.color = 'var(--text-3)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--border-solid)';
+                        allBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colMy.style.display = 'block';
+                    colAll.style.display = 'none';
+                }
+            }
+
+            function switchModalHistoryTab(tab) {
+                const tabAll = document.getElementById('modalHistTabAll');
+                const tabMy = document.getElementById('modalHistTabMy');
+                const colAll = document.getElementById('modalHistColAll');
+                const colMy = document.getElementById('modalHistColMy');
+                if (!tabAll || !tabMy || !colAll || !colMy) return;
+
+                const allBadge = tabAll.querySelector('.tab-count-badge');
+                const myBadge = tabMy.querySelector('.tab-count-badge');
+
+                if (tab === 'all') {
+                    tabAll.classList.add('active');
+                    tabAll.style.background = 'var(--surface)';
+                    tabAll.style.color = 'var(--text)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--brand-glow)';
+                        allBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabMy.classList.remove('active');
+                    tabMy.style.background = 'none';
+                    tabMy.style.color = 'var(--text-3)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--border-solid)';
+                        myBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colAll.style.display = 'flex';
+                    colMy.style.display = 'none';
+                } else {
+                    tabMy.classList.add('active');
+                    tabMy.style.background = 'var(--surface)';
+                    tabMy.style.color = 'var(--text)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--brand-glow)';
+                        myBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabAll.classList.remove('active');
+                    tabAll.style.background = 'none';
+                    tabAll.style.color = 'var(--text-3)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--border-solid)';
+                        allBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colMy.style.display = 'flex';
+                    colAll.style.display = 'none';
                 }
             }
 
