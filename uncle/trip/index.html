@@ -23,19 +23,23 @@
         body {
             visibility: hidden
         }
-    
+
         /* Hide scrollbar for shortcuts slider */
         .shortcuts-slider::-webkit-scrollbar {
             display: none;
         }
+
         .shortcuts-slider {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
         }
+
         .btn-camera-big:active {
             transform: scale(0.97);
         }
-</style>
+    </style>
     <script>
         (function () {
             var show = function () {
@@ -55,7 +59,8 @@
     </script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
@@ -619,13 +624,25 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes slideUp {
-            from { transform: translateY(16px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(16px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .btn-camera-text {
@@ -1208,14 +1225,16 @@
         }
 
         /* Switch Toggle Styles */
-        .switch-toggle input:checked + .switch-slider {
+        .switch-toggle input:checked+.switch-slider {
             background-color: var(--brand) !important;
             border-color: var(--brand) !important;
         }
-        .switch-toggle input:checked + .switch-slider::before {
+
+        .switch-toggle input:checked+.switch-slider::before {
             transform: translateX(-20px);
             background-color: white !important;
         }
+
         .switch-slider::before {
             position: absolute;
             content: "";
@@ -1525,11 +1544,13 @@
                 grid-template-columns: 1fr !important;
                 gap: 8px;
             }
+
             #viewTripDetails.active {
                 display: flex !important;
                 flex-direction: column;
                 min-height: calc(100vh - 80px);
             }
+
             .trip-middle-centered-content {
                 display: flex;
                 flex-direction: column;
@@ -1540,10 +1561,12 @@
                 margin-bottom: auto;
                 transform: translateY(-60px);
             }
+
             .top-row-grid {
                 gap: 8px !important;
             }
-            .top-row-grid > .card:first-child {
+
+            .top-row-grid>.card:first-child {
                 background: none !important;
                 border: none !important;
                 box-shadow: none !important;
@@ -1553,9 +1576,11 @@
                 align-items: center !important;
                 margin-bottom: 5px !important;
             }
-            .top-row-grid > .card:last-child {
+
+            .top-row-grid>.card:last-child {
                 padding: 12px !important;
             }
+
             #fastReader {
                 aspect-ratio: 1 / 1 !important;
                 width: 180px !important;
@@ -1566,6 +1591,7 @@
                 box-shadow: var(--shadow-md) !important;
                 overflow: hidden !important;
             }
+
             #fastReader video,
             #fastReader canvas,
             #fastReader img {
@@ -1592,7 +1618,8 @@
         </a>
         <div class="topbar-actions">
             <!-- Trip history button at the top -->
-            <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة" style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
+            <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة"
+                style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
                 <i class="fas fa-history"></i>
                 <span style="font-family:'Cairo',sans-serif; font-weight:700;">سجل الرحلة</span>
             </button>
@@ -1603,16 +1630,22 @@
 
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
-            <div class="hero-strip" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: rtl; width: 100%;">
+            <div class="hero-strip"
+                style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: rtl; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
                         style="border:none; background:var(--surface-3); color:var(--text-2); padding:8px 14px; border-radius:var(--r-md); margin:0; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
                         <i class="fas fa-arrow-right"></i> عودة
                     </button>
-                    <div class="hero-greeting" id="detailTripTitle" style="font-size: 1.15rem; font-weight: 900; color: var(--text);">الرحلة</div>
+                    <div class="hero-greeting" id="detailTripTitle"
+                        style="font-size: 1.15rem; font-weight: 900; color: var(--text);">الرحلة</div>
                 </div>
                 <!-- Trip Settings Button (visible only to admins) -->
-                <button id="btnTripSettings" onclick="openTripSettingsModal()" style="display: none; border: none; background: var(--surface-3); color: var(--text-2); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; justify-content: center; align-items: center; transition: all 0.2s;" title="إعدادات الرحلة" onmouseover="this.style.transform='scale(1.05)'; this.style.background='var(--border-solid)';" onmouseout="this.style.transform='none'; this.style.background='var(--surface-3)';">
+                <button id="btnTripSettings" onclick="openTripSettingsModal()"
+                    style="display: none; border: none; background: var(--surface-3); color: var(--text-2); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; justify-content: center; align-items: center; transition: all 0.2s;"
+                    title="إعدادات الرحلة"
+                    onmouseover="this.style.transform='scale(1.05)'; this.style.background='var(--border-solid)';"
+                    onmouseout="this.style.transform='none'; this.style.background='var(--surface-3)';">
                     <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
                 </button>
             </div>
@@ -1633,13 +1666,18 @@
 
 
                 <!-- Center Search Bar under Filters -->
-                <div class="main-search-wrap" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
+                <div class="main-search-wrap"
+                    style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
                     <div style="position: relative;">
-                        <input type="text" class="topbar-search-input" id="topbarSearchMain" placeholder="ابحث عن طفل بالاسم..."
-                            oninput="topbarSearchHandler('topbarSearchMain', 'topbarSearchResultsMain')" style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
-                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+                        <input type="text" class="topbar-search-input" id="topbarSearchMain"
+                            placeholder="ابحث عن طفل بالاسم..."
+                            oninput="topbarSearchHandler('topbarSearchMain', 'topbarSearchResultsMain')"
+                            style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
+                        <i class="fas fa-search"
+                            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
                     </div>
-                    <div class="topbar-search-results" id="topbarSearchResultsMain" style="border-radius: 16px; margin-top: 8px;"></div>
+                    <div class="topbar-search-results" id="topbarSearchResultsMain"
+                        style="border-radius: 16px; margin-top: 8px;"></div>
                 </div>
 
                 <!-- Scanner Buttons Under Search (Smaller, Fit Content, Centered) -->
@@ -1652,7 +1690,8 @@
                             style="margin: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--success); text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
                             <i class="fas fa-user" style="font-size: 0.85rem; color: white;"></i>
                             <span class="btn-camera-text"
-                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">بروفايل الطفل</span>
+                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">بروفايل
+                                الطفل</span>
                         </button>
 
                         <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
@@ -1661,7 +1700,8 @@
                             style="margin: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 12px; text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
                             <i class="fas fa-qrcode" style="font-size: 0.85rem; color: white;"></i>
                             <span class="btn-camera-text"
-                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">الماسح السريع</span>
+                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">الماسح
+                                السريع</span>
                         </button>
                     </div>
                 </div>
@@ -1682,16 +1722,20 @@
             </div>
 
             <!-- Print cards footer text link (at the absolute end of the page wrapper) -->
-            <div id="adminActions" style="display:none; justify-content:center; align-items:center; margin-top:40px; padding:20px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center; gap:6px;">
+            <div id="adminActions"
+                style="display:none; justify-content:center; align-items:center; margin-top:40px; padding:20px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center; gap:6px;">
                 <i class="fas fa-print" style="color:var(--brand); font-size:0.95rem;"></i>
-                <span>يمكنك طباعة كروت الـ QR للأطفال الخاصة بهذه الرحلة <a href="#" onclick="event.preventDefault(); printQRCards();" style="color:var(--brand); text-decoration:underline; font-weight:800;">من هنا</a>.</span>
+                <span>يمكنك طباعة كروت الـ QR للأطفال الخاصة بهذه الرحلة <a href="#"
+                        onclick="event.preventDefault(); printQRCards();"
+                        style="color:var(--brand); text-decoration:underline; font-weight:800;">من هنا</a>.</span>
             </div>
 
         </div>
 
         <!-- VIEW: GROUP FILTER -->
         <div id="viewGroupFilter" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
+            <div class="hero-strip"
+                style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
                 <button class="topbar-btn" onclick="navigateTo('dashboard')"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
@@ -1705,7 +1749,8 @@
 
         <!-- VIEW: STUDENT PROFILE -->
         <div id="viewStudentProfile" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
+            <div class="hero-strip"
+                style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
                 <button class="topbar-btn" onclick="goBackFromProfile()"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
@@ -1714,13 +1759,18 @@
             </div>
 
             <!-- Profile Search Bar at Top under Back Button & Title -->
-            <div class="profile-search-wrap" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 15px auto; z-index: 10;">
+            <div class="profile-search-wrap"
+                style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 15px auto; z-index: 10;">
                 <div style="position: relative;">
-                    <input type="text" class="topbar-search-input" id="topbarSearchProfile" placeholder="ابحث عن طفل بالاسم..."
-                        oninput="topbarSearchHandler('topbarSearchProfile', 'topbarSearchResultsProfile')" style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
-                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+                    <input type="text" class="topbar-search-input" id="topbarSearchProfile"
+                        placeholder="ابحث عن طفل بالاسم..."
+                        oninput="topbarSearchHandler('topbarSearchProfile', 'topbarSearchResultsProfile')"
+                        style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
+                    <i class="fas fa-search"
+                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
                 </div>
-                <div class="topbar-search-results" id="topbarSearchResultsProfile" style="border-radius: 16px; margin-top: 8px;"></div>
+                <div class="topbar-search-results" id="topbarSearchResultsProfile"
+                    style="border-radius: 16px; margin-top: 8px;"></div>
             </div>
 
             <div class="profile-card">
@@ -1744,7 +1794,8 @@
                 <div id="customTags" class="custom-tags"></div>
 
                 <!-- Control panel wrapper inside the profile card -->
-                <div id="studentProfileControlPanelWrapper" style="border-top: 1.5px dashed var(--border-solid); margin-top: 12px; padding-top: 12px; width: 100%;">
+                <div id="studentProfileControlPanelWrapper"
+                    style="border-top: 1.5px dashed var(--border-solid); margin-top: 12px; padding-top: 12px; width: 100%;">
                     <!-- Loaded dynamically -->
                 </div>
             </div>
@@ -1754,19 +1805,29 @@
                 style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
                 <div class="section-header" onclick="toggleProfileHistoryCollapse()"
                     style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
-                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history" style="margin-left:6px; color: var(--brand);"></i>سجل نقاط هذا الطفل بالرحلة</span>
-                    <i id="profileHistoryChevron" class="fas fa-chevron-up" style="color: var(--text-3); transition: transform 0.3s;"></i>
+                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history"
+                            style="margin-left:6px; color: var(--brand);"></i>سجل نقاط هذا الطفل بالرحلة</span>
+                    <i id="profileHistoryChevron" class="fas fa-chevron-up"
+                        style="color: var(--text-3); transition: transform 0.3s;"></i>
                 </div>
-                <div id="profileHistoryContent" style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
+                <div id="profileHistoryContent"
+                    style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
                     <!-- Tab Buttons for Profile History -->
-                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
-                        <button type="button" class="history-tab-btn active" onclick="switchProfileHistoryTab('all')" id="profHistTabAll" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                    <div class="history-tabs-header"
+                        style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
+                        <button type="button" class="history-tab-btn active" onclick="switchProfileHistoryTab('all')"
+                            id="profHistTabAll"
+                            style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
                             <span>جميع نقاط الأعمام</span>
-                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="allCount"
+                                style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
-                        <button type="button" class="history-tab-btn" onclick="switchProfileHistoryTab('my')" id="profHistTabMy" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                        <button type="button" class="history-tab-btn" onclick="switchProfileHistoryTab('my')"
+                            id="profHistTabMy"
+                            style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
                             <span>نقاطي المضافة</span>
-                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="myCount"
+                                style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
                     </div>
 
@@ -1787,7 +1848,8 @@
 
         <!-- VIEW: FAST SCAN -->
         <div id="viewFastScan" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
+            <div class="hero-strip"
+                style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
                 <button class="topbar-btn" onclick="navigateTo('dashboard')"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
@@ -1829,9 +1891,12 @@
                 </div>
             </div>
 
-            <div id="fastScanAccessWarning" style="display: none; background: var(--surface); border: 1.5px solid var(--border-solid); padding: 40px 20px; border-radius: var(--r-xl); text-align: center; box-shadow: var(--shadow-md); margin-top: 20px; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+            <div id="fastScanAccessWarning"
+                style="display: none; background: var(--surface); border: 1.5px solid var(--border-solid); padding: 40px 20px; border-radius: var(--r-xl); text-align: center; box-shadow: var(--shadow-md); margin-top: 20px; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
                 <i class="fas fa-lock" style="font-size: 3rem; color: var(--brand);"></i>
-                <h3 id="fastScanWarningText" style="margin: 0; font-weight: 800; font-size: 1.2rem; color: var(--text);">تم إيقاف تسجيل النقاط لهذه الرحلة</h3>
+                <h3 id="fastScanWarningText"
+                    style="margin: 0; font-weight: 800; font-size: 1.2rem; color: var(--text);">تم إيقاف تسجيل النقاط
+                    لهذه الرحلة</h3>
             </div>
 
             <!-- Fast Scan History -->
@@ -1839,19 +1904,29 @@
                 style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
                 <div class="section-header" onclick="toggleFastScanHistoryCollapse()"
                     style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
-                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history" style="margin-left:6px; color: var(--brand);"></i>سجل النقاط المضافة للرحلة</span>
-                    <i id="fastScanHistoryChevron" class="fas fa-chevron-up" style="color: var(--text-3); transition: transform 0.3s;"></i>
+                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history"
+                            style="margin-left:6px; color: var(--brand);"></i>سجل النقاط المضافة للرحلة</span>
+                    <i id="fastScanHistoryChevron" class="fas fa-chevron-up"
+                        style="color: var(--text-3); transition: transform 0.3s;"></i>
                 </div>
-                <div id="fastScanHistoryContent" style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
+                <div id="fastScanHistoryContent"
+                    style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
                     <!-- Tab Buttons for Fast Scan History -->
-                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
-                        <button type="button" class="history-tab-btn active" onclick="switchFastScanHistoryTab('all')" id="fastScanHistTabAll" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                    <div class="history-tabs-header"
+                        style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
+                        <button type="button" class="history-tab-btn active" onclick="switchFastScanHistoryTab('all')"
+                            id="fastScanHistTabAll"
+                            style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
                             <span>جميع نقاط الأعمام</span>
-                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="allCount"
+                                style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
-                        <button type="button" class="history-tab-btn" onclick="switchFastScanHistoryTab('my')" id="fastScanHistTabMy" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                        <button type="button" class="history-tab-btn" onclick="switchFastScanHistoryTab('my')"
+                            id="fastScanHistTabMy"
+                            style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
                             <span>نقاطي المضافة</span>
-                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="myCount"
+                                style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
                     </div>
 
@@ -1880,13 +1955,17 @@
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
             <div
                 style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:380px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
+                    <h3
+                        style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
                         <i class="fas fa-info-circle" style="color:var(--brand);"></i> دليل الإجراءات السريعة
                     </h3>
-                    <button onclick="closeShortcutsInfoModal()" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                    <button onclick="closeShortcutsInfoModal()"
+                        style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
                 </div>
-                <div id="shortcutsInfoModalBody" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; text-align:right;">
+                <div id="shortcutsInfoModalBody"
+                    style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; text-align:right;">
                     <!-- Loaded dynamically -->
                 </div>
             </div>
@@ -1897,15 +1976,20 @@
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
             <div
                 style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:400px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
+                    <h3
+                        style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
                         <i class="fas fa-cog" style="color:var(--brand);"></i> إعدادات الرحلة
                     </h3>
-                    <button onclick="closeTripSettingsModal()" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                    <button onclick="closeTripSettingsModal()"
+                        style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
                 </div>
-                <div style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; text-align:right; padding: 4px;">
+                <div
+                    style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; text-align:right; padding: 4px;">
                     <!-- Warning / Info Alert -->
-                    <div style="background: var(--brand-light); border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 10px 12px; border-radius: 12px; font-size: 0.78rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
+                    <div
+                        style="background: #e2e6ff; border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 10px 12px; border-radius: 12px; font-size: 0.78rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
                         <div>
                             <i class="fas fa-info-circle" style="font-size: 0.95rem; margin-left: 4px;"></i>
                             تنبيه: هذه الإعدادات تُطبق على الرحلة كاملة لجميع الخدام، وليست لحسابك الشخصي فقط.
@@ -1915,38 +1999,50 @@
                             ملاحظة: يجب تنزيل التطبيق (إضافته للشاشة الرئيسية) لتفعيل واستلام الإشعارات على الهاتف.
                         </div>
                     </div>
-                    
+
                     <!-- Form Control: Leaderboard Notifications -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة الأوائل</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ 10 الأولى</span>
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة
+                                الأوائل</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ
+                                10 الأولى</span>
                         </div>
-                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-                            <input type="checkbox" id="settingLeaderboardNotifs" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingLeaderboardNotifs"
+                                style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Naughty Notifications -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات الشغب</span>
                             <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عند تسجيل شغب لطفل</span>
                         </div>
-                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
                             <input type="checkbox" id="settingNaughtyNotifs" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Points Recording Permission -->
-                    <div id="settingPointsPermissionContainer" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                    <div id="settingPointsPermissionContainer"
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تسجيل النقاط</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط للرحلة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط
+                                للرحلة</span>
                         </div>
-                        <select id="settingPointsPermission" style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; max-width: 150px;">
+                        <select id="settingPointsPermission"
+                            style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; max-width: 150px;">
                             <option value="all">الجميع (خدام وأدمن)</option>
                             <option value="admin">الأدمن فقط</option>
                             <option value="disabled">مغلق (تعطيل الإضافة)</option>
@@ -1954,7 +2050,8 @@
                     </div>
 
                     <!-- Save Button -->
-                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action" style="width: 100%; height: 40px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
+                        style="width: 100%; height: 40px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fas fa-save"></i> حفظ الإعدادات
                     </button>
                 </div>
@@ -2002,7 +2099,8 @@
                     </h3>
                     <button class="close-btn" onclick="closeTripHistoryModal()">×</button>
                 </div>
-                <div class="modal-body" style="padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;">
+                <div class="modal-body"
+                    style="padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;">
                     <!-- Refresh Button and Search Wrap -->
                     <div style="display: flex; gap: 8px; align-items: center; width: 100%; flex-shrink: 0;">
                         <div class="search-wrap" style="position: relative; flex: 1;">
@@ -2019,28 +2117,40 @@
                     </div>
 
                     <!-- Tab Buttons for Modal History -->
-                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); gap: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0;">
-                        <button type="button" class="history-tab-btn active" onclick="switchModalHistoryTab('all')" id="modalHistTabAll" style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                    <div class="history-tabs-header"
+                        style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); gap: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0;">
+                        <button type="button" class="history-tab-btn active" onclick="switchModalHistoryTab('all')"
+                            id="modalHistTabAll"
+                            style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
                             <span>جميع نقاط الأعمام</span>
-                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="allCount"
+                                style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
-                        <button type="button" class="history-tab-btn" onclick="switchModalHistoryTab('my')" id="modalHistTabMy" style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                        <button type="button" class="history-tab-btn" onclick="switchModalHistoryTab('my')"
+                            id="modalHistTabMy"
+                            style="flex: 1; padding: 8px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
                             <span>نقاطي المضافة</span>
-                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                            <span class="tab-count-badge" id="myCount"
+                                style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
                     </div>
 
-                    <div class="history-columns-wrapper" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; width: 100%;">
+                    <div class="history-columns-wrapper"
+                        style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; width: 100%;">
                         <!-- All Uncles' Scans (Default First Tab) -->
-                        <div class="scans-column" id="modalHistColAll" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
-                            <div class="scans-list" id="allScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                        <div class="scans-column" id="modalHistColAll"
+                            style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+                            <div class="scans-list" id="allScansList"
+                                style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
                                 <!-- All scanned items will appear here -->
                             </div>
                         </div>
 
                         <!-- My Scans -->
-                        <div class="scans-column" id="modalHistColMy" style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
-                            <div class="scans-list" id="myScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                        <div class="scans-column" id="modalHistColMy"
+                            style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
+                            <div class="scans-list" id="myScansList"
+                                style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
                                 <!-- My scanned items will appear here -->
                             </div>
                         </div>
@@ -2151,7 +2261,7 @@
                                 try {
                                     res(JSON.parse(req.result.data));
                                     return;
-                                } catch (e) {}
+                                } catch (e) { }
                             }
                             res(null);
                         };
@@ -2168,7 +2278,7 @@
                 registrations.forEach(r => {
                     const photoUrl = r.student_image;
                     if (photoUrl) {
-                        fetch(photoUrl, { priority: 'low' }).catch(() => {});
+                        fetch(photoUrl, { priority: 'low' }).catch(() => { });
                     }
                 });
             }
@@ -2281,7 +2391,7 @@
                     regsList = localTrip.registrations || [];
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
                     document.getElementById('topbarTripTitle').textContent = currentTrip.title;
-                    
+
                     // Render UI from cache instantly
                     renderFieldCards();
                     handleUrlParams();
@@ -2753,7 +2863,7 @@
                     shortcuts.forEach((sh, idx) => {
                         const signChar = sh.points >= 0 ? '+' : '';
                         const customBg = shColors[idx % shColors.length];
-                        
+
                         // Vertical rectangle styling with horizontal alignment of contents:
                         // Row layout: [Icon] [Name] [Points]
                         html += `
@@ -2870,7 +2980,7 @@
                 document.getElementById('shortcutsInfoModal').style.setProperty('display', 'flex', 'important');
             }
 
-             function closeShortcutsInfoModal() {
+            function closeShortcutsInfoModal() {
                 const modal = document.getElementById('shortcutsInfoModal');
                 if (modal) modal.style.display = 'none';
             }
@@ -3335,8 +3445,8 @@
                         }
 
                         if (window.activePointsInputMode === 'custom') {
-                             const input = document.getElementById('customPointsInputVal');
-                             if (input) input.value = '';
+                            const input = document.getElementById('customPointsInputVal');
+                            if (input) input.value = '';
                         }
                         await loadRecentScans();
                     } else {
@@ -4403,7 +4513,7 @@
                 return maxScore;
             }
 
-             document.addEventListener('click', function (e) {
+            document.addEventListener('click', function (e) {
                 const mainContainer = document.querySelector('.main-search-wrap');
                 if (mainContainer && !mainContainer.contains(e.target)) {
                     const resultsDiv = document.getElementById('topbarSearchResultsMain');
@@ -5086,7 +5196,7 @@
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                     if (clickedBtn) {
-                         clickedBtn.innerHTML = originalBtnHtml;
+                        clickedBtn.innerHTML = originalBtnHtml;
                     }
                     if (res.success || res.offline) {
                         if (res.offline) {
