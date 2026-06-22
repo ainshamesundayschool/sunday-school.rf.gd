@@ -415,6 +415,8 @@ function processGameQRCode()
 
             $points = [];
 
+        $oldRank = _getStudentTripRank($conn, $tripId, $studentId);
+
 
 
         $current = intval($points[$tripId] ?? 0);
@@ -621,6 +623,10 @@ function processGameQRCode()
 
         $isNaughty = $points["n_{$tripId}"] ?? false;
 
+        if ($undoingLogId <= 0) {
+            _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $student['name'], $churchId);
+        }
+
         sendJSON([
             'success' => true,
             'log_id' => $logId,
@@ -719,6 +725,8 @@ function processFastScanPoints()
             return;
         }
 
+        $oldRank = _getStudentTripRank($conn, $tripId, $studentId);
+
         // 3. Update student trip points
         $pointsJson = $student['trip_points'] ?? '';
         $points = json_decode($pointsJson, true);
@@ -788,7 +796,9 @@ function processFastScanPoints()
         if (!empty($actionName)) {
             $auditReason .= " - " . $actionName;
         }
-        auditCouponChange($studentId, $student['name'], $oldCount, $newCount, $auditReason);
+        if ($undoingLogId <= 0) {
+            _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $student['name'], $churchId);
+        }
 
         sendJSON([
             'success' => true,
@@ -44981,5 +44991,66 @@ function shareCoupons()
     } catch (Exception $e) {
         if (isset($conn)) $conn->rollback();
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function _getStudentTripRank($conn, $tripId, $studentId)
+{
+    $sql = "
+        SELECT s.id, SUM(cl.change_amount) as total_points
+        FROM coupon_logs cl
+        JOIN students s ON cl.student_id = s.id
+        WHERE (cl.reason LIKE CONCAT('trip_points_scan:', ?, '%')
+           OR cl.reason LIKE CONCAT('trip_points_normal:', ?, '%'))
+        GROUP BY s.id
+        HAVING total_points > 0
+        ORDER BY total_points DESC
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('ii', $tripId, $tripId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    
+    $rank = 1;
+    while ($row = $res->fetch_assoc()) {
+        if (intval($row['id']) === $studentId) {
+            return $rank;
+        }
+        $rank++;
+    }
+    return null;
+}
+
+function _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $studentName, $churchId)
+{
+    $newRank = _getStudentTripRank($conn, $tripId, $studentId);
+    if ($newRank !== null && $newRank <= 10) {
+        if ($oldRank === null || $newRank < $oldRank) {
+            $tripTitle = "الرحلة";
+            $tstmt = $conn->prepare("SELECT title FROM trips WHERE id = ? LIMIT 1");
+            $tstmt->bind_param('i', $tripId);
+            if ($tstmt->execute()) {
+                $tres = $tstmt->get_result()->fetch_assoc();
+                if ($tres) {
+                    $tripTitle = $tres['title'];
+                }
+            }
+            
+            $title = "🏆 تحديث صدارة الرحلة!";
+            $body = "البطل {$studentName} صعد للمركز الـ {$newRank} في لوحة صدارة رحلة {$tripTitle}! 🎉";
+            $extra = [
+                'notifType' => 'leaderboard_upgrade',
+                'trip_id' => $tripId,
+                'student_id' => $studentId,
+                'rank' => $newRank
+            ];
+            
+            _sendWebPushToChurch($conn, $churchId, $title, $body, $extra);
+            _sendWebPushToKids($conn, $churchId, $title, $body, $extra);
+            
+            if (function_exists('pushNotification')) {
+                pushNotification($conn, $churchId, 'leaderboard_upgrade', $title, $body, 'leaderboard_upgrade', $tripId);
+            }
+        }
     }
 }
