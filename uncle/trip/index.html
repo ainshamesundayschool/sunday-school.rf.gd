@@ -196,7 +196,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            position: relative;
             transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
             border-bottom: 1px solid var(--border);
         }
@@ -207,6 +207,7 @@
             gap: 8px;
             text-decoration: none;
             flex-shrink: 0;
+            z-index: 10;
         }
 
         .topbar-logo {
@@ -222,15 +223,28 @@
         }
 
         .topbar-title {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 800;
             color: var(--text);
+            line-height: 1.15;
+        }
+
+        .topbar-subtitle {
+            font-size: 0.65rem;
+            color: var(--text-3);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-top: 1px;
         }
 
         .topbar-search-container {
-            flex: 1;
-            max-width: 260px;
-            position: relative;
+            position: absolute;
+            left: 50%;
+            top: calc(50% + env(safe-area-inset-top, 0px) / 2);
+            transform: translate(-50%, -50%);
+            width: calc(100% - 170px);
+            max-width: 240px;
+            z-index: 5;
         }
 
         .topbar-search-input {
@@ -463,6 +477,144 @@
             color: white !important;
         }
 
+        /* Small icon button styles */
+        .btn-welcome-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-3);
+            border: 1.5px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+
+        .btn-welcome-icon:hover {
+            background: #8b5cf6 !important;
+            color: white !important;
+            border-color: #8b5cf6 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-leaderboard-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-3);
+            border: 1.5px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+
+        .btn-leaderboard-icon:hover {
+            background: #f59e0b !important;
+            color: white !important;
+            border-color: #f59e0b !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Unified Modal Overlay & Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 12px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--r-lg);
+            border: 1.5px solid var(--border-solid);
+            box-shadow: var(--shadow-xl);
+            width: 100%;
+            max-width: 580px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1.5px solid var(--border-solid);
+            background: var(--surface-2);
+        }
+
+        .modal-header h3 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color var(--t);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
+        .modal-header .close-btn:hover {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--surface);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(16px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         .btn-camera-text {
             font-size: 0.75rem;
         }
@@ -470,15 +622,15 @@
         /* Custom Field Cards compact */
         .fields-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 8px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+            gap: 5px;
+            margin-bottom: 10px;
         }
 
         .field-card {
             background: var(--surface);
-            border-radius: var(--r-md);
-            padding: 10px;
+            border-radius: var(--r-xs);
+            padding: 5px 6px;
             border: 1.5px solid var(--border-solid);
             box-shadow: var(--shadow-sm);
             transition: all var(--t) var(--spring);
@@ -492,27 +644,28 @@
 
         .field-card-header {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            text-align: center;
-            gap: 4px;
+            text-align: right;
+            gap: 5px;
+            width: 100%;
         }
 
         .field-card-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--r-sm);
+            width: 22px;
+            height: 22px;
+            border-radius: var(--r-xs);
             background: var(--brand-bg);
             color: var(--brand);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 0.72rem;
             flex-shrink: 0;
         }
 
         .field-card-title {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 800;
             color: var(--text);
             max-width: 100%;
@@ -522,7 +675,7 @@
         }
 
         .field-card-count {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: var(--text-3);
             font-weight: 700;
         }
@@ -1338,6 +1491,10 @@
             <div class="topbar-logo" style="overflow:hidden;"><img src="/logo.png"
                     style="width:100%;height:100%;object-fit:cover;"
                     onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'"></div>
+            <div>
+                <div class="topbar-title" id="topbarTripTitle">Sunday School</div>
+                <div class="topbar-subtitle">لوحة الرحلة</div>
+            </div>
         </a>
         <div class="topbar-search-container">
             <input type="text" class="topbar-search-input" id="topbarSearch" placeholder="ابحث بالاسم..."
@@ -1345,6 +1502,11 @@
             <div class="topbar-search-results" id="topbarSearchResults"></div>
         </div>
         <div class="topbar-actions">
+            <!-- Trip history button at the top -->
+            <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل المسوحات بالرحلة" style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
+                <i class="fas fa-history"></i>
+                <span style="font-family:'Cairo',sans-serif; font-weight:700;">سجل الرحلة</span>
+            </button>
         </div>
     </div>
 
@@ -1352,24 +1514,28 @@
 
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px;">
-                <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
-                    style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;"><i
-                        class="fas fa-arrow-right"></i> عودة</button>
-                <div class="hero-greeting" id="detailTripTitle">الرحلة</div>
-                <div id="adminActions" style="display:none; align-items:center; gap:10px; margin-right: auto;">
+            <div class="hero-strip" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
+                        style="border:none; background:var(--surface-3); color:var(--text-2); padding:8px 14px; border-radius:var(--r-md); margin:0; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-arrow-right"></i> عودة
+                    </button>
+                    <div class="hero-greeting" id="detailTripTitle" style="font-size: 1.15rem; font-weight: 900; color: var(--text);">الرحلة</div>
+                </div>
+                <div id="adminActions" style="display:none; align-items:center; gap:10px;">
                     <button class="topbar-btn" onclick="printQRCards()"
-                        style="background:var(--brand);color:white;border-color:var(--brand);margin:0;white-space:nowrap;"><i
-                            class="fas fa-print"></i> طباعة الكروت</button>
+                        style="background:var(--brand); color:white; border-color:var(--brand); margin:0; padding:8px 14px; border-radius:var(--r-md); font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-print"></i> طباعة الكروت
+                    </button>
                 </div>
             </div>
 
             <!-- Scanner & Display Tools -->
             <div class="scanner-tools-container"
-                style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; width: 100%;">
-                <!-- Scanner Hero Buttons -->
+                style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 25px; width: 100%;">
+                <!-- Scanner Hero Buttons centered with a max-width for better look -->
                 <div class="scanner-hero-row"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 360px;">
                     <!-- Standard Scanner (Points - Profile Icon) -->
                     <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
                         style="margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; background: var(--success); text-decoration: none; min-width: 0; width: 100%;">
@@ -1398,19 +1564,17 @@
                     </button>
                 </div>
 
-                <!-- Normal Buttons Row -->
-                <div class="other-tools-row"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
-                    <!-- Welcome Display Screen -->
-                    <button class="btn-welcome-pill" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
+                <!-- Small Icons Underneath Them -->
+                <div class="other-tools-row-icons"
+                    style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+                    <!-- Welcome Display Screen Circular Icon -->
+                    <button class="btn-welcome-icon" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
                         <i class="fas fa-tv"></i>
-                        <span>شاشة الترحيب</span>
                     </button>
 
-                    <!-- Leaderboard Button -->
-                    <button class="btn-leaderboard-pill" onclick="openLeaderboard()" title="لوحة الصدارة">
+                    <!-- Leaderboard Circular Icon -->
+                    <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الصدارة">
                         <i class="fas fa-trophy"></i>
-                        <span>لوحة الصدارة</span>
                     </button>
                 </div>
             </div>
@@ -1425,55 +1589,6 @@
             </div>
             <div class="fields-grid" id="fieldsGrid"></div>
 
-            <!-- Split Scans Columns -->
-            <div class="split-scans-container"
-                style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
-                <div class="section-title"
-                    style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span>سجل المسوحات الأخير بالرحلة</span>
-                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل"
-                        style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: var(--r-sm); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
-                        <i class="fas fa-sync-alt"></i> تحديث
-                    </button>
-                </div>
-
-                <!-- Search bar -->
-                <div class="search-wrap" style="margin-bottom: 15px; position: relative;">
-                    <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..."
-                        oninput="filterScansList()"
-                        style="width: 100%; padding: 10px 14px 10px 38px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.88rem; transition: all var(--t); outline: none;">
-                    <i class="fas fa-search"
-                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none;"></i>
-                </div>
-
-                <div class="split-scans-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <!-- Right Column (First in RTL): My Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>عمليات مسحي الخاصة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0
-                                طفل</span>
-                        </div>
-                        <div class="scans-list" id="myScansList">
-                            <!-- My scanned items will appear here -->
-                        </div>
-                    </div>
-
-                    <!-- Left Column (Second in RTL): All Uncles' Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>جميع مسوحات الأعمام بالرحلة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0
-                                طفل</span>
-                        </div>
-                        <div class="scans-list" id="allScansList">
-                            <!-- All scanned items will appear here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- VIEW: GROUP FILTER -->
@@ -1602,42 +1717,6 @@
                 </div>
             </div>
 
-            <!-- History log for fast scan -->
-            <div class="split-scans-container"
-                style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
-                <div class="section-title"
-                    style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span>سجل المسوحات الأخير بالرحلة</span>
-                    <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل"
-                        style="padding: 4px 8px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: var(--r-sm); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 30px; border: 1.5px solid var(--border);">
-                        <i class="fas fa-sync-alt"></i> تحديث
-                    </button>
-                </div>
-
-                <div class="split-scans-grid">
-                    <!-- Right Column: My Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>عمليات مسحي الخاصة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="myCount">0
-                                طفل</span>
-                        </div>
-                        <div class="scans-list" id="myScansList"></div>
-                    </div>
-
-                    <!-- Left Column: All Uncles' Scans -->
-                    <div class="scans-column">
-                        <div class="scans-column-title"
-                            style="font-size: 0.95rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 6px; margin-bottom: 8px; color: var(--text-2);">
-                            <span>جميع مسوحات الأعمام بالرحلة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700;" id="allCount">0
-                                طفل</span>
-                        </div>
-                        <div class="scans-list" id="allScansList"></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div id="printArea"></div>
@@ -1672,6 +1751,62 @@
                 <button class="topbar-btn" onclick="stopScanner()"
                     style="margin:20px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
                         class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+
+        <!-- Trip History Modal -->
+        <div id="tripHistoryModal" class="modal-overlay" style="display: none;">
+            <div class="modal" style="height: 80vh; max-height: 650px;">
+                <div class="modal-header">
+                    <h3>
+                        <i class="fas fa-history" style="color: var(--brand);"></i>
+                        <span style="font-family:'Cairo',sans-serif;">سجل المسوحات بالرحلة</span>
+                    </h3>
+                    <button class="close-btn" onclick="closeTripHistoryModal()">×</button>
+                </div>
+                <div class="modal-body" style="padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;">
+                    <!-- Refresh Button and Search Wrap -->
+                    <div style="display: flex; gap: 8px; align-items: center; width: 100%; flex-shrink: 0;">
+                        <div class="search-wrap" style="position: relative; flex: 1;">
+                            <input type="text" id="scanSearchInput" placeholder="البحث في عمليات المسح بالأسم..."
+                                oninput="filterScansList()"
+                                style="width: 100%; padding: 8px 10px 8px 32px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.8rem; transition: all var(--t); outline: none;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.85rem;"></i>
+                        </div>
+                        <button class="topbar-btn" onclick="loadRecentScans()" title="تحديث السجل"
+                            style="padding: 4px 10px; font-size: 0.8rem; background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand-light); border-radius: var(--r-md); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 700; margin: 0; height: 34px; border: 1.5px solid var(--border);">
+                            <i class="fas fa-sync-alt"></i> تحديث
+                        </button>
+                    </div>
+
+                    <!-- Split Scans Grid inside Modal -->
+                    <div class="split-scans-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; overflow: hidden; flex: 1; min-height: 0;">
+                        <!-- Right Column: My Scans -->
+                        <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
+                            <div class="scans-column-title"
+                                style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
+                                <span>مسوحاتي الخاصة</span>
+                                <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="myCount">0 طفل</span>
+                            </div>
+                            <div class="scans-list" id="myScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                                <!-- My scanned items will appear here -->
+                            </div>
+                        </div>
+
+                        <!-- Left Column: All Uncles' Scans -->
+                        <div class="scans-column" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
+                            <div class="scans-column-title"
+                                style="font-size: 0.82rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 4px; margin-bottom: 6px; color: var(--text-2); flex-shrink: 0;">
+                                <span>جميع مسوحات الأعمام</span>
+                                <span style="font-size: 0.68rem; color: var(--text-3); font-weight: 700;" id="allCount">0 طفل</span>
+                            </div>
+                            <div class="scans-list" id="allScansList" style="flex: 1; overflow-y: auto; min-height: 0; padding-bottom: 8px;">
+                                <!-- All scanned items will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1901,6 +2036,7 @@
                     }
                     regsList = localTrip.registrations || [];
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
+                    document.getElementById('topbarTripTitle').textContent = currentTrip.title;
                     
                     // Render UI from cache instantly
                     renderFieldCards();
@@ -1933,6 +2069,7 @@
                             currentTrip = res.trip;
                             regsList = res.trip.registrations || [];
                             document.getElementById('detailTripTitle').textContent = currentTrip.title;
+                            document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
                             const adminActions = document.getElementById('adminActions');
                             if (adminActions) {
@@ -2049,6 +2186,27 @@
                     navigateTo('group_filter', { field: currentFilterField, value: currentFilterValue });
                 } else {
                     navigateTo('dashboard');
+                }
+            }
+
+            function showTripHistoryModal() {
+                const modal = document.getElementById('tripHistoryModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    loadRecentScans();
+                }
+            }
+
+            function closeTripHistoryModal() {
+                const modal = document.getElementById('tripHistoryModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    // Clear modal search input when closing
+                    const searchInput = document.querySelector('#tripHistoryModal #scanSearchInput');
+                    if (searchInput) searchInput.value = '';
+                    searchQuery = '';
+                    // Re-render scans to reset filter
+                    renderScansList();
                 }
             }
 
@@ -4007,10 +4165,21 @@
             }
 
             function renderScansList() {
-                const myListEl = document.querySelector('.active #myScansList');
-                const allListEl = document.querySelector('.active #allScansList');
-                const myCountEl = document.querySelector('.active #myCount');
-                const allCountEl = document.querySelector('.active #allCount');
+                const modal = document.getElementById('tripHistoryModal');
+                const isModalOpen = modal && modal.style.display !== 'none';
+
+                let myListEl, allListEl, myCountEl, allCountEl;
+                if (isModalOpen) {
+                    myListEl = document.querySelector('#tripHistoryModal #myScansList');
+                    allListEl = document.querySelector('#tripHistoryModal #allScansList');
+                    myCountEl = document.querySelector('#tripHistoryModal #myCount');
+                    allCountEl = document.querySelector('#tripHistoryModal #allCount');
+                } else {
+                    myListEl = document.querySelector('.active #myScansList');
+                    allListEl = document.querySelector('.active #allScansList');
+                    myCountEl = document.querySelector('.active #myCount');
+                    allCountEl = document.querySelector('.active #allCount');
+                }
 
                 if (!myListEl || !allListEl) return;
 
@@ -4108,7 +4277,15 @@
             }
 
             function filterScansList() {
-                searchQuery = document.getElementById('scanSearchInput').value.trim().toLowerCase();
+                const modal = document.getElementById('tripHistoryModal');
+                const isModalOpen = modal && modal.style.display !== 'none';
+                let input = null;
+                if (isModalOpen) {
+                    input = document.querySelector('#tripHistoryModal #scanSearchInput');
+                } else {
+                    input = document.querySelector('.active #scanSearchInput');
+                }
+                searchQuery = input ? input.value.trim().toLowerCase() : '';
                 renderScansList();
             }
 
