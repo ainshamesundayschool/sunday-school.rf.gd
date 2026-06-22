@@ -1794,7 +1794,7 @@
                 </button>
                 <div class="hero-greeting">الماسح السريع للنقاط</div>
 
-                <div class="scanner-source-tabs"
+                <div id="fastScanSourceTabs" class="scanner-source-tabs"
                     style="display:flex;background:var(--surface-3);padding:3px;border-radius:var(--r-md);margin-bottom:0;gap:4px;direction:rtl;margin-right:auto;flex:1;max-width:200px;">
                     <button type="button" id="fast_tab_camera" class="scanner-source-tab"
                         onclick="switchFastScanSource('camera')">
@@ -1807,7 +1807,7 @@
                 </div>
             </div>
 
-            <div class="top-row-grid">
+            <div id="fastScanMainGrid" class="top-row-grid">
                 <!-- Scanner Card -->
                 <div class="card" style="padding: 6px; margin-bottom: 0;">
                     <div id="fastReader"></div>
@@ -1825,6 +1825,46 @@
                         style="display: flex; align-items: center; gap: 8px; background: var(--surface-2); padding: 8px 12px; border-radius: var(--r-md); border: 1.5px solid var(--border-solid); font-size: 0.72rem; color: var(--text-2); font-weight: 700; margin-top:10px;">
                         <i class="fas fa-history" style="color: var(--brand); font-size: 0.95rem;"></i>
                         <div>حماية التكرار (فترة انتظار 15 ثانية) نشطة.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fastScanAccessWarning" style="display: none; background: var(--surface); border: 1.5px solid var(--border-solid); padding: 40px 20px; border-radius: var(--r-xl); text-align: center; box-shadow: var(--shadow-md); margin-top: 20px; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                <i class="fas fa-lock" style="font-size: 3rem; color: var(--brand);"></i>
+                <h3 id="fastScanWarningText" style="margin: 0; font-weight: 800; font-size: 1.2rem; color: var(--text);">تم إيقاف تسجيل النقاط لهذه الرحلة</h3>
+            </div>
+
+            <!-- Fast Scan History -->
+            <div class="split-scans-container" id="fastScanHistoryContainer"
+                style="margin-top: 25px; border-top: 1px solid var(--border-solid); padding-top: 20px;">
+                <div class="section-header" onclick="toggleFastScanHistoryCollapse()"
+                    style="margin-bottom: 15px; font-weight: 800; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                    <span style="font-weight: 800; font-size: 1.0rem; color: var(--text-2);"><i class="fas fa-history" style="margin-left:6px; color: var(--brand);"></i>سجل النقاط المضافة للرحلة</span>
+                    <i id="fastScanHistoryChevron" class="fas fa-chevron-up" style="color: var(--text-3); transition: transform 0.3s;"></i>
+                </div>
+                <div id="fastScanHistoryContent" style="transition: max-height 0.3s ease-out, opacity 0.3s ease-out; overflow: hidden;">
+                    <!-- Tab Buttons for Fast Scan History -->
+                    <div class="history-tabs-header" style="display: flex; background: var(--surface-3); padding: 3px; border-radius: var(--r-md); margin-bottom: 12px; gap: 4px; width: 100%; box-sizing: border-box;">
+                        <button type="button" class="history-tab-btn active" onclick="switchFastScanHistoryTab('all')" id="fastScanHistTabAll" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
+                            <span>جميع نقاط الأعمام</span>
+                            <span class="tab-count-badge" id="allCount" style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                        <button type="button" class="history-tab-btn" onclick="switchFastScanHistoryTab('my')" id="fastScanHistTabMy" style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: none; color: var(--text-3);">
+                            <span>نقاطي المضافة</span>
+                            <span class="tab-count-badge" id="myCount" style="font-size: 0.7rem; background: var(--border-solid); color: var(--text-3); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
+                        </button>
+                    </div>
+
+                    <div class="history-columns-wrapper" style="width: 100%;">
+                        <!-- All Uncles' Scans (Default First Tab) -->
+                        <div class="scans-column" id="fastScanHistColAll" style="display: block;">
+                            <div class="scans-list" id="allScansList"></div>
+                        </div>
+
+                        <!-- My Scans -->
+                        <div class="scans-column" id="fastScanHistColMy" style="display: none;">
+                            <div class="scans-list" id="myScansList"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1859,7 +1899,7 @@
                 style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:400px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
                     <h3 style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-cog" style="color:var(--brand);"></i> إعدادات إشعارات الرحلة
+                        <i class="fas fa-cog" style="color:var(--brand);"></i> إعدادات الرحلة
                     </h3>
                     <button onclick="closeTripSettingsModal()" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
                 </div>
@@ -1892,6 +1932,19 @@
                             <input type="checkbox" id="settingNaughtyNotifs" style="opacity: 0; width: 0; height: 0;">
                             <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
+                    </div>
+
+                    <!-- Form Control: Points Recording Permission -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تسجيل النقاط</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط للرحلة</span>
+                        </div>
+                        <select id="settingPointsPermission" style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; max-width: 150px;">
+                            <option value="all">الجميع (خدام وأدمن)</option>
+                            <option value="admin">الأدمن فقط</option>
+                            <option value="disabled">مغلق (تعطيل الإضافة)</option>
+                        </select>
                     </div>
 
                     <!-- Save Button -->
@@ -2584,6 +2637,28 @@
                 }
 
                 renderStudentProfileControlPanel();
+
+                // Toggle naughty button based on points permission
+                let pointsConfig = null;
+                if (currentTrip && currentTrip.points_config) {
+                    try {
+                        pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                    } catch (e) { }
+                }
+                const pointsPermission = pointsConfig ? (pointsConfig.points_permission || 'all') : 'all';
+                const userRole = currentTrip ? currentTrip.user_role : 'uncle';
+                const isAdmin = ['admin', 'developer', 'dev'].includes(userRole);
+                let canAddPoints = true;
+                if (pointsPermission === 'disabled') {
+                    canAddPoints = false;
+                } else if (pointsPermission === 'admin') {
+                    canAddPoints = isAdmin;
+                }
+                const btnNaughty = document.getElementById('btnNaughty');
+                if (btnNaughty) {
+                    btnNaughty.style.display = canAddPoints ? 'flex' : 'none';
+                }
+
                 loadRecentScans();
                 initProfileHistoryState();
             }
@@ -2595,6 +2670,34 @@
                     try {
                         pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
                     } catch (e) { }
+                }
+
+                const pointsPermission = pointsConfig ? (pointsConfig.points_permission || 'all') : 'all';
+                const userRole = currentTrip ? currentTrip.user_role : 'uncle';
+                const isAdmin = ['admin', 'developer', 'dev'].includes(userRole);
+
+                let canAddPoints = true;
+                let permissionMessage = '';
+                if (pointsPermission === 'disabled') {
+                    canAddPoints = false;
+                    permissionMessage = 'تم إيقاف تسجيل النقاط لهذه الرحلة';
+                } else if (pointsPermission === 'admin') {
+                    if (!isAdmin) {
+                        canAddPoints = false;
+                        permissionMessage = 'تسجيل النقاط متاح للمسؤولين فقط';
+                    }
+                }
+
+                if (!canAddPoints) {
+                    if (wrapper) {
+                        wrapper.innerHTML = `
+                            <div style="background: var(--surface-3); border: 1.5px solid var(--border-solid); color: var(--text-2); padding: 25px 15px; border-radius: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: 15px auto; max-width: 320px; box-sizing: border-box;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: var(--brand);"></i>
+                                <span style="font-weight: 800; font-size: 0.95rem; color: var(--text);">${permissionMessage}</span>
+                            </div>
+                        `;
+                    }
+                    return;
                 }
 
                 const hasShortcuts = pointsConfig && (pointsConfig.points_type === 'shortcuts' || pointsConfig.points_type === 'combined') && Array.isArray(pointsConfig.shortcuts) && pointsConfig.shortcuts.length > 0;
@@ -2778,9 +2881,12 @@
                 const leaderboardNotifs = pointsConfig && pointsConfig.notifications ? !!pointsConfig.notifications.leaderboard : false;
                 // Naughty notifs default is on (true)
                 const naughtyNotifs = pointsConfig && pointsConfig.notifications && typeof pointsConfig.notifications.naughty !== 'undefined' ? !!pointsConfig.notifications.naughty : true;
+                // Points permission default is all
+                const pointsPermission = pointsConfig && pointsConfig.points_permission ? pointsConfig.points_permission : 'all';
 
                 document.getElementById('settingLeaderboardNotifs').checked = leaderboardNotifs;
                 document.getElementById('settingNaughtyNotifs').checked = naughtyNotifs;
+                document.getElementById('settingPointsPermission').value = pointsPermission;
 
                 document.getElementById('tripSettingsModal').style.setProperty('display', 'flex', 'important');
             }
@@ -2808,6 +2914,7 @@
 
                 pointsConfig.notifications.leaderboard = document.getElementById('settingLeaderboardNotifs').checked;
                 pointsConfig.notifications.naughty = document.getElementById('settingNaughtyNotifs').checked;
+                pointsConfig.points_permission = document.getElementById('settingPointsPermission').value;
 
                 const btn = document.getElementById('btnSaveTripSettings');
                 const oldHtml = btn.innerHTML;
@@ -2822,7 +2929,7 @@
 
                     const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                     if (res.success) {
-                        showToast('تم حفظ إعدادات إشعارات الرحلة بنجاح', 'success');
+                        showToast('تم حفظ إعدادات الرحلة بنجاح', 'success');
                         currentTrip.points_config = pointsConfig;
                         await saveTripLocal(tripId, currentTrip);
                         closeTripSettingsModal();
@@ -3002,6 +3109,95 @@
                     }
 
                     colMy.style.display = 'flex';
+                    colAll.style.display = 'none';
+                }
+            }
+
+            function toggleFastScanHistoryCollapse() {
+                const content = document.getElementById('fastScanHistoryContent');
+                const chevron = document.getElementById('fastScanHistoryChevron');
+                if (!content || !chevron) return;
+
+                const isCollapsed = content.style.display === 'none';
+                if (isCollapsed) {
+                    content.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                    localStorage.setItem('trip_fastscan_history_collapsed', 'false');
+                } else {
+                    content.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                    localStorage.setItem('trip_fastscan_history_collapsed', 'true');
+                }
+            }
+
+            function initFastScanHistoryState() {
+                const content = document.getElementById('fastScanHistoryContent');
+                const chevron = document.getElementById('fastScanHistoryChevron');
+                if (!content || !chevron) return;
+
+                const storedVal = localStorage.getItem('trip_fastscan_history_collapsed');
+                const isCollapsed = (storedVal === null || storedVal === 'true');
+                if (isCollapsed) {
+                    content.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                } else {
+                    content.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+                switchFastScanHistoryTab('all');
+            }
+
+            function switchFastScanHistoryTab(tab) {
+                const tabAll = document.getElementById('fastScanHistTabAll');
+                const tabMy = document.getElementById('fastScanHistTabMy');
+                const colAll = document.getElementById('fastScanHistColAll');
+                const colMy = document.getElementById('fastScanHistColMy');
+                if (!tabAll || !tabMy || !colAll || !colMy) return;
+
+                const allBadge = tabAll.querySelector('.tab-count-badge');
+                const myBadge = tabMy.querySelector('.tab-count-badge');
+
+                if (tab === 'all') {
+                    tabAll.classList.add('active');
+                    tabAll.style.background = 'var(--surface)';
+                    tabAll.style.color = 'var(--text)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--brand-glow)';
+                        allBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabMy.classList.remove('active');
+                    tabMy.style.background = 'none';
+                    tabMy.style.color = 'var(--text-3)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--border-solid)';
+                        myBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colAll.style.display = 'block';
+                    colMy.style.display = 'none';
+                } else {
+                    tabMy.classList.add('active');
+                    tabMy.style.background = 'var(--surface)';
+                    tabMy.style.color = 'var(--text)';
+                    if (myBadge) {
+                        myBadge.style.background = 'var(--brand-glow)';
+                        myBadge.style.color = 'var(--brand)';
+                    }
+
+                    tabAll.classList.remove('active');
+                    tabAll.style.background = 'none';
+                    tabAll.style.color = 'var(--text-3)';
+                    if (allBadge) {
+                        allBadge.style.background = 'var(--border-solid)';
+                        allBadge.style.color = 'var(--text-3)';
+                    }
+
+                    colMy.style.display = 'block';
                     colAll.style.display = 'none';
                 }
             }
@@ -3303,6 +3499,43 @@
                     } catch (e) { }
                 }
 
+                const pointsPermission = pointsConfig ? (pointsConfig.points_permission || 'all') : 'all';
+                const userRole = currentTrip ? currentTrip.user_role : 'uncle';
+                const isAdmin = ['admin', 'developer', 'dev'].includes(userRole);
+
+                let canAddPoints = true;
+                let permissionMessage = '';
+                if (pointsPermission === 'disabled') {
+                    canAddPoints = false;
+                    permissionMessage = 'تم إيقاف تسجيل النقاط لهذه الرحلة';
+                } else if (pointsPermission === 'admin') {
+                    if (!isAdmin) {
+                        canAddPoints = false;
+                        permissionMessage = 'تسجيل النقاط متاح للمسؤولين فقط';
+                    }
+                }
+
+                const sourceTabs = document.getElementById('fastScanSourceTabs');
+                const mainGrid = document.getElementById('fastScanMainGrid');
+                const warningDiv = document.getElementById('fastScanAccessWarning');
+                const warningText = document.getElementById('fastScanWarningText');
+                const historyContainer = document.getElementById('fastScanHistoryContainer');
+
+                if (!canAddPoints) {
+                    stopFastScanCamera();
+                    if (sourceTabs) sourceTabs.style.display = 'none';
+                    if (mainGrid) mainGrid.style.display = 'none';
+                    if (historyContainer) historyContainer.style.display = 'none';
+                    if (warningDiv) warningDiv.style.display = 'flex';
+                    if (warningText) warningText.textContent = permissionMessage;
+                    return;
+                } else {
+                    if (sourceTabs) sourceTabs.style.display = 'flex';
+                    if (mainGrid) mainGrid.style.display = 'grid';
+                    if (historyContainer) historyContainer.style.display = 'block';
+                    if (warningDiv) warningDiv.style.display = 'none';
+                }
+
                 let modes = [];
                 let directPoints = [30, 50, 80, 100];
                 let shortcuts = [];
@@ -3412,6 +3645,7 @@
 
                 const pref = localStorage.getItem('scanner_source_preference') || 'camera';
                 switchFastScanSource(pref);
+                initFastScanHistoryState();
                 loadRecentScans();
             }
 

@@ -356,7 +356,23 @@ function processGameQRCode()
 
         $trip = $tres->fetch_assoc();
 
-
+        $pointsConfig = [];
+        if (!empty($trip['points_config'])) {
+            $pointsConfig = json_decode($trip['points_config'], true) ?? [];
+        }
+        $pointsPermission = $pointsConfig['points_permission'] ?? 'all';
+        if ($amount > 0 || $game_action === 'naughty') {
+            if ($pointsPermission === 'disabled') {
+                sendJSON(['success' => false, 'message' => 'تم إيقاف تسجيل النقاط لهذه الرحلة']);
+                return;
+            } else if ($pointsPermission === 'admin') {
+                $role = strtolower($_SESSION['uncle_role'] ?? '');
+                if (!in_array($role, ['admin', 'developer', 'dev'])) {
+                    sendJSON(['success' => false, 'message' => 'تسجيل النقاط متاح للمسؤولين فقط']);
+                    return;
+                }
+            }
+        }
 
         $pointsJson = $student['trip_points'] ?? '';
 
@@ -719,7 +735,7 @@ function processFastScanPoints()
         $student = $res->fetch_assoc();
 
         // 2. Load trip to check collaborating churches
-        $tstmt = $conn->prepare("SELECT id, church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $tstmt = $conn->prepare("SELECT id, church_id, collaborating_churches, points_config FROM trips WHERE id = ? LIMIT 1");
         $tstmt->bind_param('i', $tripId);
         $tstmt->execute();
         $tres = $tstmt->get_result();
@@ -728,6 +744,22 @@ function processFastScanPoints()
             return;
         }
         $trip = $tres->fetch_assoc();
+
+        $pointsConfig = [];
+        if (!empty($trip['points_config'])) {
+            $pointsConfig = json_decode($trip['points_config'], true) ?? [];
+        }
+        $pointsPermission = $pointsConfig['points_permission'] ?? 'all';
+        if ($pointsPermission === 'disabled') {
+            sendJSON(['success' => false, 'message' => 'تم إيقاف تسجيل النقاط لهذه الرحلة']);
+            return;
+        } else if ($pointsPermission === 'admin') {
+            $role = strtolower($_SESSION['uncle_role'] ?? '');
+            if (!in_array($role, ['admin', 'developer', 'dev'])) {
+                sendJSON(['success' => false, 'message' => 'تسجيل النقاط متاح للمسؤولين فقط']);
+                return;
+            }
+        }
 
         // Check participating churches
         $participants = [$trip['church_id']];
