@@ -634,7 +634,7 @@
             align-items: center;
             gap: 6px;
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 9999px;
             background: rgba(255, 255, 255, 0.78);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
@@ -1563,20 +1563,6 @@
                             السريع</span>
                     </button>
                 </div>
-
-                <!-- Small Icons Underneath Them -->
-                <div class="other-tools-row-icons"
-                    style="display: flex; gap: 12px; justify-content: center; align-items: center;">
-                    <!-- Welcome Display Screen Circular Icon -->
-                    <button class="btn-welcome-icon" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
-                        <i class="fas fa-tv"></i>
-                    </button>
-
-                    <!-- Leaderboard Circular Icon -->
-                    <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الصدارة">
-                        <i class="fas fa-trophy"></i>
-                    </button>
-                </div>
             </div>
 
             <div id="loadingDetails" class="loading">
@@ -1599,8 +1585,23 @@
                 <div class="topbar-search-results" id="topbarSearchResultsMain" style="border-radius: 16px; margin-top: 8px;"></div>
             </div>
 
+            <!-- Small Icons Underneath Search Bar -->
+            <div class="other-tools-row-icons"
+                style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-bottom: 20px;">
+                <!-- Welcome Display Screen Circular Icon -->
+                <button class="btn-welcome-icon" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
+                    <i class="fas fa-tv"></i>
+                </button>
+
+                <!-- Leaderboard Circular Icon -->
+                <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الصدارة">
+                    <i class="fas fa-trophy"></i>
+                </button>
+            </div>
+
             <!-- Print cards footer text link -->
-            <div id="adminActions" style="display:none; justify-content:center; align-items:center; margin-top:30px; padding:15px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center;">
+            <div id="adminActions" style="display:none; justify-content:center; align-items:center; margin-top:30px; padding:15px 0; border-top:1px dashed var(--border-solid); width:100%; font-size:0.82rem; color:var(--text-3); text-align:center; gap:6px;">
+                <i class="fas fa-print" style="color:var(--brand); font-size:0.95rem;"></i>
                 <span>يمكنك طباعة كروت الـ QR للأطفال الخاصة بهذه الرحلة <a href="#" onclick="event.preventDefault(); printQRCards();" style="color:var(--brand); text-decoration:underline; font-weight:800;">من هنا</a>.</span>
             </div>
 
@@ -2498,10 +2499,10 @@
                         const signChar = sh.points >= 0 ? '+' : '';
                         const customBg = shColors[idx % shColors.length];
                         html += `
-                            <button class="shortcut-square-btn" onclick="executeShortcutAction(${idx}, event)" style="width:auto; min-width:62px; height:60px; padding:6px 12px; border-radius:12px; background:${customBg}; border:none; color:white !important; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                            <button class="shortcut-square-btn" onclick="executeShortcutAction(${idx}, event)" style="width:auto; min-width:62px; height:auto; min-height:64px; padding:8px 12px; border-radius:12px; background:${customBg}; border:none; color:white !important; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                                 <i class="${sh.icon || 'fas fa-star'}" style="font-size:1.1rem; color:white !important;"></i>
-                                <span class="name" style="font-size:0.65rem; font-weight:800; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 3px; color:white !important;">${sh.name}</span>
-                                <span class="value" style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:6px; font-family:'Outfit',sans-serif; color:white !important;">${signChar}${sh.points}</span>
+                                <span class="name" style="font-size:0.65rem; font-weight:800; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 3px; line-height:1.4; display:inline-block; color:white !important;">${sh.name}</span>
+                                <span class="value" style="font-size:0.7rem; font-weight:900; background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:6px; font-family:'Outfit',sans-serif; color:white !important; line-height:1.2;">${signChar}${sh.points}</span>
                             </button>
                         `;
                     });
@@ -3415,10 +3416,7 @@
                         card.innerHTML = `
                         <div class="field-card-header">
                             <div class="field-card-icon"><i class="${icon}"></i></div>
-                            <div>
-                                <div class="field-card-title">${field}</div>
-                                <div class="field-card-count">عرض الخيارات</div>
-                            </div>
+                            <span class="field-card-title">${field}</span>
                         </div>
                     `;
                         grid.appendChild(card);
@@ -3458,10 +3456,8 @@
                         card.innerHTML = `
                         <div class="field-card-header">
                             <div class="field-card-icon"><i class="${meta.icon || 'fas fa-tag'}"></i></div>
-                            <div>
-                                <div class="field-card-title">${val}</div>
-                                <div class="field-card-count">${kids.length} طفل</div>
-                            </div>
+                            <span class="field-card-title">${val}</span>
+                            <span class="field-card-count" style="font-size:0.65rem; background:rgba(91,108,245,0.08); color:var(--brand); padding:2px 6px; border-radius:12px; font-weight:700; margin-right:4px; margin-left:2px;">${kids.length} طفل</span>
                         </div>
                     `;
                         grid.appendChild(card);
@@ -3487,10 +3483,7 @@
                         card.innerHTML = `
                         <div class="field-card-header">
                             <div class="field-card-icon"><i class="${sf.icon || 'fas fa-sitemap'}"></i></div>
-                            <div>
-                                <div class="field-card-title">${sf.name}</div>
-                                <div class="field-card-count">عرض الخيارات</div>
-                            </div>
+                            <span class="field-card-title">${sf.name}</span>
                         </div>
                     `;
                         grid.appendChild(card);
