@@ -1174,18 +1174,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     /* ══ TRIPS ═══════════════════════════════════════════ */
+    #tripList {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
     .trip-card {
-      border-radius: var(--r-lg);
+      border-radius: var(--r-md);
       overflow: hidden;
       border: 1px solid var(--bdr);
-      margin-bottom: 12px;
       background: var(--surf);
       transition: var(--norm);
       cursor: pointer;
-    }
-
-    .trip-card:last-child {
-      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
 
     .trip-card:hover {
@@ -1196,7 +1200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     .trip-thumb {
       width: 100%;
-      height: 160px;
+      height: 120px;
       object-fit: cover;
       display: block;
       background: linear-gradient(135deg, #0c4a6e, #0369a1);
@@ -1204,19 +1208,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     .trip-thumb-placeholder {
       width: 100%;
-      height: 160px;
+      height: 120px;
       background: linear-gradient(135deg, #1e3a5f 0%, #0369a1 50%, #0ea5e9 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       color: rgba(255, 255, 255, .5);
-      font-size: 2.5rem;
-      gap: 8px;
+      font-size: 2rem;
+      gap: 6px;
     }
 
     .trip-thumb-placeholder span {
-      font-size: .8rem;
+      font-size: .75rem;
       font-weight: 600;
     }
 
@@ -1227,8 +1231,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     .trip-price-overlay {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
+      bottom: 8px;
+      left: 8px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -1237,10 +1241,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .trip-price-pill {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 12px;
+      gap: 4px;
+      padding: 3px 8px;
       border-radius: var(--r-full);
-      font-size: .8rem;
+      font-size: .68rem;
       font-weight: 800;
       backdrop-filter: blur(12px);
     }
@@ -1254,16 +1258,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .trip-price-pill.remaining {
       background: rgba(220, 38, 38, .85);
       color: #fff;
-      font-size: .72rem;
+      font-size: .62rem;
     }
 
     .trip-status-overlay {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 4px 10px;
+      top: 8px;
+      right: 8px;
+      padding: 3px 8px;
       border-radius: var(--r-full);
-      font-size: .7rem;
+      font-size: .62rem;
       font-weight: 700;
       backdrop-filter: blur(10px);
     }
@@ -1289,40 +1293,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .trip-body {
-      padding: 13px 15px 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
 
     .trip-title {
-      font-size: .95rem;
+      font-size: .84rem;
       font-weight: 800;
       color: var(--t1);
-      margin-bottom: 6px;
+      line-height: 1.3;
+      margin-bottom: 4px;
     }
 
     .trip-desc {
-      font-size: .78rem;
+      font-size: .74rem;
       color: var(--t3);
-      line-height: 1.55;
-      margin-bottom: 9px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .trip-meta-row {
+      margin-top: auto;
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
+      gap: 5px;
       align-items: center;
+      padding-top: 6px;
     }
 
     .trip-meta-chip {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: .71rem;
+      gap: 3px;
+      font-size: .64rem;
       color: var(--t3);
-      padding: 3px 9px;
+      padding: 2px 7px;
       border-radius: var(--r-full);
       background: var(--s2);
       border: 1px solid var(--bdr);
+    }
+
+    @media (max-width: 480px) {
+      #tripList {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .trip-body {
+        padding: 8px;
+      }
+      .trip-contact-bar {
+        font-size: .64rem;
+        padding: 6px 8px;
+        gap: 4px;
+      }
+      .trip-contact-action {
+        width: 100%;
+        margin-top: 4px;
+        justify-content: center;
+        padding: 3px 6px;
+        font-size: .62rem;
+      }
+      .kids-strip .ka {
+        width: 22px;
+        height: 22px;
+        font-size: .55rem;
+      }
     }
 
     /* not-registered contact bar on trip card */
@@ -3969,6 +4011,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <i class="fas fa-church"></i><span id="churchName"></span>
       </div>
       <div class="hero-actions-top">
+        <div class="hero-ico-btn" id="notifBtnTop" style="display:none; position:relative;" onclick="openOv('notifOv')"
+          title="الإشعارات">
+          <i class="fas fa-bell"></i>
+          <span id="notifBadgeTop" style="display:none; position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 4px; background:var(--err); color:#fff; font-size:.62rem; font-weight:800; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-sizing:border-box;">0</span>
+        </div>
         <div class="hero-ico-btn" id="switchBtnTop" style="display:none" onclick="openOv('switchOv')"
           title="تبديل الحساب"><i class="fas fa-exchange-alt"></i></div>
         <div class="hero-ico-btn" id="settingsTop" style="display:none" onclick="openOv('settingsOv')"
@@ -4687,6 +4734,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
   </nav>
 
+  <!-- Notifications Drawer -->
+  <div class="overlay settings-overlay" id="notifOv">
+    <div class="settings-sheet" style="max-height: 92vh; display:flex; flex-direction:column;">
+      <div class="ss-handle"></div>
+      <div style="padding:14px 22px 10px;border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--warn-bg);color:var(--warn-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-bell"></i>
+        </div>
+        <div style="flex:1;min-width:0;text-align:right;direction:rtl;">
+          <div style="font-size:1rem;font-weight:800;color:var(--t1);">الإشعارات والإعلانات</div>
+          <div style="font-size:.72rem;color:var(--t4);margin-top:1px;">كل جديد يخصك هيظهر هنا أولاً</div>
+        </div>
+      </div>
+      <div id="notifListModal" style="padding:16px 18px; overflow-y:auto; flex:1; max-height:calc(92vh - 120px); text-align:right; direction:rtl;"></div>
+      <button class="ss-close-btn" onclick="closeOv('notifOv')" style="flex-shrink:0;">إغلاق</button>
+    </div>
+  </div>
+
   <!-- Account Switch -->
   <div class="overlay settings-overlay" id="switchOv">
     <div class="settings-sheet">
@@ -5036,6 +5101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('scTrips').style.display = 'block';
       document.getElementById('scPaperExams').style.display = 'block';
       document.getElementById('settingsTop').style.display = 'flex';
+      document.getElementById('notifBtnTop').style.display = 'flex';
       document.getElementById('avatarEdit').classList.add('show');
 
       // edit form prefill
@@ -5552,6 +5618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('scTrips').style.display = 'none';
       document.getElementById('pubBanner').style.display = 'none';
       document.getElementById('settingsTop').style.display = 'none';
+      document.getElementById('notifBtnTop').style.display = 'none';
       const scSendCoupons = document.getElementById('scSendCoupons');
       if (scSendCoupons) scSendCoupons.style.display = 'none';
       const homeSearchBar = document.getElementById('homeSearchBar');
@@ -5621,6 +5688,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('friendBanner').style.display = 'none';
       document.getElementById('pubBanner').style.display = 'none';
       document.getElementById('settingsTop').style.display = 'flex';
+      document.getElementById('notifBtnTop').style.display = 'flex';
 
       // Restore nav bar and switch to home tab cleanly
       document.getElementById('bottomNavBar').style.display = 'flex';
@@ -6798,44 +6866,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
 
         const banner = document.getElementById('scAnnBanner');
-        const bannerList = document.getElementById('annBannerList');
         const card = document.getElementById('scAnn');
-        const cardList = document.getElementById('annList');
-        const annSub = document.getElementById('annSub');
-        const annBadge = document.getElementById('annBadge');
+        if (banner) banner.style.display = 'none';
+        if (card) card.style.display = 'none';
 
-        // 2. Render the Announcements Section Card (if present)
+        // 2. Filter active announcements
         const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
         const activeAnns = anns.filter(ann => {
           const idKey = isNaN(ann.id) ? String(ann.id) : parseInt(ann.id);
           return !dismissedIds.includes(idKey);
         });
 
-        if (activeAnns.length > 0) {
-          if (annSub) annSub.textContent = `${activeAnns.length} إعلان${activeAnns.length > 1 ? 'ات' : ''} موجه ليك`;
-          if (annBadge) annBadge.textContent = String(activeAnns.length);
+        // 3. Update the Top Action Header Notification Badge
+        const notifBadgeTop = document.getElementById('notifBadgeTop');
+        if (notifBadgeTop) {
+          if (activeAnns.length > 0) {
+            notifBadgeTop.textContent = String(activeAnns.length);
+            notifBadgeTop.style.display = 'flex';
+          } else {
+            notifBadgeTop.style.display = 'none';
+          }
+        }
 
-          const latestCard = activeAnns[0];
-          const buttonCount = activeAnns.filter(a => (a.type === 'button' || a.type === 'developer') && a.link).length;
-          const messageCount = activeAnns.length - buttonCount;
-          const remainingAnns = activeAnns.slice(1);
-
-          let remainingHtml = '';
-          if (remainingAnns.length > 0) {
-            remainingHtml = `
-              <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-3); margin: 15px 0 10px 0; border-bottom: 1.5px solid var(--bdr); padding-bottom: 6px;">الإعلانات السابقة</div>
-              <div class="ann-list">
-                ${remainingAnns.map(a => {
-                  const imgHtml = a.image_url ? `<div style="margin: 8px 0;"><img src="${esc(a.image_url)}" style="max-width:100%; border-radius:12px; border:1px solid var(--bdr); max-height:180px; object-fit:cover;"/></div>` : '';
-                  const descHtml = a.description ? `<div style="font-size:0.8rem; color:var(--text-2); line-height:1.5; margin-bottom:8px; white-space:pre-wrap;">${esc(a.description)}</div>` : '';
+        // 4. Render to the Overlay modal list
+        const notifListModal = document.getElementById('notifListModal');
+        if (notifListModal) {
+          if (activeAnns.length > 0) {
+            notifListModal.innerHTML = `
+              <div class="ann-list" style="display:flex; flex-direction:column; gap:12px;">
+                ${activeAnns.map(a => {
+                  const imgHtml = a.image_url ? `<div style="margin: 8px 0;"><img src="${esc(a.image_url)}" style="max-width:100%; border-radius:12px; border:1px solid var(--bdr); max-height:180px; object-fit:cover; display:block;"/></div>` : '';
+                  const descHtml = a.description ? `<div style="font-size:0.8rem; color:var(--t2); line-height:1.5; margin-bottom:8px; white-space:pre-wrap;">${esc(a.description)}</div>` : '';
                   const linkHtml = a.link ? `<a href="${esc(a.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-external-link-alt"></i> ${esc(a.button_text || 'فتح الرابط')}</a>` : '';
                   
                   return `
-                  <div class="ann-item">
+                  <div class="ann-item" style="padding-left: 20px;">
                     <div class="ann-top">
                       <span class="ann-type ${a.type === 'button' ? 'link' : (a.type === 'developer' ? 'dev' : '')}">
                         <i class="fas fa-${a.type === 'button' ? 'link' : (a.type === 'developer' ? 'code' : 'comment-dots')}"></i>
-                        ${a.type === 'button' ? 'إعلان برابط' : (a.type === 'developer' ? 'رسالة المطور' : 'إعلان نصي')}
+                        ${a.type === 'button' ? 'رابط سريع' : (a.type === 'developer' ? 'رسالة المطور' : 'إعلان')}
                       </span>
                       <span class="ann-date">${fmtDate(a.created_at)}</span>
                     </div>
@@ -6844,107 +6913,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                     ${descHtml}
                     <div class="ann-footer">
                       <span class="ann-meta-pill"><i class="fas fa-bullhorn"></i> من الكنيسة أو خدام الفصل</span>
-                      ${linkHtml}
-                      <button onclick="dismissSingleAnn('${a.id}')" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
+                      <div style="display:flex; gap:8px; align-items:center; margin-right:auto;">
+                        ${linkHtml}
+                        <button onclick="dismissSingleAnn('${a.id}')" style="background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
+                      </div>
                     </div>
                   </div>`;
                 }).join('')}
-              </div>
-            `;
+              </div>`;
+          } else {
+            notifListModal.innerHTML = `
+              <div style="text-align:center; padding:40px 20px; color:var(--t4);">
+                <i class="fas fa-bell-slash" style="font-size:2.5rem; margin-bottom:12px; color:var(--bdr); display:block; margin-inline:auto;"></i>
+                <div style="font-weight:800; font-size:1rem; color:var(--t2); margin-bottom:4px;">لا توجد إشعارات جديدة</div>
+                <div style="font-size:.76rem;">أول ما ينزل إعلان جديد هتلاقيه هنا.</div>
+              </div>`;
           }
-
-          const latestImgHtml = latestCard.image_url ? `<div style="margin:12px 0;"><img src="${esc(latestCard.image_url)}" style="max-width:100%; border-radius:16px; border:1px solid var(--bdr); max-height:240px; object-fit:cover;"/></div>` : '';
-          const latestDescHtml = latestCard.description ? `<div style="font-size:0.88rem; color:var(--t2); line-height:1.6; margin-bottom:12px; white-space:pre-wrap;">${esc(latestCard.description)}</div>` : '';
-          const latestLinkHtml = latestCard.link ? `<a href="${esc(latestCard.link)}" target="_blank" class="ann-link-btn"><i class="fas fa-arrow-up-right-from-square"></i> ${esc(latestCard.button_text || 'فتح الرابط')}</a>` : '';
-
-          if (cardList) {
-            cardList.innerHTML = `
-          <div class="ann-shell">
-            <div class="ann-summary">
-              <div class="ann-highlight">
-                <div class="ann-highlight-badge"><i class="fas fa-sparkles"></i> أحدث إعلان</div>
-                <div class="ann-highlight-title">${latestCard.type === 'developer' ? 'رسالة من مطور النظام 💻' : (latestCard.type === 'button' ? 'إعلان فيه رابط مباشر' : 'رسالة جديدة ليك')}</div>
-                <div class="ann-highlight-text" style="font-weight:800; font-size:1.1rem; margin-bottom:8px;">${esc(latestCard.text)}</div>
-                ${latestImgHtml}
-                ${latestDescHtml}
-                <div class="ann-highlight-meta">
-                  <span class="ann-type ${latestCard.type === 'button' ? 'link' : (latestCard.type === 'developer' ? 'dev' : '')}">
-                    <i class="fas fa-${latestCard.type === 'button' ? 'link' : (latestCard.type === 'developer' ? 'code' : 'comment-dots')}"></i>
-                    ${latestCard.type === 'button' ? 'رابط سريع' : (latestCard.type === 'developer' ? 'رسالة المطور' : 'رسالة')}
-                  </span>
-                  <span class="ann-meta-pill"><i class="fas fa-clock"></i>${fmtDate(latestCard.created_at)}</span>
-                  ${latestLinkHtml}
-                  <button onclick="dismissSingleAnn('${latestCard.id}')" style="margin-right:auto; background:none; border:none; color:var(--danger, #ef4444); cursor:pointer; font-size:.78rem; font-weight:800; display:flex; align-items:center; gap:4px; padding:4px 8px; border-radius:4px;"><i class="fas fa-eye-slash"></i> إخفاء</button>
-                </div>
-              </div>
-              <div class="ann-summary-card">
-                <div class="ann-stat-grid">
-                  <div class="ann-stat">
-                    <span class="ann-stat-val">${activeAnns.length}</span>
-                    <span class="ann-stat-lbl">إجمالي الإعلانات</span>
-                  </div>
-                  <div class="ann-stat">
-                    <span class="ann-stat-val">${buttonCount}</span>
-                    <span class="ann-stat-lbl">روابط سريعة</span>
-                  </div>
-                  <div class="ann-stat">
-                    <span class="ann-stat-val">${messageCount}</span>
-                    <span class="ann-stat-lbl">رسائل</span>
-                  </div>
-                  <div class="ann-stat">
-                    <span class="ann-stat-val">${student.class ? esc(student.class) : 'عام'}</span>
-                    <span class="ann-stat-lbl">الفصل الحالي</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            ${remainingHtml}
-          </div>`;
-          }
-          if (card && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
-            card.style.display = 'block';
-          }
-        } else {
-          if (cardList) {
-            cardList.innerHTML = `
-            <div class="ann-empty">
-              <i class="fas fa-bullhorn"></i>
-              <strong>لا توجد إعلانات حالياً</strong>
-              <span>أول ما ينزل إعلان جديد من الخدام أو الكنيسة هتلاقيه هنا.</span>
-            </div>`;
-          }
-          if (annSub) annSub.textContent = 'لا توجد تحديثات جديدة الآن';
-          if (annBadge) annBadge.textContent = '0';
-          if (card) card.style.display = 'none';
-        }
-
-        // 3. Handle top announcement notification banner
-        if (!activeAnns.length) {
-          if (banner) banner.style.display = 'none';
-          return;
-        }
-
-        const latest = activeAnns[0];
-        latestBannerAnnId = isNaN(latest.id) ? String(latest.id) : parseInt(latest.id);
-
-        let linkBtn = '';
-        if (latest.link) {
-          linkBtn = `<a href="${esc(latest.link)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--brand);color:#fff;padding:4px 10px;border-radius:var(--r-xs);text-decoration:none;font-weight:800;font-size:.74rem;margin-top:6px;width:fit-content;"><i class="fas fa-external-link-alt"></i> ${esc(latest.button_text || 'فتح الرابط')}</a>`;
-        }
-
-        if (bannerList) {
-          bannerList.innerHTML = `
-            <div style="font-weight:700;font-size:.84rem;color:var(--t1);">${esc(latest.text)}</div>
-            ${linkBtn}
-          `;
-        }
-
-        if (banner && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') === 'home') {
-          banner.style.display = 'block';
         }
       } catch (e) {
-        const banner = document.getElementById('scAnnBanner');
-        if (banner) banner.style.display = 'none';
+        console.error(e);
       }
     }
 
@@ -7404,18 +7391,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (hero) hero.style.display = 'flex';
         if (scInfo) scInfo.style.display = 'block';
         if (scTrips) scTrips.style.display = 'block';
-        
-        // Show announcements banner at top if we have active announcements
-        const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
-        const activeAnns = allAnnouncements.filter(ann => !dismissedIds.includes(parseInt(ann.id)));
-
-        if (activeAnns.length > 0 && scAnnBanner) {
-           scAnnBanner.style.display = 'block';
-        }
-        // Show announcements section card if we have any active announcements
-        if (activeAnns.length > 0 && scAnn) {
-           scAnn.style.display = 'block';
-        }
         
         if (!IS_PUBLIC) {
            if (statsBar) statsBar.style.display = 'flex';
