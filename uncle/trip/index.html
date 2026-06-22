@@ -1935,7 +1935,7 @@
                     </div>
 
                     <!-- Form Control: Points Recording Permission -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                    <div id="settingPointsPermissionContainer" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تسجيل النقاط</span>
                             <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط للرحلة</span>
@@ -2887,6 +2887,15 @@
                 document.getElementById('settingLeaderboardNotifs').checked = leaderboardNotifs;
                 document.getElementById('settingNaughtyNotifs').checked = naughtyNotifs;
                 document.getElementById('settingPointsPermission').value = pointsPermission;
+
+                const pointsPermContainer = document.getElementById('settingPointsPermissionContainer');
+                if (pointsPermContainer) {
+                    if (currentTrip && currentTrip.is_owner === 1) {
+                        pointsPermContainer.style.setProperty('display', 'flex', 'important');
+                    } else {
+                        pointsPermContainer.style.setProperty('display', 'none', 'important');
+                    }
+                }
 
                 document.getElementById('tripSettingsModal').style.setProperty('display', 'flex', 'important');
             }
