@@ -1515,6 +1515,7 @@
                 width: 100%;
                 margin-top: auto;
                 margin-bottom: auto;
+                transform: translateY(-60px);
             }
         }
     </style>
@@ -1546,7 +1547,7 @@
 
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
-            <div class="hero-strip" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px;">
+            <div class="hero-strip" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: ltr;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
                         style="border:none; background:var(--surface-3); color:var(--text-2); padding:8px 14px; border-radius:var(--r-md); margin:0; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -1583,9 +1584,9 @@
 
                 <!-- Scanner Buttons Under Search (Smaller, Fit Content, Centered) -->
                 <div class="scanner-tools-container"
-                    style="display: flex; justify-content: center; align-items: center; gap: 0; margin: 10px auto 20px auto; width: 100%;">
+                    style="display: flex; justify-content: center; align-items: center; gap: 8px; margin: 10px auto 20px auto; width: 100%;">
                     <div class="scanner-hero-row"
-                        style="display: flex; gap: 0; justify-content: center; align-items: center;">
+                        style="display: flex; gap: 8px; justify-content: center; align-items: center;">
                         <!-- Standard Scanner (Points - Profile Icon) -->
                         <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
                             style="margin: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--success); text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
@@ -1626,21 +1627,21 @@
 
         <!-- VIEW: GROUP FILTER -->
         <div id="viewGroupFilter" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
+            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: ltr;">
                 <button class="topbar-btn" onclick="navigateTo('dashboard')"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
                 </button>
                 <div class="hero-greeting" id="filterLabel">جاري التحميل...</div>
                 <span id="kidsCountLabel"
-                    style="font-size:0.75rem; color:var(--text-3); font-weight:700; margin-right: auto; padding: 4px 8px; background:var(--surface-3); border-radius: var(--r-sm);"></span>
+                    style="font-size:0.75rem; color:var(--text-3); font-weight:700; margin-left: auto; padding: 4px 8px; background:var(--surface-3); border-radius: var(--r-sm);"></span>
             </div>
             <div class="kids-list" id="kidsList"></div>
         </div>
 
         <!-- VIEW: STUDENT PROFILE -->
         <div id="viewStudentProfile" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
+            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: ltr;">
                 <button class="topbar-btn" onclick="goBackFromProfile()"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
@@ -1722,7 +1723,7 @@
 
         <!-- VIEW: FAST SCAN -->
         <div id="viewFastScan" class="view-section">
-            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px;">
+            <div class="hero-strip" style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: ltr;">
                 <button class="topbar-btn" onclick="navigateTo('dashboard')"
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
@@ -1730,7 +1731,7 @@
                 <div class="hero-greeting">الماسح السريع للنقاط</div>
 
                 <div class="scanner-source-tabs"
-                    style="display:flex;background:var(--surface-3);padding:3px;border-radius:var(--r-md);margin-bottom:0;gap:4px;direction:rtl;margin-right:auto;flex:1;max-width:200px;">
+                    style="display:flex;background:var(--surface-3);padding:3px;border-radius:var(--r-md);margin-bottom:0;gap:4px;direction:rtl;margin-left:auto;flex:1;max-width:200px;">
                     <button type="button" id="fast_tab_camera" class="scanner-source-tab"
                         onclick="switchFastScanSource('camera')">
                         <i class="fas fa-camera"></i> الكاميرا
