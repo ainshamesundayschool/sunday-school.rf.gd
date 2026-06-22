@@ -1502,6 +1502,20 @@
                 grid-template-columns: 1fr !important;
                 gap: 8px;
             }
+            #viewTripDetails.active {
+                display: flex !important;
+                flex-direction: column;
+                min-height: calc(100vh - 80px);
+            }
+            .trip-middle-centered-content {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                flex-grow: 1;
+                width: 100%;
+                margin-top: auto;
+                margin-bottom: auto;
+            }
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -1548,59 +1562,62 @@
                 <i class="fas fa-circle-notch fa-spin"></i><br><br>جاري التحميل...
             </div>
 
-            <!-- Custom Fields as Chips (above centered search) -->
-            <div id="fieldsBreadcrumbs"
-                style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:var(--r-lg); border:1px solid var(--border);">
-            </div>
-            <div class="fields-grid" id="fieldsGrid"></div>
-
-
-            <!-- Center Search Bar under Filters -->
-            <div class="main-search-wrap" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
-                <div style="position: relative;">
-                    <input type="text" class="topbar-search-input" id="topbarSearchMain" placeholder="ابحث عن طفل بالاسم..."
-                        oninput="topbarSearchHandler('topbarSearchMain', 'topbarSearchResultsMain')" style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
-                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+            <!-- Middle Centered Content Container for Mobile Vertical Center -->
+            <div class="trip-middle-centered-content">
+                <!-- Custom Fields as Chips (above centered search) -->
+                <div id="fieldsBreadcrumbs"
+                    style="display:none; gap:8px; align-items:center; margin-bottom:15px; font-size:0.85rem; color:var(--muted); background:var(--bg); padding:10px 15px; border-radius:var(--r-lg); border:1px solid var(--border);">
                 </div>
-                <div class="topbar-search-results" id="topbarSearchResultsMain" style="border-radius: 16px; margin-top: 8px;"></div>
-            </div>
+                <div class="fields-grid" id="fieldsGrid"></div>
 
-            <!-- Scanner Buttons Under Search (Smaller, Fit Content, Centered) -->
-            <div class="scanner-tools-container"
-                style="display: flex; justify-content: center; align-items: center; gap: 8px; margin: 10px auto 20px auto; width: 100%;">
-                <div class="scanner-hero-row"
-                    style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                    <!-- Standard Scanner (Points - Profile Icon) -->
-                    <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
-                        style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; background: var(--success); text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
-                        <i class="fas fa-user" style="font-size: 0.85rem; color: white;"></i>
-                        <span class="btn-camera-text"
-                            style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">بروفايل الطفل</span>
+
+                <!-- Center Search Bar under Filters -->
+                <div class="main-search-wrap" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto 20px auto; z-index: 10;">
+                    <div style="position: relative;">
+                        <input type="text" class="topbar-search-input" id="topbarSearchMain" placeholder="ابحث عن طفل بالاسم..."
+                            oninput="topbarSearchHandler('topbarSearchMain', 'topbarSearchResultsMain')" style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
+                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+                    </div>
+                    <div class="topbar-search-results" id="topbarSearchResultsMain" style="border-radius: 16px; margin-top: 8px;"></div>
+                </div>
+
+                <!-- Scanner Buttons Under Search (Smaller, Fit Content, Centered) -->
+                <div class="scanner-tools-container"
+                    style="display: flex; justify-content: center; align-items: center; gap: 0; margin: 10px auto 20px auto; width: 100%;">
+                    <div class="scanner-hero-row"
+                        style="display: flex; gap: 0; justify-content: center; align-items: center;">
+                        <!-- Standard Scanner (Points - Profile Icon) -->
+                        <button class="btn-camera-big" onclick="startScannerV2()" title="مسح كود QR للأطفال"
+                            style="margin: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--success); text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
+                            <i class="fas fa-user" style="font-size: 0.85rem; color: white;"></i>
+                            <span class="btn-camera-text"
+                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">بروفايل الطفل</span>
+                        </button>
+
+                        <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
+                        <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')"
+                            title="الماسح السريع للنقاط"
+                            style="margin: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 12px; text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
+                            <i class="fas fa-qrcode" style="font-size: 0.85rem; color: white;"></i>
+                            <span class="btn-camera-text"
+                                style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">الماسح السريع</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Small Icons Underneath Search Bar -->
+                <div class="other-tools-row-icons"
+                    style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-bottom: 20px;">
+                    <!-- Welcome Display Screen Circular Icon -->
+                    <button class="btn-welcome-icon" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
+                        <i class="fas fa-tv"></i>
                     </button>
 
-                    <!-- Fast Points Scanner (Fast Scan - Scan Icon) -->
-                    <button class="btn-camera-big btn-coupon-fast" onclick="navigateTo('fast_scan')"
-                        title="الماسح السريع للنقاط"
-                        style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; text-decoration: none; width: auto; height: auto; min-height: 0; border-radius: 20px; box-shadow: var(--shadow-sm); cursor: pointer; border: none; outline: none;">
-                        <i class="fas fa-qrcode" style="font-size: 0.85rem; color: white;"></i>
-                        <span class="btn-camera-text"
-                            style="color: white; font-size: 0.78rem; font-weight: 800; white-space: nowrap;">الماسح السريع</span>
+                    <!-- Leaderboard Circular Icon -->
+                    <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الأوائل">
+                        <i class="fas fa-trophy"></i>
                     </button>
                 </div>
-            </div>
-
-            <!-- Small Icons Underneath Search Bar -->
-            <div class="other-tools-row-icons"
-                style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-bottom: 20px;">
-                <!-- Welcome Display Screen Circular Icon -->
-                <button class="btn-welcome-icon" onclick="openWelcomeScreen()" title="شاشة العرض والترحيب بالأطفال">
-                    <i class="fas fa-tv"></i>
-                </button>
-
-                <!-- Leaderboard Circular Icon -->
-                <button class="btn-leaderboard-icon" onclick="openLeaderboard()" title="لوحة الأوائل">
-                    <i class="fas fa-trophy"></i>
-                </button>
             </div>
 
 
