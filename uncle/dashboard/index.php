@@ -9065,9 +9065,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
                 <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
                     style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
-                <button class="btn btn-secondary" id="pwaNotifBtn" onclick="requestNotifPermission()"
-                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> السماح
-                    بالإشعارات</button>
+                <button class="btn btn-secondary" id="pwaNotifBtn" onclick="toggleNotificationsFromModal()"
+                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> <span>السماح بالإشعارات</span></button>
                 <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس
                     الآن</button>
             </div>
@@ -19747,44 +19746,58 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Shows/hides all notification buttons based on current Notification.permission
         function _updateNotifBtnVisibility() {
             const perm = ('Notification' in window) ? Notification.permission : 'denied';
-            const isDefault = perm === 'default';
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                 || window.navigator.standalone === true;
 
             // Only show notification buttons if PushManager + ServiceWorker are supported
             const pushSupported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
 
-            // Show bell in topbar only if not yet asked AND not standalone (PWA)
+            // Hide old/standalone notifications toggle button from showing elsewhere
             const notifBtn = document.getElementById('notifPermBtn');
-            if (notifBtn) notifBtn.style.display = (pushSupported && isDefault && !isStandalone) ? 'flex' : 'none';
-
-            const pwaNotifBtn = document.getElementById('pwaNotifBtn');
-            if (pwaNotifBtn) pwaNotifBtn.style.display = (pushSupported && isDefault) ? 'flex' : 'none';
+            if (notifBtn) notifBtn.style.display = 'none';
 
             const offlineNotifBtn = document.getElementById('offlineNotifBtn');
-            if (offlineNotifBtn) offlineNotifBtn.style.display = (pushSupported && isDefault && isStandalone) ? 'flex' : 'none';
+            if (offlineNotifBtn) offlineNotifBtn.style.display = 'none';
 
-            // Dynamically update the unified topbarDownloadBtn title
-            const dlBtn = document.getElementById('topbarDownloadBtn');
-            if (dlBtn) {
+            const pwaNotifBtn = document.getElementById('pwaNotifBtn');
+            if (pwaNotifBtn) {
+                pwaNotifBtn.style.display = 'flex';
                 if (!pushSupported) {
-                    dlBtn.title = "تنزيل التطبيق";
+                    pwaNotifBtn.querySelector('span').textContent = 'الإشعارات غير مدعومة بالمتصفح';
+                    pwaNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
+                } else if (perm === 'denied') {
+                    pwaNotifBtn.querySelector('span').textContent = 'الإشعارات محظورة بالمتصفح';
+                    pwaNotifBtn.querySelector('i').className = 'fas fa-exclamation-triangle';
+                } else if (perm === 'default') {
+                    pwaNotifBtn.querySelector('span').textContent = 'السماح بالإشعارات';
+                    pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
                 } else if (perm === 'granted') {
                     navigator.serviceWorker.ready.then(async reg => {
                         const sub = await reg.pushManager.getSubscription();
                         if (sub) {
-                            dlBtn.title = "تنزيل التطبيق / إيقاف الإشعارات";
+                            pwaNotifBtn.querySelector('span').textContent = 'إيقاف الإشعارات';
+                            pwaNotifBtn.style.setProperty('background', 'var(--danger-bg)', 'important');
+                            pwaNotifBtn.style.setProperty('color', 'var(--danger)', 'important');
+                            pwaNotifBtn.style.setProperty('border-color', 'var(--danger)', 'important');
+                            pwaNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
                         } else {
-                            dlBtn.title = "تنزيل التطبيق / تفعيل الإشعارات";
+                            pwaNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                            pwaNotifBtn.style.background = '';
+                            pwaNotifBtn.style.color = '';
+                            pwaNotifBtn.style.borderColor = '';
+                            pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
                         }
                     }).catch(() => {
-                        dlBtn.title = "تنزيل التطبيق والإشعارات";
+                        pwaNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                        pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
                     });
-                } else if (perm === 'default') {
-                    dlBtn.title = "تنزيل التطبيق / تفعيل الإشعارات";
-                } else {
-                    dlBtn.title = "تنزيل التطبيق (الإشعارات محظورة)";
                 }
+            }
+
+            // Dynamically update the unified topbarDownloadBtn title
+            const dlBtn = document.getElementById('topbarDownloadBtn');
+            if (dlBtn) {
+                dlBtn.title = "تنزيل التطبيق وضبط الإشعارات";
             }
         }
 
@@ -19901,12 +19914,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function handleTopbarDownloadClick() {
-            // 1. Download as app (PWA installation):
+            // Only open the modal with instructions & settings. Do not toggle notifications.
             triggerPwaInstall();
+        }
 
-            // 2. Enable or disable notifications:
+        async function toggleNotificationsFromModal() {
             if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-                showToast('المتصفح لا يدعم الإشعارات', 'warning');
+                showToast('المتصفح الحالي لا يدعم الإشعارات. يرجى تثبيت التطبيق (إضافته للشاشة الرئيسية) وتفعيله منه. 📲', 'warning', 6000);
                 return;
             }
 
@@ -19915,7 +19929,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 let sub = await reg.pushManager.getSubscription();
 
                 if (Notification.permission === 'default') {
-                    // Ask permission
                     await requestNotifPermission();
                 } else if (Notification.permission === 'granted') {
                     if (sub) {
@@ -19935,7 +19948,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                     _updateNotifBtnVisibility();
                 } else if (Notification.permission === 'denied') {
-                    showToast('الإشعارات محظورة في إعدادات المتصفح', 'warning');
+                    showToast('الإشعارات محظورة في إعدادات المتصفح. تأكد من السماح بها أو افتح التطبيق بعد إضافته للشاشة الرئيسية. 📲', 'warning', 6000);
                 }
             } catch (e) {
                 console.error("Error toggling notifications:", e);

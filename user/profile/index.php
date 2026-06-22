@@ -8022,7 +8022,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         console.warn("Push notifications not supported on this browser.");
-        toggleRow.style.display = 'none';
+        checkbox.checked = false;
+        checkbox.disabled = true;
+        toggleRow.style.display = 'flex';
+        toggleRow.style.cursor = 'pointer';
+        toggleRow.onclick = () => {
+          toast('يرجى إضافة التطبيق للشاشة الرئيسية (تثبيت كـ Web App) لتفعيل الإشعارات 📲', 'err', 6000);
+        };
         return;
       }
 
@@ -8031,6 +8037,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         checkbox.checked = false;
         checkbox.disabled = true;
         toggleRow.style.display = 'flex';
+        toggleRow.style.cursor = 'pointer';
+        toggleRow.onclick = () => {
+          toast('الإشعارات محظورة. يرجى السماح بها من إعدادات المتصفح أو افتح التطبيق بعد إضافته للشاشة الرئيسية 📲', 'err', 6000);
+        };
         return;
       }
 
