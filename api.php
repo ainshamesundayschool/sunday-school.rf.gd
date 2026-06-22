@@ -338,7 +338,7 @@ function processGameQRCode()
 
         // Load trip to check collaborating churches
 
-        $tstmt = $conn->prepare("SELECT id, church_id, points_config, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+        $tstmt = $conn->prepare("SELECT id, title, church_id, points_config, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
 
         $tstmt->bind_param('i', $tripId);
 
@@ -625,6 +625,42 @@ function processGameQRCode()
 
         if ($undoingLogId <= 0) {
             _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $student['name'], $churchId);
+
+            if ($game_action === 'naughty') {
+                $pointsConfig = json_decode($trip['points_config'] ?? '', true);
+                $naughtyEnabled = isset($pointsConfig['notifications']['naughty']) ? (bool)$pointsConfig['notifications']['naughty'] : true; // default on
+
+                if ($naughtyEnabled) {
+                    $tripTitle = $trip['title'] ?? 'الرحلة';
+                    if (empty($tripTitle) || $tripTitle === 'الرحلة') {
+                        $tstmt2 = $conn->prepare("SELECT title FROM trips WHERE id = ? LIMIT 1");
+                        $tstmt2->bind_param('i', $tripId);
+                        if ($tstmt2->execute()) {
+                            $tres2 = $tstmt2->get_result()->fetch_assoc();
+                            if ($tres2) $tripTitle = $tres2['title'];
+                        }
+                    }
+
+                    $title = $isNaughty ? "⚠️ تنبيه سلوك (شغب)!" : "✅ إلغاء تنبيه السلوك";
+                    $body = $isNaughty 
+                        ? "تم تسجيل حالة شغب للطفل {$student['name']} في رحلة {$tripTitle}."
+                        : "تم إلغاء حالة الشغب للطفل {$student['name']} في رحلة {$tripTitle}.";
+
+                    $extra = [
+                        'notifType' => 'naughty_status',
+                        'trip_id' => $tripId,
+                        'student_id' => $studentId,
+                        'is_naughty' => $isNaughty
+                    ];
+
+                    _sendWebPushToChurch($conn, $churchId, $title, $body, $extra);
+                    _sendWebPushToKids($conn, $churchId, $title, $body, $extra);
+
+                    if (function_exists('pushNotification')) {
+                        pushNotification($conn, $churchId, 'naughty_status', $title, $body, 'naughty_status', $tripId);
+                    }
+                }
+            }
         }
 
         sendJSON([
@@ -45152,29 +45188,34 @@ function _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $s
     if ($newRank !== null && $newRank <= 10) {
         if ($oldRank === null || $newRank < $oldRank) {
             $tripTitle = "الرحلة";
-            $tstmt = $conn->prepare("SELECT title FROM trips WHERE id = ? LIMIT 1");
+            $leaderboardEnabled = false; // default off
+            $tstmt = $conn->prepare("SELECT title, points_config FROM trips WHERE id = ? LIMIT 1");
             $tstmt->bind_param('i', $tripId);
             if ($tstmt->execute()) {
                 $tres = $tstmt->get_result()->fetch_assoc();
                 if ($tres) {
                     $tripTitle = $tres['title'];
+                    $pointsConfig = json_decode($tres['points_config'] ?? '', true);
+                    $leaderboardEnabled = isset($pointsConfig['notifications']['leaderboard']) ? (bool)$pointsConfig['notifications']['leaderboard'] : false;
                 }
             }
             
-            $title = "🏆 تحديث لوحة الأوائل!";
-            $body = "{$studentName} صعد للمركز الـ {$newRank} في لوحة أوائل رحلة {$tripTitle}! 🎉";
-            $extra = [
-                'notifType' => 'leaderboard_upgrade',
-                'trip_id' => $tripId,
-                'student_id' => $studentId,
-                'rank' => $newRank
-            ];
-            
-            _sendWebPushToChurch($conn, $churchId, $title, $body, $extra);
-            _sendWebPushToKids($conn, $churchId, $title, $body, $extra);
-            
-            if (function_exists('pushNotification')) {
-                pushNotification($conn, $churchId, 'leaderboard_upgrade', $title, $body, 'leaderboard_upgrade', $tripId);
+            if ($leaderboardEnabled) {
+                $title = "🏆 تحديث لوحة الأوائل!";
+                $body = "{$studentName} صعد للمركز الـ {$newRank} في لوحة أوائل رحلة {$tripTitle}! 🎉";
+                $extra = [
+                    'notifType' => 'leaderboard_upgrade',
+                    'trip_id' => $tripId,
+                    'student_id' => $studentId,
+                    'rank' => $newRank
+                ];
+                
+                _sendWebPushToChurch($conn, $churchId, $title, $body, $extra);
+                _sendWebPushToKids($conn, $churchId, $title, $body, $extra);
+                
+                if (function_exists('pushNotification')) {
+                    pushNotification($conn, $churchId, 'leaderboard_upgrade', $title, $body, 'leaderboard_upgrade', $tripId);
+                }
             }
         }
     }

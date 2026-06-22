@@ -1207,6 +1207,27 @@
             text-align: center;
         }
 
+        /* Switch Toggle Styles */
+        .switch-toggle input:checked + .switch-slider {
+            background-color: var(--brand) !important;
+            border-color: var(--brand) !important;
+        }
+        .switch-toggle input:checked + .switch-slider::before {
+            transform: translateX(-20px);
+            background-color: white !important;
+        }
+        .switch-slider::before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            right: 3px;
+            bottom: 2.5px;
+            background-color: var(--text-3);
+            transition: .3s;
+            border-radius: 50%;
+        }
+
         .points-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -1519,6 +1540,19 @@
                 margin-bottom: auto;
                 transform: translateY(-60px);
             }
+            #fastReader {
+                aspect-ratio: 1 / 1 !important;
+                width: 100% !important;
+                min-height: unset !important;
+                height: unset !important;
+            }
+            #fastReader video,
+            #fastReader canvas,
+            #fastReader img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+            }
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -1549,7 +1583,7 @@
 
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
-            <div class="hero-strip" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: rtl;">
+            <div class="hero-strip" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: rtl; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
                         style="border:none; background:var(--surface-3); color:var(--text-2); padding:8px 14px; border-radius:var(--r-md); margin:0; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -1557,6 +1591,10 @@
                     </button>
                     <div class="hero-greeting" id="detailTripTitle" style="font-size: 1.15rem; font-weight: 900; color: var(--text);">الرحلة</div>
                 </div>
+                <!-- Trip Settings Button (visible only to admins) -->
+                <button id="btnTripSettings" onclick="openTripSettingsModal()" style="display: none; border: none; background: var(--surface-3); color: var(--text-2); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; justify-content: center; align-items: center; transition: all 0.2s;" title="إعدادات الرحلة" onmouseover="this.style.transform='scale(1.05)'; this.style.background='var(--border-solid)';" onmouseout="this.style.transform='none'; this.style.background='var(--surface-3)';">
+                    <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
+                </button>
             </div>
 
 
@@ -1790,6 +1828,56 @@
                 </div>
                 <div id="shortcutsInfoModalBody" style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; text-align:right;">
                     <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Settings Modal -->
+        <div id="tripSettingsModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
+            <div
+                style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:400px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
+                    <h3 style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-cog" style="color:var(--brand);"></i> إعدادات إشعارات الرحلة
+                    </h3>
+                    <button onclick="closeTripSettingsModal()" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                </div>
+                <div style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; text-align:right; padding: 4px;">
+                    <!-- Warning / Info Alert -->
+                    <div style="background: var(--brand-light); border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 10px 12px; border-radius: 12px; font-size: 0.78rem; line-height: 1.5; font-weight: 700;">
+                        <i class="fas fa-info-circle" style="font-size: 0.95rem; margin-left: 4px;"></i>
+                        تنبيه: هذه الإعدادات تُطبق على الرحلة كاملة لجميع الخدام، وليست لحسابك الشخصي فقط.
+                    </div>
+                    
+                    <!-- Form Control: Leaderboard Notifications -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة الأوائل</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ 10 الأولى</span>
+                        </div>
+                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingLeaderboardNotifs" style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        </label>
+                    </div>
+
+                    <!-- Form Control: Naughty Notifications -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات الشغب</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عند تسجيل شغب لطفل</span>
+                        </div>
+                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingNaughtyNotifs" style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        </label>
+                    </div>
+
+                    <!-- Save Button -->
+                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action" style="width: 100%; height: 40px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fas fa-save"></i> حفظ الإعدادات
+                    </button>
                 </div>
             </div>
         </div>
@@ -2105,6 +2193,11 @@
                     if (['admin', 'developer', 'dev'].includes(localTrip.user_role)) {
                         const adminActions = document.getElementById('adminActions');
                         if (adminActions) adminActions.style.display = 'flex';
+                        const btnTripSettings = document.getElementById('btnTripSettings');
+                        if (btnTripSettings) btnTripSettings.style.display = 'flex';
+                    } else {
+                        const btnTripSettings = document.getElementById('btnTripSettings');
+                        if (btnTripSettings) btnTripSettings.style.display = 'none';
                     }
                     regsList = localTrip.registrations || [];
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
@@ -2144,12 +2237,13 @@
                             document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
                             const adminActions = document.getElementById('adminActions');
-                            if (adminActions) {
-                                if (['admin', 'developer', 'dev'].includes(res.user_role)) {
-                                    adminActions.style.display = 'flex';
-                                } else {
-                                    adminActions.style.display = 'none';
-                                }
+                            const btnTripSettings = document.getElementById('btnTripSettings');
+                            if (['admin', 'developer', 'dev'].includes(res.user_role)) {
+                                if (adminActions) adminActions.style.display = 'flex';
+                                if (btnTripSettings) btnTripSettings.style.display = 'flex';
+                            } else {
+                                if (adminActions) adminActions.style.display = 'none';
+                                if (btnTripSettings) btnTripSettings.style.display = 'none';
                             }
 
                             // Save to local cache
@@ -2650,6 +2744,77 @@
              function closeShortcutsInfoModal() {
                 const modal = document.getElementById('shortcutsInfoModal');
                 if (modal) modal.style.display = 'none';
+            }
+
+            function openTripSettingsModal() {
+                let pointsConfig = null;
+                if (currentTrip && currentTrip.points_config) {
+                    try {
+                        pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                    } catch (err) { }
+                }
+
+                // Leaderboard notifs default is off (false)
+                const leaderboardNotifs = pointsConfig && pointsConfig.notifications ? !!pointsConfig.notifications.leaderboard : false;
+                // Naughty notifs default is on (true)
+                const naughtyNotifs = pointsConfig && pointsConfig.notifications && typeof pointsConfig.notifications.naughty !== 'undefined' ? !!pointsConfig.notifications.naughty : true;
+
+                document.getElementById('settingLeaderboardNotifs').checked = leaderboardNotifs;
+                document.getElementById('settingNaughtyNotifs').checked = naughtyNotifs;
+
+                document.getElementById('tripSettingsModal').style.setProperty('display', 'flex', 'important');
+            }
+
+            function closeTripSettingsModal() {
+                const modal = document.getElementById('tripSettingsModal');
+                if (modal) modal.style.display = 'none';
+            }
+
+            async function saveTripSettings() {
+                let pointsConfig = null;
+                if (currentTrip && currentTrip.points_config) {
+                    try {
+                        pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                    } catch (err) { }
+                }
+
+                if (!pointsConfig || typeof pointsConfig !== 'object') {
+                    pointsConfig = {};
+                }
+
+                if (!pointsConfig.notifications) {
+                    pointsConfig.notifications = {};
+                }
+
+                pointsConfig.notifications.leaderboard = document.getElementById('settingLeaderboardNotifs').checked;
+                pointsConfig.notifications.naughty = document.getElementById('settingNaughtyNotifs').checked;
+
+                const btn = document.getElementById('btnSaveTripSettings');
+                const oldHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الحفظ...';
+
+                try {
+                    const fd = new FormData();
+                    fd.append('action', 'updateTripPointsConfig');
+                    fd.append('trip_id', tripId);
+                    fd.append('config_json', JSON.stringify(pointsConfig));
+
+                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    if (res.success) {
+                        showToast('تم حفظ إعدادات إشعارات الرحلة بنجاح', 'success');
+                        currentTrip.points_config = pointsConfig;
+                        await saveTripLocal(tripId, currentTrip);
+                        closeTripSettingsModal();
+                    } else {
+                        showToast(res.message || 'فشل حفظ الإعدادات', 'error');
+                    }
+                } catch (e) {
+                    showToast('حدث خطأ أثناء حفظ الإعدادات', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = oldHtml;
+                }
             }
 
             function initDragScroll(slider) {
