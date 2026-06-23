@@ -10150,18 +10150,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                         <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
                             <button class="dropdown-item" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام الفصل</button>
                             <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                             <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
-                            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
-                            <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
+                            <button class="dropdown-item success" onclick="showShareAttendanceModal();closeAllDropdowns()"><i class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
                             
                             <div class="dropdown-divider"></div>
                             <div class="dropdown-group-label">خيارات إضافية</div>
-                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع (سحب)</button>
+                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
                             <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
-                            <button class="dropdown-item" onclick="showResetModal();closeAllDropdowns()"><i class="fas fa-rotate-left"></i> تراجع عن كل التغييرات</button>
                         </div>
                     </div>
 
@@ -10648,62 +10645,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Sheet Modal -->
-    <div class="modal-overlay" id="sheetModal" style="z-index:1000010">
-        <div class="modal modal-lg" style="z-index:1000011">
-            <div class="modal-header" style="flex-wrap:wrap;gap:6px;">
-                <h3 id="sheetModalTitle" style="flex:1;min-width:120px;">جدول الحضور</h3>
-                <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
-                    <input type="text" class="form-input" id="sheetFromDate" placeholder="من DD/MM/YYYY"
-                        style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric"
-                        oninput="autoFormatCustomDate(this)">
-                    <input type="text" class="form-input" id="sheetToDate" placeholder="إلى DD/MM/YYYY"
-                        style="width:130px;padding:7px 10px;font-size:.76rem" maxlength="10" inputmode="numeric"
-                        oninput="autoFormatCustomDate(this)">
-                    <button class="header-btn" id="applySheetDateRangeBtn" title="تصفية"><i class="fas fa-filter"
-                            style="color:var(--brand)"></i></button>
-                    <button class="header-btn" id="clearSheetDateRangeBtn" title="مسح التصفية"><i class="fas fa-eraser"
-                            style="color:var(--text-3)"></i></button>
-                    <div class="zoom-controls" id="sheetZoomControls">
-                        <button class="zoom-btn" onclick="sheetZoom(-1)" title="تصغير"><i
-                                class="fas fa-minus"></i></button>
-                        <span class="zoom-level" id="sheetZoomLevel">100%</span>
-                        <button class="zoom-btn" onclick="sheetZoom(1)" title="تكبير"><i
-                                class="fas fa-plus"></i></button>
-                        <button class="zoom-btn" onclick="sheetZoomReset()" title="إعادة ضبط"><i
-                                class="fas fa-compress-arrows-alt"></i></button>
-                    </div>
-                    <button class="header-btn" id="saveSheetAsPdfBtn" title="تصدير PDF"><i class="fas fa-file-pdf"
-                            style="color:var(--danger)"></i></button>
-                    <button class="header-btn" id="saveSheetAsImageBtn" title="تصدير صورة"><i class="fas fa-image"
-                            style="color:var(--info)"></i></button>
-                    <button class="header-btn" id="saveSheetAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
-                            style="color:var(--success)"></i></button>
-                    <button class="close-btn" id="closeSheetModal">&times;</button>
-                </div>
-            </div>
-            <div class="table-container sheet-container" id="sheetTableContainer">
-                <div class="table-zoom-wrap" id="sheetZoomWrap">
-                    <div class="table-zoom-inner" id="sheetZoomInner">
-                        <table class="data-table" id="sheetTable">
-                            <thead id="sheetTableHead">
-                                <tr>
-                                    <th style="width:40px"></th>
-                                    <th>الاسم</th>
-                                    <th>الفصل</th>
-                                    <th>العنوان</th>
-                                    <th>التليفون</th>
-                                    <th>الميلاد</th>
-                                    <th>كوبونات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sheetTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Custom Export Modal -->
     <div class="modal-overlay" id="customExportModal" style="z-index:1000012">
@@ -10962,28 +10904,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Attended Modal -->
-    <div class="modal-overlay" id="attendedModal">
+    <!-- Share Attendance Modal -->
+    <div class="modal-overlay" id="shareAttendanceModal" style="z-index:1000005">
         <div class="modal modal-lg">
             <div class="modal-header">
-                <h3><i class="fas fa-user-check" style="color:var(--success)"></i> الأطفال الحاضرين</h3>
+                <h3><i class="fa-solid fa-share-nodes" style="color:var(--brand)"></i> مشاركة كشف الحضور</h3>
                 <div style="display:flex;gap:6px;align-items:center">
-                    <button class="header-btn" id="copyAttendedModalBtn" title="نسخ"><i class="fas fa-copy"
-                            style="color:var(--success)"></i></button>
-                    <button class="header-btn" onclick="shareAttendedToWhatsApp()" title="واتساب"><i
-                            class="fab fa-whatsapp" style="color:#25d366"></i></button>
-                    <button class="header-btn" id="saveAttendedAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
-                            style="color:var(--info)"></i></button>
-                    <button class="close-btn" id="closeAttendedModal">&times;</button>
+                    <button class="header-btn" id="copyShareAttendanceBtn" onclick="copyShareAttendance()" title="نسخ">
+                        <i class="fas fa-copy" style="color:var(--success)"></i>
+                    </button>
+                    <button class="header-btn" id="whatsappShareAttendanceBtn" onclick="whatsappShareAttendance()" title="واتساب">
+                        <i class="fab fa-whatsapp" style="color:#25d366"></i>
+                    </button>
+                    <button class="header-btn" id="csvShareAttendanceBtn" onclick="exportShareAttendanceCsv()" title="تصدير CSV">
+                        <i class="fas fa-file-csv" style="color:var(--info)"></i>
+                    </button>
+                    <button class="close-btn" id="closeShareAttendanceModal" onclick="hideShareAttendanceModal()">&times;</button>
                 </div>
             </div>
-            <div class="search-wrap" style="margin-bottom:8px">
-                <input type="text" class="search-input" id="attendedSearchInput" placeholder="بحث في الحاضرين..."
-                    oninput="renderAttendedTable()">
+            
+            <div class="attendance-tabs" style="display:flex; border-bottom:1.5px solid var(--border-solid); margin-bottom:12px; gap:8px;">
+                <button class="tab-btn active" data-tab="present" onclick="switchShareTab('present')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid var(--brand); color:var(--brand); cursor:pointer; outline:none;">الحاضرين (<span id="shareAttendedCount">0</span>)</button>
+                <button class="tab-btn" data-tab="absent" onclick="switchShareTab('absent')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الغائبين (<span id="shareAbsentCount">0</span>)</button>
+                <button class="tab-btn" data-tab="both" onclick="switchShareTab('both')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الكل (<span id="shareBothCount">0</span>)</button>
+            </div>
+
+            <div class="search-wrap" style="margin-bottom:12px">
+                <input type="text" class="search-input" id="shareAttendanceSearchInput" placeholder="بحث بالاسم..." oninput="renderShareAttendanceTable()">
                 <button class="search-btn"><i class="fas fa-search"></i></button>
             </div>
+            
             <div class="table-container all-students-table-container">
-                <table class="data-table" id="attendedTable">
+                <table class="data-table" id="shareAttendanceTable">
                     <thead>
                         <tr>
                             <th style="width:40px"></th>
@@ -10991,78 +10943,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <th>الفصل</th>
                             <th>التليفون</th>
                             <th>العنوان</th>
+                            <th>حالة الحضور</th>
                             <th>ملاحظة</th>
                             <th style="width:36px"></th>
                         </tr>
                     </thead>
-                    <tbody id="attendedTableBody"></tbody>
+                    <tbody id="shareAttendanceTableBody"></tbody>
                 </table>
             </div>
-        </div>
-    </div>
-
-    <!-- Absent Modal -->
-    <div class="modal-overlay" id="absentModal">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-times" style="color:var(--danger)"></i> الأطفال الغائبين</h3>
-                <div style="display:flex;gap:6px;align-items:center">
-                    <!-- Copy Dropdown -->
-                    <div class="action-dropdown" style="flex:none">
-                        <button class="header-btn" id="copyAbsentModalBtn" onclick="toggleAbsentDropdown('copy')"
-                            title="نسخ">
-                            <i class="fas fa-copy" style="color:var(--success)"></i>
-                        </button>
-                        <div class="dropdown-menu" id="absentCopyMenu" style="left:0;right:auto">
-                            <div class="dropdown-item" onclick="executeAbsentAction('copy', 'phones')">
-                                <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
-                            </div>
-                            <div class="dropdown-item" onclick="executeAbsentAction('copy', 'message')">
-                                <i class="fas fa-comment-alt"></i> رسالة افتقاد (أسماء فقط)
-                            </div>
-                        </div>
-                    </div>
-                    <!-- WhatsApp Dropdown -->
-                    <div class="action-dropdown" style="flex:none">
-                        <button class="header-btn" id="absentWaBtn" onclick="toggleAbsentDropdown('wa')" title="واتساب">
-                            <i class="fab fa-whatsapp" style="color:#25d366"></i>
-                        </button>
-                        <div class="dropdown-menu" id="absentWaMenu" style="left:0;right:auto">
-                            <div class="dropdown-item" onclick="executeAbsentAction('wa', 'phones')">
-                                <i class="fas fa-phone-alt"></i> القائمة بالتليفونات
-                            </div>
-                            <div class="dropdown-item" onclick="executeAbsentAction('wa', 'message')">
-                                <i class="fas fa-comment-alt"></i> رسالة افتقاد (أسماء فقط)
-                            </div>
-                        </div>
-                    </div>
-                    <button class="header-btn" id="saveAbsentAsCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
-                            style="color:var(--info)"></i></button>
-                    <button class="close-btn" id="closeAbsentModal">&times;</button>
-                </div>
-            </div>
-            <div class="search-wrap" style="margin-bottom:8px">
-                <input type="text" class="search-input" id="absentSearchInput" placeholder="بحث في الغائبين...">
-                <button class="search-btn"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="table-container all-students-table-container">
-                <table class="data-table" id="absentTable">
-                    <thead>
-                        <tr>
-                            <th style="width:40px"></th>
-                            <th>الاسم</th>
-                            <th>التليفون</th>
-                            <th>العنوان</th>
-                            <th>ملاحظة</th>
-                            <th style="width:36px"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="absentTableBody"></tbody>
-                </table>
-            </div>
-            <div style="margin-top:8px">
-                <button class="btn btn-danger btn-sm" id="clearAbsentDataBtn" style="width:100%"><i
-                        class="fas fa-trash-alt"></i> مسح الكل</button>
+            
+            <div id="shareAbsentFooter" style="margin-top:12px; display:none;">
+                <button class="btn btn-danger btn-sm" id="clearAbsentDataBtn" style="width:100%" onclick="clearAbsentData()"><i class="fas fa-trash-alt"></i> مسح الكل</button>
             </div>
         </div>
     </div>
@@ -11229,29 +11120,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Reset Modal -->
-    <div class="modal-overlay" id="resetModal">
-        <div class="modal modal-sm" style="max-width:400px">
-            <div class="modal-header">
-                <h3><i class="fas fa-undo"></i> إعادة التعيين</h3>
-                <button class="close-btn" id="closeResetModal">&times;</button>
-            </div>
-            <div style="text-align:center;padding:10px 0 16px">
-                <i class="fas fa-undo"
-                    style="font-size:2.2rem;color:var(--warning);margin-bottom:10px;display:block"></i>
-                <p style="color:var(--text-3)">اختر نوع إعادة التعيين للبيانات غير المحفوظة</p>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-                <button class="btn btn-warning" id="resetAttendanceBtn" style="justify-content:flex-start"><i
-                        class="fas fa-user-times"></i> إعادة تعيين الحضور المحلي</button>
-                <button class="btn btn-coupon" id="resetCouponsBtn" style="justify-content:flex-start"><i
-                        class="fas fa-star"></i> إعادة تعيين الكوبونات</button>
-                <button class="btn btn-danger" id="resetAllBtn" style="justify-content:flex-start"><i
-                        class="fas fa-bomb"></i> إعادة تعيين الكل</button>
-                <button class="btn btn-ghost" id="cancelResetBtn"><i class="fas fa-times"></i> إلغاء</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Registration Details Modal -->
     <div class="modal-overlay" id="registrationDetailsModal">
@@ -16925,18 +16794,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
 
 
-        function showSheetModal() { _sheetZoom = 1.0; document.getElementById('sheetModal').classList.add('active'); renderSheetTable(); _applySheetZoom(); stopAutoRefresh(); }
-        function hideSheetModal() { document.getElementById('sheetModal').classList.remove('active'); startAutoRefresh(); }
-        function showAttendedModal() { document.getElementById('attendedModal').classList.add('active'); renderAttendedTable(); stopAutoRefresh(); }
-        function hideAttendedModal() { document.getElementById('attendedModal').classList.remove('active'); startAutoRefresh(); }
-        function showAbsentModal() { document.getElementById('absentModal').classList.add('active'); updateAbsentData(); renderAbsentTable(); stopAutoRefresh(); }
-        function hideAbsentModal() { document.getElementById('absentModal').classList.remove('active'); startAutoRefresh(); }
+        function showShareAttendanceModal() {
+            document.getElementById('shareAttendanceModal').classList.add('active');
+            updateAbsentData();
+            switchShareTab('present');
+            stopAutoRefresh();
+        }
+        function hideShareAttendanceModal() {
+            document.getElementById('shareAttendanceModal').classList.remove('active');
+            startAutoRefresh();
+        }
         function showPastFridaysModal() { document.getElementById('pastFridaysModal').classList.add('active'); renderPastFridays(); stopAutoRefresh(); }
         function hidePastFridaysModal() { document.getElementById('pastFridaysModal').classList.remove('active'); startAutoRefresh(); }
         function showAnnouncementsModal() { document.getElementById('announcementsModal').classList.add('active'); loadAnnouncements(); renderAnnouncementStudentGrid(); renderAnnouncementSelectedCards(); stopAutoRefresh(); }
         function hideAnnouncementsModal() { document.getElementById('announcementsModal').classList.remove('active'); startAutoRefresh(); }
-        function showResetModal() { document.getElementById('resetModal').classList.add('active'); stopAutoRefresh(); }
-        function hideResetModal() { document.getElementById('resetModal').classList.remove('active'); startAutoRefresh(); }
         function showImageModal(src, e) {
             if (!src) return;
             if (e) { e.stopPropagation(); e.preventDefault(); }
@@ -17462,84 +17333,251 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
         })();
 
-        function renderSheetTable() {
-            const body = document.getElementById('sheetTableBody'), head = document.getElementById('sheetTableHead');
-            document.getElementById('sheetModalTitle').textContent = currentClass ? `جدول: ${currentClass}` : 'جدول جميع الفصول';
-            let fs = sortStudentsForCurrentView(getActiveViewStudents());
-            if (!fs.length) { body.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:2rem">لا بيانات</td></tr>'; return; }
-            const sorted = getSheetDateColumns(fs);
-            head.querySelector('tr').innerHTML =
-                '<th style="width:36px;padding:6px 4px"></th>' +
-                '<th style="cursor:pointer" onclick="">الاسم</th>' +
-                '<th>الفصل</th><th>العنوان</th><th>التليفون</th><th>الميلاد</th><th>كوبونات</th>' +
-                sorted.map(d => `<th style="min-width:56px;text-align:center">${d}</th>`).join('');
-            body.innerHTML = fs.map(s => {
-                const safeName = escJs(s['الاسم'] || '');
-                const photoCell = s['صورة']
-                    ? `<td style="padding:4px 4px;width:36px;text-align:center">
-                <img src="${s['صورة']}" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;cursor:pointer;vertical-align:middle;border:1.5px solid var(--border-solid)"
-                    onclick="showImageModal('${escJs(s['صورة'] || '')}',event)"
-                    onerror="this.style.display='none'">
-               </td>`
-                    : `<td style="padding:4px 4px;width:36px;text-align:center">
-                <div style="width:30px;height:30px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem"><i class="fas fa-user"></i></div>
-               </td>`;
-                const nameCell = `<td style="font-weight:700;cursor:pointer;color:var(--brand);white-space:nowrap"
-            onclick="showStudentDetails('${safeName}')">${s['الاسم'] || '---'}</td>`;
-                return `<tr>
-            ${photoCell}
-            ${nameCell}
-            ${['الفصل', 'العنوان', 'رقم التليفون', 'عيد الميلاد', 'كوبونات'].map(k => `<td style="white-space:nowrap">${s[k] || '---'}</td>`).join('')}
-            ${sorted.map(d => {
-                    let v = s[d] || (s._allAttendance && s._allAttendance[d]) || '';
-                    if (v === 'حاضر' || v === 'present') v = 'ح';
-                    if (v === 'غائب' || v === 'absent') v = 'غ';
-                    return `<td class="${v === 'ح' ? 'attendance-present' : v === 'غ' ? 'attendance-absent' : ''}" style="text-align:center;font-weight:700">${v || ''}</td>`;
-                }).join('')}
-        </tr>`;
+        let currentShareTab = 'present';
+
+        function switchShareTab(tab) {
+            currentShareTab = tab;
+            document.querySelectorAll('#shareAttendanceModal .tab-btn').forEach(btn => {
+                const isActive = btn.getAttribute('data-tab') === tab;
+                btn.classList.toggle('active', isActive);
+                if (isActive) {
+                    btn.style.borderBottom = '3px solid var(--brand)';
+                    btn.style.color = 'var(--brand)';
+                } else {
+                    btn.style.borderBottom = '3px solid transparent';
+                    btn.style.color = 'var(--text-3)';
+                }
+            });
+            const absentFooter = document.getElementById('shareAbsentFooter');
+            if (absentFooter) {
+                absentFooter.style.display = tab === 'absent' ? 'block' : 'none';
+            }
+            renderShareAttendanceTable();
+        }
+
+        function renderShareAttendanceTable() {
+            const q = (document.getElementById('shareAttendanceSearchInput')?.value || '').trim().toLowerCase();
+            let list = [];
+            if (currentShareTab === 'present') {
+                list = getAttendanceStatusStudents('present');
+            } else if (currentShareTab === 'absent') {
+                list = getAttendanceStatusStudents('absent');
+            } else if (currentShareTab === 'both') {
+                list = sortStudentsForCurrentView(getActiveViewStudents());
+            }
+
+            const filtered = list.filter(s => !q || ['الاسم', 'الفصل', 'رقم التليفون', 'العنوان'].some(k => (s[k] || '').toLowerCase().includes(q)));
+            const body = document.getElementById('shareAttendanceTableBody');
+            if (!body) return;
+
+            const presentCount = getAttendanceStatusStudents('present').length;
+            const absentCount = getAttendanceStatusStudents('absent').length;
+            const bothCount = getActiveViewStudents().length;
+
+            const countAttendedEl = document.getElementById('shareAttendedCount');
+            const countAbsentEl = document.getElementById('shareAbsentCount');
+            const countBothEl = document.getElementById('shareBothCount');
+            if (countAttendedEl) countAttendedEl.textContent = presentCount;
+            if (countAbsentEl) countAbsentEl.textContent = absentCount;
+            if (countBothEl) countBothEl.textContent = bothCount;
+
+            if (!filtered.length) {
+                let emptyHtml = '<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-3)">لا توجد بيانات</td></tr>';
+                if (currentShareTab === 'absent') {
+                    emptyHtml = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-3)">
+                        <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
+                        لا غائبين هذا الأسبوع 🎉
+                       </td></tr>`;
+                } else if (currentShareTab === 'present') {
+                    emptyHtml = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-3)">
+                        <i class="fas fa-user-check" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
+                        لا يوجد حاضرون لهذا التاريخ
+                       </td></tr>`;
+                }
+                body.innerHTML = emptyHtml;
+                return;
+            }
+
+            body.innerHTML = filtered.map((s, i) => {
+                const photo = s['صورة']
+                    ? `<img src="${s['صورة']}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;border:1.5px solid var(--border-solid)" onerror="this.outerHTML='<div style=\\'width:32px;height:32px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem\\'><i class=\\'fas fa-user\\'></i></div>'">`
+                    : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem"><i class="fas fa-user"></i></div>`;
+                const phone = s['رقم التليفون'] || '';
+                const phoneLink = phone
+                    ? `<a href="tel:${phone.replace(/\D/g, '')}" style="color:var(--brand);text-decoration:none;font-size:.8rem">${phone}</a>`
+                    : '<span style="color:var(--text-3);font-size:.8rem">—</span>';
+
+                const id = getStudentId(s);
+                const status = attendanceData[id] || 'pending';
+                let statusBadge = '';
+                if (status === 'present') {
+                    statusBadge = `<span style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700;">حاضر ✅</span>`;
+                } else if (status === 'absent') {
+                    statusBadge = `<span style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700;">غائب ❌</span>`;
+                } else {
+                    statusBadge = `<span style="background:var(--surface-3);color:var(--text-3);border:1px solid var(--border-solid);padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:700;">غير مسجل ⏳</span>`;
+                }
+
+                return `<tr id="shareTable_row_${i}">
+                    <td style="padding:6px 8px;width:40px;text-align:center">${photo}</td>
+                    <td style="font-weight:700;font-size:.85rem;cursor:pointer;color:var(--text)" onclick="showStudentDetails('${escJs(s['الاسم'] || '')}')">${s['الاسم'] || '---'}</td>
+                    <td><span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.74rem;font-weight:700">${s['الفصل'] || '---'}</span></td>
+                    <td style="font-size:.8rem">${phoneLink}</td>
+                    <td style="color:var(--text-2);font-size:.78rem">${s['العنوان'] || '—'}</td>
+                    <td>${statusBadge}</td>
+                    <td><input type="text" class="form-input" style="padding:4px 8px;font-size:.76rem;min-width:90px;height:30px" placeholder="ملاحظة..." value="${s['ملاحظة الحضور'] || ''}" onchange="updateStudentAttendanceNote('${escJs(s['الاسم'] || '')}', this.value)"></td>
+                    <td style="text-align:center;padding:4px">
+                        <button class="btn btn-danger btn-xs" style="width:28px;height:28px;padding:0;border-radius:50%;min-width:0" onclick="removeStudentFromShareList('${escJs(s['الاسم'] || '')}', 'shareTable_row_${i}')" title="إزالة">
+                            <i class="fas fa-times" style="font-size:.65rem"></i>
+                        </button>
+                    </td>
+                </tr>`;
             }).join('');
         }
-        function renderAttendanceStatusTable(status, bodyId, emptyHtml, searchInputId) {
-            const q = (document.getElementById(searchInputId)?.value || '').trim().toLowerCase();
-            const cs = getAttendanceStatusStudents(status).filter(s => !q || ['الاسم', 'الفصل', 'رقم التليفون', 'العنوان'].some(k => (s[k] || '').toLowerCase().includes(q)));
-            document.getElementById(bodyId).innerHTML = cs.length
-                ? cs.map((s, i) => {
-                    const photo = s['صورة']
-                        ? `<img src="${s['صورة']}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;border:1.5px solid var(--border-solid)" onerror="this.outerHTML='<div style=\\'width:32px;height:32px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem\\'><i class=\\'fas fa-user\\'></i></div>'">`
-                        : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);display:inline-flex;align-items:center;justify-content:center;color:var(--brand);font-size:.75rem"><i class="fas fa-user"></i></div>`;
-                    const phone = s['رقم التليفون'] || '';
-                    const phoneLink = phone
-                        ? `<a href="tel:${phone.replace(/\D/g, '')}" style="color:var(--brand);text-decoration:none;font-size:.8rem">${phone}</a>`
-                        : '<span style="color:var(--text-3);font-size:.8rem">—</span>';
-                    return `<tr id="${bodyId}_row_${i}">
-                <td style="padding:6px 8px;width:40px;text-align:center">${photo}</td>
-                <td style="font-weight:700;font-size:.85rem;cursor:pointer;color:var(--text)" onclick="showStudentDetails('${escJs(s['الاسم'] || '')}')">${s['الاسم'] || '---'}</td>
-                ${bodyId === 'attendedTableBody' ? `<td><span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.74rem;font-weight:700">${s['الفصل'] || '---'}</span></td>` : ''}
-                <td style="font-size:.8rem">${phoneLink}</td>
-                <td style="color:var(--text-2);font-size:.78rem">${s['العنوان'] || '—'}</td>
-                <td><input type="text" class="form-input" style="padding:4px 8px;font-size:.76rem;min-width:90px;height:30px" placeholder="ملاحظة..."></td>
-                <td style="text-align:center;padding:4px">
-                    <button class="btn btn-danger btn-xs" style="width:28px;height:28px;padding:0;border-radius:50%;min-width:0" onclick="document.getElementById('${bodyId}_row_${i}').remove()" title="إزالة">
-                        <i class="fas fa-times" style="font-size:.65rem"></i>
-                    </button>
-                </td>
-            </tr>`;
-                }).join('')
-                : emptyHtml;
+
+        function updateStudentAttendanceNote(name, note) {
+            const student = students.find(s => s['الاسم'] === name);
+            if (student) {
+                student['ملاحظة الحضور'] = note;
+                const id = getStudentId(student);
+                changedStudents.add(id);
+                updateSaveBtns();
+            }
         }
-        function renderAbsentTable() {
-            renderAttendanceStatusTable('absent', 'absentTableBody', `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--text-3)">
-            <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
-            لا غائبين هذا الأسبوع 🎉
-           </td></tr>`, 'absentSearchInput');
+
+        function removeStudentFromShareList(name, rowId) {
+            const student = students.find(s => s['الاسم'] === name);
+            if (student) {
+                const id = getStudentId(student);
+                attendanceData[id] = 'pending';
+                changedStudents.add(id);
+                renderAttendanceList(currentClass);
+                updateSaveBtns();
+                document.getElementById(rowId)?.remove();
+                
+                // Recalculate counts
+                const presentCount = getAttendanceStatusStudents('present').length;
+                const absentCount = getAttendanceStatusStudents('absent').length;
+                const bothCount = getActiveViewStudents().length;
+                const countAttendedEl = document.getElementById('shareAttendedCount');
+                const countAbsentEl = document.getElementById('shareAbsentCount');
+                const countBothEl = document.getElementById('shareBothCount');
+                if (countAttendedEl) countAttendedEl.textContent = presentCount;
+                if (countAbsentEl) countAbsentEl.textContent = absentCount;
+                if (countBothEl) countBothEl.textContent = bothCount;
+            }
         }
-        function renderAttendedTable() {
-            renderAttendanceStatusTable('present', 'attendedTableBody', `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--text-3)">
-            <i class="fas fa-user-check" style="font-size:2rem;color:var(--success);display:block;margin-bottom:8px"></i>
-            لا يوجد حاضرون لهذا التاريخ
-           </td></tr>`, 'attendedSearchInput');
+
+        function clearAbsentData() {
+            if (confirm('مسح جميع بيانات الغائبين؟')) {
+                const absents = getAttendanceStatusStudents('absent');
+                absents.forEach(s => {
+                    const id = getStudentId(s);
+                    attendanceData[id] = 'pending';
+                    changedStudents.add(id);
+                });
+                renderAttendanceList(currentClass);
+                updateSaveBtns();
+                renderShareAttendanceTable();
+                showToast('تم مسح الغائبين', 'success');
+            }
         }
-        function clearAbsentData() { if (confirm('مسح جميع بيانات الغائبين؟')) { document.getElementById('absentTableBody').innerHTML = ''; showToast('تم المسح', 'success'); } }
+
+        function buildBothAttendanceShareText() {
+            if (!currentClass) return '';
+            const presentRows = getAttendanceStatusStudents('present');
+            const absentRows = getAttendanceStatusStudents('absent');
+            const pendingRows = getAttendanceStatusStudents('pending');
+            let txt = `\u202B━━━━━━━━━━━━━━━━━━\n📋 *كشف الحضور والغياب*\n🏫 ${getActiveViewLabel()}\n📅 ${currentFriday}\n\n`;
+            txt += `✅ حاضر: ${presentRows.length}\n❌ غائب: ${absentRows.length}\n⏳ غير مسجل: ${pendingRows.length}\n━━━━━━━━━━━━━━━━━━\n\n`;
+
+            const allRows = [
+                ...presentRows.map(s => ({ ...s, statusText: 'حاضر ✅' })),
+                ...absentRows.map(s => ({ ...s, statusText: 'غائب ❌' })),
+                ...pendingRows.map(s => ({ ...s, statusText: 'غير مسجل ⏳' }))
+            ];
+            allRows.sort((a, b) => (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar'));
+
+            allRows.forEach((s, i) => {
+                txt += `*${i + 1}.* ${s['الاسم']} - *${s.statusText}*\n`;
+                if (isCombinedView || currentClass === '__ALL__') txt += `   🏫 ${s['الفصل'] || ''}\n`;
+                if (s['رقم التليفون']) txt += `   📱 ${s['رقم التليفون'].replace(/\D/g, '')}\n`;
+                if (i < allRows.length - 1) txt += '   ─────────────\n';
+            });
+            return txt + '\n━━━━━━━━━━━━━━━━━━\n\u200F';
+        }
+
+        function copyShareAttendance() {
+            if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
+            if (currentShareTab === 'present') {
+                const attended = getAttendanceStatusStudents('present');
+                if (!attended.length) { showToast('لا يوجد حاضرون', 'info'); return; }
+                copyToClipboard(buildAttendanceShareText('present', 'الحاضرين', '✅'));
+                showToast(`تم نسخ ${attended.length} حاضر`, 'success');
+            } else if (currentShareTab === 'absent') {
+                const absent = getAttendanceStatusStudents('absent');
+                if (!absent.length) { showToast('لا يوجد غائبون', 'info'); return; }
+                const txt = buildAbsentMessageText('phones');
+                copyToClipboard(txt);
+                showToast(`تم نسخ ${absent.length} غائب`, 'success');
+            } else if (currentShareTab === 'both') {
+                const present = getAttendanceStatusStudents('present');
+                const absent = getAttendanceStatusStudents('absent');
+                if (!present.length && !absent.length) { showToast('لا توجد بيانات حضور أو غياب', 'info'); return; }
+                const txt = buildBothAttendanceShareText();
+                copyToClipboard(txt);
+                showToast(`تم نسخ كشف الحضور والغياب للجميع`, 'success');
+            }
+        }
+
+        function whatsappShareAttendance() {
+            if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
+            let txt = '';
+            if (currentShareTab === 'present') {
+                const attended = getAttendanceStatusStudents('present');
+                if (!attended.length) { showToast('لا يوجد حاضرون', 'info'); return; }
+                txt = buildAttendanceShareText('present', 'الحاضرين', '✅');
+            } else if (currentShareTab === 'absent') {
+                const absent = getAttendanceStatusStudents('absent');
+                if (!absent.length) { showToast('لا يوجد غائبون', 'info'); return; }
+                txt = buildAbsentMessageText('phones');
+            } else if (currentShareTab === 'both') {
+                const present = getAttendanceStatusStudents('present');
+                const absent = getAttendanceStatusStudents('absent');
+                if (!present.length && !absent.length) { showToast('لا توجد بيانات حضور أو غياب', 'info'); return; }
+                txt = buildBothAttendanceShareText();
+            }
+            if (!txt) return;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
+            window.open(url, '_blank');
+        }
+
+        function exportShareAttendanceCsv() {
+            if (!currentClass) { showToast('اختر فصلاً أولاً', 'info'); return; }
+            let rows = [];
+            let filename = '';
+            if (currentShareTab === 'present') {
+                rows = getAttendanceStatusStudents('present');
+                filename = `حضور_${currentClass}_${currentFriday}.csv`;
+            } else if (currentShareTab === 'absent') {
+                rows = getAttendanceStatusStudents('absent');
+                filename = `غياب_${currentClass}_${currentFriday}.csv`;
+            } else if (currentShareTab === 'both') {
+                const present = getAttendanceStatusStudents('present');
+                const absent = getAttendanceStatusStudents('absent');
+                rows = [...present, ...absent];
+                filename = `كشف_حضور_غياب_${currentClass}_${currentFriday}.csv`;
+            }
+            if (!rows.length) { showToast('لا توجد بيانات للتصدير', 'info'); return; }
+
+            let csvContent = "\ufeffالاسم,التليفون,العنوان,ملاحظة,الحالة\n";
+            rows.forEach(s => {
+                const status = attendanceData[getStudentId(s)] === 'present' ? 'حاضر' : 'غائب';
+                csvContent += `"${s['الاسم'] || ''}","${s['رقم التليفون'] || ''}","${s['العنوان'] || ''}","${s['ملاحظة الحضور'] || ''}","${status}"\n`;
+            });
+
+            downloadCsvFile(csvContent, filename);
+        }
         function renderAllStudentsTable() {
             const data = allStudentsSearchQuery ? filteredAllStudents : allStudentsData;
             document.getElementById('allStudentsTableBody').innerHTML = data.length ? data.map(s => {
