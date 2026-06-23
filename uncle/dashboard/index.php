@@ -994,9 +994,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @keyframes badgePulse {
-            0% { transform: scale(1); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 2px 10px rgba(239, 68, 68, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 2px 10px rgba(239, 68, 68, 0.6);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+            }
         }
 
         .class-icon {
@@ -1613,7 +1624,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
         }
 
-        .action-strip-standalone.swipe-like > * {
+        .action-strip-standalone.swipe-like>* {
             position: relative;
             z-index: 1;
         }
@@ -2324,12 +2335,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .save-btn:not(:disabled):hover {
             transform: translateY(-2px);
         }
+
         .save-btn-select.active {
             background: var(--brand) !important;
             color: #ffffff !important;
             border-color: var(--brand-dark) !important;
             box-shadow: 0 0 10px rgba(91, 108, 245, 0.4) !important;
         }
+
         .save-btn-select.active i,
         .save-btn-select.active .save-btn-label {
             color: #ffffff !important;
@@ -2860,12 +2873,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             user-select: none;
             touch-action: none;
-            margin-left: 8px; /* space in RTL */
+            margin-left: 8px;
+            /* space in RTL */
             flex-shrink: 0;
         }
+
         .bulk-active .bulk-check-wrap {
             display: flex;
         }
+
         .bulk-check-circle {
             width: 20px;
             height: 20px;
@@ -2882,21 +2898,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.65rem;
             transition: all 0.2s ease;
         }
+
         .bulk-check-circle.checked,
         #bulkBarSelectAllCircle.checked {
             border: none !important;
             background: var(--brand) !important;
             color: #ffffff !important;
         }
+
         .attendance-item.selected {
             background-color: var(--brand-bg) !important;
             border-color: transparent !important;
             border-right: 4px solid var(--brand) !important;
         }
+
         .attendance-item.selected .bulk-check-wrap {
             background-color: var(--brand-bg) !important;
             border-radius: 8px;
         }
+
         .attendance-item.selected .bulk-check-circle {
             border: none !important;
             background: var(--brand) !important;
@@ -2907,6 +2927,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .student-coupons-inline {
             display: none;
         }
+
         .attendance-list.bulk-active .student-coupons-inline {
             display: inline-flex !important;
             align-items: center;
@@ -2919,6 +2940,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.62rem !important;
             white-space: nowrap !important;
         }
+
         [data-theme="dark"] .attendance-list.bulk-active .student-coupons-inline {
             background: rgba(245, 158, 11, 0.2) !important;
             color: #fbbf24 !important;
@@ -2927,9 +2949,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .attendance-list.bulk-active .attendance-actions {
             display: none !important;
         }
+
         .attendance-list.bulk-active .student-info {
             border-radius: var(--r-xl) !important;
         }
+
         .attendance-list.bulk-active .attendance-item {
             min-height: 80px;
             align-items: center;
@@ -2960,10 +2984,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             direction: rtl;
             transition: all 0.3s ease;
         }
+
         .undo-toast.show {
             display: flex;
             animation: undoToastIn 0.3s var(--ease-spring);
         }
+
         .undo-btn {
             background: rgba(99, 102, 241, 0.2);
             color: #a5b4fc;
@@ -2979,11 +3005,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             transition: all 0.2s ease;
         }
+
         .undo-btn:hover {
             transform: scale(1.05);
             background: rgba(99, 102, 241, 0.35);
             color: #c7d2fe;
         }
+
         .history-undo-btn {
             background: rgba(99, 102, 241, 0.1) !important;
             color: #a5b4fc !important;
@@ -2999,11 +3027,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 4px !important;
             transition: all 0.2s ease !important;
         }
+
         .history-undo-btn:hover {
             background: rgba(99, 102, 241, 0.25) !important;
             color: #c7d2fe !important;
             border-color: rgba(99, 102, 241, 0.35) !important;
         }
+
         .undo-timer-circle {
             position: relative;
             width: 24px;
@@ -3018,6 +3048,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: rgba(255, 255, 255, 0.6);
             font-weight: 700;
         }
+
         .undo-toast-close {
             background: transparent;
             border: none;
@@ -3030,14 +3061,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             transition: color 0.2s;
         }
+
         .undo-toast-close:hover {
             color: #f87171;
         }
+
         @keyframes undoToastIn {
             from {
                 opacity: 0;
                 transform: translateY(20px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -3064,38 +3098,46 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
+
         .bulk-actions-bar-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
         }
+
         .bulk-actions-bar.show {
             display: flex;
             animation: slideUp 0.3s var(--ease-spring);
         }
+
         @keyframes slideDownBulk {
             from {
                 transform: translateY(-100%);
             }
+
             to {
                 transform: translateY(0);
             }
         }
+
         body.bulk-active .topbar,
         body.bulk-active .class-topbar {
             display: none !important;
         }
+
         body.bulk-active .class-view {
             padding-top: var(--bulk-active-padding, 155px) !important;
         }
+
         body.bulk-active .att-toolbar {
             top: var(--bulk-bar-height, 96px) !important;
             background: var(--surface) !important;
             border-radius: 0 0 var(--r-xl) var(--r-xl) !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
             border-top: none !important;
         }
+
         body.bulk-active .bulk-actions-bar {
             position: fixed !important;
             top: 0 !important;
@@ -3111,6 +3153,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface) !important;
             animation: slideDownBulk 0.25s var(--ease-spring) !important;
         }
+
         .bulk-actions-btns {
             display: flex;
             gap: 6px;
@@ -3118,6 +3161,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: center;
         }
+
         .filter-chip {
             background: rgba(120, 120, 120, 0.12);
             color: var(--text-2);
@@ -3131,11 +3175,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .filter-chip:hover {
             transform: scale(1.08);
             background: rgba(120, 120, 120, 0.2);
             color: var(--text);
         }
+
         .selected-count-chip {
             background: var(--brand);
             color: #ffffff;
@@ -3149,6 +3195,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: center;
         }
+
         .btn-bulk-action {
             display: inline-flex;
             align-items: center;
@@ -3161,6 +3208,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .btn-bulk-label {
             font-size: 0.65rem;
             font-weight: 700;
@@ -3168,6 +3216,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             white-space: nowrap;
             color: inherit;
         }
+
         .btn-bulk-action i {
             font-size: 0.65rem;
             line-height: 1 !important;
@@ -3175,25 +3224,74 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center !important;
             justify-content: center !important;
         }
+
         .btn-bulk-action:hover {
             opacity: 0.85;
             transform: scale(1.05);
         }
-        .btn-bulk-action.bulk-att-present { background: rgba(16, 185, 129, 0.15) !important; color: var(--success) !important; }
-        .btn-bulk-action.bulk-att-present i { color: var(--success) !important; }
-        .btn-bulk-action.bulk-att-absent { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
-        .btn-bulk-action.bulk-att-absent i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-coupons { background: rgba(245, 158, 11, 0.15) !important; color: var(--warning) !important; }
-        .btn-bulk-action.bulk-coupons i { color: var(--warning) !important; }
-        .btn-bulk-action.bulk-class { background: rgba(91, 108, 245, 0.15) !important; color: var(--brand) !important; }
-        .btn-bulk-action.bulk-class i { color: var(--brand) !important; }
-        .btn-bulk-action.bulk-delete { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
-        .btn-bulk-action.bulk-delete i { color: var(--danger) !important; }
-        .btn-bulk-action.bulk-note { background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
-        .btn-bulk-action.bulk-note i { color: #3b82f6 !important; }
-        
-        .btn-bulk-action.bulk-merge { background: rgba(139, 92, 246, 0.15) !important; color: #8b5cf6 !important; }
-        .btn-bulk-action.bulk-merge i { color: #8b5cf6 !important; }
+
+        .btn-bulk-action.bulk-att-present {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: var(--success) !important;
+        }
+
+        .btn-bulk-action.bulk-att-present i {
+            color: var(--success) !important;
+        }
+
+        .btn-bulk-action.bulk-att-absent {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: var(--danger) !important;
+        }
+
+        .btn-bulk-action.bulk-att-absent i {
+            color: var(--danger) !important;
+        }
+
+        .btn-bulk-action.bulk-coupons {
+            background: rgba(245, 158, 11, 0.15) !important;
+            color: var(--warning) !important;
+        }
+
+        .btn-bulk-action.bulk-coupons i {
+            color: var(--warning) !important;
+        }
+
+        .btn-bulk-action.bulk-class {
+            background: rgba(91, 108, 245, 0.15) !important;
+            color: var(--brand) !important;
+        }
+
+        .btn-bulk-action.bulk-class i {
+            color: var(--brand) !important;
+        }
+
+        .btn-bulk-action.bulk-delete {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: var(--danger) !important;
+        }
+
+        .btn-bulk-action.bulk-delete i {
+            color: var(--danger) !important;
+        }
+
+        .btn-bulk-action.bulk-note {
+            background: rgba(59, 130, 246, 0.15) !important;
+            color: #3b82f6 !important;
+        }
+
+        .btn-bulk-action.bulk-note i {
+            color: #3b82f6 !important;
+        }
+
+        .btn-bulk-action.bulk-merge {
+            background: rgba(139, 92, 246, 0.15) !important;
+            color: #8b5cf6 !important;
+        }
+
+        .btn-bulk-action.bulk-merge i {
+            color: #8b5cf6 !important;
+        }
 
         /* Premium Merge Duplicates Table & UI Styles */
         .merge-container {
@@ -3205,11 +3303,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             direction: rtl;
             text-align: right;
         }
+
         .merge-header-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
+
         .merge-kid-card {
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
@@ -3224,11 +3324,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: relative;
             cursor: pointer;
         }
+
         .merge-kid-card.active-target {
             border-color: #8b5cf6;
             background: rgba(139, 92, 246, 0.05);
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
+
         .merge-kid-card-badge {
             position: absolute;
             top: 10px;
@@ -3241,11 +3343,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 700;
             border: 1px solid var(--border-solid);
         }
+
         .merge-kid-card.active-target .merge-kid-card-badge {
             background: #8b5cf6;
             color: #fff;
             border-color: #8b5cf6;
         }
+
         .merge-avatar {
             width: 64px;
             height: 64px;
@@ -3253,6 +3357,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             object-fit: cover;
             border: 2px solid var(--border-solid);
         }
+
         .merge-avatar-fallback {
             width: 64px;
             height: 64px;
@@ -3263,9 +3368,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 1.5rem;
             border: 2px solid var(--border-solid);
         }
-        .merge-avatar-fallback.male { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .merge-avatar-fallback.female { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
-        
+
+        .merge-avatar-fallback.male {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .merge-avatar-fallback.female {
+            background: rgba(236, 72, 153, 0.15);
+            color: #ec4899;
+        }
+
         .merge-table {
             width: 100%;
             border-collapse: collapse;
@@ -3274,30 +3387,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-xl);
             overflow: hidden;
         }
-        .merge-table th, .merge-table td {
+
+        .merge-table th,
+        .merge-table td {
             padding: 12px 14px;
             font-size: 0.8rem;
             border-bottom: 1px solid var(--border-solid);
         }
+
         .merge-table th {
             background: var(--surface-2);
             color: var(--text-2);
             font-weight: 700;
             text-align: right;
         }
+
         .merge-table tr:last-child td {
             border-bottom: none;
         }
+
         .merge-field-label {
             font-weight: 700;
             color: var(--text-2);
             width: 20%;
         }
+
         .merge-cell-option {
             width: 40%;
             position: relative;
             transition: all var(--t) var(--ease);
         }
+
         .merge-cell-option label {
             display: flex;
             align-items: center;
@@ -3309,27 +3429,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: 1.5px solid transparent;
             transition: all var(--t) var(--ease);
         }
+
         .merge-cell-option input[type="radio"] {
             margin: 0;
             accent-color: #8b5cf6;
             cursor: pointer;
         }
+
         .merge-cell-option label:hover {
             background: var(--surface-3);
         }
+
         .merge-cell-option.auto-selected label {
             background: rgba(16, 185, 129, 0.07);
             border-color: rgba(16, 185, 129, 0.2);
             color: var(--success);
             font-weight: 600;
         }
+
         .merge-cell-option.auto-selected input[type="radio"] {
             accent-color: var(--success);
         }
+
         .merge-cell-option.identical {
             background: var(--surface-2);
             color: var(--text-3);
         }
+
         .merge-section-title {
             font-size: 0.88rem;
             font-weight: 800;
@@ -3339,10 +3465,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             gap: 6px;
         }
+
         .merge-section-title i {
             color: #8b5cf6;
         }
-        .merge-attendance-box, .merge-coupons-box {
+
+        .merge-attendance-box,
+        .merge-coupons-box {
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
@@ -3351,11 +3480,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-direction: column;
             gap: 12px;
         }
+
         .merge-radio-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
+
         .merge-radio-item {
             display: flex;
             align-items: center;
@@ -3367,18 +3498,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-lg);
             transition: all var(--t) var(--ease);
         }
+
         .merge-radio-item:hover {
             background: var(--surface-3);
         }
+
         .merge-radio-item input[type="radio"] {
             margin: 0;
             accent-color: #8b5cf6;
         }
+
         .merge-radio-item.selected {
             border-color: #8b5cf6;
             background: rgba(139, 92, 246, 0.05);
         }
-        
+
         /* Conflicts List style */
         .merge-conflicts-container {
             display: flex;
@@ -3388,6 +3522,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding-top: 12px;
             margin-top: 4px;
         }
+
         .merge-conflict-row {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -3397,16 +3532,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-direction: column;
             gap: 6px;
         }
+
         .merge-conflict-date {
             font-size: 0.76rem;
             font-weight: 700;
             color: var(--text-2);
         }
+
         .merge-conflict-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
+
         .merge-conflict-option {
             display: flex;
             align-items: center;
@@ -3419,19 +3557,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-md);
             transition: all var(--t) var(--ease);
         }
+
         .merge-conflict-option input[type="radio"] {
             margin: 0;
             accent-color: #8b5cf6;
         }
+
         .merge-conflict-option:hover {
             background: var(--surface-3);
         }
+
         .merge-conflict-option.selected {
             border-color: #8b5cf6;
             background: rgba(139, 92, 246, 0.05);
             font-weight: 600;
         }
-        
+
         .bulk-close-x-btn {
             background: transparent;
             border: none;
@@ -3448,6 +3589,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: color 0.2s ease;
             margin: 0;
         }
+
         .bulk-close-x-btn:hover {
             color: var(--danger);
         }
@@ -3464,29 +3606,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             animation: floatUpAndFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
         .coupon-delta-badge.plus {
             background: #22c55e;
             color: #ffffff;
         }
+
         .coupon-delta-badge.minus {
             background: #ef4444;
             color: #ffffff;
         }
+
         @keyframes floatUpAndFade {
             0% {
                 opacity: 0;
                 transform: translate(-50%, 10px) scale(0.6);
             }
+
             20% {
                 opacity: 1;
                 transform: translate(-50%, -5px) scale(1.1);
             }
+
             40% {
                 transform: translate(-50%, -10px) scale(1);
             }
+
             100% {
                 opacity: 0;
                 transform: translate(-50%, -35px) scale(0.8);
@@ -4860,6 +5008,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 1px;
             letter-spacing: normal;
         }
+
         .trip-slim-meta-row {
             display: flex;
             align-items: center;
@@ -5650,7 +5799,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .announcement-class-chip:hover {
             border-color: var(--brand);
-            background: rgba(255,255,255,.92);
+            background: rgba(255, 255, 255, .92);
         }
 
         .announcement-class-chip.selected {
@@ -5682,12 +5831,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             outline: none;
             transition: border-color .18s;
         }
+
         .announcement-student-search:focus {
             border-color: var(--brand);
         }
+
         .announcement-student-search-wrap {
             position: relative;
         }
+
         .announcement-student-search-wrap i {
             position: absolute;
             right: 10px;
@@ -5722,15 +5874,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .announcement-picked-card .ann-pick-ava {
-            width: 22px; height: 22px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background: linear-gradient(135deg, #c7d2fe, #818cf8);
-            display: flex; align-items: center; justify-content: center;
-            font-size: .55rem; color: #fff; font-weight: 700;
-            overflow: hidden; flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .55rem;
+            color: #fff;
+            font-weight: 700;
+            overflow: hidden;
+            flex-shrink: 0;
         }
+
         .announcement-picked-card .ann-pick-ava img {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .announcement-picked-card button {
@@ -5776,17 +5937,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .announcement-student-option .ann-stu-ava {
-            width: 36px; height: 36px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-            display: flex; align-items: center; justify-content: center;
-            font-size: .82rem; color: #818cf8; font-weight: 700;
-            overflow: hidden; flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .82rem;
+            color: #818cf8;
+            font-weight: 700;
+            overflow: hidden;
+            flex-shrink: 0;
             border: 2px solid transparent;
             transition: border-color .18s;
         }
+
         .announcement-student-option .ann-stu-ava img {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .announcement-student-option:hover {
@@ -5802,8 +5972,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: #fff;
             box-shadow: 0 8px 18px rgba(91, 108, 245, .18);
         }
+
         .announcement-student-option.selected .ann-stu-ava {
-            border-color: rgba(255,255,255,.7);
+            border-color: rgba(255, 255, 255, .7);
         }
 
         .announcement-student-helper {
@@ -6579,7 +6750,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-link {
             flex: 0 0 auto;
             background: rgba(255, 255, 255, .78);
-            border: 1px solid var(--border-solid);
+            border: 0px solid var(--border-solid);
             color: var(--text-2);
             font-family: inherit;
             cursor: pointer;
@@ -6588,13 +6759,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: center;
             gap: 1px;
-            padding: 7px 9px;
+            padding: 10px 18px;
             border-radius: var(--r-md, 10px);
             transition: all var(--t) var(--ease);
             white-space: nowrap;
-            box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .72) inset,
-                0 4px 10px rgba(15, 23, 42, .035);
+            box-shadow: 0 .5px 0 rgba(255, 255, 255, .72) inset, 0 4px 10px rgba(15, 23, 42, .035);
         }
 
         .home-tools-link:hover {
@@ -6643,15 +6812,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
             animation: toolChipIn .42s var(--spring) both;
         }
 
-        .home-tool-chip:nth-child(1) { animation-delay: .03s; }
-        .home-tool-chip:nth-child(2) { animation-delay: .06s; }
-        .home-tool-chip:nth-child(3) { animation-delay: .09s; }
-        .home-tool-chip:nth-child(4) { animation-delay: .12s; }
-        .home-tool-chip:nth-child(5) { animation-delay: .15s; }
-        .home-tool-chip:nth-child(6) { animation-delay: .18s; }
-        .home-tool-chip:nth-child(7) { animation-delay: .21s; }
-        .home-tool-chip:nth-child(8) { animation-delay: .24s; }
-        .home-tool-chip:nth-child(9) { animation-delay: .27s; }
+        .home-tool-chip:nth-child(1) {
+            animation-delay: .03s;
+        }
+
+        .home-tool-chip:nth-child(2) {
+            animation-delay: .06s;
+        }
+
+        .home-tool-chip:nth-child(3) {
+            animation-delay: .09s;
+        }
+
+        .home-tool-chip:nth-child(4) {
+            animation-delay: .12s;
+        }
+
+        .home-tool-chip:nth-child(5) {
+            animation-delay: .15s;
+        }
+
+        .home-tool-chip:nth-child(6) {
+            animation-delay: .18s;
+        }
+
+        .home-tool-chip:nth-child(7) {
+            animation-delay: .21s;
+        }
+
+        .home-tool-chip:nth-child(8) {
+            animation-delay: .24s;
+        }
+
+        .home-tool-chip:nth-child(9) {
+            animation-delay: .27s;
+        }
 
         @keyframes toolChipIn {
             from {
@@ -6769,12 +6964,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Today's Birthday Banner (homepage) ── */
         #todayBirthdayBanner {
             display: none;
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-xl);
             padding: 12px 16px;
             margin-bottom: 16px;
-            box-shadow: var(--shadow-sm);
             animation: fadeSlideDown .35s var(--spring);
         }
 
@@ -6879,9 +7070,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 28px;
             transition: background var(--t) var(--ease);
         }
+
         #toggleBdayViewBtn:hover {
             background: rgba(157, 23, 77, 0.08);
         }
+
         [data-theme="dark"] #toggleBdayViewBtn:hover {
             background: rgba(249, 168, 212, 0.15);
         }
@@ -6918,11 +7111,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: #10b981 !important;
             border-color: rgba(16, 185, 129, 0.4) !important;
         }
+
         [data-theme="dark"] .bday-banner-chip.today {
             background: rgba(16, 185, 129, 0.25) !important;
             color: #34d399 !important;
             border-color: rgba(16, 185, 129, 0.5) !important;
         }
+
         .bday-banner-chip.today:hover {
             background: #10b981 !important;
             color: #fff !important;
@@ -6931,6 +7126,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         #syncToTodayBtn {
             transition: all var(--t) var(--ease);
         }
+
         #syncToTodayBtn:hover {
             background: var(--success) !important;
             color: #fff !important;
@@ -7202,6 +7398,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @keyframes swipeBtnSheen {
+
             0%,
             62%,
             100% {
@@ -8775,10 +8972,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── INLINE SEARCH UNDER HERO STRIP ── */
         .inline-search-wrap {
             position: relative;
+            display: flex;
+            width: 100%;
             max-width: 500px;
             width: 100%;
             margin: 0 auto 28px auto;
             z-index: 99;
+            gap: 10px;
         }
 
         .inline-search-box {
@@ -8786,11 +8986,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             background: var(--surface);
-            border: 1.5px solid var(--border-solid);
             border-radius: 50px;
             padding: 0 16px;
             box-shadow: var(--shadow-sm);
             transition: all var(--t) var(--ease);
+            width: 100%;
         }
 
         .inline-search-box:focus-within {
@@ -8888,9 +9088,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         @media (max-width: 480px) {
             .inline-search-wrap {
-                width: calc(100% - 34px);
-                max-width: 420px;
-                margin-bottom: 22px;
+                margin-bottom: 6px;
+                gap: 5px;
             }
 
             .inline-search-box {
@@ -8913,6 +9112,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 justify-content: center;
                 align-items: center;
             }
+
             #kidQrScannerModal .modal {
                 width: 100vw !important;
                 height: 100vh !important;
@@ -8922,9 +9122,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 padding: 10px 16px 16px;
                 animation: none !important;
             }
+
             #kidQrScannerModal .modal::before {
                 display: none !important;
             }
+
             #kidQrReader {
                 width: 100% !important;
                 max-width: 280px !important;
@@ -8942,74 +9144,85 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 100% !important;
             height: 100% !important;
         }
+
         #kidQrReader canvas {
             object-fit: cover !important;
             transform: scaleX(1) !important;
             -webkit-transform: scaleX(1) !important;
             width: 100% !important;
             height: 100% !important;
-        /* ── Paper Exams Styles ── */
-        .paper-exam-card {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: all 0.2s ease-in-out;
-            box-shadow: var(--shadow-sm);
-        }
-        .paper-exam-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--brand);
-        }
-        .paper-exam-card-title {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--text);
-            margin: 0;
-        }
-        .paper-exam-card-meta {
-            font-size: 0.8rem;
-            color: var(--text-3);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .paper-exam-card-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: auto;
-        }
-        .sheet-degree-input {
-            width: 70px;
-            text-align: center;
-            padding: 6px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 6px;
-            border: 1px solid var(--border-solid);
-            background: var(--surface);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .sheet-degree-input:focus {
-            border-color: var(--brand);
-        }
-        .sheet-student-row {
-            border-bottom: 1px solid var(--border-solid);
-            transition: background 0.2s;
-        }
-        .sheet-student-row:hover {
-            background: var(--surface-2);
-        }
-        .sheet-student-cell {
-            padding: 8px 10px;
-            vertical-align: middle;
-        }
+
+            /* ── Paper Exams Styles ── */
+            .paper-exam-card {
+                background: var(--surface);
+                border: 1px solid var(--border-solid);
+                border-radius: var(--r-md);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                transition: all 0.2s ease-in-out;
+                box-shadow: var(--shadow-sm);
+            }
+
+            .paper-exam-card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+                border-color: var(--brand);
+            }
+
+            .paper-exam-card-title {
+                font-size: 1rem;
+                font-weight: 800;
+                color: var(--text);
+                margin: 0;
+            }
+
+            .paper-exam-card-meta {
+                font-size: 0.8rem;
+                color: var(--text-3);
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .paper-exam-card-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: auto;
+            }
+
+            .sheet-degree-input {
+                width: 70px;
+                text-align: center;
+                padding: 6px;
+                font-size: 0.85rem;
+                font-weight: bold;
+                border-radius: 6px;
+                border: 1px solid var(--border-solid);
+                background: var(--surface);
+                color: var(--text);
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .sheet-degree-input:focus {
+                border-color: var(--brand);
+            }
+
+            .sheet-student-row {
+                border-bottom: 1px solid var(--border-solid);
+                transition: background 0.2s;
+            }
+
+            .sheet-student-row:hover {
+                background: var(--surface-2);
+            }
+
+            .sheet-student-cell {
+                padding: 8px 10px;
+                vertical-align: middle;
+            }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -9066,7 +9279,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
                     style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
                 <button class="btn btn-secondary" id="pwaNotifBtn" onclick="toggleNotificationsFromModal()"
-                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> <span>السماح بالإشعارات</span></button>
+                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> <span>السماح
+                        بالإشعارات</span></button>
                 <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس
                     الآن</button>
             </div>
@@ -9082,7 +9296,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="undo-timer-circle" id="undoTimerCircle">10</div>
         <span style="flex:1;" id="undoToastText">تم تنفيذ العملية بنجاح</span>
         <button class="undo-btn" id="undoToastActionBtn"><i class="fas fa-undo"></i> تراجع</button>
-        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i class="fas fa-times"></i></button>
+        <button class="undo-toast-close" id="undoToastCloseBtn" onclick="hideUndoToast()"><i
+                class="fas fa-times"></i></button>
     </div>
 
     <!-- IMAGE MODAL -->
@@ -9142,7 +9357,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
                     </button>
-                    <button class="btn btn-secondary" id="pwaInstallBtn" onclick="hideAccountModal(); triggerPwaInstall()"
+                    <button class="btn btn-secondary" id="pwaInstallBtn"
+                        onclick="hideAccountModal(); triggerPwaInstall()"
                         style="padding:8px 14px;font-size:.82rem;display:none" title="تثبيت التطبيق">
                         <i class="fas fa-download" style="color:var(--success)"></i> تثبيت التطبيق
                     </button>
@@ -9190,12 +9406,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="form-group">
                         <label class="form-label">البريد الإلكتروني</label>
                         <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
-                                class="form-input" id="uncleProfileEmail" ></div>
+                                class="form-input" id="uncleProfileEmail"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">الهاتف</label>
                         <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
-                                class="form-input" id="uncleProfilePhone" ></div>
+                                class="form-input" id="uncleProfilePhone"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">النوع</label>
@@ -9212,7 +9428,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="form-input" id="uncleProfileCurrentPassword"></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة للإبقاء)</small></label>
+                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة
+                                للإبقاء)</small></label>
                         <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
                                 class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
                     </div>
@@ -9288,12 +9505,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
             <div class="tools-grid">
-                <button class="tool-card" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'">
+                <button class="tool-card"
+                    onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'">
                     <span class="tool-card-icon"><i class="fas fa-star"></i></span>
                     <span class="tool-card-name">سحب كوبونات</span>
                     <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
-                <button class="tool-card" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'">
+                <button class="tool-card"
+                    onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
                     <span class="tool-card-name">المهام</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
@@ -9328,13 +9547,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">اقتراحات الإخوات</span>
                     <span class="tool-card-desc">راجع اقتراحات الربط بين الإخوات.</span>
                 </button>
-                <button class="tool-card" id="allToolsBulkAddBtn" onclick="hideAllToolsModal();window.location.href='<?php echo $pathPrefix; ?>/uncle/church/?action=bulkAdd'">
+                <button class="tool-card" id="allToolsBulkAddBtn"
+                    onclick="hideAllToolsModal();window.location.href='<?php echo $pathPrefix; ?>/uncle/church/?action=bulkAdd'">
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showHelpModal()">
-                    <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-question-circle"></i></span>
+                    <span class="tool-card-icon" style="color:var(--brand);"><i
+                            class="fas fa-question-circle"></i></span>
                     <span class="tool-card-name">دليل مساعدة الخدمة</span>
                     <span class="tool-card-desc">اعرف تفاصيل كل ميزة في الخدمة.</span>
                 </button>
@@ -9347,12 +9568,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="modal modal-lg" style="max-width: 850px; height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-file-invoice" style="color:var(--brand);"></i> 
+                    <i class="fas fa-file-invoice" style="color:var(--brand);"></i>
                     <span>الامتحانات الورقية</span>
                 </h3>
                 <button class="close-btn" onclick="closePaperExamsModal()">&times;</button>
             </div>
-            <div class="modal-body" id="paperExamsModalBody" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
+            <div class="modal-body" id="paperExamsModalBody"
+                style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
                 <!-- Main list view -->
                 <div id="paperExamsListView">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
@@ -9361,14 +9583,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-plus"></i> إضافة امتحان جديد
                         </button>
                     </div>
-                    <div id="paperExamsList" class="tools-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+                    <div id="paperExamsList" class="tools-grid"
+                        style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
                         <!-- Filled by JS -->
                     </div>
                 </div>
 
                 <!-- Add/Edit form view -->
                 <div id="paperExamFormView" style="display:none;">
-                    <h4 id="paperExamFormTitle" style="margin-bottom:16px; font-weight:700; color:var(--text);">إضافة امتحان جديد</h4>
+                    <h4 id="paperExamFormTitle" style="margin-bottom:16px; font-weight:700; color:var(--text);">إضافة
+                        امتحان جديد</h4>
                     <form id="paperExamForm" onsubmit="handlePaperExamFormSubmit(event)">
                         <input type="hidden" id="paperExamId" value="0">
                         <div class="form-group">
@@ -9381,58 +9605,84 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <input type="hidden" id="paperExamClassId" value="">
                         <div class="form-group">
-                            <label class="form-label">الفصول المخصصة للامتحان (اختياري - عدم تحديد أي فصل يعني كل الفصول)</label>
-                            <div id="paperExamClassIdsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--surface-3); border: 1.5px solid var(--border-solid); border-radius: var(--r-sm);">
+                            <label class="form-label">الفصول المخصصة للامتحان (اختياري - عدم تحديد أي فصل يعني كل
+                                الفصول)</label>
+                            <div id="paperExamClassIdsList"
+                                style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--surface-3); border: 1.5px solid var(--border-solid); border-radius: var(--r-sm);">
                                 <!-- checkboxes will be populated dynamically -->
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">ملف/صورة الامتحان كمرجع (اختياري)</label>
-                            <input type="file" id="paperExamRefFile" class="form-input" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                            <div id="paperExamExistingRef" style="margin-top:8px; font-size:0.8rem; color:var(--text-3); display:none;">
-                                يوجد ملف مرفوع بالفعل: <a href="#" id="paperExamExistingRefLink" target="_blank" style="color:var(--brand); text-decoration:underline;">عرض الملف</a>
+                            <input type="file" id="paperExamRefFile" class="form-input"
+                                accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <div id="paperExamExistingRef"
+                                style="margin-top:8px; font-size:0.8rem; color:var(--text-3); display:none;">
+                                يوجد ملف مرفوع بالفعل: <a href="#" id="paperExamExistingRefLink" target="_blank"
+                                    style="color:var(--brand); text-decoration:underline;">عرض الملف</a>
                             </div>
                         </div>
                         <div style="display:flex; gap:8px; margin-top:20px;">
-                            <button type="submit" class="btn btn-success" style="flex:1;"><i class="fas fa-save"></i> حفظ</button>
-                            <button type="button" class="btn btn-secondary" onclick="hidePaperExamForm()" style="flex:1;"><i class="fas fa-times"></i> إلغاء</button>
+                            <button type="submit" class="btn btn-success" style="flex:1;"><i class="fas fa-save"></i>
+                                حفظ</button>
+                            <button type="button" class="btn btn-secondary" onclick="hidePaperExamForm()"
+                                style="flex:1;"><i class="fas fa-times"></i> إلغاء</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- Sheet view -->
                 <div id="paperExamSheetView" style="display:none; height:100%; flex-direction:column; gap:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
                         <div>
-                            <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان</h4>
-                            <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة الكلية: 100</span>
+                            <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان
+                            </h4>
+                            <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة
+                                الكلية: 100</span>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
-                            <div id="sheetExamRefLinkContainer" style="display:inline-flex; align-items:center; gap:4px;"></div>
-                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
-                            <input type="file" id="sheetRefFileInput" style="display:none;" onchange="handleSheetRefUpload()" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                            
-                            <!-- CSV Import Button -->
-                            <button class="btn btn-ghost" style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;" onclick="triggerCsvImport()"><i class="fas fa-file-csv"></i> استيراد CSV</button>
-                            <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()" accept=".csv">
-                            
-                            <!-- CSV Template Download Button -->
-                            <button class="btn btn-ghost" style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;" onclick="downloadPaperExamCsvTemplate()"><i class="fas fa-download"></i> تحميل القالب</button>
-                            
-                            <button class="btn btn-secondary" onclick="backToExamsList()"><i class="fas fa-arrow-left"></i> رجوع</button>
-                        </div>
-                     </div>
+                            <div id="sheetExamRefLinkContainer"
+                                style="display:inline-flex; align-items:center; gap:4px;"></div>
+                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i
+                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
+                            <input type="file" id="sheetRefFileInput" style="display:none;"
+                                onchange="handleSheetRefUpload()"
+                                accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
-                     <!-- Search + Filter + Sort row -->
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                        <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:6px 10px; border:1.5px solid var(--border-solid);">
-                            <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
-                            <input id="sheetSearchInput" type="text" placeholder="بحث باسم الطفل..." style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.82rem; color:var(--text); width:100%; outline:none;" oninput="filterSheetStudents()">
+                            <!-- CSV Import Button -->
+                            <button class="btn btn-ghost"
+                                style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
+                                onclick="triggerCsvImport()"><i class="fas fa-file-csv"></i> استيراد CSV</button>
+                            <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()"
+                                accept=".csv">
+
+                            <!-- CSV Template Download Button -->
+                            <button class="btn btn-ghost"
+                                style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
+                                onclick="downloadPaperExamCsvTemplate()"><i class="fas fa-download"></i> تحميل
+                                القالب</button>
+
+                            <button class="btn btn-secondary" onclick="backToExamsList()"><i
+                                    class="fas fa-arrow-left"></i> رجوع</button>
                         </div>
-                        <select id="sheetClassFilter" onchange="filterSheetStudents()" style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
+                    </div>
+
+                    <!-- Search + Filter + Sort row -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <div
+                            style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:6px 10px; border:1.5px solid var(--border-solid);">
+                            <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
+                            <input id="sheetSearchInput" type="text" placeholder="بحث باسم الطفل..."
+                                style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.82rem; color:var(--text); width:100%; outline:none;"
+                                oninput="filterSheetStudents()">
+                        </div>
+                        <select id="sheetClassFilter" onchange="filterSheetStudents()"
+                            style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
                             <option value="">كل الفصول</option>
                         </select>
-                        <select id="sheetSortSelect" onchange="sortSheetStudents()" style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
+                        <select id="sheetSortSelect" onchange="sortSheetStudents()"
+                            style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
                             <option value="name_asc">الاسم (أ - ي)</option>
                             <option value="name_desc">الاسم (ي - أ)</option>
                             <option value="class_asc">الفصل</option>
@@ -9443,10 +9693,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Sheet table container -->
-                    <div style="flex:1; overflow-y:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
+                    <div
+                        style="flex:1; overflow-y:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
                         <table style="width:100%; border-collapse:collapse; text-align:right; font-size:0.85rem;">
                             <thead>
-                                <tr style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
+                                <tr
+                                    style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
                                     <th style="padding:10px; width:50px; text-align:center;">الصورة</th>
                                     <th style="padding:10px; text-align:right;">الاسم</th>
                                     <th style="padding:10px; width:120px; text-align:right;">الفصل</th>
@@ -9461,7 +9713,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-                        <button class="btn btn-success" onclick="saveSheetDegrees()" style="padding:10px 24px;"><i class="fas fa-save"></i> حفظ جميع الدرجات</button>
+                        <button class="btn btn-success" onclick="saveSheetDegrees()" style="padding:10px 24px;"><i
+                                class="fas fa-save"></i> حفظ جميع الدرجات</button>
                     </div>
                 </div>
             </div>
@@ -9474,33 +9727,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="modal modal-lg" style="max-width: 850px; height: 85vh;">
             <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-question-circle" style="color:var(--brand);"></i> 
+                    <i class="fas fa-question-circle" style="color:var(--brand);"></i>
                     <span>دليل مساعدة الخدمة</span>
                 </h3>
                 <button class="close-btn" onclick="closeHelpModal()">&times;</button>
             </div>
-            <div class="help-modal-body" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;">
+            <div class="help-modal-body"
+                style="padding: 16px; display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;">
                 <!-- Search bar -->
                 <div class="help-search-wrapper" style="display: flex; flex-direction: column; gap: 8px;">
                     <div style="position: relative; width: 100%;">
-                        <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.95rem;"></i>
-                        <input type="text" id="helpSearchInput" placeholder="ابحث عن ميزة أو كلمة رئيسية (مثال: دمج، غياب، كوبونات، صورة، رحلة)..." 
+                        <i class="fas fa-search"
+                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 0.95rem;"></i>
+                        <input type="text" id="helpSearchInput"
+                            placeholder="ابحث عن ميزة أو كلمة رئيسية (مثال: دمج، غياب، كوبونات، صورة، رحلة)..."
                             style="width: 100%; height: 42px; padding: 0 38px 0 12px; border: 1px solid var(--border); border-radius: var(--r-md, 8px); font-family: 'Cairo', sans-serif; font-size: 0.9rem; background: var(--bg); color: var(--text); outline: none; box-sizing: border-box;"
                             oninput="performHelpSearch()">
                     </div>
                     <!-- Category Chips -->
                     <div class="help-categories" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
-                        <button class="help-cat-chip active" id="help-cat-all" onclick="filterHelpByCategory('all')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:var(--brand); color:white; font-family:'Cairo',sans-serif; transition:all 0.2s;">الكل</button>
-                        <button class="help-cat-chip" id="help-cat-attendance" onclick="filterHelpByCategory('attendance')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الحضور والغياب</button>
-                        <button class="help-cat-chip" id="help-cat-bulk" onclick="filterHelpByCategory('bulk')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الإجراءات الجماعية</button>
-                        <button class="help-cat-chip" id="help-cat-profile" onclick="filterHelpByCategory('profile')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الملف الشخصي</button>
-                        <button class="help-cat-chip" id="help-cat-settings" onclick="filterHelpByCategory('settings')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إعدادات الطباعة</button>
-                        <button class="help-cat-chip" id="help-cat-trash" onclick="filterHelpByCategory('trash')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">المحذوفات</button>
-                        <button class="help-cat-chip" id="help-cat-admin" onclick="filterHelpByCategory('admin')" style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إدارة الرحلات والنظام</button>
+                        <button class="help-cat-chip active" id="help-cat-all" onclick="filterHelpByCategory('all')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:var(--brand); color:white; font-family:'Cairo',sans-serif; transition:all 0.2s;">الكل</button>
+                        <button class="help-cat-chip" id="help-cat-attendance"
+                            onclick="filterHelpByCategory('attendance')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الحضور
+                            والغياب</button>
+                        <button class="help-cat-chip" id="help-cat-bulk" onclick="filterHelpByCategory('bulk')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الإجراءات
+                            الجماعية</button>
+                        <button class="help-cat-chip" id="help-cat-profile" onclick="filterHelpByCategory('profile')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">الملف
+                            الشخصي</button>
+                        <button class="help-cat-chip" id="help-cat-settings" onclick="filterHelpByCategory('settings')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إعدادات
+                            الطباعة</button>
+                        <button class="help-cat-chip" id="help-cat-trash" onclick="filterHelpByCategory('trash')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">المحذوفات</button>
+                        <button class="help-cat-chip" id="help-cat-admin" onclick="filterHelpByCategory('admin')"
+                            style="border:none; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; cursor:pointer; background:rgba(120,120,120,0.1); color:var(--text-2); font-family:'Cairo',sans-serif; transition:all 0.2s;">إدارة
+                            الرحلات والنظام</button>
                     </div>
                 </div>
                 <!-- Scrollable results list -->
-                <div id="helpFeaturesList" style="display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
+                <div id="helpFeaturesList"
+                    style="display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;">
                     <!-- Features cards render here -->
                 </div>
             </div>
@@ -9511,43 +9781,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="mainContainer">
         <!-- Bulk Actions Bar -->
         <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
-            <div class="bulk-actions-bar-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+            <div class="bulk-actions-bar-header"
+                style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
                 <div style="display:flex; align-items:center; gap:6px; flex:1; min-width: 0;">
                     <!-- Select all checkbox circle -->
-                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex: none;" title="تحديد الكل">
+                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex: none;"
+                        title="تحديد الكل">
                         <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                     </div>
-                    
+
                     <!-- Deselect all outside the dropdown -->
-                    <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل" style="flex: none;">
+                    <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل"
+                        style="flex: none;">
                         <i class="fas fa-eraser" style="font-size: 0.72rem;"></i>
                     </button>
-                    
+
                     <!-- Dropdown taking whole width -->
                     <div class="action-dropdown" style="flex: 1; min-width: 0; position: relative;">
-                        <button class="btn btn-outline btn-sm" id="bulkFilterBtn" onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();" style="width: 100%; text-align: right; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: transparent; height: 32px; padding: 0 10px; font-size: 0.78rem; font-weight: 700;">
-                            <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <button class="btn btn-outline btn-sm" id="bulkFilterBtn"
+                            onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();"
+                            style="width: 100%; text-align: right; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: transparent; height: 32px; padding: 0 10px; font-size: 0.78rem; font-weight: 700;">
+                            <span
+                                style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 <i class="fas fa-filter" style="font-size: 0.75rem; color: var(--text-3);"></i>
                                 <span>تحديد حسب...</span>
                             </span>
                             <i class="fas fa-chevron-down" style="font-size: 0.65rem; color: var(--text-3);"></i>
                         </button>
-                        <div class="dropdown-menu" id="bulkFilterMenu" style="right: 0; left: 0; min-width: 100%; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg);">
-                            <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i class="fas fa-minus"></i> بدون حضور</button>
-                            <button class="dropdown-item success" onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
-                            <button class="dropdown-item danger" onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i class="fas fa-times-circle"></i> الغائبين (غياب)</button>
+                        <div class="dropdown-menu" id="bulkFilterMenu"
+                            style="right: 0; left: 0; min-width: 100%; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg);">
+                            <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i
+                                    class="fas fa-minus"></i> بدون حضور</button>
+                            <button class="dropdown-item success"
+                                onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i
+                                    class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                            <button class="dropdown-item danger"
+                                onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i
+                                    class="fas fa-times-circle"></i> الغائبين (غياب)</button>
                             <hr style="margin: 4px 0; border: none; border-top: 1px solid var(--border-solid);">
-                            <button class="dropdown-item" style="color: var(--brand);" onclick="bulkSelectByFilter('boys');closeAllDropdowns()"><i class="fas fa-mars"></i> الأولاد</button>
-                            <button class="dropdown-item" style="color: #ec4899;" onclick="bulkSelectByFilter('girls');closeAllDropdowns()"><i class="fas fa-venus"></i> البنات</button>
+                            <button class="dropdown-item" style="color: var(--brand);"
+                                onclick="bulkSelectByFilter('boys');closeAllDropdowns()"><i class="fas fa-mars"></i>
+                                الأولاد</button>
+                            <button class="dropdown-item" style="color: #ec4899;"
+                                onclick="bulkSelectByFilter('girls');closeAllDropdowns()"><i class="fas fa-venus"></i>
+                                البنات</button>
                         </div>
                     </div>
                 </div>
                 <!-- Left Stack: Close Button & Selected Count Badge underneath -->
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
-                    <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد" style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
+                    <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد"
+                        style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
                         &times;
                     </button>
-                    <span id="bulkSelectedCount" class="selected-count-chip" style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
+                    <span id="bulkSelectedCount" class="selected-count-chip"
+                        style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
                 </div>
             </div>
             <div class="bulk-actions-btns">
@@ -9559,24 +9848,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-times"></i>
                     <span class="btn-bulk-label">غياب</span>
                 </button>
-                
+
                 <div class="action-dropdown" style="flex:none;">
-                    <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn" onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();" title="تعديل الكوبونات">
+                    <button class="btn-bulk-action bulk-coupons" id="bulkCouponsBtn"
+                        onclick="toggleDropdown('bulkCouponsMenu', 'bulkCouponsBtn'); event.stopPropagation();"
+                        title="تعديل الكوبونات">
                         <i class="fas fa-coins"></i>
                         <span class="btn-bulk-label">كوبونات</span>
                     </button>
                     <div class="dropdown-menu" id="bulkCouponsMenu" style="left:auto; right:0; min-width:120px;">
-                        <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">إضافة</div>
-                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
-                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
-                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
-                        <button class="dropdown-item" onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
+                        <div class="dropdown-group-label"
+                            style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">
+                            إضافة</div>
+                        <button class="dropdown-item"
+                            onclick="executeBulkCouponsDirect(10);closeAllDropdowns()">+10</button>
+                        <button class="dropdown-item"
+                            onclick="executeBulkCouponsDirect(30);closeAllDropdowns()">+30</button>
+                        <button class="dropdown-item"
+                            onclick="executeBulkCouponsDirect(50);closeAllDropdowns()">+50</button>
+                        <button class="dropdown-item"
+                            onclick="executeBulkCouponsDirect(100);closeAllDropdowns()">+100</button>
                         <div class="dropdown-divider"></div>
-                        <div class="dropdown-group-label" style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">خصم</div>
-                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
-                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
-                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
-                        <button class="dropdown-item danger" onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
+                        <div class="dropdown-group-label"
+                            style="padding:4px 10px; font-size:0.75rem; font-weight:bold; color:var(--text-3); text-align:right;">
+                            خصم</div>
+                        <button class="dropdown-item danger"
+                            onclick="executeBulkCouponsDirect(-10);closeAllDropdowns()">-10</button>
+                        <button class="dropdown-item danger"
+                            onclick="executeBulkCouponsDirect(-30);closeAllDropdowns()">-30</button>
+                        <button class="dropdown-item danger"
+                            onclick="executeBulkCouponsDirect(-50);closeAllDropdowns()">-50</button>
+                        <button class="dropdown-item danger"
+                            onclick="executeBulkCouponsDirect(-100);closeAllDropdowns()">-100</button>
                     </div>
                 </div>
 
@@ -9592,7 +9895,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-trash"></i>
                     <span class="btn-bulk-label">حذف</span>
                 </button>
-                <button class="btn-bulk-action bulk-merge" id="bulkMergeBtn" onclick="triggerBulkMerge()" title="دمج الحسابين المكررين" style="display: none;">
+                <button class="btn-bulk-action bulk-merge" id="bulkMergeBtn" onclick="triggerBulkMerge()"
+                    title="دمج الحسابين المكررين" style="display: none;">
                     <i class="fas fa-code-merge"></i>
                     <span class="btn-bulk-label">دمج</span>
                 </button>
@@ -9615,7 +9919,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="topbarSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
                         oninput="performInlineSearch(this.value, 'topbar')" autocomplete="off">
-                    <button type="button" id="topbarSearchQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                    <button type="button" id="topbarSearchQrBtn" onclick="startKidQrScan('profile')"
+                        title="مسح QR الطفل"
+                        style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
                         <i class="fas fa-qrcode"></i>
                     </button>
                     <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
@@ -9625,7 +9931,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div class="topbar-actions">
                 <!-- Unified Download and Notifications Button -->
-                <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()" title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
+                <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()"
+                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
                     <i class="fas fa-download"></i>
                 </button>
                 <!-- Unified notification bell (unread count + push permission) -->
@@ -9664,33 +9971,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
-                <div class="home-tools-wrap">
-                    <div class="home-tools-rail">
-                        <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات" style="flex-shrink: 0;">
-                            <i class="fas fa-grip-horizontal" style="font-size: 1.05rem; display: block;"></i>
-                            <span style="font-size: 0.52rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض الكل</span>
-                        </button>
-                        <button class="home-tool-chip" onclick="startKidQrScan('general')"><i class="fas fa-qrcode"></i> مسح QR عام</button>
-                        <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'"><i class="fas fa-star"></i> سحب كوبونات</button>
-                        <button class="home-tool-chip" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'"><i class="fas fa-tasks"></i> المهام</button>
-                        <button class="home-tool-chip" onclick="showPaperExamsModal()"><i class="fas fa-file-invoice"></i> الامتحانات الورقية</button>
-                        <button class="home-tool-chip" onclick="showAllKidsCustomExport()"><i class="fas fa-file-export"></i> تصدير</button>
-                        <button class="home-tool-chip" onclick="showAnnouncementsModal()"><i class="fas fa-bullhorn"></i> الإعلانات</button>
-                        <button class="home-tool-chip" onclick="showBirthdayModal()"><i class="fas fa-birthday-cake"></i> أعياد الميلاد</button>
-                        <button class="home-tool-chip" onclick="showAllStudentsModal()"><i class="fas fa-list"></i> جميع الأطفال</button>
-                        <button class="home-tool-chip" onclick="openSiblingSuggestionsView()"><i class="fas fa-wand-magic-sparkles"></i> اقتراحات الإخوات</button>
-                        <button class="home-tool-chip" id="homeBulkAddKidsBtn" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/church/?action=bulkAdd'"><i class="fas fa-upload"></i> إضافة مجموعة</button>
-                        <button class="home-tool-chip" onclick="showHelpModal()" style="background:rgba(91,108,245,0.08);color:var(--brand);border-color:rgba(91,108,245,0.25);"><i class="fas fa-question-circle"></i> دليل المساعدة</button>
-                    </div>
-                </div>
 
                 <!-- Centered inline intelligent search bar -->
                 <div class="inline-search-wrap">
+                    <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات"
+                        style="flex-shrink: 0;">
+                        <i class="fas fa-grip-horizontal" style="font-size: 1.05rem; display: block;"></i>
+                        <span
+                            style="font-size: 0.52rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض
+                            الكل</span>
+                    </button>
+
                     <div class="inline-search-box">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="inlineSearchInput" placeholder="اسم الطفل، الفصل، الهاتف..."
                             oninput="performInlineSearch(this.value)" autocomplete="off">
-                        <button type="button" id="inlineSearchQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                        <button type="button" id="inlineSearchQrBtn" onclick="startKidQrScan('profile')"
+                            title="مسح QR الطفل"
+                            style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
                             <i class="fas fa-qrcode"></i>
                         </button>
                         <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i
@@ -9707,16 +10005,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
                         </div>
                         <button id="toggleBdayViewBtn" onclick="toggleBdayView()" title="تغيير طريقة العرض">
-                            <i class="fas fa-chevron-down" id="bdayCollapseIcon" style="transition: transform var(--t) var(--ease); font-size: 0.85rem;"></i>
+                            <i class="fas fa-chevron-down" id="bdayCollapseIcon"
+                                style="transition: transform var(--t) var(--ease); font-size: 0.85rem;"></i>
                         </button>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px;">
-                    <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()" style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
+                        style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                         <span class="section-title" style="margin-bottom: 0;">الرحلات / المؤتمرات المتاحة</span>
-                        <i class="fas fa-chevron-down" id="tripsCollapseIcon" style="color: var(--text-3); font-size: 0.85rem; transition: transform var(--t) var(--ease);"></i>
+                        <i class="fas fa-chevron-down" id="tripsCollapseIcon"
+                            style="color: var(--text-3); font-size: 0.85rem; transition: transform var(--t) var(--ease);"></i>
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
@@ -9724,7 +10025,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
                     <button id="toggleStatsBtn" onclick="toggleStats()" style="margin-right: auto;">
-                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات
+                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض
+                        الإحصائيات
                     </button>
                 </div>
 
@@ -9764,19 +10066,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="classes-grid" id="classesGrid"></div>
 
                 <footer class="site-footer">
-                    <div class="footer-inner" style="flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <div class="footer-inner"
+                        style="flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px;">
                         <a href="https://sunday-school.online/" class="footer-brand">
                             <div class="footer-logo"><img src="/logo.png" alt="" onerror="this.style.display='none'">
                             </div>
                             <span class="footer-name">Sunday School 2026</span>
                         </a>
-                        <div class="footer-copy" style="text-align: center; direction: rtl;">مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ - كُورِنْثُوسَ الأُولَى ١٥:‏٥٨</div>
+                        <div class="footer-copy" style="text-align: center; direction: rtl;">مُكْثِرِينَ فِي عَمَلِ
+                            الرَّبِّ كُلَّ حِينٍ - كُورِنْثُوسَ الأُولَى ١٥:‏٥٨</div>
                     </div>
                     <div class="footer-links">
-                        <a href="<?php echo $pathPrefix; ?>/help" class="footer-link"><i class="fas fa-question-circle"></i> المساعدة</a>
+                        <a href="<?php echo $pathPrefix; ?>/help" class="footer-link"><i
+                                class="fas fa-question-circle"></i> المساعدة</a>
                         <a href="https://api.whatsapp.com/send?phone=201037011355" class="footer-link"><i
                                 class="fab fa-whatsapp"></i> تواصل</a>
-                        <a href="<?php echo $pathPrefix; ?>/about" class="footer-link"><i class="fas fa-info-circle"></i> حول</a>
+                        <a href="<?php echo $pathPrefix; ?>/about" class="footer-link"><i
+                                class="fas fa-info-circle"></i> حول</a>
                     </div>
                 </footer>
             </div>
@@ -9793,7 +10099,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <h2 class="class-title-text" id="className">الفصل</h2>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button class="btn btn-ghost" id="syncToTodayBtn" style="display:none; color:var(--success); padding:0 12px; min-width:unset; height:36px; font-size:0.82rem; font-weight:700; align-items:center; gap:6px; border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-md); background:var(--surface-3); font-family:Cairo,sans-serif;" onclick="resetToCurrentFriday()" title="العودة لليوم">
+                        <button class="btn btn-ghost" id="syncToTodayBtn"
+                            style="display:none; color:var(--success); padding:0 12px; min-width:unset; height:36px; font-size:0.82rem; font-weight:700; align-items:center; gap:6px; border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-md); background:var(--surface-3); font-family:Cairo,sans-serif;"
+                            onclick="resetToCurrentFriday()" title="العودة لليوم">
                             <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
                         </button>
                         <div class="date-chip" id="dateChip" onclick="showPastFridaysModal()">
@@ -9904,7 +10212,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <button class="dropdown-item"
                                 onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
                                     class="fas fa-tasks"></i> مهام الفصل <span class="tasks-notif-dot"
-                                    id="tasksSubmissionDot" style="display:none; position:static; margin-right:auto;"></span></button>
+                                    id="tasksSubmissionDot"
+                                    style="display:none; position:static; margin-right:auto;"></span></button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
                                 تصدير مخصص</button>
@@ -9958,8 +10267,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-code-merge"></i>
                         <span class="strip-btn-label">دمج</span>
                     </button>
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral" onclick="showResetModal()"
-                        title="إعادة التعيين">
+                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral"
+                        onclick="showResetModal()" title="إعادة التعيين">
                         <i class="fas fa-rotate-left"></i>
                         <span class="strip-btn-label">تراجع</span>
                     </button>
@@ -9984,20 +10293,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="stat-lbl">متوسط</span></span>
                         </div>
                         <div class="save-row">
-                            <button class="save-btn save-btn-select" id="bulkSelectToggleBtn" onclick="toggleBulkSelectMode()" title="تحديد متعدد">
+                            <button class="save-btn save-btn-select" id="bulkSelectToggleBtn"
+                                onclick="toggleBulkSelectMode()" title="تحديد متعدد">
                                 <i class="fas fa-check-circle"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>
                             </button>
                             <div class="action-dropdown" style="flex:none;min-width:0;">
-                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR" onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
+                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR"
+                                    onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
                                     <i class="fas fa-qrcode"></i>
                                     <span class="save-btn-bottom"><span class="save-btn-label">QR</span></span>
                                 </button>
-                                <div class="dropdown-menu" id="kidQrScanMenu" style="left:auto;right:0;min-width:220px;">
-                                    <button class="dropdown-item success" onclick="startKidQrScan('attendance');closeAllDropdowns();">
+                                <div class="dropdown-menu" id="kidQrScanMenu"
+                                    style="left:auto;right:0;min-width:220px;">
+                                    <button class="dropdown-item success"
+                                        onclick="startKidQrScan('attendance');closeAllDropdowns();">
                                         <i class="fas fa-user-check"></i> مسح الحضور
                                     </button>
-                                    <button class="dropdown-item coupon" onclick="startKidQrScan('coupons');closeAllDropdowns();">
+                                    <button class="dropdown-item coupon"
+                                        onclick="startKidQrScan('coupons');closeAllDropdowns();">
                                         <i class="fas fa-star"></i> مسح الكوبونات
                                     </button>
                                 </div>
@@ -10020,30 +10334,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <div class="class-inline-search-wrap" style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                <div class="class-inline-search-wrap"
+                    style="display: flex; gap: 8px; align-items: center; width: 100%;">
                     <div class="inline-search-box" style="flex: 1;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off">
-                        <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')" title="مسح QR الطفل" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                        <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
+                            title="مسح QR الطفل"
+                            style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
                             <i class="fas fa-qrcode"></i>
                         </button>
                         <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
                     </div>
-                    <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()" style="padding: 0 16px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: 50px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; font-family: 'Cairo', sans-serif;" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border-solid)'">
+                    <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
+                        style="padding: 0 16px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: 50px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; font-family: 'Cairo', sans-serif;"
+                        onmouseover="this.style.borderColor='var(--brand)'"
+                        onmouseout="this.style.borderColor='var(--border-solid)'">
                         <i class="fas fa-filter"></i>
                         <span style="font-size: 0.8rem; font-weight: 700;">تصفية</span>
-                        <span id="activeFiltersBadge" style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.68rem; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 800; margin-right: 4px;">0</span>
+                        <span id="activeFiltersBadge"
+                            style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.68rem; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 800; margin-right: 4px;">0</span>
                     </button>
                 </div>
 
                 <!-- Filters Panel -->
-                <div class="class-filters-panel" id="classFiltersPanel" style="display: none; background: var(--surface-2); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; width: 100%;">
+                <div class="class-filters-panel" id="classFiltersPanel"
+                    style="display: none; background: var(--surface-2); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); padding: 12px; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; width: 100%;">
                     <!-- Gender Filter -->
                     <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-venus-mars"></i> النوع</label>
-                        <select id="filterGenderSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i
+                                class="fas fa-venus-mars"></i> النوع</label>
+                        <select id="filterGenderSelect" onchange="applyClassFilters()"
+                            style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
                             <option value="all">الكل</option>
                             <option value="male">أولاد</option>
                             <option value="female">بنات</option>
@@ -10051,8 +10375,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Attendance Filter -->
                     <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-check-circle"></i> حالة الحضور اليوم</label>
-                        <select id="filterAttendanceSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i
+                                class="fas fa-check-circle"></i> حالة الحضور اليوم</label>
+                        <select id="filterAttendanceSelect" onchange="applyClassFilters()"
+                            style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
                             <option value="all">الكل</option>
                             <option value="present">حضور</option>
                             <option value="absent">غياب</option>
@@ -10061,8 +10387,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Sibling Filter -->
                     <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-users"></i> صلة الإخوة</label>
-                        <select id="filterSiblingsSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i
+                                class="fas fa-users"></i> صلة الإخوة</label>
+                        <select id="filterSiblingsSelect" onchange="applyClassFilters()"
+                            style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
                             <option value="all">الكل</option>
                             <option value="has_siblings">لديه إخوة</option>
                             <option value="no_siblings">ليس لديه إخوة</option>
@@ -10070,8 +10398,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Coupons Filter -->
                     <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i class="fas fa-star"></i> الكوبونات</label>
-                        <select id="filterCouponsSelect" onchange="applyClassFilters()" style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-3);"><i
+                                class="fas fa-star"></i> الكوبونات</label>
+                        <select id="filterCouponsSelect" onchange="applyClassFilters()"
+                            style="width: 100%; border: 1.5px solid var(--border-solid); border-radius: var(--r-sm); padding: 6px 10px; font-family: Cairo,sans-serif; font-size: 0.8rem; background: var(--surface-3); color: var(--text); outline: none; cursor: pointer;">
                             <option value="all">الكل</option>
                             <option value="has_coupons">لديه كوبونات (&gt; 0)</option>
                             <option value="no_coupons">ليس لديه كوبونات (0)</option>
@@ -10079,7 +10409,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <!-- Reset Button -->
                     <div style="flex: 1; min-width: 120px; display: flex; align-items: flex-end;">
-                        <button type="button" class="btn btn-secondary" onclick="resetClassFilters()" style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-sm); font-family: Cairo,sans-serif;"><i class="fas fa-undo"></i> إعادة تعيين</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetClassFilters()"
+                            style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; font-weight: 700; border-radius: var(--r-sm); font-family: Cairo,sans-serif;"><i
+                                class="fas fa-undo"></i> إعادة تعيين</button>
                     </div>
                 </div>
 
@@ -10174,7 +10506,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
-                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-external-link-alt"></i> الملف العام</button>
+                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i
+                        class="fas fa-external-link-alt"></i> الملف العام</button>
                 <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
                     حذف</button>
             </div>
@@ -10225,8 +10558,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </details>
             </div>
             <div class="mfooter">
-                <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
-                <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i class="fas fa-times"></i>
+                <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i
+                        class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
+                <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i
+                        class="fas fa-times"></i>
                     إغلاق</button>
             </div>
         </div>
@@ -10241,15 +10576,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div class="mbody" style="overflow-y:auto; flex:1; padding-top:10px;">
                 <p style="font-size:0.78rem; color:var(--text-3); margin-bottom:12px; line-height:1.5;">
-                    اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل جميع السجلات المرتبطة (الحضور، المهام، الكوبونات، الرحلات) تلقائياً.
+                    اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل
+                    جميع السجلات المرتبطة (الحضور، المهام، الكوبونات، الرحلات) تلقائياً.
                 </p>
                 <div id="mergeModalContent"></div>
             </div>
-            <div class="mfooter" style="justify-content:space-between; padding-top:14px; border-top:1px solid var(--border-solid)">
-                <button class="btn btn-success" id="confirmMergeBtn" onclick="submitMergeDuplicate()" type="button" style="padding: 10px 24px; font-weight:700;">
+            <div class="mfooter"
+                style="justify-content:space-between; padding-top:14px; border-top:1px solid var(--border-solid)">
+                <button class="btn btn-success" id="confirmMergeBtn" onclick="submitMergeDuplicate()" type="button"
+                    style="padding: 10px 24px; font-weight:700;">
                     <i class="fas fa-check-double"></i> إتمام الدمج وحذف المكرر
                 </button>
-                <button class="btn btn-ghost" onclick="closeMergeModal()" type="button"><i class="fas fa-times"></i> إلغاء</button>
+                <button class="btn btn-ghost" onclick="closeMergeModal()" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
             </div>
         </div>
     </div>
@@ -10262,13 +10601,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeSiblingComparisonModal">&times;</button>
             </div>
             <div class="mbody">
-                <div id="siblingComparisonContent" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px"></div>
+                <div id="siblingComparisonContent"
+                    style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px"></div>
             </div>
             <div class="mfooter" style="justify-content:space-between">
                 <div>
-                    <button class="btn btn-success" id="confirmSiblingLinkBtn" type="button"><i class="fas fa-check"></i> تأكيد الربط</button>
+                    <button class="btn btn-success" id="confirmSiblingLinkBtn" type="button"><i
+                            class="fas fa-check"></i> تأكيد الربط</button>
                 </div>
-                <button class="btn btn-ghost" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i> إلغاء</button>
+                <button class="btn btn-ghost" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
             </div>
         </div>
     </div>
@@ -10638,7 +10980,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button class="search-btn" id="allStudentsSearchBtn"><i class="fas fa-search"></i></button>
                 </div>
                 <div class="table-export-btns">
-                    <button class="btn btn-secondary" id="allStudentsQrBtn" onclick="startKidQrScan('profile')" title="مسح QR الطفل">
+                    <button class="btn btn-secondary" id="allStudentsQrBtn" onclick="startKidQrScan('profile')"
+                        title="مسح QR الطفل">
                         <i class="fas fa-qrcode"></i> QR
                     </button>
                     <button class="btn btn-danger" id="exportAllAsPdfBtn"><i class="fas fa-file-pdf"></i> تصدير
@@ -10672,41 +11015,58 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="modal-header" style="gap:8px;align-items:flex-start">
                 <div>
                     <h3 id="kidQrScannerTitle"><i class="fas fa-qrcode"></i> مسح QR</h3>
-                    <div id="kidQrScannerSubtitle" style="font-size:.82rem;color:var(--text-3);margin-top:4px;line-height:1.4"></div>
+                    <div id="kidQrScannerSubtitle"
+                        style="font-size:.82rem;color:var(--text-3);margin-top:4px;line-height:1.4"></div>
                 </div>
                 <button class="close-btn" id="closeKidQrScannerBtn" onclick="stopKidQrScan()">&times;</button>
             </div>
             <div style="padding:0 2px 10px">
-                <div class="modal-mode-tabs" style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
-                    <button type="button" id="modalTab_attendance" class="modal-mode-tab" onclick="switchModalScanMode('attendance')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                <div class="modal-mode-tabs"
+                    style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
+                    <button type="button" id="modalTab_attendance" class="modal-mode-tab"
+                        onclick="switchModalScanMode('attendance')"
+                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-user-check"></i> حضور
                     </button>
-                    <button type="button" id="modalTab_coupons" class="modal-mode-tab" onclick="switchModalScanMode('coupons')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                    <button type="button" id="modalTab_coupons" class="modal-mode-tab"
+                        onclick="switchModalScanMode('coupons')"
+                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-star"></i> كوبونات
                     </button>
-                    <button type="button" id="modalTab_profile" class="modal-mode-tab" onclick="switchModalScanMode('profile')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                    <button type="button" id="modalTab_profile" class="modal-mode-tab"
+                        onclick="switchModalScanMode('profile')"
+                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-user"></i> الملف
                     </button>
                 </div>
 
                 <!-- Scanner source selector (Camera vs. USB) -->
-                <div class="scanner-source-tabs" style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
-                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab" onclick="switchScannerSource('camera')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                <div class="scanner-source-tabs"
+                    style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
+                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab"
+                        onclick="switchScannerSource('camera')"
+                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-camera"></i> الكاميرا
                     </button>
-                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab" onclick="switchScannerSource('usb')" style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
+                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab"
+                        onclick="switchScannerSource('usb')"
+                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
                         <i class="fas fa-barcode"></i> ماسح خارجي
                     </button>
                 </div>
 
-                <div id="kidQrScannerNote" style="background:var(--brand-bg);border:1px solid rgba(79,70,229,.16);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin-bottom:12px">
+                <div id="kidQrScannerNote"
+                    style="background:var(--brand-bg);border:1px solid rgba(79,70,229,.16);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin-bottom:12px">
                     يمكنك طباعة QR الأطفال من صفحة الإدارة.
                 </div>
 
                 <!-- Default coupon selection dropdown (only in coupons mode) -->
                 <div id="kidQrCouponSelectContainer" style="margin-bottom:12px; display:none;">
-                    <label class="form-label" style="font-size:0.85rem; font-weight: 700; margin-bottom: 6px; display: block;">قيمة الكوبونات لكل طفل ممسوح:</label>
-                    <select id="kidQrCouponSelect" class="form-input" style="width:100%; padding: 8px 12px;" onchange="kidQrScanAmount = parseInt(this.value, 10); refreshKidQrScanUI();">
+                    <label class="form-label"
+                        style="font-size:0.85rem; font-weight: 700; margin-bottom: 6px; display: block;">قيمة الكوبونات
+                        لكل طفل ممسوح:</label>
+                    <select id="kidQrCouponSelect" class="form-input" style="width:100%; padding: 8px 12px;"
+                        onchange="kidQrScanAmount = parseInt(this.value, 10); refreshKidQrScanUI();">
                         <option value="10">10 كوبونات</option>
                         <option value="30">30 كوبون</option>
                         <option value="50">50 كوبون</option>
@@ -10714,14 +11074,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </select>
                 </div>
 
-                <div id="kidQrReader" style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
+                <div id="kidQrReader"
+                    style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
                 <div id="kidQrScanSummary" style="margin-top:12px"></div>
-                <div id="kidQrScanList" style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px"></div>
+                <div id="kidQrScanList"
+                    style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px">
+                </div>
                 <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-                    <button class="btn btn-primary" id="kidQrSaveAllBtn" style="flex:1.5;min-width:140px;background:var(--brand);color:white;border-color:var(--brand);" onclick="saveAllGeneralChanges()">
+                    <button class="btn btn-primary" id="kidQrSaveAllBtn"
+                        style="flex:1.5;min-width:140px;background:var(--brand);color:white;border-color:var(--brand);"
+                        onclick="saveAllGeneralChanges()">
                         <i class="fas fa-save"></i> حفظ التغييرات
                     </button>
-                    <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:90px" onclick="finishKidQrScan()">
+                    <button class="btn btn-success" id="kidQrDoneBtn" style="flex:1;min-width:90px"
+                        onclick="finishKidQrScan()">
                         <i class="fas fa-check"></i> تم
                     </button>
                 </div>
@@ -10879,14 +11245,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div style="padding:15px 0">
                 <form id="bulkEditClassForm" onsubmit="executeBulkClass(event)">
-                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);" id="bulkClassCountLabel"></div>
-                    <div class="form-group" style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
+                    <div style="font-size:0.85rem; margin-bottom:12px; font-weight:bold; color:var(--text-3);"
+                        id="bulkClassCountLabel"></div>
+                    <div class="form-group"
+                        style="margin-bottom:20px; display: flex; flex-direction: column; gap: 6px;">
                         <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">الفصل المستهدف</label>
-                        <select id="bulkClassSelect" required class="form-select" style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text); font-family: inherit; font-weight: inherit;"></select>
+                        <select id="bulkClassSelect" required class="form-select"
+                            style="padding: 8px; border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: var(--surface); color: var(--text); font-family: inherit; font-weight: inherit;"></select>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ</button>
-                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkEditClassModal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i>
+                            حفظ</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1;"
+                            onclick="closeModal('bulkEditClassModal')">إلغاء</button>
                     </div>
                 </form>
             </div>
@@ -10916,16 +11287,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Custom Confirm Modal -->
     <div class="modal-overlay" id="customConfirmModal" style="z-index:20000000">
-        <div class="modal modal-sm" style="max-width:380px; text-align: center; border: 1.5px solid var(--border-solid);">
+        <div class="modal modal-sm"
+            style="max-width:380px; text-align: center; border: 1.5px solid var(--border-solid);">
             <div style="padding: 20px 16px 16px;">
                 <div style="font-size: 3rem; margin-bottom: 12px; color: var(--danger);" id="customConfirmIcon">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h3 style="margin-bottom: 8px; font-weight: 800; color: var(--text);" id="customConfirmTitle">تأكيد الإجراء</h3>
-                <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-2); margin-bottom: 20px;" id="customConfirmMessage"></p>
+                <h3 style="margin-bottom: 8px; font-weight: 800; color: var(--text);" id="customConfirmTitle">تأكيد
+                    الإجراء</h3>
+                <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-2); margin-bottom: 20px;"
+                    id="customConfirmMessage"></p>
                 <div style="display:flex; gap:10px;">
-                    <button type="button" id="customConfirmYesBtn" class="btn btn-danger" style="flex:1;"><i class="fas fa-check"></i> نعم، متأكد</button>
-                    <button type="button" id="customConfirmNoBtn" class="btn btn-secondary" style="flex:1;" onclick="closeModal('customConfirmModal')">إلغاء</button>
+                    <button type="button" id="customConfirmYesBtn" class="btn btn-danger" style="flex:1;"><i
+                            class="fas fa-check"></i> نعم، متأكد</button>
+                    <button type="button" id="customConfirmNoBtn" class="btn btn-secondary" style="flex:1;"
+                        onclick="closeModal('customConfirmModal')">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -10942,27 +11318,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <form id="bulkNoteForm" onsubmit="submitBulkNotes(event)">
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">نوع الملاحظة (العنوان)</label>
-                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; direction:rtl;">
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('زيارة منزلية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">زيارة منزلية</span>
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('متابعة تلفونية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">متابعة تلفونية</span>
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('احتياج مالي')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">احتياج مالي</span>
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('مستلزمات مدرسية')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">مستلزمات مدرسية</span>
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('طلب صلاة')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">طلب صلاة</span>
-                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('أخرى')" style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">أخرى</span>
+                        <div class="note-suggestions-pills"
+                            style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; direction:rtl;">
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('زيارة منزلية')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">زيارة
+                                منزلية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('متابعة تلفونية')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">متابعة
+                                تلفونية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('احتياج مالي')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">احتياج
+                                مالي</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('مستلزمات مدرسية')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">مستلزمات
+                                مدرسية</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('طلب صلاة')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">طلب
+                                صلاة</span>
+                            <span class="badge" onclick="selectBulkNoteTitleSuggestion('أخرى')"
+                                style="cursor:pointer; font-size:0.75rem; padding:6px 10px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">أخرى</span>
                         </div>
-                        <input type="text" id="bulkNoteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." required>
+                        <input type="text" id="bulkNoteTitleInput" class="form-input"
+                            placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." required>
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">تفاصيل الملاحظة (الوصف)</label>
-                        <textarea id="bulkNoteDescInput" class="form-input" rows="4" placeholder="اكتب تفاصيل الملاحظة هنا..." required style="font-family:inherit; resize:vertical;"></textarea>
+                        <textarea id="bulkNoteDescInput" class="form-input" rows="4"
+                            placeholder="اكتب تفاصيل الملاحظة هنا..." required
+                            style="font-family:inherit; resize:vertical;"></textarea>
                     </div>
                     <div class="form-group" style="margin-bottom:16px;">
                         <label class="form-label">التاريخ (اختياري)</label>
                         <input type="date" id="bulkNoteDateInput" class="form-input">
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ للجميع</button>
-                        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeModal('bulkNoteModal')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ
+                            للجميع</button>
+                        <button type="button" class="btn btn-secondary" style="flex:1;"
+                            onclick="closeModal('bulkNoteModal')">إلغاء</button>
                     </div>
                 </form>
             </div>
@@ -11034,16 +11427,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="message">رسالة نصية</option>
                                     <option value="button">زر برابط</option>
                                 </select></div>
-                            <div class="form-group" style="margin:0"><label class="form-label">الجمهور المستهدف</label><select
-                                    class="form-input" id="announcementTargetType">
+                            <div class="form-group" style="margin:0"><label class="form-label">الجمهور
+                                    المستهدف</label><select class="form-input" id="announcementTargetType">
                                     <option value="kids">الأطفال فقط (Kids Only)</option>
                                     <option value="uncles">الخدام فقط (Uncles Only)</option>
                                     <option value="both">الكل - خدام وأطفال (Both)</option>
                                 </select></div>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px">
-                                <div class="form-group" style="margin:0;grid-column:1/-1;"><label class="form-label">الفصل (للأطفال/الكل)</label><select
-                                    class="form-input" id="announcementClass" multiple size="4" style="height:auto;">
+                            <div class="form-group" style="margin:0;grid-column:1/-1;"><label class="form-label">الفصل
+                                    (للأطفال/الكل)</label><select class="form-input" id="announcementClass" multiple
+                                    size="4" style="height:auto;">
                                     <option value="الجميع">جميع الفصول</option>
                                     <option value="حضانة">حضانة</option>
                                     <option value="أولى">أولى</option>
@@ -11054,25 +11448,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="سادسة">سادسة</option>
                                 </select></div>
                         </div>
-                        <div class="form-group"><label class="form-label">النص الرئيسي (أو العنوان)</label><input type="text"
-                                class="form-input" id="announcementText" placeholder="مثال: رحلة ترفيهية 🎡" required></div>
+                        <div class="form-group"><label class="form-label">النص الرئيسي (أو العنوان)</label><input
+                                type="text" class="form-input" id="announcementText" placeholder="مثال: رحلة ترفيهية 🎡"
+                                required></div>
                         <div id="linkFieldContainer" style="display:none" class="form-group"><label
                                 class="form-label">الرابط</label><input type="url" class="form-input"
                                 id="announcementLink" placeholder="https://..."></div>
-                        <div class="form-group"><label class="form-label">نص زر التوجيه (اختياري)</label><input type="text"
-                                class="form-input" id="announcementButtonText" placeholder="مثال: فتح الرابط"></div>
+                        <div class="form-group"><label class="form-label">نص زر التوجيه (اختياري)</label><input
+                                type="text" class="form-input" id="announcementButtonText"
+                                placeholder="مثال: فتح الرابط"></div>
                         <div class="form-group"><label class="form-label">رابط الصورة (اختياري)</label><input type="url"
-                                class="form-input" id="announcementImageUrl" placeholder="https://example.com/image.png"></div>
+                                class="form-input" id="announcementImageUrl"
+                                placeholder="https://example.com/image.png"></div>
                         <div class="form-group"><label class="form-label">الوصف التفصيلي (اختياري)</label><textarea
-                                class="form-input" id="announcementDescription" placeholder="اكتب تفاصيل الإعلان هنا..." rows="3"></textarea></div>
+                                class="form-input" id="announcementDescription" placeholder="اكتب تفاصيل الإعلان هنا..."
+                                rows="3"></textarea></div>
                         <div class="form-group"><label class="form-label">أطفال محددين <small
                                     style="color:var(--text-3)">(اختياري)</small></label><input type="text"
                                 class="form-input" id="announcementStudents" placeholder="اتركه فارغاً للجميع" readonly>
                             <div class="announcement-student-picker">
-                                <div class="announcement-student-search-wrap"><input type="text" id="announcementStudentSearch" class="announcement-student-search" placeholder="ابحث عن طفل أو رقم..."><i class="fas fa-search"></i></div>
-                                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;"><label style="font-size:.82rem;"><input type="checkbox" id="announcementHasPhotoOnly" style="margin-left:6px"> الأطفال أصحاب صور فقط</label></div>
+                                <div class="announcement-student-search-wrap"><input type="text"
+                                        id="announcementStudentSearch" class="announcement-student-search"
+                                        placeholder="ابحث عن طفل أو رقم..."><i class="fas fa-search"></i></div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;"><label
+                                        style="font-size:.82rem;"><input type="checkbox" id="announcementHasPhotoOnly"
+                                            style="margin-left:6px"> الأطفال أصحاب صور فقط</label></div>
                                 <div class="announcement-picked-list" id="announcementPickedList"></div>
-                                <div class="announcement-student-helper" id="announcementStudentHelper">اختَر الأطفال بالضغط عليهم من القائمة التالية</div>
+                                <div class="announcement-student-helper" id="announcementStudentHelper">اختَر الأطفال
+                                    بالضغط عليهم من القائمة التالية</div>
                                 <div class="announcement-student-grid" id="announcementStudentGrid"></div>
                             </div>
                         </div>
@@ -11315,7 +11718,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const actionLabel = getActionMeta(log.action || '').label || log.action;
             const entityName = log.entity_name || log.description || '';
             const logNotes = log.notes || `${actionLabel}: ${entityName}`;
-            
+
             textEl.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:2px;">
                     <span style="font-weight:700;">تمت العملية: ${logNotes}</span>
@@ -11386,10 +11789,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 .then(d => {
                     if (d.success || d.offline) {
                         if (ok) ok(d);
-                        
+
                         // Check if this was a critical restorable action
                         const criticalActions = [
-                            'bulkDeleteStudents', 'bulkUpdateStudentsClass', 
+                            'bulkDeleteStudents', 'bulkUpdateStudentsClass',
                             'bulkUpdateStudentsCoupons', 'submitAttendance', 'deleteStudent',
                             'mergeDuplicateStudents'
                         ];
@@ -12134,7 +12537,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (rawUrl) {
                     const photoUrl = (typeof window.photoUrl === 'function') ? window.photoUrl(rawUrl) : rawUrl;
                     if (photoUrl) {
-                        fetch(photoUrl, { priority: 'low' }).catch(() => {});
+                        fetch(photoUrl, { priority: 'low' }).catch(() => { });
                     }
                 }
             });
@@ -12218,10 +12621,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (r.classes && Array.isArray(r.classes)) {
                         classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
                     }
-                    
+
                     try {
                         localStorage.setItem('lastStudentsData', freshString);
-                    } catch (e) {}
+                    } catch (e) { }
 
                     if (window._prunePhotoCache) {
                         const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
@@ -12351,7 +12754,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const today = new Date();
             const todayDay = today.getDate(), todayMonth = today.getMonth();
             const jsDay = dbDayToJsDay(churchAttendanceDay || 'Friday');
-            
+
             // Next celebration date (closest configured attendance day, today or future)
             let celebrationDate = new Date(today);
             let diff = (jsDay - today.getDay() + 7) % 7;
@@ -12379,7 +12782,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const matchDate = cycleDates.find(d => d.getDate() === bdayDay && d.getMonth() === bdayMonth);
                 if (matchDate) {
                     const isToday = bdayDay === todayDay && bdayMonth === todayMonth;
-                    
+
                     // Determine weekday name in Arabic
                     const arabicDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
                     const dayName = arabicDays[matchDate.getDay()];
@@ -12482,7 +12885,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         try {
                             const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
                             count += changedIds.length;
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 });
             } else if (isCombined && grpClasses && grpClasses.length) {
@@ -12493,14 +12896,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             try {
                                 const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
                                 count += changedIds.length;
-                            } catch (e) {}
+                            } catch (e) { }
                         }
                     });
                     try {
                         const couponKey = `changedCouponStudents_${c}`;
                         const couponIds = JSON.parse(localStorage.getItem(couponKey) || '[]');
                         count += couponIds.length;
-                    } catch (e) {}
+                    } catch (e) { }
                 });
             } else {
                 allKeys.forEach(k => {
@@ -12509,14 +12912,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         try {
                             const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
                             count += changedIds.length;
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 });
                 try {
                     const couponKey = `changedCouponStudents_${clsName}`;
                     const couponIds = JSON.parse(localStorage.getItem(couponKey) || '[]');
                     count += couponIds.length;
-                } catch (e) {}
+                } catch (e) { }
             }
             return count;
         }
@@ -13306,7 +13709,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
-            
+
             showLoading('جاري حفظ الكوبونات...');
             makeApiCall({
                 action: 'bulkUpdateStudentsCoupons',
@@ -13466,7 +13869,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const toggleBtn = document.getElementById('bulkSelectToggleBtn');
             const actionsBar = document.getElementById('bulkActionsBar');
             const list = document.getElementById('attendanceList');
-            
+
             if (isBulkSelectMode) {
                 document.body.classList.add('bulk-active');
                 if (toggleBtn) {
@@ -13535,7 +13938,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 selectedStudentIds.add(numId);
             }
-            
+
             // Find student node and update row class/checkbox in-place
             const allList = isCombinedView ? combinedStudents : students;
             const s = allList.find(x => Number(getStudentDbId(x)) === numId);
@@ -13543,7 +13946,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const sid = getStudentId(s);
                 _updateAttendanceRow(sid);
             }
-            
+
             updateBulkUI();
 
             if (isMergeChoosingMode && selectedStudentIds.size === 2) {
@@ -13560,9 +13963,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
-            
+
             const isAllSel = displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
-            
+
             displayed.forEach(s => {
                 const dbId = Number(getStudentDbId(s));
                 if (isAllSel) {
@@ -13572,7 +13975,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 _updateAttendanceRow(getStudentId(s));
             });
-            
+
             updateBulkUI();
         }
 
@@ -13580,16 +13983,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             isMergeChoosingMode = false;
             const displayed = filterAndSortActiveStudents();
             if (!displayed.length) return;
-            
+
             // Clear current selections first
             selectedStudentIds.clear();
-            
+
             displayed.forEach(s => {
                 const dbId = Number(getStudentDbId(s));
                 const sid = getStudentId(s);
                 const st = attendanceData[sid] || 'pending';
                 const gender = (s && (s['النوع'] === 'female' || s['gender'] === 'female')) ? 'female' : 'male';
-                
+
                 let select = false;
                 if (filter === 'all') {
                     select = true;
@@ -13604,13 +14007,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else if (filter === 'girls' && gender === 'female') {
                     select = true;
                 }
-                
+
                 if (select) {
                     selectedStudentIds.add(dbId);
                 }
                 _updateAttendanceRow(sid);
             });
-            
+
             updateBulkUI();
             showToast('تم تحديث التحديد', 'info');
         }
@@ -13620,7 +14023,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
-            
+
             const actionLabel = status === 'present' ? 'حضور' : 'غياب';
 
             // Iterate and mark attendance locally for all selected
@@ -13658,9 +14061,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function updateSelectAllHeaderCheckbox() {
             const displayed = filterAndSortActiveStudents();
             const barCircle = document.getElementById('bulkBarSelectAllCircle');
-            
+
             const isAllSel = displayed.length && displayed.every(s => selectedStudentIds.has(Number(getStudentDbId(s))));
-            
+
             if (barCircle) {
                 if (isAllSel) {
                     barCircle.classList.add('checked');
@@ -13697,7 +14100,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 yesBtn.innerHTML += btnText;
                 yesBtn.className = 'btn ' + btnClass;
-                yesBtn.onclick = function() {
+                yesBtn.onclick = function () {
                     closeModal('customConfirmModal');
                     if (customConfirmCallback) customConfirmCallback();
                 };
@@ -13709,7 +14112,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── MERGE DUPLICATES CONTROLLER ─────────────────────────────
         let _mergeData = null;
         let _mergeSelectedTarget = 'A'; // Default Target profile is A
-        
+
         async function triggerBulkMerge() {
             if (selectedStudentIds.size !== 2) {
                 showToast('يرجى تحديد طفلين فقط لإجراء الدمج', 'warning');
@@ -13718,29 +14121,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const ids = Array.from(selectedStudentIds);
             const idA = ids[0];
             const idB = ids[1];
-            
+
             showLoading('جاري تحميل بيانات المقارنة...');
             try {
                 const fd = new FormData();
                 fd.append('action', 'getMergeComparison');
                 fd.append('studentIdA', idA);
                 fd.append('studentIdB', idB);
-                
+
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                     .then(r => r.json())
                     .catch(() => ({ success: false, message: 'خطأ في الاتصال بالخادم' }));
-                
+
                 hideLoading();
                 if (!resp.success) {
                     showToast(resp.message || 'فشل تحميل بيانات المقارنة', 'error');
                     return;
                 }
-                
+
                 _mergeData = resp;
                 _mergeSelectedTarget = 'A'; // default primary target is A
-                
+
                 renderMergeComparison();
-                
+
                 const modal = document.getElementById('mergeDuplicateModal');
                 if (modal) modal.classList.add('active');
                 stopAutoRefresh();
@@ -13756,17 +14159,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 triggerBulkMerge();
                 return;
             }
-            
+
             selectedStudentIds.clear();
             isMergeChoosingMode = true;
-            
+
             if (!isBulkSelectMode) {
                 toggleBulkSelectMode();
             } else {
                 updateBulkUI();
                 renderAttendanceList(currentClass);
             }
-            
+
             showToast('يرجى تحديد طفلين فقط من القائمة لدمج حساباتهما', 'info');
         }
 
@@ -13786,7 +14189,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (selectedCard) {
                 selectedCard.classList.add('active-target');
             }
-            
+
             // Auto check credentials radio button ONLY if both have credentials
             if (_mergeData && _mergeData.hasPasswordA && _mergeData.hasPasswordB) {
                 const credRadio = document.querySelector(`input[name="merge_credentials"][value="${targetLetter}"]`);
@@ -13819,7 +14222,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const getAvatarHtml = (s, letter) => {
                 const gender = (s.gender === 'female' || s['النوع'] === 'female') ? 'female' : 'male';
-                const avatar = s.image_url 
+                const avatar = s.image_url
                     ? `<img src="${window.photoUrl ? window.photoUrl(s.image_url) : s.image_url}" alt="" class="merge-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
                     : '';
                 const fallback = `<div class="merge-avatar-fallback ${gender}" ${s.image_url ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
@@ -13851,11 +14254,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 { key: 'birthday', label: 'تاريخ الميلاد' },
                 { key: 'address', label: 'العنوان' },
                 { key: 'medical_notes', label: 'ملاحظات طبية' },
-                { 
-                    key: 'image_url', 
-                    label: 'الصورة الشخصية', 
-                    isHtml: true, 
-                    format: v => v ? `<img src="${window.photoUrl ? window.photoUrl(v) : v}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);vertical-align:middle;">` : 'لا توجد صورة' 
+                {
+                    key: 'image_url',
+                    label: 'الصورة الشخصية',
+                    isHtml: true,
+                    format: v => v ? `<img src="${window.photoUrl ? window.photoUrl(v) : v}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);vertical-align:middle;">` : 'لا توجد صورة'
                 }
             ];
 
@@ -13864,10 +14267,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fields.forEach(f => {
                 const valA = (sA[f.key] || '').toString().trim();
                 const valB = (sB[f.key] || '').toString().trim();
-                
+
                 const dispValA = f.displayKey ? sA[f.displayKey] : valA;
                 const dispValB = f.displayKey ? sB[f.displayKey] : valB;
-                
+
                 const dispA = f.format ? f.format(dispValA) : dispValA;
                 const dispB = f.format ? f.format(dispValB) : dispValB;
 
@@ -13886,7 +14289,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     // Auto-choose non-empty
                     const isMissingA = !valA;
                     const isMissingB = !valB;
-                    
+
                     const checkedA = !isMissingA ? 'checked' : '';
                     const checkedB = isMissingB ? '' : (isMissingA ? 'checked' : '');
 
@@ -13918,8 +14321,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Parse Custom Fields
             let parsedCustomA = {};
             let parsedCustomB = {};
-            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch(e) {}
-            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch(e) {}
+            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch (e) { }
+            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch (e) { }
 
             const allCustomKeys = Array.from(new Set([...Object.keys(parsedCustomA), ...Object.keys(parsedCustomB)]))
                 .filter(k => k !== 'username' && k !== 'sibling_group');
@@ -13950,7 +14353,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     } else {
                         const isMissingA = !valA;
                         const isMissingB = !valB;
-                        
+
                         const checkedA = !isMissingA ? 'checked' : '';
                         const checkedB = isMissingB ? '' : (isMissingA ? 'checked' : '');
 
@@ -13984,7 +14387,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let credentialsHtml = '';
             const userA = parsedCustomA.username || '';
             const userB = parsedCustomB.username || '';
-            
+
             if (!hasPassA && !hasPassB) {
                 credentialsHtml = `
                     <div style="font-size:0.75rem;color:var(--text-3);background:var(--surface-3);padding:10px;border-radius:var(--r-md);text-align:center;">
@@ -13995,7 +14398,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else {
                 const checkedCredA = hasPassA ? 'checked' : '';
                 const checkedCredB = !hasPassA && hasPassB ? 'checked' : '';
-                
+
                 const classCredA = checkedCredA ? 'selected' : '';
                 const classCredB = checkedCredB ? 'selected' : '';
 
@@ -14056,13 +14459,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-triangle-exclamation"></i> تعارضات في سجل الحضور والغياب (${conflicts.length} أيام):
                         </div>
                         ${conflicts.map((c, idx) => {
-                            const statusLabelA = c.recordA.status === 'present' ? 'حاضر' : 'غائب';
-                            const statusLabelB = c.recordB.status === 'present' ? 'حاضر' : 'غائب';
-                            
-                            const checkedA = c.recordA.status === 'present' ? 'checked' : (c.recordB.status === 'present' ? '' : 'checked');
-                            const checkedB = c.recordB.status === 'present' && c.recordA.status !== 'present' ? 'checked' : '';
+                    const statusLabelA = c.recordA.status === 'present' ? 'حاضر' : 'غائب';
+                    const statusLabelB = c.recordB.status === 'present' ? 'حاضر' : 'غائب';
 
-                            return `
+                    const checkedA = c.recordA.status === 'present' ? 'checked' : (c.recordB.status === 'present' ? '' : 'checked');
+                    const checkedB = c.recordB.status === 'present' && c.recordA.status !== 'present' ? 'checked' : '';
+
+                    return `
                                 <div class="merge-conflict-row">
                                     <div class="merge-conflict-date">${escHtml(c.date)}</div>
                                     <div class="merge-conflict-options">
@@ -14077,7 +14480,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
+                }).join('')}
                     </div>
                 `;
             }
@@ -14158,13 +14561,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const isTargetA = _mergeSelectedTarget === 'A';
             const targetId = isTargetA ? sA.id : sB.id;
             const duplicateId = isTargetA ? sB.id : sA.id;
-            
+
             const targetName = isTargetA ? sA.name : sB.name;
             const duplicateName = isTargetA ? sB.name : sA.name;
 
             const fields = ['name', 'gender', 'class_id', 'phone', 'emergency_phone', 'email', 'birthday', 'address', 'medical_notes', 'image_url'];
             const profileFields = {};
-            
+
             fields.forEach(f => {
                 const radio = document.querySelector(`input[name="field_${f}"]:checked`);
                 if (radio) {
@@ -14176,8 +14579,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             let parsedCustomA = {};
             let parsedCustomB = {};
-            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch(e) {}
-            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch(e) {}
+            try { parsedCustomA = JSON.parse(sA.custom_info) || {}; } catch (e) { }
+            try { parsedCustomB = JSON.parse(sB.custom_info) || {}; } catch (e) { }
             const allCustomKeys = Array.from(new Set([...Object.keys(parsedCustomA), ...Object.keys(parsedCustomB)]))
                 .filter(k => k !== 'username' && k !== 'sibling_group');
 
@@ -14211,7 +14614,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
 
             const confirmMsg = `أنت على وشك دمج حساب الطفل "${duplicateName}" مع حساب الطفل الرئيسي "${targetName}".\nسيتم حذف حساب "${duplicateName}" بالكامل وتحويل كافة سجلاته التاريخية وحل التعارضات كما اخترت.\nهل تريد المتابعة؟`;
-            
+
             showCustomConfirm({
                 title: 'تأكيد دمج الحسابين',
                 message: confirmMsg,
@@ -14250,9 +14653,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
-            
+
             const msg = `هل أنت متأكد من حذف ${selectedStudentIds.size} من الأطفال المحددين؟\nلا يمكن التراجع عن هذا الإجراء وسيتم مسح سجلاتهم تماماً.`;
-            
+
             showCustomConfirm({
                 title: 'تأكيد الحذف الجماعي',
                 message: msg,
@@ -14287,7 +14690,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             document.getElementById('bulkClassCountLabel').textContent = `تغيير الفصل لـ ${selectedStudentIds.size} من الأطفال المحددين`;
-            
+
             const selectEl = document.getElementById('bulkClassSelect');
             if (selectEl) {
                 selectEl.innerHTML = '';
@@ -14298,7 +14701,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     selectEl.appendChild(opt);
                 });
             }
-            
+
             openModal('bulkEditClassModal');
         }
 
@@ -14332,23 +14735,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!row) return;
             const couponsEl = row.querySelector('.student-coupons');
             if (!couponsEl) return;
-            
+
             const rect = couponsEl.getBoundingClientRect();
-            
+
             // Create a floating badge element
             const badge = document.createElement('div');
             badge.className = 'coupon-delta-badge' + (delta >= 0 ? ' plus' : ' minus');
             badge.textContent = (delta >= 0 ? '+' : '') + delta;
-            
+
             // Position absolutely on document.body using page coordinates
             badge.style.position = 'absolute';
             badge.style.left = (rect.left + window.scrollX + rect.width / 2) + 'px';
             badge.style.top = (rect.top + window.scrollY - 10) + 'px';
             badge.style.zIndex = '100000';
             badge.style.pointerEvents = 'none'; // click-through
-            
+
             document.body.appendChild(badge);
-            
+
             setTimeout(() => {
                 badge.remove();
             }, 800);
@@ -14369,21 +14772,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (cleaned.includes('://') || cleaned.includes('?')) {
                     const url = new URL(cleaned, window.location.origin);
                     const id = url.searchParams.get('student_id') ||
-                               url.searchParams.get('studentId') ||
-                               url.searchParams.get('id');
+                        url.searchParams.get('studentId') ||
+                        url.searchParams.get('id');
                     if (id) return id.trim();
                 }
-                
+
                 // If it's a raw integer
                 if (/^\d+$/.test(cleaned)) {
                     return cleaned;
                 }
-                
+
                 // Direct lookup fallback
                 const pool = isCombinedView ? combinedStudents : students;
                 const match = pool.find(s => String(getStudentId(s)) === cleaned || String(getStudentDbId(s)) === cleaned);
                 if (match) return getStudentId(match);
-                
+
                 return cleaned;
             } catch (e) {
                 return '';
@@ -14394,8 +14797,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = String(studentId || '').trim();
             if (!id) return null;
             const pool = isCombinedView ? combinedStudents : students;
-            return pool.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) || 
-                   allStudentsData.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) || null;
+            return pool.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) ||
+                allStudentsData.find(s => String(getStudentId(s)) === id || String(getStudentDbId(s)) === id) || null;
         }
 
         function switchModalScanMode(mode) {
@@ -14403,7 +14806,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 kidQrScanMode = mode;
                 const savedPreferenceMode = mode === 'profile-in-class' ? 'profile' : mode;
                 localStorage.setItem('scanner_mode_preference', savedPreferenceMode);
-                
+
                 // Update active tab style
                 document.querySelectorAll('.modal-mode-tab').forEach(btn => {
                     btn.style.background = 'none';
@@ -14415,7 +14818,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     activeBtn.style.background = 'var(--surface)';
                     activeBtn.style.color = 'var(--brand)';
                 }
-                
+
                 // Show/hide coupon select container
                 const container = document.getElementById('kidQrCouponSelectContainer');
                 if (container) {
@@ -14428,7 +14831,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         kidQrScanAmount = 0;
                     }
                 }
-                
+
                 refreshKidQrScanUI();
             }
         }
@@ -14487,7 +14890,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             : kidQrScanMode === 'attendance'
                                 ? `<div style="background:var(--success-bg);border:1px solid rgba(16,185,129,.16);color:var(--success);padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5;margin-bottom:10px;">الأطفال الممسوحون هنا سيُسجَّلون كحاضرِين محلياً فقط، ثم تضغط حفظ لاحقاً.</div>`
                                 : '';
-                        
+
                         summary.innerHTML = alertHtml + `
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:6px;direction:rtl;">
                                 <span style="font-weight:800;font-size:0.85rem;color:var(--text-2)">الأطفال الممسوحون (${kidQrScanEntries.length})</span>
@@ -14521,7 +14924,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function deleteKidQrScanEntry(index) {
             if (index < 0 || index >= kidQrScanEntries.length) return;
             const entry = kidQrScanEntries[index];
-            
+
             // Undo the changes made by the entry
             if (entry.scanType === 'attendance') {
                 const srvStatus = originalAttendanceData[entry.id] || 'pending';
@@ -14543,14 +14946,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 updateSaveBtns();
             }
-            
+
             // Remove the composite ID and scan type from kidQrScanSeen
             const seenKey = entry.id + '_' + entry.scanType;
             kidQrScanSeen.delete(seenKey);
-            
+
             // Remove from the array
             kidQrScanEntries.splice(index, 1);
-            
+
             // Refresh UI
             refreshKidQrScanUI();
             showToast('تم إزالة الطفل من السجل', 'info');
@@ -14558,7 +14961,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function clearAllKidQrScans() {
             if (!kidQrScanEntries.length) return;
-            
+
             // Loop backwards to undo all entries
             for (let i = kidQrScanEntries.length - 1; i >= 0; i--) {
                 const entry = kidQrScanEntries[i];
@@ -14578,17 +14981,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     saveCouponDataForClass(entry.className);
                 }
             }
-            
+
             // Clear lists/states
             kidQrScanSeen.clear();
             kidQrScanEntries = [];
-            
+
             if (currentClass) {
                 renderAttendanceList(currentClass);
                 updateClassStats();
             }
             updateSaveBtns();
-            
+
             // Refresh UI
             refreshKidQrScanUI();
             showToast('تم مسح السجل بالكامل', 'info');
@@ -14725,7 +15128,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (['camera', 'usb'].includes(source)) {
                 scannerSource = source;
                 localStorage.setItem('scanner_source_preference', source);
-                
+
                 // Update tabs styling
                 document.querySelectorAll('.scanner-source-tab').forEach(btn => {
                     btn.style.background = 'none';
@@ -14736,7 +15139,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     activeBtn.style.background = 'var(--surface)';
                     activeBtn.style.color = 'var(--brand)';
                 }
-                
+
                 const readerEl = document.getElementById('kidQrReader');
                 if (source === 'usb') {
                     // Stop camera scanner if running
@@ -14745,7 +15148,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         kidQrScanner = null;
                         scanner.stop().then(() => {
                             scanner.clear?.();
-                        }).catch(() => {});
+                        }).catch(() => { });
                     }
                     // Show a clean placeholder in readerEl
                     if (readerEl) {
@@ -14807,7 +15210,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                         kidQrLastScanTime = now;
                         kidQrLastScanText = kidId;
-                        
+
                         const success = recordKidQrScan(kidId);
                         if (!success) {
                             kidQrScanInProgress = false;
@@ -14839,7 +15242,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function startKidQrScan(mode = 'profile') {
             const normalizedMode = ['attendance', 'coupons', 'profile', 'profile-in-class', 'general'].includes(mode) ? mode : 'profile';
-            
+
             let initialTabMode = normalizedMode;
             if (normalizedMode === 'general') {
                 const savedMode = localStorage.getItem('scanner_mode_preference') || 'attendance';
@@ -14864,17 +15267,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // Global USB/Wireless Keyboard Scanner Listener
-        (function() {
+        (function () {
             let scanBuffer = '';
             let lastKeyTime = 0;
             const SCAN_TIMEOUT = 50; // ms
 
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.ctrlKey || e.altKey || e.metaKey) return;
-                
+
                 const modal = document.getElementById('kidQrScannerModal');
                 const isModalActive = modal && modal.classList.contains('active');
-                
+
                 // If focusing editing input field and scanner modal is NOT active, ignore
                 const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
                 const isEditing = activeTag === 'input' || activeTag === 'textarea';
@@ -14896,10 +15299,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         const kidId = getKidIdFromQrText(scanBuffer);
                         if (kidId) {
                             e.preventDefault();
-                            
+
                             const studentModal = document.getElementById('studentModal');
                             const isStudentModalOpen = studentModal && studentModal.classList.contains('active');
-                            
+
                             if (isStudentModalOpen) {
                                 const student = findStudentById(kidId);
                                 if (student) {
@@ -14923,7 +15326,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 }
                             } else {
                                 if (!isModalActive) {
-                                    const savedMode = currentClass 
+                                    const savedMode = currentClass
                                         ? (localStorage.getItem('scanner_mode_preference') || 'attendance')
                                         : 'profile';
                                     startKidQrScan(savedMode).then((success) => {
@@ -14993,10 +15396,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         showToast('حدث خطأ أثناء حفظ بعض البيانات', 'error');
                     } else {
                         showToast('تم حفظ جميع التغييرات بنجاح', 'success');
-                        
+
                         changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
                         changedStudents.clear();
-                        
+
                         changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
                         changedCouponStudents.clear();
                         couponData = {};
@@ -16001,7 +16404,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const current = getStudentsForSiblingLookup().find(s => getStudentDbId(s) === cid);
             const groupMembers = getSiblingMembersByGroupId(groupId, 0);
             const allGroupIds = [cid, ...groupMembers.map(m => getStudentDbId(m))].filter(Boolean);
-            
+
             // If the sibling group only has 2 members, unlinking them means disbanding the group (clear both)
             // Otherwise, we only clear the target sibling from the group
             const idsToClear = (allGroupIds.length <= 2) ? allGroupIds : [tid];
@@ -16064,7 +16467,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const currentVal = getValue(current, keys);
             const targetVal = getValue(target, keys);
             const matches = currentVal && targetVal && (window.normalizeArabic ? normalizeArabic(currentVal) : currentVal.toLowerCase()) === (window.normalizeArabic ? normalizeArabic(targetVal) : targetVal.toLowerCase());
-            
+
             return `
                 <div style="padding-bottom:8px">
                     <div style="font-size:.75rem;color:var(--text-3);font-weight:600;margin-bottom:4px">${label}</div>
@@ -16085,12 +16488,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const currentGender = getStudentGender(current);
             const targetGender = getStudentGender(target);
-            
+
             const currentAvatar = current['صورة']
                 ? `<img src="${window.photoUrl ? window.photoUrl(current['صورة']) : current['صورة']}" alt="" class="sibling-comparison-avatar" onerror="this.style.display='none';this.nextElementSibling?.style.setProperty('display','flex')">`
                 : '';
             const currentAvatarFallback = `<div class="sibling-comparison-avatar-fallback ${currentGender}" ${current['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
-            
+
             const targetAvatar = target['صورة']
                 ? `<img src="${window.photoUrl ? window.photoUrl(target['صورة']) : target['صورة']}" alt="" class="sibling-comparison-avatar" onerror="this.style.display='none';this.nextElementSibling?.style.setProperty('display','flex')">`
                 : '';
@@ -16239,8 +16642,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Notes List -->
                 <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
                     ${notesList.length === 0 ? '' : notesList.map(note => {
-                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) : '---';
-                        return `
+                const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : '---';
+                return `
                             <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
                                     <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
@@ -16255,7 +16658,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </div>
                             </div>
                         `;
-                    }).join('')}
+            }).join('')}
                 </div>
             </div>
             `;
@@ -16700,7 +17103,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let diff = (today.getDay() - jsDay + 7) % 7;
             d.setDate(today.getDate() - diff);
             const computedFriday = formatDateDDMMYYYY(d);
-            
+
             // Calculate previous attendance date (exactly 1 cycle/7 days ago)
             const prevD = new Date(d);
             prevD.setDate(d.getDate() - 7);
@@ -17341,7 +17744,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function filterAndSortActiveStudents() {
             let list = getActiveViewStudents();
-            
+
             // 1. Live text search query
             if (searchQuery) {
                 list = list
@@ -17349,7 +17752,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     .filter(s => s._classSearchScore > 0)
                     .sort((a, b) => b._classSearchScore - a._classSearchScore);
             }
-            
+
             // 2. Gender Filter
             const filterGender = document.getElementById('filterGenderSelect')?.value || 'all';
             if (filterGender !== 'all') {
@@ -17358,7 +17761,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return g === filterGender;
                 });
             }
-            
+
             // 3. Attendance Filter
             const filterAttendance = document.getElementById('filterAttendanceSelect')?.value || 'all';
             if (filterAttendance !== 'all') {
@@ -17368,7 +17771,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return st === filterAttendance;
                 });
             }
-            
+
             // 4. Sibling Filter
             const filterSiblings = document.getElementById('filterSiblingsSelect')?.value || 'all';
             if (filterSiblings !== 'all') {
@@ -17378,7 +17781,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return filterSiblings === 'has_siblings' ? hasSiblings : !hasSiblings;
                 });
             }
-            
+
             // 5. Coupons Filter
             const filterCoupons = document.getElementById('filterCouponsSelect')?.value || 'all';
             if (filterCoupons !== 'all') {
@@ -17387,14 +17790,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return filterCoupons === 'has_coupons' ? coupons > 0 : coupons === 0;
                 });
             }
-            
+
             // Update active filters badge
             let activeFiltersCount = 0;
             if (filterGender !== 'all') activeFiltersCount++;
             if (filterAttendance !== 'all') activeFiltersCount++;
             if (filterSiblings !== 'all') activeFiltersCount++;
             if (filterCoupons !== 'all') activeFiltersCount++;
-            
+
             const badge = document.getElementById('activeFiltersBadge');
             if (badge) {
                 if (activeFiltersCount > 0) {
@@ -17404,7 +17807,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     badge.style.display = 'none';
                 }
             }
-            
+
             return sortStudentsForCurrentView(list);
         }
 
@@ -18049,7 +18452,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showLoading('جاري الرفع...');
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
             fd.append('enhanceImage', 'false');
-                    fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+            fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                 else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
@@ -18385,13 +18788,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let active = 0;
             body.innerHTML = anns.map(a => {
                 const isActive = a['منشط'] === true || a['منشط'] === 'TRUE' || a['منشط'] === 'true' || a['منشط'] === 1 || a['منشط'] === '1'; if (isActive) active++;
-                
+
                 let targetBadge = '';
                 const tgt = a['الجمهور المستهدف'] || 'kids';
                 if (tgt === 'uncles') targetBadge = `<span class="badge btn-secondary" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-user-shield"></i> خدام</span>`;
                 else if (tgt === 'both') targetBadge = `<span class="badge btn-primary" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-users"></i> الكل</span>`;
                 else targetBadge = `<span class="badge btn-dev" style="font-size:.72rem;margin-top:4px;display:inline-block"><i class="fas fa-child"></i> أطفال</span>`;
-                
+
                 let detailsHtml = '';
                 if (a['الوصف التفصيلي']) {
                     detailsHtml += `<div style="font-size:.76rem;color:var(--text-3);margin-top:4px;white-space:pre-wrap;">${a['الوصف التفصيلي']}</div>`;
@@ -18403,7 +18806,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const btnTxt = a['نص الزر'] || 'فتح الرابط';
                     detailsHtml += `<div style="margin-top:4px;"><a href="${a['الرابط'] || '#'}" target="_blank" class="btn btn-xs btn-coupon" style="display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-external-link-alt"></i> ${btnTxt}</a></div>`;
                 }
-                
+
                 return `<tr>
                     <td>
                         <span class="badge ${a['النوع'] === 'button' ? 'btn-coupon' : 'btn-info'}" style="font-size:.72rem">
@@ -18472,7 +18875,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             wrap.innerHTML = selectedAnnouncementStudents.map(s => {
                 const stud = (allStudentsData && allStudentsData.length ? allStudentsData : students).find(x => String(getStudentId(x)) === String(s.id));
                 const photo = stud ? (stud['صورة'] || stud.image_url || '') : '';
-                const ava = photo ? `<span class="ann-pick-ava"><img src="${window.photoUrl ? window.photoUrl(photo) : photo}"/></span>` : `<span class="ann-pick-ava">${(s.name||'').charAt(0) || ''}</span>`;
+                const ava = photo ? `<span class="ann-pick-ava"><img src="${window.photoUrl ? window.photoUrl(photo) : photo}"/></span>` : `<span class="ann-pick-ava">${(s.name || '').charAt(0) || ''}</span>`;
                 return `<span class="announcement-picked-card">${ava}${s.name}<button type="button" onclick="removeAnnouncementStudent('${s.id}')"><i class="fas fa-times"></i></button></span>`;
             }).join('');
             if (helper) helper.textContent = `تم اختيار ${selectedAnnouncementStudents.length} طفل`;
@@ -18714,24 +19117,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const hasPhotoOnly = document.getElementById('announcementHasPhotoOnly')?.checked ? '1' : '0';
                 if (!text) { showToast('أدخل نص الإعلان', 'error'); return; } if (type === 'button' && !link) { showToast('أدخل رابطاً للزر', 'error'); return; }
                 showLoading('...');
-                makeApiCall({ 
-                    action: 'addAnnouncement', 
-                    type, 
-                    text, 
-                    link, 
+                makeApiCall({
+                    action: 'addAnnouncement',
+                    type,
+                    text,
+                    link,
                     button_text,
                     image_url,
                     description,
                     target_type,
-                    classes: cls, 
-                    students: stds, 
-                    hasPhotoOnly 
-                }, r => { 
-                    showToast(r.message, 'success'); 
-                    document.getElementById('addAnnouncementForm').reset(); 
-                    document.getElementById('linkFieldContainer').style.display = 'none'; 
-                    resetAnnouncementStudentPicker(); 
-                    loadAnnouncements(); 
+                    classes: cls,
+                    students: stds,
+                    hasPhotoOnly
+                }, r => {
+                    showToast(r.message, 'success');
+                    document.getElementById('addAnnouncementForm').reset();
+                    document.getElementById('linkFieldContainer').style.display = 'none';
+                    resetAnnouncementStudentPicker();
+                    loadAnnouncements();
                 }, () => showToast('فشل', 'error'));
             });
             on('clearAnnouncementForm', 'click', () => { document.getElementById('addAnnouncementForm').reset(); document.getElementById('linkFieldContainer').style.display = 'none'; resetAnnouncementStudentPicker(); });
@@ -18780,31 +19183,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (attendanceList) {
                 let isMouseDown = false;
                 let mouseHoldTimer = null;
-                
+
                 attendanceList.addEventListener('mousedown', e => {
                     const card = e.target.closest('.attendance-item');
                     if (!card) return;
-                    
+
                     // Ignore clicks on buttons/inputs/action zones
                     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.coupon-toggle-row') || e.target.closest('.attend-btn-row') || e.target.closest('.student-avatar')) {
                         return;
                     }
-                    
+
                     isMouseDown = true;
                     _holdStartX = e.clientX;
                     _holdStartY = e.clientY;
                     _holdScrolled = false;
-                    
+
                     // Start long press timer (350ms for snappy response)
                     mouseHoldTimer = setTimeout(() => {
                         if (!isMouseDown) return;
                         navigator.vibrate && navigator.vibrate([12, 60, 20]);
-                        
+
                         // Enter select mode if not active
                         if (!isBulkSelectMode) {
                             toggleBulkSelectMode();
                         }
-                        
+
                         // Select the current card
                         const dbId = parseInt(card.getAttribute('data-db-id'));
                         if (dbId) {
@@ -18818,17 +19221,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 updateBulkUI();
                             }
                         }
-                        
+
                         _swipeClientX = e.clientX;
                         _swipeClientY = e.clientY;
                         _isSwipingSelection = true;
                         startAutoScrollLoop();
                     }, 350);
                 });
-                
+
                 attendanceList.addEventListener('mousemove', e => {
                     if (!isMouseDown) return;
-                    
+
                     const dx = Math.abs(e.clientX - _holdStartX);
                     const dy = Math.abs(e.clientY - _holdStartY);
                     if (dx > 8 || dy > 8) {
@@ -18836,14 +19239,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             clearTimeout(mouseHoldTimer);
                         }
                     }
-                    
+
                     if (_isSwipingSelection) {
                         e.preventDefault();
                         _swipeClientX = e.clientX;
                         _swipeClientY = e.clientY;
                     }
                 });
-                
+
                 const clearMouseSelection = () => {
                     isMouseDown = false;
                     _isSwipingSelection = false;
@@ -18852,7 +19255,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     stopAutoScrollLoop();
                     clearTimeout(mouseHoldTimer);
                 };
-                
+
                 attendanceList.addEventListener('mouseup', clearMouseSelection);
                 attendanceList.addEventListener('mouseleave', clearMouseSelection);
             }
@@ -18989,10 +19392,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (entityType && !entityName) desc += ` في ${entityType}`;
 
                     const restorableActions = [
-                        'student_add', 'student_edit', 'student_delete', 'coupon_edit', 
-                        'attendance_add', 'attendance_edit', 'attendance_delete', 
-                        'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 
-                        'bulk_attendance_save', 'bulk_note_add', 'note_add', 'note_delete', 
+                        'student_add', 'student_edit', 'student_delete', 'coupon_edit',
+                        'attendance_add', 'attendance_edit', 'attendance_delete',
+                        'bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update',
+                        'bulk_attendance_save', 'bulk_note_add', 'note_add', 'note_delete',
                         'student_merge', 'uncle_add', 'uncle_edit', 'uncle_delete'
                     ];
                     const isUndoable = restorableActions.includes(action);
@@ -19049,7 +19452,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                             .then(r => r.json())
                             .catch(() => ({ success: false }));
-                        
+
                         hideLoading();
                         if (d.success) {
                             showToast(d.message || 'تم التراجع عن العملية بنجاح', 'success');
@@ -19167,7 +19570,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _swipeClientY = null;
         let _autoScrollTimer = null;
 
-        document.addEventListener('touchmove', function(e) {
+        document.addEventListener('touchmove', function (e) {
             if (_isSwipingSelection) {
                 e.preventDefault();
             }
@@ -19193,22 +19596,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function startAutoScrollLoop() {
             if (_autoScrollTimer) return;
-            
+
             const loop = () => {
                 if (!_isSwipingSelection || _swipeClientY === null) {
                     stopAutoScrollLoop();
                     return;
                 }
-                
+
                 // Process selection exactly once per animation frame
                 triggerSelectionAtPoint(_swipeClientX, _swipeClientY);
-                
+
                 const threshold = 185; // 185px trigger zone from top/bottom
                 const speedMax = 160; // Bullet maximum speed
-                
+
                 const viewHeight = window.innerHeight;
                 let scrollAmount = 0;
-                
+
                 if (_swipeClientY > viewHeight - threshold) {
                     // Near bottom: scroll down
                     const delta = _swipeClientY - (viewHeight - threshold);
@@ -19220,11 +19623,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const ratio = Math.min(2.5, Math.max(0, delta / threshold));
                     scrollAmount = -Math.max(18, Math.ceil(ratio * speedMax));
                 }
-                
+
                 if (scrollAmount !== 0) {
                     window.scrollBy(0, scrollAmount);
                 }
-                
+
                 _autoScrollTimer = requestAnimationFrame(loop);
             };
             _autoScrollTimer = requestAnimationFrame(loop);
@@ -19261,12 +19664,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (_holdScrolled) { _holdCancel(); return; }
                 _holdCancel(false);
                 navigator.vibrate && navigator.vibrate([12, 60, 20]);
-                
+
                 // 1. Enter select mode if not active
                 if (!isBulkSelectMode) {
                     toggleBulkSelectMode();
                 }
-                
+
                 // 2. Select the current held card
                 if (_holdTarget) {
                     const dbId = parseInt(_holdTarget.getAttribute('data-db-id'));
@@ -19282,7 +19685,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     }
                 }
-                
+
                 // 3. Initiate swipe selection
                 _swipeClientX = _holdStartX;
                 _swipeClientY = _holdStartY;
@@ -19295,7 +19698,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const t = e.touches ? e.touches[0] : e;
             _swipeClientX = t.clientX;
             _swipeClientY = t.clientY;
-            
+
             if (!_isSwipingSelection) {
                 const dx = Math.abs(t.clientX - _holdStartX);
                 const dy = Math.abs(t.clientY - _holdStartY);
@@ -19592,17 +19995,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                .then(reg => {
-                    _initPushSubscription(reg);
-                    // ── Re-subscribe whenever SW becomes active after an update ──
-                    reg.addEventListener('updatefound', () => {
-                        const newSW = reg.installing;
-                        if (newSW) newSW.addEventListener('statechange', () => {
-                            if (newSW.state === 'activated') _initPushSubscription(reg);
+                    .then(reg => {
+                        _initPushSubscription(reg);
+                        // ── Re-subscribe whenever SW becomes active after an update ──
+                        reg.addEventListener('updatefound', () => {
+                            const newSW = reg.installing;
+                            if (newSW) newSW.addEventListener('statechange', () => {
+                                if (newSW.state === 'activated') _initPushSubscription(reg);
+                            });
                         });
-                    });
-                })
-                .catch(() => { });
+                    })
+                    .catch(() => { });
             });
 
             // ── Re-subscribe + reload data when coming back online ───────
@@ -19624,15 +20027,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 // Silent reload requested by new service worker activation
                 if (d.type === 'RELOAD_NOW') {
-                    try { window.location.reload(); } catch (err) {}
+                    try { window.location.reload(); } catch (err) { }
                     return;
                 }
 
                 // Background sync completed — reload data so UI reflects server state
                 if (d.type === 'SYNC_COMPLETE') {
                     const uName = d.uncleName || '';
-                    const msg = uName 
-                        ? `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅` 
+                    const msg = uName
+                        ? `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅`
                         : `✅ تمت المزامنة — رُفع ${d.count} تغيير في الخلفية`;
                     showToast(msg, 'success', { dur: 5000 });
                     setTimeout(() => { if (navigator.onLine) loadData(); }, 800);
@@ -21237,12 +21640,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         });
 
-        window.selectNoteTitleSuggestion = function(sugg) {
+        window.selectNoteTitleSuggestion = function (sugg) {
             const inp = document.getElementById('noteTitleInput');
             if (inp) inp.value = sugg;
         };
 
-        window.toggleAddNoteArea = function(show = true) {
+        window.toggleAddNoteArea = function (show = true) {
             const area = document.getElementById('addNoteArea');
             if (area) {
                 area.style.display = (show && area.style.display === 'none') ? 'block' : 'none';
@@ -21253,7 +21656,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         };
 
-        window.submitStudentNote = function(studentId) {
+        window.submitStudentNote = function (studentId) {
             const title = document.getElementById('noteTitleInput').value.trim();
             const desc = document.getElementById('noteDescInput').value.trim();
             const date = document.getElementById('noteDateInput').value;
@@ -21288,7 +21691,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 });
         };
 
-        window.deleteStudentNote = function(studentId, noteId) {
+        window.deleteStudentNote = function (studentId, noteId) {
             if (!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
 
             showLoading('جاري حذف الملاحظة...');
@@ -21314,32 +21717,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 });
         };
 
-        window.openBulkNoteModal = function() {
+        window.openBulkNoteModal = function () {
             if (selectedStudentIds.size === 0) {
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
             const dt = document.getElementById('bulkNoteDateInput');
             if (dt) dt.value = new Date().toISOString().split('T')[0];
-            
+
             document.getElementById('bulkNoteTitleInput').value = '';
             document.getElementById('bulkNoteDescInput').value = '';
-            
+
             openModal('bulkNoteModal');
         };
 
-        window.selectBulkNoteTitleSuggestion = function(sugg) {
+        window.selectBulkNoteTitleSuggestion = function (sugg) {
             const inp = document.getElementById('bulkNoteTitleInput');
             if (inp) inp.value = sugg;
         };
 
-        window.submitBulkNotes = function(event) {
+        window.submitBulkNotes = function (event) {
             if (event) event.preventDefault();
             if (selectedStudentIds.size === 0) {
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
-            
+
             const title = document.getElementById('bulkNoteTitleInput').value.trim();
             const desc = document.getElementById('bulkNoteDescInput').value.trim();
             const date = document.getElementById('bulkNoteDateInput').value;
@@ -21909,7 +22312,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 let score = 0;
-                
+
                 if (queryWords.length > 0) {
                     const normTitle = normalizeArabic(feature.title);
                     const normDesc = normalizeArabic(feature.description);
@@ -21959,7 +22362,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     let re = new RegExp(`(${regexPattern})`, 'gi');
                     return text.replace(re, '<mark style="background:rgba(254,240,138,0.85); color:#000; padding:0 2px; border-radius:2px;">$1</mark>');
-                } catch(e) {
+                } catch (e) {
                     return text;
                 }
             }
@@ -21977,7 +22380,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
                     transition: transform 0.2s, box-shadow 0.2s;
                 `;
-                
+
                 card.onmouseenter = () => {
                     card.style.transform = 'translateY(-2px)';
                     card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
@@ -22108,7 +22511,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function populateClassDropdowns() {
             const paperExamClassList = document.getElementById('paperExamClassIdsList');
             const sheetClassSelect = document.getElementById('sheetClassFilter');
-            
+
             if (paperExamClassList) {
                 paperExamClassList.innerHTML = '';
 
@@ -22124,7 +22527,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const selectAllSpan = document.createElement('span');
                 selectAllSpan.textContent = 'تحديد الكل';
 
-                selectAllCb.addEventListener('change', function() {
+                selectAllCb.addEventListener('change', function () {
                     const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
                     checkboxes.forEach(cb => {
                         cb.checked = selectAllCb.checked;
@@ -22139,29 +22542,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const id = `class-cb-${c.id}`;
                     const label = document.createElement('label');
                     label.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text); cursor:pointer; padding:4px 0;";
-                    
+
                     const cb = document.createElement('input');
                     cb.type = 'checkbox';
                     cb.name = 'paper_exam_class_cb';
                     cb.value = c.id;
                     cb.id = id;
                     cb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
-                    
-                    cb.addEventListener('change', function() {
+
+                    cb.addEventListener('change', function () {
                         const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
                         const allChecked = Array.from(checkboxes).every(x => x.checked);
                         selectAllCb.checked = allChecked;
                     });
-                    
+
                     const span = document.createElement('span');
                     span.textContent = c.arabic_name || c.code;
-                    
+
                     label.appendChild(cb);
                     label.appendChild(span);
                     paperExamClassList.appendChild(label);
                 });
             }
-            
+
             if (sheetClassSelect) {
                 sheetClassSelect.innerHTML = '<option value="">كل الفصول</option>';
                 classes.forEach(c => {
@@ -22192,12 +22595,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const listContainer = document.getElementById('paperExamsList');
             if (!listContainer) return;
             listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الامتحانات…</div>';
-            
+
             try {
                 const fd = new FormData();
                 fd.append('action', 'getPaperExams');
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                
+
                 if (resp.success && resp.exams) {
                     if (resp.exams.length === 0) {
                         listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
@@ -22245,11 +22648,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fd.append('id', document.getElementById('paperExamId').value);
             fd.append('name', document.getElementById('paperExamName').value);
             fd.append('total_degree', document.getElementById('paperExamTotalDegree').value);
-            
+
             const checkedClassIds = Array.from(document.querySelectorAll('input[name="paper_exam_class_cb"]:checked')).map(cb => cb.value);
             fd.append('class_ids', checkedClassIds.join(','));
             fd.append('class_id', checkedClassIds.length === 1 ? checkedClassIds[0] : '');
-            
+
             const fileInput = document.getElementById('paperExamRefFile');
             if (fileInput.files.length > 0) {
                 fd.append('reference_file', fileInput.files[0]);
@@ -22277,7 +22680,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('paperExamName').value = name;
             document.getElementById('paperExamTotalDegree').value = totalDegree;
             document.getElementById('paperExamClassId').value = classId || '';
-            
+
             const classIds = classIdsStr ? classIdsStr.split(',') : [];
             let allChecked = true;
             const checkboxes = document.querySelectorAll('input[name="paper_exam_class_cb"]');
@@ -22292,7 +22695,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             document.getElementById('paperExamFormTitle').textContent = 'تعديل الامتحان: ' + name;
-            
+
             const refContainer = document.getElementById('paperExamExistingRef');
             const refLink = document.getElementById('paperExamExistingRefLink');
             if (refUrl) {
@@ -22305,7 +22708,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function deletePaperExam(id, name) {
             if (!confirm(`هل أنت متأكد من حذف امتحان "${name}"؟ سيتم حذف جميع درجات الأطفال المسجلة له نهائياً!`)) return;
-            
+
             try {
                 const fd = new FormData();
                 fd.append('action', 'deletePaperExam');
@@ -22326,30 +22729,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             activeExamId = examId;
             document.getElementById('paperExamsListView').style.display = 'none';
             document.getElementById('paperExamFormView').style.display = 'none';
-            
+
             const sheetView = document.getElementById('paperExamSheetView');
             sheetView.style.display = 'flex';
-            
+
             document.getElementById('sheetStudentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الأطفال...</td></tr>';
-            
+
             try {
                 const fd = new FormData();
                 fd.append('action', 'getPaperExamDegrees');
                 fd.append('paper_exam_id', examId);
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                
+
                 if (resp.success && resp.students) {
                     activeExamStudents = resp.students;
                     activeExamTotalDegree = resp.exam.total_degree;
-                    
+
                     document.getElementById('sheetExamName').textContent = resp.exam.name;
                     document.getElementById('sheetExamTotalDegree').textContent = 'الدرجة الكلية: ' + resp.exam.total_degree;
-                    
+
                     const refBtnText = document.getElementById('sheetRefBtnText');
                     if (refBtnText) {
                         refBtnText.textContent = resp.exam.reference_url ? 'تغيير المرجع ✓' : 'ملف المرجع';
                     }
-                    
+
                     const refLinkContainer = document.getElementById('sheetExamRefLinkContainer');
                     if (refLinkContainer) {
                         if (resp.exam.reference_url) {
@@ -22363,12 +22766,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             refLinkContainer.innerHTML = '';
                         }
                     }
-                    
+
                     // Reset filter values
                     document.getElementById('sheetSearchInput').value = '';
                     document.getElementById('sheetClassFilter').value = '';
                     document.getElementById('sheetSortSelect').value = localStorage.getItem('paper_exams_sheet_sort') || 'name_asc';
-                    
+
                     filterSheetStudents();
                 } else {
                     document.getElementById('sheetStudentsTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger);">${resp.message || 'فشل تحميل البيانات'}</td></tr>`;
@@ -22381,7 +22784,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function filterSheetStudents() {
             const query = document.getElementById('sheetSearchInput').value.trim();
             const classId = document.getElementById('sheetClassFilter').value;
-            
+
             if (query) {
                 filteredExamStudents = activeExamStudents
                     .map(stu => ({ ...stu, _sheetSearchScore: getMatchScore(stu, query) }))
@@ -22392,24 +22795,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return !classId || stu.class_name === classId;
                 });
             }
-            
+
             sortSheetStudents();
         }
 
         function sortSheetStudents() {
             const sortMode = document.getElementById('sheetSortSelect').value;
             const query = document.getElementById('sheetSearchInput').value.trim();
-            
+
             // Save sorting choice in localStorage
             localStorage.setItem('paper_exams_sheet_sort', sortMode);
-            
+
             filteredExamStudents.sort((a, b) => {
                 // If there's a search query, first order by search score relevance!
                 if (query) {
                     const scoreDiff = (b._sheetSearchScore || 0) - (a._sheetSearchScore || 0);
                     if (scoreDiff !== 0) return scoreDiff;
                 }
-                
+
                 if (sortMode === 'name_asc') {
                     return a.name.localeCompare(b.name, 'ar');
                 } else if (sortMode === 'name_desc') {
@@ -22435,28 +22838,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 return 0;
             });
-            
+
             renderSheetTable();
         }
 
         function renderSheetTable() {
             const body = document.getElementById('sheetStudentsTableBody');
             if (!body) return;
-            
+
             if (filteredExamStudents.length === 0) {
                 body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-3);">لا توجد نتائج مطابقة للتصفية.</td></tr>';
                 return;
             }
-            
+
             const query = document.getElementById('sheetSearchInput').value.trim();
-            
+
             body.innerHTML = filteredExamStudents.map(student => {
                 const gender = student.gender === 'female' ? 'female' : 'male';
-                const avatar = student.image_url 
+                const avatar = student.image_url
                     ? `<img src="${student.image_url}" style="width:34px; height:34px; object-fit:cover; border-radius:50%; border:1px solid var(--border-solid);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
                     : '';
                 const fallback = `<div class="table-avatar-fallback ${gender}" style="width:34px; height:34px; border-radius:50%; display:${student.image_url ? 'none' : 'flex'}; align-items:center; justify-content:center; background:rgba(120,120,120,0.1); color:var(--text-2); font-size:0.8rem; margin:0 auto;"><i class="fas fa-user"></i></div>`;
-                
+
                 let answersPicHtml = '';
                 if (student.answers_picture) {
                     answersPicHtml = `
@@ -22473,13 +22876,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                     `;
                 }
-                
+
                 let nameHtml = escHtml(student.name);
                 if (query) {
                     const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     nameHtml = nameHtml.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 }
-                
+
                 return `
                     <tr style="border-bottom:1px solid var(--border-solid);">
                         <td style="padding:8px; text-align:center; vertical-align:middle;">
@@ -22514,21 +22917,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function uploadAnswersPic(studentId, examId) {
             const input = document.getElementById(`answers-file-input-${studentId}`);
             if (input.files.length === 0) return;
-            
+
             const file = input.files[0];
             const fd = new FormData();
             fd.append('action', 'uploadStudentAnswersPicture');
             fd.append('student_id', studentId);
             fd.append('paper_exam_id', examId);
             fd.append('answers_file', file);
-            
+
             showToast('جارٍ رفع ورقة الإجابة…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
                     showToast('تم رفع ورقة الإجابة بنجاح', 'success');
-                    
+
                     const student = activeExamStudents.find(s => s.id === studentId);
                     if (student) {
                         student.answers_picture = resp.answers_picture;
@@ -22544,19 +22947,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function deleteAnswersPic(studentId, examId) {
             if (!confirm('هل تريد حذف صورة ورقة الإجابة بالفعل؟')) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'deleteStudentAnswersPicture');
             fd.append('student_id', studentId);
             fd.append('paper_exam_id', examId);
-            
+
             showToast('جارٍ الحذف…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
                     showToast('تم حذف ورقة الإجابة بنجاح', 'success');
-                    
+
                     const student = activeExamStudents.find(s => s.id === studentId);
                     if (student) {
                         student.answers_picture = null;
@@ -22574,7 +22977,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const inputs = document.querySelectorAll('.sheet-degree-input');
             const degrees = [];
             let hasError = false;
-            
+
             inputs.forEach(input => {
                 const studentId = input.getAttribute('data-student-id');
                 const val = input.value.trim();
@@ -22599,16 +23002,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     degree: val === '' ? null : parseFloat(val)
                 });
             });
-            
+
             if (hasError) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'savePaperExamDegrees');
             fd.append('paper_exam_id', activeExamId);
             fd.append('degrees', JSON.stringify(degrees));
-            
+
             showToast('جارٍ حفظ الدرجات…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
@@ -22629,7 +23032,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function handleSheetRefUpload() {
             const input = document.getElementById('sheetRefFileInput');
             if (input.files.length === 0) return;
-            
+
             const file = input.files[0];
             const fd = new FormData();
             fd.append('action', 'savePaperExam');
@@ -22638,15 +23041,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 name: document.getElementById('sheetExamName').textContent,
                 total_degree: activeExamTotalDegree
             } : null;
-            
+
             if (!examCard) return;
-            
+
             fd.append('name', examCard.name);
             fd.append('total_degree', examCard.total_degree);
             fd.append('reference_file', file);
-            
+
             showToast('جارٍ رفع ملف المرجع…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
@@ -22667,20 +23070,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function handleCsvImport() {
             const input = document.getElementById('sheetCsvFileInput');
             if (input.files.length === 0) return;
-            
+
             const file = input.files[0];
             if (!confirm(`هل تريد بالتأكيد استيراد الدرجات من الملف "${file.name}"؟`)) {
                 input.value = '';
                 return;
             }
-            
+
             const fd = new FormData();
             fd.append('action', 'importPaperExamDegreesCSV');
             fd.append('paper_exam_id', activeExamId);
             fd.append('csv_file', file);
-            
+
             showToast('جارٍ استيراد الملف...', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 input.value = '';
@@ -22701,28 +23104,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('لا توجد بيانات طلاب لتصديرها كقالب', 'error');
                 return;
             }
-            
+
             // Build CSV content with UTF-8 BOM to ensure Arabic characters open correctly in Excel
             let csvContent = "\uFEFF";
-            
+
             // Header Row
             csvContent += '"معرف الطفل","الاسم","الفصل","الدرجة"\n';
-            
+
             // Student Rows
             filteredExamStudents.forEach(student => {
                 const id = student.id;
                 const name = (student.name || '').replace(/"/g, '""');
                 const className = (student.class_name || '').replace(/"/g, '""');
                 const degree = student.degree !== null ? student.degree : '';
-                
+
                 csvContent += `"${id}","${name}","${className}","${degree}"\n`;
             });
-            
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            
+
             const examNameClean = (document.getElementById('sheetExamName').textContent || 'exam').trim().replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
             link.setAttribute("download", `قالب_درجات_${examNameClean}.csv`);
             link.style.visibility = 'hidden';
@@ -22734,9 +23137,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function saveModalExamDegree(studentId, examId) {
             const input = document.getElementById(`modal-degree-input-${examId}`);
             if (!input) return;
-            
+
             const val = input.value.trim();
-            
+
             // Check if entered degree exceeds total degree
             if (currentStudentForEdit && Array.isArray(currentStudentForEdit.paper_exams)) {
                 const exam = currentStudentForEdit.paper_exams.find(e => e.id === examId);
@@ -22757,13 +23160,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     input.style.borderColor = '';
                 }
             }
-            
+
             const fd = new FormData();
             fd.append('action', 'saveStudentPaperExamDegree');
             fd.append('student_id', studentId);
             fd.append('paper_exam_id', examId);
             fd.append('degree', val);
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
@@ -22784,16 +23187,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function uploadModalAnswersPic(studentId, examId) {
             const input = document.getElementById(`modal-answers-file-input-${examId}`);
             if (input.files.length === 0) return;
-            
+
             const file = input.files[0];
             const fd = new FormData();
             fd.append('action', 'uploadStudentAnswersPicture');
             fd.append('student_id', studentId);
             fd.append('paper_exam_id', examId);
             fd.append('answers_file', file);
-            
+
             showToast('جارٍ رفع ورقة الإجابة…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
@@ -22809,14 +23212,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function deleteModalAnswersPic(studentId, examId) {
             if (!confirm('هل تريد حذف صورة ورقة الإجابة بالفعل؟')) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'deleteStudentAnswersPicture');
             fd.append('student_id', studentId);
             fd.append('paper_exam_id', examId);
-            
+
             showToast('جارٍ الحذف…', 'info');
-            
+
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
