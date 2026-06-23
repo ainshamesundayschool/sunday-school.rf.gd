@@ -105,6 +105,11 @@ $tripTitle = $trip['title'];
             height: 100%;
             overflow: hidden;
             background: var(--bg-light);
+            background-image: 
+                radial-gradient(rgba(99, 102, 241, 0.08) 1.5px, transparent 0),
+                radial-gradient(rgba(99, 102, 241, 0.08) 1.5px, transparent 0);
+            background-size: 36px 36px;
+            background-position: 0 0, 18px 18px;
             color: var(--text-dark);
             display: flex;
             align-items: center;
@@ -393,6 +398,9 @@ $tripTitle = $trip['title'];
             text-align: center;
             z-index: 10;
             transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .scattered-card.floating {
             animation: gentleFloat 6s infinite alternate ease-in-out;
         }
 
@@ -733,11 +741,13 @@ $tripTitle = $trip['title'];
             const screenW = window.innerWidth;
             const screenH = window.innerHeight;
             
-            // Center exclusion zone bounds
-            const centerXMin = screenW * 0.3;
-            const centerXMax = screenW * 0.7;
-            const centerYMin = screenH * 0.2;
-            const centerYMax = screenH * 0.8;
+            // Center exclusion zone bounds (welcome card has max-width: 440px, approx height: 430px)
+            const centerW = Math.min(460, screenW * 0.95);
+            const centerH = 430;
+            const centerXMin = (screenW - centerW) / 2 - 15;
+            const centerXMax = (screenW + centerW) / 2 + 15;
+            const centerYMin = (screenH - centerH) / 2 - 15;
+            const centerYMax = (screenH + centerH) / 2 + 15;
             
             let x, y;
             let attempts = 0;
@@ -762,6 +772,8 @@ $tripTitle = $trip['title'];
                 if (!overlaps) {
                     // Check if it overlaps with any active scattered cards
                     for (const activeCard of activeScatteredKids) {
+                        if (activeCard.isFading) continue;
+                        
                         const ax = activeCard.x;
                         const ay = activeCard.y;
                         const aw = cardWidth;
@@ -825,15 +837,30 @@ $tripTitle = $trip['title'];
             card.style.transform = `translate(0, 0) scale(1) rotate(${Math.random() * 12 - 6}deg)`;
             card.style.opacity = '1';
             
-            activeScatteredKids.push({ element: card, x: pos.x, y: pos.y });
+            const scatterObj = { element: card, x: pos.x, y: pos.y, isFading: false };
+            activeScatteredKids.push(scatterObj);
             
-            if (activeScatteredKids.length > 8) {
-                const oldest = activeScatteredKids.shift();
-                oldest.element.style.opacity = '0';
-                oldest.element.style.transform += ' scale(0.8)';
-                setTimeout(() => {
-                    oldest.element.remove();
-                }, 800);
+            // Add float animation class after entrance transition finishes (0.8s)
+            setTimeout(() => {
+                if (!scatterObj.isFading) {
+                    card.classList.add('floating');
+                }
+            }, 800);
+            
+            // Prune oldest cards to avoid screen overcrowding (max 6 active cards)
+            const activeCount = activeScatteredKids.filter(k => !k.isFading).length;
+            if (activeCount > 6) {
+                const oldest = activeScatteredKids.find(k => !k.isFading);
+                if (oldest) {
+                    oldest.isFading = true;
+                    oldest.element.classList.remove('floating');
+                    oldest.element.style.opacity = '0';
+                    oldest.element.style.transform += ' scale(0.8)';
+                    setTimeout(() => {
+                        oldest.element.remove();
+                        activeScatteredKids = activeScatteredKids.filter(k => k !== oldest);
+                    }, 800);
+                }
             }
         }
 
@@ -963,15 +990,15 @@ $tripTitle = $trip['title'];
                 this.y = y;
                 this.color = color;
                 this.angle = Math.random() * Math.PI * 2;
-                this.speed = Math.random() * 4 + 1.5;
+                this.speed = Math.random() * 3 + 1;
                 this.velocity = {
                     x: Math.cos(this.angle) * this.speed,
                     y: Math.sin(this.angle) * this.speed
                 };
-                this.gravity = 0.04;
-                this.friction = 0.95;
+                this.gravity = 0.015;
+                this.friction = 0.96;
                 this.alpha = 1;
-                this.decay = Math.random() * 0.006 + 0.004;
+                this.decay = Math.random() * 0.008 + 0.005;
             }
 
             update() {
