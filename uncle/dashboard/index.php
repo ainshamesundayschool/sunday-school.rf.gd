@@ -10071,7 +10071,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </button>
                                 </div>
                                 <!-- Uncles list inline next to date (at the left end) -->
-                                <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important;">
+                                <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; margin-inline-start: auto !important; margin-inline-end: 0 !important; flex: none !important;">
                                     <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
                                     <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
                                 </div>
@@ -10112,25 +10112,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Sticky attendance toolbar -->
-                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid);">
+                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; height: 54px; display: flex; align-items: center; background: var(--surface);">
                     <div class="toolbar-row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
-                        <div class="toolbar-stats" style="display: flex; gap: 10px; flex: 1; min-width: 0;">
-                            <span class="toolbar-stat"><i class="fas fa-users"></i> <span id="tbTotalVal">0</span> <span
-                                    class="stat-lbl">طفل</span></span>
-                            <span class="toolbar-stat s"><i class="fas fa-check"></i> <span id="tbPresentVal">0</span>
-                                <span class="stat-lbl">حاضر</span></span>
-                            <span class="toolbar-stat a"><i class="fas fa-times"></i> <span id="tbAbsentVal">0</span>
-                                <span class="stat-lbl">غائب</span></span>
-                            <span class="toolbar-stat c"><i class="fas fa-star"></i> <span id="tbCouponsVal">0</span>
-                                <span class="stat-lbl">متوسط</span></span>
+                        <div class="toolbar-stats" style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
+                            <span class="toolbar-stat" style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-users" style="font-size: 0.72rem; color: var(--text-3);"></i>
+                                <span style="font-weight: 700;" id="tbTotalVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--text-3);">طفل</span>
+                            </span>
+                            <span class="toolbar-stat s" style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-check" style="font-size: 0.72rem;"></i>
+                                <span style="font-weight: 700;" id="tbPresentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--text-3);">حاضر</span>
+                            </span>
+                            <span class="toolbar-stat a" style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-times" style="font-size: 0.72rem;"></i>
+                                <span style="font-weight: 700;" id="tbAbsentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--text-3);">غائب</span>
+                            </span>
+                            <span class="toolbar-stat c" style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-star" style="font-size: 0.72rem; color: var(--coupon);"></i>
+                                <span style="font-weight: 700;" id="tbCouponsVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--text-3);">متوسط</span>
+                            </span>
                         </div>
                         <div class="save-row" style="flex: none; display: flex; align-items: center;">
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()"
-                                style="min-width: 100px; height: 38px; padding: 0 16px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all 0.2s; font-size: 0.85rem; font-weight: 700; border: 1.5px solid var(--border-solid); background: var(--surface-3); color: var(--text-3); cursor: pointer;">
-                                <i class="fas fa-save" style="font-size: 0.95rem;"></i>
+                                style="min-width: 70px; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all 0.2s; font-size: 0.82rem; font-weight: 700; border: 1.5px solid var(--border-solid); background: var(--surface-3); color: var(--text-3); cursor: pointer;">
+                                <i class="fas fa-save" style="font-size: 0.9rem;"></i>
                                 <span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">
-                                    <span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>
+                                    <span class="save-btn-label" style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
                                 </span>
                             </button>
                         </div>
@@ -10176,48 +10188,54 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="fas fa-times"></i></button>
                     </div>
 
-                    <!-- Sort Button -->
-                    <div class="custom-dropdown" style="position: relative; display: inline-block; flex: none;">
-                        <!-- Hidden select to preserve event listeners and system integrations -->
-                        <select id="classSortSelect" style="display: none;">
-                            <option value="name_az">الاسم أ-ي</option>
-                            <option value="name_za">الاسم ي-أ</option>
-                            <option value="age_asc">الأصغر سناً</option>
-                            <option value="age_desc">الأكبر سناً</option>
-                            <option value="class_az">الفصل</option>
-                            <option value="coupons_desc">الأكثر كوبونات</option>
-                            <option value="attendance_desc">الأكثر حضوراً</option>
-                            <option value="top_desc">الأوائل</option>
-                        </select>
-                        <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                            title="ترتيب"
-                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
-                            onmouseover="this.style.borderColor='var(--brand)'"
-                            onmouseout="this.style.borderColor='var(--border-solid)'">
-                            <i class="fas fa-sort-amount-down"></i>
-                        </button>
-                        <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
-                            <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                            <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                            <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
-                            <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
-                            <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                            <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
-                            <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
-                            <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                    <!-- Combined Filter & Sort Rectangle -->
+                    <div class="filter-sort-combine-box" style="display: flex; align-items: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); height: 42px; box-shadow: var(--shadow-sm); overflow: visible; flex-shrink: 0; position: relative; gap: 0;">
+                        <!-- Sort Button -->
+                        <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                            <!-- Hidden select to preserve event listeners and system integrations -->
+                            <select id="classSortSelect" style="display: none;">
+                                <option value="name_az">الاسم أ-ي</option>
+                                <option value="name_za">الاسم ي-أ</option>
+                                <option value="age_asc">الأصغر سناً</option>
+                                <option value="age_desc">الأكبر سناً</option>
+                                <option value="class_az">الفصل</option>
+                                <option value="coupons_desc">الأكثر كوبونات</option>
+                                <option value="attendance_desc">الأكثر حضوراً</option>
+                                <option value="top_desc">الأوائل</option>
+                            </select>
+                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
+                                title="ترتيب"
+                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none;"
+                                onmouseover="this.style.color='var(--brand)'"
+                                onmouseout="this.style.color='var(--text)'">
+                                <i class="fas fa-sort-amount-down"></i>
+                            </button>
+                            <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0; top: 44px;">
+                                <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                                <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                                <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
+                                <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
+                                <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <!-- Divider -->
+                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;"></div>
 
-                    <!-- Filter Button -->
-                    <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
-                        title="تصفية"
-                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; position: relative; flex: none;"
-                        onmouseover="this.style.borderColor='var(--brand)'"
-                        onmouseout="this.style.borderColor='var(--border-solid)'">
-                        <i class="fas fa-filter"></i>
-                        <span id="activeFiltersBadge"
-                            style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: -3px; right: -3px; border: 1.5px solid var(--surface);">0</span>
-                    </button>
+                        <!-- Filter Button -->
+                        <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
+                            title="تصفية"
+                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                            onmouseover="this.style.color='var(--brand)'"
+                            onmouseout="this.style.color='var(--text)'">
+                            <i class="fas fa-filter"></i>
+                            <span id="activeFiltersBadge"
+                                style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
+                        </button>
+                    </div>
 
                     <!-- Add Kid Button (Last button at the end) -->
                     <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
@@ -10352,7 +10370,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="unsavedModal">
         <div class="modal" style="max-width:430px">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-pen-to-square" style="color:var(--brand); font-size:1.15rem;"></i> التغييرات المعلقة</h3>
+                <h3>التغييرات غير المحفوظة</h3>
                 <button class="close-btn"
                     onclick="document.getElementById('unsavedModal').classList.remove('active')">&times;</button>
             </div>
@@ -12744,7 +12762,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const showAllCard = (churchViewMode === 'all' || churchViewMode === 'both');
             const showClassCards = (churchViewMode === 'classes' || churchViewMode === 'both' || !churchViewMode);
 
-            const allLabel = window.IS_YOUTH ? 'عرض كل الشباب معاً' : 'عرض كل الأطفال معاً';
+            const allLabel = window.IS_YOUTH ? 'كل الشباب' : 'كل الأطفال';
             const allIcon = window.IS_YOUTH ? 'fa-users' : 'fa-children';
             const allColor = window.IS_YOUTH ? '#8b5cf6' : '#4f46e5';
             const allBg = window.IS_YOUTH ? 'linear-gradient(135deg,#8b5cf6,#6d28d9)' : 'linear-gradient(135deg,#4f46e5,#6366f1)';
@@ -12752,11 +12770,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const allUnsaved = getUnsavedChangesCount('__ALL__');
             const allUnsavedHtml = allUnsaved > 0 ? `
                 <div class="class-unsaved-badge" title="${allUnsaved} تغييرات غير محفوظة">
-                    <i class="fas fa-save" style="font-size: .65rem;"></i> ${allUnsaved} غير محفوظة
+                    <i class="fas fa-save" style="font-size: .75rem;"></i> ${allUnsaved}
                 </div>
             ` : '';
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
-        style="--cls-color:${allColor};border:2px dashed ${allColor};position:relative;">
+        style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
         <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
@@ -12773,7 +12791,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const unsaved = getUnsavedChangesCount(label, true, grpClasses);
                     const unsavedHtml = unsaved > 0 ? `
                         <div class="class-unsaved-badge" title="${unsaved} تغييرات غير محفوظة">
-                            <i class="fas fa-save" style="font-size: .65rem;"></i> ${unsaved} غير محفوظة
+                            <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                         </div>
                     ` : '';
                     return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
@@ -12794,7 +12812,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const unsaved = getUnsavedChangesCount(name);
                 const unsavedHtml = unsaved > 0 ? `
                     <div class="class-unsaved-badge" title="${unsaved} تغييرات غير محفوظة">
-                        <i class="fas fa-save" style="font-size: .65rem;"></i> ${unsaved} غير محفوظة
+                        <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                     </div>
                 ` : '';
                 return `<div class="class-card" onclick="showClassView('${name}')"
@@ -14973,17 +14991,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function showUnsavedModal() {
-            // Gather ALL locally-stored pending changes across ALL dates for current class
             const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
             const ids = list.map(s => getStudentId(s));
 
-            // Find all localStorage keys for attendance changes for this class
             const allKeys = Object.keys(localStorage);
-            const atDateEntries = []; // {date, id, status}
+            const atDateEntries = []; // {date, id, name, status}
             const cpItems = [...changedCouponStudents].filter(id => ids.includes(id));
 
-            // Scan all attendance change keys: changedStudents_{class}_{date}
             allKeys.forEach(k => {
                 const prefix = `changedStudents_${cls}_`;
                 if (!k.startsWith(prefix)) return;
@@ -15000,139 +15015,121 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } catch (e) { }
             });
 
-            // Group by date
-            const byDate = {};
-            atDateEntries.forEach(e => {
-                if (!byDate[e.date]) byDate[e.date] = [];
-                byDate[e.date].push(e);
-            });
-
             let html = '';
 
-            // Attendance section grouped by date
-            if (atDateEntries.length) {
-                html += `<div style="margin-bottom:20px">
-            <div style="font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;font-size:0.95rem;">
-                <i class="fas fa-user-check" style="color:var(--success)"></i> حضور وغياب (${atDateEntries.length})
-            </div>`;
+            const totalChanges = atDateEntries.length + cpItems.length;
 
-                Object.entries(byDate).sort(([a], [b]) => parseDate(b) - parseDate(a)).forEach(([date, items]) => {
-                    const isCurrent = date === currentFriday;
-                    html += `<div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px;margin-bottom:10px;border:1.5px solid ${isCurrent ? 'var(--brand)' : 'var(--border-solid)'}">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px">
-                    <span style="font-size:.82rem;font-weight:800;color:${isCurrent ? 'var(--brand)' : 'var(--text)'};display:flex;align-items:center;gap:5px">
-                        <i class="fas fa-calendar-alt" style="font-size:.75rem;opacity:0.7"></i> ${date}
-                        ${isCurrent ? '<span style="background:var(--brand);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:800">الحالي</span>' : ''}
-                    </span>
-                    ${!isCurrent ? `<button class="btn btn-ghost btn-xs" onclick="_jumpToDate('${date}')" title="الانتقال لهذا التاريخ" style="font-family:Cairo,sans-serif;font-weight:700;font-size:0.75rem;padding:2px 8px;border:1px solid var(--border-solid);background:var(--surface);">
-                        <i class="fas fa-external-link-alt"></i> انتقل
-                    </button>` : ''}
-                </div>`;
-                    items.forEach(e => {
-                        let bc = '', lbl = '<i class="fas fa-times-circle"></i> مسح';
-                        if (e.status === 'present') {
-                            bc = 'background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
-                            lbl = '<i class="fas fa-check"></i> حاضر';
-                        } else if (e.status === 'absent') {
-                            bc = 'background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
-                            lbl = '<i class="fas fa-times"></i> غائب';
-                        } else {
-                            bc = 'background:var(--surface-3);color:var(--text-3);border:1px solid var(--border-solid);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
-                        }
-                        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-solid);font-size:.85rem;gap:10px">
-                    <span style="flex:1;font-weight:700;color:var(--text)">${e.name}</span>
-                    <span style="flex-shrink:0;${bc}">${lbl}</span>
-                    <button onclick="_removeUnsavedEntry('${e.id}','${date}')" title="إزالة هذا التغيير"
-                        style="background:none; border:none; color:var(--danger); cursor:pointer; padding:6px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; border-radius:50%; width:28px; height:28px; transition: background 0.2s;"
-                        onmouseover="this.style.background='var(--danger-bg)'"
-                        onmouseout="this.style.background='transparent'">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>`;
-                    });
-                    html += `</div>`;
+            if (totalChanges > 0) {
+                html += `<div style="display: flex; flex-direction: column; gap: 0; max-height: 320px; overflow-y: auto; padding: 4px 0;">`;
+                
+                // 1. Render Attendance entries
+                atDateEntries.forEach(e => {
+                    let bc = '', lbl = 'غير مسجل';
+                    if (e.status === 'present') {
+                        bc = 'background: rgba(16,185,129,0.1); color: #10b981; border: 1.5px solid rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                        lbl = 'حاضر';
+                    } else if (e.status === 'absent') {
+                        bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                        lbl = 'غائب';
+                    }
+                    
+                    const dateHtml = `<span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; margin-right: 4px;">
+                        <i class="fas fa-calendar-alt" style="font-size: 0.68rem; opacity: 0.6;"></i> ${e.date}
+                    </span>`;
+
+                    html += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-solid); font-family: Cairo, sans-serif; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap;">
+                            <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">${e.name}</span>
+                            <span style="${bc}">${lbl}</span>
+                            ${dateHtml}
+                        </div>
+                        <button onclick="_removeUnsavedEntry('${e.id}','${e.date}')" title="إزالة"
+                            style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
+                            onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
+                            onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
+                            <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
+                        </button>
+                    </div>`;
                 });
-                html += `</div>`;
-            }
 
-            // Coupon section
-            if (cpItems.length) {
-                html += `<div style="margin-bottom:20px">
-            <div style="font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;font-size:0.95rem;">
-                <i class="fas fa-star" style="color:var(--coupon)"></i> الكوبونات (${cpItems.length})
-            </div>
-            <div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px;border:1.5px solid var(--border-solid)">`;
+                // 2. Render Coupon entries
                 cpItems.forEach(id => {
                     const s = list.find(s => getStudentId(s) === id);
                     const add = parseInt(couponData[id] || 0);
-                    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-solid);font-size:.85rem;gap:10px">
-                <span style="flex:1;font-weight:700;color:var(--text)">${s?.['الاسم'] || id}</span>
-                <span style="flex-shrink:0;background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;">
-                    ${add > 0 ? '+' : ''}${add} <i class="fas fa-star"></i>
-                </span>
-                <button onclick="_removeUnsavedCoupon('${id}')" title="إزالة تغيير الكوبون"
-                    style="background:none; border:none; color:var(--danger); cursor:pointer; padding:6px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; border-radius:50%; width:28px; height:28px; transition: background 0.2s;"
-                    onmouseover="this.style.background='var(--danger-bg)'"
-                    onmouseout="this.style.background='transparent'">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>`;
-                });
-                html += `</div></div>`;
-            }
+                    const bc = 'background: rgba(245,158,11,0.1); color: #f59e0b; border: 1.5px solid rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                    const lbl = `${add > 0 ? '+' : ''}${add} كوبون`;
 
-            // No changes case
-            if (!atDateEntries.length && !cpItems.length) {
+                    html += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-solid); font-family: Cairo, sans-serif; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap;">
+                            <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">${s?.['الاسم'] || id}</span>
+                            <span style="${bc}">${lbl} <i class="fas fa-star" style="font-size: 0.65rem;"></i></span>
+                        </div>
+                        <button onclick="_removeUnsavedCoupon('${id}')" title="إزالة"
+                            style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
+                            onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
+                            onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
+                            <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
+                        </button>
+                    </div>`;
+                });
+
+                html += `</div>`;
+
+                // Footer section
                 if (navigator.onLine) {
-                    html = `<div style="text-align:center;color:var(--text-3);padding:24px 12px">
-                        <i class="fas fa-check-circle" style="color:var(--success);font-size:2.8rem;display:block;margin-bottom:12px"></i>
-                        <span style="font-weight:700;color:var(--text);display:block;margin-bottom:6px;font-size:1.05rem;">كل شيء محفوظ!</span>
-                        <span style="font-size:0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
-                    </div>
-                    <div style="margin-top:20px;display:flex;gap:8px">
-                        <button class="btn btn-secondary" style="flex:1; height:40px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
-                            إغلاق
+                    html += `
+                    <div style="margin-top: 16px; display: flex; gap: 10px; font-family: Cairo, sans-serif;">
+                        <button class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; background: var(--success); border-color: var(--success); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
+                            <i class="fas fa-cloud-upload-alt"></i> حفظ التغييرات
+                        </button>
+                        <button class="btn btn-danger btn-outline" style="flex: 1; height: 42px; font-weight: 700; background: transparent; border: 1.5px solid var(--danger); color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
+                            <i class="fas fa-trash"></i> تراجع
                         </button>
                     </div>`;
                 } else {
-                    html = `<div style="text-align:center;color:var(--text-3);padding:24px 12px">
-                        <i class="fas fa-wifi-slash" style="color:var(--warning);font-size:2.8rem;display:block;margin-bottom:12px"></i>
-                        <span style="font-weight:700;color:var(--warning);display:block;margin-bottom:6px;font-size:1.05rem;">غير متصل بالإنترنت</span>
-                        <span style="font-size:0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
-                    </div>
-                    <div style="margin-top:20px;display:flex;gap:8px">
-                        <button class="btn btn-secondary" style="flex:1; height:40px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
-                            إغلاق
-                        </button>
+                    html += `
+                    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-family: Cairo, sans-serif;">
+                        <div style="padding: 10px 14px; border-radius: var(--r-md); background: var(--warning-bg); border: 1.5px solid rgba(245,158,11,.3); display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--warning-dark)">
+                            <i class="fas fa-wifi" style="font-size: 1rem; flex-shrink: 0;"></i>
+                            <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" style="flex: 2; height: 42px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                                إغلاق
+                            </button>
+                            <button class="btn btn-danger btn-outline" style="flex: 1; height: 42px; font-weight: 700; background: transparent; border: 1.5px solid var(--danger); color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
+                                <i class="fas fa-trash"></i> تراجع
+                            </button>
+                        </div>
                     </div>`;
                 }
             } else {
-                // Online with changes -> footer with Save / Discard buttons
                 if (navigator.onLine) {
-                    html += `<div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border-solid);display:flex;gap:10px">
-                <button class="btn btn-success" style="flex:2; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
-                    <i class="fas fa-cloud-upload-alt"></i> حفظ التغييرات
-                </button>
-                <button class="btn btn-danger btn-outline" style="flex:1; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; background:transparent; border:1.5px solid var(--danger); color:var(--danger);" onclick="_clearAllUnsaved()">
-                    <i class="fas fa-trash"></i> تراجع
-                </button>
-            </div>`;
+                    html = `
+                    <div style="text-align: center; color: var(--text-3); padding: 24px 12px; font-family: Cairo, sans-serif;">
+                        <i class="fas fa-check-circle" style="color: var(--success); font-size: 2.8rem; display: block; margin-bottom: 12px;"></i>
+                        <span style="font-weight: 700; color: var(--text); display: block; margin-bottom: 6px; font-size: 1.05rem;">كل شيء محفوظ!</span>
+                        <span style="font-size: 0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 8px; font-family: Cairo, sans-serif;">
+                        <button class="btn btn-secondary" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                            إغلاق
+                        </button>
+                    </div>`;
                 } else {
-                    // Offline with changes -> footer warning and Close / Discard buttons
-                    html += `<div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border-solid);display:flex;flex-direction:column;gap:10px">
-                <div style="padding:10px 14px;border-radius:var(--r-md);background:var(--warning-bg);border:1.5px solid rgba(245,158,11,.3);display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--warning-dark)">
-                    <i class="fas fa-wifi" style="font-size:1rem;flex-shrink:0"></i>
-                    <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
-                </div>
-                <div style="display:flex;gap:10px">
-                    <button class="btn btn-secondary" style="flex:2; height:42px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
-                        إغلاق
-                    </button>
-                    <button class="btn btn-danger btn-outline" style="flex:1; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; background:transparent; border:1.5px solid var(--danger); color:var(--danger);" onclick="_clearAllUnsaved()">
-                        <i class="fas fa-trash"></i> تراجع
-                    </button>
-                </div>
-            </div>`;
+                    html = `
+                    <div style="text-align: center; color: var(--text-3); padding: 24px 12px; font-family: Cairo, sans-serif;">
+                        <i class="fas fa-wifi-slash" style="color: var(--warning); font-size: 2.8rem; display: block; margin-bottom: 12px;"></i>
+                        <span style="font-weight: 700; color: var(--warning); display: block; margin-bottom: 6px; font-size: 1.05rem;">غير متصل بالإنترنت</span>
+                        <span style="font-size: 0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 8px; font-family: Cairo, sans-serif;">
+                        <button class="btn btn-secondary" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                            إغلاق
+                        </button>
+                    </div>`;
                 }
             }
 
@@ -15381,19 +15378,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (tot > 0) {
                 un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem;"></i>`
                     + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
-                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>`
-                    + `<span class="save-count" style="background:#fff; color:var(--brand); border:none; font-size:0.75rem; padding:1px 6px; border-radius:20px; font-weight:800; line-height:1.5; margin-right:4px;">${tot}</span>`
+                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ</span>`
+                    + `<span class="save-count" style="background:#fff; color:var(--success); border:none; font-size:0.75rem; padding:1px 6px; border-radius:20px; font-weight:800; line-height:1.5; margin-right:4px;">${tot}</span>`
                     + `</span>`;
                 un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
-                un.style.background = 'var(--brand)';
+                un.style.background = 'var(--success)';
                 un.style.color = '#fff';
-                un.style.borderColor = 'var(--brand)';
+                un.style.borderColor = 'var(--success)';
                 un.style.opacity = '1';
                 un.style.cursor = 'pointer';
             } else {
-                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3);"></i>`
+                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3); (any active states here will be overwritten);"></i>`
                     + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
-                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>`
+                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ</span>`
                     + `</span>`;
                 un.title = 'التغييرات: لا توجد تعديلات معلقة';
                 un.style.background = 'var(--surface-3)';
