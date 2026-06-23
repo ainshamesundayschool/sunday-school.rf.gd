@@ -1161,6 +1161,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             z-index: 15;
         }
 
+        .class-inline-search-wrap button,
+        .class-inline-search-wrap .filter-sort-combine-box {
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
             border-radius: 18px;
@@ -2607,6 +2614,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .student-avatar.female {
             background: linear-gradient(135deg, #f472b6, #db2777);
             box-shadow: 0 0 0 1px rgba(219, 39, 119, .14), var(--shadow-sm);
+        }
+
+        .modal-student-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #fff;
+            box-shadow: var(--shadow-sm);
+            border: 1.5px solid var(--surface);
+        }
+        .modal-student-avatar.male {
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+        }
+        .modal-student-avatar.female {
+            background: linear-gradient(135deg, #f472b6, #db2777);
         }
 
         .detail-avatar-fallback.male,
@@ -10114,8 +10142,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Sticky attendance toolbar -->
-                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; height: 54px; display: flex; align-items: center; background: var(--surface);">
-                    <div class="toolbar-row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; height: 54px; display: flex; align-items: center; background: var(--bg);">
+                    <div class="toolbar-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 16px; width: 100%; direction: rtl !important;">
                         <div class="toolbar-stats" style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
                             <span class="toolbar-stat" style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
                                 <i class="fas fa-users" style="font-size: 0.72rem; color: var(--text-3);"></i>
@@ -10141,7 +10169,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="save-row" style="flex: none; display: flex; align-items: center;">
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()"
-                                style="min-width: 70px; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all 0.2s; font-size: 0.82rem; font-weight: 700; border: 1.5px solid var(--border-solid); background: var(--surface-3); color: var(--text-3); cursor: pointer;">
+                                style="min-width: 70px; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: none; border: none; background: var(--surface-3); color: var(--text-3); cursor: pointer;">
                                 <i class="fas fa-save" style="font-size: 0.9rem;"></i>
                                 <span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">
                                     <span class="save-btn-label" style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
@@ -10157,9 +10185,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
                         <button class="home-tools-link" id="classToolsBtn" onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
-                            onmouseover="this.style.borderColor='var(--brand)'"
-                            onmouseout="this.style.borderColor='var(--border-solid)'">
+                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface-3); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; outline: none; flex: none;"
+                            onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
+                            onmouseout="this.style.color='var(--text)';this.style.background='var(--surface-3)'">
                             <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                         </button>
                         <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
@@ -10192,7 +10220,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Combined Filter & Sort Rectangle -->
-                    <div class="filter-sort-combine-box" style="display: flex; align-items: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); height: 42px; box-shadow: var(--shadow-sm); overflow: visible; flex-shrink: 0; position: relative; gap: 0;">
+                    <div class="filter-sort-combine-box" id="filterSortCombineBox" style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -10242,9 +10270,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Add Kid Button (Last button at the end) -->
                     <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; flex: none;"
-                        onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
-                        onmouseout="this.style.borderColor='var(--border-solid)';this.style.color='var(--text)';this.style.background='var(--surface)'">
+                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface-3); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; flex: none;"
+                        onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
+                        onmouseout="this.style.color='var(--text)';this.style.background='var(--surface-3)'">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -14999,7 +15027,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const ids = list.map(s => getStudentId(s));
 
             const allKeys = Object.keys(localStorage);
-            const atDateEntries = []; // {date, id, name, status}
+            const atDateEntries = []; // {date, id, name, status, student}
             const cpItems = [...changedCouponStudents].filter(id => ids.includes(id));
 
             allKeys.forEach(k => {
@@ -15013,7 +15041,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         if (!ids.includes(id)) return;
                         const s = list.find(s => getStudentId(s) === id);
                         const st = localData[id] || 'pending';
-                        atDateEntries.push({ date, id, name: s?.['الاسم'] || id, status: st });
+                        atDateEntries.push({ date, id, name: s?.['الاسم'] || id, status: st, student: s });
                     });
                 } catch (e) { }
             });
@@ -15023,60 +15051,110 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const totalChanges = atDateEntries.length + cpItems.length;
 
             if (totalChanges > 0) {
-                html += `<div style="display: flex; flex-direction: column; gap: 0; max-height: 320px; overflow-y: auto; padding: 4px 0;">`;
+                html += `<div style="display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; padding: 4px 0;">`;
                 
-                // 1. Render Attendance entries
+                // Group Attendance entries by date
+                const changesByDate = {};
                 atDateEntries.forEach(e => {
-                    let bc = '', lbl = 'غير مسجل';
-                    if (e.status === 'present') {
-                        bc = 'background: rgba(16,185,129,0.1); color: #10b981; border: 1.5px solid rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
-                        lbl = 'حاضر';
-                    } else if (e.status === 'absent') {
-                        bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
-                        lbl = 'غائب';
+                    if (!changesByDate[e.date]) {
+                        changesByDate[e.date] = [];
                     }
-                    
-                    const dateHtml = `<span style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; margin-right: 4px;">
-                        <i class="fas fa-calendar-alt" style="font-size: 0.68rem; opacity: 0.6;"></i> ${e.date}
-                    </span>`;
+                    changesByDate[e.date].push(e);
+                });
 
+                // Sort dates descending
+                const sortedDates = Object.keys(changesByDate).sort((a, b) => b.localeCompare(a));
+
+                sortedDates.forEach(date => {
                     html += `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-solid); font-family: Cairo, sans-serif; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap;">
-                            <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">${e.name}</span>
-                            <span style="${bc}">${lbl}</span>
-                            ${dateHtml}
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-size: 0.78rem; font-weight: 800; color: var(--text-3); background: var(--surface-3); padding: 4px 10px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-family: Cairo, sans-serif;">
+                            <i class="fas fa-calendar-alt"></i> ${date}
                         </div>
-                        <button onclick="_removeUnsavedEntry('${e.id}','${e.date}')" title="إزالة"
-                            style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
-                            onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
-                            onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
-                            <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
-                        </button>
-                    </div>`;
+                        <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 8px; border-right: 2px solid var(--border-solid);">`;
+
+                    changesByDate[date].forEach(e => {
+                        let bc = '', lbl = 'غير مسجل';
+                        if (e.status === 'present') {
+                            bc = 'background: rgba(16,185,129,0.1); color: #10b981; border: 1.5px solid rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                            lbl = 'حاضر';
+                        } else if (e.status === 'absent') {
+                            bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                            lbl = 'غائب';
+                        }
+                        
+                        const photo = e.student?.['صورة'];
+                        const gender = getStudentGender(e.student);
+                        const avatarHtml = photo
+                            ? `<img src="${window.photoUrl ? window.photoUrl(photo) : photo}" class="modal-student-avatar ${gender}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                            : '';
+                        const fallbackHtml = `<div class="modal-student-avatar ${gender}" ${photo ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                        const fullAvatarHtml = `<div style="position:relative; width:32px; height:32px; flex-shrink:0;">${avatarHtml}${fallbackHtml}</div>`;
+
+                        html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-family: Cairo, sans-serif; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                                ${fullAvatarHtml}
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${e.name}</span>
+                                    <span style="${bc}">${lbl}</span>
+                                </div>
+                            </div>
+                            <button onclick="_removeUnsavedEntry('${e.id}','${e.date}')" title="إزالة"
+                                style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
+                                onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
+                                onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
+                                <i class="fas fa-trash-alt" style="font-size: 0.82rem;"></i>
+                            </button>
+                        </div>`;
+                    });
+
+                    html += `</div></div>`;
                 });
 
                 // 2. Render Coupon entries
-                cpItems.forEach(id => {
-                    const s = list.find(s => getStudentId(s) === id);
-                    const add = parseInt(couponData[id] || 0);
-                    const bc = 'background: rgba(245,158,11,0.1); color: #f59e0b; border: 1.5px solid rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
-                    const lbl = `${add > 0 ? '+' : ''}${add} كوبون`;
-
+                if (cpItems.length > 0) {
                     html += `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-solid); font-family: Cairo, sans-serif; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap;">
-                            <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">${s?.['الاسم'] || id}</span>
-                            <span style="${bc}">${lbl} <i class="fas fa-star" style="font-size: 0.65rem;"></i></span>
+                    <div style="margin-top: 8px; margin-bottom: 8px;">
+                        <div style="font-size: 0.78rem; font-weight: 800; color: var(--text-3); background: var(--surface-3); padding: 4px 10px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-family: Cairo, sans-serif;">
+                            <i class="fas fa-star" style="color: var(--coupon);"></i> الكوبونات المعلقة
                         </div>
-                        <button onclick="_removeUnsavedCoupon('${id}')" title="إزالة"
-                            style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
-                            onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
-                            onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
-                            <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
-                        </button>
-                    </div>`;
-                });
+                        <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 8px; border-right: 2px solid var(--border-solid);">`;
+
+                    cpItems.forEach(id => {
+                        const s = list.find(s => getStudentId(s) === id);
+                        const add = parseInt(couponData[id] || 0);
+                        const bc = 'background: rgba(245,158,11,0.1); color: #f59e0b; border: 1.5px solid rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
+                        const lbl = `${add > 0 ? '+' : ''}${add} كوبون`;
+
+                        const photo = s?.['صورة'];
+                        const gender = getStudentGender(s);
+                        const avatarHtml = photo
+                            ? `<img src="${window.photoUrl ? window.photoUrl(photo) : photo}" class="modal-student-avatar ${gender}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                            : '';
+                        const fallbackHtml = `<div class="modal-student-avatar ${gender}" ${photo ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
+                        const fullAvatarHtml = `<div style="position:relative; width:32px; height:32px; flex-shrink:0;">${avatarHtml}${fallbackHtml}</div>`;
+
+                        html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-family: Cairo, sans-serif; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                                ${fullAvatarHtml}
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${s?.['الاسم'] || id}</span>
+                                    <span style="${bc}">${lbl} <i class="fas fa-star" style="font-size: 0.65rem;"></i></span>
+                                </div>
+                            </div>
+                            <button onclick="_removeUnsavedCoupon('${id}')" title="إزالة"
+                                style="background: none; border: none; color: var(--text-3); cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 28px; height: 28px; transition: all 0.2s;"
+                                onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-bg)';"
+                                onmouseout="this.style.color='var(--text-3)'; this.style.background='transparent';">
+                                <i class="fas fa-trash-alt" style="font-size: 0.82rem;"></i>
+                            </button>
+                        </div>`;
+                    });
+
+                    html += `</div></div>`;
+                }
 
                 html += `</div>`;
 
@@ -15387,18 +15465,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
                 un.style.background = 'var(--success)';
                 un.style.color = '#fff';
-                un.style.borderColor = 'var(--success)';
+                un.style.border = 'none';
+                un.style.boxShadow = 'none';
                 un.style.opacity = '1';
                 un.style.cursor = 'pointer';
             } else {
-                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3); (any active states here will be overwritten);"></i>`
+                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3);"></i>`
                     + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
                     + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ</span>`
                     + `</span>`;
                 un.title = 'التغييرات: لا توجد تعديلات معلقة';
                 un.style.background = 'var(--surface-3)';
                 un.style.color = 'var(--text-3)';
-                un.style.borderColor = 'var(--border-solid)';
+                un.style.border = 'none';
+                un.style.boxShadow = 'none';
                 un.style.opacity = '0.4';
                 un.style.cursor = 'not-allowed';
             }
@@ -17671,15 +17751,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function toggleClassFiltersPanel() {
             const panel = document.getElementById('classFiltersPanel');
             const btn = document.getElementById('classFiltersToggleBtn');
+            const box = document.getElementById('filterSortCombineBox');
             if (!panel || !btn) return;
             if (panel.style.display === 'none') {
                 panel.style.display = 'flex';
-                btn.style.borderColor = 'var(--brand)';
-                btn.style.background = 'var(--surface-3)';
+                btn.style.borderColor = 'transparent';
+                btn.style.background = 'var(--brand-bg)';
+                btn.style.color = 'var(--brand)';
+                if (box) box.style.borderRadius = '0px';
             } else {
                 panel.style.display = 'none';
-                btn.style.borderColor = 'var(--border-solid)';
-                btn.style.background = 'var(--surface-2)';
+                btn.style.borderColor = 'transparent';
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text)';
+                if (box) box.style.borderRadius = 'var(--r-md)';
             }
         }
 
