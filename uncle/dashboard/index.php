@@ -2089,7 +2089,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 8px 8px 6px;
             margin-bottom: 8px;
             transition: background var(--t) var(--ease);
-            box-shadow: 0 4px 12px -4px rgba(0, 0, 0, .08);
+            box-shadow: none;
         }
 
         .att-toolbar ::-webkit-scrollbar {
@@ -3116,14 +3116,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         body.bulk-active .class-view {
-            padding-top: var(--bulk-active-padding, 155px) !important;
+            padding-top: var(--bulk-bar-height, 96px) !important;
         }
 
         body.bulk-active .att-toolbar {
             top: var(--bulk-bar-height, 96px) !important;
             background: var(--surface) !important;
             border-radius: 0 0 var(--r-xl) var(--r-xl) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+            box-shadow: none !important;
             border-top: none !important;
         }
 
@@ -10052,30 +10052,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="fas fa-arrow-right"></i></button>
                         
                         <div class="class-title-and-sub" style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center;">
                                 <h2 class="class-title-text" id="className" style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">الفصل</h2>
-                                <!-- Plus icon circle to add person in header -->
-                                <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--brand-bg); color: var(--brand); border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
-                                    onmouseover="this.style.background='var(--brand)';this.style.color='white'"
-                                    onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)'">
-                                    <i class="fas fa-plus"></i>
-                                </button>
                             </div>
                             
-                            <div class="class-meta-sub" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 2px;">
-                                <!-- Date display -->
-                                <div class="class-date-sub" id="dateChip" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 0.8rem; font-weight: 700; background: none; border: none; padding: 0; box-shadow: none;">
-                                    <i class="fas fa-calendar-alt" style="font-size: 0.85rem;"></i>
-                                    <span id="currentDateText">جاري...</span>
+                            <div class="class-meta-sub" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 2px;">
+                                <!-- Date display stack (at the start) -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
+                                        <i class="fas fa-calendar-alt" style="font-size: 0.85rem;"></i>
+                                        <span id="currentDateText">جاري...</span>
+                                    </div>
+                                    <!-- Sync to today -->
+                                    <button class="btn btn-ghost" id="syncToTodayBtn"
+                                        style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
+                                        onclick="resetToCurrentFriday()" title="العودة لليوم">
+                                        <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
+                                    </button>
                                 </div>
-                                <!-- Sync to today -->
-                                <button class="btn btn-ghost" id="syncToTodayBtn"
-                                    style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
-                                    onclick="resetToCurrentFriday()" title="العودة لليوم">
-                                    <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
-                                </button>
-                                <!-- Uncles list inline next to date -->
+                                <!-- Uncles list inline next to date (at the left end) -->
                                 <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important;">
                                     <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
                                     <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
@@ -10117,9 +10112,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Sticky attendance toolbar -->
-                <div class="att-toolbar">
-                    <div class="toolbar-row">
-                        <div class="toolbar-stats">
+                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid);">
+                    <div class="toolbar-row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                        <div class="toolbar-stats" style="display: flex; gap: 10px; flex: 1; min-width: 0;">
                             <span class="toolbar-stat"><i class="fas fa-users"></i> <span id="tbTotalVal">0</span> <span
                                     class="stat-lbl">طفل</span></span>
                             <span class="toolbar-stat s"><i class="fas fa-check"></i> <span id="tbPresentVal">0</span>
@@ -10129,25 +10124,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span class="toolbar-stat c"><i class="fas fa-star"></i> <span id="tbCouponsVal">0</span>
                                 <span class="stat-lbl">متوسط</span></span>
                         </div>
-                        <div class="save-row">
-                            <button class="save-btn save-btn-select" id="bulkSelectToggleBtn"
-                                onclick="toggleBulkSelectMode()" title="تحديد متعدد">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>
-                            </button>
+                        <div class="save-row" style="flex: none; display: flex; align-items: center;">
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
-                                onclick="showUnsavedModal()">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">التغييرات</span></span>
-                            </button>
-                            <button class="save-btn save-btn-attendance" id="submitAttendance" disabled
-                                title="حفظ الحضور">
-                                <i class="fas fa-user-check"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">الحضور</span></span>
-                            </button>
-                            <button class="save-btn save-btn-coupons" id="submitCoupons" disabled title="حفظ الكوبونات">
-                                <i class="fas fa-star"></i>
-                                <span class="save-btn-bottom"><span class="save-btn-label">الكوبونات</span></span>
+                                onclick="showUnsavedModal()"
+                                style="min-width: 100px; height: 38px; padding: 0 16px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all 0.2s; font-size: 0.85rem; font-weight: 700; border: 1.5px solid var(--border-solid); background: var(--surface-3); color: var(--text-3); cursor: pointer;">
+                                <i class="fas fa-save" style="font-size: 0.95rem;"></i>
+                                <span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">
+                                    <span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -10155,6 +10139,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div class="class-inline-search-wrap"
                     style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 100%; margin-bottom: 12px;">
+                    
+                    <!-- 3 Vertical Dots Tools Button (Before Search) -->
+                    <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
+                        <button class="home-tools-link" id="classToolsBtn" onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
+                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
+                            onmouseover="this.style.borderColor='var(--brand)'"
+                            onmouseout="this.style.borderColor='var(--border-solid)'">
+                            <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
+                        </button>
+                        <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
+                            <div class="dropdown-group-label">الفصل</div>
+                            <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
+                            <button class="dropdown-item" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام الفصل</button>
+                            <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
+                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
+                            <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
+                            
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-group-label">خيارات إضافية</div>
+                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع (سحب)</button>
+                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item" onclick="showResetModal();closeAllDropdowns()"><i class="fas fa-rotate-left"></i> تراجع عن كل التغييرات</button>
+                        </div>
+                    </div>
+
+                    <!-- Search Input (Taking the rest of the space) -->
                     <div class="inline-search-box" style="flex: 1;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
@@ -10168,8 +10179,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 class="fas fa-times"></i></button>
                     </div>
 
-                    <!-- Sort Button (Beside Search Bar) -->
-                    <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                    <!-- Sort Button -->
+                    <div class="custom-dropdown" style="position: relative; display: inline-block; flex: none;">
                         <!-- Hidden select to preserve event listeners and system integrations -->
                         <select id="classSortSelect" style="display: none;">
                             <option value="name_az">الاسم أ-ي</option>
@@ -10200,10 +10211,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
 
-                    <!-- Filter Button (Beside Search Bar) -->
+                    <!-- Filter Button -->
                     <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
                         title="تصفية"
-                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; position: relative;"
+                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; position: relative; flex: none;"
                         onmouseover="this.style.borderColor='var(--brand)'"
                         onmouseout="this.style.borderColor='var(--border-solid)'">
                         <i class="fas fa-filter"></i>
@@ -10211,40 +10222,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: -3px; right: -3px; border: 1.5px solid var(--surface);">0</span>
                     </button>
 
-                    <!-- 3 Vertical Dots Tools Button (Beside Search Bar) -->
-                    <div class="action-dropdown" style="position: relative; display: inline-block;">
-                        <button class="home-tools-link" id="classToolsBtn" onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
-                            onmouseover="this.style.borderColor='var(--brand)'"
-                            onmouseout="this.style.borderColor='var(--border-solid)'">
-                            <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
-                        </button>
-                        <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
-                            <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
-                            <button class="dropdown-item" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام الفصل</button>
-                            <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
-                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
-                            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
-                            <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
-                            
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-group-label">الجميع</div>
-                            <button class="dropdown-item success" onclick="markAllPresent();closeAllDropdowns()"><i class="fas fa-check-circle"></i> حضور للجميع</button>
-                            <button class="dropdown-item danger" onclick="markAllAbsent();closeAllDropdowns()"><i class="fas fa-times-circle"></i> غياب للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(10);closeAllDropdowns()"><i class="fas fa-star"></i> +10 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(30);closeAllDropdowns()"><i class="fas fa-star"></i> +30 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(50);closeAllDropdowns()"><i class="fas fa-star"></i> +50 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(100);closeAllDropdowns()"><i class="fas fa-star"></i> +100 كوبونات للجميع</button>
-                            <button class="dropdown-item danger" onclick="resetCouponDataForClass(currentClass);closeAllDropdowns()"><i class="fas fa-undo"></i> إعادة تعيين الكوبونات</button>
-                            
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-group-label">خيارات إضافية</div>
-                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع (سحب)</button>
-                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
-                            <button class="dropdown-item" onclick="showResetModal();closeAllDropdowns()"><i class="fas fa-rotate-left"></i> تراجع عن كل التغييرات</button>
-                        </div>
-                    </div>
+                    <!-- Add Kid Button (Last button at the end) -->
+                    <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
+                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; flex: none;"
+                        onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
+                        onmouseout="this.style.borderColor='var(--border-solid)';this.style.color='var(--text)';this.style.background='var(--surface)'">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
 
                 <!-- Filters Panel -->
@@ -10371,16 +10355,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="unsavedModal">
         <div class="modal" style="max-width:430px">
             <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> تغييرات غير محفوظة</h3>
+                <h3><i class="fa-solid fa-pen-to-square" style="color:var(--brand); font-size:1.15rem;"></i> التغييرات المعلقة</h3>
                 <button class="close-btn"
                     onclick="document.getElementById('unsavedModal').classList.remove('active')">&times;</button>
             </div>
-            <div id="unsavedModalContent" style="margin-bottom:14px"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn btn-secondary" style="width:100%"
-                    onclick="document.getElementById('unsavedModal').classList.remove('active')"><i
-                        class="fas fa-times"></i> إغلاق</button>
-            </div>
+            <div id="unsavedModalContent" style="margin-bottom:0"></div>
         </div>
     </div>
 
@@ -13796,9 +13775,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (bar && isBulkSelectMode) {
                 const height = bar.offsetHeight;
                 document.documentElement.style.setProperty('--bulk-bar-height', height + 'px');
-                const toolbar = document.querySelector('.att-toolbar');
-                const toolbarHeight = toolbar ? toolbar.offsetHeight : 50;
-                document.documentElement.style.setProperty('--bulk-active-padding', (height + toolbarHeight + 8) + 'px');
+                document.documentElement.style.setProperty('--bulk-active-padding', height + 'px');
             }
         }
         window.addEventListener('resize', updateBulkBarHeight);
@@ -15028,7 +15005,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 const readerEl = document.getElementById('kidQrReader');
                 if (source === 'usb') {
-                    // Stop camera scanner if running
+// Stop camera scanner if running
                     if (kidQrScanner) {
                         const scanner = kidQrScanner;
                         kidQrScanner = null;
@@ -15124,6 +15101,174 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('فشل تشغيل الكاميرا', 'error');
                 stopKidQrScan();
             }
+        }
+
+        function showUnsavedModal() {
+            // Gather ALL locally-stored pending changes across ALL dates for current class
+            const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
+            const ids = list.map(s => getStudentId(s));
+
+            // Find all localStorage keys for attendance changes for this class
+            const allKeys = Object.keys(localStorage);
+            const atDateEntries = []; // {date, id, status}
+            const cpItems = [...changedCouponStudents].filter(id => ids.includes(id));
+
+            // Scan all attendance change keys: changedStudents_{class}_{date}
+            allKeys.forEach(k => {
+                const prefix = `changedStudents_${cls}_`;
+                if (!k.startsWith(prefix)) return;
+                const date = k.slice(prefix.length);
+                try {
+                    const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
+                    const localData = JSON.parse(localStorage.getItem(`attendanceData_${cls}_${date}`) || '{}');
+                    changedIds.forEach(id => {
+                        if (!ids.includes(id)) return;
+                        const s = list.find(s => getStudentId(s) === id);
+                        const st = localData[id] || 'pending';
+                        atDateEntries.push({ date, id, name: s?.['الاسم'] || id, status: st });
+                    });
+                } catch (e) { }
+            });
+
+            // Group by date
+            const byDate = {};
+            atDateEntries.forEach(e => {
+                if (!byDate[e.date]) byDate[e.date] = [];
+                byDate[e.date].push(e);
+            });
+
+            let html = '';
+
+            // Attendance section grouped by date
+            if (atDateEntries.length) {
+                html += `<div style="margin-bottom:20px">
+            <div style="font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;font-size:0.95rem;">
+                <i class="fas fa-user-check" style="color:var(--success)"></i> حضور وغياب (${atDateEntries.length})
+            </div>`;
+
+                Object.entries(byDate).sort(([a], [b]) => parseDate(b) - parseDate(a)).forEach(([date, items]) => {
+                    const isCurrent = date === currentFriday;
+                    html += `<div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px;margin-bottom:10px;border:1.5px solid ${isCurrent ? 'var(--brand)' : 'var(--border-solid)'}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px">
+                    <span style="font-size:.82rem;font-weight:800;color:${isCurrent ? 'var(--brand)' : 'var(--text)'};display:flex;align-items:center;gap:5px">
+                        <i class="fas fa-calendar-alt" style="font-size:.75rem;opacity:0.7"></i> ${date}
+                        ${isCurrent ? '<span style="background:var(--brand);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:800">الحالي</span>' : ''}
+                    </span>
+                    ${!isCurrent ? `<button class="btn btn-ghost btn-xs" onclick="_jumpToDate('${date}')" title="الانتقال لهذا التاريخ" style="font-family:Cairo,sans-serif;font-weight:700;font-size:0.75rem;padding:2px 8px;border:1px solid var(--border-solid);background:var(--surface);">
+                        <i class="fas fa-external-link-alt"></i> انتقل
+                    </button>` : ''}
+                </div>`;
+                    items.forEach(e => {
+                        let bc = '', lbl = '<i class="fas fa-times-circle"></i> مسح';
+                        if (e.status === 'present') {
+                            bc = 'background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
+                            lbl = '<i class="fas fa-check"></i> حاضر';
+                        } else if (e.status === 'absent') {
+                            bc = 'background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
+                            lbl = '<i class="fas fa-times"></i> غائب';
+                        } else {
+                            bc = 'background:var(--surface-3);color:var(--text-3);border:1px solid var(--border-solid);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;';
+                        }
+                        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-solid);font-size:.85rem;gap:10px">
+                    <span style="flex:1;font-weight:700;color:var(--text)">${e.name}</span>
+                    <span style="flex-shrink:0;${bc}">${lbl}</span>
+                    <button onclick="_removeUnsavedEntry('${e.id}','${date}')" title="إزالة هذا التغيير"
+                        style="background:none; border:none; color:var(--danger); cursor:pointer; padding:6px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; border-radius:50%; width:28px; height:28px; transition: background 0.2s;"
+                        onmouseover="this.style.background='var(--danger-bg)'"
+                        onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>`;
+                    });
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Coupon section
+            if (cpItems.length) {
+                html += `<div style="margin-bottom:20px">
+            <div style="font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;font-size:0.95rem;">
+                <i class="fas fa-star" style="color:var(--coupon)"></i> الكوبونات (${cpItems.length})
+            </div>
+            <div style="background:var(--surface-2);border-radius:var(--r-md);padding:12px;border:1.5px solid var(--border-solid)">`;
+                cpItems.forEach(id => {
+                    const s = list.find(s => getStudentId(s) === id);
+                    const add = parseInt(couponData[id] || 0);
+                    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-solid);font-size:.85rem;gap:10px">
+                <span style="flex:1;font-weight:700;color:var(--text)">${s?.['الاسم'] || id}</span>
+                <span style="flex-shrink:0;background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);padding:4px 10px;border-radius:8px;font-weight:700;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;">
+                    ${add > 0 ? '+' : ''}${add} <i class="fas fa-star"></i>
+                </span>
+                <button onclick="_removeUnsavedCoupon('${id}')" title="إزالة تغيير الكوبون"
+                    style="background:none; border:none; color:var(--danger); cursor:pointer; padding:6px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; border-radius:50%; width:28px; height:28px; transition: background 0.2s;"
+                    onmouseover="this.style.background='var(--danger-bg)'"
+                    onmouseout="this.style.background='transparent'">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // No changes case
+            if (!atDateEntries.length && !cpItems.length) {
+                if (navigator.onLine) {
+                    html = `<div style="text-align:center;color:var(--text-3);padding:24px 12px">
+                        <i class="fas fa-check-circle" style="color:var(--success);font-size:2.8rem;display:block;margin-bottom:12px"></i>
+                        <span style="font-weight:700;color:var(--text);display:block;margin-bottom:6px;font-size:1.05rem;">كل شيء محفوظ!</span>
+                        <span style="font-size:0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
+                    </div>
+                    <div style="margin-top:20px;display:flex;gap:8px">
+                        <button class="btn btn-secondary" style="flex:1; height:40px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                            إغلاق
+                        </button>
+                    </div>`;
+                } else {
+                    html = `<div style="text-align:center;color:var(--text-3);padding:24px 12px">
+                        <i class="fas fa-wifi-slash" style="color:var(--warning);font-size:2.8rem;display:block;margin-bottom:12px"></i>
+                        <span style="font-weight:700;color:var(--warning);display:block;margin-bottom:6px;font-size:1.05rem;">غير متصل بالإنترنت</span>
+                        <span style="font-size:0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
+                    </div>
+                    <div style="margin-top:20px;display:flex;gap:8px">
+                        <button class="btn btn-secondary" style="flex:1; height:40px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                            إغلاق
+                        </button>
+                    </div>`;
+                }
+            } else {
+                // Online with changes -> footer with Save / Discard buttons
+                if (navigator.onLine) {
+                    html += `<div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border-solid);display:flex;gap:10px">
+                <button class="btn btn-success" style="flex:2; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
+                    <i class="fas fa-cloud-upload-alt"></i> حفظ التغييرات
+                </button>
+                <button class="btn btn-danger btn-outline" style="flex:1; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; background:transparent; border:1.5px solid var(--danger); color:var(--danger);" onclick="_clearAllUnsaved()">
+                    <i class="fas fa-trash"></i> تراجع
+                </button>
+            </div>`;
+                } else {
+                    // Offline with changes -> footer warning and Close / Discard buttons
+                    html += `<div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border-solid);display:flex;flex-direction:column;gap:10px">
+                <div style="padding:10px 14px;border-radius:var(--r-md);background:var(--warning-bg);border:1.5px solid rgba(245,158,11,.3);display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--warning-dark)">
+                    <i class="fas fa-wifi" style="font-size:1rem;flex-shrink:0"></i>
+                    <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
+                </div>
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-secondary" style="flex:2; height:42px; font-weight:700; font-family:Cairo,sans-serif;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                        إغلاق
+                    </button>
+                    <button class="btn btn-danger btn-outline" style="flex:1; height:42px; font-weight:700; font-family:Cairo,sans-serif; display:flex; align-items:center; justify-content:center; gap:6px; background:transparent; border:1.5px solid var(--danger); color:var(--danger);" onclick="_clearAllUnsaved()">
+                        <i class="fas fa-trash"></i> تراجع
+                    </button>
+                </div>
+            </div>`;
+                }
+            }
+
+            document.getElementById('unsavedModalContent').innerHTML = html;
+            document.getElementById('unsavedModal').classList.add('active');
         }
 
         async function startKidQrScan(mode = 'profile') {
@@ -15332,7 +15477,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const at = document.getElementById('submitAttendance');
             const ct = document.getElementById('submitCoupons');
             const un = document.getElementById('saveAllBtn');
-            if (!at || !ct || !un) return;
+            if (!un) return;
 
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
             const ids = list.map(s => getStudentId(s));
@@ -15341,8 +15486,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const tot = achg + cchg;
 
             // helper: icon + label/count wrapped together
-            // Mobile: column (icon top, bottom-row below)
-            // Desktop: row (icon left, bottom-row right) via CSS flex-direction override
             const btn = (icon, label, count) =>
                 `<i class="${icon}"></i>`
                 + `<span class="save-btn-bottom">`
@@ -15351,23 +15494,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 + `</span>`;
 
             // Attendance
-            at.disabled = achg === 0;
-            at.innerHTML = btn('fas fa-user-check', 'الحضور', achg);
-            at.title = achg > 0 ? `حفظ حضور ${achg} طفل` : 'لا تغييرات في الحضور';
+            if (at) {
+                at.disabled = achg === 0;
+                at.innerHTML = btn('fas fa-user-check', 'الحضور', achg);
+                at.title = achg > 0 ? `حفظ حضور ${achg} طفل` : 'لا تغييرات في الحضور';
+            }
 
             // Coupons
-            ct.disabled = cchg === 0;
-            ct.innerHTML = btn('fas fa-star', 'الكوبونات', cchg);
-            ct.title = cchg > 0 ? `حفظ كوبونات ${cchg} طفل` : 'لا تغييرات في الكوبونات';
+            if (ct) {
+                ct.disabled = cchg === 0;
+                ct.innerHTML = btn('fas fa-star', 'الكوبونات', cchg);
+                ct.title = cchg > 0 ? `حفظ كوبونات ${cchg} طفل` : 'لا تغييرات في الكوبونات';
+            }
 
             // Status / unsaved indicator
             un.disabled = tot === 0;
             if (tot > 0) {
-                un.innerHTML = btn('fas fa-exclamation-circle', 'التغييرات', tot);
+                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem;"></i>`
+                    + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
+                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>`
+                    + `<span class="save-count" style="background:#fff; color:var(--brand); border:none; font-size:0.75rem; padding:1px 6px; border-radius:20px; font-weight:800; line-height:1.5; margin-right:4px;">${tot}</span>`
+                    + `</span>`;
                 un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
+                un.style.background = 'var(--brand)';
+                un.style.color = '#fff';
+                un.style.borderColor = 'var(--brand)';
+                un.style.opacity = '1';
+                un.style.cursor = 'pointer';
             } else {
-                un.innerHTML = btn('fas fa-check-circle', 'التغييرات', 0);
+                un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3);"></i>`
+                    + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
+                    + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ التغييرات</span>`
+                    + `</span>`;
                 un.title = 'التغييرات: لا توجد تعديلات معلقة';
+                un.style.background = 'var(--surface-3)';
+                un.style.color = 'var(--text-3)';
+                un.style.borderColor = 'var(--border-solid)';
+                un.style.opacity = '0.4';
+                un.style.cursor = 'not-allowed';
             }
         }
 
@@ -15395,136 +15559,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }, e => showToast('فشل: ' + e, 'error'));
             btn.disabled = false; updateSaveBtns();
         }
-        function showUnsavedModal() {
-            // Gather ALL locally-stored pending changes across ALL dates for current class
-            const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
-            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
-            const ids = list.map(s => getStudentId(s));
 
-            // Find all localStorage keys for attendance changes for this class
-            const allKeys = Object.keys(localStorage);
-            const atDateEntries = []; // {date, id, status}
-            const cpItems = [...changedCouponStudents].filter(id => ids.includes(id));
-
-            // Scan all attendance change keys: changedStudents_{class}_{date}
-            allKeys.forEach(k => {
-                const prefix = `changedStudents_${cls}_`;
-                if (!k.startsWith(prefix)) return;
-                const date = k.slice(prefix.length);
-                try {
-                    const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
-                    const localData = JSON.parse(localStorage.getItem(`attendanceData_${cls}_${date}`) || '{}');
-                    changedIds.forEach(id => {
-                        if (!ids.includes(id)) return;
-                        const s = list.find(s => getStudentId(s) === id);
-                        const st = localData[id] || 'pending';
-                        atDateEntries.push({ date, id, name: s?.['الاسم'] || id, status: st });
-                    });
-                } catch (e) { }
-            });
-
-            // Group by date
-            const byDate = {};
-            atDateEntries.forEach(e => {
-                if (!byDate[e.date]) byDate[e.date] = [];
-                byDate[e.date].push(e);
-            });
-
-            let html = '';
-
-            // Attendance section grouped by date
-            if (atDateEntries.length) {
-                html += `<div style="margin-bottom:16px">
-            <div style="font-weight:700;color:var(--success);margin-bottom:10px;display:flex;align-items:center;gap:6px">
-                <i class="fas fa-user-check"></i> تغييرات الحضور (${atDateEntries.length})
-            </div>`;
-
-                Object.entries(byDate).sort(([a], [b]) => parseDate(b) - parseDate(a)).forEach(([date, items]) => {
-                    const isCurrent = date === currentFriday;
-                    html += `<div style="background:var(--surface-3);border-radius:var(--r-lg);padding:10px 12px;margin-bottom:8px;border:1.5px solid ${isCurrent ? 'var(--brand)' : 'var(--border-solid)'}">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px">
-                    <span style="font-size:.78rem;font-weight:800;color:${isCurrent ? 'var(--brand)' : 'var(--text-2)'};display:flex;align-items:center;gap:5px">
-                        <i class="fas fa-calendar-alt" style="font-size:.7rem"></i> ${date}
-                        ${isCurrent ? '<span style="background:var(--brand);color:#fff;font-size:.65rem;padding:1px 6px;border-radius:20px">الحالي</span>' : ''}
-                    </span>
-                    ${!isCurrent ? `<button class="btn btn-ghost btn-xs" onclick="_jumpToDate('${date}')" title="الانتقال لهذا التاريخ">
-                        <i class="fas fa-external-link-alt"></i> انتقل
-                    </button>` : ''}
-                </div>`;
-                    items.forEach(e => {
-                        let bc = 'pending', lbl = '<i class="fas fa-times-circle"></i> مسح';
-                        if (e.status === 'present') { bc = 'saved'; lbl = '<i class="fas fa-check"></i> حاضر'; }
-                        else if (e.status === 'absent') { bc = 'changed'; lbl = '<i class="fas fa-times"></i> غائب'; }
-                        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-solid);font-size:.82rem;gap:6px">
-                    <span style="flex:1;font-weight:600">${e.name}</span>
-                    <span class="status-badge ${bc}" style="flex-shrink:0">${lbl}</span>
-                    <button class="btn btn-danger btn-xs" style="flex-shrink:0;width:24px;height:24px;padding:0;min-width:0;border-radius:50%" 
-                        onclick="_removeUnsavedEntry('${e.id}','${date}')" title="إزالة هذا التغيير">
-                        <i class="fas fa-times" style="font-size:.6rem"></i>
-                    </button>
-                </div>`;
-                    });
-                    html += `</div>`;
-                });
-                html += `</div>`;
-            }
-
-            // Coupon section
-            if (cpItems.length) {
-                html += `<div><div style="font-weight:700;color:var(--coupon);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-            <i class="fas fa-star"></i> تغييرات الكوبونات (${cpItems.length})
-        </div>`;
-                cpItems.forEach(id => {
-                    const s = list.find(s => getStudentId(s) === id);
-                    const add = parseInt(couponData[id] || 0);
-                    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-solid);font-size:.82rem;gap:6px">
-                <span style="flex:1;font-weight:600">${s?.['الاسم'] || id}</span>
-                <span class="status-badge coupon-unsaved" style="flex-shrink:0">${add > 0 ? '+' : ''}${add} <i class="fas fa-star"></i></span>
-                <button class="btn btn-danger btn-xs" style="flex-shrink:0;width:24px;height:24px;padding:0;min-width:0;border-radius:50%"
-                    onclick="_removeUnsavedCoupon('${id}')" title="إزالة تغيير الكوبون">
-                    <i class="fas fa-times" style="font-size:.6rem"></i>
-                </button>
-            </div>`;
-                });
-                html += `</div>`;
-            }
-
-            if (!atDateEntries.length && !cpItems.length) {
-                if (navigator.onLine) {
-                    html = '<p style="text-align:center;color:var(--text-3);padding:24px">' +
-                        '<i class="fas fa-check-circle" style="color:var(--success);font-size:2.5rem;display:block;margin-bottom:12px"></i>' +
-                        '<span style="font-weight:700;color:var(--success);display:block;margin-bottom:6px">كل شيء محفوظ على السيرفر!</span>' +
-                        'لا توجد تغييرات معلقة في هذا الفصل.' +
-                        '</p>';
-                } else {
-                    html = '<p style="text-align:center;color:var(--text-3);padding:24px">' +
-                        '<i class="fas fa-wifi-slash" style="color:var(--warning);font-size:2.5rem;display:block;margin-bottom:12px"></i>' +
-                        '<span style="font-weight:700;color:var(--warning);display:block;margin-bottom:6px">غير متصل بالإنترنت</span>' +
-                        'لا توجد تغييرات معلقة في هذا الفصل.' +
-                        '</p>';
-                }
-            }
-
-            // Add sync-now button at the bottom when online and there are changes
-            if ((atDateEntries.length || cpItems.length) && navigator.onLine) {
-                html += `<div style="margin-top:16px;padding-top:12px;border-top:1.5px solid var(--border-solid);display:flex;gap:8px">
-            <button class="btn btn-success" style="flex:1" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
-                <i class="fas fa-cloud-upload-alt"></i> رفع الكل الآن
-            </button>
-            <button class="btn btn-danger" style="flex:1" onclick="_clearAllUnsaved()">
-                <i class="fas fa-trash"></i> مسح الكل
-            </button>
-        </div>`;
-            } else if ((atDateEntries.length || cpItems.length) && !navigator.onLine) {
-                html += `<div style="margin-top:16px;padding:10px 14px;border-radius:var(--r-md);background:var(--warning-bg);border:1.5px solid rgba(245,158,11,.3);display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--warning-dark)">
-            <i class="fas fa-wifi" style="font-size:1rem;flex-shrink:0"></i>
-            <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
-        </div>`;
-            }
-
-            document.getElementById('unsavedModalContent').innerHTML = html;
-            document.getElementById('unsavedModal').classList.add('active');
-        }
 
         function _removeUnsavedEntry(studentId, date) {
             // Remove from changedStudents for that date
