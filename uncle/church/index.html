@@ -11834,18 +11834,8 @@
             <input type="hidden" id="class_icon_${c.id}" value="${escHtml(icon)}">
             <input type="color" value="${color}" id="class_color_${c.id}"
                 style="width:40px;height:40px;border:2px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;"
-                title="لون الفصل" oninput="document.getElementById('class_icon_btn_${c.id}').style.color=this.value;">
-            <button type="button" id="class_icon_btn_${c.id}"
-                title="أيقونة الفصل" onclick="toggleClassIconPicker('${c.id}')"
-                style="width:40px;height:40px;border:2px solid var(--border);border-radius:8px;
-                    display:flex;align-items:center;justify-content:center;font-size:1.1rem;
-                    cursor:pointer;color:${color};background:color-mix(in srgb,${color} 10%,white);">
-                ${iconHtml}
-            </button>
+                title="لون الفصل">
             <button class="act-btn act-delete" onclick="removeClassItem('${c.id}')"><i class="fas fa-trash"></i></button>
-            <div id="class_iconpicker_${c.id}" style="display:none;width:100%;padding:8px;background:white;
-                border-radius:8px;border:1px solid var(--border);flex-wrap:wrap;gap:4px;margin-top:4px;">
-            </div>
         </div>`;
             }).join('');
         }
@@ -11903,15 +11893,7 @@
         <input type="hidden" id="class_icon_${tid}" value="">
         <input type="color" value="#4f46e5" id="class_color_${tid}"
             style="width:40px;height:40px;border:2px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;" title="اختر لوناً">
-        <button type="button" id="class_icon_btn_${tid}" title="اختر أيقونة"
-            onclick="toggleClassIconPicker('${tid}')"
-            style="width:40px;height:40px;border:2px solid var(--border);border-radius:8px;
-                display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;color:var(--muted);">
-            <i class="fas fa-chalkboard-teacher"></i>
-        </button>
-        <button class="act-btn act-delete" title="حذف" onclick="this.closest('.class-item').remove()"><i class="fas fa-times"></i></button>
-        <div id="class_iconpicker_${tid}" style="display:none;width:100%;padding:8px;background:white;
-            border-radius:8px;border:1px solid var(--border);flex-wrap:wrap;gap:4px;margin-top:4px;"></div>`;
+        <button class="act-btn act-delete" title="حذف" onclick="this.closest('.class-item').remove()"><i class="fas fa-times"></i></button>`;
             l.appendChild(div);
             setTimeout(() => document.getElementById(`class_name_${tid}`)?.focus(), 50);
         }
