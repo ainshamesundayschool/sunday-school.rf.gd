@@ -2737,7 +2737,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .coupon-toggle-btn {
             width: 46px;
-            height: 26px;
+            height: 32px;
             border-radius: var(--r-xl);
             border: none;
             display: flex;
@@ -2770,7 +2770,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 800;
             color: var(--coupon-dark);
             font-size: .8rem;
-            padding: 4px 0 14px;
+            height: 32px;
+            line-height: 24px;
+            padding: 0;
             cursor: pointer;
             user-select: none;
             border-radius: var(--r-sm);
@@ -3639,7 +3641,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .present-btn,
         .absent-btn {
             flex: 1;
-            padding: 7px 3px;
+            height: 32px;
             border: none;
             border-radius: var(--r-md);
             font-family: 'Cairo', sans-serif;
@@ -10171,6 +10173,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="dropdown-group-label">خيارات إضافية</div>
                             <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
                             <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
                         </div>
                     </div>
 
