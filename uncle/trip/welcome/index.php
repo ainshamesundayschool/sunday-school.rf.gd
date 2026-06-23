@@ -90,7 +90,7 @@ $tripTitle = $trip['title'];
             --danger-glow: rgba(239, 68, 68, 0.25);
             --text-dark: #1e293b;
             --text-muted: #64748b;
-            --bg-light: linear-gradient(135deg, #fef9c3, #ecfeff, #fae8ff);
+            --bg-light: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
         }
 
         * {
@@ -110,19 +110,6 @@ $tripTitle = $trip['title'];
             align-items: center;
             justify-content: center;
             position: relative;
-        }
-
-        /* Decorative floating bubble shapes for kid appeal */
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
-            animation: floatBubble 12s infinite ease-in-out alternate;
-        }
-        @keyframes floatBubble {
-            0% { transform: translateY(0) scale(1) rotate(0deg); }
-            100% { transform: translateY(-40px) scale(1.1) rotate(360deg); }
         }
 
         /* Screen Wrapper */
@@ -454,12 +441,6 @@ $tripTitle = $trip['title'];
 </head>
 <body>
 
-    <!-- Kid Appealing Bubbles -->
-    <div class="bubble" style="width: 80px; height: 80px; background: rgba(99, 102, 241, 0.12); top: 15%; left: 10%; animation-duration: 8s;"></div>
-    <div class="bubble" style="width: 120px; height: 120px; background: rgba(236, 72, 153, 0.1); bottom: 15%; left: 15%; animation-duration: 14s; animation-delay: -3s;"></div>
-    <div class="bubble" style="width: 60px; height: 60px; background: rgba(251, 191, 36, 0.15); top: 25%; right: 12%; animation-duration: 10s; animation-delay: -5s;"></div>
-    <div class="bubble" style="width: 100px; height: 100px; background: rgba(16, 185, 129, 0.1); bottom: 20%; right: 8%; animation-duration: 12s; animation-delay: -1s;"></div>
-
     <!-- Start Overlay (User interaction to enable audio/fullscreen) -->
     <div class="overlay" id="startOverlay">
         <div class="overlay-card">
@@ -482,7 +463,7 @@ $tripTitle = $trip['title'];
 
         <!-- Idle Panel -->
         <div class="idle-panel" id="idlePanel">
-            <i class="fas fa-qrcode idle-icon"></i>
+            <i class="fas fa-id-card idle-icon"></i>
             <div class="idle-text">في انتظار مسح الكروت...</div>
         </div>
 
@@ -762,18 +743,44 @@ $tripTitle = $trip['title'];
             
             let x, y;
             let attempts = 0;
+            let overlaps;
+            const buffer = 20; // 20px buffer spacing between cards
             
             do {
                 x = Math.random() * (screenW - cardWidth - 40) + 20;
                 y = Math.random() * (screenH - cardHeight - 120) + 60;
                 attempts++;
-            } while (
-                x + cardWidth > centerXMin && 
-                x < centerXMax && 
-                y + cardHeight > centerYMin && 
-                y < centerYMax && 
-                attempts < 50
-            );
+                
+                // Check if it overlaps with the center exclusion zone
+                const overlapsCenter = (
+                    x + cardWidth > centerXMin && 
+                    x < centerXMax && 
+                    y + cardHeight > centerYMin && 
+                    y < centerYMax
+                );
+                
+                overlaps = overlapsCenter;
+                
+                if (!overlaps) {
+                    // Check if it overlaps with any active scattered cards
+                    for (const activeCard of activeScatteredKids) {
+                        const ax = activeCard.x;
+                        const ay = activeCard.y;
+                        const aw = cardWidth;
+                        const ah = cardHeight;
+                        
+                        if (
+                            x + cardWidth + buffer > ax &&
+                            x < ax + aw + buffer &&
+                            y + cardHeight + buffer > ay &&
+                            y < ay + ah + buffer
+                        ) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                }
+            } while (overlaps && attempts < 100);
             
             return { x, y };
         }
@@ -794,7 +801,7 @@ $tripTitle = $trip['title'];
             card.innerHTML = `
                 <img src="${kidData.profile_photo || '/profile_default.webp'}" class="scattered-photo" onerror="this.src='/logo.png'">
                 <div class="scattered-name">${kidData.student_name}</div>
-                <div class="scattered-badge ${badgeClass}">${badgeText} ⭐️</div>
+                <div class="scattered-badge ${badgeClass}">${badgeText}</div>
             `;
             
             card.style.setProperty('--float-x', `${Math.random() * 20 - 10}px`);
@@ -820,14 +827,14 @@ $tripTitle = $trip['title'];
             card.style.transform = `translate(0, 0) scale(1) rotate(${Math.random() * 12 - 6}deg)`;
             card.style.opacity = '1';
             
-            activeScatteredKids.push(card);
+            activeScatteredKids.push({ element: card, x: pos.x, y: pos.y });
             
             if (activeScatteredKids.length > 8) {
                 const oldest = activeScatteredKids.shift();
-                oldest.style.opacity = '0';
-                oldest.style.transform += ' scale(0.8)';
+                oldest.element.style.opacity = '0';
+                oldest.element.style.transform += ' scale(0.8)';
                 setTimeout(() => {
-                    oldest.remove();
+                    oldest.element.remove();
                 }, 800);
             }
         }
@@ -912,7 +919,7 @@ $tripTitle = $trip['title'];
                 this.targetX = targetX;
                 this.targetY = targetY;
                 this.color = color;
-                this.speed = 10;
+                this.speed = 7;
                 this.angle = Math.atan2(targetY - startY, targetX - startX);
                 this.velocity = {
                     x: Math.cos(this.angle) * this.speed,
@@ -958,15 +965,15 @@ $tripTitle = $trip['title'];
                 this.y = y;
                 this.color = color;
                 this.angle = Math.random() * Math.PI * 2;
-                this.speed = Math.random() * 5 + 2;
+                this.speed = Math.random() * 4 + 1.5;
                 this.velocity = {
                     x: Math.cos(this.angle) * this.speed,
                     y: Math.sin(this.angle) * this.speed
                 };
-                this.gravity = 0.06;
-                this.friction = 0.98;
+                this.gravity = 0.04;
+                this.friction = 0.95;
                 this.alpha = 1;
-                this.decay = Math.random() * 0.015 + 0.012;
+                this.decay = Math.random() * 0.006 + 0.004;
             }
 
             update() {
