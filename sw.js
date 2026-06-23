@@ -74,6 +74,7 @@ self.addEventListener('activate', e => {
             .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
             .then(() => self.clients.claim())
             .then(() => _registerPeriodicSync())
+            .then(() => _flushQueue())
     );
 });
 
@@ -397,7 +398,12 @@ self.addEventListener('sync', e => {
 
 // ── PERIODIC SYNC ─────────────────────────────────────────────
 self.addEventListener('periodicsync', e => {
-    if (e.tag === PERIODIC_SYNC_TAG) e.waitUntil(_checkNewRegistrations());
+    if (e.tag === PERIODIC_SYNC_TAG) {
+        e.waitUntil(Promise.all([
+            _checkNewRegistrations(),
+            _flushQueue()
+        ]));
+    }
 });
 
 // ── PUSH ─────────────────────────────────────────────────────
@@ -529,9 +535,9 @@ async function _flushQueue() {
     const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     allClients.forEach(c => c.postMessage({ type: 'SYNC_COMPLETE', count: flushed, uncleName }));
 
-    // Show system notification only if app is closed / all tabs hidden
-    const anyVisible = allClients.some(c => c.visibilityState === 'visible');
-    if (!anyVisible) {
+    // Show system notification only if app is closed (no tabs open)
+    const hasOpenTabs = allClients.length > 0;
+    if (!hasOpenTabs) {
         const title = `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uncleName || 'خادمنا'} ✅`;
         self.registration.showNotification(title, {
             body: `رُفع ${flushed} تغيير محفوظ محلياً بنجاح`,

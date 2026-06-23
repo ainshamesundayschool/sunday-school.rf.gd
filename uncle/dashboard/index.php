@@ -19913,18 +19913,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // Called after a successful attendance/coupon save — push to all subscribed devices
         async function _sendSyncCompletePush(savedCount, type) {
-            if (!navigator.onLine || !VAPID_PUBLIC_KEY) return;
-            try {
-                await makeApiCallRaw({
-                    action: 'sendPushNotification',
-                    target: 'church',  // notify ALL uncle devices for this church, not just sender
-                    notifType: 'sync',
-                    uncle_id: window.currentUncle?.id || '',
-                    title: type === 'coupons' ? 'مدارس الأحد — كوبونات ✅' : 'مدارس الأحد — حضور ✅',
-                    body: `تم حفظ ${savedCount} ${type === 'coupons' ? 'كوبون' : 'سجل حضور'} بنجاح`,
-                    url: window.location.href
-                });
-            } catch (e) { }
+            // Disabled: only notify locally or offline sync in background. No church-wide notifications.
+            return;
         }
 
         // Capture the install prompt
