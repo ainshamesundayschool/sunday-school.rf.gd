@@ -950,34 +950,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
         }
 
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--brand), var(--coupon));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .3s var(--spring);
+        }
+
         .class-card:hover {
             transform: translateY(-5px) scale(1.01);
             box-shadow: var(--shadow-lg);
             border-color: var(--brand)
         }
 
+        .class-card:hover::before {
+            transform: scaleX(1)
+        }
+
         .class-card:active {
             transform: scale(.97)
         }
 
-        .class-card-chip {
-            position: absolute;
-            top: 11px;
-            left: 10px;
-            background: #4f46e5;
-            color: white;
-            border-radius: 8px;
-            font-size: .6rem;
-            padding: 1px 5px;
-            font-weight: 700;
-            line-height: 1.2;
-            z-index: 2;
-        }
-
         .class-unsaved-badge {
             position: absolute;
-            top: 11px;
-            right: 10px;
+            top: 6px;
+            right: 6px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -988,7 +991,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.6rem;
             font-weight: 800;
             padding: 1px 5px;
-            border-radius: 8px;
+            border-radius: 4px;
             z-index: 2;
         }
 
@@ -2632,9 +2635,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-sm);
             border: 1.5px solid var(--surface);
         }
+
         .modal-student-avatar.male {
             background: linear-gradient(135deg, #60a5fa, #2563eb);
         }
+
         .modal-student-avatar.female {
             background: linear-gradient(135deg, #f472b6, #db2777);
         }
@@ -6987,7 +6992,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: #db2777 !important;
             color: #db2777 !important;
         }
-        
+
         [data-theme="dark"] #toggleStatsBtn.bday-glow-animate {
             animation: glowPulseDark 2.5s infinite ease-in-out;
             border-color: #f43f5e !important;
@@ -6999,10 +7004,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
                 background-color: var(--surface-3);
             }
+
             50% {
                 box-shadow: 0 0 14px 6px rgba(219, 39, 119, 0.25);
                 background-color: #fee2e2;
             }
+
             100% {
                 box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
                 background-color: var(--surface-3);
@@ -7014,10 +7021,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
                 background-color: var(--surface-3);
             }
+
             50% {
                 box-shadow: 0 0 14px 6px rgba(244, 63, 94, 0.25);
                 background-color: rgba(244, 63, 94, 0.2);
             }
+
             100% {
                 box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
                 background-color: var(--surface-3);
@@ -7062,23 +7071,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-banner-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 10px;
-            width: 100%;
-            margin-top: 10px;
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 8px;
+            padding-bottom: 6px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
-        @media (max-width: 480px) {
-            .bday-banner-list {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
+        .bday-banner-list::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .bday-banner-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .bday-banner-list::-webkit-scrollbar-thumb {
+            background: var(--border-solid);
+            border-radius: var(--r-full);
+        }
+
+        .bday-banner-list.grid-view {
+            flex-wrap: wrap;
+            overflow-x: visible;
+            overflow-y: visible;
+            padding-bottom: 0;
         }
 
         .bday-banner-chip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
             background: var(--surface);
             color: var(--text);
             border: 1.5px solid var(--border);
@@ -7119,38 +7146,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 600;
         }
 
-        @keyframes bdayTodayPulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
-                transform: translateY(0);
-            }
-            50% {
-                box-shadow: 0 0 8px 4px rgba(219, 39, 119, 0.2);
-                transform: translateY(-2px);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
-                transform: translateY(0);
-            }
-        }
-
         .bday-banner-chip.today {
-            background: rgba(219, 39, 119, 0.08) !important;
-            color: #db2777 !important;
-            border-color: rgba(219, 39, 119, 0.35) !important;
-            animation: bdayTodayPulse 2s infinite ease-in-out;
+            background: rgba(16, 185, 129, 0.08) !important;
+            color: #10b981 !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
         }
 
         [data-theme="dark"] .bday-banner-chip.today {
-            background: rgba(244, 63, 94, 0.15) !important;
-            color: #f43f5e !important;
-            border-color: rgba(244, 63, 94, 0.4) !important;
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #34d399 !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
         }
 
         .bday-banner-chip.today:hover {
-            background: #db2777 !important;
+            background: #10b981 !important;
             color: #fff !important;
-            border-color: #db2777 !important;
+            border-color: #10b981 !important;
         }
 
         #syncToTodayBtn {
@@ -9935,15 +9946,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         <!-- TOPBAR -->
         <header class="topbar">
-            <div class="topbar-brand" style="display: flex; align-items: center; gap: 8px; cursor: default; text-decoration: none;">
-                <!-- Back button when in class/combined view -->
-                <button id="globalBackBtn" onclick="showClassesView()" style="display: none; background: none; border: none; color: var(--text); cursor: pointer; font-size: 1.15rem; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 50%; outline: none;"
-                    onmouseover="this.style.background='var(--surface-3)'"
-                    onmouseout="this.style.background='transparent'">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
+            <div class="topbar-brand"
+                style="display: flex; align-items: center; gap: 8px; cursor: default; text-decoration: none;">
+                <!-- Back button instead of logo when in class/combined view -->
+                <div class="topbar-logo-back"
+                    style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; position: relative;">
+                    <button id="globalBackBtn" onclick="showClassesView()"
+                        style="display: none; background: none; border: none; color: var(--text); cursor: pointer; font-size: 1.15rem; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 50%; outline: none;"
+                        onmouseover="this.style.background='var(--surface-3)'"
+                        onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <div class="topbar-logo" id="globalLogo" style="display: block; width: 36px; height: 36px;">
+                        <img src="/logo.png" alt=""
+                            onerror="this.outerHTML='<i class=\'fas fa-cross\' style=\'font-size:1.6rem\'></i>'">
+                    </div>
+                </div>
                 <div>
                     <div class="topbar-title" id="topbarTitle"><?php echo htmlspecialchars($churchName); ?></div>
+                    <div class="topbar-subtitle">Sunday School</div>
                 </div>
             </div>
             <div class="topbar-search-wrap">
@@ -10037,18 +10058,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
-
+                <div class="section-head" style="margin-top:8px;">
+                    <span class="section-title">الفصول</span>
+                </div>
 
                 <!-- Birthdays Container -->
-                <div id="mainStatsRow" style="display:none; margin-bottom: 20px;">
-                    <div class="section-head" style="display:flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                        <button onclick="toggleBdayCollapse()"
-                            style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <i class="fas fa-birthday-cake" style="color: #db2777; font-size: 1.1rem;"></i>
-                            <span class="section-title" id="todayBirthdayTitle" style="margin-bottom: 0; font-weight: 800; color: var(--text);">أعياد الميلاد</span>
-                            <i class="fas fa-chevron-down" id="bdayCollapseIcon"
-                                style="color: var(--text-3); font-size: 0.85rem; transition: transform var(--t) var(--ease);"></i>
-                        </button>
+                <div id="mainStatsRow" style="display:none;">
+                    <div class="bday-banner-header"
+                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span id="todayBirthdayTitle">أعياد الميلاد</span>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
@@ -10080,19 +10099,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <!-- ═══ CLASS VIEW ═══ -->
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
-                <div class="class-topbar" style="display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 8px 16px;">
-                    <div class="class-topbar-left" style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
-                        <div class="class-title-and-sub" style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <div class="class-topbar"
+                    style="display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 8px 16px;">
+                    <div class="class-topbar-left"
+                        style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
+                        <div class="class-title-and-sub"
+                            style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
                             <div style="display: flex; align-items: center;">
-                                <h2 class="class-title-text" id="className" style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">الفصل</h2>
+                                <h2 class="class-title-text" id="className"
+                                    style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">
+                                    الفصل</h2>
                             </div>
                         </div>
                     </div>
 
-                    <div class="class-meta-sub" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px;">
+                    <div class="class-meta-sub"
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px;">
                         <!-- Date display stack (at the start) -->
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()" style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
+                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
+                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
                                 <i class="fas fa-calendar-alt" style="font-size: 0.85rem; color: var(--brand);"></i>
                                 <span id="currentDateText">جاري...</span>
                             </div>
@@ -10104,14 +10130,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </button>
                         </div>
                         <!-- Wrapper for kids count and uncles bar (at the left end) -->
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-inline-start: auto; flex: none;">
+                        <div
+                            style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-inline-start: auto; flex: none;">
                             <!-- Kids count (above) -->
-                            <div id="classViewCount" style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; margin-bottom: 2px;"></div>
-                            
+                            <div id="classViewCount"
+                                style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; margin-bottom: 2px;">
+                            </div>
+
                             <!-- Uncles list (below) -->
-                            <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important;">
-                                <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
-                                <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
+                            <div class="uncles-bar" id="unclesBar"
+                                style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important;">
+                                <span class="uncles-bar-label"
+                                    style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
+                                        class="fas fa-users"></i> الخدام:</span>
+                                <div class="uncles-list" id="unclesList"
+                                    style="padding-right: 4px; margin: 0 !important;"></div>
                             </div>
                         </div>
                     </div>
@@ -10149,25 +10182,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Sticky attendance toolbar -->
-                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; min-height: 54px; height: auto; display: flex; align-items: center; background: var(--bg);">
-                    <div class="toolbar-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 16px; width: 100%; direction: rtl !important;">
-                        <div class="toolbar-stats" style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
-                            <span class="toolbar-stat" style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                <div class="att-toolbar"
+                    style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; min-height: 54px; height: auto; display: flex; align-items: center; background: var(--bg);">
+                    <div class="toolbar-row"
+                        style="display: flex; align-items: center; justify-content: flex-start; gap: 16px; width: 100%; direction: rtl !important;">
+                        <div class="toolbar-stats"
+                            style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
+                            <span class="toolbar-stat"
+                                style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
                                 <i class="fas fa-users" style="font-size: 0.72rem; color: var(--text-3);"></i>
                                 <span style="font-weight: 700;" id="tbTotalVal">0</span>
                                 <span style="font-size: 0.65rem; color: var(--text-3);">طفل</span>
                             </span>
-                            <span class="toolbar-stat s" style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                            <span class="toolbar-stat s"
+                                style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
                                 <i class="fas fa-check" style="font-size: 0.72rem;"></i>
                                 <span style="font-weight: 700;" id="tbPresentVal">0</span>
                                 <span style="font-size: 0.65rem; color: var(--text-3);">حاضر</span>
                             </span>
-                            <span class="toolbar-stat a" style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                            <span class="toolbar-stat a"
+                                style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
                                 <i class="fas fa-times" style="font-size: 0.72rem;"></i>
                                 <span style="font-weight: 700;" id="tbAbsentVal">0</span>
                                 <span style="font-size: 0.65rem; color: var(--text-3);">غائب</span>
                             </span>
-                            <span class="toolbar-stat c" style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                            <span class="toolbar-stat c"
+                                style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
                                 <i class="fas fa-star" style="font-size: 0.72rem; color: var(--coupon);"></i>
                                 <span style="font-weight: 700;" id="tbCouponsVal">0</span>
                                 <span style="font-size: 0.65rem; color: var(--text-3);">متوسط</span>
@@ -10178,8 +10218,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onclick="showUnsavedModal()"
                                 style="min-width: 70px; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: none; border: none; background: var(--surface-3); color: var(--text-3); cursor: pointer;">
                                 <i class="fas fa-save" style="font-size: 0.9rem;"></i>
-                                <span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">
-                                    <span class="save-btn-label" style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
+                                <span class="save-btn-bottom"
+                                    style="display: flex; align-items: center; gap: 4px; line-height: 1;">
+                                    <span class="save-btn-label"
+                                        style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
                                 </span>
                             </button>
                         </div>
@@ -10188,27 +10230,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div class="class-inline-search-wrap"
                     style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 100%; margin-bottom: 12px;">
-                    
+
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
-                        <button class="home-tools-link" id="classToolsBtn" onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
+                        <button class="home-tools-link" id="classToolsBtn"
+                            onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
                             style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--search-bg); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; outline: none; flex: none;"
                             onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
                             onmouseout="this.style.color='var(--text)';this.style.background='var(--search-bg)'">
                             <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                         </button>
-                        <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
+                        <div class="dropdown-menu" id="classToolsDropdownMenu"
+                            style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام الفصل</button>
-                            <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
-                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
-                            <button class="dropdown-item success" onclick="showShareAttendanceModal();closeAllDropdowns()"><i class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
-                            
+                            <button class="dropdown-item"
+                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                    class="fas fa-tasks"></i> مهام الفصل</button>
+                            <button class="dropdown-item coupon"
+                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
+                                تصدير مخصص</button>
+                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
+                                    class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                            <button class="dropdown-item success"
+                                onclick="showShareAttendanceModal();closeAllDropdowns()"><i
+                                    class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
+
                             <div class="dropdown-divider"></div>
                             <div class="dropdown-group-label">خيارات إضافية</div>
-                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
-                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
-                            <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
+                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
+                                    class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
+                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
+                                    class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
+                                    class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
                         </div>
                     </div>
 
@@ -10227,7 +10281,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Combined Filter & Sort Rectangle -->
-                    <div class="filter-sort-combine-box" id="filterSortCombineBox" style="display: flex; align-items: center; background-color: var(--search-bg); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                    <div class="filter-sort-combine-box" id="filterSortCombineBox"
+                        style="display: flex; align-items: center; background-color: var(--search-bg); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -10241,34 +10296,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="attendance_desc">الأكثر حضوراً</option>
                                 <option value="top_desc">الأوائل</option>
                             </select>
-                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                                title="ترتيب"
+                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)" title="ترتيب"
                                 style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none;"
                                 onmouseover="this.style.color='var(--brand)'"
                                 onmouseout="this.style.color='var(--text)'">
                                 <i class="fas fa-sort-amount-down"></i>
                             </button>
-                            <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0; top: 44px;">
-                                <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                                <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                                <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
-                                <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
-                                <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                                <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
-                                <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
-                                <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                            <div class="custom-dropdown-menu" id="customSortDropdownMenu"
+                                style="right: auto; left: 0; top: 44px;">
+                                <div class="custom-dropdown-item active" data-value="name_az"
+                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                <div class="custom-dropdown-item" data-value="name_za"
+                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                <div class="custom-dropdown-item" data-value="age_asc"
+                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                                <div class="custom-dropdown-item" data-value="age_desc"
+                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                                <div class="custom-dropdown-item" data-value="class_az"
+                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                <div class="custom-dropdown-item" data-value="coupons_desc"
+                                    onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
+                                    كوبونات</div>
+                                <div class="custom-dropdown-item" data-value="attendance_desc"
+                                    onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر
+                                    حضوراً</div>
+                                <div class="custom-dropdown-item" data-value="top_desc"
+                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
                             </div>
                         </div>
-                        
+
                         <!-- Divider -->
-                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;"></div>
+                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
+                        </div>
 
                         <!-- Filter Button -->
                         <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
                             title="تصفية"
                             style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
-                            onmouseover="this.style.color='var(--brand)'"
-                            onmouseout="this.style.color='var(--text)'">
+                            onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text)'">
                             <i class="fas fa-filter"></i>
                             <span id="activeFiltersBadge"
                                 style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
@@ -10969,27 +11034,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button class="header-btn" id="copyShareAttendanceBtn" onclick="copyShareAttendance()" title="نسخ">
                         <i class="fas fa-copy" style="color:var(--success)"></i>
                     </button>
-                    <button class="header-btn" id="whatsappShareAttendanceBtn" onclick="whatsappShareAttendance()" title="واتساب">
+                    <button class="header-btn" id="whatsappShareAttendanceBtn" onclick="whatsappShareAttendance()"
+                        title="واتساب">
                         <i class="fab fa-whatsapp" style="color:#25d366"></i>
                     </button>
-                    <button class="header-btn" id="csvShareAttendanceBtn" onclick="exportShareAttendanceCsv()" title="تصدير CSV">
+                    <button class="header-btn" id="csvShareAttendanceBtn" onclick="exportShareAttendanceCsv()"
+                        title="تصدير CSV">
                         <i class="fas fa-file-csv" style="color:var(--info)"></i>
                     </button>
-                    <button class="close-btn" id="closeShareAttendanceModal" onclick="hideShareAttendanceModal()">&times;</button>
+                    <button class="close-btn" id="closeShareAttendanceModal"
+                        onclick="hideShareAttendanceModal()">&times;</button>
                 </div>
             </div>
-            
-            <div class="attendance-tabs" style="display:flex; border-bottom:1.5px solid var(--border-solid); margin-bottom:12px; gap:8px;">
-                <button class="tab-btn active" data-tab="present" onclick="switchShareTab('present')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid var(--brand); color:var(--brand); cursor:pointer; outline:none;">الحاضرين (<span id="shareAttendedCount">0</span>)</button>
-                <button class="tab-btn" data-tab="absent" onclick="switchShareTab('absent')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الغائبين (<span id="shareAbsentCount">0</span>)</button>
-                <button class="tab-btn" data-tab="both" onclick="switchShareTab('both')" style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الكل (<span id="shareBothCount">0</span>)</button>
+
+            <div class="attendance-tabs"
+                style="display:flex; border-bottom:1.5px solid var(--border-solid); margin-bottom:12px; gap:8px;">
+                <button class="tab-btn active" data-tab="present" onclick="switchShareTab('present')"
+                    style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid var(--brand); color:var(--brand); cursor:pointer; outline:none;">الحاضرين
+                    (<span id="shareAttendedCount">0</span>)</button>
+                <button class="tab-btn" data-tab="absent" onclick="switchShareTab('absent')"
+                    style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الغائبين
+                    (<span id="shareAbsentCount">0</span>)</button>
+                <button class="tab-btn" data-tab="both" onclick="switchShareTab('both')"
+                    style="padding:8px 16px; font-family:Cairo,sans-serif; font-weight:700; background:none; border:none; border-bottom:3px solid transparent; color:var(--text-3); cursor:pointer; outline:none;">الكل
+                    (<span id="shareBothCount">0</span>)</button>
             </div>
 
             <div class="search-wrap" style="margin-bottom:12px">
-                <input type="text" class="search-input" id="shareAttendanceSearchInput" placeholder="بحث بالاسم..." oninput="renderShareAttendanceTable()">
+                <input type="text" class="search-input" id="shareAttendanceSearchInput" placeholder="بحث بالاسم..."
+                    oninput="renderShareAttendanceTable()">
                 <button class="search-btn"><i class="fas fa-search"></i></button>
             </div>
-            
+
             <div class="table-container all-students-table-container">
                 <table class="data-table" id="shareAttendanceTable">
                     <thead>
@@ -11007,9 +11083,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <tbody id="shareAttendanceTableBody"></tbody>
                 </table>
             </div>
-            
+
             <div id="shareAbsentFooter" style="margin-top:12px; display:none;">
-                <button class="btn btn-danger btn-sm" id="clearAbsentDataBtn" style="width:100%" onclick="clearAbsentData()"><i class="fas fa-trash-alt"></i> مسح الكل</button>
+                <button class="btn btn-danger btn-sm" id="clearAbsentDataBtn" style="width:100%"
+                    onclick="clearAbsentData()"><i class="fas fa-trash-alt"></i> مسح الكل</button>
             </div>
         </div>
     </div>
@@ -11938,7 +12015,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setupLiveSearch();
             updateSaveBtns();
             loadClassUncles(className);
-            
+
             // Keep back button always visible next to the title at top left of screen
             updateTopbarForView('class', className);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -12542,23 +12619,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
         }
 
-        function toggleBdayCollapse() {
-            const container = document.getElementById('todayBirthdayList');
-            const icon = document.getElementById('bdayCollapseIcon');
-            if (!container) return;
-            const isHidden = container.style.display === 'none';
-            if (isHidden) {
-                container.style.display = 'grid';
-                if (icon) icon.style.transform = 'rotate(0deg)';
-                localStorage.setItem('bdayCollapsed', 'false');
-            } else {
-                container.style.display = 'none';
-                if (icon) icon.style.transform = 'rotate(-90deg)';
-                localStorage.setItem('bdayCollapsed', 'true');
-            }
-        }
         function toggleStats() {
-            toggleBdayCollapse();
+            const row = document.getElementById('mainStatsRow');
+            const btn = document.getElementById('toggleStatsBtn');
+            if (!row || !btn) return;
+            const isHidden = row.style.display === 'none';
+
+            const items = getWeekBirthdays();
+            const todayItems = items.filter(item => item.isToday);
+            const todayCount = todayItems.length;
+            const badgeHtml = todayCount > 0 ? `<span class="bday-badge-count"> (${todayCount})</span>` : '';
+
+            if (isHidden) {
+                row.style.display = 'block';
+                btn.innerHTML = `<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء أعياد الميلاد${badgeHtml}`;
+                localStorage.setItem('statsCollapsed', 'false');
+            } else {
+                row.style.display = 'none';
+                btn.innerHTML = `<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد${badgeHtml}`;
+                localStorage.setItem('statsCollapsed', 'true');
+            }
         }
 
         function getWeekBirthdays() {
@@ -12649,7 +12729,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const title = document.getElementById('todayBirthdayTitle');
             if (!banner || !list) return;
             const items = getWeekBirthdays();
-            
+
             const todayItems = items.filter(item => item.isToday);
             const todayCount = todayItems.length;
 
@@ -12661,20 +12741,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             if (todayCount > 0) {
-                title.textContent = `أعياد ميلاد اليوم (${todayCount})`;
+                title.textContent = `أعياد ميلاد اليوم`;
             } else {
                 title.textContent = `أعياد ميلاد هذا الأسبوع`;
-            }
-
-            // Restore collapse option from localStorage
-            const isCollapsed = localStorage.getItem('bdayCollapsed') === 'true';
-            const icon = document.getElementById('bdayCollapseIcon');
-            if (isCollapsed) {
-                list.style.display = 'none';
-                if (icon) icon.style.transform = 'rotate(-90deg)';
-            } else {
-                list.style.display = 'grid';
-                if (icon) icon.style.transform = 'rotate(0deg)';
             }
 
             list.innerHTML = items.map((item, index) => {
@@ -12684,19 +12753,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
                 const safe = name.replace(/'/g, "\\'");
                 const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
-                
-                const giftIcon = item.isToday ? `<i class="fas fa-gift fa-bounce" style="color:#db2777; font-size:1.05rem; margin:0 4px;"></i>` : '';
-                const todayStatus = item.isToday 
-                    ? `<span class="bday-chip-class" style="color:#db2777; font-weight:800; display:inline-flex; align-items:center; gap:2px;">اليوم! ${giftIcon}</span>` 
-                    : `<span class="bday-chip-class" style="color:var(--text-2); font-weight:600;">(يوم ${item.dayName})</span>`;
-
                 return `<div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${index}" onclick="showStudentDetails('${safe}')">
                     <img src="${avatar}" class="bday-chip-img">
-                    <span style="flex: 1;">${name}</span>
-                    ${todayStatus}
-                    ${cls ? `<span class="bday-chip-class" style="margin-right: 6px;">${cls}</span>` : ''}
+                    <span>${name}</span>
+                    ${item.isToday ? `<span class="bday-chip-class" style="color:#10b981; font-weight:800;">اليوم!</span>` : `<span class="bday-chip-class" style="color:var(--text-2); font-weight:600;">(يوم ${item.dayName})</span>`}
+                    ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
                 </div>`;
             }).join('');
+
+            // Scroll to target element (today's birthday, or last birthday of the week cycle)
+            let targetIndex = items.findIndex(item => item.isToday);
+            if (targetIndex === -1 && items.length > 0) {
+                targetIndex = items.length - 1;
+            }
+
+            if (targetIndex !== -1) {
+                setTimeout(() => {
+                    const targetEl = document.getElementById(`bday_chip_${targetIndex}`);
+                    const bdayList = document.getElementById('todayBirthdayList');
+                    // Only scroll if we are in horizontal scroll view (not grid-view)
+                    if (targetEl && bdayList && !bdayList.classList.contains('grid-view')) {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                }, 100);
+            }
         }
 
         function getUnsavedChangesCount(clsName, isCombined = false, grpClasses = []) {
@@ -12829,7 +12909,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
-        <span class="class-card-chip" style="background:${allColor}">الكل</span>
+        <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
         ${allUnsavedHtml}
     </div>` : '';
 
@@ -12850,7 +12930,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
-                <span class="class-card-chip" style="background:var(--brand)">مدمج</span>
+                <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
                 ${unsavedHtml}
             </div>`;
                 }).join('');
@@ -12870,8 +12950,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return `<div class="class-card" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
-            <div class="class-name">${name}</div>
-            <span class="class-card-chip" style="background:${color}">${count}</span>
+            <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
             ${unsavedHtml}
         </div>`;
             }).join('');
@@ -14944,7 +15023,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 const readerEl = document.getElementById('kidQrReader');
                 if (source === 'usb') {
-// Stop camera scanner if running
+                    // Stop camera scanner if running
                     if (kidQrScanner) {
                         const scanner = kidQrScanner;
                         kidQrScanner = null;
@@ -15073,7 +15152,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (totalChanges > 0) {
                 html += `<div style="display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; padding: 4px 0;">`;
-                
+
                 // Group Attendance entries by date
                 const changesByDate = {};
                 atDateEntries.forEach(e => {
@@ -15103,7 +15182,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
                             lbl = 'غائب';
                         }
-                        
+
                         const photo = e.student?.['صورة'];
                         const gender = getStudentGender(e.student);
                         const avatarHtml = photo
@@ -17555,7 +17634,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 renderAttendanceList(currentClass);
                 updateSaveBtns();
                 document.getElementById(rowId)?.remove();
-                
+
                 // Recalculate counts
                 const presentCount = getAttendanceStatusStudents('present').length;
                 const absentCount = getAttendanceStatusStudents('absent').length;
@@ -21012,7 +21091,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Global exposure
         Object.assign(window, {
             showClassView, showClassesView, showCombinedClassView, showAllTogetherView, markStudentAttendance, showStudentDetails,
-            showCustomExportModal, showAllKidsCustomExport, toggleStats, toggleBdayCollapse, toggleTripsCollapse, addCouponsToAll, resetCouponDataForClass, copyAttendedData, copyAbsentData,
+            showCustomExportModal, showAllKidsCustomExport, toggleStats, toggleTripsCollapse, addCouponsToAll, resetCouponDataForClass, copyAttendedData, copyAbsentData,
             showImageModal, hideImageModal, showAddPersonModal, showBirthdayModal, showBirthdaysByMonth,
             showPastFridaysModal, loadFridayAttendance, performSearch, clearSearch, showRegistrationDetails,
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
