@@ -2344,28 +2344,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: #ffffff !important;
         }
 
-        /* ── Mobile (<520px): two rows, stats centered ────────────── */
+        /* ── Mobile (<520px): keep horizontal layout ────────────── */
         @media (max-width:519px) {
             .toolbar-row {
-                flex-direction: column;
-                gap: 5px;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
             }
 
             .toolbar-stats {
-                width: 100%;
-                justify-content: center;
+                width: auto;
             }
 
             .save-row {
-                width: 100%;
-                justify-content: center;
-                gap: 5px;
+                width: auto;
             }
 
             .save-btn {
-                flex: 1;
-                max-width: 88px;
-                padding: 7px 5px;
+                min-width: 60px;
+                padding: 6px 10px;
             }
         }
 
@@ -10075,8 +10072,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <!-- ═══ CLASS VIEW ═══ -->
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
-                <div class="class-topbar" style="align-items: flex-start; gap: 12px; padding: 14px 16px 8px 16px;">
-                    <div class="class-topbar-left" style="display: flex; align-items: flex-start; gap: 10px; flex: 1;">
+                <div class="class-topbar" style="display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 8px 16px;">
+                    <div class="class-topbar-left" style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
                         <button class="btn btn-ghost btn-sm" id="backBtn"
                             style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;margin-top:2px;"><i
                                 class="fas fa-arrow-right"></i></button>
@@ -10085,26 +10082,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div style="display: flex; align-items: center;">
                                 <h2 class="class-title-text" id="className" style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">الفصل</h2>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="class-meta-sub" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px;">
+                        <!-- Date display stack (at the start) -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()" style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
+                                <i class="fas fa-calendar-alt" style="font-size: 0.85rem; color: var(--brand);"></i>
+                                <span id="currentDateText">جاري...</span>
+                            </div>
+                            <!-- Sync to today -->
+                            <button class="btn btn-ghost" id="syncToTodayBtn"
+                                style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
+                                onclick="resetToCurrentFriday()" title="العودة لليوم">
+                                <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
+                            </button>
+                        </div>
+                        <!-- Wrapper for kids count and uncles bar (at the left end) -->
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-inline-start: auto; flex: none;">
+                            <!-- Kids count (above) -->
+                            <div id="classViewCount" style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; margin-bottom: 2px;"></div>
                             
-                            <div class="class-meta-sub" style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 2px;">
-                                <!-- Date display stack (at the start) -->
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
-                                        <i class="fas fa-calendar-alt" style="font-size: 0.85rem;"></i>
-                                        <span id="currentDateText">جاري...</span>
-                                    </div>
-                                    <!-- Sync to today -->
-                                    <button class="btn btn-ghost" id="syncToTodayBtn"
-                                        style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
-                                        onclick="resetToCurrentFriday()" title="العودة لليوم">
-                                        <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
-                                    </button>
-                                </div>
-                                <!-- Uncles list inline next to date (at the left end) -->
-                                <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; margin-inline-start: auto !important; margin-inline-end: 0 !important; flex: none !important;">
-                                    <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
-                                    <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
-                                </div>
+                            <!-- Uncles list (below) -->
+                            <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important;">
+                                <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
+                                <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
                             </div>
                         </div>
                     </div>
@@ -10142,7 +10145,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Sticky attendance toolbar -->
-                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; height: 54px; display: flex; align-items: center; background: var(--bg);">
+                <div class="att-toolbar" style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; min-height: 54px; height: auto; display: flex; align-items: center; background: var(--bg);">
                     <div class="toolbar-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 16px; width: 100%; direction: rtl !important;">
                         <div class="toolbar-stats" style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
                             <span class="toolbar-stat" style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
@@ -12026,6 +12029,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (isBulkSelectMode) list.classList.add('bulk-active');
             else list.classList.remove('bulk-active');
             let cs = filterAndSortActiveStudents();
+            updateKidsCountDisplay(cs.length);
             if (!cs.length) {
                 list.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:var(--text-3)">لا يوجد أطفال</div>';
                 return;
@@ -13393,6 +13397,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (isBulkSelectMode) list.classList.add('bulk-active');
             else list.classList.remove('bulk-active');
             let cs = filterAndSortActiveStudents();
+            updateKidsCountDisplay(cs.length);
             if (searchQuery && !cs.length) {
                 list.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1"><i class="fas fa-search" style="font-size:2rem;color:var(--text-3);margin-bottom:1rem;display:block"></i><p style="color:var(--text-3)">لا نتائج لـ "${searchQuery}"</p><button class="btn btn-sm btn-ghost" onclick="clearSearch()" style="margin-top:10px"><i class="fas fa-times"></i> عرض الكل</button></div>`;
                 updateSearchResultsInfo(0); return;
@@ -17871,6 +17876,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function updateSearchResultsInfo(count) {
             return;
+        }
+        function updateKidsCountDisplay(visibleCount) {
+            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            const totalCount = list.length;
+            let countText = '';
+            if (visibleCount === totalCount) {
+                countText = `${totalCount} طفل`;
+            } else {
+                countText = `يظهر ${visibleCount} من ${totalCount} طفل`;
+            }
+            const el = document.getElementById('classViewCount');
+            if (el) el.innerText = countText;
         }
         function performSearch() { searchQuery = (document.getElementById('classSearchInput')?.value || '').trim(); executeSearch(); }
         function setupAllStudentsSearch() {
