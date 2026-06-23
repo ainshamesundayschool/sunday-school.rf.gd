@@ -9516,7 +9516,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3><i class="fas fa-grip-horizontal"></i> كل الأدوات</h3>
                 <button class="close-btn" onclick="hideAllToolsModal()">&times;</button>
             </div>
-            <div class="tools-grid">
+            <div class="tools-list">
                 <button class="tool-card"
                     onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/withdraw/'">
                     <span class="tool-card-icon"><i class="fas fa-star"></i></span>
