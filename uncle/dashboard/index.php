@@ -18919,11 +18919,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('cancelEditBtn', 'click', hideEditForm);
             on('closeAddPersonModal', 'click', hideAddPersonModal);
             on('cancelAddPersonModal', 'click', hideAddPersonModal);
-            on('closeSheetModal', 'click', hideSheetModal);
             on('closeCustomExportModal', 'click', hideCustomExportModal);
             on('closePastFridaysModal', 'click', hidePastFridaysModal);
-            on('closeAttendedModal', 'click', hideAttendedModal);
-            on('closeAbsentModal', 'click', hideAbsentModal);
             on('closeDeleteStudentModal', 'click', hideDeleteStudentModal);
             on('cancelDeleteStudentBtn', 'click', hideDeleteStudentModal);
             on('closeSiblingLinkModal', 'click', closeSiblingLinkModal);
@@ -18945,8 +18942,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             on('cropClose', 'click', closeCropModal);
             on('cropCancel', 'click', closeCropModal);
             on('cropConfirm', 'click', confirmCrop);
-            on('closeResetModal', 'click', hideResetModal);
-            on('cancelResetBtn', 'click', hideResetModal);
             on('closeRegistrationDetailsModal', 'click', hideRegistrationDetails);
             on('closeAnnouncementsModal', 'click', hideAnnouncementsModal);
             on('editStudentBtn', 'click', showEditForm);
@@ -19033,21 +19028,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
                     hideAccountEditForm();
                 }, e => showToast('فشل: ' + e, 'error'));
-            });
-            on('resetAttendanceBtn', 'click', () => {
-                if (confirm('إعادة تعيين الحضور المحلي؟')) {
-                    attendanceData = {}; changedStudents.clear(); savedStudents.clear();
-                    if (currentClass) { const dk = currentFriday; localStorage.removeItem(`attendanceData_${currentClass}_${dk}`); localStorage.removeItem(`savedStudents_${currentClass}_${dk}`); localStorage.removeItem(`changedStudents_${currentClass}_${dk}`); loadAttendanceDataForClass(currentClass, dk); renderAttendanceList(currentClass); }
-                    hideResetModal(); showToast('تم إعادة التعيين', 'success');
-                }
-            });
-            on('resetCouponsBtn', 'click', () => { if (confirm('إعادة تعيين الكوبونات؟')) { resetCouponDataForClass(currentClass); hideResetModal(); } });
-            on('resetAllBtn', 'click', () => {
-                if (confirm('إعادة تعيين الكل؟')) {
-                    attendanceData = {}; changedStudents.clear(); savedStudents.clear();
-                    if (currentClass) { localStorage.removeItem(`attendanceData_${currentClass}_${currentFriday}`); localStorage.removeItem(`changedStudents_${currentClass}_${currentFriday}`); loadAttendanceDataForClass(currentClass); }
-                    resetCouponDataForClass(currentClass); hideResetModal();
-                }
             });
             on('resetToTodayBtn', 'click', resetToCurrentFriday);
             on('pendingSearchBtn', 'click', searchPendingRegistrations);
@@ -20915,13 +20895,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Global exposure
         Object.assign(window, {
             showClassView, showClassesView, showCombinedClassView, showAllTogetherView, markStudentAttendance, showStudentDetails,
-            showSheetModal, showCustomExportModal, showAllKidsCustomExport, toggleStats, toggleTripsCollapse, addCouponsToAll, resetCouponDataForClass, showAttendedModal, showAbsentModal, copyAttendedData, copyAbsentData,
+            showCustomExportModal, showAllKidsCustomExport, toggleStats, toggleTripsCollapse, addCouponsToAll, resetCouponDataForClass, copyAttendedData, copyAbsentData,
             showImageModal, hideImageModal, showAddPersonModal, showBirthdayModal, showBirthdaysByMonth,
             showPastFridaysModal, loadFridayAttendance, performSearch, clearSearch, showRegistrationDetails,
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
             clearAllStudentsSearch, performAllStudentsSearch, showAnnouncementsModal, toggleAnnouncementStatus,
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
-            showAccountModal, hideAccountModal, showUncleHistory, showResetModal, retryConnection: () => { },
+            showAccountModal, hideAccountModal, showUncleHistory, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             // New
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV, triggerPwaInstall, doPwaInstall, closePwaModal, handleTopbarDownloadClick,
