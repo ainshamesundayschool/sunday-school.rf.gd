@@ -411,7 +411,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --surface: #ffffff;
             --surface-2: #f7f8fc;
             --surface-3: #eef0f8;
-            --search-bg: #e5e7f2;
             --border: rgba(91, 108, 245, .12);
             --border-solid: #e4e6f0;
             --text: #1a1d2e;
@@ -442,7 +441,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --surface: #181b26;
             --surface-2: #1e2132;
             --surface-3: #252840;
-            --search-bg: #1c1e30;
             --border: rgba(91, 108, 245, .18);
             --border-solid: #2a2d42;
             --text: #e8eaf6;
@@ -1168,18 +1166,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: none !important;
             box-shadow: none !important;
             transform: none !important;
-            background-color: var(--search-bg) !important;
         }
 
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
             border-radius: 18px;
             box-shadow: none;
-            background-color: var(--search-bg) !important;
-        }
-
-        .class-inline-search-wrap .inline-search-box:focus-within {
-            background-color: var(--search-bg) !important;
         }
 
         .class-inline-search-wrap .inline-search-box input {
@@ -2570,7 +2562,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             flex: 1;
             padding: 10px;
-            background: rgb(91 108 245 / 6%) !important;
+            background: rgba(91, 108, 245, .04);
             cursor: pointer;
             transition: background var(--t) var(--ease);
             min-width: 100px;
@@ -2578,7 +2570,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="dark"] .student-info {
-            background: rgb(91 108 245 / 6%) !important;
+            background: rgba(91, 108, 245, .07)
         }
 
         .student-info:hover {
@@ -9946,27 +9938,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         <!-- TOPBAR -->
         <header class="topbar">
-            <div class="topbar-brand"
-                style="display: flex; align-items: center; gap: 8px; cursor: default; text-decoration: none;">
-                <!-- Back button instead of logo when in class/combined view -->
-                <div class="topbar-logo-back"
-                    style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; position: relative;">
-                    <button id="globalBackBtn" onclick="showClassesView()"
-                        style="display: none; background: none; border: none; color: var(--text); cursor: pointer; font-size: 1.15rem; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 50%; outline: none;"
-                        onmouseover="this.style.background='var(--surface-3)'"
-                        onmouseout="this.style.background='transparent'">
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <div class="topbar-logo" id="globalLogo" style="display: block; width: 36px; height: 36px;">
-                        <img src="/logo.png" alt=""
-                            onerror="this.outerHTML='<i class=\'fas fa-cross\' style=\'font-size:1.6rem\'></i>'">
-                    </div>
+            <a class="topbar-brand" href="#">
+                <div class="topbar-logo">
+                    <img src="/logo.png" alt="" onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'">
                 </div>
                 <div>
-                    <div class="topbar-title" id="topbarTitle"><?php echo htmlspecialchars($churchName); ?></div>
+                    <div class="topbar-title"><?php echo htmlspecialchars($churchName); ?></div>
                     <div class="topbar-subtitle">Sunday School</div>
                 </div>
-            </div>
+            </a>
             <div class="topbar-search-wrap">
                 <div class="inline-search-box">
                     <i class="fas fa-search search-icon"></i>
@@ -10103,6 +10083,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 8px 16px;">
                     <div class="class-topbar-left"
                         style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
+                        <button class="btn btn-ghost btn-sm" id="backBtn"
+                            style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;margin-top:2px;"><i
+                                class="fas fa-arrow-right"></i></button>
+
                         <div class="class-title-and-sub"
                             style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
                             <div style="display: flex; align-items: center;">
@@ -10235,9 +10219,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
                         <button class="home-tools-link" id="classToolsBtn"
                             onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--search-bg); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; outline: none; flex: none;"
+                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface-3); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; outline: none; flex: none;"
                             onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
-                            onmouseout="this.style.color='var(--text)';this.style.background='var(--search-bg)'">
+                            onmouseout="this.style.color='var(--text)';this.style.background='var(--surface-3)'">
                             <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                         </button>
                         <div class="dropdown-menu" id="classToolsDropdownMenu"
@@ -10269,7 +10253,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Search Input (Taking the rest of the space) -->
                     <div class="inline-search-box" style="flex: 1;">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="classSearchInput" placeholder="بحث..."
+                        <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off">
                         <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
                             title="مسح QR الطفل"
@@ -10282,7 +10266,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Combined Filter & Sort Rectangle -->
                     <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--search-bg); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -11388,7 +11372,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
         const APP_VERSION = '1.0.1';
         const couponPresetValues = [10, 30, 50, 100];
-        window.churchName = <?php echo json_encode($churchName); ?>;
 
         // ── THEME ─────────────────────────────────────────────────────
         function applyTheme(theme) {
@@ -11954,21 +11937,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         });
 
-        function updateTopbarForView(viewMode, titleText) {
-            const globalBackBtn = document.getElementById('globalBackBtn');
-            const globalLogo = document.getElementById('globalLogo');
-            const topbarTitle = document.getElementById('topbarTitle');
-            if (viewMode === 'class' || viewMode === 'combined') {
-                if (globalBackBtn) globalBackBtn.style.display = 'inline-flex';
-                if (globalLogo) globalLogo.style.display = 'none';
-                if (topbarTitle && titleText) topbarTitle.textContent = titleText;
-            } else {
-                if (globalBackBtn) globalBackBtn.style.display = 'none';
-                if (globalLogo) globalLogo.style.display = 'block';
-                if (topbarTitle) topbarTitle.textContent = window.churchName || 'Sunday School';
-            }
-        }
-
         function showClassesView() { showClassesViewInternal(); updateHash('home'); }
         function showClassView(className) {
             // Check class navigation permission
@@ -12015,9 +11983,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setupLiveSearch();
             updateSaveBtns();
             loadClassUncles(className);
-
-            // Keep back button always visible next to the title at top left of screen
-            updateTopbarForView('class', className);
+            // Keep back button always visible so uncles can navigate back to their classes list
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -12065,7 +12033,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('classView').classList.add('active');
             clearSearch();
 
-            updateTopbarForView('combined', groupLabel);
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'inline-flex';
 
             // Set date
             updateCurrentDateDisplay();
@@ -12225,7 +12194,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             location.hash = ''; // Clear hash so next open goes to classes grid
             updateSaveBtns();
             displayClasses();
-            updateTopbarForView('home');
         }
 
         function showAccountModal() {
@@ -12980,7 +12948,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Restore last selected date if any
             updateCurrentDateDisplay();
 
-            updateTopbarForView('combined', label);
+            // Show back button
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'inline-flex';
 
             updateHash('all');
 
