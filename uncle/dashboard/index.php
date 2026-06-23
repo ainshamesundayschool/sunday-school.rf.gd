@@ -4941,7 +4941,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            box-shadow: var(--shadow-sm);
             text-decoration: none;
             letter-spacing: normal;
         }
@@ -9976,10 +9975,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-wrap">
                     <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات"
                         style="flex-shrink: 0;">
-                        <i class="fas fa-grip-horizontal" style="font-size: 1.05rem; display: block;"></i>
-                        <span
-                            style="font-size: 0.52rem; font-weight: 700; color: inherit; display: block; line-height: 1;">عرض
-                            الكل</span>
+                        <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem; display: block;"></i>
+
                     </button>
 
                     <div class="inline-search-box">
