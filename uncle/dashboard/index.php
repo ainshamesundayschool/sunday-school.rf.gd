@@ -931,7 +931,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .class-card {
             background: var(--surface);
             border-radius: 12px;
-            padding: 10px 8px;
+            padding: 16px 8px;
             text-align: center;
             cursor: pointer;
             border: 1.5px solid var(--border);
@@ -939,6 +939,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--spring);
             position: relative;
             overflow: hidden;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
 
         .class-card::before {
@@ -1003,45 +1009,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        .class-icon {
-            width: 100%;
-            height: 42px;
-            border-radius: 10px;
-            background: var(--brand-bg);
-            color: var(--brand);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.92rem;
-            margin-bottom: 6px;
+        .class-name {
+            font-size: 1.25rem;
             font-weight: 800;
-            padding: 4px;
+            color: var(--text);
+            margin: 0;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-            transition: all var(--t) var(--spring);
-        }
-
-        .class-card:hover .class-icon {
-            background: var(--brand);
-            color: #fff;
-            transform: scale(1.03)
-        }
-
-        .class-name {
-            display: none !important;
+            width: 100%;
         }
 
         .class-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: var(--brand-bg);
+            background: transparent !important;
             color: var(--brand);
-            padding: 3px 10px;
-            border-radius: var(--r-full);
-            font-size: .72rem;
+            padding: 0;
+            font-size: .88rem;
             font-weight: 700;
+            box-shadow: none !important;
         }
 
         /* Footer */
@@ -10029,21 +10017,58 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer"></div>
 
-                <!-- Birthdays of the Week (styled as stats design) -->
+                <!-- Birthdays of the Week -->
                 <div class="section-head" style="margin-top:8px; display:none;">
                     <span class="section-title" style="display:flex; align-items:center; gap:8px;">
                         <i class="fas fa-birthday-cake" id="bdayHeaderIcon" style="color:#db2777;"></i>
                         <span id="bdaySectionTitleText">أعياد ميلاد الأسبوع</span>
                         <span id="todayBdayCountBadge" style="display:none; background:#ef4444; color:white; border-radius:50%; font-size:0.7rem; font-weight:800; min-width:18px; height:18px; padding:0 4px; align-items:center; justify-content:center; margin-right:4px;">0</span>
                     </span>
-                    <button id="toggleBdaySectionBtn" onclick="toggleBdaySection()" style="margin-right: auto; background: none; border: none; color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; outline: none;">
-                        <i class="fas fa-chevron-down" id="bdaySectionCollapseIcon" style="transition: transform var(--t) var(--ease); font-size: 0.9rem;"></i>
+                    <button id="toggleBdaySectionBtn" onclick="toggleBdaySection()" style="margin-right: auto; background: none; border: none; color: var(--text-2); font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-chevron-down" id="bdaySectionCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد
                     </button>
                 </div>
-                <div class="stats-row" id="birthdayStatsRow" style="display:none; margin-bottom: 12px;"></div>
+                <div class="bday-banner-list" id="birthdayStatsRow" style="display:none; margin-bottom: 12px; padding: 4px 0;"></div>
 
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
+                    <button id="toggleStatsBtn" onclick="toggleStats()" style="margin-right: auto; background: none; border: none; color: var(--text-2); font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-row" id="mainStatsRow" style="display:none">
+                    <div class="stat-tile" onclick="showAllStudentsModal()" style="cursor:pointer"
+                        title="عرض جميع الأطفال">
+                        <div class="stat-tile-icon blue"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="stat-tile-val" id="totalStudents">0</div>
+                            <div class="stat-tile-lbl">إجمالي الأطفال</div>
+                        </div>
+                    </div>
+                    <div class="stat-tile" style="cursor:default">
+                        <div class="stat-tile-icon green"><i class="fas fa-door-open"></i></div>
+                        <div>
+                            <div class="stat-tile-val" id="totalClasses">0</div>
+                            <div class="stat-tile-lbl">الفصول</div>
+                        </div>
+                    </div>
+                    <div class="stat-tile" onclick="showBirthdayModal()" style="cursor:pointer"
+                        title="عرض أعياد الميلاد">
+                        <div class="stat-tile-icon pink"><i class="fas fa-birthday-cake"></i></div>
+                        <div>
+                            <div class="stat-tile-val" id="birthdaysThisMonth">0</div>
+                            <div class="stat-tile-lbl">أعياد هذا الشهر</div>
+                        </div>
+                    </div>
+                    <div class="stat-tile" style="cursor:default">
+                        <div class="stat-tile-icon purple"><i class="fas fa-star"></i></div>
+                        <div>
+                            <div class="stat-tile-val" id="averageCoupons">0</div>
+                            <div class="stat-tile-lbl">متوسط الكوبونات</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
 
@@ -12832,39 +12857,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const safe = name.replace(/'/g, "\\'");
                 const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
                 
-                const dayLabel = item.isToday 
-                    ? `<span style="color:#10b981; font-weight:800;">اليوم! 🎉</span>`
-                    : `<span style="color:var(--text-3); font-weight:600;">يوم ${item.dayName}</span>`;
-
-                return `
-                    <div class="stat-tile bday-stat-tile" onclick="showStudentDetails('${safe}')" style="cursor:pointer" title="عرض التفاصيل">
-                        <img src="${avatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid var(--border-solid); flex-shrink:0;">
-                        <div>
-                            <div class="stat-tile-val" style="font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;">${name}</div>
-                            <div class="stat-tile-lbl" style="font-size:0.75rem; margin-top:2px;">
-                                ${dayLabel} ${cls ? `<span style="color:var(--text-2)">• ${cls}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                return `<div class="bday-banner-chip${item.isToday ? ' today' : ''}" onclick="showStudentDetails('${safe}')">
+                    <img src="${avatar}" class="bday-chip-img">
+                    <span>${name}</span>
+                    ${item.isToday ? `<span class="bday-chip-class" style="color:#10b981; font-weight:800;">اليوم! 🎉</span>` : `<span class="bday-chip-class" style="color:var(--text-3); font-weight:600;">(يوم ${item.dayName})</span>`}
+                    ${cls ? `<span class="bday-chip-class" style="color:var(--brand); opacity:0.8;">• ${cls}</span>` : ''}
+                </div>`;
             }).join('');
         }
 
         function toggleBdaySection() {
             const list = document.getElementById('birthdayStatsRow');
-            const icon = document.getElementById('bdaySectionCollapseIcon');
             const btn = document.getElementById('toggleBdaySectionBtn');
             if (!list) return;
 
             const isCollapsed = list.style.display === 'none';
             if (isCollapsed) {
-                list.style.display = 'grid';
-                if (icon) icon.style.transform = 'rotate(180deg)';
-                if (btn) btn.classList.remove('bday-pulse-active');
+                list.style.display = 'flex';
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-chevron-up" id="bdaySectionCollapseIcon" style="margin-left: 5px;"></i> إخفاء أعياد الميلاد';
+                    btn.classList.remove('bday-pulse-active');
+                }
                 localStorage.setItem('bdayOpenedToday', 'true');
             } else {
                 list.style.display = 'none';
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-chevron-down" id="bdaySectionCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد';
+                }
             }
         }
 
@@ -12995,9 +13014,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ` : '';
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px dashed ${allColor};position:relative;">
-        <div class="class-icon" style="background:${allBg};color:white">${allLabel}</div>
-        <div class="class-badge" style="background:color-mix(in srgb,${allColor} 12%,white);color:${allColor}">
-            <i class="fas fa-user" style="font-size:.6rem"></i> ${allCount}
+        <div class="class-name" style="color:${allColor};">${allLabel}</div>
+        <div class="class-badge" style="color:${allColor};">
+            <i class="fas fa-user" style="font-size:.65rem"></i> ${allCount}
         </div>
         ${allUnsavedHtml}
     </div>` : '';
@@ -13016,9 +13035,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     ` : '';
                     return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
-                <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:white">${label}</div>
-                <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count}</div>
-                <div style="font-size:.62rem;color:var(--text-3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
+                <div class="class-name" style="color:var(--brand);">${label}</div>
+                <div class="class-badge" style="color:var(--brand);"><i class="fas fa-users" style="font-size:.65rem"></i> ${count}</div>
+                <div style="font-size:.62rem;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;width:100%;">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
                 ${unsavedHtml}
             </div>`;
                 }).join('');
@@ -13036,8 +13055,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 return `<div class="class-card" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
-            <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${name}</div>
-            <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count}</div>
+            <div class="class-name" style="color:${color};">${name}</div>
+            <div class="class-badge" style="color:${color};"><i class="fas fa-user" style="font-size:.65rem"></i> ${count}</div>
             ${unsavedHtml}
         </div>`;
             }).join('');

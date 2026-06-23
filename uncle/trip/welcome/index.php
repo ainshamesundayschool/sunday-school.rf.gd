@@ -444,7 +444,7 @@ $tripTitle = $trip['title'];
     <!-- Start Overlay (User interaction to enable audio/fullscreen) -->
     <div class="overlay" id="startOverlay">
         <div class="overlay-card">
-            <h2 class="overlay-title" style="margin-top:0;">شاشة عرض الترحيب 🎈</h2>
+            <h2 class="overlay-title" style="margin-top:0;">شاشة عرض الترحيب</h2>
             <p class="overlay-desc">اضغط على الزر أدناه لتفعيل المؤثرات الصوتية والعرض التلقائي بملء الشاشة عند مسح النقاط.</p>
             <button type="button" class="start-btn" onclick="startWelcomeScreen()">
                 <i class="fas fa-play"></i> بدء الشاشة
@@ -463,8 +463,6 @@ $tripTitle = $trip['title'];
 
         <!-- Idle Panel -->
         <div class="idle-panel" id="idlePanel">
-            <i class="fas fa-id-card idle-icon"></i>
-            <div class="idle-text">في انتظار مسح الكروت...</div>
         </div>
 
         <!-- Welcome Greeting Card -->
