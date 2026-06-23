@@ -12387,9 +12387,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     const vp = window.innerHeight;
-                    let visibleDe        function toggleStats() {
-            // Deprecated: mainStatsRow is now always expanded
-        }──────────
+                    let visibleDelay = 0;
+                    items.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        const inView = rect.top < vp + 40; // a tiny buffer for partial visibility
+                        el.style.transition = 'opacity .22s ease, transform .22s ease';
+                        if (inView) {
+                            // Stagger only visible items — max ~5 items staggered, rest instant
+                            const delay = Math.min(visibleDelay, 5) * 28;
+                            setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, delay);
+                            visibleDelay++;
+                        } else {
+                            // Off-screen: no delay, appear instantly when scrolled to
+                            el.style.opacity = '1';
+                            el.style.transform = 'translateY(0)';
+                        }
+                    });
+                });
+            });
+        }
         function initApp() {
             const ul = localStorage.getItem('uncleLoggedIn') === 'true';
             const cl = localStorage.getItem('loggedIn') === 'true';
