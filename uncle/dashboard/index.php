@@ -976,18 +976,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-unsaved-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 4px;
-            margin-top: 6px;
             background: var(--danger-bg);
             color: var(--danger);
             border: 1.5px solid rgba(239, 68, 68, 0.18);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: var(--r-xs);
+            padding: 1px 5px;
+            border-radius: 4px;
             z-index: 2;
         }
 
@@ -10043,76 +10045,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <!-- ═══ CLASS VIEW ═══ -->
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
-                <div class="class-topbar">
-                    <div class="class-topbar-left">
+                <div class="class-topbar" style="align-items: flex-start; gap: 12px; padding: 14px 16px 8px 16px;">
+                    <div class="class-topbar-left" style="display: flex; align-items: flex-start; gap: 10px; flex: 1;">
                         <button class="btn btn-ghost btn-sm" id="backBtn"
-                            style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;"><i
+                            style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;margin-top:2px;"><i
                                 class="fas fa-arrow-right"></i></button>
-                        <h2 class="class-title-text" id="className">الفصل</h2>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <button class="btn btn-ghost" id="syncToTodayBtn"
-                            style="display:none; color:var(--success); padding:0 12px; min-width:unset; height:36px; font-size:0.82rem; font-weight:700; align-items:center; gap:6px; border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-md); background:var(--surface-3); font-family:Cairo,sans-serif;"
-                            onclick="resetToCurrentFriday()" title="العودة لليوم">
-                            <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
-                        </button>
-                        <div class="date-chip" id="dateChip" onclick="showPastFridaysModal()">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span id="currentDateText">جاري...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Uncles & Sort Bar -->
-                <div
-                    style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
-                    <!-- Uncles bar -->
-                    <div class="uncles-bar" id="unclesBar" style="display:none">
-                        <span class="uncles-bar-label"><i class="fas fa-users"></i> الخدام:</span>
-                        <div class="uncles-list" id="unclesList"></div>
-                    </div>
-
-                    <!-- Sort -->
-                    <div style="flex-shrink: 0; margin-right: auto; position: relative;">
-                        <!-- Hidden select to preserve event listeners and system integrations -->
-                        <select id="classSortSelect" style="display: none;">
-                            <option value="name_az">الاسم أ-ي</option>
-                            <option value="name_za">الاسم ي-أ</option>
-                            <option value="age_asc">الأصغر سناً</option>
-                            <option value="age_desc">الأكبر سناً</option>
-                            <option value="class_az">الفصل</option>
-                            <option value="coupons_desc">الأكثر كوبونات</option>
-                            <option value="attendance_desc">الأكثر حضوراً</option>
-                            <option value="top_desc">الأوائل</option>
-                        </select>
-
-                        <!-- Custom styled dropdown trigger -->
-                        <div class="custom-dropdown" style="position: relative; display: inline-block;">
-                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                                style="padding: 4px 10px; border-radius: var(--r-full); font-size: 0.69rem; height: auto; min-width: 108px; margin: 0; background-color: var(--surface-2); border: 1px solid var(--border-solid); color: var(--text-2); font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; transition: all var(--t) var(--ease); box-shadow: none;">
-                                <span id="customSortDropdownLabel">الاسم أ-ي</span>
-                                <i class="fas fa-chevron-down"
-                                    style="font-size: 0.58rem; color: var(--text-3); transition: transform var(--t) var(--ease);"></i>
-                            </button>
-                            <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
-                                <div class="custom-dropdown-item active" data-value="name_az"
-                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                                <div class="custom-dropdown-item" data-value="name_za"
-                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                                <div class="custom-dropdown-item" data-value="age_asc"
-                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
-                                <div class="custom-dropdown-item" data-value="age_desc"
-                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
-                                <div class="custom-dropdown-item" data-value="class_az"
-                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                                <div class="custom-dropdown-item" data-value="coupons_desc"
-                                    onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
-                                    كوبونات</div>
-                                <div class="custom-dropdown-item" data-value="attendance_desc"
-                                    onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر
-                                    حضوراً</div>
-                                <div class="custom-dropdown-item" data-value="top_desc"
-                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                        
+                        <div class="class-title-and-sub" style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2 class="class-title-text" id="className" style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">الفصل</h2>
+                                <!-- Plus icon circle to add person in header -->
+                                <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--brand-bg); color: var(--brand); border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;"
+                                    onmouseover="this.style.background='var(--brand)';this.style.color='white'"
+                                    onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)'">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="class-meta-sub" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 2px;">
+                                <!-- Date display -->
+                                <div class="class-date-sub" id="dateChip" style="display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-size: 0.8rem; font-weight: 700; background: none; border: none; padding: 0; box-shadow: none;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 0.85rem;"></i>
+                                    <span id="currentDateText">جاري...</span>
+                                </div>
+                                <!-- Sync to today -->
+                                <button class="btn btn-ghost" id="syncToTodayBtn"
+                                    style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
+                                    onclick="resetToCurrentFriday()" title="العودة لليوم">
+                                    <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
+                                </button>
+                                <!-- Uncles list inline next to date -->
+                                <div class="uncles-bar" id="unclesBar" style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important;">
+                                    <span class="uncles-bar-label" style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i class="fas fa-users"></i> الخدام:</span>
+                                    <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -10149,88 +10116,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <!-- Action strip -->
-                <div class="action-strip">
-                    <div class="action-dropdown">
-                        <button class="action-strip-btn" id="actionsStripBtn">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span class="strip-label">الفصل</span>
-                            <i class="fas fa-chevron-down chevron"></i>
-                        </button>
-                        <div class="dropdown-menu" id="actionsDropdownMenu">
-                            <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i
-                                    class="fas fa-table"></i> جداول أطفال الفصل</button>
-                            <button class="dropdown-item"
-                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
-                                    class="fas fa-tasks"></i> مهام الفصل <span class="tasks-notif-dot"
-                                    id="tasksSubmissionDot"
-                                    style="display:none; position:static; margin-right:auto;"></span></button>
-                            <button class="dropdown-item coupon"
-                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
-                                تصدير مخصص</button>
-                            <button class="dropdown-item" id="pastAttendanceDaysBtn"
-                                onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i>
-                                سجل أيام الحضور السابقة</button>
-                            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i
-                                    class="fas fa-user-check"></i> عرض الحاضرين</button>
-                            <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i
-                                    class="fas fa-user-times"></i> عرض الغائبين</button>
-                        </div>
-                    </div>
-                    <div class="action-dropdown">
-                        <button class="action-strip-btn" id="couponsStripBtn">
-                            <i class="fas fa-layer-group"></i>
-                            <span class="strip-label">الجميع</span>
-                            <i class="fas fa-chevron-down chevron"></i>
-                        </button>
-                        <div class="dropdown-menu" id="couponsDropdownMenu">
-                            <div class="dropdown-group-label">الحضور الجماعي</div>
-                            <button class="dropdown-item success" onclick="markAllPresent();closeAllDropdowns()"><i
-                                    class="fas fa-check-circle"></i> حضور للجميع</button>
-                            <button class="dropdown-item danger" onclick="markAllAbsent();closeAllDropdowns()"><i
-                                    class="fas fa-times-circle"></i> غياب للجميع</button>
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-group-label">الكوبونات الجماعية</div>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(10);closeAllDropdowns()"><i
-                                    class="fas fa-star"></i> +10 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(30);closeAllDropdowns()"><i
-                                    class="fas fa-star"></i> +30 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(50);closeAllDropdowns()"><i
-                                    class="fas fa-star"></i> +50 كوبونات للجميع</button>
-                            <button class="dropdown-item coupon" onclick="addCouponsToAll(100);closeAllDropdowns()"><i
-                                    class="fas fa-star"></i> +100 كوبونات للجميع</button>
-                            <div class="dropdown-divider"></div>
-                            <button class="dropdown-item danger"
-                                onclick="resetCouponDataForClass(currentClass);closeAllDropdowns()"><i
-                                    class="fas fa-undo"></i> إعادة تعيين الكوبونات</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-strip-row-2">
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-swipe"
-                        onclick="startSwipeMode()" title="وضع السحب السريع">
-                        <i class="fas fa-hand-pointer swipe-hand-icon"></i>
-                        <span class="strip-btn-label">سحب</span>
-                    </button>
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-merge"
-                        onclick="startMergeChooseMode()" title="دمج الحسابات المكررة" id="stripMergeBtn">
-                        <i class="fas fa-code-merge"></i>
-                        <span class="strip-btn-label">دمج</span>
-                    </button>
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-neutral"
-                        onclick="showResetModal()" title="إعادة التعيين">
-                        <i class="fas fa-rotate-left"></i>
-                        <span class="strip-btn-label">تراجع</span>
-                    </button>
-                    <button class="action-strip-btn action-strip-standalone swipe-like action-strip-add"
-                        onclick="showAddPersonModal()" title="إضافة طفل جديد">
-                        <i class="fas fa-user-plus"></i>
-                        <span class="strip-btn-label">إضافة</span>
-                    </button>
-                </div>
-
                 <!-- Sticky attendance toolbar -->
                 <div class="att-toolbar">
                     <div class="toolbar-row">
@@ -10250,24 +10135,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-check-circle"></i>
                                 <span class="save-btn-bottom"><span class="save-btn-label">تحديد</span></span>
                             </button>
-                            <div class="action-dropdown" style="flex:none;min-width:0;">
-                                <button class="save-btn" id="kidQrScanBtn" title="مسح QR"
-                                    onclick="toggleDropdown('kidQrScanMenu', 'kidQrScanBtn');">
-                                    <i class="fas fa-qrcode"></i>
-                                    <span class="save-btn-bottom"><span class="save-btn-label">QR</span></span>
-                                </button>
-                                <div class="dropdown-menu" id="kidQrScanMenu"
-                                    style="left:auto;right:0;min-width:220px;">
-                                    <button class="dropdown-item success"
-                                        onclick="startKidQrScan('attendance');closeAllDropdowns();">
-                                        <i class="fas fa-user-check"></i> مسح الحضور
-                                    </button>
-                                    <button class="dropdown-item coupon"
-                                        onclick="startKidQrScan('coupons');closeAllDropdowns();">
-                                        <i class="fas fa-star"></i> مسح الكوبونات
-                                    </button>
-                                </div>
-                            </div>
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()">
                                 <i class="fas fa-check-circle"></i>
@@ -10287,7 +10154,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="class-inline-search-wrap"
-                    style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                    style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 100%; margin-bottom: 12px;">
                     <div class="inline-search-box" style="flex: 1;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
@@ -10300,15 +10167,84 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
                     </div>
+
+                    <!-- Sort Button (Beside Search Bar) -->
+                    <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                        <!-- Hidden select to preserve event listeners and system integrations -->
+                        <select id="classSortSelect" style="display: none;">
+                            <option value="name_az">الاسم أ-ي</option>
+                            <option value="name_za">الاسم ي-أ</option>
+                            <option value="age_asc">الأصغر سناً</option>
+                            <option value="age_desc">الأكبر سناً</option>
+                            <option value="class_az">الفصل</option>
+                            <option value="coupons_desc">الأكثر كوبونات</option>
+                            <option value="attendance_desc">الأكثر حضوراً</option>
+                            <option value="top_desc">الأوائل</option>
+                        </select>
+                        <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
+                            title="ترتيب"
+                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
+                            onmouseover="this.style.borderColor='var(--brand)'"
+                            onmouseout="this.style.borderColor='var(--border-solid)'">
+                            <i class="fas fa-sort-amount-down"></i>
+                        </button>
+                        <div class="custom-dropdown-menu" id="customSortDropdownMenu" style="right: auto; left: 0;">
+                            <div class="custom-dropdown-item active" data-value="name_az" onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                            <div class="custom-dropdown-item" data-value="name_za" onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                            <div class="custom-dropdown-item" data-value="age_asc" onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
+                            <div class="custom-dropdown-item" data-value="age_desc" onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
+                            <div class="custom-dropdown-item" data-value="class_az" onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                            <div class="custom-dropdown-item" data-value="coupons_desc" onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر كوبونات</div>
+                            <div class="custom-dropdown-item" data-value="attendance_desc" onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر حضوراً</div>
+                            <div class="custom-dropdown-item" data-value="top_desc" onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Button (Beside Search Bar) -->
                     <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
-                        style="padding: 0 16px; height: 42px; display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--border-solid); border-radius: 50px; background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; font-family: 'Cairo', sans-serif;"
+                        title="تصفية"
+                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none; position: relative;"
                         onmouseover="this.style.borderColor='var(--brand)'"
                         onmouseout="this.style.borderColor='var(--border-solid)'">
                         <i class="fas fa-filter"></i>
-                        <span style="font-size: 0.8rem; font-weight: 700;">تصفية</span>
                         <span id="activeFiltersBadge"
-                            style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.68rem; width: 16px; height: 16px; align-items: center; justify-content: center; font-weight: 800; margin-right: 4px;">0</span>
+                            style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: -3px; right: -3px; border: 1.5px solid var(--surface);">0</span>
                     </button>
+
+                    <!-- 3 Vertical Dots Tools Button (Beside Search Bar) -->
+                    <div class="action-dropdown" style="position: relative; display: inline-block;">
+                        <button class="home-tools-link" id="classToolsBtn" onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
+                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface); border: 1.5px solid var(--border-solid); color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); outline: none;"
+                            onmouseover="this.style.borderColor='var(--brand)'"
+                            onmouseout="this.style.borderColor='var(--border-solid)'">
+                            <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
+                        </button>
+                        <div class="dropdown-menu" id="classToolsDropdownMenu" style="left: 0; right: auto; min-width: 220px;">
+                            <div class="dropdown-group-label">الفصل</div>
+                            <button class="dropdown-item" onclick="showSheetModal();closeAllDropdowns()"><i class="fas fa-table"></i> جداول أطفال الفصل</button>
+                            <button class="dropdown-item" onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام الفصل</button>
+                            <button class="dropdown-item coupon" onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
+                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                            <button class="dropdown-item success" onclick="showAttendedModal();closeAllDropdowns()"><i class="fas fa-user-check"></i> عرض الحاضرين</button>
+                            <button class="dropdown-item" onclick="showAbsentModal();closeAllDropdowns()"><i class="fas fa-user-times"></i> عرض الغائبين</button>
+                            
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-group-label">الجميع</div>
+                            <button class="dropdown-item success" onclick="markAllPresent();closeAllDropdowns()"><i class="fas fa-check-circle"></i> حضور للجميع</button>
+                            <button class="dropdown-item danger" onclick="markAllAbsent();closeAllDropdowns()"><i class="fas fa-times-circle"></i> غياب للجميع</button>
+                            <button class="dropdown-item coupon" onclick="addCouponsToAll(10);closeAllDropdowns()"><i class="fas fa-star"></i> +10 كوبونات للجميع</button>
+                            <button class="dropdown-item coupon" onclick="addCouponsToAll(30);closeAllDropdowns()"><i class="fas fa-star"></i> +30 كوبونات للجميع</button>
+                            <button class="dropdown-item coupon" onclick="addCouponsToAll(50);closeAllDropdowns()"><i class="fas fa-star"></i> +50 كوبونات للجميع</button>
+                            <button class="dropdown-item coupon" onclick="addCouponsToAll(100);closeAllDropdowns()"><i class="fas fa-star"></i> +100 كوبونات للجميع</button>
+                            <button class="dropdown-item danger" onclick="resetCouponDataForClass(currentClass);closeAllDropdowns()"><i class="fas fa-undo"></i> إعادة تعيين الكوبونات</button>
+                            
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-group-label">خيارات إضافية</div>
+                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i class="fas fa-hand-pointer"></i> وضع السحب السريع (سحب)</button>
+                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item" onclick="showResetModal();closeAllDropdowns()"><i class="fas fa-rotate-left"></i> تراجع عن كل التغييرات</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Filters Panel -->
@@ -12058,7 +11994,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             localStorage.setItem('currentClass', className);
             document.getElementById('classesView').style.display = 'none';
             document.getElementById('classView').classList.add('active');
-            document.getElementById('className').textContent = 'الفصل: ' + className;
+            document.getElementById('className').textContent = className;
             clearSearch();
             loadCouponDataForClass(className);
             updateCurrentDateDisplay();
