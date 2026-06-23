@@ -444,7 +444,6 @@ $tripTitle = $trip['title'];
         
         <div class="top-info">
             <h1 class="top-title"><?php echo htmlspecialchars($tripTitle); ?></h1>
-            <div class="top-subtitle">شاشة الترحيب بالأطفال تلقائياً</div>
         </div>
 
         <!-- Idle Panel -->
@@ -466,11 +465,7 @@ $tripTitle = $trip['title'];
         <!-- Confetti Canvas -->
         <canvas class="confetti-container" id="confettiCanvas"></canvas>
 
-        <!-- Sync Indicator -->
-        <div class="sync-indicator">
-            <div class="sync-dot"></div>
-            <span>متصل ويزامن تلقائياً</span>
-        </div>
+
 
     </div>
 
@@ -716,7 +711,7 @@ $tripTitle = $trip['title'];
                 this.d = Math.random() * canvas.height;
                 this.color = ["#5b6cf5", "#10b981", "#fbbf24", "#ef4444", "#ec4899", "#8b5cf6"][Math.floor(Math.random() * 6)];
                 this.tilt = Math.random() * 10 - 5;
-                this.tiltAngleChan = Math.random() * 0.05 + 0.02;
+                this.tiltAngleChan = (Math.random() * 0.05 + 0.02) * 0.4;
                 this.tiltAngle = 0;
             }
 
@@ -731,7 +726,7 @@ $tripTitle = $trip['title'];
 
             update() {
                 this.tiltAngle += this.tiltAngleChan;
-                this.y += (Math.cos(this.d) + 3 + this.r / 2) / 2;
+                this.y += (Math.cos(this.d) + 3 + this.r / 2) * 0.15;
                 this.tilt = Math.sin(this.tiltAngle - this.r / 2) * 12;
 
                 // Loop particles
