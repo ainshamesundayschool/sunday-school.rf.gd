@@ -6947,11 +6947,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             gap: 5px;
             cursor: pointer;
-            transition: all var(--t) var(--ease);
+            transition: all var(--t) var(--spring);
             height: 28px;
             box-shadow:
                 0 1px 0 rgba(255, 255, 255, .72) inset,
                 0 6px 14px rgba(15, 23, 42, .05);
+            position: relative;
         }
 
         #toggleStatsBtn:hover {
@@ -6960,21 +6961,65 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: translateY(-1px);
         }
 
+        #toggleStatsBtn.bday-glow-animate {
+            animation: glowPulse 2.5s infinite ease-in-out;
+            border-color: #db2777 !important;
+            color: #db2777 !important;
+        }
+        
+        [data-theme="dark"] #toggleStatsBtn.bday-glow-animate {
+            animation: glowPulseDark 2.5s infinite ease-in-out;
+            border-color: #f43f5e !important;
+            color: #f43f5e !important;
+        }
+
+        @keyframes glowPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
+                background-color: var(--surface-3);
+            }
+            50% {
+                box-shadow: 0 0 14px 6px rgba(219, 39, 119, 0.25);
+                background-color: #fee2e2;
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
+                background-color: var(--surface-3);
+            }
+        }
+
+        @keyframes glowPulseDark {
+            0% {
+                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+                background-color: var(--surface-3);
+            }
+            50% {
+                box-shadow: 0 0 14px 6px rgba(244, 63, 94, 0.25);
+                background-color: rgba(244, 63, 94, 0.2);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+                background-color: var(--surface-3);
+            }
+        }
+
         /* ── Today's Birthday Banner (homepage) ── */
-        #todayBirthdayBanner {
+        #mainStatsRow {
             display: none;
             padding: 12px 16px;
             margin-bottom: 16px;
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-sm);
+            flex-direction: column;
+            gap: 12px;
             animation: fadeSlideDown .35s var(--spring);
         }
 
-        [data-theme="dark"] #todayBirthdayBanner {
+        [data-theme="dark"] #mainStatsRow {
             background: var(--surface-2);
             border-color: var(--border-solid);
-        }
-
-        #todayBirthdayBanner.show {
-            display: block;
         }
 
         .bday-banner-header {
@@ -9994,21 +10039,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
-                <!-- Today's Birthdays Banner -->
-                <div id="todayBirthdayBanner">
-                    <div class="bday-banner-header" style="justify-content: space-between; width: 100%;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-birthday-cake"></i>
-                            <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
-                        </div>
-                        <button id="toggleBdayViewBtn" onclick="toggleBdayView()" title="تغيير طريقة العرض">
-                            <i class="fas fa-chevron-down" id="bdayCollapseIcon"
-                                style="transition: transform var(--t) var(--ease); font-size: 0.85rem;"></i>
-                        </button>
-                    </div>
-                    <div class="bday-banner-list" id="todayBirthdayList"></div>
-                </div>
-
                 <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px;">
                     <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
                         style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
@@ -10022,43 +10052,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
                     <button id="toggleStatsBtn" onclick="toggleStats()" style="margin-right: auto;">
-                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض
-                        الإحصائيات
+                        <i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد
                     </button>
                 </div>
 
-                <!-- Stats -->
-                <div class="stats-row" id="mainStatsRow" style="display:none">
-                    <div class="stat-tile" onclick="showAllStudentsModal()" style="cursor:pointer"
-                        title="عرض جميع الأطفال">
-                        <div class="stat-tile-icon blue"><i class="fas fa-users"></i></div>
-                        <div>
-                            <div class="stat-tile-val" id="totalStudents">0</div>
-                            <div class="stat-tile-lbl">إجمالي الأطفال</div>
+                <!-- Stats (Now Birthday Container) -->
+                <div id="mainStatsRow" style="display:none;">
+                    <div class="bday-banner-header" style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span id="todayBirthdayTitle">🎂 أعياد ميلاد اليوم!</span>
                         </div>
+                        <button id="toggleBdayViewBtn" onclick="toggleBdayView()" title="تغيير طريقة العرض">
+                            <i class="fas fa-chevron-down" id="bdayCollapseIcon"
+                                style="transition: transform var(--t) var(--ease); font-size: 0.85rem;"></i>
+                        </button>
                     </div>
-                    <div class="stat-tile" style="cursor:default">
-                        <div class="stat-tile-icon green"><i class="fas fa-door-open"></i></div>
-                        <div>
-                            <div class="stat-tile-val" id="totalClasses">0</div>
-                            <div class="stat-tile-lbl">الفصول</div>
-                        </div>
-                    </div>
-                    <div class="stat-tile" onclick="showBirthdayModal()" style="cursor:pointer"
-                        title="عرض أعياد الميلاد">
-                        <div class="stat-tile-icon pink"><i class="fas fa-birthday-cake"></i></div>
-                        <div>
-                            <div class="stat-tile-val" id="birthdaysThisMonth">0</div>
-                            <div class="stat-tile-lbl">أعياد هذا الشهر</div>
-                        </div>
-                    </div>
-                    <div class="stat-tile" style="cursor:default">
-                        <div class="stat-tile-icon purple"><i class="fas fa-star"></i></div>
-                        <div>
-                            <div class="stat-tile-val" id="averageCoupons">0</div>
-                            <div class="stat-tile-lbl">متوسط الكوبونات</div>
-                        </div>
-                    </div>
+                    <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
 
@@ -12736,13 +12746,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const btn = document.getElementById('toggleStatsBtn');
             if (!row || !btn) return;
             const isHidden = row.style.display === 'none';
+            
+            const items = getWeekBirthdays();
+            const todayItems = items.filter(item => item.isToday);
+            const todayCount = todayItems.length;
+            const badgeHtml = todayCount > 0 ? `<span class="bday-badge-count"> (${todayCount})</span>` : '';
+
             if (isHidden) {
-                row.style.display = 'grid';
-                btn.innerHTML = '<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء الإحصائيات';
+                row.style.display = 'block';
+                btn.innerHTML = `<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء أعياد الميلاد${badgeHtml}`;
                 localStorage.setItem('statsCollapsed', 'false');
             } else {
                 row.style.display = 'none';
-                btn.innerHTML = '<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات';
+                btn.innerHTML = `<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد${badgeHtml}`;
                 localStorage.setItem('statsCollapsed', 'true');
             }
         }
@@ -12830,14 +12846,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function renderTodayBirthdayBanner() {
-            const banner = document.getElementById('todayBirthdayBanner');
+            const banner = document.getElementById('mainStatsRow');
             const list = document.getElementById('todayBirthdayList');
             const title = document.getElementById('todayBirthdayTitle');
             if (!banner || !list) return;
             const items = getWeekBirthdays();
-            if (!items.length) { banner.classList.remove('show'); return; }
+            
+            const todayItems = items.filter(item => item.isToday);
+            const todayCount = todayItems.length;
+
+            const btn = document.getElementById('toggleStatsBtn');
+            if (btn) {
+                if (todayCount > 0) {
+                    btn.classList.add('bday-glow-animate');
+                } else {
+                    btn.classList.remove('bday-glow-animate');
+                }
+            }
+
+            if (!items.length) {
+                if (btn) btn.style.display = 'none';
+                banner.style.display = 'none';
+                return;
+            } else {
+                if (btn) btn.style.display = 'inline-flex';
+            }
+
             const label = window.IS_YOUTH ? 'شباب' : 'أطفال';
-            title.textContent = `🎂 أعياد ميلاد هذا الأسبوع! (${items.length} ${label})`;
+            
+            if (todayCount > 0) {
+                title.innerHTML = `🎉 اليوم! عيد ميلاد سعيد لـ <strong style="color: #db2777;">${todayCount}</strong> من الـ${label}! 🎂`;
+            } else {
+                title.textContent = `🎂 أعياد ميلاد هذا الأسبوع! (${items.length} ${label})`;
+            }
+
             list.innerHTML = items.map((item, index) => {
                 const s = item.student;
                 const name = s['الاسم'] || '---';
@@ -12852,7 +12894,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
                 </div>`;
             }).join('');
-            banner.classList.add('show');
+
+            const isStored = localStorage.getItem('statsCollapsed') !== null;
+            const statsCollapsed = isStored ? (localStorage.getItem('statsCollapsed') === 'true') : true;
+            const badgeHtml = todayCount > 0 ? `<span class="bday-badge-count"> (${todayCount})</span>` : '';
+
+            if (statsCollapsed) {
+                banner.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = `<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد${badgeHtml}`;
+                }
+            } else {
+                banner.style.display = 'block';
+                if (btn) {
+                    btn.innerHTML = `<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء أعياد الميلاد${badgeHtml}`;
+                }
+            }
 
             // Scroll to target element (today's birthday, or last birthday of the week cycle)
             let targetIndex = items.findIndex(item => item.isToday);
@@ -13003,7 +13060,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel}</div>
         <div class="class-badge" style="background:color-mix(in srgb,${allColor} 12%,white);color:${allColor}">
-            <i class="fas fa-user" style="font-size:.6rem"></i> ${allCount} ${window.IS_YOUTH ? 'شاب' : 'طفل'}
+            <i class="fas fa-user" style="font-size:.6rem"></i> ${allCount}
         </div>
         <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
         ${allUnsavedHtml}
@@ -13025,7 +13082,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label}</div>
-                <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+                <div class="class-badge" style="background:var(--brand-bg);color:var(--brand)"><i class="fas fa-users" style="font-size:.6rem"></i> ${count}</div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
                 <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
                 ${unsavedHtml}
@@ -13048,7 +13105,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name}</div>
-            <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+            <div class="class-badge" style="background:color-mix(in srgb,${color} 12%,white);color:${color}"><i class="fas fa-user" style="font-size:.6rem"></i> ${count}</div>
             ${unsavedHtml}
         </div>`;
             }).join('');
@@ -13140,18 +13197,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (se('birthdaysThisMonth')) se('birthdaysThisMonth').textContent = births;
             if (se('averageCoupons')) se('averageCoupons').textContent = avgC;
 
-            // Apply stats collapse state
+            // Apply stats collapse state (now birthday banner collapse state)
             const row = document.getElementById('mainStatsRow');
             const btn = document.getElementById('toggleStatsBtn');
             if (row && btn) {
+                const items = getWeekBirthdays();
+                const todayItems = items.filter(item => item.isToday);
+                const todayCount = todayItems.length;
+                const badgeHtml = todayCount > 0 ? `<span class="bday-badge-count"> (${todayCount})</span>` : '';
+
                 const isStored = localStorage.getItem('statsCollapsed') !== null;
                 const statsCollapsed = isStored ? (localStorage.getItem('statsCollapsed') === 'true') : true;
                 if (statsCollapsed) {
                     row.style.display = 'none';
-                    btn.innerHTML = '<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض الإحصائيات';
+                    btn.innerHTML = `<i class="fas fa-chevron-down" id="statsCollapseIcon" style="margin-left: 5px;"></i> عرض أعياد الميلاد${badgeHtml}`;
                 } else {
-                    row.style.display = 'grid';
-                    btn.innerHTML = '<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء الإحصائيات';
+                    row.style.display = 'block';
+                    btn.innerHTML = `<i class="fas fa-chevron-up" id="statsCollapseIcon" style="margin-left: 5px;"></i> إخفاء أعياد الميلاد${badgeHtml}`;
                 }
             }
         }
