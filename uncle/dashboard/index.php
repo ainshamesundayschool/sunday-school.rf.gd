@@ -18986,7 +18986,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.addEventListener('contextmenu', e => {
                 if (e.target?.closest('.copy-holdable')) e.preventDefault();
             });
-            on('absentSearchInput', 'input', renderAbsentTable);
             on('classSortSelect', 'change', e => {
                 classSortMode = e.target.value;
                 syncSortControls(classSortMode, getSortLabel(classSortMode));
