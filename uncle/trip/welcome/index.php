@@ -82,14 +82,15 @@ $tripTitle = $trip['title'];
     
     <style>
         :root {
-            --brand: #5b6cf5;
-            --brand-glow: rgba(91, 108, 245, 0.4);
+            --brand: #6366f1;
+            --brand-glow: rgba(99, 102, 241, 0.25);
             --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.4);
+            --success-glow: rgba(16, 185, 129, 0.25);
             --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.4);
-            --text-light: #f3f4f6;
-            --text-muted: #9ca3af;
+            --danger-glow: rgba(239, 68, 68, 0.25);
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: linear-gradient(135deg, #fef9c3, #ecfeff, #fae8ff);
         }
 
         * {
@@ -103,44 +104,25 @@ $tripTitle = $trip['title'];
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #0b0c10;
-            color: var(--text-light);
+            background: var(--bg-light);
+            color: var(--text-dark);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
         }
 
-        /* Ambient glowing circles */
-        .ambient-glow {
+        /* Decorative floating bubble shapes for kid appeal */
+        .bubble {
             position: absolute;
-            width: 500px;
-            height: 500px;
             border-radius: 50%;
-            filter: blur(140px);
-            opacity: 0.15;
             pointer-events: none;
-            z-index: 0;
-            animation: moveGlow 25s infinite alternate ease-in-out;
+            z-index: 1;
+            animation: floatBubble 12s infinite ease-in-out alternate;
         }
-
-        .glow-1 {
-            background: var(--brand);
-            top: -10%;
-            left: -10%;
-        }
-
-        .glow-2 {
-            background: #8b5cf6;
-            bottom: -10%;
-            right: -10%;
-            animation-delay: -5s;
-        }
-
-        @keyframes moveGlow {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(100px, 80px) scale(1.2); }
-            100% { transform: translate(-50px, -60px) scale(0.9); }
+        @keyframes floatBubble {
+            0% { transform: translateY(0) scale(1) rotate(0deg); }
+            100% { transform: translateY(-40px) scale(1.1) rotate(360deg); }
         }
 
         /* Screen Wrapper */
@@ -160,7 +142,9 @@ $tripTitle = $trip['title'];
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 12, 16, 0.95);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -171,27 +155,25 @@ $tripTitle = $trip['title'];
         }
 
         .overlay-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(99, 102, 241, 0.15);
+            border-radius: 32px;
             padding: 40px 30px;
             text-align: center;
             max-width: 450px;
             width: 100%;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(99, 102, 241, 0.12);
         }
 
         .overlay-title {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 900;
             margin-bottom: 12px;
-            color: #fff;
+            color: var(--brand);
         }
 
         .overlay-desc {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-muted);
             margin-bottom: 30px;
             line-height: 1.6;
@@ -202,9 +184,9 @@ $tripTitle = $trip['title'];
             color: white;
             border: none;
             padding: 16px 36px;
-            border-radius: 16px;
+            border-radius: 20px;
             font-weight: 800;
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             cursor: pointer;
             box-shadow: 0 10px 25px var(--brand-glow);
             transition: all 0.25s;
@@ -217,7 +199,7 @@ $tripTitle = $trip['title'];
 
         .start-btn:hover {
             transform: scale(1.03) translateY(-2px);
-            box-shadow: 0 15px 30px rgba(91, 108, 245, 0.5);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.35);
         }
 
         .start-btn:active {
@@ -236,21 +218,10 @@ $tripTitle = $trip['title'];
         }
 
         .top-title {
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             font-weight: 900;
-            color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-
-        .top-subtitle {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-top: 4px;
-            background: rgba(255,255,255,0.05);
-            padding: 4px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-dark);
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.6);
         }
 
         /* Idle State Panel */
@@ -258,6 +229,7 @@ $tripTitle = $trip['title'];
             text-align: center;
             animation: pulse 2.5s infinite alternate ease-in-out;
             transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 5;
         }
 
         .idle-panel.hidden {
@@ -267,35 +239,35 @@ $tripTitle = $trip['title'];
         }
 
         .idle-icon {
-            font-size: 4rem;
+            font-size: 5rem;
             color: var(--brand);
             margin-bottom: 20px;
-            filter: drop-shadow(0 0 15px var(--brand-glow));
+            filter: drop-shadow(0 4px 10px rgba(99, 102, 241, 0.2));
         }
 
         .idle-text {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: var(--text-muted);
+            color: var(--text-dark);
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.6; }
+            0% { transform: scale(1); opacity: 0.65; }
             100% { transform: scale(1.05); opacity: 0.95; }
         }
 
-                /* Welcome Greeting Card */
+        /* Welcome Greeting Card */
         .welcome-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 36px;
-            padding: 40px;
-            max-width: 500px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 40px;
+            padding: 36px;
+            max-width: 440px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            box-shadow: 0 30px 70px rgba(99, 102, 241, 0.15), inset 0 2px 0 rgba(255,255,255,0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             position: absolute;
             z-index: 100;
             opacity: 0;
@@ -341,28 +313,13 @@ $tripTitle = $trip['title'];
         /* Gold/Green style for Additions */
         .welcome-card.style-plus {
             border-color: rgba(16, 185, 129, 0.25);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 40px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 30px 60px rgba(16, 185, 129, 0.15), inset 0 2px 0 rgba(255,255,255,0.6);
         }
 
         /* Red style for Subtractions */
         .welcome-card.style-minus {
             border-color: rgba(239, 68, 68, 0.25);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 40px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        .card-header-visual {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .avatar-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 30px 60px rgba(239, 68, 68, 0.15), inset 0 2px 0 rgba(255,255,255,0.6);
         }
 
         .student-photo {
@@ -370,11 +327,11 @@ $tripTitle = $trip['title'];
             height: 140px;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            margin: 0;
+            border: 5px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+            margin: 0 auto 24px;
             display: block;
-            background: #181b26;
+            background: #f8fafc;
         }
 
         .welcome-card.style-plus .student-photo {
@@ -387,48 +344,26 @@ $tripTitle = $trip['title'];
             box-shadow: 0 10px 25px var(--danger-glow);
         }
 
-        .qr-container-light {
-            background: #ffffff; /* Always light! */
-            padding: 8px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.35), 0 0 25px rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 140px;
-            height: 140px;
-            border: 4px solid rgba(255, 255, 255, 0.85);
-            transition: all 0.3s ease;
-        }
-
-        .student-qr {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-
         .congrats-title {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--brand);
+            font-weight: 800;
             margin-bottom: 6px;
             letter-spacing: 0.5px;
         }
 
         .student-name {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 900;
-            color: #fff;
+            color: var(--text-dark);
             margin-bottom: 18px;
             line-height: 1.4;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .message-body {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            padding: 10px 20px;
+            padding: 10px 24px;
             border-radius: 20px;
             display: inline-flex;
             align-items: center;
@@ -439,13 +374,13 @@ $tripTitle = $trip['title'];
         .welcome-card.style-plus .message-body {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.15);
+            border: 1.5px solid rgba(16, 185, 129, 0.15);
         }
 
         .welcome-card.style-minus .message-body {
             background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.15);
+            border: 1.5px solid rgba(239, 68, 68, 0.15);
         }
 
         /* Confetti particles container */
@@ -456,43 +391,79 @@ $tripTitle = $trip['title'];
             z-index: 50;
         }
 
-        /* Sync Indicator */
-        .sync-indicator {
+        /* Scattered Cards Styling */
+        .scattered-card {
             position: absolute;
-            bottom: 24px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid #fff;
+            border-radius: 24px;
+            padding: 8px;
+            width: 120px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.08);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 6px 14px;
-            border-radius: 20px;
+            text-align: center;
+            z-index: 10;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: gentleFloat 6s infinite alternate ease-in-out;
         }
 
-        .sync-dot {
-            width: 8px;
-            height: 8px;
+        .scattered-photo {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 8px var(--success-glow);
-            animation: pulseDot 1.5s infinite ease-in-out;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.8);
+            margin-bottom: 4px;
         }
 
-        @keyframes pulseDot {
-            0% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.6; }
+        .scattered-name {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            max-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .scattered-badge {
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-top: 3px;
+        }
+
+        .scattered-badge.plus {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .scattered-badge.minus {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        @keyframes gentleFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(var(--float-x, 10px), var(--float-y, -10px)) rotate(var(--float-r, 2deg)); }
         }
     </style>
 </head>
 <body>
 
+    <!-- Kid Appealing Bubbles -->
+    <div class="bubble" style="width: 80px; height: 80px; background: rgba(99, 102, 241, 0.12); top: 15%; left: 10%; animation-duration: 8s;"></div>
+    <div class="bubble" style="width: 120px; height: 120px; background: rgba(236, 72, 153, 0.1); bottom: 15%; left: 15%; animation-duration: 14s; animation-delay: -3s;"></div>
+    <div class="bubble" style="width: 60px; height: 60px; background: rgba(251, 191, 36, 0.15); top: 25%; right: 12%; animation-duration: 10s; animation-delay: -5s;"></div>
+    <div class="bubble" style="width: 100px; height: 100px; background: rgba(16, 185, 129, 0.1); bottom: 20%; right: 8%; animation-duration: 12s; animation-delay: -1s;"></div>
+
     <!-- Start Overlay (User interaction to enable audio/fullscreen) -->
     <div class="overlay" id="startOverlay">
         <div class="overlay-card">
-            <h2 class="overlay-title" style="margin-top:0;">شاشة عرض الترحيب</h2>
+            <h2 class="overlay-title" style="margin-top:0;">شاشة عرض الترحيب 🎈</h2>
             <p class="overlay-desc">اضغط على الزر أدناه لتفعيل المؤثرات الصوتية والعرض التلقائي بملء الشاشة عند مسح النقاط.</p>
             <button type="button" class="start-btn" onclick="startWelcomeScreen()">
                 <i class="fas fa-play"></i> بدء الشاشة
@@ -500,15 +471,14 @@ $tripTitle = $trip['title'];
         </div>
     </div>
 
-    <!-- Ambient glowing backgrounds -->
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
-
     <div class="screen-wrap">
         
         <div class="top-info">
             <h1 class="top-title"><?php echo htmlspecialchars($tripTitle); ?></h1>
         </div>
+
+        <!-- Scattered Recent Cards Container -->
+        <div id="scatterContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 8;"></div>
 
         <!-- Idle Panel -->
         <div class="idle-panel" id="idlePanel">
@@ -518,14 +488,7 @@ $tripTitle = $trip['title'];
 
         <!-- Welcome Greeting Card -->
         <div class="welcome-card" id="welcomeCard">
-            <div class="card-header-visual">
-                <div class="avatar-container">
-                    <img src="" class="student-photo" id="studentPhoto" alt="">
-                </div>
-                <div class="qr-container-light">
-                    <img src="" class="student-qr" id="studentQR" alt="QR Code">
-                </div>
-            </div>
+            <img src="" class="student-photo" id="studentPhoto" alt="">
             <div class="congrats-title" id="congratsTitle">مبروووك! 🎉</div>
             <div class="student-name" id="studentName"></div>
             <div>
@@ -535,8 +498,6 @@ $tripTitle = $trip['title'];
 
         <!-- Confetti Canvas -->
         <canvas class="confetti-container" id="confettiCanvas"></canvas>
-
-
 
     </div>
 
@@ -671,6 +632,9 @@ $tripTitle = $trip['title'];
             }
         }
 
+        let currentKidData = null; // Store the currently displayed kid's data
+        let activeScatteredKids = [];
+
         function processDisplayQueue() {
             if (isOverlayActive || displayQueue.length === 0) return;
 
@@ -680,8 +644,12 @@ $tripTitle = $trip['title'];
             const card = document.getElementById('welcomeCard');
             const idle = document.getElementById('idlePanel');
 
-            // If a card is already shown, fade it out first to prevent flickers
+            // If a card is already shown, scatter it first as it gets replaced
             if (card.classList.contains('show')) {
+                if (currentKidData) {
+                    addKidToScatter(currentKidData);
+                    currentKidData = null; // Prevent double scattering in showNewEvent
+                }
                 card.classList.remove('show');
                 stopConfetti();
                 setTimeout(() => {
@@ -699,7 +667,14 @@ $tripTitle = $trip['title'];
             const photoEl = document.getElementById('studentPhoto');
             const titleEl = document.getElementById('congratsTitle');
             const bodyEl = document.getElementById('messageBody');
-            const qrEl = document.getElementById('studentQR');
+
+            // Save the new kid's data
+            currentKidData = {
+                student_id: event.student_id,
+                student_name: event.student_name,
+                profile_photo: event.profile_photo,
+                change_amount: event.change_amount
+            };
 
             // Set styles based on points change sign
             const isAdd = event.change_amount > 0;
@@ -745,25 +720,9 @@ $tripTitle = $trip['title'];
                 };
             }
 
-            // Set QR code dynamically (Always Light container background)
-            qrEl.style.display = 'none';
-            const studentId = event.student_id;
-            const origin = window.location.origin;
-            const qrText = `${origin}/user/profile/?id=${encodeURIComponent(studentId)}`;
-            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
-            qrEl.onload = () => {
-                qrEl.style.display = 'block';
-            };
-            qrEl.onerror = () => {
-                qrEl.src = '';
-            };
-
             // Confetti, fireworks and sound effects on points change
             if (isAdd) {
                 playSuccessSound();
-                
-                // Trigger scattered mini photos of the new kid
-                createScatterEffect(finalPhotoSrc);
                 
                 // Launch initial fireworks rockets
                 launchFirework();
@@ -775,8 +734,6 @@ $tripTitle = $trip['title'];
                 startConfetti();
             } else {
                 playFailureSound();
-                // Subtraction still gets scatter effect but no fireworks
-                createScatterEffect(finalPhotoSrc);
             }
 
             // Transition logic: stay on screen unless there's a new card waiting
@@ -789,6 +746,89 @@ $tripTitle = $trip['title'];
             } else {
                 // Keep the card on screen indefinitely
                 isOverlayActive = false;
+            }
+        }
+
+        // Helper to locate non-overlapping random positions outside the center welcome card area
+        function getRandomPosition(cardWidth, cardHeight) {
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            
+            // Center exclusion zone bounds
+            const centerXMin = screenW * 0.3;
+            const centerXMax = screenW * 0.7;
+            const centerYMin = screenH * 0.2;
+            const centerYMax = screenH * 0.8;
+            
+            let x, y;
+            let attempts = 0;
+            
+            do {
+                x = Math.random() * (screenW - cardWidth - 40) + 20;
+                y = Math.random() * (screenH - cardHeight - 120) + 60;
+                attempts++;
+            } while (
+                x + cardWidth > centerXMin && 
+                x < centerXMax && 
+                y + cardHeight > centerYMin && 
+                y < centerYMax && 
+                attempts < 50
+            );
+            
+            return { x, y };
+        }
+
+        // Spawns and animates a small scattered card representing a recent scan
+        function addKidToScatter(kidData) {
+            const container = document.getElementById('scatterContainer');
+            
+            const card = document.createElement('div');
+            card.className = 'scattered-card';
+            
+            const isAdd = kidData.change_amount > 0;
+            card.style.borderColor = isAdd ? 'var(--success)' : 'var(--danger)';
+            
+            const badgeClass = isAdd ? 'plus' : 'minus';
+            const badgeText = isAdd ? `+${kidData.change_amount}` : `${kidData.change_amount}`;
+            
+            card.innerHTML = `
+                <img src="${kidData.profile_photo || '/profile_default.webp'}" class="scattered-photo" onerror="this.src='/logo.png'">
+                <div class="scattered-name">${kidData.student_name}</div>
+                <div class="scattered-badge ${badgeClass}">${badgeText} ⭐️</div>
+            `;
+            
+            card.style.setProperty('--float-x', `${Math.random() * 20 - 10}px`);
+            card.style.setProperty('--float-y', `${Math.random() * 20 - 10}px`);
+            card.style.setProperty('--float-r', `${Math.random() * 6 - 3}deg`);
+            
+            card.style.position = 'absolute';
+            card.style.left = '50%';
+            card.style.top = '50%';
+            card.style.transform = 'translate(-50%, -50%) scale(0.1)';
+            card.style.opacity = '0';
+            
+            container.appendChild(card);
+            
+            const cardW = 120;
+            const cardH = 110;
+            const pos = getRandomPosition(cardW, cardH);
+            
+            card.offsetWidth; // Force reflow
+            
+            card.style.left = `${pos.x}px`;
+            card.style.top = `${pos.y}px`;
+            card.style.transform = `translate(0, 0) scale(1) rotate(${Math.random() * 12 - 6}deg)`;
+            card.style.opacity = '1';
+            
+            activeScatteredKids.push(card);
+            
+            if (activeScatteredKids.length > 8) {
+                const oldest = activeScatteredKids.shift();
+                oldest.style.opacity = '0';
+                oldest.style.transform += ' scale(0.8)';
+                setTimeout(() => {
+                    oldest.remove();
+                }, 800);
             }
         }
 
