@@ -284,30 +284,58 @@ $tripTitle = $trip['title'];
             100% { transform: scale(1.05); opacity: 0.95; }
         }
 
-        /* Welcome Greeting Card */
+                /* Welcome Greeting Card */
         .welcome-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
             border-radius: 36px;
             padding: 40px;
             max-width: 500px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.15);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             position: absolute;
             z-index: 100;
             opacity: 0;
             transform: translateY(60px) scale(0.85);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
             direction: rtl;
         }
 
         .welcome-card.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+            animation: cardEntrance 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards, cardFloat 4s ease-in-out infinite alternate 0.8s;
+            pointer-events: auto;
+        }
+
+        @keyframes cardEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(80px) scale(0.7) rotate(-3deg);
+                filter: blur(10px);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-10px) scale(1.04) rotate(1deg);
+                filter: none;
+            }
+            70% {
+                transform: translateY(4px) scale(0.98) rotate(-0.5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes cardFloat {
+            0% {
+                transform: translateY(0) rotate(0);
+            }
+            100% {
+                transform: translateY(-10px) rotate(0.5deg);
+            }
         }
 
         /* Gold/Green style for Additions */
@@ -322,6 +350,21 @@ $tripTitle = $trip['title'];
             box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 40px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
+        .card-header-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .student-photo {
             width: 140px;
             height: 140px;
@@ -329,7 +372,7 @@ $tripTitle = $trip['title'];
             object-fit: cover;
             border: 5px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            margin: 0 auto 24px;
+            margin: 0;
             display: block;
             background: #181b26;
         }
@@ -342,6 +385,27 @@ $tripTitle = $trip['title'];
         .welcome-card.style-minus .student-photo {
             border-color: var(--danger);
             box-shadow: 0 10px 25px var(--danger-glow);
+        }
+
+        .qr-container-light {
+            background: #ffffff; /* Always light! */
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.35), 0 0 25px rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 140px;
+            height: 140px;
+            border: 4px solid rgba(255, 255, 255, 0.85);
+            transition: all 0.3s ease;
+        }
+
+        .student-qr {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
         .congrats-title {
@@ -454,7 +518,14 @@ $tripTitle = $trip['title'];
 
         <!-- Welcome Greeting Card -->
         <div class="welcome-card" id="welcomeCard">
-            <img src="" class="student-photo" id="studentPhoto" alt="">
+            <div class="card-header-visual">
+                <div class="avatar-container">
+                    <img src="" class="student-photo" id="studentPhoto" alt="">
+                </div>
+                <div class="qr-container-light">
+                    <img src="" class="student-qr" id="studentQR" alt="QR Code">
+                </div>
+            </div>
             <div class="congrats-title" id="congratsTitle">مبروووك! 🎉</div>
             <div class="student-name" id="studentName"></div>
             <div>
@@ -628,6 +699,7 @@ $tripTitle = $trip['title'];
             const photoEl = document.getElementById('studentPhoto');
             const titleEl = document.getElementById('congratsTitle');
             const bodyEl = document.getElementById('messageBody');
+            const qrEl = document.getElementById('studentQR');
 
             // Set styles based on points change sign
             const isAdd = event.change_amount > 0;
@@ -649,7 +721,9 @@ $tripTitle = $trip['title'];
             
             // Flicker-free photo load: hide image and only show it once loaded
             photoEl.style.display = 'none';
+            let finalPhotoSrc = '/profile_default.webp';
             if (event.profile_photo) {
+                finalPhotoSrc = event.profile_photo;
                 photoEl.src = event.profile_photo;
                 photoEl.onload = () => {
                     photoEl.style.display = 'block';
@@ -657,6 +731,7 @@ $tripTitle = $trip['title'];
                 photoEl.onerror = () => {
                     photoEl.src = '/logo.png';
                     photoEl.style.display = 'block';
+                    finalPhotoSrc = '/logo.png';
                 };
             } else {
                 photoEl.src = '/profile_default.webp';
@@ -666,15 +741,42 @@ $tripTitle = $trip['title'];
                 photoEl.onerror = () => {
                     photoEl.src = '/logo.png';
                     photoEl.style.display = 'block';
+                    finalPhotoSrc = '/logo.png';
                 };
             }
 
-            // Confetti and sound effects on points change
+            // Set QR code dynamically (Always Light container background)
+            qrEl.style.display = 'none';
+            const studentId = event.student_id;
+            const origin = window.location.origin;
+            const qrText = `${origin}/user/profile/?id=${encodeURIComponent(studentId)}`;
+            qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
+            qrEl.onload = () => {
+                qrEl.style.display = 'block';
+            };
+            qrEl.onerror = () => {
+                qrEl.src = '';
+            };
+
+            // Confetti, fireworks and sound effects on points change
             if (isAdd) {
                 playSuccessSound();
+                
+                // Trigger scattered mini photos of the new kid
+                createScatterEffect(finalPhotoSrc);
+                
+                // Launch initial fireworks rockets
+                launchFirework();
+                setTimeout(launchFirework, 150);
+                setTimeout(launchFirework, 300);
+                setTimeout(launchFirework, 450);
+                setTimeout(launchFirework, 600);
+                
                 startConfetti();
             } else {
                 playFailureSound();
+                // Subtraction still gets scatter effect but no fireworks
+                createScatterEffect(finalPhotoSrc);
             }
 
             // Transition logic: stay on screen unless there's a new card waiting
@@ -690,11 +792,71 @@ $tripTitle = $trip['title'];
             }
         }
 
-        /* Confetti Animation */
+        // Scatter mini kids photo effect
+        function createScatterEffect(photoSrc) {
+            const container = document.querySelector('.screen-wrap');
+            const count = 18;
+            
+            for (let i = 0; i < count; i++) {
+                const img = document.createElement('img');
+                img.src = photoSrc || '/profile_default.webp';
+                img.className = 'scatter-avatar';
+                
+                // Random starting size
+                const size = Math.random() * 50 + 60; // 60px to 110px
+                img.style.width = `${size}px`;
+                img.style.height = `${size}px`;
+                
+                // Position in the center
+                img.style.position = 'absolute';
+                img.style.left = '50%';
+                img.style.top = '50%';
+                img.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                img.style.borderRadius = '50%';
+                img.style.border = '3px solid #fff';
+                img.style.boxShadow = '0 0 15px rgba(255,255,255,0.7)';
+                img.style.zIndex = '110';
+                img.style.pointerEvents = 'none';
+                img.style.objectFit = 'cover';
+                
+                container.appendChild(img);
+                
+                // Random angles and distance
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 320 + 160; // 160px to 480px
+                const destX = Math.cos(angle) * distance;
+                const destY = Math.sin(angle) * distance;
+                
+                // Web Animations API for smooth scatter & shrink (gets smaller randomly)
+                img.animate([
+                    {
+                        transform: 'translate(-50%, -50%) scale(1.3) translate(0, 0)',
+                        opacity: 1
+                    },
+                    {
+                        transform: `translate(-50%, -50%) scale(0.02) translate(${destX}px, ${destY}px) rotate(${Math.random() * 720 - 360}deg)`,
+                        opacity: 0
+                    }
+                ], {
+                    duration: 1200 + Math.random() * 600, // 1.2s to 1.8s
+                    easing: 'cubic-bezier(0.1, 0.8, 0.25, 1)',
+                    fill: 'forwards'
+                });
+                
+                // Clean up DOM element
+                setTimeout(() => {
+                    img.remove();
+                }, 2000);
+            }
+        }
+
+        /* Confetti & Fireworks Canvas Animation */
         const canvas = document.getElementById('confettiCanvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
         let isConfettiRunning = false;
+        let fireworksRockets = [];
+        let fireworksParticles = [];
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -702,6 +864,108 @@ $tripTitle = $trip['title'];
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+
+        class FireworkRocket {
+            constructor(startX, startY, targetX, targetY, color) {
+                this.x = startX;
+                this.y = startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.color = color;
+                this.speed = 10;
+                this.angle = Math.atan2(targetY - startY, targetX - startX);
+                this.velocity = {
+                    x: Math.cos(this.angle) * this.speed,
+                    y: Math.sin(this.angle) * this.speed
+                };
+                this.trail = [];
+                this.trailLength = 6;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.trailLength) {
+                    this.trail.shift();
+                }
+
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+
+                if (this.y <= this.targetY) {
+                    return true;
+                }
+                return false;
+            }
+
+            draw() {
+                ctx.beginPath();
+                if (this.trail.length > 0) {
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    ctx.lineTo(this.x, this.y);
+                } else {
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.velocity.x, this.y - this.velocity.y);
+                }
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3.5;
+                ctx.stroke();
+            }
+        }
+
+        class FireworkParticle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.angle = Math.random() * Math.PI * 2;
+                this.speed = Math.random() * 5 + 2;
+                this.velocity = {
+                    x: Math.cos(this.angle) * this.speed,
+                    y: Math.sin(this.angle) * this.speed
+                };
+                this.gravity = 0.06;
+                this.friction = 0.98;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.015 + 0.012;
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.random() * 2 + 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function launchFirework() {
+            const startX = Math.random() * canvas.width;
+            const startY = canvas.height;
+            const targetX = Math.random() * (canvas.width * 0.7) + (canvas.width * 0.15);
+            const targetY = Math.random() * (canvas.height * 0.35) + (canvas.height * 0.15);
+            const colors = ["#5b6cf5", "#10b981", "#fbbf24", "#ef4444", "#ec4899", "#8b5cf6"];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            fireworksRockets.push(new FireworkRocket(startX, startY, targetX, targetY, color));
+        }
+
+        function triggerFireworkExplosion(x, y, color) {
+            const count = 50;
+            for (let i = 0; i < count; i++) {
+                fireworksParticles.push(new FireworkParticle(x, y, color));
+            }
+        }
 
         class Particle {
             constructor() {
@@ -751,21 +1015,42 @@ $tripTitle = $trip['title'];
         }
 
         function animateConfetti() {
-            if (!isConfettiRunning && particles.length === 0) {
+            if (!isConfettiRunning && particles.length === 0 && fireworksRockets.length === 0 && fireworksParticles.length === 0) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 return;
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Confetti
             for (let i = 0; i < particles.length; i++) {
                 particles[i].update();
                 particles[i].draw();
             }
 
-            // Gradually decrease particles count when stopped
             if (!isConfettiRunning) {
                 particles = particles.filter(p => p.y > 0);
+            }
+
+            // Fireworks Rockets
+            for (let i = fireworksRockets.length - 1; i >= 0; i--) {
+                const rocket = fireworksRockets[i];
+                const exploded = rocket.update();
+                rocket.draw();
+                if (exploded) {
+                    triggerFireworkExplosion(rocket.targetX, rocket.targetY, rocket.color);
+                    fireworksRockets.splice(i, 1);
+                }
+            }
+
+            // Fireworks Particles
+            for (let i = fireworksParticles.length - 1; i >= 0; i--) {
+                const p = fireworksParticles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) {
+                    fireworksParticles.splice(i, 1);
+                }
             }
 
             requestAnimationFrame(animateConfetti);
