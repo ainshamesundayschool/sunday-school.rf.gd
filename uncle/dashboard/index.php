@@ -695,18 +695,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .topbar-btn {
-            height: 38px;
-            min-width: 38px;
-            padding: 0 11px;
+            height: 32px;
+            min-width: 32px;
+            padding: 0 10px;
             border-radius: var(--r-md);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 5px;
             background: var(--surface-3);
-            border: 1.5px solid var(--border-solid);
+            border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .88rem;
+            font-size: .8rem;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             text-decoration: none;
@@ -714,8 +714,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: relative;
             overflow: hidden;
             box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .5) inset,
-                0 5px 12px rgba(15, 23, 42, .04);
+                0 1px 0 rgba(255, 255, 255, .72) inset,
+                0 6px 14px rgba(15, 23, 42, .05);
         }
 
         .topbar-btn:hover {
@@ -1255,7 +1255,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             top: 58px;
             max-width: 460px;
             width: 100%;
-            margin: 0 0 10px;
+            margin: 0 0 12px auto !important;
             z-index: 100;
             background: var(--bg);
             padding: 6px 0;
@@ -10297,7 +10297,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
 
                 <div class="class-inline-search-wrap"
-                    style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 100%; margin-bottom: 12px;">
+                    style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
 
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
