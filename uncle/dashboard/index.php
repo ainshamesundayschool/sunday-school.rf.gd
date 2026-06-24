@@ -1156,11 +1156,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             z-index: 100;
         }
 
-        .class-inline-search-wrap button,
+        .class-inline-search-wrap button:not(.btn),
         .class-inline-search-wrap .filter-sort-combine-box {
             border: none !important;
             box-shadow: none !important;
             transform: none !important;
+        }
+
+        .class-inline-search-wrap .btn,
+        .class-inline-search-wrap .btn:hover {
+            border: 1px solid var(--border-solid) !important;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset !important;
         }
 
         .class-inline-search-wrap .inline-search-box {
