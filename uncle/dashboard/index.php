@@ -721,11 +721,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .topbar-btn:hover {
             background: var(--brand-bg);
             color: var(--brand);
-            border-color: var(--brand);
-            transform: translateY(-1px);
-            box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .58) inset,
-                0 3px 7px rgba(91, 108, 245, .10)
         }
 
         .topbar-avatar-btn {
@@ -2086,13 +2081,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ═══════════════════════════════════════════════════════════════ */
         /* ── Sticky attendance toolbar ─────────────────────────────── */
         .att-toolbar {
-            position: sticky;
-            top: 58px;
-            z-index: 200;
-            border-radius: 0 0 var(--r-xl) var(--r-xl);
+            position: relative;
+            z-index: auto;
+            border-radius: var(--r-md);
             background: var(--bg);
-            backdrop-filter: blur(26px);
-            -webkit-backdrop-filter: blur(26px);
             padding: 8px 8px 6px;
             margin-bottom: 8px;
             transition: background var(--t) var(--ease);
@@ -10165,11 +10157,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
-                        <button class="home-tools-link" id="classToolsBtn"
+                        <button class="btn btn-ghost btn-sm" id="classToolsBtn"
                             onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface-3); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; outline: none; flex: none;"
-                            onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
-                            onmouseout="this.style.color='var(--text)';this.style.background='var(--surface-3)'">
+                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
                             <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                         </button>
                         <div class="dropdown-menu" id="classToolsDropdownMenu"
@@ -10199,7 +10189,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px; border: 1px solid var(--border-solid);">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
@@ -10213,8 +10203,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Combined Filter & Sort Rectangle -->
-                    <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; border-radius: var(--r-md); height: 42px; box-shadow: none !important; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                    <div class="filter-sort-combine-box btn-ghost" id="filterSortCombineBox"
+                        style="display: flex; align-items: center; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -10229,9 +10219,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="top_desc">الأوائل</option>
                             </select>
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)" title="ترتيب"
-                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none;"
+                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
                                 onmouseover="this.style.color='var(--brand)'"
-                                onmouseout="this.style.color='var(--text)'">
+                                onmouseout="this.style.color='var(--text-2)'">
                                 <i class="fas fa-sort-amount-down"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu"
@@ -10264,8 +10254,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- Filter Button -->
                         <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
                             title="تصفية"
-                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
-                            onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text)'">
+                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                            onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-2)'">
                             <i class="fas fa-filter"></i>
                             <span id="activeFiltersBadge"
                                 style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
@@ -10273,10 +10263,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Add Kid Button (Last button at the end) -->
-                    <button class="add-kid-header-btn" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                        style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--surface-3); border: none !important; color: var(--text); cursor: pointer; transition: all 0.2s; box-shadow: none !important; flex: none;"
-                        onmouseover="this.style.color='var(--brand)';this.style.background='var(--brand-bg)'"
-                        onmouseout="this.style.color='var(--text)';this.style.background='var(--surface-3)'">
+                    <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
+                        style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
