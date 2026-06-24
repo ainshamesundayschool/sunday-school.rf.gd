@@ -14511,15 +14511,15 @@
               const representativeKid = remainingKidsInGroup[0];
               const matchingRooms = getMatchingRooms(representativeKid);
               
-              // Sort matching rooms to prioritize packing partially filled rooms first (combining classes if spaces allow)
+              // Sort matching rooms to prioritize rooms with a lower occupancy ratio to achieve an even distribution
               matchingRooms.sort((a, b) => {
-                const aOccupied = a.occupied > 0;
-                const bOccupied = b.occupied > 0;
-                if (aOccupied !== bOccupied) {
-                  return bOccupied ? 1 : -1;
+                const aRatio = a.occupied / a.capacity;
+                const bRatio = b.occupied / b.capacity;
+                if (Math.abs(aRatio - bRatio) > 0.0001) {
+                  return aRatio - bRatio;
                 }
                 if (a.occupied !== b.occupied) {
-                  return b.occupied - a.occupied;
+                  return a.occupied - b.occupied;
                 }
                 return a.capacity - b.capacity;
               });
@@ -14578,9 +14578,15 @@
                   }).length;
                   if (aChurchCount !== bChurchCount) return bChurchCount - aChurchCount;
 
-                  // Tie-breaker: prefer rooms that are already occupied to maximize space utilization (put class 1 & 2 together)
-                  if (a.occupied !== b.occupied) return b.occupied - a.occupied;
-
+                  // Tie-breaker: prefer rooms with a lower occupancy ratio to achieve an even distribution
+                  const aRatio = a.occupied / a.capacity;
+                  const bRatio = b.occupied / b.capacity;
+                  if (Math.abs(aRatio - bRatio) > 0.0001) {
+                    return aRatio - bRatio;
+                  }
+                  if (a.occupied !== b.occupied) {
+                    return a.occupied - b.occupied;
+                  }
                   return a.capacity - b.capacity;
                 });
 
