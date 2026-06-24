@@ -42378,27 +42378,34 @@ function checkDailyUnclesNotifications()
 
         if ($chkBday && $chkBday->num_rows === 0) {
 
-            $dayNow = (int)date('d');
+            // Attempt to insert immediately to lock this task and prevent concurrent runs
+            $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'birthday')");
 
-            $monthNow = (int)date('m');
+            if ($conn->affected_rows > 0) {
 
-            $bdayStudents = [];
+                $dayNow = (int)date('d');
 
-            
+                $monthNow = (int)date('m');
 
-            $stuQ = $conn->query("SELECT name, birthday FROM students WHERE church_id=$churchId");
+                $bdayStudents = [];
 
-            if ($stuQ) {
+                
 
-                while ($sRow = $stuQ->fetch_assoc()) {
+                $stuQ = $conn->query("SELECT name, birthday FROM students WHERE church_id=$churchId");
 
-                    if (!empty($sRow['birthday'])) {
+                if ($stuQ) {
 
-                        $p = explode('/', $sRow['birthday']);
+                    while ($sRow = $stuQ->fetch_assoc()) {
 
-                        if (count($p) >= 2 && (int)$p[0] === $dayNow && (int)$p[1] === $monthNow) {
+                        if (!empty($sRow['birthday'])) {
 
-                            $bdayStudents[] = $sRow['name'];
+                            $p = explode('/', $sRow['birthday']);
+
+                            if (count($p) >= 2 && (int)$p[0] === $dayNow && (int)$p[1] === $monthNow) {
+
+                                $bdayStudents[] = $sRow['name'];
+
+                            }
 
                         }
 
@@ -42406,23 +42413,21 @@ function checkDailyUnclesNotifications()
 
                 }
 
+
+
+                if (!empty($bdayStudents)) {
+
+                    _sendWebPushToChurch($conn, $churchId, "🎂 أعياد ميلاد اليوم (" . count($bdayStudents) . ")", implode('، ', $bdayStudents), [
+
+                        'notifType' => 'birthday',
+
+                        'url' => '/uncle/dashboard/'
+
+                    ]);
+
+                }
+
             }
-
-
-
-            if (!empty($bdayStudents)) {
-
-                _sendWebPushToChurch($conn, $churchId, "🎂 أعياد ميلاد اليوم (" . count($bdayStudents) . ")", implode('، ', $bdayStudents), [
-
-                    'notifType' => 'birthday',
-
-                    'url' => '/uncle/dashboard/'
-
-                ]);
-
-            }
-
-            $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'birthday')");
 
         }
 
@@ -42444,35 +42449,42 @@ function checkDailyUnclesNotifications()
 
             if ($todayDayOfWeek === $attDay) {
 
-                $classesQ = $conn->query("SELECT id, arabic_name FROM church_classes WHERE church_id=$churchId AND is_active=1");
+                // Attempt to insert immediately to lock this task and prevent concurrent runs
+                $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");
 
-                $unsavedClasses = [];
+                if ($conn->affected_rows > 0) {
 
-                if ($classesQ) {
+                    $classesQ = $conn->query("SELECT id, arabic_name FROM church_classes WHERE church_id=$churchId AND is_active=1");
 
-                    while ($cRow = $classesQ->fetch_assoc()) {
+                    $unsavedClasses = [];
 
-                        $cId = (int)$cRow['id'];
+                    if ($classesQ) {
 
-                        $attQ = $conn->query("
+                        while ($cRow = $classesQ->fetch_assoc()) {
 
-                            SELECT a.id FROM attendance a
+                            $cId = (int)$cRow['id'];
 
-                            JOIN students s ON a.student_id = s.id
+                            $attQ = $conn->query("
 
-                            WHERE s.church_id = $churchId AND s.class_id = $cId AND a.attendance_date = '$todayStr'
+                                SELECT a.id FROM attendance a
 
-                            LIMIT 1
+                                JOIN students s ON a.student_id = s.id
 
-                        ");
+                                WHERE s.church_id = $churchId AND s.class_id = $cId AND a.attendance_date = '$todayStr'
 
-                        if ($attQ && $attQ->num_rows === 0) {
+                                LIMIT 1
 
-                            $stuCount = $conn->query("SELECT id FROM students WHERE church_id=$churchId AND class_id=$cId LIMIT 1");
+                            ");
 
-                            if ($stuCount && $stuCount->num_rows > 0) {
+                            if ($attQ && $attQ->num_rows === 0) {
 
-                                $unsavedClasses[] = $cRow['arabic_name'];
+                                $stuCount = $conn->query("SELECT id FROM students WHERE church_id=$churchId AND class_id=$cId LIMIT 1");
+
+                                if ($stuCount && $stuCount->num_rows > 0) {
+
+                                    $unsavedClasses[] = $cRow['arabic_name'];
+
+                                }
 
                             }
 
@@ -42480,23 +42492,21 @@ function checkDailyUnclesNotifications()
 
                     }
 
+                    
+
+                    if (!empty($unsavedClasses)) {
+
+                        _sendWebPushToChurch($conn, $churchId, "⚠️ غياب تسجيل الحضور", "لم يتم تسجيل حضور اليوم للفصول: " . implode('، ', $unsavedClasses), [
+
+                            'notifType' => 'sync',
+
+                            'url' => '/uncle/dashboard/'
+
+                        ]);
+
+                    }
+
                 }
-
-                
-
-                if (!empty($unsavedClasses)) {
-
-                    _sendWebPushToChurch($conn, $churchId, "⚠️ غياب تسجيل الحضور", "لم يتم تسجيل حضور اليوم للفصول: " . implode('، ', $unsavedClasses), [
-
-                        'notifType' => 'sync',
-
-                        'url' => '/uncle/dashboard/'
-
-                    ]);
-
-                }
-
-                $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");
 
             }
 
