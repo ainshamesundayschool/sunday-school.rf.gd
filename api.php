@@ -1184,6 +1184,16 @@ ini_set('session.cookie_lifetime', 315360000);
 
 session_start();
 
+if (!empty($_POST['dev_override_church_id'])) {
+    $callerRole = $_SESSION['uncle_role'] ?? '';
+    if (in_array(strtolower(trim($callerRole)), ['developer', 'dev'])) {
+        $overrideId = intval($_POST['dev_override_church_id']);
+        if ($overrideId > 0) {
+            $_SESSION['church_id'] = $overrideId;
+        }
+    }
+}
+
 
 
 $configRoot = __DIR__;
@@ -12589,7 +12599,7 @@ function getPublicStats()
 
         $kids_count = $conn->query("SELECT COUNT(*) as cnt FROM students")->fetch_assoc()['cnt'] ?? 0;
 
-        $servants_count = $conn->query("SELECT COUNT(*) as cnt FROM uncles WHERE deleted = 0")->fetch_assoc()['cnt'] ?? 0;
+        $servants_count = $conn->query("SELECT COUNT(*) as cnt FROM uncles WHERE deleted = 0 AND role NOT IN ('developer', 'dev')")->fetch_assoc()['cnt'] ?? 0;
 
         $churches_count = $conn->query("SELECT COUNT(*) as cnt FROM churches WHERE admin_email IS NOT NULL AND admin_email != ''")->fetch_assoc()['cnt'] ?? 0;
 
@@ -12863,7 +12873,7 @@ function getAllChurchesForAdmin()
 
 
 
-        if ($role !== 'developer') {
+        if ($role !== 'developer' && $role !== 'dev') {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح']);
 
@@ -12895,7 +12905,7 @@ function getAllChurchesForAdmin()
 
                     (SELECT COUNT(*) FROM students WHERE church_id = c.id) as student_count,
 
-                    (SELECT COUNT(*) FROM uncles WHERE church_id = c.id AND deleted = 0) as uncle_count
+                    (SELECT COUNT(*) FROM uncles WHERE church_id = c.id AND deleted = 0 AND role NOT IN ('developer', 'dev')) as uncle_count
 
                 FROM churches c
 
@@ -15102,7 +15112,7 @@ function getAllUncles()
                            c.church_name
                     FROM uncles u
                     LEFT JOIN churches c ON u.church_id = c.id
-                    WHERE u.church_id IN ($placeholders) AND (u.deleted IS NULL OR u.deleted = 0)
+                    WHERE u.church_id IN ($placeholders) AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                     ORDER BY c.church_name,
                         CASE u.role 
                             WHEN 'admin' THEN 1
@@ -15115,7 +15125,7 @@ function getAllUncles()
                 $stmt = $conn->prepare("
                     SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
                     FROM uncles u
-                    WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0)
+                    WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                     ORDER BY 
                         CASE u.role 
                             WHEN 'admin' THEN 1
@@ -15131,7 +15141,7 @@ function getAllUncles()
                        c.church_name
                 FROM uncles u
                 LEFT JOIN churches c ON u.church_id = c.id
-                WHERE (u.deleted IS NULL OR u.deleted = 0)
+                WHERE (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                 ORDER BY c.church_name,
                     CASE u.role 
                         WHEN 'admin' THEN 1
@@ -15147,7 +15157,7 @@ function getAllUncles()
 
                 FROM uncles u
 
-                WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0)
+                WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
 
                 ORDER BY 
 
@@ -32139,7 +32149,7 @@ function getClassUncles()
 
             WHERE a.church_id = ? AND a.class_name = ?
 
-              AND (u.deleted IS NULL OR u.deleted = 0)
+              AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
 
             ORDER BY
 

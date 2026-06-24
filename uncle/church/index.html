@@ -10525,7 +10525,8 @@
             // 4. Sidebar identity
             const displayName = sess.name || localStorage.getItem('uncleName') || 'المسؤول';
             document.getElementById('sidebarUserName').textContent = displayName;
-            document.getElementById('sidebarUserRole').textContent = userRole || 'admin';
+            const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
+            document.getElementById('sidebarUserRole').textContent = roleTranslate[userRole] || userRole || 'مسؤول';
             document.getElementById('sidebarAvatar').textContent = displayName.charAt(0);
             document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
             document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
@@ -18387,11 +18388,14 @@
             const fd = mkFd('getSessionInfo');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
 
+            const sessionRole = (d.role || d.uncle_role || '').toLowerCase().trim();
+            const isSessionDev = ['developer', 'dev'].includes(sessionRole);
+
             let targetUncle = null;
-            if (d.success && d.uncle_id) {
+            if (d.success && d.uncle_id && !isSessionDev) {
                 targetUncle = allUncles.find(u => u.id == d.uncle_id);
             }
-            if (!targetUncle) {
+            if (!targetUncle && !isSessionDev) {
                 // fallback to the admin uncle
                 targetUncle = allUncles.find(u => u.role === 'admin')
                     || allUncles.find(u => u.role !== 'uncle' && u.role !== 'developer' && u.role !== 'dev');

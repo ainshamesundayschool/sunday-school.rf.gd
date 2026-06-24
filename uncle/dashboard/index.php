@@ -366,6 +366,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
+        /* ── Developer Church Switcher Pill ── */
+        .dev-church-bar-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            padding: 4px 12px 4px 6px;
+            border-radius: 20px;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        .dev-church-bar-pill:hover {
+            background: rgba(124, 58, 237, 0.12);
+        }
+        .dev-church-bar-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--brand);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+        .dev-church-select-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--brand);
+            cursor: pointer;
+            padding-left: 16px;
+            padding-right: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            max-width: 180px;
+            text-overflow: ellipsis;
+            direction: rtl;
+        }
+        .dev-church-chevron {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6rem;
+            color: var(--brand);
+            pointer-events: none;
+        }
+
         /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS  — Light & Dark
 ═══════════════════════════════════════════════════════════════ */
@@ -10422,6 +10478,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
+                <!-- Dev Switcher in Topbar Actions -->
+                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" style="display:none; align-items:center; margin-inline-end: 8px;">
+                    <div class="dev-church-bar-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div style="position:relative;display:flex;align-items:center;">
+                        <select id="devChurchSelect" class="dev-church-select-input" onchange="devSwitchChurch(this.value)">
+                            <option value="">كنيستي الافتراضية</option>
+                        </select>
+                        <i class="fas fa-chevron-down dev-church-chevron"></i>
+                    </div>
+                </div>
+
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
@@ -11868,6 +11937,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── STATE ─────────────────────────────────────────────────────
         let students = [], classes = [], allStudentsData = [];
         let selectedAnnouncementStudents = [];
+        let isDeveloper = ['developer', 'dev'].includes((localStorage.getItem('uncleRole') || '').toLowerCase().trim());
+        let devViewChurchId = parseInt(localStorage.getItem('devViewChurchId') || 0);
+        let devOrigChurchId = <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
+        let allChurchesCache = [];
         let currentClass = '', currentFriday = '';
         let attendanceData = {}, couponData = {}, absentData = {};
         let originalAttendanceData = {}, originalCouponData = {};
@@ -12071,6 +12144,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (params[k] !== undefined && params[k] !== null)
                     fd.append(k, typeof params[k] === 'object' && k !== 'action' ? JSON.stringify(params[k]) : params[k]);
             });
+            if (isDeveloper && devViewChurchId > 0) {
+                fd.append('dev_override_church_id', devViewChurchId);
+                if (!fd.has('church_id')) {
+                    fd.append('church_id', devViewChurchId);
+                }
+            }
             fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
                 .then(d => {
@@ -12651,11 +12730,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 image_url: localStorage.getItem('uncleImageUrl') || ''
             };
 
+            const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
+            const rText = roleTranslate[(u.role || '').toLowerCase().trim()] || u.role || '';
             document.getElementById('accountDisplayName').textContent = u.name || '';
-            document.getElementById('accountDisplayRole').textContent = u.role || '';
+            document.getElementById('accountDisplayRole').textContent = rText;
             document.getElementById('aiName').textContent = u.name || '';
             document.getElementById('aiUsername').textContent = u.username || '';
-            document.getElementById('aiRole').textContent = u.role || '';
+            document.getElementById('aiRole').textContent = rText;
             document.getElementById('uncleProfileName').value = u.name || '';
             document.getElementById('uncleProfileUsername').value = u.username || '';
             document.getElementById('uncleProfileNewPassword').value = '';
@@ -21468,9 +21549,100 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             } catch (err) { }
         }
+        async function initDevSwitcher() {
+            if (!isDeveloper) return;
+            const container = document.getElementById('devDashboardChurchSwitcher');
+            const select = document.getElementById('devChurchSelect');
+            if (!container || !select) return;
+
+            // Make container visible
+            container.style.display = 'flex';
+
+            try {
+                makeApiCall({ action: 'getAllChurchesForAdmin' }, r => {
+                    if (r.success && Array.isArray(r.churches)) {
+                        allChurchesCache = r.churches;
+                        select.innerHTML = '<option value="">كنيستي الافتراضية</option>';
+                        r.churches.forEach(church => {
+                            const opt = document.createElement('option');
+                            opt.value = church.id;
+                            opt.textContent = church.church_name;
+                            select.appendChild(opt);
+                        });
+
+                        // Set active select value
+                        if (devViewChurchId > 0) {
+                            select.value = devViewChurchId;
+                            updateSwitchedChurchHeader();
+                        }
+                    }
+                }, () => {
+                    console.error("Failed to load dev church list.");
+                });
+            } catch (e) {
+                console.error("Error in initDevSwitcher:", e);
+            }
+        }
+
+        function devSwitchChurch(churchId) {
+            if (!isDeveloper) return;
+            const select = document.getElementById('devChurchSelect');
+            if (churchId) {
+                devViewChurchId = parseInt(churchId);
+                localStorage.setItem('devViewChurchId', devViewChurchId);
+            } else {
+                devViewChurchId = 0;
+                localStorage.removeItem('devViewChurchId');
+            }
+            if (select) {
+                select.value = devViewChurchId || '';
+            }
+
+            // Clear students cache
+            localStorage.removeItem('lastStudentsData');
+
+            // Reset current class view and switch back to main grid
+            disableBulkSelectMode();
+            isCombinedView = false;
+            combinedGroupLabel = '';
+            combinedStudents = [];
+            localStorage.removeItem('currentClass');
+            const classesView = document.getElementById('classesView');
+            const classView = document.getElementById('classView');
+            if (classesView) classesView.style.display = 'flex';
+            if (classView) classView.classList.remove('active');
+            currentClass = '';
+            location.hash = '';
+
+            updateSwitchedChurchHeader();
+
+            // Load data for switched church
+            loadData();
+        }
+
+        function updateSwitchedChurchHeader() {
+            if (!isDeveloper) return;
+            const select = document.getElementById('devChurchSelect');
+            if (devViewChurchId > 0 && allChurchesCache.length) {
+                const targetChurch = allChurchesCache.find(c => c.id == devViewChurchId);
+                if (targetChurch) {
+                    const topbarTitle = document.querySelector('.topbar-title');
+                    if (topbarTitle) topbarTitle.textContent = targetChurch.church_name;
+                    document.title = 'Sunday School — ' + targetChurch.church_name;
+                    return;
+                }
+            }
+            // fallback
+            const origChurchName = localStorage.getItem('churchName') || 'مدارس الأحد';
+            const topbarTitle = document.querySelector('.topbar-title');
+            if (topbarTitle) topbarTitle.textContent = origChurchName;
+            document.title = 'Sunday School — ' + origChurchName;
+        }
+
         window.addEventListener('online', _updateOnlineStatus);
         window.addEventListener('offline', _updateOnlineStatus);
         document.addEventListener('DOMContentLoaded', async () => {
+            initDevSwitcher();
             localStorage.setItem('lastVisitedPortal', 'uncle_dashboard');
             // On first load: only show the offline banner if we're already offline.
             // Do NOT run the "came back online" reconnect logic — that's for transitions only.
