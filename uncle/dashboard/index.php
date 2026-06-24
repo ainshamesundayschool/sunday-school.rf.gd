@@ -977,6 +977,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(1.02);
         }
 
+        .my-class-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            color: white;
+            border-radius: var(--r-xs, 4px);
+            font-size: 0.6rem;
+            padding: 1px 5px;
+            font-weight: 700;
+            font-family: Cairo, sans-serif;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            z-index: 2;
+        }
+
         .class-unsaved-badge {
             position: absolute;
             top: 6px;
@@ -4946,7 +4960,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow-x: auto;
             gap: 10px;
             padding: 4px 2px 10px !important;
-            margin-bottom: 8px !important;
+            margin-bottom: 4px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
             border-top: none !important;
@@ -5065,8 +5079,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: none !important;
             border: none !important;
             box-shadow: none !important;
-            margin-bottom: 8px !important;
-            margin-top: 8px !important;
+            margin-bottom: 4px !important;
+            margin-top: 4px !important;
             padding: 0 !important;
             border-radius: 0 !important;
         }
@@ -7087,7 +7101,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow-x: auto;
             gap: 10px;
             padding: 4px 2px 10px !important;
-            margin-bottom: 8px !important;
+            margin-bottom: 4px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
             border-top: none !important;
@@ -10064,22 +10078,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
-                    style="display:none; margin-bottom: 10px; margin-top: 8px;">
+                    style="display:none; margin-bottom: 2px; margin-top: 4px;">
                     <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
                         class="dashboard-section-toggle-btn">
-                        <i class="fas fa-map-marked-alt icon"></i>
                         <span class="section-title">الرحلات والمؤتمرات</span>
                         <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon"
                             style="transform: rotate(0deg);"></i>
                     </button>
                 </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 6px;"></div>
+                <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 4px;"></div>
 
                 <!-- Birthdays Container -->
-                <div id="mainStatsRow" style="display:none; margin-bottom: 12px;">
-                    <div class="section-head" style="margin-bottom: 10px; margin-top: 8px;">
+                <div id="mainStatsRow" style="display:none; margin-bottom: 6px;">
+                    <div class="section-head" style="margin-bottom: 2px; margin-top: 4px;">
                         <button type="button" onclick="toggleBdayCollapse()" class="dashboard-section-toggle-btn">
-                            <i class="fas fa-birthday-cake icon"></i>
                             <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
                             <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon"
                                 style="transform: rotate(0deg);"></i>
@@ -10116,42 +10128,36 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
+                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; width: 100%; direction: rtl; flex-wrap: nowrap;">
 
-                    <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
-                    <div
-                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                        <!-- Right: Back button + Class name -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Right Column: Back button + Class Name (Row 1) & Uncles List (Row 2) -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0;">
+                        <!-- Back + Class name row -->
+                        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
                                 style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
                                     class="fas fa-arrow-right"></i></button>
                             <h2 class="class-title-text" id="className"
-                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
+                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 الفصل</h2>
                         </div>
-                        <!-- Left: Kids count -->
-                        <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 10px;">
+                        <!-- Uncles avatars (only profile pictures, no label) -->
+                        <div class="uncles-bar" id="unclesBar"
+                            style="display:none; padding: 0 !important; margin-right: 48px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center;">
+                            <div class="uncles-list" id="unclesList"
+                                style="padding: 0; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
-                    <div
-                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
-                        <!-- Right: Uncles bar -->
-                        <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
-                            <span class="uncles-bar-label"
-                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
-                                    class="fas fa-users"></i> الخدام:</span>
-                            <div class="uncles-list" id="unclesList"
-                                style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
-                            </div>
+                    <!-- Left Column: Kids Count (Row 1) & Date/Revert (Row 2) -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; margin-inline-start: 12px;">
+                        <!-- Kids count -->
+                        <div id="classViewCount"
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 4px;">
                         </div>
-
-                        <!-- Left: Date chip and Revert row -->
-                        <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
+                        <!-- Date chip and Revert row -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             <!-- Sync to today -->
                             <button class="btn btn-ghost" id="syncToTodayBtn"
                                 style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
@@ -12215,7 +12221,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             isCombinedView = false;
             combinedGroupLabel = '';
             combinedStudents = [];
-            window.lastClassHighlighted = currentClass;
             localStorage.removeItem('currentClass'); // Clear so home screen reopens to classes grid
             document.getElementById('classesView').style.display = 'flex';
             document.getElementById('classView').classList.remove('active');
@@ -12764,7 +12769,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             // Restore collapsed state
-            const isCollapsed = localStorage.getItem('bdayCollapsed') === 'true';
+            let bdayPref = localStorage.getItem('bdayCollapsed');
+            if (bdayPref === null) {
+                bdayPref = 'false'; // Open by default!
+            }
+            const isCollapsed = bdayPref === 'true';
             if (isCollapsed) {
                 list.style.display = 'none';
                 if (icon) icon.style.transform = 'rotate(-90deg)';
@@ -12875,6 +12884,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return count;
         }
 
+        function isUncleAssignedClass(className) {
+            if (!className) return false;
+            if (window.currentUncle && Array.isArray(window.currentUncle.classes)) {
+                const assigned = window.currentUncle.classes.map(c => c.class_name || c.arabic_name || c);
+                if (assigned.includes(className)) return true;
+            }
+            try {
+                const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
+                if (Array.isArray(cached) && cached.includes(className)) return true;
+            } catch (e) {}
+            return false;
+        }
+
         function displayClasses() {
             const grid = document.getElementById('classesGrid');
             if (!grid) return;
@@ -12952,9 +12974,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-save" style="font-size: .75rem;"></i> ${allUnsaved}
                 </div>
             ` : '';
-            const isAllHighlighted = (window.lastClassHighlighted === '__ALL__');
-            const allHighlightClass = isAllHighlighted ? ' highlighted' : '';
-            const allTogetherHtml = showAllCard ? `<div class="class-card${allHighlightClass}" onclick="showAllTogetherView()"
+            const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
@@ -12975,13 +12995,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                         </div>
                     ` : '';
-                    const isCombHighlighted = (window.lastClassHighlighted === label);
+                    const isCombHighlighted = grpClasses.some(c => isUncleAssignedClass(c));
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
+                    const myCombBadge = isCombHighlighted ? `<span class="my-class-badge" style="background:var(--brand)">فصلي</span>` : '';
                     return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
                 <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
+                ${myCombBadge}
                 ${unsavedHtml}
             </div>`;
                 }).join('');
@@ -12998,12 +13020,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                     </div>
                 ` : '';
-                const isClsHighlighted = (window.lastClassHighlighted === name);
+                const isClsHighlighted = isUncleAssignedClass(name);
                 const clsHighlightClass = isClsHighlighted ? ' highlighted' : '';
+                const myClassBadge = isClsHighlighted ? `<span class="my-class-badge" style="background:${color}">فصلي</span>` : '';
                 return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
+            ${myClassBadge}
             ${unsavedHtml}
         </div>`;
             }).join('');
@@ -13174,7 +13198,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             head.style.display = 'flex';
 
             // Restore collapsed state
-            const isCollapsed = localStorage.getItem('tripsCollapsed') === 'true';
+            let tripsPref = localStorage.getItem('tripsCollapsed');
+            if (tripsPref === null) {
+                tripsPref = 'false'; // Open by default!
+            }
+            const isCollapsed = tripsPref === 'true';
             if (isCollapsed) {
                 container.style.display = 'none';
                 if (icon) icon.style.transform = 'rotate(-90deg)';
