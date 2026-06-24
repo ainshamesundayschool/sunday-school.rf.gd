@@ -1153,7 +1153,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             max-width: 460px;
             width: 100%;
             margin: 0 0 10px;
-            z-index: 15;
+            z-index: 100;
         }
 
         .class-inline-search-wrap button,
@@ -2091,7 +2091,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: sticky;
             top: 58px;
             z-index: 50;
-            border-radius: var(--r-md);
+            border-radius: 0 0 var(--r-md) var(--r-md);
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -10069,7 +10069,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px 8px 16px; flex-wrap: nowrap; direction: rtl;">
+                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0 8px 0; flex-wrap: nowrap; direction: rtl;">
 
                     <!-- RTL Start (physical RIGHT): Back button + Class name + uncles -->
                     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: none;">
