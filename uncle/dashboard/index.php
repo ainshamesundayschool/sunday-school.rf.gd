@@ -2088,10 +2088,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ═══════════════════════════════════════════════════════════════ */
         /* ── Sticky attendance toolbar ─────────────────────────────── */
         .att-toolbar {
-            position: relative;
-            z-index: auto;
+            position: sticky;
+            top: 58px;
+            z-index: 50;
             border-radius: var(--r-md);
             background: var(--bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 8px 8px 6px;
             margin-bottom: 8px;
             transition: background var(--t) var(--ease);
@@ -10112,11 +10115,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
                         </div>
                         <!-- Date chip (clickable pill) -->
-                        <button class="btn btn-ghost btn-sm" id="dateChip" onclick="showPastFridaysModal()"
-                            style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 0 12px; height: 36px;">
-                            <i class="fas fa-calendar-alt" style="font-size: 0.82rem;"></i>
+                        <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
+                            style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--brand-bg); border: 1px solid rgba(91,108,245,.18); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
+                            onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
+                            onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
+                            <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
                             <span id="currentDateText">جاري...</span>
-                        </button>
+                        </div>
                         <!-- Sync to today -->
                         <button class="btn btn-ghost" id="syncToTodayBtn"
                             style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
@@ -10210,8 +10215,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Combined Filter & Sort Rectangle -->
-                    <div class="filter-sort-combine-box btn-ghost" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                    <div class="filter-sort-combine-box" id="filterSortCombineBox"
+                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
