@@ -1278,22 +1278,53 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .class-inline-search-wrap button,
         .class-inline-search-wrap .filter-sort-combine-box {
-            border: none !important;
-            box-shadow: none !important;
-            transform: none !important;
+            background: var(--surface);
+            border: 1px solid var(--border-solid) !important;
+            box-shadow: var(--shadow-sm) !important;
+            transition: all var(--t) var(--ease);
+        }
+
+        [data-theme="light"] .class-inline-search-wrap .filter-sort-combine-box {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(91, 108, 245, 0.12) !important;
+        }
+
+        [data-theme="dark"] .class-inline-search-wrap .filter-sort-combine-box {
+            background: rgba(24, 27, 38, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, 0.08) !important;
         }
 
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
-            border-radius: 18px;
-            box-shadow: none;
-            border: none;
-            transition: background var(--t) var(--ease);
+            border-radius: var(--r-md);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--t) var(--ease);
+        }
+
+        [data-theme="light"] .class-inline-search-wrap .inline-search-box {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(91, 108, 245, 0.12);
+        }
+
+        [data-theme="dark"] .class-inline-search-wrap .inline-search-box {
+            background: rgba(24, 27, 38, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, 0.08);
         }
 
         .class-inline-search-wrap .inline-search-box:focus-within {
-            background: var(--brand-bg);
-            box-shadow: none;
+            border-color: var(--brand) !important;
+            box-shadow: 0 4px 16px var(--brand-glow) !important;
+            background: var(--surface) !important;
+        }
+
+        .class-inline-search-wrap .inline-search-box:focus-within .search-icon {
+            color: var(--brand);
         }
 
         .class-inline-search-wrap .inline-search-box input {
@@ -10560,8 +10591,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box"
-                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                    <div class="inline-search-box" style="flex: 1;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
@@ -10576,7 +10606,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Combined Filter & Sort Rectangle -->
                     <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                        style="display: flex; align-items: center; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
