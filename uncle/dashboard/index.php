@@ -668,8 +668,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             min-height: 40px;
             padding: 0 14px;
             border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            transition: all var(--t) var(--ease);
+            box-shadow: var(--shadow-sm);
+        }
+
+        [data-theme="light"] .topbar-search-wrap .inline-search-box {
             background: rgba(255, 255, 255, .82);
             backdrop-filter: blur(10px);
+            border-color: rgba(91, 108, 245, .1);
+        }
+
+        [data-theme="dark"] .topbar-search-wrap .inline-search-box {
+            background: rgba(24, 27, 38, .82);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, .08);
         }
 
         .topbar-search-wrap .inline-search-box input {
@@ -6916,9 +6930,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .home-tools-link {
             flex: 0 0 auto;
-            background: rgba(255, 255, 255, .78);
-            border: 0px solid var(--border-solid);
-            color: var(--text-3);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
             font-family: inherit;
             cursor: pointer;
             display: inline-flex;
@@ -6930,7 +6944,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-md, 10px);
             transition: all var(--t) var(--ease);
             white-space: nowrap;
-            box-shadow: 0 .5px 0 rgba(255, 255, 255, .72) inset, 0 4px 10px rgba(15, 23, 42, .035);
+            box-shadow: var(--shadow-sm);
         }
 
         .home-tools-link:hover {
@@ -6938,9 +6952,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand);
             color: var(--brand);
             background: var(--brand-bg);
-            box-shadow:
-                0 .5px 0 rgba(255, 255, 255, .74) inset,
-                0 5px 12px rgba(91, 108, 245, .06);
+            box-shadow: 0 5px 12px var(--brand-glow);
         }
 
         .home-tools-rail {
@@ -7211,6 +7223,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-md);
             border-color: var(--brand);
             background: var(--surface-2);
+        }
+
+        /* Birthday of the week (not today): smaller dimensions and soft rose color scheme */
+        .bday-banner-chip:not(.today) {
+            width: 172px;
+            padding: 8px 10px;
+            border-color: rgba(219, 39, 119, 0.16);
+            background: rgba(219, 39, 119, 0.025);
+            gap: 8px;
+        }
+
+        [data-theme="dark"] .bday-banner-chip:not(.today) {
+            border-color: rgba(219, 39, 119, 0.22);
+            background: rgba(219, 39, 119, 0.04);
+        }
+
+        .bday-banner-chip:not(.today):hover {
+            border-color: rgba(219, 39, 119, 0.45);
+            background: rgba(219, 39, 119, 0.07);
+        }
+
+        .bday-banner-chip:not(.today) .bday-chip-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .bday-banner-chip:not(.today) .bday-chip-name {
+            font-size: 0.73rem;
         }
 
         .bday-chip-img {
@@ -9142,6 +9182,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             background: var(--surface);
+            border: 1.5px solid var(--border-solid);
             border-radius: 50px;
             padding: 0 16px;
             box-shadow: var(--shadow-sm);
@@ -9149,8 +9190,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 100%;
         }
 
+        [data-theme="light"] .inline-search-box {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(91, 108, 245, 0.12);
+        }
+
+        [data-theme="dark"] .inline-search-box {
+            background: rgba(24, 27, 38, 0.9);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
         .inline-search-box:focus-within {
-            border-color: var(--brand);
+            border-color: var(--brand) !important;
             box-shadow: 0 4px 16px var(--brand-glow);
             background: var(--surface);
         }
@@ -9159,6 +9212,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text-3);
             font-size: 0.95rem;
             margin-left: 10px;
+            transition: color var(--t) var(--ease);
+        }
+
+        .inline-search-box:focus-within .search-icon {
+            color: var(--brand);
         }
 
         .inline-search-box input {
@@ -9198,7 +9256,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             left: 0;
             right: 0;
             background: var(--surface);
-            border: 1.5px solid var(--border-solid);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-md);
             box-shadow: var(--shadow-lg);
             max-height: 350px;
@@ -9207,62 +9265,106 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
+            
+            /* Smooth opening transition */
             transform-origin: top center;
-            animation: inlineSearchFadeIn 0.2s var(--ease);
+            opacity: 0;
+            transform: translateY(-10px) scaleY(0.95);
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.22s;
         }
 
-        @keyframes inlineSearchFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-8px) scaleY(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scaleY(1);
-            }
+        .inline-search-dropdown.show {
+            opacity: 1;
+            transform: translateY(0) scaleY(1);
+            pointer-events: auto;
+            visibility: visible;
         }
 
         .inline-search-item {
-            background: var(--surface-2);
+            background: transparent;
             padding: 10px 14px;
-            border-radius: var(--r-md);
-            border: 1px solid var(--border-solid);
+            border-radius: var(--r-sm);
+            border: none;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--t) var(--ease);
             text-align: right;
         }
 
         .inline-search-item:hover {
-            background: var(--surface-3);
-            transform: translateY(-1px);
+            background: var(--brand-bg);
+        }
+
+        .inline-search-item-body {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .inline-search-item-name {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color var(--t) var(--ease);
+        }
+
+        .inline-search-item:hover .inline-search-item-name {
+            color: var(--brand) !important;
+        }
+
+        .inline-search-item-class {
+            font-size: 0.75rem;
+            color: var(--text-3);
+        }
+
+        .inline-search-item-arrow {
+            font-size: 0.8rem;
+            color: var(--brand);
+            font-weight: 700;
+            transition: transform var(--t) var(--ease);
+        }
+
+        .inline-search-item:hover .inline-search-item-arrow {
+            transform: translateX(-4px);
         }
 
         @media (max-width: 480px) {
             .inline-search-wrap {
-                width: 90%;
-                margin: 0 auto 6px auto;
-                gap: 6px;
-                padding: 4px 10px;
+                width: 92%;
+                margin: 0 auto 10px auto;
+                gap: 8px;
+                padding: 4px 0;
                 box-sizing: border-box;
             }
 
             .inline-search-box {
-                padding: 0 14px;
+                min-height: 48px;
+                padding: 0 16px;
             }
 
             .inline-search-box input {
-                padding: 8px 0;
-                font-size: 0.85rem;
+                padding: 12px 0;
+                font-size: 0.94rem;
             }
 
             .inline-search-box .search-icon {
-                font-size: 0.85rem;
-                margin-left: 8px;
+                font-size: 0.95rem;
+                margin-left: 10px;
+            }
+
+            .home-tools-link {
+                height: 48px;
+                padding: 0 16px;
+                font-size: 1.05rem;
             }
         }
 
@@ -10250,7 +10352,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <button id="clearTopbarSearchBtn" onclick="clearInlineSearch('topbar')" style="display: none;"><i
                             class="fas fa-times"></i></button>
                 </div>
-                <div class="inline-search-dropdown" id="topbarSearchDropdown" style="display: none;"></div>
+                <div class="inline-search-dropdown" id="topbarSearchDropdown"></div>
             </div>
             <div class="topbar-actions">
                 <!-- Unified Download and Notifications Button -->
@@ -10317,7 +10419,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button id="clearInlineSearchBtn" onclick="clearInlineSearch()" style="display: none;"><i
                                 class="fas fa-times"></i></button>
                     </div>
-                    <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
+                    <div class="inline-search-dropdown" id="inlineSearchDropdown"></div>
                 </div>
 
                 <!-- Birthdays Container -->
@@ -21946,7 +22048,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             ['inlineSearchDropdown', 'topbarSearchDropdown'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
+                if (el) el.classList.remove('show');
             });
             ['inlineSearchInput', 'topbarSearchInput'].forEach(id => {
                 const el = document.getElementById(id);
@@ -22001,14 +22103,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (!q) {
                 container.innerHTML = '';
-                container.style.display = 'none';
+                container.classList.remove('show');
                 return;
             }
 
             const searchData = allStudentsData.length ? allStudentsData : students;
             if (!searchData || !searchData.length) {
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">البيانات غير متاحة.</div>';
-                container.style.display = 'block';
+                container.classList.add('show');
                 return;
             }
 
@@ -22019,7 +22121,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (!results.length) {
                 container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:0.85rem;">لا توجد نتائج مطابقة</div>';
-                container.style.display = 'block';
+                container.classList.add('show');
                 return;
             }
 
@@ -22034,15 +22136,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return `
                 <div class="inline-search-item" onclick="selectStudentFromIntelligentSearch(${id})">
                     ${photo}
-                    <div style="flex:1; overflow:hidden;">
-                        <div style="font-weight:700; color:var(--text); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
-                        <div style="font-size:0.75rem; color:var(--text-3);"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
+                    <div class="inline-search-item-body">
+                        <div class="inline-search-item-name">${name}</div>
+                        <div class="inline-search-item-class"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
                     </div>
-                    <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
+                    <div class="inline-search-item-arrow"><i class="fas fa-chevron-left"></i></div>
                 </div>`;
             }).join('');
 
-            container.style.display = 'flex';
+            container.classList.add('show');
         }
 
         function performClassInlineSearch(val) {
@@ -22092,11 +22194,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const topbarWrap = document.querySelector('.topbar-search-wrap');
             if (wrap && !wrap.contains(e.target)) {
                 const dropdown = document.getElementById('inlineSearchDropdown');
-                if (dropdown) dropdown.style.display = 'none';
+                if (dropdown) dropdown.classList.remove('show');
             }
             if (topbarWrap && !topbarWrap.contains(e.target)) {
                 const dropdown = document.getElementById('topbarSearchDropdown');
-                if (dropdown) dropdown.style.display = 'none';
+                if (dropdown) dropdown.classList.remove('show');
             }
         });
 
@@ -22107,7 +22209,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             input.addEventListener('focus', function () {
                 if (this.value.trim()) {
                     const dropdown = document.getElementById(dropdownId);
-                    if (dropdown) dropdown.style.display = 'flex';
+                    if (dropdown) dropdown.classList.add('show');
                 }
             });
         });
