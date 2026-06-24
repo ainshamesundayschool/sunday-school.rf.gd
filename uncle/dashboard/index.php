@@ -10252,23 +10252,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="bulk-actions-bar-header"
                 style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; direction: rtl; padding-bottom: 8px; border-bottom: 1px solid var(--border-solid);">
 
-                <!-- Right Side: Mode Title + Count Pill -->
-                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                    <span
-                        style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد
-                        جماعي</span>
-                    <span id="bulkSelectedCount" class="selected-count-chip"
-                        style="background: var(--brand); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); min-width: 20px; text-align: center; font-family: Cairo, sans-serif; display: inline-flex; align-items: center; justify-content: center; height: 20px; line-height: 1;">0</span>
+                <!-- Right Side: Select All Checkbox + Label -->
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer;" onclick="toggleSelectAllBulk(event)" title="تحديد الكل">
+                    <div class="bulk-check-wrap" style="display: flex; flex-shrink: 0;">
+                        <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
+                    </div>
+                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد الكل</span>
                 </div>
 
                 <!-- Left Side: Selection Actions + Close Button -->
                 <div style="display: flex; align-items: center; gap: 8px; flex: none;">
-                    <!-- Select all checkbox circle -->
-                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)"
-                        style="display: flex; flex-shrink: 0; cursor: pointer;" title="تحديد الكل">
-                        <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
-                    </div>
-
                     <!-- Dropdown for select by filter -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
                         <button class="btn btn-ghost btn-sm" id="bulkFilterBtn"
@@ -10298,10 +10291,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
 
-                    <!-- Clear selection (Eraser) -->
+                    <!-- Clear selection (Trash) + Count -->
                     <button class="btn btn-ghost btn-sm" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل"
-                        style="height: 30px; width: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-solid) !important; border-radius: var(--r-sm); background: var(--surface-2); box-shadow: none;">
-                        <i class="fas fa-eraser" style="font-size: 0.75rem;"></i>
+                        style="height: 30px; padding: 0 8px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-solid) !important; border-radius: var(--r-sm); background: var(--surface-2); box-shadow: none;">
+                        <i class="fas fa-trash" style="font-size: 0.75rem; color: var(--text-3);"></i>
+                        <span id="bulkSelectedCount" class="selected-count-chip"
+                            style="background: var(--brand); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); min-width: 20px; text-align: center; font-family: Cairo, sans-serif; display: inline-flex; align-items: center; justify-content: center; height: 20px; line-height: 1;">0</span>
                     </button>
 
                     <div style="width: 1px; height: 18px; background: var(--border-solid); margin: 0 4px;"></div>
@@ -14350,10 +14345,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function toggleBulkSelectMode() {
+            const list = document.getElementById('attendanceList');
+            let topBefore = 0;
+            if (list) {
+                topBefore = list.getBoundingClientRect().top;
+            }
+
             isBulkSelectMode = !isBulkSelectMode;
             const toggleBtn = document.getElementById('bulkSelectToggleBtn');
             const actionsBar = document.getElementById('bulkActionsBar');
-            const list = document.getElementById('attendanceList');
 
             if (isBulkSelectMode) {
                 document.body.classList.add('bulk-active');
@@ -14368,7 +14368,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (list) {
                     list.classList.add('bulk-active');
                 }
-                setTimeout(updateBulkBarHeight, 50);
+                // Run synchronously to calculate and apply offset instantly
+                updateBulkBarHeight();
             } else {
                 document.body.classList.remove('bulk-active');
                 if (toggleBtn) {
@@ -14391,6 +14392,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 selectedStudentIds.clear();
                 isMergeChoosingMode = false;
                 updateBulkUI();
+            }
+
+            // Correct scroll offset if a shift occurred
+            if (list) {
+                const topAfter = list.getBoundingClientRect().top;
+                const diff = topAfter - topBefore;
+                if (diff !== 0) {
+                    window.scrollBy(0, diff);
+                }
             }
         }
 
