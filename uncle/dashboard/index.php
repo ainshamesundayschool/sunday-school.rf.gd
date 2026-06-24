@@ -15437,7 +15437,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Refresh UI
             refreshKidQrScanUI();
-            showToast('تم إزالة الطفل من السجل', 'info');
         }
 
         function clearAllKidQrScans() {
@@ -15475,7 +15474,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Refresh UI
             refreshKidQrScanUI();
-            showToast('تم مسح السجل بالكامل', 'info');
         }
 
         function recordKidQrScan(studentId) {
@@ -16247,7 +16245,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 renderAttendanceList(currentClass);
                 updateSaveBtns();
             }
-            showToast('تم إزالة التغيير', 'info');
             showUnsavedModal(); // refresh modal
         }
 
@@ -16257,7 +16254,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             saveCouponDataForClass(currentClass);
             renderAttendanceList(currentClass);
             updateSaveBtns();
-            showToast('تم إزالة تغيير الكوبون', 'info');
             showUnsavedModal();
         }
 
@@ -17966,7 +17962,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             hidePastFridaysModal();
-            showToast('تم تحميل بيانات ' + date, 'success');
         }
         function resetToCurrentFriday() {
             localStorage.removeItem('selectedFriday');
@@ -17991,7 +17986,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             hidePastFridaysModal();
-            showToast('تم العودة لآخر ' + getAttendanceDayName(), 'success');
         }
         function getAttendanceDayName() {
             const names = { 1: 'اثنين', 2: 'ثلاثاء', 3: 'أربعاء', 4: 'خميس', 5: 'جمعة', 6: 'سبت', 7: 'أحد' };
@@ -18045,7 +18039,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             sheetDateFrom = from;
             sheetDateTo = to;
             renderSheetTable();
-            showToast('تم تطبيق نطاق التاريخ', 'success');
         }
         function clearSheetDateRange() {
             sheetDateFrom = '';
