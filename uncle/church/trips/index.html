@@ -12507,11 +12507,25 @@
           if (banner) banner.style.display = 'none';
         }
 
-        // Count stats
+        // Count stats (uncles occupy beds as well)
+        let totalUnclesCount = 0;
+        roomsConfig.forEach(bld => {
+          const countUncles = (r) => {
+            if (!r.is_excluded) {
+              totalUnclesCount += (r.uncles || []).length;
+            }
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(countUncles));
+          } else {
+            (bld.rooms || []).forEach(countUncles);
+          }
+        });
+
         const assignedKids = Object.keys(allocatedMap);
         const assignedCount = assignedKids.length;
         const totalKids = regs.length;
-        const remainingCapacity = Math.max(0, totalCapacity - assignedCount);
+        const remainingCapacity = Math.max(0, totalCapacity - (assignedCount + totalUnclesCount));
 
         // Stats Bar HTML
         const statsBar = document.getElementById('roomsStatsBar');
@@ -12601,8 +12615,9 @@
         const assignedGender = room.gender_filter || (boyCount > 0 ? 'male' : (girlCount > 0 ? 'female' : null));
         const genderClass = assignedGender === 'male' ? 'rooms-gender-boy' : (assignedGender === 'female' ? 'rooms-gender-girl' : '');
 
-        // Capacity calculation
-        const occupied = roomKids.length;
+        // Capacity calculation (kids + uncles occupy beds)
+        const unclesCount = (room.uncles || []).length;
+        const occupied = roomKids.length + unclesCount;
         const capacity = room.capacity;
         const isOverCapacity = occupied > capacity;
         const fillPercent = Math.min(100, (occupied / capacity) * 100);
@@ -13244,6 +13259,20 @@
         let assignedName = '';
         const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
         if (selectedUncle) assignedName = selectedUncle.name;
+
+        // Prevent duplicate uncle assignments by removing them from any other room first
+        roomsConfig.forEach(bld => {
+          const cleanRoom = (r) => {
+            if (r.uncles) {
+              r.uncles = r.uncles.filter(u => u.id != uncleId);
+            }
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(cleanRoom));
+          } else {
+            (bld.rooms || []).forEach(cleanRoom);
+          }
+        });
 
         roomsConfig.forEach(bld => {
           if (bld.name === bldName) {
