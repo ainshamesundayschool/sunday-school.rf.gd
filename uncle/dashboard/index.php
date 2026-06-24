@@ -4096,7 +4096,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .modal-header::before {
             content: '';
             position: absolute;
-            top: -12px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             width: 36px;
@@ -4109,7 +4109,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 22px;
+            margin-top: 0;
             margin-bottom: 14px;
             padding-bottom: 12px;
             border-bottom: 1.5px solid var(--border-solid);
@@ -4117,7 +4117,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             top: 0;
             background: var(--surface);
             z-index: 10;
-            padding-top: 8px;
+            padding-top: 24px;
             margin-inline: -20px;
             padding-inline: 20px;
             transition: background var(--t) var(--ease);
