@@ -10590,7 +10590,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Class inline search wrap -->
                 <div class="class-inline-search-wrap"
-                    style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                    style="display: flex; gap: 2px; align-items: center; margin-bottom: 12px;">
 
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
