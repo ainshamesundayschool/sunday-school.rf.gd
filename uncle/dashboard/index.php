@@ -7094,18 +7094,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
         .tool-card {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "icon name"
+                "icon desc";
             align-items: center;
-            text-align: center;
-            gap: 8px;
-            padding: 16px 14px;
+            column-gap: 16px;
+            row-gap: 4px;
+            text-align: right;
+            padding: 14px 18px;
             border-radius: var(--r-xl);
             background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .98));
             border: 1px solid var(--border-solid);
@@ -7116,6 +7120,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 0 1px 0 rgba(255, 255, 255, .78) inset,
                 0 10px 22px rgba(15, 23, 42, .05);
             font-family: inherit;
+            width: 100%;
         }
 
         .tool-card:hover {
@@ -7127,29 +7132,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .tool-card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
+            grid-area: icon;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
             background: var(--brand-bg);
             color: var(--brand);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             box-shadow:
                 0 1px 0 rgba(255, 255, 255, .8) inset,
                 0 10px 18px rgba(91, 108, 245, .12);
         }
 
         .tool-card-name {
-            font-size: .84rem;
+            grid-area: name;
+            font-size: .88rem;
             font-weight: 800;
             color: var(--text);
         }
 
         .tool-card-desc {
-            font-size: .68rem;
-            line-height: 1.5;
+            grid-area: desc;
+            font-size: .74rem;
+            line-height: 1.4;
             color: var(--text-3);
             font-weight: 600;
         }
@@ -10037,8 +10045,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-plus"></i> إضافة امتحان جديد
                         </button>
                     </div>
-                    <div id="paperExamsList" class="tools-grid"
-                        style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+                    <div id="paperExamsList" class="tools-grid">
                         <!-- Filled by JS -->
                     </div>
                 </div>
@@ -14051,7 +14058,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 let badges = '';
                 if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
                 if (isOfflineAttSaved) {
-                    badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين ☁️</span>';
+                    badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين</span>';
                 } else if (st === 'pending' && !isInChanged) {
                     badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
                 } else if (st === 'pending' && isInChanged) {
@@ -14204,7 +14211,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let badges = '';
             if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
             if (isOfflineAttSaved) {
-                badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين ☁️</span>';
+                badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين</span>';
             } else if (st === 'pending' && !isInChanged) {
                 badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
             } else if (st === 'pending' && isInChanged) {
@@ -23473,7 +23480,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function loadPaperExamsList() {
             const listContainer = document.getElementById('paperExamsList');
             if (!listContainer) return;
-            listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الامتحانات…</div>';
+            listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الامتحانات…</div>';
 
             try {
                 const fd = new FormData();
@@ -23482,20 +23489,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 if (resp.success && resp.exams) {
                     if (resp.exams.length === 0) {
-                        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
+                        listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
                         return;
                     }
                     listContainer.innerHTML = resp.exams.map(exam => `
-                        <div class="tool-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:16px; min-height:140px;">
+                        <div class="tool-card" style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:14px 18px; width:100%; gap:14px;">
                             <div>
                                 <h4 style="margin:0 0 6px 0; font-weight:800; color:var(--text);">${escHtml(exam.name)}</h4>
-                                <div style="font-size:0.78rem; color:var(--text-3); display:flex; flex-direction:column; gap:4px;">
+                                <div style="font-size:0.78rem; color:var(--text-3); display:flex; flex-direction:row; gap:12px;">
                                     <span>الدرجة الكلية: <strong>${exam.total_degree}</strong></span>
                                     <span>الفصل: <strong>${escHtml(getExamClassesLabel(exam))}</strong></span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;">
-                                <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px; flex:1;" onclick="openExamSheet(${exam.id})">
+                            <div style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
+                                <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="openExamSheet(${exam.id})">
                                     <i class="fas fa-list-ol"></i> رصد الدرجات
                                 </button>
                                 <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
