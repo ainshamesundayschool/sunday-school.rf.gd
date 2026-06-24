@@ -410,7 +410,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --bg: #f3f4f9;
             --surface: #ffffff;
             --surface-2: #f7f8fc;
-            --surface-3: #eef0f8;
+            --surface-3: #eceef7;
             --border: rgba(91, 108, 245, .12);
             --border-solid: #e4e6f0;
             --text: #1a1d2e;
@@ -10080,56 +10080,47 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 8px 16px;">
-                    <div class="class-topbar-left"
-                        style="display: flex; align-items: flex-start; gap: 10px; width: 100%;">
-                        <button class="btn btn-ghost btn-sm" id="backBtn"
-                            style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;margin-top:2px;"><i
-                                class="fas fa-arrow-right"></i></button>
+                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px 8px 16px; flex-wrap: nowrap;">
 
-                        <div class="class-title-and-sub"
-                            style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-                            <div style="display: flex; align-items: center;">
-                                <h2 class="class-title-text" id="className"
-                                    style="font-size: 1.6rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">
-                                    الفصل</h2>
-                            </div>
+                    <!-- Left: Date + Kids count stacked -->
+                    <div style="display: flex; flex-direction: column; gap: 3px; flex: none;">
+                        <!-- Date -->
+                        <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
+                            style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
+                            <i class="fas fa-calendar-alt" style="font-size: 0.85rem; color: var(--brand);"></i>
+                            <span id="currentDateText">جاري...</span>
+                        </div>
+                        <!-- Sync to today -->
+                        <button class="btn btn-ghost" id="syncToTodayBtn"
+                            style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
+                            onclick="resetToCurrentFriday()" title="العودة لليوم">
+                            <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
+                        </button>
+                        <!-- Kids count -->
+                        <div id="classViewCount"
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
                         </div>
                     </div>
 
-                    <div class="class-meta-sub"
-                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px;">
-                        <!-- Date display stack (at the start) -->
+                    <!-- Right: Back button + Class name (stacked), then uncles below -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none;">
+                        <!-- Back + Class name row -->
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.8rem; font-weight: 700; cursor: pointer; background: none; border: none; padding: 0; box-shadow: none;">
-                                <i class="fas fa-calendar-alt" style="font-size: 0.85rem; color: var(--brand);"></i>
-                                <span id="currentDateText">جاري...</span>
-                            </div>
-                            <!-- Sync to today -->
-                            <button class="btn btn-ghost" id="syncToTodayBtn"
-                                style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
-                                onclick="resetToCurrentFriday()" title="العودة لليوم">
-                                <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
-                            </button>
+                            <h2 class="class-title-text" id="className"
+                                style="font-size: 1.4rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2; text-align: end;">
+                                الفصل</h2>
+                            <button class="btn btn-ghost btn-sm" id="backBtn"
+                                style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;"><i
+                                    class="fas fa-arrow-right"></i></button>
                         </div>
-                        <!-- Wrapper for kids count and uncles bar (at the left end) -->
-                        <div
-                            style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-inline-start: auto; flex: none;">
-                            <!-- Kids count (above) -->
-                            <div id="classViewCount"
-                                style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; margin-bottom: 2px;">
-                            </div>
-
-                            <!-- Uncles list (below) -->
-                            <div class="uncles-bar" id="unclesBar"
-                                style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important;">
-                                <span class="uncles-bar-label"
-                                    style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
-                                        class="fas fa-users"></i> الخدام:</span>
-                                <div class="uncles-list" id="unclesList"
-                                    style="padding-right: 4px; margin: 0 !important;"></div>
-                            </div>
+                        <!-- Uncles bar -->
+                        <div class="uncles-bar" id="unclesBar"
+                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important; justify-content: flex-end;">
+                            <span class="uncles-bar-label"
+                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
+                                    class="fas fa-users"></i> الخدام:</span>
+                            <div class="uncles-list" id="unclesList"
+                                style="padding-right: 4px; margin: 0 !important;"></div>
                         </div>
                     </div>
                 </div>
@@ -10170,34 +10161,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="box-shadow: none !important; border-bottom: 1.5px solid var(--border-solid); padding: 8px 12px; min-height: 54px; height: auto; display: flex; align-items: center; background: var(--bg);">
                     <div class="toolbar-row"
                         style="display: flex; align-items: center; justify-content: flex-start; gap: 16px; width: 100%; direction: rtl !important;">
-                        <div class="toolbar-stats"
-                            style="display: grid; grid-template-columns: repeat(2, auto); gap: 2px 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
-                            <span class="toolbar-stat"
-                                style="font-size: 0.72rem; color: var(--text-2); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
-                                <i class="fas fa-users" style="font-size: 0.72rem; color: var(--text-3);"></i>
-                                <span style="font-weight: 700;" id="tbTotalVal">0</span>
-                                <span style="font-size: 0.65rem; color: var(--text-3);">طفل</span>
-                            </span>
-                            <span class="toolbar-stat s"
-                                style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
-                                <i class="fas fa-check" style="font-size: 0.72rem;"></i>
-                                <span style="font-weight: 700;" id="tbPresentVal">0</span>
-                                <span style="font-size: 0.65rem; color: var(--text-3);">حاضر</span>
-                            </span>
-                            <span class="toolbar-stat a"
-                                style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
-                                <i class="fas fa-times" style="font-size: 0.72rem;"></i>
-                                <span style="font-weight: 700;" id="tbAbsentVal">0</span>
-                                <span style="font-size: 0.65rem; color: var(--text-3);">غائب</span>
-                            </span>
-                            <span class="toolbar-stat c"
-                                style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
-                                <i class="fas fa-star" style="font-size: 0.72rem; color: var(--coupon);"></i>
-                                <span style="font-weight: 700;" id="tbCouponsVal">0</span>
-                                <span style="font-size: 0.65rem; color: var(--text-3);">متوسط</span>
-                            </span>
-                        </div>
-                        <div class="save-row" style="flex: none; display: flex; align-items: center;">
+                        <!-- Save button at the left end -->
+                        <div class="save-row" style="flex: none; display: flex; align-items: center; margin-inline-end: auto;">
                             <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()"
                                 style="min-width: 70px; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; gap: 6px; box-shadow: none; border: none; background: var(--surface-3); color: var(--text-3); cursor: pointer;">
@@ -10209,6 +10174,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </span>
                             </button>
                         </div>
+                        <!-- Stats (no total kids) -->
+                        <div class="toolbar-stats"
+                            style="display: flex; align-items: center; gap: 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
+                            <span class="toolbar-stat s"
+                                style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-check" style="font-size: 0.72rem; color: var(--success);"></i>
+                                <span style="font-weight: 700;" id="tbPresentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--success);">حاضر</span>
+                            </span>
+                            <span class="toolbar-stat a"
+                                style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-times" style="font-size: 0.72rem; color: var(--danger);"></i>
+                                <span style="font-weight: 700;" id="tbAbsentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--danger);">غائب</span>
+                            </span>
+                            <span class="toolbar-stat c"
+                                style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-star" style="font-size: 0.72rem; color: var(--coupon);"></i>
+                                <span style="font-weight: 700;" id="tbCouponsVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--coupon, #d97706);">متوسط</span>
+                            </span>
+                        </div>
+                        <!-- keep tbTotalVal in DOM (hidden) so JS doesn't break -->
+                        <span id="tbTotalVal" style="display:none;">0</span>
                     </div>
                 </div>
 
@@ -10251,10 +10240,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box" style="flex: 1;">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="classSearchInput" placeholder="بحث عن طفل في هذا الفصل..."
-                            oninput="performClassInlineSearch(this.value)" autocomplete="off">
+                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                        <input type="text" id="classSearchInput" placeholder="بحث ..."
+                            oninput="performClassInlineSearch(this.value)" autocomplete="off"
+                            style="padding: 9px 0; font-size: 0.88rem;">
                         <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
                             title="مسح QR الطفل"
                             style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
@@ -17828,12 +17817,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 btn.style.borderColor = 'transparent';
                 btn.style.background = 'var(--brand-bg)';
                 btn.style.color = 'var(--brand)';
+                btn.style.borderRadius = 'var(--r-sm)';
+                btn.querySelector('i').className = 'fas fa-sliders-h';
                 if (box) box.style.borderRadius = '0px';
             } else {
                 panel.style.display = 'none';
                 btn.style.borderColor = 'transparent';
                 btn.style.background = 'transparent';
                 btn.style.color = 'var(--text)';
+                btn.style.borderRadius = '';
+                btn.querySelector('i').className = 'fas fa-filter';
                 if (box) box.style.borderRadius = 'var(--r-md)';
             }
         }
