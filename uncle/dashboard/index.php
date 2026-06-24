@@ -9820,10 +9820,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
             <div class="bulk-actions-bar-header"
                 style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; direction: rtl; padding-bottom: 8px; border-bottom: 1px solid var(--border-solid);">
-                
+
                 <!-- Right Side: Mode Title + Count Pill -->
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد جماعي</span>
+                    <span
+                        style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد
+                        جماعي</span>
                     <span id="bulkSelectedCount" class="selected-count-chip"
                         style="background: var(--brand); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); min-width: 20px; text-align: center; font-family: Cairo, sans-serif; display: inline-flex; align-items: center; justify-content: center; height: 20px; line-height: 1;">0</span>
                 </div>
@@ -9831,8 +9833,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Left Side: Selection Actions + Close Button -->
                 <div style="display: flex; align-items: center; gap: 8px; flex: none;">
                     <!-- Select all checkbox circle -->
-                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex-shrink: 0; cursor: pointer;"
-                        title="تحديد الكل">
+                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)"
+                        style="display: flex; flex-shrink: 0; cursor: pointer;" title="تحديد الكل">
                         <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                     </div>
 
@@ -10092,7 +10094,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
                     <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
-                    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                    <div
+                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
                         <!-- Right: Back button + Class name -->
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
@@ -10104,22 +10107,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <!-- Left: Kids count -->
                         <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; class-topbar">
                         </div>
                     </div>
 
                     <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
-                    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                    <div
+                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
                         <!-- Right: Uncles bar -->
                         <div class="uncles-bar" id="unclesBar"
                             style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
                             <span class="uncles-bar-label"
                                 style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
                                     class="fas fa-users"></i> الخدام:</span>
-                            <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                            <div class="uncles-list" id="unclesList"
+                                style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
                             </div>
                         </div>
-                        
+
                         <!-- Left: Date chip and Revert row -->
                         <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
                             <!-- Sync to today -->
@@ -10210,7 +10215,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                    <div class="inline-search-box"
+                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
