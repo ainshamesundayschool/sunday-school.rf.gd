@@ -2191,26 +2191,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ═══════════════════════════════════════════════════════════════ */
         /* ── Sticky attendance toolbar ─────────────────────────────── */
         .att-toolbar {
-            position: fixed;
+            position: sticky;
             bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
             z-index: 150;
             border-radius: var(--r-md) var(--r-md) 0 0;
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 8px 12px;
-            margin: 0;
+            margin-top: 8px;
+            margin-bottom: 0;
             transition: background var(--t) var(--ease);
             box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04) !important;
             border-top: 1px solid var(--border-solid) !important;
-            box-sizing: border-box;
-        }
-
-        .class-sticky-toolbars-wrapper {
-            display: contents;
         }
 
         .att-toolbar ::-webkit-scrollbar {
@@ -9446,41 +9439,80 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     max-width: 600px !important;
                 }
 
-                .class-inline-search-wrap {
-                    position: static !important;
-                    background: transparent !important;
-                    padding: 0 !important;
-                    width: auto !important;
-                    max-width: 500px !important;
-                    margin: 0 !important;
+                .topbar-btn {
+                    height: 42px !important;
+                    min-width: 42px !important;
+                    font-size: .95rem !important;
+                    box-shadow: none !important;
                 }
-                .class-sticky-toolbars-wrapper {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    align-items: center !important;
-                    justify-content: space-between !important;
-                    gap: 20px !important;
+                .data-table th, 
+                .data-table td {
+                    padding: 12px 16px !important;
+                    font-size: 0.95rem !important;
+                }
+                .kid-card {
+                    padding: 16px 20px !important;
+                }
+                .kid-name {
+                    font-size: 1.2rem !important;
+                }
+                .inline-search-wrap {
+                    max-width: 600px !important;
+                }
+                .class-view {
+                    display: grid !important;
+                    grid-template-columns: 1fr auto !important;
+                    gap: 0 16px !important;
+                    width: 100% !important;
+                }
+                .class-topbar {
+                    grid-column: 1 / -1 !important;
+                    grid-row: 1 !important;
+                }
+                .class-inline-search-wrap {
+                    grid-column: 1 !important;
+                    grid-row: 2 !important;
                     position: sticky !important;
                     top: 72px !important;
                     background: var(--bg) !important;
                     z-index: 100 !important;
                     padding: 10px 0 !important;
                     border-bottom: 1px solid var(--border-solid) !important;
-                    margin-bottom: 16px !important;
+                    margin: 0 0 16px 0 !important;
+                    max-width: none !important;
                     width: 100% !important;
                     box-sizing: border-box !important;
                 }
-                .class-sticky-toolbars-wrapper .att-toolbar {
-                    position: static !important;
+                .att-toolbar {
+                    grid-column: 2 !important;
+                    grid-row: 2 !important;
+                    position: sticky !important;
+                    top: 72px !important;
+                    bottom: auto !important;
+                    background: var(--bg) !important;
+                    z-index: 100 !important;
+                    padding: 10px 0 !important;
+                    border-bottom: 1px solid var(--border-solid) !important;
+                    margin: 0 0 16px 0 !important;
                     width: auto !important;
-                    flex: 0 0 auto !important;
-                    background: transparent !important;
-                    border: none !important;
+                    border-top: none !important;
+                    border-radius: 0 !important;
                     box-shadow: none !important;
-                    padding: 0 !important;
-                    margin: 0 !important;
                     backdrop-filter: none !important;
                     -webkit-backdrop-filter: none !important;
+                    box-sizing: border-box !important;
+                }
+                .pending-section {
+                    grid-column: 1 / -1 !important;
+                    grid-row: 3 !important;
+                }
+                .class-filters-panel {
+                    grid-column: 1 / -1 !important;
+                    grid-row: 4 !important;
+                }
+                .attendance-list {
+                    grid-column: 1 / -1 !important;
+                    grid-row: 5 !important;
                 }
                 body.bulk-active .att-toolbar {
                     position: static !important;
@@ -10372,10 +10404,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <div class="class-sticky-toolbars-wrapper">
-                    <!-- Class inline search wrap -->
-                    <div class="class-inline-search-wrap"
-                        style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                <!-- Class inline search wrap -->
+                <div class="class-inline-search-wrap"
+                    style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
                         
                         <!-- 3 Vertical Dots Tools Button (Before Search) -->
                         <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
@@ -10497,7 +10528,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
-                </div>
 
                 <!-- Pending registrations -->
                 <div class="pending-section" id="pendingRegistrationsSection">
@@ -10588,6 +10618,46 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div class="attendance-list" id="attendanceList"></div>
 
+                <!-- Sticky attendance toolbar (always at the bottom on mobile, side-by-side on desktop) -->
+                <div class="att-toolbar">
+                    <div class="toolbar-row"
+                        style="display: flex; align-items: center; gap: 12px; width: 100%; direction: rtl;">
+                        <!-- Stats (RTL start = physical right) -->
+                        <div class="toolbar-stats"
+                            style="display: flex; align-items: center; gap: 12px; flex: none; line-height: 1.2; font-family: Cairo, sans-serif;">
+                            <span class="toolbar-stat s"
+                                style="font-size: 0.72rem; color: var(--success); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-check" style="font-size: 0.72rem; color: var(--success);"></i>
+                                <span style="font-weight: 700;" id="tbPresentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--success);">حاضر</span>
+                            </span>
+                            <span class="toolbar-stat a"
+                                style="font-size: 0.72rem; color: var(--danger); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-times" style="font-size: 0.72rem; color: var(--danger);"></i>
+                                <span style="font-weight: 700;" id="tbAbsentVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--danger);">غائب</span>
+                            </span>
+                            <span class="toolbar-stat c"
+                                style="font-size: 0.72rem; color: var(--coupon-dark, #b45309); display: flex; align-items: center; gap: 4px; padding: 0; margin: 0; background: none; box-shadow: none;">
+                                <i class="fas fa-star" style="font-size: 0.72rem; color: var(--coupon);"></i>
+                                <span style="font-weight: 700;" id="tbCouponsVal">0</span>
+                                <span style="font-size: 0.65rem; color: var(--coupon, #d97706);">متوسط</span>
+                            </span>
+                        </div>
+                        <!-- keep tbTotalVal in DOM (hidden) so JS doesn't break -->
+                        <span id="tbTotalVal" style="display:none;">0</span>
+                        <!-- Save button at RTL end (physical LEFT), grows on mobile -->
+                        <div class="save-row"
+                            style="margin-inline-start: auto; display: flex; align-items: center; flex: 1; max-width: 120px;">
+                            <button class="btn btn-ghost btn-sm save-btn" id="saveAllBtn" disabled title="التغييرات"
+                                onclick="showUnsavedModal()"
+                                style="width: 100%; height: 36px; padding: 0 12px; flex-direction: row !important;">
+                                <i class="fas fa-save" style="font-size: 0.9rem;"></i>
+                                <span class="save-btn-label" style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- end classView -->
 
