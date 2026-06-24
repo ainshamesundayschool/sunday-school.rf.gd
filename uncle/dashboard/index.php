@@ -7470,7 +7470,93 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        /* ── PWA install modal ── */
+        #pwaInstallModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            backdrop-filter: blur(8px);
+            z-index: 9999997;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
 
+        #pwaInstallModal.show {
+            display: flex;
+        }
+
+        .pwa-install-sheet {
+            background: var(--surface);
+            border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+            padding: 24px 20px 36px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, .25);
+            animation: sheetUp .35s var(--spring);
+            text-align: center;
+        }
+
+        .pwa-icon-big {
+            width: 84px;
+            height: 84px;
+            border-radius: 22px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #5b6cf5, #8b5cf6);
+            box-shadow:
+                0 0 0 6px rgba(181, 190, 248, .22),
+                0 0 0 12px rgba(181, 190, 248, .08),
+                0 8px 28px rgba(181, 190, 248, .50);
+            animation: pwaIconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pwaIconPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 6px rgba(181, 190, 248, .25), 0 0 0 12px rgba(181, 190, 248, .10), 0 8px 28px rgba(181, 190, 248, .45);
+            }
+
+            50% {
+                box-shadow: 0 0 0 9px rgba(181, 190, 248, .30), 0 0 0 18px rgba(181, 190, 248, .08), 0 8px 36px rgba(181, 190, 248, .60);
+            }
+        }
+
+        .pwa-steps {
+            background: var(--surface-3);
+            border-radius: var(--r-lg);
+            padding: 14px;
+            margin: 16px 0;
+            text-align: right;
+        }
+
+        .pwa-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 6px 0;
+            font-size: .84rem;
+            color: var(--text-2);
+        }
+
+        .pwa-step-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--brand);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
 
         /* ══ SWIPE MODE ══════════════════════════════════════════════ */
 
@@ -9640,6 +9726,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <button onclick="document.getElementById('offlineBanner').classList.remove('show')"
             style="background:rgba(255,255,255,.2);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i
                 class="fas fa-times"></i></button>
+    </div>    <!-- PWA INSTALL MODAL -->
+    <div id="pwaInstallModal" onclick="if(event.target===this)closePwaModal()">
+        <div class="pwa-install-sheet">
+            <div class="pwa-icon-big">
+                <img src="/logo.png" alt="مدارس الأحد" style="width:84px;height:84px;object-fit:cover;display:block"
+                    onerror="this.outerHTML='<i class=\'fas fa-cross\'style=\'font-size:2rem;color:#fff\'></i>'">
+            </div>
+            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تنزيل التطبيق على الهاتف</h3>
+            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px" id="pwaModalDescription">ثبّت التطبيق على شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت</p>
+            <div class="pwa-steps" id="pwaSteps">
+                <!-- filled by JS based on OS -->
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
+                    style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
+                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس الآن</button>
+            </div>
+        </div>
     </div>
 
     <!-- TOAST -->
@@ -19784,18 +19888,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
              // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
             const modalObserver = new MutationObserver(() => {
-                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay')).some(el => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
                 document.documentElement.classList.toggle('modal-open', hasActiveModal);
                 document.body.classList.toggle('modal-open', hasActiveModal);
             });
-            document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay').forEach(el => {
+            document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal').forEach(el => {
                 modalObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
             });
             // Sync initial state
             const syncModalOpenState = () => {
-                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay')).some(el => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
                 document.documentElement.classList.toggle('modal-open', hasActiveModal);
@@ -20607,6 +20711,69 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ══════════════════════════════════════════════════════════════
         let _pwaPrompt = null;
 
+        // Capture the install prompt
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            _pwaPrompt = e;
+        });
+
+        // App installed
+        window.addEventListener('appinstalled', () => {
+            _pwaPrompt = null;
+            closePwaModal();
+            showToast('✅ تم تثبيت التطبيق بنجاح!', 'success');
+        });
+
+        function triggerPwaInstall(customDesc) {
+            const descEl = document.getElementById('pwaModalDescription');
+            if (descEl) {
+                descEl.textContent = customDesc || 'ثبّت التطبيق على شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت';
+            }
+            // Detect OS for instructions
+            const ua = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const stepsEl = document.getElementById('pwaSteps');
+            const installBtn = document.getElementById('pwaInstallNowBtn');
+
+            if (_pwaPrompt) {
+                // Native prompt available (Android Chrome)
+                if (stepsEl) stepsEl.innerHTML = `
+            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط "تثبيت الآن" أدناه</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">2</div><div>وافق على طلب التثبيت</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">3</div><div>افتح التطبيق من الشاشة الرئيسية</div></div>`;
+                if (installBtn) installBtn.style.display = 'flex';
+            } else if (isIOS) {
+                if (stepsEl) stepsEl.innerHTML = `
+            <div style="font-weight:700;color:var(--brand);margin-bottom:8px;font-size:.84rem">على iPhone / iPad:</div>
+            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط زر المشاركة <i class="fas fa-share-square" style="color:var(--brand)"></i> في أسفل المتصفح</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "إضافة إلى الشاشة الرئيسية"</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">3</div><div>اضغط "إضافة" — سيظهر أيقونة التطبيق</div></div>`;
+                if (installBtn) installBtn.style.display = 'none';
+            } else {
+                if (stepsEl) stepsEl.innerHTML = `
+            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط قائمة المتصفح ⋮ أو ⋯</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"</div></div>
+            <div class="pwa-step"><div class="pwa-step-num">3</div><div>وافق على التثبيت</div></div>`;
+                if (installBtn) installBtn.style.display = 'none';
+            }
+            document.getElementById('pwaInstallModal').classList.add('show');
+        }
+
+        async function doPwaInstall() {
+            if (!_pwaPrompt) return;
+            _pwaPrompt.prompt();
+            const { outcome } = await _pwaPrompt.userChoice;
+            if (outcome === 'accepted') {
+                _pwaPrompt = null;
+                closePwaModal();
+            }
+        }
+
+        function closePwaModal() {
+            const modal = document.getElementById('pwaInstallModal');
+            if (modal) modal.classList.remove('show');
+        }
+
         // ── VAPID public key (set this to your server's VAPID public key) ──────────
         // Generate a VAPID key pair on your server with:
         //   php artisan webpush:vapid  OR  npx web-push generate-vapid-keys
@@ -20871,9 +21038,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (panelNotifBtn) {
                 panelNotifBtn.style.display = 'flex';
                 if (!pushSupported) {
-                    panelNotifBtn.querySelector('span').textContent = 'غير مدعوم بالمتصفح';
-                    panelNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
-                    panelNotifBtn.disabled = true;
+                    panelNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                    panelNotifBtn.querySelector('i').className = 'fas fa-bell';
+                    panelNotifBtn.disabled = false;
+                    panelNotifBtn.style.background = '';
+                    panelNotifBtn.style.color = '';
+                    panelNotifBtn.style.borderColor = '';
                 } else if (perm === 'denied') {
                     panelNotifBtn.querySelector('span').textContent = 'محظورة بالمتصفح';
                     panelNotifBtn.querySelector('i').className = 'fas fa-exclamation-triangle';
@@ -20951,6 +21121,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function toggleNotificationsFromModal() {
             if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
                 showToast('المتصفح الحالي لا يدعم الإشعارات. يرجى إضافة التطبيق للشاشة الرئيسية وتفعيله منه. 📲', 'warning', 6000);
+                triggerPwaInstall('لتفعيل الإشعارات وتنبيهات أعياد الميلاد، يرجى إضافة التطبيق إلى شاشتك الرئيسية 📲');
                 return;
             }
 
@@ -21658,7 +21829,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             toggleAbsentDropdown, executeAbsentAction,
             toggleCustomExportField, moveCustomExportField, renderCustomExportPreview,
             exportCustomAsCSV, exportCustomPreviewAsImage, exportCustomPreviewAsPdf,
-            requestNotifPermission, _updateNotifBtnVisibility,
+            requestNotifPermission, _updateNotifBtnVisibility, triggerPwaInstall, doPwaInstall, closePwaModal,
             _holdStart, _holdMove, _holdEnd, _holdCancel, _rowHoldStart, _rowHoldMove, _rowHoldEnd, _rowContextMenu, _ctxAction, _closeCtxMenu,
             _imgZoomChange, _imgZoomReset, _imgDownload,
             startSwipeMode, exitSwipeMode, swipeDecide,
