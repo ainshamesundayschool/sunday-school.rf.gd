@@ -12167,6 +12167,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const stack = document.getElementById('toastStack');
             if (!stack) return;
 
+            const isLoad = opts.isLoading || (typeof msg === 'string' && msg.startsWith('جاري'));
+
+            // Dismiss any active loading/progress toasts first
+            const loadingToasts = stack.querySelectorAll('.toast-item.loading-toast');
+            loadingToasts.forEach(toast => {
+                dismissToast(toast.id);
+            });
+
             const id = 'toast_' + (++_toastIdCounter);
             const dur = opts.dur ?? (type === 'error' ? 6000 : 4500);
 
@@ -12174,10 +12182,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 success: 'fa-check-circle', error: 'fa-exclamation-circle',
                 info: 'fa-info-circle', warning: 'fa-exclamation-triangle'
             };
-            const icon = icons[type] || 'fa-info-circle';
+            let icon = icons[type] || 'fa-info-circle';
+            if (isLoad) icon = 'fa-spinner fa-spin';
 
             const item = document.createElement('div');
             item.className = `toast-item ${type}`;
+            if (isLoad) {
+                item.className += ' loading-toast';
+            }
             item.id = id;
             item.style.setProperty('--toast-dur', dur + 'ms');
 
@@ -12237,7 +12249,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function showLoading(msg = '', targetId = null) {
             if (targetId) { const el = document.getElementById(targetId); if (el) { el.innerHTML = `<div class="inline-spinner"><div class="spin"></div>${msg}</div>`; return; } }
-            showToast(msg || 'جاري...', 'info');
+            showToast(msg || 'جاري...', 'info', { isLoading: true });
         }
         function hideLoading() { }
         function formatDateDDMMYYYY(d) { return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; }
