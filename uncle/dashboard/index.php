@@ -10209,22 +10209,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; width: 100%; direction: rtl; flex-wrap: nowrap;">
+                    style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
-                    <!-- Right Column: Back button + Class Name (Row 1) & Uncles List (Row 2) -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0;">
-                        <!-- Back + Class name row -->
-                        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
+                    <div
+                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                        <!-- Right: Back button + Class name -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
                                 style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
                                     class="fas fa-arrow-right"></i></button>
                             <h2 class="class-title-text" id="className"
-                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
                                 الفصل</h2>
                         </div>
-                        <!-- Uncles avatars (only profile pictures, no label) -->
+                        <!-- Left: Kids count -->
+                        <div id="classViewCount"
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 10px;">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
+                    <div
+                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                        <!-- Right: Uncles bar -->
                         <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin-right: 48px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px;">
+                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
                             <span class="uncles-bar-label"
                                 style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
                                     class="fas fa-users"></i> الخدام:</span>
@@ -10232,16 +10242,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Left Column: Kids Count (Row 1) & Date/Revert (Row 2) -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; margin-inline-start: 12px;">
-                        <!-- Kids count -->
-                        <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 4px;">
-                        </div>
-                        <!-- Date chip and Revert row -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <!-- Left: Date chip and Revert row -->
+                        <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
                             <!-- Sync to today -->
                             <button class="btn btn-ghost" id="syncToTodayBtn"
                                 style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
@@ -13124,11 +13127,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
-            <!-- Uncles list container -->
-            <div class="class-card-uncles" data-class="${name}">
-                <div class="skeleton-uncle-tiny" style="width:20px; height:20px; border-radius:50%; background:var(--border-solid); opacity: 0.6; animation:pulse 1.5s infinite;"></div>
-                <div class="skeleton-uncle-tiny" style="width:20px; height:20px; border-radius:50%; background:var(--border-solid); opacity: 0.6; animation:pulse 1.5s infinite; animation-delay:0.2s;"></div>
-            </div>
         </div>`;
             }).join('');
 
@@ -13136,45 +13134,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const visibleRegular = showClassCards ? regularHtml : '';
             grid.innerHTML = allTogetherHtml + visibleCombined + visibleRegular;
             renderTodayBirthdayBanner();
-            loadAllClassCardsUncles();
-        }
-
-        window.classUnclesCache = window.classUnclesCache || {};
-        function loadAllClassCardsUncles() {
-            const containers = document.querySelectorAll('.class-card-uncles');
-            containers.forEach(el => {
-                const className = el.getAttribute('data-class');
-                if (!className) return;
-                
-                // If already cached
-                if (window.classUnclesCache[className]) {
-                    renderTinyUnclesInElement(el, window.classUnclesCache[className]);
-                    return;
-                }
-                
-                // If not cached, fetch
-                makeApiCall({ action: 'getClassUncles', class: className }, r => {
-                    const uncles = r.uncles || [];
-                    window.classUnclesCache[className] = uncles;
-                    renderTinyUnclesInElement(el, uncles);
-                }, () => {
-                    el.innerHTML = '';
-                });
-            });
-        }
-
-        function renderTinyUnclesInElement(el, uncles) {
-            if (!uncles || !uncles.length) {
-                el.innerHTML = '';
-                return;
-            }
-            el.innerHTML = uncles.map(u => {
-                const avatarUrl = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
-                return `<div class="uncle-avatar-wrap-tiny">
-                    <img class="uncle-avatar-img-tiny" src="${avatarUrl}" alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">
-                    <div class="uncle-tooltip-tiny">${u.name}</div>
-                </div>`;
-            }).join('');
         }
 
         // ── VIEW ALL TOGETHER ─────────────────────────────────────────
