@@ -12770,6 +12770,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                 });
             } else if (isCombined && grpClasses && grpClasses.length) {
+                allKeys.forEach(k => {
+                    const prefix = `changedStudents_${clsName}_`;
+                    if (k.startsWith(prefix)) {
+                        try {
+                            const changedIds = JSON.parse(localStorage.getItem(k) || '[]');
+                            count += changedIds.length;
+                        } catch (e) { }
+                    }
+                });
+                try {
+                    const couponKey = `changedCouponStudents_${clsName}`;
+                    const couponIds = JSON.parse(localStorage.getItem(couponKey) || '[]');
+                    count += couponIds.length;
+                } catch (e) { }
+
                 grpClasses.forEach(c => {
                     allKeys.forEach(k => {
                         const prefix = `changedStudents_${c}_`;
@@ -13271,7 +13286,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function saveAttendanceDataForClass(className, date = null) {
             if (!className) return;
-            const dateKey = date || currentFriday, cs = students.filter(s => s['الفصل'] === className), data = {};
+            const dateKey = date || currentFriday;
+            let cs = [];
+            if (className === '__ALL__') {
+                cs = students;
+            } else {
+                const grp = (typeof combinedClassGroups !== 'undefined' && combinedClassGroups)
+                    ? combinedClassGroups.find(g => g.label === className)
+                    : null;
+                if (grp) {
+                    cs = students.filter(s => grp.classes.includes(s['الفصل']));
+                } else {
+                    cs = students.filter(s => s['الفصل'] === className);
+                }
+            }
+            const data = {};
             cs.forEach(s => {
                 const id = getStudentId(s), cur = attendanceData[id] || 'pending';
                 if (changedStudents.has(id)) data[id] = cur;
@@ -15239,10 +15268,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (navigator.onLine) {
                     html += `
                     <div style="margin-top: 16px; display: flex; gap: 10px; font-family: Cairo, sans-serif;">
-                        <button class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; background: var(--success); border-color: var(--success); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
+                        <button class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
                             <i class="fas fa-cloud-upload-alt"></i> حفظ التغييرات
                         </button>
-                        <button class="btn btn-danger btn-outline" style="flex: 1; height: 42px; font-weight: 700; background: transparent; border: 1.5px solid var(--danger); color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
+                        <button class="btn btn-danger" style="flex: 1; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
                             <i class="fas fa-trash"></i> تراجع
                         </button>
                     </div>`;
@@ -15254,10 +15283,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-secondary" style="flex: 2; height: 42px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                            <button class="btn btn-ghost" style="flex: 2; height: 42px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
                                 إغلاق
                             </button>
-                            <button class="btn btn-danger btn-outline" style="flex: 1; height: 42px; font-weight: 700; background: transparent; border: 1.5px solid var(--danger); color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
+                            <button class="btn btn-danger" style="flex: 1; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
                                 <i class="fas fa-trash"></i> تراجع
                             </button>
                         </div>
@@ -15272,7 +15301,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span style="font-size: 0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
                     </div>
                     <div style="margin-top: 16px; display: flex; gap: 8px; font-family: Cairo, sans-serif;">
-                        <button class="btn btn-secondary" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                        <button class="btn btn-ghost" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
                             إغلاق
                         </button>
                     </div>`;
@@ -15284,7 +15313,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span style="font-size: 0.85rem;">لا توجد تغييرات معلقة في هذا الفصل.</span>
                     </div>
                     <div style="margin-top: 16px; display: flex; gap: 8px; font-family: Cairo, sans-serif;">
-                        <button class="btn btn-secondary" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
+                        <button class="btn btn-ghost" style="flex: 1; height: 40px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
                             إغلاق
                         </button>
                     </div>`;
