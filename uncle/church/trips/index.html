@@ -13853,7 +13853,7 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:18px; overflow-y:auto; padding:20px; max-height:calc(90vh - 140px); box-sizing:border-box;">
               
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
                 <div class="form-group" style="margin:0;">
                   <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-filter"></i> نطاق التسكين:</label>
                   <div class="dropdown custom-select-dropdown" style="position:relative; width:100%;">
@@ -13866,6 +13866,21 @@
                       <div class="custom-select-item" data-value="all" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afScope')">إعادة تسكين الجميع (تفريغ الغرف)</div>
                     </div>
                     <input type="hidden" id="afScope" value="unassigned">
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label" style="font-weight:800; font-size:0.8rem; margin-bottom:6px;"><i class="fas fa-sliders-h"></i> طريقة التوزيع:</label>
+                  <div class="dropdown custom-select-dropdown" style="position:relative; width:100%;">
+                    <button type="button" class="btn btn-outline dropdown-toggle custom-select-btn" style="width:100%; height:38px; padding:0 12px; font-size:0.82rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:8px; background:#fff; white-space:nowrap; cursor:pointer;" onclick="toggleCustomSelectDropdown(this)">
+                      <span class="custom-select-text">توزيع متساوٍ (ملء متوازن)</span>
+                      <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-right:4px;"></i>
+                    </button>
+                    <div class="dropdown-menu custom-select-menu" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-height:180px; overflow-y:auto; padding:6px; margin-top:2px;">
+                      <div class="custom-select-item selected" data-value="even" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; background:var(--primary-glow); color:var(--primary);" onclick="selectCustomOption(this, 'afStrategy')">توزيع متساوٍ (ملء متوازن)</div>
+                      <div class="custom-select-item" data-value="compact" style="padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;" onclick="selectCustomOption(this, 'afStrategy')">تجميع مكثف (توفير الغرف)</div>
+                    </div>
+                    <input type="hidden" id="afStrategy" value="even">
                   </div>
                 </div>
                 
@@ -14097,6 +14112,13 @@
         if (scopeSel) {
           scopeSel.value = 'unassigned';
         }
+        const strategySel = document.getElementById('afStrategy');
+        if (strategySel) {
+          strategySel.value = 'even';
+          const wrapper = strategySel.closest('.dropdown');
+          const item = wrapper?.querySelector('.custom-select-item[data-value="even"]');
+          if (item) selectCustomOption(item, 'afStrategy');
+        }
         const firstSort = document.getElementById('afFirstSortField');
         if (firstSort) {
           firstSort.value = 'church_first';
@@ -14237,6 +14259,7 @@
 
         const scope = document.getElementById('afScope').value;
         const priority = document.getElementById('afPriority').value;
+        const strategy = document.getElementById('afStrategy')?.value || 'even';
 
         // Calculate max room capacity dynamically
         let maxRoomCapacity = 0;
@@ -14416,7 +14439,7 @@
 
         // Allocation Sub-Algorithm
         const allocateGenderGroup = (kids, gender) => {
-          // Calculate temporary even capacity limits dynamically for this gender
+          // Calculate temporary even capacity limits dynamically for this gender if strategy is 'even'
           const availableRooms = roomState.filter(r => {
             if (r.occupied >= r.capacity) return false;
             if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
@@ -14425,7 +14448,7 @@
           const totalRemaining = availableRooms.reduce((sum, r) => sum + Math.max(0, r.capacity - r.occupied), 0);
           const kidsCount = kids.length;
           
-          if (totalRemaining > 0 && kidsCount > 0) {
+          if (strategy === 'even' && totalRemaining > 0 && kidsCount > 0) {
             const ratio = Math.min(1, kidsCount / totalRemaining);
             availableRooms.forEach(r => {
               const rem = Math.max(0, r.capacity - r.occupied);
@@ -14539,17 +14562,30 @@
               const representativeKid = remainingKidsInGroup[0];
               const matchingRooms = getMatchingRooms(representativeKid);
               
-              // Sort matching rooms to prioritize rooms with a lower occupancy ratio to achieve an even distribution
+              // Sort matching rooms depending on selected strategy
               matchingRooms.sort((a, b) => {
-                const aRatio = a.occupied / a.capacity;
-                const bRatio = b.occupied / b.capacity;
-                if (Math.abs(aRatio - bRatio) > 0.0001) {
-                  return aRatio - bRatio;
+                if (strategy === 'even') {
+                  const aRatio = a.occupied / a.capacity;
+                  const bRatio = b.occupied / b.capacity;
+                  if (Math.abs(aRatio - bRatio) > 0.0001) {
+                    return aRatio - bRatio;
+                  }
+                  if (a.occupied !== b.occupied) {
+                    return a.occupied - b.occupied;
+                  }
+                  return a.capacity - b.capacity;
+                } else {
+                  // Compact/packing strategy: prioritize occupied rooms first to pack them
+                  const aOccupied = a.occupied > 0;
+                  const bOccupied = b.occupied > 0;
+                  if (aOccupied !== bOccupied) {
+                    return bOccupied ? 1 : -1;
+                  }
+                  if (a.occupied !== b.occupied) {
+                    return b.occupied - a.occupied;
+                  }
+                  return a.capacity - b.capacity;
                 }
-                if (a.occupied !== b.occupied) {
-                  return a.occupied - b.occupied;
-                }
-                return a.capacity - b.capacity;
               });
 
               const perfectRoom = matchingRooms.find(r => {
@@ -14607,16 +14643,22 @@
                   }).length;
                   if (aChurchCount !== bChurchCount) return bChurchCount - aChurchCount;
 
-                  // Tie-breaker: prefer rooms with a lower occupancy ratio to achieve an even distribution
-                  const aRatio = a.occupied / a.capacity;
-                  const bRatio = b.occupied / b.capacity;
-                  if (Math.abs(aRatio - bRatio) > 0.0001) {
-                    return aRatio - bRatio;
+                  // Tie-breaker: sort depending on selected strategy
+                  if (strategy === 'even') {
+                    const aRatio = a.occupied / a.capacity;
+                    const bRatio = b.occupied / b.capacity;
+                    if (Math.abs(aRatio - bRatio) > 0.0001) {
+                      return aRatio - bRatio;
+                    }
+                    if (a.occupied !== b.occupied) {
+                      return a.occupied - b.occupied;
+                    }
+                    return a.capacity - b.capacity;
+                  } else {
+                    // Compact/packing strategy: prefer occupied rooms to maximize space utilization
+                    if (a.occupied !== b.occupied) return b.occupied - a.occupied;
+                    return a.capacity - b.capacity;
                   }
-                  if (a.occupied !== b.occupied) {
-                    return a.occupied - b.occupied;
-                  }
-                  return a.capacity - b.capacity;
                 });
 
                 const bestRoom = matchingRooms[0];
