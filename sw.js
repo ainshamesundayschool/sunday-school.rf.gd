@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v15                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v15';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v16';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -218,7 +218,7 @@ self.addEventListener('fetch', e => {
                 if (isOfflineShellFriendly && versionMismatch) {
                     try {
                         const fresh = await fetch(e.request, { cache: 'no-store' });
-                        if (await _isCacheableAppResponse(fresh)) {
+                        if (await _isCacheableAppResponse(fresh, e.request)) {
                             const copy = fresh.clone();
                             caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
                         }
@@ -229,7 +229,7 @@ self.addEventListener('fetch', e => {
                 try {
                     // Force no-store for all navigations to prevent browser caching the cookie-check pages
                     const r = await fetch(e.request, { cache: 'no-store' });
-                    if (isOfflineShellFriendly && await _isCacheableAppResponse(r)) {
+                    if (isOfflineShellFriendly && await _isCacheableAppResponse(r, e.request)) {
                         const copy = r.clone();
                         caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
                     }
@@ -270,7 +270,7 @@ self.addEventListener('fetch', e => {
                         }
                         return new Response('Cookie check required', { status: 503 });
                     }
-                    if (e.request.method === 'GET' && await _isCacheableAppResponse(r)) {
+                    if (e.request.method === 'GET' && await _isCacheableAppResponse(r, e.request)) {
                         const cl = r.clone();
                         caches.open(CACHE_NAME).then(c => c.put(e.request, cl)).catch(() => {});
                     }
@@ -359,8 +359,16 @@ async function _isCookieCheckResponse(response) {
     return false;
 }
 
-async function _isCacheableAppResponse(response) {
-    if (!response || !response.ok || await _isCookieCheckResponse(response)) return false;
+async function _isCacheableAppResponse(response, request) {
+    if (!response) return false;
+
+    // Cache opaque responses (status 0) for images and fonts to allow offline viewing
+    const isFontOrImage = request && (request.destination === 'font' || request.destination === 'image');
+    if (isFontOrImage && response.status === 0) {
+        return true;
+    }
+
+    if (!response.ok || await _isCookieCheckResponse(response)) return false;
     const copy = response.clone();
     const contentType = copy.headers.get('content-type') || '';
 
