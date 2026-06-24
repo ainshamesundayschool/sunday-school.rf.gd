@@ -12344,6 +12344,12 @@
         document.head.appendChild(style);
       })();
 
+      // Confirmation Dialog Helper using native browser confirm
+      window.showConfirm = function(opts) {
+        const msg = typeof opts === 'string' ? opts : (opts.message || '');
+        return Promise.resolve(confirm(msg));
+      };
+
       // Global Workspace State
       window.selectedKidForAllocation = null;
       window.roomsSwapSource = null; // { regId, bldName, floorName, roomName }
