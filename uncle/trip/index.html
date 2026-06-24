@@ -1617,6 +1617,13 @@
             </div>
         </a>
         <div class="topbar-actions">
+            <!-- Trip Settings Button (visible only to admins) -->
+            <button id="btnTripSettings" onclick="openTripSettingsModal()" class="topbar-btn"
+                style="display: none; height:36px; width:36px; padding:0; border-radius:var(--r-md); cursor:pointer; justify-content:center; align-items:center;"
+                title="إعدادات الرحلة">
+                <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
+            </button>
+
             <!-- Trip history button at the top -->
             <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة"
                 style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
@@ -1630,25 +1637,8 @@
 
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
-            <div class="hero-strip"
-                style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-solid); padding-bottom: 12px; direction: rtl; width: 100%;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="topbar-btn" onclick="window.location.href='/uncle/dashboard/'"
-                        style="border:none; background:var(--surface-3); color:var(--text-2); padding:8px 14px; border-radius:var(--r-md); margin:0; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-arrow-right"></i> عودة
-                    </button>
-                    <div class="hero-greeting" id="detailTripTitle"
-                        style="font-size: 1.15rem; font-weight: 900; color: var(--text);">الرحلة</div>
-                </div>
-                <!-- Trip Settings Button (visible only to admins) -->
-                <button id="btnTripSettings" onclick="openTripSettingsModal()"
-                    style="display: none; border: none; background: var(--surface-3); color: var(--text-2); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; justify-content: center; align-items: center; transition: all 0.2s;"
-                    title="إعدادات الرحلة"
-                    onmouseover="this.style.transform='scale(1.05)'; this.style.background='var(--border-solid)';"
-                    onmouseout="this.style.transform='none'; this.style.background='var(--surface-3)';">
-                    <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
-                </button>
-            </div>
+            <!-- Hidden element to satisfy JS references without throwing errors -->
+            <span id="detailTripTitle" style="display:none;"></span>
 
 
 
