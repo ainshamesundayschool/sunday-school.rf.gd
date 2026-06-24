@@ -7373,7 +7373,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* ── Birthday indicator on attendance row ── */
         .attendance-item.bday-row {
-            border-top: 3px solid #db2777 !important;
+            /* top border removed */
         }
 
         .bday-row-badge {
@@ -9207,13 +9207,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 6px;
         }
 
-        /* ── INLINE SEARCH UNDER HERO STRIP ── */
         .inline-search-wrap {
             position: relative;
             display: flex;
+            align-items: center;
             width: 100%;
             max-width: 500px;
-            width: 100%;
             margin: 0 auto 28px auto;
             z-index: 99;
             gap: 10px;

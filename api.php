@@ -41184,6 +41184,11 @@ function ensureNotificationsTable($conn)
 
     ");
 
+    $res = $conn->query("SHOW COLUMNS FROM `notifications` LIKE 'deleted_by_uncles'");
+    if ($res && $res->num_rows === 0) {
+        $conn->query("ALTER TABLE `notifications` ADD COLUMN `deleted_by_uncles` TEXT DEFAULT NULL");
+    }
+
 }
 
 
@@ -41200,13 +41205,12 @@ function getNotifications()
 
         ensureNotificationsTable($conn);
 
-
+        $uncleId = isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : 0;
+        $uncleIdStr = (string)$uncleId;
 
         $limit = (int) ($_POST['limit'] ?? 50);
 
         $offset = (int) ($_POST['offset'] ?? 0);
-
-
 
         $stmt = $conn->prepare("
 
@@ -41214,7 +41218,7 @@ function getNotifications()
 
             FROM notifications
 
-            WHERE church_id = ?
+            WHERE church_id = ? AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)
 
             ORDER BY created_at DESC
 
@@ -41222,23 +41226,19 @@ function getNotifications()
 
         ");
 
-        $stmt->bind_param('iii', $churchId, $limit, $offset);
+        $stmt->bind_param('isii', $churchId, $uncleIdStr, $limit, $offset);
 
         $stmt->execute();
 
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE church_id=? AND is_read=0 AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)");
 
-
-        $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE church_id=? AND is_read=0");
-
-        $countStmt->bind_param('i', $churchId);
+        $countStmt->bind_param('is', $churchId, $uncleIdStr);
 
         $countStmt->execute();
 
         $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
-
-
 
         sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => $unread]);
 
@@ -41298,9 +41298,20 @@ function deleteNotification()
 
         ensureNotificationsTable($conn);
 
-        $stmt = $conn->prepare("DELETE FROM notifications WHERE id=? AND church_id=?");
+        $uncleId = isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : 0;
+        $uncleIdStr = (string)$uncleId;
 
-        $stmt->bind_param('ii', $id, $churchId);
+        $stmt = $conn->prepare("
+            UPDATE notifications 
+            SET deleted_by_uncles = CASE 
+                WHEN deleted_by_uncles IS NULL OR deleted_by_uncles = '' THEN ? 
+                WHEN FIND_IN_SET(?, deleted_by_uncles) > 0 THEN deleted_by_uncles
+                ELSE CONCAT(deleted_by_uncles, ',', ?) 
+            END
+            WHERE id = ? AND church_id = ?
+        ");
+
+        $stmt->bind_param('sssii', $uncleIdStr, $uncleIdStr, $uncleIdStr, $id, $churchId);
 
         $stmt->execute();
 
