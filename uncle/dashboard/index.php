@@ -2705,6 +2705,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* student info panel (right in RTL) */
         .student-info {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2713,7 +2714,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 10px;
             background: rgba(91, 108, 245, .04);
             cursor: pointer;
-            transition: background var(--t) var(--ease);
+            transition: padding-right 0.2s var(--ease), background var(--t) var(--ease);
             min-width: 100px;
             border-radius: 0 var(--r-xl) var(--r-xl) 0;
         }
@@ -2724,6 +2725,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .student-info:hover {
             background: rgba(91, 108, 245, .1)
+        }
+
+        body.bulk-active .student-info {
+            padding-right: 38px;
         }
 
         .student-avatar {
@@ -3049,7 +3054,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         /* ── Bulk Student Selection ── */
-        .bulk-check-wrap {
+        .student-info .bulk-check-wrap {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin: 0;
+            z-index: 2;
             display: none;
             align-items: center;
             justify-content: center;
@@ -3058,12 +3069,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             user-select: none;
             touch-action: none;
-            margin-left: 8px;
-            /* space in RTL */
             flex-shrink: 0;
         }
 
-        .bulk-active .bulk-check-wrap {
+        body.bulk-active .student-info .bulk-check-wrap {
             display: flex;
         }
 
@@ -3094,12 +3103,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .attendance-item.selected {
             background-color: var(--brand-bg) !important;
             border-color: transparent !important;
-            border-right: 4px solid var(--brand) !important;
-        }
-
-        .attendance-item.selected .bulk-check-wrap {
-            background-color: var(--brand-bg) !important;
-            border-radius: 8px;
         }
 
         .attendance-item.selected .bulk-check-circle {
@@ -10254,9 +10257,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Right Side: Select All Checkbox + Label -->
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer;" onclick="toggleSelectAllBulk(event)" title="تحديد الكل">
-                    <div class="bulk-check-wrap" style="display: flex; flex-shrink: 0;">
-                        <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
-                    </div>
+                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle" style="margin: 0;"><i class="fas fa-check"></i></div>
                     <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد الكل</span>
                 </div>
 
@@ -12581,10 +12582,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName2}')">
-            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})">
-                <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
-            </div>
             <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName2}')" style="cursor:pointer">
+                <div class="bulk-check-wrap">
+                    <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
+                </div>
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
@@ -14115,10 +14116,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName}')">
-            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})">
-                <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
-            </div>
             <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')" style="cursor:pointer">
+                <div class="bulk-check-wrap">
+                    <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
+                </div>
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
