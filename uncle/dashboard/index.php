@@ -7044,14 +7044,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: inherit;
             cursor: pointer;
             display: inline-flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1px;
-            padding: 0 18px;
-            border-radius: var(--r-md, 10px);
+            padding: 0;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
             transition: all var(--t) var(--ease);
-            white-space: nowrap;
             box-shadow: var(--shadow-sm);
         }
 
@@ -9470,7 +9468,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             .home-tools-link {
                 height: auto;
-                padding: 0 16px;
+                padding: 0;
                 font-size: 1.05rem;
             }
         }
