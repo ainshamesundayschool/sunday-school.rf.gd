@@ -665,8 +665,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .topbar-search-wrap .inline-search-box {
-            min-height: 40px;
-            padding: 0 14px;
+            min-height: 46px;
+            padding: 0 16px;
             border-radius: 999px;
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -688,7 +688,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .topbar-search-wrap .inline-search-box input {
             font-size: .86rem;
-            padding: 9px 0;
+            padding: 12px 0;
         }
 
         .topbar-search-wrap .inline-search-dropdown {
@@ -1316,7 +1316,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-inline-search-wrap .inline-search-box input {
-            padding: 9px 0;
+            padding: 13px 0;
             font-size: 0.88rem;
         }
 
@@ -9280,7 +9280,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             width: 100%;
             border: none;
             background: transparent;
-            padding: 10px 0;
+            padding: 14px 0;
             color: var(--text);
             font-size: 0.92rem;
             font-family: 'Cairo', sans-serif;
