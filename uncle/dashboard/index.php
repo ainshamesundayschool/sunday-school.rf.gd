@@ -13681,6 +13681,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             e.stopPropagation();
             const menu = document.getElementById('customSortDropdownMenu');
             if (!menu) return;
+            menu.style.display = ''; // Clear inline style if set
             const isVisible = menu.classList.contains('open');
             
             // Close standard dropdowns
@@ -13754,12 +13755,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
             const menu = document.getElementById('customSortDropdownMenu');
-            if (menu) menu.style.display = 'none';
             const btn = document.getElementById('customSortDropdownBtn');
-            const icon = btn?.querySelector('.fa-chevron-down');
-            if (icon) icon.style.transform = 'rotate(0deg)';
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.classList.remove('open');
+                const icon = btn?.querySelector('.fa-chevron-down');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
         });
 
         // ── CLASS STATS ───────────────────────────────────────────────
