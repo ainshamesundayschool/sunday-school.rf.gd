@@ -558,13 +558,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 0 16px;
-            height: 58px;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: 16px;
+            padding-right: 16px;
+            height: calc(58px + env(safe-area-inset-top, 0px));
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
+            box-sizing: border-box;
         }
 
         @keyframes gradShift {

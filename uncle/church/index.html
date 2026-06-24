@@ -763,7 +763,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 22px 28px 10px;
+            padding: calc(22px + env(safe-area-inset-top, 0px)) 28px 10px;
             gap: 12px;
             position: relative;
             z-index: 10;
@@ -4760,7 +4760,7 @@
 
             /* Page Header — mobile */
             .page-header {
-                padding: 14px 16px 6px;
+                padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 6px;
             }
 
             .page-header-title {
