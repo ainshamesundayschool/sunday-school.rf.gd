@@ -17864,7 +17864,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function toggleClassFiltersPanel() {
             const panel = document.getElementById('classFiltersPanel');
             const btn = document.getElementById('classFiltersToggleBtn');
-            const box = document.getElementById('filterSortCombineBox');
             if (!panel || !btn) return;
             if (panel.style.display === 'none') {
                 panel.style.display = 'flex';
@@ -17873,7 +17872,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 btn.style.color = 'var(--brand)';
                 btn.style.borderRadius = 'var(--r-sm)';
                 btn.querySelector('i').className = 'fas fa-sliders-h';
-                if (box) box.style.borderRadius = '0px';
             } else {
                 panel.style.display = 'none';
                 btn.style.borderColor = 'transparent';
@@ -17881,7 +17879,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 btn.style.color = 'var(--text)';
                 btn.style.borderRadius = '';
                 btn.querySelector('i').className = 'fas fa-filter';
-                if (box) box.style.borderRadius = 'var(--r-md)';
             }
         }
 
