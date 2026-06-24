@@ -3113,35 +3113,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
         }
 
-        .attendance-list.bulk-active .student-coupons-inline {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 3px;
-            background: rgba(245, 158, 11, 0.12) !important;
-            color: var(--warning, #f59e0b) !important;
-            padding: 2px 6px !important;
-            border-radius: var(--r-full) !important;
-            font-weight: 700 !important;
-            font-size: 0.62rem !important;
-            white-space: nowrap !important;
+        /* Checkbox visibility in select mode */
+        .attendance-item .bulk-check-wrap {
+            display: none;
+        }
+        .attendance-list.bulk-active .attendance-item .bulk-check-wrap {
+            display: flex;
         }
 
-        [data-theme="dark"] .attendance-list.bulk-active .student-coupons-inline {
-            background: rgba(245, 158, 11, 0.2) !important;
-            color: #fbbf24 !important;
-        }
-
+        /* Dim and disable actions in select mode instead of removing them */
         .attendance-list.bulk-active .attendance-actions {
-            display: none !important;
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(40%);
+            transition: opacity 0.2s, filter 0.2s;
         }
 
-        .attendance-list.bulk-active .student-info {
-            border-radius: var(--r-xl) !important;
-        }
-
-        .attendance-list.bulk-active .attendance-item {
-            min-height: 80px;
-            align-items: center;
+        body.bulk-active .class-inline-search-wrap {
+            top: var(--bulk-bar-height, 96px) !important;
         }
 
         /* ── Undo Toast (Dark & Bold) ── */
@@ -12585,7 +12574,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName2}')">
-            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})" style="${isBulkSelectMode ? 'display: flex;' : 'display: none;'}">
+            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})">
                 <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
             </div>
             <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName2}')" style="cursor:pointer">
@@ -14119,7 +14108,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ontouchend="_holdEnd()"
             ontouchcancel="_holdEnd()"
             oncontextmenu="_rowContextMenu(event,'${safeName}')">
-            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})" style="${isBulkSelectMode ? 'display: flex;' : 'display: none;'}">
+            <div class="bulk-check-wrap" onclick="toggleStudentSelection(event, ${dbId})">
                 <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
             </div>
             <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')" style="cursor:pointer">
@@ -14380,13 +14369,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 if (list) {
                     list.classList.remove('bulk-active');
+                    // In-place clear of selected classes on cards
+                    list.querySelectorAll('.attendance-item.selected').forEach(item => {
+                        item.classList.remove('selected');
+                        const cc = item.querySelector('.bulk-check-circle');
+                        if (cc) cc.classList.remove('checked');
+                    });
                 }
                 selectedStudentIds.clear();
                 isMergeChoosingMode = false;
                 updateBulkUI();
             }
-
-            renderAttendanceList(currentClass);
         }
 
         function updateBulkBarHeight() {
