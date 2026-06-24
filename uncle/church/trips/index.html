@@ -12558,6 +12558,19 @@
         const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
         renderUnassignedSidebar(unassignedKids, query);
 
+        // Find all assigned uncle IDs in this trip to filter them out of available uncles dropdowns
+        const assignedUncleIds = new Set();
+        roomsConfig.forEach(bld => {
+          const collect = (r) => {
+            (r.uncles || []).forEach(u => assignedUncleIds.add(String(u.id)));
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(collect));
+          } else {
+            (bld.rooms || []).forEach(collect);
+          }
+        });
+
         // Render Buildings Grid
         const gridContainer = document.getElementById('roomsBuildingsGrid');
         if (!gridContainer) return;
@@ -12569,7 +12582,7 @@
           let bldSubHtml = '';
           if (bld.has_floors) {
             bld.floors.forEach((fl, fIdx) => {
-              const flRoomsHtml = fl.rooms.map(r => renderRoomCardHTML(tripId, bld.name, fl.name, r, regs, allocatedMap, query)).join('');
+              const flRoomsHtml = fl.rooms.map(r => renderRoomCardHTML(tripId, bld.name, fl.name, r, regs, allocatedMap, query, assignedUncleIds)).join('');
               bldSubHtml += `
                 <div class="ws-floor-group">
                   <div class="ws-floor-title"><i class="fas fa-layer-group" style="color:var(--primary);"></i> ${escHtml(fl.name)}</div>
@@ -12578,7 +12591,7 @@
               `;
             });
           } else {
-            const bldRoomsHtml = bld.rooms.map(r => renderRoomCardHTML(tripId, bld.name, '', r, regs, allocatedMap, query)).join('');
+            const bldRoomsHtml = bld.rooms.map(r => renderRoomCardHTML(tripId, bld.name, '', r, regs, allocatedMap, query, assignedUncleIds)).join('');
             bldSubHtml = `<div class="ws-rooms-list">${bldRoomsHtml}</div>`;
           }
 
@@ -12599,7 +12612,7 @@
       /**
        * HTML Generator for a single Room Card
        */
-      function renderRoomCardHTML(tripId, bldName, floorName, room, allRegs, allocatedMap, query = '') {
+      function renderRoomCardHTML(tripId, bldName, floorName, room, allRegs, allocatedMap, query = '', assignedUncleIds = new Set()) {
         const roomKids = allRegs.filter(r => {
           const alloc = allocatedMap[r.id];
           return alloc && alloc.bldName === bldName && alloc.floorName === floorName && alloc.roomName === room.name;
@@ -12640,15 +12653,22 @@
           });
         }
 
-        // Uncles rendering
-        const unclesHtml = (room.uncles || []).map((u, uIdx) => `
-          <span class="ws-uncle-tag">
-            <i class="fas fa-user-shield"></i> ${escHtml(u.name)}
-            <i class="fas fa-times" onclick="removeUncleFromRoom(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${uIdx})"></i>
-          </span>
-        `).join('');
+        // Uncles rendering (with profile picture lookup)
+        const unclesHtml = (room.uncles || []).map((u, uIdx) => {
+          const fullUncle = window.allUnclesCache.find(x => x.id == u.id);
+          const imgUrl = fullUncle ? fullUncle.image_url : '';
+          const imgHtml = imgUrl 
+            ? `<img src="${imgUrl}" style="width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(217,119,6,0.2);" onerror="this.outerHTML='<i class=\\'fas fa-user-shield\\'></i>'">`
+            : `<i class="fas fa-user-shield"></i>`;
+          return `
+            <span class="ws-uncle-tag">
+              ${imgHtml} ${escHtml(u.name)}
+              <i class="fas fa-times" onclick="removeUncleFromRoom(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}', ${uIdx})"></i>
+            </span>
+          `;
+        }).join('');
 
-        const availableUncles = window.allUnclesCache.filter(u => !(room.uncles || []).some(x => x.id == u.id));
+        const availableUncles = window.allUnclesCache.filter(u => !assignedUncleIds.has(String(u.id)));
 
         return `
           <div class="ws-room-card ${genderClass} ${isOverCapacity ? 'rooms-over-capacity' : ''} ${isSwapActive ? 'rooms-swap-active' : ''} ${isSearchMatch ? 'search-match' : ''}" 
