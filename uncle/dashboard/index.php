@@ -695,8 +695,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .topbar-btn {
-            height: 32px;
-            min-width: 32px;
+            height: 36px;
+            min-width: 36px;
             padding: 0 10px;
             border-radius: var(--r-md);
             display: flex;
@@ -706,16 +706,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-3);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            font-size: .8rem;
+            font-size: .85rem;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             text-decoration: none;
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, .72) inset,
-                0 6px 14px rgba(15, 23, 42, .05);
+            box-shadow: none;
         }
 
         .topbar-btn:hover {
@@ -9411,9 +9409,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     font-size: 1.25rem !important;
                 }
                 .topbar-btn {
-                    height: 38px !important;
-                    min-width: 38px !important;
+                    height: 42px !important;
+                    min-width: 42px !important;
                     font-size: .95rem !important;
+                    box-shadow: none !important;
                 }
                 .data-table th, 
                 .data-table td {
@@ -9430,7 +9429,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     max-width: 600px !important;
                 }
                 .class-inline-search-wrap {
-                    max-width: 550px !important;
+                    position: static !important;
+                    background: transparent !important;
+                    padding: 0 !important;
+                    width: 480px !important;
+                    max-width: none !important;
+                    margin: 0 !important;
+                }
+                .class-header-sticky-wrap {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    gap: 20px !important;
+                    position: sticky !important;
+                    top: 72px !important;
+                    background: var(--bg) !important;
+                    z-index: 100 !important;
+                    padding: 10px 0 !important;
+                    border-bottom: 1px solid var(--border-solid) !important;
+                    margin-bottom: 16px !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+                .class-header-sticky-wrap .class-topbar {
+                    flex: 1 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                 }
             }
     </style>
@@ -10148,32 +10173,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="topbar-actions">
                 <!-- Unified Download and Notifications Button -->
                 <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()"
-                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
+                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات" style="background:transparent; border:none; color:var(--text);">
                     <i class="fas fa-download"></i>
                 </button>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
-                    style="position:relative; overflow:visible;">
+                    style="position:relative; overflow:visible; background:transparent; border:none; color:var(--text);">
                     <i class="fas fa-bell"></i>
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
-                    style="display:none;position:relative; overflow:visible;">
+                    style="display:none;position:relative; overflow:visible; background:transparent; border:none; color:var(--text);">
                     <i class="fas fa-bell-slash"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات">
+                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات" style="text-decoration:none; color:var(--text);">
                         <i class="fa-solid fa-gear"></i>
                     </a>
                 <?php endif; ?>
 
                 <div class="topbar-avatar-btn" id="uncleChip"
-                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>" onclick="showAccountModal()">
+                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>; cursor:pointer;" onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
                         onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">
                     <span id="uncleInitials"
@@ -10260,97 +10285,65 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ CLASS VIEW ═══ -->
             <div class="class-view" id="classView">
-                <!-- Class topbar -->
-                <div class="class-topbar"
-                    style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
+                <div class="class-header-sticky-wrap">
+                    <!-- Class topbar -->
+                    <div class="class-topbar"
+                        style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
-                    <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
-                    <div
-                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                        <!-- Right: Back button + Class name -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <button class="btn btn-ghost btn-sm" id="backBtn"
-                                style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
-                                    class="fas fa-arrow-right"></i></button>
-                            <h2 class="class-title-text" id="className"
-                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
-                                الفصل</h2>
-                        </div>
-                        <!-- Left: Kids count -->
-                        <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 10px;">
-                        </div>
-                    </div>
-
-                    <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
-                    <div
-                        style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
-                        <!-- Right: Uncles bar -->
-                        <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
-                            <span class="uncles-bar-label"
-                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
-                                    class="fas fa-users"></i> الخدام:</span>
-                            <div class="uncles-list" id="unclesList"
-                                style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                        <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
+                        <div
+                            style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                            <!-- Right: Back button + Class name -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="btn btn-ghost btn-sm" id="backBtn"
+                                    style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
+                                        class="fas fa-arrow-right"></i></button>
+                                <h2 class="class-title-text" id="className"
+                                    style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
+                                    الفصل</h2>
+                            </div>
+                            <!-- Left: Kids count -->
+                            <div id="classViewCount"
+                                style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 10px;">
                             </div>
                         </div>
 
-                        <!-- Left: Date chip and Revert row -->
-                        <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
-                            <!-- Sync to today -->
-                            <button class="btn btn-ghost" id="syncToTodayBtn"
-                                style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
-                                onclick="resetToCurrentFriday()" title="العودة لليوم">
-                                <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i>
-                            </button>
-                            <!-- Date chip (clickable pill) -->
-                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--border); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
-                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
-                                onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
-                                <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
-                                <span id="currentDateText">جاري...</span>
+                        <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
+                        <div
+                            style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                            <!-- Right: Uncles bar -->
+                            <div class="uncles-bar" id="unclesBar"
+                                style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
+                                <span class="uncles-bar-label"
+                                    style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
+                                        class="fas fa-users"></i> الخدام:</span>
+                                <div class="uncles-list" id="unclesList"
+                                    style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                                </div>
+                            </div>
+
+                            <!-- Left: Date chip and Revert row -->
+                            <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
+                                <!-- Sync to today -->
+                                <button class="btn btn-ghost" id="syncToTodayBtn"
+                                    style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
+                                    onclick="resetToCurrentFriday()" title="العودة لليوم">
+                                    <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i>
+                                </button>
+                                <!-- Date chip (clickable pill) -->
+                                <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
+                                    style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--border); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
+                                    onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
+                                    onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
+                                    <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
+                                    <span id="currentDateText">جاري...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Pending registrations -->
-                <div class="pending-section" id="pendingRegistrationsSection">
-                    <div class="pending-header">
-                        <div class="pending-title">
-                            <i class="fas fa-user-clock"></i>
-                            طلبات التسجيل المعلقة
-                            <span class="pending-count-badge" id="pendingCountBadge">0</span>
-                        </div>
-                        <button class="reg-expand-toggle" id="pendingCollapseBtn" onclick="togglePendingSection()"
-                            title="طي/توسيع">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                    </div>
-                    <div class="pending-body" id="pendingBody">
-                        <div class="pending-search-row">
-                            <input type="text" class="search-input" id="pendingSearchInput"
-                                placeholder="بحث بالاسم أو الهاتف..." oninput="searchPendingRegistrations()">
-                            <button class="search-btn" id="pendingSearchBtn" onclick="searchPendingRegistrations()"><i
-                                    class="fas fa-search"></i></button>
-                        </div>
-                        <div id="pendingList"></div>
-                        <div class="pending-bulk-row" id="pendingBulkRow" style="display:none">
-                            <button class="btn btn-success" id="approveAllSelectedBtn" onclick="approveAllSelected()"><i
-                                    class="fas fa-check-circle"></i> موافقة المحددين (<span
-                                    id="selectedCount">0</span>)</button>
-                            <button class="btn btn-danger" id="rejectAllSelectedBtn" onclick="rejectAllSelected()"><i
-                                    class="fas fa-times-circle"></i> رفض المحددين</button>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                <div class="class-inline-search-wrap"
-                    style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                    <div class="class-inline-search-wrap"
+                        style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
 
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
@@ -10465,6 +10458,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
                         <i class="fas fa-plus"></i>
                     </button>
+                </div>
+                </div>
+
+                <!-- Pending registrations -->
+                <div class="pending-section" id="pendingRegistrationsSection">
+                    <div class="pending-header">
+                        <div class="pending-title">
+                            <i class="fas fa-user-clock"></i>
+                            طلبات التسجيل المعلقة
+                            <span class="pending-count-badge" id="pendingCountBadge">0</span>
+                        </div>
+                        <button class="reg-expand-toggle" id="pendingCollapseBtn" onclick="togglePendingSection()"
+                            title="طي/توسيع">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="pending-body" id="pendingBody">
+                        <div class="pending-search-row">
+                            <input type="text" class="search-input" id="pendingSearchInput"
+                                placeholder="بحث بالاسم أو الهاتف..." oninput="searchPendingRegistrations()">
+                            <button class="search-btn" id="pendingSearchBtn" onclick="searchPendingRegistrations()"><i
+                                    class="fas fa-search"></i></button>
+                        </div>
+                        <div id="pendingList"></div>
+                        <div class="pending-bulk-row" id="pendingBulkRow" style="display:none">
+                            <button class="btn btn-success" id="approveAllSelectedBtn" onclick="approveAllSelected()"><i
+                                    class="fas fa-check-circle"></i> موافقة المحددين (<span
+                                    id="selectedCount">0</span>)</button>
+                            <button class="btn btn-danger" id="rejectAllSelectedBtn" onclick="rejectAllSelected()"><i
+                                    class="fas fa-times-circle"></i> رفض المحددين</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Filters Panel -->
