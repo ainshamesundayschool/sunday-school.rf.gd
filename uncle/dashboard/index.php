@@ -1149,11 +1149,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-inline-search-wrap {
-            position: relative;
+            position: sticky;
+            top: 58px;
             max-width: 460px;
             width: 100%;
             margin: 0 0 10px;
             z-index: 100;
+            background: var(--bg);
+            padding: 6px 0;
+            transition: background var(--t) var(--ease);
         }
 
         .class-inline-search-wrap button,
