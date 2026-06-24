@@ -7020,14 +7020,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Today's Birthday Banner (homepage) ── */
         #mainStatsRow {
             display: none;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: var(--surface-2);
+            padding: 10px 14px 12px;
+            margin-bottom: 10px;
+            background: var(--surface);
             border: 1.5px solid var(--border-solid);
             border-radius: var(--r-lg);
             box-shadow: var(--shadow-sm);
             flex-direction: column;
-            gap: 12px;
+            gap: 0;
             animation: fadeSlideDown .35s var(--spring);
         }
 
@@ -7088,27 +7088,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bday-banner-chip {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
-            background: var(--surface);
+            background: var(--surface-3);
             color: var(--text);
-            border: 1.5px solid var(--border);
-            padding: 6px 12px 6px 8px;
+            border: 1px solid var(--border-solid);
+            padding: 5px 10px 5px 6px;
             border-radius: var(--r-md);
-            font-size: .8rem;
+            font-size: .77rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: var(--shadow-xs);
             transition: all var(--t) var(--ease);
         }
 
         .bday-chip-img {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             object-fit: cover;
             border: 1.5px solid var(--border-solid);
-            background: var(--surface);
+            background: var(--surface-3);
         }
 
         [data-theme="dark"] .bday-banner-chip {
@@ -10020,15 +10019,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px;">
+                <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px; margin-bottom: 4px;">
                     <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
                         style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <span class="section-title" style="margin-bottom: 0;">الرحلات / المؤتمرات المتاحة</span>
+                        <span class="section-title" style="margin-bottom: 0; font-size: 0.82rem;">الرحلات / المؤتمرات</span>
                         <i class="fas fa-chevron-down" id="tripsCollapseIcon"
-                            style="color: var(--text-3); font-size: 0.85rem; transition: transform var(--t) var(--ease);"></i>
+                            style="color: var(--text-3); font-size: 0.75rem; transition: transform var(--t) var(--ease);"></i>
                     </button>
                 </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer"></div>
+                <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 6px;"></div>
 
                 <div class="section-head" style="margin-top:8px;">
                     <span class="section-title">الفصول</span>
@@ -10037,11 +10036,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Birthdays Container -->
                 <div id="mainStatsRow" style="display:none;">
                     <div class="bday-banner-header"
-                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                        <i class="fas fa-birthday-cake"></i>
-                        <span id="todayBirthdayTitle">أعياد الميلاد</span>
+                        onclick="toggleBdayCollapse()"
+                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; cursor: pointer; user-select: none;">
+                        <i class="fas fa-birthday-cake" style="font-size: 0.9rem;"></i>
+                        <span id="todayBirthdayTitle" style="flex: 1;">أعياد الميلاد</span>
+                        <i class="fas fa-chevron-down" id="bdayCollapseIcon"
+                            style="font-size: 0.72rem; color: var(--text-3); transition: transform 0.2s;"></i>
                     </div>
-                    <div class="bday-banner-list" id="todayBirthdayList"></div>
+                    <div class="bday-banner-list" id="todayBirthdayList" style="margin-top: 10px;"></div>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
 
@@ -10103,13 +10105,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
                         </div>
                         <!-- Date chip (clickable pill) -->
-                        <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
-                            style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--brand-bg); border: 1px solid rgba(91,108,245,.18); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
-                            onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
-                            onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
-                            <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
+                        <button class="btn btn-ghost btn-sm" id="dateChip" onclick="showPastFridaysModal()"
+                            style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 0 12px; height: 36px;">
+                            <i class="fas fa-calendar-alt" style="font-size: 0.82rem;"></i>
                             <span id="currentDateText">جاري...</span>
-                        </div>
+                        </button>
                         <!-- Sync to today -->
                         <button class="btn btn-ghost" id="syncToTodayBtn"
                             style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
@@ -12666,10 +12666,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        // Collapse/expand the birthday list by clicking the header
+        let _bdayCollapsed = false;
+        function toggleBdayCollapse() {
+            const list = document.getElementById('todayBirthdayList');
+            const icon = document.getElementById('bdayCollapseIcon');
+            if (!list) return;
+            _bdayCollapsed = !_bdayCollapsed;
+            list.style.display = _bdayCollapsed ? 'none' : '';
+            list.style.marginTop = _bdayCollapsed ? '0' : '10px';
+            if (icon) icon.style.transform = _bdayCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+
+
         function renderTodayBirthdayBanner() {
             const banner = document.getElementById('mainStatsRow');
             const list = document.getElementById('todayBirthdayList');
             const title = document.getElementById('todayBirthdayTitle');
+
             if (!banner || !list) return;
             const items = getWeekBirthdays();
 
