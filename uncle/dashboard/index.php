@@ -10099,20 +10099,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div id="classViewCount"
                             style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
                         </div>
-                        <!-- Date chip (clickable pill) -->
-                        <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
-                            style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--brand-bg); border: 1px solid rgba(91,108,245,.18); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
-                            onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
-                            onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
-                            <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
-                            <span id="currentDateText">جاري...</span>
+                        <!-- Date chip and Revert row -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <!-- Sync to today -->
+                            <button class="btn btn-ghost" id="syncToTodayBtn"
+                                style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
+                                onclick="resetToCurrentFriday()" title="العودة لليوم">
+                                <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i>
+                            </button>
+                            <!-- Date chip (clickable pill) -->
+                            <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
+                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--brand-bg); border: 1px solid rgba(91,108,245,.18); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
+                                onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
+                                onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
+                                <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
+                                <span id="currentDateText">جاري...</span>
+                            </div>
                         </div>
-                        <!-- Sync to today -->
-                        <button class="btn btn-ghost" id="syncToTodayBtn"
-                            style="display:none; color:var(--success); padding:0; min-width:unset; height:auto; font-size:0.8rem; font-weight:700; align-items:center; gap:4px; background:none; border:none; font-family:Cairo,sans-serif;"
-                            onclick="resetToCurrentFriday()" title="العودة لليوم">
-                            <i class="fas fa-sync-alt" style="font-size:0.75rem;"></i> العودة لليوم
-                        </button>
                     </div>
                 </div>
 
@@ -11052,15 +11055,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="modal modal-lg">
             <div class="modal-header">
                 <h3 id="pastAttendanceModalTitle"><i class="fas fa-calendar-alt"></i> السجل التاريخي</h3>
-                <button class="close-btn" id="closePastFridaysModal">&times;</button>
-            </div>
-            <div class="friday-reset-row">
-                <button class="btn btn-sm" id="resetToTodayBtn"><i class="fas fa-calendar-day"></i> العودة لآخر
-                    يوم</button>
-                <button class="btn btn-warning btn-sm" id="toggleCustomDateSectionBtn"
-                    onclick="toggleCustomDateSection()">
-                    <i class="fas fa-plus-circle"></i> إضافة تاريخ مخصص
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Add Date Button -->
+                    <button class="btn btn-ghost btn-sm" id="toggleCustomDateSectionBtn" onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
+                        style="width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; padding: 0; background: var(--surface-3); border: none; color: var(--text-2); cursor: pointer; transition: all var(--t) var(--ease);">
+                        <i class="fas fa-plus" style="font-size: 0.9rem;"></i>
+                    </button>
+                    <button class="close-btn" id="closePastFridaysModal">&times;</button>
+                </div>
             </div>
             <!-- Custom date add section -->
             <div class="custom-date-section" id="customDateSection" style="display:none">
