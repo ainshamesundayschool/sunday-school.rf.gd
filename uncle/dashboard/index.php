@@ -970,11 +970,92 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(.97)
         }
 
+        .class-card-badges {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+            direction: rtl;
+            z-index: 5;
+        }
+
+        .class-card-badges .class-unsaved-badge,
+        .class-card-badges .my-class-badge,
+        .class-card-badges span {
+            position: static !important;
+            margin: 0 !important;
+        }
+
         .class-card.highlighted {
             border: 2px solid var(--cls-color, var(--brand)) !important;
             box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
             background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
             transform: scale(1.02);
+        }
+
+        /* Tiny stacked uncles inside class cards */
+        .class-card-uncles {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            min-height: 22px;
+            direction: rtl;
+        }
+
+        .uncle-avatar-wrap-tiny {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid var(--surface);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-inline-start: -6px;
+            transition: transform 0.2s ease, z-index 0s;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .uncle-avatar-wrap-tiny:hover {
+            transform: scale(1.15) translateY(-1px);
+            z-index: 10 !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }
+
+        .uncle-avatar-img-tiny {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .uncle-tooltip-tiny {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-4px);
+            background: rgba(15, 23, 42, 0.95);
+            color: #fff;
+            font-size: 0.62rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            z-index: 100;
+            font-family: Cairo, sans-serif;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .uncle-avatar-wrap-tiny:hover .uncle-tooltip-tiny {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-8px);
         }
 
         .my-class-badge {
@@ -10143,9 +10224,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <!-- Uncles avatars (only profile pictures, no label) -->
                         <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin-right: 48px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center;">
+                            style="display:none; padding: 0 !important; margin-right: 48px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px;">
+                            <span class="uncles-bar-label"
+                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
+                                    class="fas fa-users"></i> الخدام:</span>
                             <div class="uncles-list" id="unclesList"
-                                style="padding: 0; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                                style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
                             </div>
                         </div>
                     </div>
@@ -12976,10 +13060,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ` : '';
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
+        <div class="class-card-badges">
+            <div style="display:flex; align-items:center; gap:4px;">
+                <span style="background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">الكل</span>
+                ${allUnsavedHtml}
+            </div>
+            <div></div>
+        </div>
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
-        <span style="position:absolute;top:6px;left:6px;background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">الكل</span>
-        ${allUnsavedHtml}
     </div>` : '';
 
             // ── Combined class group cards ────────────────────────────
@@ -12997,14 +13086,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ` : '';
                     const isCombHighlighted = grpClasses.some(c => isUncleAssignedClass(c));
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
-                    const myCombBadge = isCombHighlighted ? `<span class="my-class-badge" style="background:var(--brand)">فصلي</span>` : '';
                     return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
+                <div class="class-card-badges">
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <span style="background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
+                        ${unsavedHtml}
+                    </div>
+                    <div></div>
+                </div>
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
-                <span style="position:absolute;top:6px;left:6px;background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;">مدمج</span>
-                ${myCombBadge}
-                ${unsavedHtml}
             </div>`;
                 }).join('');
             }
@@ -13022,13 +13114,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const isClsHighlighted = isUncleAssignedClass(name);
                 const clsHighlightClass = isClsHighlighted ? ' highlighted' : '';
-                const myClassBadge = isClsHighlighted ? `<span class="my-class-badge" style="background:${color}">فصلي</span>` : '';
                 return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
+            <div class="class-card-badges">
+                <div style="display:flex; align-items:center; gap:4px;">
+                    ${unsavedHtml}
+                </div>
+                <div></div>
+            </div>
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
-            ${myClassBadge}
-            ${unsavedHtml}
+            <!-- Uncles list container -->
+            <div class="class-card-uncles" data-class="${name}">
+                <div class="skeleton-uncle-tiny" style="width:20px; height:20px; border-radius:50%; background:var(--border-solid); opacity: 0.6; animation:pulse 1.5s infinite;"></div>
+                <div class="skeleton-uncle-tiny" style="width:20px; height:20px; border-radius:50%; background:var(--border-solid); opacity: 0.6; animation:pulse 1.5s infinite; animation-delay:0.2s;"></div>
+            </div>
         </div>`;
             }).join('');
 
@@ -13036,6 +13136,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const visibleRegular = showClassCards ? regularHtml : '';
             grid.innerHTML = allTogetherHtml + visibleCombined + visibleRegular;
             renderTodayBirthdayBanner();
+            loadAllClassCardsUncles();
+        }
+
+        window.classUnclesCache = window.classUnclesCache || {};
+        function loadAllClassCardsUncles() {
+            const containers = document.querySelectorAll('.class-card-uncles');
+            containers.forEach(el => {
+                const className = el.getAttribute('data-class');
+                if (!className) return;
+                
+                // If already cached
+                if (window.classUnclesCache[className]) {
+                    renderTinyUnclesInElement(el, window.classUnclesCache[className]);
+                    return;
+                }
+                
+                // If not cached, fetch
+                makeApiCall({ action: 'getClassUncles', class: className }, r => {
+                    const uncles = r.uncles || [];
+                    window.classUnclesCache[className] = uncles;
+                    renderTinyUnclesInElement(el, uncles);
+                }, () => {
+                    el.innerHTML = '';
+                });
+            });
+        }
+
+        function renderTinyUnclesInElement(el, uncles) {
+            if (!uncles || !uncles.length) {
+                el.innerHTML = '';
+                return;
+            }
+            el.innerHTML = uncles.map(u => {
+                const avatarUrl = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
+                return `<div class="uncle-avatar-wrap-tiny">
+                    <img class="uncle-avatar-img-tiny" src="${avatarUrl}" alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">
+                    <div class="uncle-tooltip-tiny">${u.name}</div>
+                </div>`;
+            }).join('');
         }
 
         // ── VIEW ALL TOGETHER ─────────────────────────────────────────
