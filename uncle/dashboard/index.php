@@ -2089,16 +2089,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Sticky attendance toolbar ─────────────────────────────── */
         .att-toolbar {
             position: sticky;
-            top: 58px;
+            bottom: 0;
             z-index: 50;
-            border-radius: 0 0 var(--r-md) var(--r-md);
+            border-radius: var(--r-md) var(--r-md) 0 0;
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 8px 8px 6px;
-            margin-bottom: 8px;
+            margin-top: 8px;
+            margin-bottom: 0;
             transition: background var(--t) var(--ease);
-            box-shadow: none;
+            box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04) !important;
+            border-top: 1px solid var(--border-solid) !important;
         }
 
         .att-toolbar ::-webkit-scrollbar {
@@ -3151,11 +3153,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         body.bulk-active .att-toolbar {
-            top: var(--bulk-bar-height, 96px) !important;
+            bottom: 0 !important;
+            top: auto !important;
             background: var(--surface) !important;
-            border-radius: 0 0 var(--r-xl) var(--r-xl) !important;
-            box-shadow: none !important;
-            border-top: none !important;
+            border-radius: var(--r-xl) var(--r-xl) 0 0 !important;
+            box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04) !important;
+            border-top: 1px solid var(--border-solid) !important;
         }
 
         body.bulk-active .bulk-actions-bar {
@@ -10078,7 +10081,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0 8px 0; flex-wrap: nowrap; direction: rtl;">
+                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; flex-wrap: nowrap; direction: rtl;">
 
                     <!-- RTL Start (physical RIGHT): Back button + Class name + uncles -->
                     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: none;">
@@ -10334,9 +10337,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 </div>
 
-                <!-- Sticky attendance toolbar (below search/filter row) -->
+                <div class="attendance-list" id="attendanceList"></div>
+
+                <!-- Sticky attendance toolbar (always at the bottom) -->
                 <div class="att-toolbar"
-                    style="box-shadow: none !important; border: none; padding: 8px 12px; min-height: 48px; height: auto; display: flex; align-items: center; background: var(--bg); margin-bottom: 4px;">
+                    style="padding: 8px 12px; min-height: 48px; height: auto; display: flex; align-items: center; background: var(--bg); margin-top: 4px; margin-bottom: 0;">
                     <div class="toolbar-row"
                         style="display: flex; align-items: center; gap: 12px; width: 100%; direction: rtl;">
                         <!-- Stats (RTL start = physical right) -->
@@ -10375,8 +10380,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
                 </div>
-
-                <div class="attendance-list" id="attendanceList"></div>
             </div>
             <!-- end classView -->
 
@@ -13691,12 +13694,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function markAllPresent() {
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
             list.forEach(s => markStudentAttendance(getStudentId(s), 'present'));
-            showToast('تم تسجيل حضور الجميع', 'success');
         }
         function markAllAbsent() {
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
             list.forEach(s => markStudentAttendance(getStudentId(s), 'absent'));
-            showToast('تم تسجيل غياب الجميع', 'success');
         }
 
         // ── COUPON TOGGLE ─────────────────────────────────────────────
@@ -13721,7 +13722,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             _updateAttendanceRow(studentId);
             updateClassStats(); updateSaveBtns();
             animateCouponDelta(studentId, dir * val);
-            showToast(`${dir > 0 ? 'تم إضافة' : 'تم خصم'} ${val} كوبون`, 'success');
         }
         function addCouponsToAll(amount) {
             const list = students.filter(s => s['الفصل'] === currentClass);
@@ -13734,14 +13734,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 animateCouponDelta(id, amount);
             });
             saveCouponDataForClass(currentClass); updateClassStats(); updateSaveBtns();
-            showToast(`تم إضافة ${amount} كوبون للجميع`, 'success');
         }
         function resetCouponDataForClass(className) {
             couponData = {}; changedCouponStudents.clear(); savedCouponStudents.clear();
             couponValueIdxByStudent = {};
             localStorage.removeItem(`couponData_${className}`); localStorage.removeItem(`changedCouponStudents_${className}`); localStorage.removeItem(`savedCoupons_${className}`);
             localStorage.removeItem(`couponValueIdx_${className}`);
-            renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns(); showToast('تم إعادة تعيين الكوبونات', 'info');
+            renderAttendanceList(currentClass); updateClassStats(); updateSaveBtns();
         }
 
         let isBulkSelectMode = false;
@@ -13913,7 +13912,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
 
             updateBulkUI();
-            showToast('تم تحديث التحديد', 'info');
         }
 
         function bulkMarkAttendance(status) {
@@ -13921,8 +13919,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('الرجاء تحديد أطفال أولاً', 'warning');
                 return;
             }
-
-            const actionLabel = status === 'present' ? 'حضور' : 'غياب';
 
             // Iterate and mark attendance locally for all selected
             const allList = isCombinedView ? combinedStudents : students;
@@ -13934,7 +13930,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             });
 
-            showToast(`تم تسجيل ${actionLabel} للمحددين محلياً`, 'success');
             selectedStudentIds.clear();
             updateBulkUI();
             renderAttendanceList(currentClass);
@@ -17683,7 +17678,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 renderAttendanceList(currentClass);
                 updateSaveBtns();
                 renderShareAttendanceTable();
-                showToast('تم مسح الغائبين', 'success');
             }
         }
 
