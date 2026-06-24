@@ -41214,13 +41214,15 @@ function getNotifications()
 
         $stmt = $conn->prepare("
 
-            SELECT id, type, title, body, entity_type, entity_id, is_read, created_at
+            SELECT n.id, n.type, n.title, n.body, n.entity_type, n.entity_id, n.is_read, n.created_at, dm.redirect_url
 
-            FROM notifications
+            FROM notifications n
 
-            WHERE church_id = ? AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)
+            LEFT JOIN developer_messages dm ON n.entity_type = 'developer_message' AND n.entity_id = dm.id
 
-            ORDER BY created_at DESC
+            WHERE n.church_id = ? AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
+
+            ORDER BY n.created_at DESC
 
             LIMIT ? OFFSET ?
 

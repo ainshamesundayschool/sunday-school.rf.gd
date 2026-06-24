@@ -2175,7 +2175,7 @@
                     navigator.serviceWorker.addEventListener('message', e => {
                         if (e.data?.type === 'SYNC_COMPLETE') {
                             const uName = e.data.uncleName || 'خادمنا';
-                            showToast(`تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅`, 'success', 6000);
+                            showToast(`تمت المزامنة وحفظ البيانات بنجاح ✅`, 'success', 6000);
                             if (tripId) {
                                 openTrip(tripId);
                             }

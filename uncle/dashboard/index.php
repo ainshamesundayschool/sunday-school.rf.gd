@@ -2865,7 +2865,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="dark"] .status-badge.local-unsaved {
-            color: #fbbf24
+            color: #fbbf24;
+        }
+
+        .status-badge.offline-saved {
+            background: rgba(14, 165, 233, 0.15);
+            color: #0369a1;
+        }
+        [data-theme="dark"] .status-badge.offline-saved {
+            color: #38bdf8;
+        }
+        .status-badge.offline-coupon {
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
+        }
+        [data-theme="dark"] .status-badge.offline-coupon {
+            color: #fbbf24;
         }
 
         .status-badge.changed {
@@ -10408,6 +10423,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
+                <!-- Offline saved sync indicator -->
+                <button class="topbar-btn" id="offlineSyncIndicator" onclick="triggerManualSync()" title="يوجد تعديلات محفوظة أوفلاين في انتظار الاتصال بالإنترنت"
+                    style="display:none; color:#0ea5e9; position:relative; overflow:visible; align-items:center; justify-content:center;">
+                    <i class="fas fa-cloud-upload-alt fa-bounce" style="--fa-animation-duration: 2.5s;"></i>
+                    <span id="offlineSyncCount" style="position:absolute;top:-4px;right:-4px;background:#0ea5e9;color:#fff;font-size:0.58rem;font-weight:800;border-radius:50%;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;line-height:1;padding:1px;">0</span>
+                </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
                     style="display:none;position:relative; overflow:visible;">
@@ -14013,21 +14034,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             list.innerHTML = cs.map(s => {
                 const id = getStudentId(s), st = attendanceData[id] || 'pending';
-                const baseC = parseInt(s['كوبونات'] || 0), addC = parseInt(couponData[id] || 0), totC = baseC + addC;
                 const srv = getServerAttendanceStatus(s, currentFriday);
                 const isInChanged = changedStudents.has(id), isCouponChanged = changedCouponStudents.has(id);
                 const isSynced = srv !== 'pending' && st === srv && !isInChanged;
+
+                const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+                const offAttList = JSON.parse(localStorage.getItem(`offlineSavedAttendance_${cls}_${currentFriday}`) || '[]');
+                const offCoupList = JSON.parse(localStorage.getItem(`offlineSavedCoupons_${cls}`) || '[]');
+                const accKey = `offlineAccumulatedCoupons_${cls}`;
+                const acc = JSON.parse(localStorage.getItem(accKey) || '{}');
+                const offlineC = parseInt(acc[id] || 0);
+
+                const isOfflineAttSaved = offAttList.includes(id);
+                const isOfflineCoupSaved = offCoupList.includes(id);
+
+                const baseC = parseInt(s['كوبونات'] || 0), addC = parseInt(couponData[id] || 0), totC = baseC + addC + offlineC;
+
                 // Birthday today check
                 const _now = new Date();
                 const _bdParts = (s['عيد الميلاد'] || '').split('/');
                 const isBdayToday = _bdParts.length >= 2 && parseInt(_bdParts[0]) === _now.getDate() && parseInt(_bdParts[1]) - 1 === _now.getMonth();
+                
                 let badges = '';
                 if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
-                if (st === 'pending' && !isInChanged) badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
-                else if (st === 'pending' && isInChanged) badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
-                else if (isSynced) badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
-                else if (isInChanged) badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
-                if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
+                if (isOfflineAttSaved) {
+                    badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين ☁️</span>';
+                } else if (st === 'pending' && !isInChanged) {
+                    badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
+                } else if (st === 'pending' && isInChanged) {
+                    badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
+                } else if (isSynced) {
+                    badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
+                } else if (isInChanged) {
+                    badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
+                }
+                
+                if (isOfflineCoupSaved) {
+                    badges += `<span class="status-badge offline-coupon"><i class="fas fa-star"></i> أوفلاين ${offlineC >= 0 ? '+' : ''}${offlineC}</span>`;
+                }
+                if (isCouponChanged) {
+                    badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
+                }
+
+                const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>`;
+                
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
@@ -14037,7 +14087,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">`
                     : '';
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
-                const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
+                const localClass = (isInChanged || isCouponChanged || isOfflineAttSaved || isOfflineCoupSaved) ? ' has-local' : '';
                 const bdayClass = isBdayToday ? ' bday-row' : '';
                 const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
@@ -14055,11 +14105,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${img}${fallback}
                 <div>
                     <div class="student-name profile-link">${name}</div>
-                    <div class="status-indicator">${badges}<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span></div>
+                    <div class="status-indicator">${badges}${inlineCoupons}</div>
                 </div>
             </div>
             <div class="attendance-actions">
-                <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span>
+                <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>
                 <div class="coupon-toggle-row">
                     <button class="coupon-toggle-btn minus" onclick="adjustStudentCoupons('${id}',-1)"><i class="fas fa-minus"></i></button>
                     <div class="coupon-value-display" id="cv-${id}" data-idx="${getCouponValueIdx(id)}" onclick="toggleCouponValue('${id}')">${getCouponValueForStudent(id)}</div>
@@ -14134,32 +14184,54 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const srv = s ? getServerAttendanceStatus(s, currentFriday) : 'pending';
             const isSynced = srv !== 'pending' && st === srv && !isInChanged;
 
+            const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+            const offAttList = JSON.parse(localStorage.getItem(`offlineSavedAttendance_${cls}_${currentFriday}`) || '[]');
+            const offCoupList = JSON.parse(localStorage.getItem(`offlineSavedCoupons_${cls}`) || '[]');
+            const accKey = `offlineAccumulatedCoupons_${cls}`;
+            const acc = JSON.parse(localStorage.getItem(accKey) || '{}');
+            const offlineC = parseInt(acc[studentId] || 0);
+
+            const isOfflineAttSaved = offAttList.includes(studentId);
+            const isOfflineCoupSaved = offCoupList.includes(studentId);
+
             // Birthday today
             const _now = new Date();
             const _bdParts = (s ? (s['عيد الميلاد'] || '') : '').split('/');
             const isBdayToday = _bdParts.length >= 2 && parseInt(_bdParts[0]) === _now.getDate() && parseInt(_bdParts[1]) - 1 === _now.getMonth();
 
             // Update row class
-            let cls = 'attendance-item ' + st;
-            if (isInChanged || isCouponChanged) cls += ' has-local';
-            if (isBdayToday) cls += ' bday-row';
+            let rowCls = 'attendance-item ' + st;
+            if (isInChanged || isCouponChanged || isOfflineAttSaved || isOfflineCoupSaved) rowCls += ' has-local';
+            if (isBdayToday) rowCls += ' bday-row';
             const dbId = s ? Number(getStudentDbId(s)) : null;
-            if (dbId && selectedStudentIds.has(dbId)) cls += ' selected';
-            row.className = cls;
+            if (dbId && selectedStudentIds.has(dbId)) rowCls += ' selected';
+            row.className = rowCls;
 
             // Update badges
             let badges = '';
             if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
-            if (st === 'pending' && !isInChanged) badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
-            else if (st === 'pending' && isInChanged) badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
-            else if (isSynced) badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
-            else if (isInChanged) badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
+            if (isOfflineAttSaved) {
+                badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين ☁️</span>';
+            } else if (st === 'pending' && !isInChanged) {
+                badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
+            } else if (st === 'pending' && isInChanged) {
+                badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
+            } else if (isSynced) {
+                badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
+            } else if (isInChanged) {
+                badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
+            }
             const addC = parseInt(couponData[studentId] || 0);
-            if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
+            if (isOfflineCoupSaved) {
+                badges += `<span class="status-badge offline-coupon"><i class="fas fa-star"></i> أوفلاين ${offlineC >= 0 ? '+' : ''}${offlineC}</span>`;
+            }
+            if (isCouponChanged) {
+                badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
+            }
 
             const baseC = parseInt(s ? s['كوبونات'] || 0 : 0);
-            const totC = baseC + addC;
-            const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}</span>`;
+            const totC = baseC + addC + offlineC;
+            const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>`;
 
             const indicator = row.querySelector('.status-indicator');
             if (indicator) indicator.innerHTML = badges + inlineCoupons;
@@ -14167,7 +14239,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Update coupons display in-place
             const couponsEl = row.querySelector('.student-coupons');
             if (couponsEl) {
-                couponsEl.innerHTML = `<i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}`;
+                couponsEl.innerHTML = `<i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}`;
             }
 
             // Update bulk checkbox checked state
@@ -16115,6 +16187,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             makeApiCall({ action: 'updateCoupons', className: currentClass, couponData: JSON.stringify(records) }, d => {
                 if (d.offline) {
                     showToast(d.message || 'الكوبونات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                    markCouponsAsOfflineSaved();
                 } else {
                     showToast(`تم حفظ كوبونات ${records.length} طفل`, 'success', { dur: 7000, refresh: true });
                     changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
@@ -16198,6 +16271,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             done++;
                             if (done === classNames.length) {
                                 showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                                markAttendanceAsOfflineSaved(date);
                                 btn.disabled = false;
                                 updateSaveBtns();
                             }
@@ -16232,6 +16306,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             makeApiCall({ action: 'submitAttendance', className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
                 if (r.offline) {
                     showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
+                    markAttendanceAsOfflineSaved(date);
                     btn.disabled = false;
                     updateSaveBtns();
                     return;
@@ -20688,10 +20763,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 // Background sync completed — reload data so UI reflects server state
                 if (d.type === 'SYNC_COMPLETE') {
                     const uName = d.uncleName || '';
-                    const msg = uName
-                        ? `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uName} ✅`
-                        : `✅ تمت المزامنة — رُفع ${d.count} تغيير في الخلفية`;
+                    const msg = `تمت المزامنة وحفظ البيانات بنجاح ✅`;
                     showToast(msg, 'success', { dur: 5000 });
+                    clearOfflineSavedData();
                     setTimeout(() => { if (navigator.onLine) loadData(); }, 800);
                 }
 
@@ -21112,9 +21186,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function _countAllPendingLocalChanges() {
-            // Count only genuinely-unsaved changes.
-            // A localStorage key is "stale" (already saved) if all its IDs are in savedStudents.
-            // We also garbage-collect truly empty keys here.
+            // Count only genuinely-unsaved changes and offline saved changes pending sync.
             let total = 0;
             const keysToDelete = [];
 
@@ -21122,10 +21194,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (k.startsWith('changedStudents_')) {
                     try {
                         const arr = JSON.parse(localStorage.getItem(k) || '[]');
-                        // Filter out IDs already confirmed saved this session
                         const unsaved = arr.filter(id => !savedStudents.has(id));
                         if (unsaved.length === 0) {
-                            keysToDelete.push(k); // stale — mark for cleanup
+                            keysToDelete.push(k);
                         } else {
                             total += unsaved.length;
                         }
@@ -21142,17 +21213,112 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     } catch (e) { }
                 }
+                if (k.startsWith('offlineSavedAttendance_')) {
+                    try {
+                        const arr = JSON.parse(localStorage.getItem(k) || '[]');
+                        total += arr.length;
+                    } catch (e) { }
+                }
+                if (k.startsWith('offlineSavedCoupons_')) {
+                    try {
+                        const arr = JSON.parse(localStorage.getItem(k) || '[]');
+                        total += arr.length;
+                    } catch (e) { }
+                }
             });
 
-            // Clean up stale keys so they don't keep triggering false positives
             keysToDelete.forEach(k => { try { localStorage.removeItem(k); } catch (e) { } });
-
             return total;
         }
 
-        // Track whether we were previously offline so we only show the "back online"
-        // toast when we actually CAME BACK from an offline state — not on first load.
-        let _wasOffline = false;
+        function markAttendanceAsOfflineSaved(date) {
+            const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+            const key = `offlineSavedAttendance_${cls}_${date}`;
+            let offlineSaved = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            changedStudents.forEach(id => {
+                if (!offlineSaved.includes(id)) {
+                    offlineSaved.push(id);
+                }
+                originalAttendanceData[id] = attendanceData[id] || 'pending';
+            });
+            
+            localStorage.setItem(key, JSON.stringify(offlineSaved));
+            
+            changedStudents.clear();
+            localStorage.removeItem(`changedStudents_${cls}_${date}`);
+            saveAttendanceDataForClass(currentClass, date);
+            
+            renderAttendanceList(currentClass);
+            updateSaveBtns();
+            updateOfflineSyncIndicator();
+        }
+
+        function markCouponsAsOfflineSaved() {
+            const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+            const key = `offlineSavedCoupons_${cls}`;
+            let offlineSaved = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            changedCouponStudents.forEach(id => {
+                if (!offlineSaved.includes(id)) {
+                    offlineSaved.push(id);
+                }
+                const accKey = `offlineAccumulatedCoupons_${cls}`;
+                let acc = JSON.parse(localStorage.getItem(accKey) || '{}');
+                acc[id] = (acc[id] || 0) + (couponData[id] || 0);
+                localStorage.setItem(accKey, JSON.stringify(acc));
+            });
+            
+            localStorage.setItem(key, JSON.stringify(offlineSaved));
+            
+            changedCouponStudents.clear();
+            couponData = {};
+            saveCouponDataForClass(currentClass);
+            
+            renderAttendanceList(currentClass);
+            updateSaveBtns();
+            updateOfflineSyncIndicator();
+        }
+
+        function clearOfflineSavedData() {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('offlineSavedAttendance_') || key.startsWith('offlineSavedCoupons_') || key.startsWith('offlineAccumulatedCoupons_'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            updateOfflineSyncIndicator();
+        }
+
+        function updateOfflineSyncIndicator() {
+            const ind = document.getElementById('offlineSyncIndicator');
+            const cnt = document.getElementById('offlineSyncCount');
+            if (!ind || !cnt) return;
+            
+            const totalPending = _countAllPendingLocalChanges();
+            // Subtract genuinely unsaved changes from the sync indicator (so it only shows queued ones, or shows all local changes)
+            // Wait, showing all pending changes to be synced is great! Let's show all changes that exist in SW queue + unsaved.
+            // But since offline-saved ones are in IndexedDB/localStorage, showing total is very clear!
+            if (totalPending > 0) {
+                cnt.textContent = totalPending;
+                ind.style.display = 'inline-flex';
+            } else {
+                ind.style.display = 'none';
+            }
+        }
+
+        function triggerManualSync() {
+            if (navigator.onLine) {
+                showToast('جاري بدء مزامنة التغييرات المحفوظة أوفلاين…', 'info');
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'FLUSH_QUEUE' });
+                }
+            } else {
+                showToast('لا تزال غير متصل بالإنترنت. ستتم المزامنة تلقائياً بمجرد توفر اتصال.', 'warning');
+            }
+        }
 
         async function _updateOnlineStatus() {
             const banner = document.getElementById('offlineBanner');
@@ -21163,11 +21329,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 banner.classList.add('show');
                 _wasOffline = true;
                 if (typeof _updateNotifBtnVisibility === 'function') _updateNotifBtnVisibility();
+                updateOfflineSyncIndicator();
                 return;
             }
 
             // We are online
             banner.classList.remove('show');
+            updateOfflineSyncIndicator();
 
             // Only run the "came back online" logic if we actually went offline first.
             // This prevents the toast from firing on initial page load.
@@ -21240,6 +21408,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (banner) banner.classList.remove('show');
             }
             _updateNotifBtnVisibility();
+            updateOfflineSyncIndicator();
             // Hide bulk-add button unless the user is an admin/developer
             try {
                 const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
@@ -21255,6 +21424,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 navigator.permissions.query({ name: 'notifications' }).then(status => {
                     status.onchange = () => _updateNotifBtnVisibility();
                 }).catch(() => { });
+            }
+            
+            // Check if ?tab=pending or #pending was opened
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'pending' || window.location.hash === '#pending') {
+                setTimeout(() => {
+                    const body = document.getElementById('pendingBody');
+                    const btn = document.getElementById('pendingCollapseBtn');
+                    if (body && body.style.display === 'none') {
+                        body.style.display = 'block';
+                        btn?.classList.add('open');
+                    }
+                    document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
+                }, 1000);
             }
         });
 
@@ -21758,18 +21941,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 announcement: 'عرض الإعلان',
             };
             const typeUrl = {
-                registration: '/uncle/dashboard/?tab=pending',
+                registration: '#pending',
                 task_submission: currentClass
                     ? `/uncle/dashboard/tasks?class=${encodeURIComponent(currentClass)}`
                     : '/uncle/dashboard/tasks/',
-                developer_message: '/uncle/church/dashboard/',
+                developer_message: '/uncle/dashboard/', // Fallback, will be overridden dynamically
                 announcement: '/uncle/dashboard/',
             };
             el.innerHTML = _notifData.map(n => {
                 const icon = typeIcon[n.type] || 'fa-bell';
                 const label = typeLabel[n.type] || '';
                 const action = typeAction[n.type];
-                const url = typeUrl[n.type];
+                
+                // Override developer message dynamically with actual redirect_url if available
+                let url = typeUrl[n.type] || '';
+                if (n.type === 'developer_message') {
+                    url = n.redirect_url || '/uncle/dashboard/';
+                }
+
                 const typeClass = 'type-' + (n.type || 'default');
                 const t = new Date(n.created_at).toLocaleString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 return `<div class="nps-item ${n.is_read == 0 ? 'unread' : ''}" onclick="onUnifNotifClick(${n.id}, '${n.type}', '${url || ''}')">
@@ -21800,7 +21989,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             loadUnifiedNotifications();
             // Navigate
             toggleNotifPanel();
-            if (url) setTimeout(() => window.location.href = url, 200);
+            
+            if (type === 'registration') {
+                const body = document.getElementById('pendingBody');
+                const btn = document.getElementById('pendingCollapseBtn');
+                if (body && body.style.display === 'none') {
+                    body.style.display = 'block';
+                    btn?.classList.add('open');
+                }
+                setTimeout(() => {
+                    document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            } else if (url) {
+                setTimeout(() => window.location.href = url, 200);
+            }
         }
 
         async function deleteUnifNotif(e, id) {

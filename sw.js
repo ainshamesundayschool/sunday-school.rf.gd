@@ -413,6 +413,9 @@ self.addEventListener('push', e => {
     try { d = e.data.json(); } catch(_) { d = { title: 'مدارس الأحد', body: e.data.text() }; }
 
     const isReg = d.type === 'registration';
+    const isDevMsg = d.type === 'developer_message';
+    const targetUrl = d.redirect_url || d.url || '/uncle/dashboard/';
+
     const options = {
         body: d.body || '',
         icon: d.icon || '/logo.png',
@@ -420,12 +423,17 @@ self.addEventListener('push', e => {
         dir: 'rtl', lang: 'ar',
         tag: d.type || 'general',
         renotify: true,
-        requireInteraction: isReg,
-        data: { url: d.url || '/uncle/dashboard/', type: d.type, className: d.className }
+        requireInteraction: isReg || (isDevMsg && !!d.button_text),
+        data: { url: targetUrl, type: d.type, className: d.className }
     };
     if (isReg) {
         options.actions = [
             { action: 'open', title: 'عرض الطلب' },
+            { action: 'dismiss', title: 'إغلاق' }
+        ];
+    } else if (isDevMsg && d.button_text) {
+        options.actions = [
+            { action: 'open', title: d.button_text },
             { action: 'dismiss', title: 'إغلاق' }
         ];
     }
@@ -447,7 +455,7 @@ self.addEventListener('notificationclick', e => {
             const open = list.find(c => c.url.includes(targetSubstring));
             if (open) { 
                 open.focus(); 
-                open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className }); 
+                open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className, url }); 
             } else {
                 self.clients.openWindow(url || defaultUrl);
             }
@@ -535,12 +543,12 @@ async function _flushQueue() {
     const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     allClients.forEach(c => c.postMessage({ type: 'SYNC_COMPLETE', count: flushed, uncleName }));
 
-    // Show system notification only if app is closed (no tabs open)
-    const hasOpenTabs = allClients.length > 0;
-    if (!hasOpenTabs) {
-        const title = `تم الحفظ بنجاح للغالي تسلم إيدك يا خادم / ${uncleName || 'خادمنا'} ✅`;
+    // Show system notification if app is closed or in the background (no visible tabs)
+    const hasVisibleTabs = allClients.some(c => c.visibilityState === 'visible');
+    if (!hasVisibleTabs) {
+        const title = `تم حفظ التغييرات بنجاح ✅`;
         self.registration.showNotification(title, {
-            body: `رُفع ${flushed} تغيير محفوظ محلياً بنجاح`,
+            body: `تم رفع ${flushed} تغيير محفوظ محلياً بنجاح للمستخدم / ${uncleName || 'الخادم'}`,
             icon: '/logo.png', badge: '/logo.png',
             dir: 'rtl', lang: 'ar',
             tag: 'sync-complete', renotify: true,
