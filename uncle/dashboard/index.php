@@ -9819,43 +9819,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <!-- Bulk Actions Bar -->
         <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
             <div class="bulk-actions-bar-header"
-                style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                <div style="display:flex; align-items:center; gap:6px; flex:1; min-width: 0;">
+                style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; direction: rtl; padding-bottom: 8px; border-bottom: 1px solid var(--border-solid);">
+                
+                <!-- Right Side: Mode Title + Count Pill -->
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد جماعي</span>
+                    <span id="bulkSelectedCount" class="selected-count-chip"
+                        style="background: var(--brand); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); min-width: 20px; text-align: center; font-family: Cairo, sans-serif; display: inline-flex; align-items: center; justify-content: center; height: 20px; line-height: 1;">0</span>
+                </div>
+
+                <!-- Left Side: Selection Actions + Close Button -->
+                <div style="display: flex; align-items: center; gap: 8px; flex: none;">
                     <!-- Select all checkbox circle -->
-                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex: none;"
+                    <div class="bulk-check-wrap" onclick="toggleSelectAllBulk(event)" style="display: flex; flex-shrink: 0; cursor: pointer;"
                         title="تحديد الكل">
                         <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i class="fas fa-check"></i></div>
                     </div>
 
-                    <!-- Deselect all outside the dropdown -->
-                    <button class="filter-chip" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل"
-                        style="flex: none;">
-                        <i class="fas fa-eraser" style="font-size: 0.72rem;"></i>
-                    </button>
-
-                    <!-- Dropdown taking whole width -->
-                    <div class="action-dropdown" style="flex: 1; min-width: 0; position: relative;">
-                        <button class="btn btn-outline btn-sm" id="bulkFilterBtn"
+                    <!-- Dropdown for select by filter -->
+                    <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
+                        <button class="btn btn-ghost btn-sm" id="bulkFilterBtn"
                             onclick="toggleDropdown('bulkFilterMenu', 'bulkFilterBtn'); event.stopPropagation();"
-                            style="width: 100%; text-align: right; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); border: 1.5px solid var(--border-solid); border-radius: var(--r-md); background: transparent; height: 32px; padding: 0 10px; font-size: 0.78rem; font-weight: 700;">
-                            <span
-                                style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <i class="fas fa-filter" style="font-size: 0.75rem; color: var(--text-3);"></i>
-                                <span>تحديد حسب...</span>
-                            </span>
-                            <i class="fas fa-chevron-down" style="font-size: 0.65rem; color: var(--text-3);"></i>
+                            style="height: 30px; padding: 0 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-solid) !important; border-radius: var(--r-sm); background: var(--surface-2); box-shadow: none;">
+                            <i class="fas fa-filter" style="font-size: 0.7rem; color: var(--text-3);"></i>
+                            <span>تحديد حسب</span>
+                            <i class="fas fa-chevron-down" style="font-size: 0.6rem; color: var(--text-3);"></i>
                         </button>
                         <div class="dropdown-menu" id="bulkFilterMenu"
-                            style="right: 0; left: 0; min-width: 100%; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg);">
+                            style="left: 0; right: auto; min-width: 150px; top: 100%; margin-top: 4px; box-shadow: var(--shadow-lg); z-index: 10000;">
                             <button class="dropdown-item" onclick="bulkSelectByFilter('pending');closeAllDropdowns()"><i
                                     class="fas fa-minus"></i> بدون حضور</button>
                             <button class="dropdown-item success"
                                 onclick="bulkSelectByFilter('present');closeAllDropdowns()"><i
-                                    class="fas fa-check-circle"></i> الحاضرين (حضور)</button>
+                                    class="fas fa-check-circle"></i> الحاضرين</button>
                             <button class="dropdown-item danger"
                                 onclick="bulkSelectByFilter('absent');closeAllDropdowns()"><i
-                                    class="fas fa-times-circle"></i> الغائبين (غياب)</button>
-                            <hr style="margin: 4px 0; border: none; border-top: 1px solid var(--border-solid);">
+                                    class="fas fa-times-circle"></i> الغائبين</button>
+                            <div class="dropdown-divider"></div>
                             <button class="dropdown-item" style="color: var(--brand);"
                                 onclick="bulkSelectByFilter('boys');closeAllDropdowns()"><i class="fas fa-mars"></i>
                                 الأولاد</button>
@@ -9864,16 +9864,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 البنات</button>
                         </div>
                     </div>
-                </div>
-                <!-- Left Stack: Close Button & Selected Count Badge underneath -->
-                <div
-                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: none; margin-right: 4px;">
-                    <button class="bulk-close-x-btn" onclick="disableBulkSelectMode()" title="إلغاء التحديد"
-                        style="flex: none; line-height: 1; padding: 0; width: 24px; height: 24px; font-size: 1.25rem;">
-                        &times;
+
+                    <!-- Clear selection (Eraser) -->
+                    <button class="btn btn-ghost btn-sm" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل"
+                        style="height: 30px; width: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-solid) !important; border-radius: var(--r-sm); background: var(--surface-2); box-shadow: none;">
+                        <i class="fas fa-eraser" style="font-size: 0.75rem;"></i>
                     </button>
-                    <span id="bulkSelectedCount" class="selected-count-chip"
-                        style="flex: none; margin: 0; min-width: 18px; height: 18px; font-size: 0.7rem; padding: 0 4px; border-radius: 10px;">0</span>
+
+                    <div style="width: 1px; height: 18px; background: var(--border-solid); margin: 0 4px;"></div>
+
+                    <!-- Exit Bulk Mode Close Button -->
+                    <button class="btn btn-ghost btn-sm" onclick="disableBulkSelectMode()" title="إلغاء وضع التحديد"
+                        style="height: 30px; width: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--text-3); font-size: 0.9rem; background: transparent; border: none !important; box-shadow: none !important;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
             <div class="bulk-actions-btns">
@@ -10085,11 +10089,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; flex-wrap: nowrap; direction: rtl;">
+                    style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
-                    <!-- RTL Start (physical RIGHT): Back button + Class name + uncles -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: none;">
-                        <!-- Back + Class name row -->
+                    <!-- Row 1: Back button + Class Name (Right) and Kids Count (Left) -->
+                    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                        <!-- Right: Back button + Class name -->
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
                                 style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
@@ -10098,25 +10102,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
                                 الفصل</h2>
                         </div>
-                        <!-- Uncles bar -->
-                        <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; flex: none !important;">
-                            <span class="uncles-bar-label"
-                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
-                                    class="fas fa-users"></i> الخدام:</span>
-                            <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RTL End (physical LEFT): Kids count (above) + Date -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none;">
-                        <!-- Kids count (above) -->
+                        <!-- Left: Kids count -->
                         <div id="classViewCount"
                             style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1;">
                         </div>
-                        <!-- Date chip and Revert row -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                    </div>
+
+                    <!-- Row 2: Uncles bar (Right) and Date/Revert (Left) -->
+                    <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                        <!-- Right: Uncles bar -->
+                        <div class="uncles-bar" id="unclesBar"
+                            style="display:none; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; gap: 6px !important; align-items: center;">
+                            <span class="uncles-bar-label"
+                                style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
+                                    class="fas fa-users"></i> الخدام:</span>
+                            <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
+                            </div>
+                        </div>
+                        
+                        <!-- Left: Date chip and Revert row -->
+                        <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
                             <!-- Sync to today -->
                             <button class="btn btn-ghost" id="syncToTodayBtn"
                                 style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
