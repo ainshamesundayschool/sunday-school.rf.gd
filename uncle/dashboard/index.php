@@ -4090,28 +4090,36 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .modal::before {
+            display: none !important;
+        }
+
+        .modal-header::before {
             content: '';
-            display: block;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 36px;
             height: 4px;
             background: var(--border-solid);
             border-radius: 2px;
-            margin: 12px auto 4px;
-            flex-shrink: 0
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-block: 14px;
+            margin-top: 22px;
+            margin-bottom: 14px;
             padding-bottom: 12px;
             border-bottom: 1.5px solid var(--border-solid);
             position: sticky;
             top: 0;
             background: var(--surface);
             z-index: 10;
-            padding-top: 4px;
+            padding-top: 8px;
+            margin-inline: -20px;
+            padding-inline: 20px;
             transition: background var(--t) var(--ease);
         }
 
@@ -4187,9 +4195,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 display: none
             }
 
+            .modal-header::before {
+                display: none;
+            }
+
             .modal-header {
                 position: static;
-                padding-top: 0
+                padding-top: 0;
+                margin-top: 14px;
+                margin-inline: 0;
+                padding-inline: 0;
             }
         }
 
