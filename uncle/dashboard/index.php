@@ -4945,11 +4945,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 12px 16px !important;
-            margin-bottom: 0 !important;
+            padding: 4px 2px 10px !important;
+            margin-bottom: 8px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            border-top: 1px solid var(--border-solid) !important;
+            border-top: none !important;
         }
 
         .trips-horizontal-scroll::-webkit-scrollbar {
@@ -5058,63 +5058,60 @@ if ($hasUncleId && $uncleRole === 'uncle')
             white-space: nowrap;
         }
 
-        /* Unified Collapsible Section Card */
+        /* Minimal Collapsible Sections (no bg, no container) */
         #tripsSectionHead,
         #mainStatsRow {
             display: none;
-            background: var(--surface) !important;
-            border: 1px solid var(--border-solid) !important;
-            border-radius: var(--r-lg) !important;
-            margin-bottom: 12px !important;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin-bottom: 8px !important;
             margin-top: 8px !important;
-            overflow: hidden !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-            transition: all 0.25s var(--ease) !important;
             padding: 0 !important;
-            flex-direction: column;
+            border-radius: 0 !important;
         }
 
         .dashboard-section-toggle-btn {
-            width: 100%;
-            display: flex;
+            display: inline-flex !important;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px !important;
-            background: none;
-            border: none;
-            color: var(--text-2);
+            gap: 6px;
+            background: none !important;
+            border: none !important;
+            padding: 6px 0 !important;
+            color: var(--text-2) !important;
             font-family: inherit;
-            font-size: inherit;
-            font-weight: inherit;
+            font-size: 0.92rem !important;
+            font-weight: 700 !important;
             cursor: pointer;
             user-select: none;
-            transition: color var(--t) var(--ease), background-color var(--t) var(--ease);
+            transition: color 0.15s ease !important;
+            text-decoration: none;
             direction: rtl;
         }
 
         .dashboard-section-toggle-btn:hover {
-            background-color: var(--surface-2);
-            color: var(--brand);
+            color: var(--brand) !important;
+            background: none !important;
         }
 
         .dashboard-section-toggle-btn .icon {
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             color: var(--brand);
-            margin-left: 8px;
+            margin-left: 2px;
         }
 
         .dashboard-section-toggle-btn .section-title {
-            font-size: 0.85rem;
+            font-size: 0.92rem;
             font-weight: 700;
             font-family: Cairo, sans-serif;
-            flex: 1;
-            text-align: right;
+            color: inherit;
         }
 
         .dashboard-section-toggle-btn .chevron {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-3);
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, color 0.15s ease;
+            margin-right: 4px;
         }
 
         .dashboard-section-toggle-btn:hover .chevron {
@@ -7089,11 +7086,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 12px 16px !important;
-            margin-bottom: 0 !important;
+            padding: 4px 2px 10px !important;
+            margin-bottom: 8px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            border-top: 1px solid var(--border-solid) !important;
+            border-top: none !important;
         }
 
         .bday-banner-list::-webkit-scrollbar {
