@@ -1167,6 +1167,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 0 14px;
             border-radius: 18px;
             box-shadow: none;
+            border: none;
+            transition: background var(--t) var(--ease);
+        }
+
+        .class-inline-search-wrap .inline-search-box:focus-within {
+            background: var(--brand-bg);
+            box-shadow: none;
         }
 
         .class-inline-search-wrap .inline-search-box input {
@@ -10189,7 +10196,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px; border: 1px solid var(--border-solid);">
+                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
