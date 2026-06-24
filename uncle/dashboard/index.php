@@ -970,6 +970,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(.97)
         }
 
+        .class-card.highlighted {
+            border: 2px solid var(--cls-color, var(--brand)) !important;
+            box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
+            background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
+            transform: scale(1.02);
+        }
+
         .class-unsaved-badge {
             position: absolute;
             top: 6px;
@@ -4938,10 +4945,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 4px 2px 10px;
-            margin-bottom: 12px;
+            padding: 12px 16px !important;
+            margin-bottom: 0 !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            border-top: 1px solid var(--border-solid) !important;
         }
 
         .trips-horizontal-scroll::-webkit-scrollbar {
@@ -5050,35 +5058,63 @@ if ($hasUncleId && $uncleRole === 'uncle')
             white-space: nowrap;
         }
 
+        /* Unified Collapsible Section Card */
+        #tripsSectionHead,
+        #mainStatsRow {
+            display: none;
+            background: var(--surface) !important;
+            border: 1px solid var(--border-solid) !important;
+            border-radius: var(--r-lg) !important;
+            margin-bottom: 12px !important;
+            margin-top: 8px !important;
+            overflow: hidden !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+            transition: all 0.25s var(--ease) !important;
+            padding: 0 !important;
+            flex-direction: column;
+        }
+
         .dashboard-section-toggle-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px !important;
             background: none;
             border: none;
             color: var(--text-2);
             font-family: inherit;
             font-size: inherit;
             font-weight: inherit;
-            padding: 4px 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
             cursor: pointer;
             user-select: none;
-            transition: color var(--t) var(--ease);
+            transition: color var(--t) var(--ease), background-color var(--t) var(--ease);
+            direction: rtl;
         }
 
         .dashboard-section-toggle-btn:hover {
+            background-color: var(--surface-2);
             color: var(--brand);
         }
 
         .dashboard-section-toggle-btn .icon {
             font-size: 0.88rem;
             color: var(--brand);
+            margin-left: 8px;
+        }
+
+        .dashboard-section-toggle-btn .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: Cairo, sans-serif;
+            flex: 1;
+            text-align: right;
         }
 
         .dashboard-section-toggle-btn .chevron {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-3);
-            transition: transform var(--t) var(--ease);
+            transition: transform 0.2s ease;
         }
 
         .dashboard-section-toggle-btn:hover .chevron {
@@ -7049,23 +7085,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         /* ── Today's Birthday Banner (homepage) ── */
-        #mainStatsRow {
-            display: none;
-            background: none;
-            border: none;
-            padding: 0;
-            margin-bottom: 12px;
-            box-shadow: none;
-        }
-
         .bday-banner-list {
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 4px 2px 10px;
-            margin-bottom: 12px;
+            padding: 12px 16px !important;
+            margin-bottom: 0 !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            border-top: 1px solid var(--border-solid) !important;
         }
 
         .bday-banner-list::-webkit-scrollbar {
@@ -12190,6 +12218,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             isCombinedView = false;
             combinedGroupLabel = '';
             combinedStudents = [];
+            window.lastClassHighlighted = currentClass;
             localStorage.removeItem('currentClass'); // Clear so home screen reopens to classes grid
             document.getElementById('classesView').style.display = 'flex';
             document.getElementById('classView').classList.remove('active');
@@ -12926,7 +12955,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-save" style="font-size: .75rem;"></i> ${allUnsaved}
                 </div>
             ` : '';
-            const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
+            const isAllHighlighted = (window.lastClassHighlighted === '__ALL__');
+            const allHighlightClass = isAllHighlighted ? ' highlighted' : '';
+            const allTogetherHtml = showAllCard ? `<div class="class-card${allHighlightClass}" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
@@ -12947,7 +12978,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                         </div>
                     ` : '';
-                    return `<div class="class-card combined-class-card" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
+                    const isCombHighlighted = (window.lastClassHighlighted === label);
+                    const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
+                    return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
@@ -12968,7 +13001,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                     </div>
                 ` : '';
-                return `<div class="class-card" onclick="showClassView('${name}')"
+                const isClsHighlighted = (window.lastClassHighlighted === name);
+                const clsHighlightClass = isClsHighlighted ? ' highlighted' : '';
+                return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
