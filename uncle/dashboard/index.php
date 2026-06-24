@@ -10356,9 +10356,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span id="tbTotalVal" style="display:none;">0</span>
                         <!-- Save button at RTL end (physical LEFT), grows on mobile -->
                         <div class="save-row" style="margin-inline-start: auto; display: flex; align-items: center; flex: 1; max-width: 120px;">
-                            <button class="save-btn save-btn-unsaved" id="saveAllBtn" disabled title="التغييرات"
+                            <button class="btn btn-ghost btn-sm save-btn" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()"
-                                style="width: 100%; height: 36px; padding: 0 12px; border-radius: var(--r-md); font-family: Cairo, sans-serif; display: inline-flex; flex-direction: row !important; align-items: center; justify-content: center; gap: 6px; box-shadow: none; border: none; background: var(--surface-3); color: var(--text-3); cursor: pointer;">
+                                style="width: 100%; height: 36px; padding: 0 12px; flex-direction: row !important;">
                                 <i class="fas fa-save" style="font-size: 0.9rem;"></i>
                                 <span class="save-btn-label" style="font-size: 0.82rem; font-weight: 700;">حفظ</span>
                             </button>
@@ -11058,7 +11058,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <!-- Add Date Button -->
                     <button class="btn btn-ghost btn-sm" id="toggleCustomDateSectionBtn" onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
-                        style="width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; padding: 0; background: var(--surface-3); border: none; color: var(--text-2); cursor: pointer; transition: all var(--t) var(--ease);">
+                        style="width: 34px; height: 34px; padding: 0;">
                         <i class="fas fa-plus" style="font-size: 0.9rem;"></i>
                     </button>
                     <button class="close-btn" id="closePastFridaysModal">&times;</button>
@@ -13257,7 +13257,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── ATTENDANCE DATA ───────────────────────────────────────────
         function getServerAttendanceStatus(student, date) {
-            if (!date) return 'pending';
+            if (!student || !date) return 'pending';
             const check = v => { v = v?.toString().trim(); return v === 'ح' || v === 'حاضر' || v === 'present' ? 'present' : (v === 'غ' || v === 'غائب' || v === 'absent' ? 'absent' : null); };
             let r = check(student[date]); if (r) return r;
             if (student._allAttendance) { r = check(student._allAttendance[date]); if (r) return r; }
@@ -15128,6 +15128,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function showUnsavedModal() {
+            const getStatusBadgeHtml = (status) => {
+                let bc = '', lbl = '';
+                if (status === 'present') {
+                    bc = 'background: rgba(16,185,129,0.1); color: #10b981; border: 1.5px solid rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;';
+                    lbl = 'حاضر';
+                } else if (status === 'absent') {
+                    bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;';
+                    lbl = 'غائب';
+                } else {
+                    bc = 'background: rgba(156,163,175,0.1); color: #9ca3af; border: 1.5px solid rgba(156,163,175,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;';
+                    lbl = 'غير مسجل';
+                }
+                return `<span style="${bc}">${lbl}</span>`;
+            };
+
             const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
             const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
             const ids = list.map(s => getStudentId(s));
@@ -15180,14 +15195,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div style="display: flex; flex-direction: column; gap: 2px; padding-right: 8px; border-right: 2px solid var(--border-solid);">`;
 
                     changesByDate[date].forEach(e => {
-                        let bc = '', lbl = 'غير مسجل';
-                        if (e.status === 'present') {
-                            bc = 'background: rgba(16,185,129,0.1); color: #10b981; border: 1.5px solid rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
-                            lbl = 'حاضر';
-                        } else if (e.status === 'absent') {
-                            bc = 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1.5px solid rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;';
-                            lbl = 'غائب';
-                        }
+                        const savedStatus = getServerAttendanceStatus(e.student, e.date);
+                        const newStatus = e.status;
 
                         const photo = e.student?.['صورة'];
                         const gender = getStudentGender(e.student);
@@ -15203,7 +15212,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 ${fullAvatarHtml}
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span style="font-weight: 700; color: var(--text); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${e.name}</span>
-                                    <span style="${bc}">${lbl}</span>
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        ${getStatusBadgeHtml(savedStatus)}
+                                        <i class="fas fa-arrow-left" style="color: var(--text-3); font-size: 0.75rem;"></i>
+                                        ${getStatusBadgeHtml(newStatus)}
+                                    </div>
                                 </div>
                             </div>
                             <button onclick="_removeUnsavedEntry('${e.id}','${e.date}')" title="إزالة"
@@ -15269,7 +15282,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     html += `
                     <div style="margin-top: 16px; display: flex; gap: 10px; font-family: Cairo, sans-serif;">
                         <button class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
-                            <i class="fas fa-cloud-upload-alt"></i> حفظ التغييرات
+                            <i class="fas fa-save"></i> حفظ التغييرات
                         </button>
                         <button class="btn btn-danger" style="flex: 1; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
                             <i class="fas fa-trash"></i> تراجع
@@ -15569,24 +15582,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     + `<span class="save-count" style="background:#fff; color:var(--success); border:none; font-size:0.75rem; padding:1px 6px; border-radius:20px; font-weight:800; line-height:1.5; margin-right:4px;">${tot}</span>`
                     + `</span>`;
                 un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
-                un.style.background = 'var(--success)';
-                un.style.color = '#fff';
-                un.style.border = 'none';
-                un.style.boxShadow = 'none';
-                un.style.opacity = '1';
-                un.style.cursor = 'pointer';
+                un.className = 'btn btn-success btn-sm save-btn';
+                un.style.opacity = '';
+                un.style.cursor = '';
             } else {
                 un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem; color: var(--text-3);"></i>`
                     + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
                     + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ</span>`
                     + `</span>`;
                 un.title = 'التغييرات: لا توجد تعديلات معلقة';
-                un.style.background = 'var(--surface-3)';
-                un.style.color = 'var(--text-3)';
-                un.style.border = 'none';
-                un.style.boxShadow = 'none';
-                un.style.opacity = '0.4';
-                un.style.cursor = 'not-allowed';
+                un.className = 'btn btn-ghost btn-sm save-btn';
+                un.style.opacity = '';
+                un.style.cursor = '';
             }
         }
 
@@ -17244,8 +17251,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             sec.style.display = isOpen ? 'none' : 'block';
             if (btn) {
                 btn.innerHTML = isOpen
-                    ? '<i class="fas fa-plus-circle"></i> إضافة تاريخ مخصص'
-                    : '<i class="fas fa-times-circle"></i> إغلاق';
+                    ? '<i class="fas fa-plus" style="font-size: 0.9rem;"></i>'
+                    : '<i class="fas fa-times" style="font-size: 0.9rem;"></i>';
             }
             if (!isOpen) {
                 _refreshCustomDatesStrip();
