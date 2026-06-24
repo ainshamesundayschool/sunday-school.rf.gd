@@ -15093,11 +15093,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             if (doneBtn) {
-                doneBtn.innerHTML = kidQrScanMode === 'coupons'
-                    ? '<i class="fas fa-check"></i> تم إضافة الكوبونات'
-                    : kidQrScanMode === 'attendance'
-                        ? '<i class="fas fa-check"></i> تم تسجيل الحضور'
-                        : '<i class="fas fa-check"></i> إغلاق';
+                if (kidQrScanMode === 'profile' || kidQrScanMode === 'profile-in-class') {
+                    doneBtn.style.display = 'none';
+                } else {
+                    doneBtn.style.display = 'block';
+                    doneBtn.innerHTML = kidQrScanMode === 'coupons'
+                        ? '<i class="fas fa-check"></i> تم إضافة الكوبونات'
+                        : '<i class="fas fa-check"></i> تم تسجيل الحضور';
+                }
             }
 
             if (list) {
@@ -15681,6 +15684,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else if (normalizedMode !== 'profile' && !currentClass) {
                 showToast('اختر فصلًا أولًا', 'info');
                 return false;
+            }
+
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && !location.hostname.startsWith('127.')) {
+                showToast('تنبيه: لتجنب طلب إذن الكاميرا في كل مرة، يرجى استخدام رابط HTTPS الآمن للموقع.', 'warning');
             }
 
             // Open modal first so DOM elements exist
