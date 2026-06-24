@@ -10085,10 +10085,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- Back + Class name row -->
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
-                                style="min-width:40px;height:40px;padding:0 14px;font-size:.9rem;"><i
+                                style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
                                     class="fas fa-arrow-right"></i></button>
                             <h2 class="class-title-text" id="className"
-                                style="font-size: 1.4rem; color: var(--text); font-weight: 800; margin: 0; line-height: 1.2;">
+                                style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2;">
                                 الفصل</h2>
                         </div>
                         <!-- Uncles bar -->
