@@ -4001,7 +4001,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         body.modal-open {
             overflow: hidden !important;
             overscroll-behavior-y: contain !important;
-            height: 100% !important;
         }
 
         .modal-overlay {
@@ -17341,7 +17340,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (medEl) medEl.value = s.medical_notes || s['ملاحظات طبية'] || '';
             const bd = s.birthday || s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
-            document.getElementById('editStudentCommitmentCoupons').value = s.coupons !== undefined ? s.coupons : (s['كوبونات الالتزام'] || '0');
+            document.getElementById('editStudentCommitmentCoupons').value = s.commitment_coupons !== undefined ? s.commitment_coupons : (s['كوبونات الالتزام'] || '0');
             // Populate circle photo preview
             const prev = document.getElementById('uploadPreview');
             const ph = document.getElementById('photoPlaceholder');
@@ -17378,7 +17377,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideEditForm() { document.getElementById('editStudentForm').classList.remove('active'); }
         function updateStudentInfo(e) {
             e.preventDefault(); if (!currentStudentForEdit) return;
-            const id = currentStudentForEdit._studentId; if (!id) { showToast('خطأ في بيانات الطفل', 'error'); return; }
+            const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في بيانات الطفل', 'error'); return; }
             const name = document.getElementById('editStudentName').value.trim(), cls = document.getElementById('editStudentClass').value;
             if (!name || !cls) { showToast('الاسم والفصل مطلوبان', 'error'); return; }
             const cfContainer = document.getElementById('editCustomFieldsContainer');
@@ -17447,11 +17446,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 else showToast('فشل: ' + (d.message || 'خطأ'), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
         }
-        function showDeleteStudentModal(s) { studentToDelete = s; document.getElementById('deleteStudentName').textContent = `هل تريد حذف: ${s['الاسم']}؟`; document.getElementById('deleteStudentModal').classList.add('active'); }
+        function showDeleteStudentModal(s) { studentToDelete = s; document.getElementById('deleteStudentName').textContent = `هل تريد حذف: ${s.name || s['الاسم']}؟`; document.getElementById('deleteStudentModal').classList.add('active'); }
         function hideDeleteStudentModal() { studentToDelete = null; document.getElementById('deleteStudentModal').classList.remove('active'); }
         function deleteStudent() {
             if (!studentToDelete) return;
-            const id = studentToDelete._studentId || studentToDelete.studentId; if (!id) { showToast('معرف الطفل غير موجود', 'error'); return; }
+            const id = getStudentDbId(studentToDelete); if (!id) { showToast('معرف الطفل غير موجود', 'error'); return; }
             showLoading('جاري الحذف...');
             makeApiCall({ action: 'deleteStudent', studentId: id }, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
         }
