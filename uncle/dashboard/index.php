@@ -10365,13 +10365,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="class-view" id="classView" style="padding-bottom: 70px;">
                 <!-- Class topbar -->
                 <div class="class-topbar"
-                    style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; width: 100%; direction: rtl; flex-wrap: nowrap;">
+                    style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
-                    <!-- Right Column: Back button + Class Name (Row 1) & Uncles List (Row 2) -->
-                    <div
-                        style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0;">
-                        <!-- Back + Class name row -->
-                        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <!-- Row 1: Back Button & Class Name (Right) & Kids Count (Left) -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
                                 style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
                                     class="fas fa-arrow-right"></i></button>
@@ -10379,9 +10377,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 style="font-size: 1.4rem; color: var(--text-2); font-weight: 700; margin: 0; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 الفصل</h2>
                         </div>
-                        <!-- Uncles avatars (only profile pictures, no label) -->
+                        <div id="classViewCount"
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 4px; margin-inline-start: auto; flex-shrink: 0;">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Uncles List (Right) & Date Chip / Revert (Left) -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                        <!-- Uncles avatars -->
                         <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin-right: 0px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px;">
+                            style="display:none; padding: 0 !important; margin-right: 0px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px; flex: 1; min-width: 0;">
                             <span class="uncles-bar-label"
                                 style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
                                     class="fas fa-users"></i> الخدام:</span>
@@ -10389,17 +10394,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 style="padding-right: 4px; margin: 0 !important; display: flex; align-items: center; gap: 4px;">
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Left Column: Kids Count (Row 1) & Date/Revert (Row 2) -->
-                    <div
-                        style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; margin-inline-start: 12px;">
-                        <!-- Kids count -->
-                        <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 4px;">
-                        </div>
                         <!-- Date chip and Revert row -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-inline-start: auto; flex-shrink: 0;">
                             <!-- Sync to today -->
                             <button class="btn btn-ghost" id="syncToTodayBtn"
                                 style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
