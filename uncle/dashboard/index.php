@@ -1260,7 +1260,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         #classToolsBtn,
-        .class-inline-search-wrap > button,
+        .class-inline-search-wrap>button,
         .class-inline-search-wrap .filter-sort-combine-box {
             background: var(--surface);
             border: 1px solid var(--border-solid) !important;
@@ -1269,7 +1269,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="light"] #classToolsBtn,
-        [data-theme="light"] .class-inline-search-wrap > button,
+        [data-theme="light"] .class-inline-search-wrap>button,
         [data-theme="light"] .class-inline-search-wrap .filter-sort-combine-box {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -1277,7 +1277,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="dark"] #classToolsBtn,
-        [data-theme="dark"] .class-inline-search-wrap > button,
+        [data-theme="dark"] .class-inline-search-wrap>button,
         [data-theme="dark"] .class-inline-search-wrap .filter-sort-combine-box {
             background: rgba(24, 27, 38, 0.9);
             backdrop-filter: blur(10px);
@@ -1905,7 +1905,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             min-width: 180px;
             width: max-content;
             padding: 6px 0;
-            
+
             /* Smooth transitions */
             transform-origin: top center;
             opacity: 0;
@@ -1913,8 +1913,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
             visibility: hidden;
             transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        visibility 0.2s;
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.2s;
         }
 
         .dropdown-menu.open {
@@ -2855,13 +2855,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: rgba(14, 165, 233, 0.15);
             color: #0369a1;
         }
+
         [data-theme="dark"] .status-badge.offline-saved {
             color: #38bdf8;
         }
+
         .status-badge.offline-coupon {
             background: rgba(245, 158, 11, 0.15);
             color: #b45309;
         }
+
         [data-theme="dark"] .status-badge.offline-coupon {
             color: #fbbf24;
         }
@@ -5276,7 +5279,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
             padding: 6px 0;
             box-shadow: var(--shadow-lg);
-            
+
             /* Smooth transitions */
             transform-origin: top center;
             opacity: 0;
@@ -5284,8 +5287,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
             visibility: hidden;
             transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        visibility 0.2s;
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.2s;
         }
 
         .custom-dropdown-menu.open {
@@ -7102,23 +7105,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .tool-card {
             display: grid;
             grid-template-columns: auto 1fr;
-            grid-template-areas:
-                "icon name"
-                "icon desc";
+            grid-template-areas: "icon name" "icon desc";
             align-items: center;
-            column-gap: 16px;
-            row-gap: 4px;
+            column-gap: 12px;
+            row-gap: 0;
             text-align: right;
             padding: 14px 18px;
             border-radius: var(--r-xl);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .98));
-            border: 1px solid var(--border-solid);
+            background: transparent;
+            border: 0px solid var(--border-solid);
             color: var(--text);
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, .78) inset,
-                0 10px 22px rgba(15, 23, 42, .05);
             font-family: inherit;
             width: 100%;
         }
@@ -7142,9 +7140,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-items: center;
             justify-content: center;
             font-size: 1.1rem;
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, .8) inset,
-                0 10px 18px rgba(91, 108, 245, .12);
         }
 
         .tool-card-name {
@@ -9313,16 +9308,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             flex-direction: column;
             gap: 4px;
-            
+
             /* Smooth opening transition */
             transform-origin: top center;
             opacity: 0;
             transform: translateY(-10px) scaleY(0.95);
             pointer-events: none;
             visibility: hidden;
-            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), 
-                        transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-                        visibility 0.22s;
+            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.22s;
         }
 
         .inline-search-dropdown.show {
@@ -9709,11 +9704,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button onclick="toggleNotifPanel()" class="nps-close" title="إغلاق"><i
                         class="fas fa-times"></i></button>
             </div>
-            <div class="nps-settings-bar" style="padding: 10px 18px; background: var(--surface-2); border-bottom: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; font-family: Cairo, sans-serif; font-size: 0.8rem; flex-shrink: 0;">
+            <div class="nps-settings-bar"
+                style="padding: 10px 18px; background: var(--surface-2); border-bottom: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; font-family: Cairo, sans-serif; font-size: 0.8rem; flex-shrink: 0;">
                 <span style="font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 6px;">
                     <i class="fas fa-mobile-alt"></i> إشعارات الهاتف
                 </span>
-                <button class="btn btn-secondary btn-sm" id="panelNotifToggleBtn" onclick="toggleNotificationsFromModal()" style="height: 32px; font-size: 0.75rem; padding: 0 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <button class="btn btn-secondary btn-sm" id="panelNotifToggleBtn"
+                    onclick="toggleNotificationsFromModal()"
+                    style="height: 32px; font-size: 0.75rem; padding: 0 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                     <i class="fas fa-bell"></i> <span>تفعيل الإشعارات</span>
                 </button>
             </div>
@@ -9734,22 +9732,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <button onclick="document.getElementById('offlineBanner').classList.remove('show')"
             style="background:rgba(255,255,255,.2);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i
                 class="fas fa-times"></i></button>
-    </div>    <!-- PWA INSTALL MODAL -->
+    </div> <!-- PWA INSTALL MODAL -->
     <div id="pwaInstallModal" onclick="if(event.target===this)closePwaModal()">
         <div class="pwa-install-sheet">
             <div class="pwa-icon-big">
                 <img src="/logo.png" alt="مدارس الأحد" style="width:84px;height:84px;object-fit:cover;display:block"
                     onerror="this.outerHTML='<i class=\'fas fa-cross\'style=\'font-size:2rem;color:#fff\'></i>'">
             </div>
-            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تنزيل التطبيق على الهاتف</h3>
-            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px" id="pwaModalDescription">ثبّت التطبيق على شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت</p>
+            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تنزيل التطبيق على الهاتف
+            </h3>
+            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px" id="pwaModalDescription">ثبّت التطبيق على
+                شاشتك الرئيسية للوصول السريع والعمل بدون إنترنت</p>
             <div class="pwa-steps" id="pwaSteps">
                 <!-- filled by JS based on OS -->
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
                 <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
                     style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
-                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس الآن</button>
+                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس
+                    الآن</button>
             </div>
         </div>
     </div>
@@ -10405,10 +10406,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Offline saved sync indicator -->
-                <button class="topbar-btn" id="offlineSyncIndicator" onclick="triggerManualSync()" title="يوجد تعديلات محفوظة أوفلاين في انتظار الاتصال بالإنترنت"
+                <button class="topbar-btn" id="offlineSyncIndicator" onclick="triggerManualSync()"
+                    title="يوجد تعديلات محفوظة أوفلاين في انتظار الاتصال بالإنترنت"
                     style="display:none; color:#f97316; position:relative; overflow:visible; align-items:center; justify-content:center;">
                     <i class="fas fa-cloud-upload-alt fa-bounce" style="--fa-animation-duration: 2.5s;"></i>
-                    <span id="offlineSyncCount" style="position:absolute;top:-4px;right:-4px;background:#f97316;color:#fff;font-size:0.58rem;font-weight:800;border-radius:50%;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;line-height:1;padding:1px;">0</span>
+                    <span id="offlineSyncCount"
+                        style="position:absolute;top:-4px;right:-4px;background:#f97316;color:#fff;font-size:0.58rem;font-weight:800;border-radius:50%;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;line-height:1;padding:1px;">0</span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
@@ -10519,7 +10522,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px 0; width: 100%; direction: rtl;">
 
                     <!-- Row 1: Back Button & Class Name (Right) & Kids Count (Left) -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
                                 style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;"><i
@@ -10534,7 +10538,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Row 2: Uncles List (Right) & Date Chip / Revert (Left) -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; min-height: 28px;">
                         <!-- Uncles avatars -->
                         <div class="uncles-bar" id="unclesBar"
                             style="display:none; padding: 0 !important; margin-right: 0px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px; flex: 1; min-width: 0;">
@@ -10546,7 +10551,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
                         <!-- Date chip and Revert row -->
-                        <div style="display: flex; align-items: center; gap: 8px; margin-inline-start: auto; flex-shrink: 0;">
+                        <div
+                            style="display: flex; align-items: center; gap: 8px; margin-inline-start: auto; flex-shrink: 0;">
                             <!-- Sync to today -->
                             <button class="btn btn-ghost" id="syncToTodayBtn"
                                 style="display:none; color:var(--success); border:1px solid rgba(16,185,129,.2) !important; background:rgba(16,185,129,.05); width: 28px !important; height: 28px !important; border-radius: 50% !important; padding:0 !important; min-width:unset !important; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;"
@@ -11404,14 +11410,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="scanner-source-tabs"
                         style="display: inline-flex; background: var(--surface-3); padding: 4px; border-radius: 8px; gap: 4px;">
                         <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab"
-                            onclick="switchScannerSource('camera')"
-                            title="الكاميرا"
+                            onclick="switchScannerSource('camera')" title="الكاميرا"
                             style="width: 38px; height: 32px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all var(--t);">
                             <i class="fas fa-camera" style="font-size: 0.92rem;"></i>
                         </button>
                         <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab"
-                            onclick="switchScannerSource('usb')"
-                            title="ماسح خارجي"
+                            onclick="switchScannerSource('usb')" title="ماسح خارجي"
                             style="width: 38px; height: 32px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all var(--t);">
                             <i class="fas fa-barcode" style="font-size: 0.92rem;"></i>
                         </button>
@@ -13664,13 +13668,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!menu) return;
             menu.style.display = ''; // Clear inline style if set
             const isVisible = menu.classList.contains('open');
-            
+
             // Close standard dropdowns
             closeAllDropdowns();
-            
+
             // Close other custom dropdowns
             document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.remove('open'));
-            
+
             if (!isVisible) {
                 menu.classList.add('open');
             } else {
@@ -14054,7 +14058,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const _now = new Date();
                 const _bdParts = (s['عيد الميلاد'] || '').split('/');
                 const isBdayToday = _bdParts.length >= 2 && parseInt(_bdParts[0]) === _now.getDate() && parseInt(_bdParts[1]) - 1 === _now.getMonth();
-                
+
                 let badges = '';
                 if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
                 if (isOfflineAttSaved) {
@@ -14068,7 +14072,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else if (isInChanged) {
                     badges += '<span class="status-badge local-unsaved"><i class="fas fa-clock"></i> محفوظ محلياً</span>';
                 }
-                
+
                 if (isOfflineCoupSaved) {
                     badges += `<span class="status-badge offline-coupon"><i class="fas fa-star"></i> أوفلاين ${offlineC >= 0 ? '+' : ''}${offlineC}</span>`;
                 }
@@ -14077,7 +14081,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>`;
-                
+
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
@@ -19893,7 +19897,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 initSwipeToClose(overlay);
             });
 
-             // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
+            // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
             const modalObserver = new MutationObserver(() => {
                 const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
@@ -21241,20 +21245,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
             const key = `offlineSavedAttendance_${cls}_${date}`;
             let offlineSaved = JSON.parse(localStorage.getItem(key) || '[]');
-            
+
             changedStudents.forEach(id => {
                 if (!offlineSaved.includes(id)) {
                     offlineSaved.push(id);
                 }
                 originalAttendanceData[id] = attendanceData[id] || 'pending';
             });
-            
+
             localStorage.setItem(key, JSON.stringify(offlineSaved));
-            
+
             changedStudents.clear();
             localStorage.removeItem(`changedStudents_${cls}_${date}`);
             saveAttendanceDataForClass(currentClass, date);
-            
+
             renderAttendanceList(currentClass);
             updateSaveBtns();
             updateOfflineSyncIndicator();
@@ -21264,7 +21268,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
             const key = `offlineSavedCoupons_${cls}`;
             let offlineSaved = JSON.parse(localStorage.getItem(key) || '[]');
-            
+
             changedCouponStudents.forEach(id => {
                 if (!offlineSaved.includes(id)) {
                     offlineSaved.push(id);
@@ -21274,13 +21278,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 acc[id] = (acc[id] || 0) + (couponData[id] || 0);
                 localStorage.setItem(accKey, JSON.stringify(acc));
             });
-            
+
             localStorage.setItem(key, JSON.stringify(offlineSaved));
-            
+
             changedCouponStudents.clear();
             couponData = {};
             saveCouponDataForClass(currentClass);
-            
+
             renderAttendanceList(currentClass);
             updateSaveBtns();
             updateOfflineSyncIndicator();
@@ -21336,7 +21340,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const ind = document.getElementById('offlineSyncIndicator');
             const cnt = document.getElementById('offlineSyncCount');
             if (!ind || !cnt) return;
-            
+
             const queueCount = await getIndexedDbQueueCount();
             if (queueCount === 0) {
                 // Queue is empty, clear any residual offline flags in localStorage
@@ -21471,7 +21475,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     status.onchange = () => _updateNotifBtnVisibility();
                 }).catch(() => { });
             }
-            
+
             // Check if ?tab=pending or #pending was opened
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('tab') === 'pending' || window.location.hash === '#pending') {
@@ -21982,7 +21986,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const icon = typeIcon[n.type] || 'fa-bell';
                 const label = typeLabel[n.type] || '';
                 const action = typeAction[n.type];
-                
+
                 // Override developer message dynamically with actual redirect_url if available
                 let url = typeUrl[n.type] || '';
                 if (n.type === 'developer_message') {
@@ -22019,7 +22023,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             loadUnifiedNotifications();
             // Navigate
             toggleNotifPanel();
-            
+
             if (type === 'registration') {
                 const body = document.getElementById('pendingBody');
                 const btn = document.getElementById('pendingCollapseBtn');
