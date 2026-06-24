@@ -1285,6 +1285,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-inline-search-wrap .inline-search-box {
+            height: 48px;
+            box-sizing: border-box;
             padding: 0 14px;
             border-radius: 18px;
             background: var(--surface);
@@ -10594,7 +10596,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
                         <button class="btn btn-ghost btn-sm" id="classToolsBtn"
                             onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                            style="width: 48px; height: 48px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
                             <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                         </button>
                         <div class="dropdown-menu" id="classToolsDropdownMenu"
@@ -10627,7 +10629,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-box" style="flex: 1;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
-                            style="padding: 9px 0; font-size: 0.88rem;">
+                            style="font-size: 0.88rem;">
                         <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
                             title="مسح QR الطفل"
                             style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
@@ -10639,7 +10641,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Combined Filter & Sort Rectangle -->
                     <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                        style="display: flex; align-items: center; border-radius: var(--r-md); height: 48px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -10654,13 +10656,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="top_desc">الأوائل</option>
                             </select>
                             <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)" title="ترتيب"
-                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
+                                style="width: 48px; height: 46px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
                                 onmouseover="this.style.color='var(--brand)'"
                                 onmouseout="this.style.color='var(--text-2)'">
                                 <i class="fas fa-sort-amount-down"></i>
                             </button>
                             <div class="custom-dropdown-menu" id="customSortDropdownMenu"
-                                style="right: auto; left: 0; top: 44px;">
+                                style="right: auto; left: 0; top: 50px;">
                                 <div class="custom-dropdown-item active" data-value="name_az"
                                     onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
                                 <div class="custom-dropdown-item" data-value="name_za"
@@ -10686,13 +10688,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
 
                         <!-- Divider -->
-                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
+                        <div style="width: 1.5px; height: 26px; background-color: var(--border-solid); flex-shrink: 0;">
                         </div>
 
                         <!-- Filter Button -->
                         <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
                             title="تصفية"
-                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                            style="width: 48px; height: 46px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
                             onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-2)'">
                             <i class="fas fa-filter"></i>
                             <span id="activeFiltersBadge"
@@ -10702,7 +10704,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Add Kid Button (Last button at the end) -->
                     <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                        style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                        style="width: 48px; height: 48px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
