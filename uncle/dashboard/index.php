@@ -10425,9 +10425,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <!-- Offline saved sync indicator -->
                 <button class="topbar-btn" id="offlineSyncIndicator" onclick="triggerManualSync()" title="يوجد تعديلات محفوظة أوفلاين في انتظار الاتصال بالإنترنت"
-                    style="display:none; color:#0ea5e9; position:relative; overflow:visible; align-items:center; justify-content:center;">
+                    style="display:none; color:#f97316; position:relative; overflow:visible; align-items:center; justify-content:center;">
                     <i class="fas fa-cloud-upload-alt fa-bounce" style="--fa-animation-duration: 2.5s;"></i>
-                    <span id="offlineSyncCount" style="position:absolute;top:-4px;right:-4px;background:#0ea5e9;color:#fff;font-size:0.58rem;font-weight:800;border-radius:50%;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;line-height:1;padding:1px;">0</span>
+                    <span id="offlineSyncCount" style="position:absolute;top:-4px;right:-4px;background:#f97316;color:#fff;font-size:0.58rem;font-weight:800;border-radius:50%;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;line-height:1;padding:1px;">0</span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
@@ -21295,20 +21295,57 @@ if ($hasUncleId && $uncleRole === 'uncle')
             updateOfflineSyncIndicator();
         }
 
-        function updateOfflineSyncIndicator() {
+        function getIndexedDbQueueCount() {
+            return new Promise((resolve) => {
+                try {
+                    const req = indexedDB.open('ss-queue', 2);
+                    req.onerror = () => resolve(0);
+                    req.onsuccess = () => {
+                        const db = req.result;
+                        if (!db.objectStoreNames.contains('queue')) {
+                            db.close();
+                            resolve(0);
+                            return;
+                        }
+                        const tx = db.transaction('queue', 'readonly');
+                        const store = tx.objectStore('queue');
+                        const countReq = store.count();
+                        countReq.onsuccess = () => {
+                            const count = countReq.result;
+                            db.close();
+                            resolve(count);
+                        };
+                        countReq.onerror = () => {
+                            db.close();
+                            resolve(0);
+                        };
+                    };
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        }
+
+        async function updateOfflineSyncIndicator() {
             const ind = document.getElementById('offlineSyncIndicator');
             const cnt = document.getElementById('offlineSyncCount');
             if (!ind || !cnt) return;
             
-            const totalPending = _countAllPendingLocalChanges();
-            // Subtract genuinely unsaved changes from the sync indicator (so it only shows queued ones, or shows all local changes)
-            // Wait, showing all pending changes to be synced is great! Let's show all changes that exist in SW queue + unsaved.
-            // But since offline-saved ones are in IndexedDB/localStorage, showing total is very clear!
-            if (totalPending > 0) {
-                cnt.textContent = totalPending;
-                ind.style.display = 'inline-flex';
-            } else {
+            const queueCount = await getIndexedDbQueueCount();
+            if (queueCount === 0) {
+                // Queue is empty, clear any residual offline flags in localStorage
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('offlineSavedAttendance_') || key.startsWith('offlineSavedCoupons_') || key.startsWith('offlineAccumulatedCoupons_'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
                 ind.style.display = 'none';
+            } else {
+                cnt.textContent = queueCount;
+                ind.style.display = 'inline-flex';
             }
         }
 
