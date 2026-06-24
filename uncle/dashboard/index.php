@@ -9445,30 +9445,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     font-size: .95rem !important;
                     box-shadow: none !important;
                 }
-                .data-table th, 
+
+                .data-table th,
                 .data-table td {
                     padding: 12px 16px !important;
                     font-size: 0.95rem !important;
                 }
+
                 .kid-card {
                     padding: 16px 20px !important;
                 }
+
                 .kid-name {
                     font-size: 1.2rem !important;
                 }
+
                 .inline-search-wrap {
                     max-width: 600px !important;
                 }
+
                 .class-view {
                     display: grid !important;
                     grid-template-columns: 1fr auto !important;
                     gap: 0 16px !important;
                     width: 100% !important;
                 }
+
                 .class-topbar {
                     grid-column: 1 / -1 !important;
                     grid-row: 1 !important;
                 }
+
                 .class-inline-search-wrap {
                     grid-column: 1 !important;
                     grid-row: 2 !important;
@@ -9483,6 +9490,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     width: 100% !important;
                     box-sizing: border-box !important;
                 }
+
                 .att-toolbar {
                     grid-column: 2 !important;
                     grid-row: 2 !important;
@@ -9502,18 +9510,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     -webkit-backdrop-filter: none !important;
                     box-sizing: border-box !important;
                 }
+
                 .pending-section {
                     grid-column: 1 / -1 !important;
                     grid-row: 3 !important;
                 }
+
                 .class-filters-panel {
                     grid-column: 1 / -1 !important;
                     grid-row: 4 !important;
                 }
+
                 .attendance-list {
                     grid-column: 1 / -1 !important;
                     grid-row: 5 !important;
                 }
+
                 body.bulk-active .att-toolbar {
                     position: static !important;
                     background: transparent !important;
@@ -10356,7 +10368,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 8px 0; width: 100%; direction: rtl; flex-wrap: nowrap;">
 
                     <!-- Right Column: Back button + Class Name (Row 1) & Uncles List (Row 2) -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0;">
+                    <div
+                        style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0;">
                         <!-- Back + Class name row -->
                         <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
                             <button class="btn btn-ghost btn-sm" id="backBtn"
@@ -10368,7 +10381,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <!-- Uncles avatars (only profile pictures, no label) -->
                         <div class="uncles-bar" id="unclesBar"
-                            style="display:none; padding: 0 !important; margin-right: 48px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px;">
+                            style="display:none; padding: 0 !important; margin-right: 0px !important; margin-left: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; background: none !important; box-shadow: none !important; overflow: visible !important; align-items: center; gap: 6px;">
                             <span class="uncles-bar-label"
                                 style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
                                     class="fas fa-users"></i> الخدام:</span>
@@ -10379,7 +10392,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Left Column: Kids Count (Row 1) & Date/Revert (Row 2) -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; margin-inline-start: 12px;">
+                    <div
+                        style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; margin-inline-start: 12px;">
                         <!-- Kids count -->
                         <div id="classViewCount"
                             style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 4px;">
@@ -10407,127 +10421,124 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Class inline search wrap -->
                 <div class="class-inline-search-wrap"
                     style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
-                        
-                        <!-- 3 Vertical Dots Tools Button (Before Search) -->
-                        <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
-                            <button class="btn btn-ghost btn-sm" id="classToolsBtn"
-                                onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                                style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
-                                <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
-                            </button>
-                            <div class="dropdown-menu" id="classToolsDropdownMenu"
-                                style="left: 0; right: auto; min-width: 220px;">
-                                <div class="dropdown-group-label">الفصل</div>
-                                <button class="dropdown-item"
-                                    onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
-                                        class="fas fa-tasks"></i> مهام الفصل</button>
-                                <button class="dropdown-item coupon"
-                                    onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
-                                    تصدير مخصص</button>
-                                <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
-                                        class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
-                                <button class="dropdown-item success"
-                                    onclick="showShareAttendanceModal();closeAllDropdowns()"><i
-                                        class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
 
-                                <div class="dropdown-divider"></div>
-                                <div class="dropdown-group-label">خيارات إضافية</div>
-                                <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
-                                        class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
-                                <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
-                                        class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
-                                <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
-                                        class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
-                            </div>
+                    <!-- 3 Vertical Dots Tools Button (Before Search) -->
+                    <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
+                        <button class="btn btn-ghost btn-sm" id="classToolsBtn"
+                            onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
+                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                            <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
+                        </button>
+                        <div class="dropdown-menu" id="classToolsDropdownMenu"
+                            style="left: 0; right: auto; min-width: 220px;">
+                            <div class="dropdown-group-label">الفصل</div>
+                            <button class="dropdown-item"
+                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                    class="fas fa-tasks"></i> مهام الفصل</button>
+                            <button class="dropdown-item coupon"
+                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
+                                تصدير مخصص</button>
+                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
+                                    class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                            <button class="dropdown-item success"
+                                onclick="showShareAttendanceModal();closeAllDropdowns()"><i
+                                    class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
+
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-group-label">خيارات إضافية</div>
+                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
+                                    class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
+                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
+                                    class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
+                                    class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
                         </div>
+                    </div>
 
-                        <!-- Search Input (Taking the rest of the space) -->
-                        <div class="inline-search-box"
-                            style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
-                            <input type="text" id="classSearchInput" placeholder="بحث ..."
-                                oninput="performClassInlineSearch(this.value)" autocomplete="off"
-                                style="padding: 9px 0; font-size: 0.88rem;">
-                            <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
-                                title="مسح QR الطفل"
-                                style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
-                                <i class="fas fa-qrcode"></i>
-                            </button>
-                            <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
-                                    class="fas fa-times"></i></button>
-                        </div>
+                    <!-- Search Input (Taking the rest of the space) -->
+                    <div class="inline-search-box"
+                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                        <input type="text" id="classSearchInput" placeholder="بحث ..."
+                            oninput="performClassInlineSearch(this.value)" autocomplete="off"
+                            style="padding: 9px 0; font-size: 0.88rem;">
+                        <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
+                            title="مسح QR الطفل"
+                            style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                            <i class="fas fa-qrcode"></i>
+                        </button>
+                        <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
+                                class="fas fa-times"></i></button>
+                    </div>
 
-                        <!-- Combined Filter & Sort Rectangle -->
-                        <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                            style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
-                            <!-- Sort Button -->
-                            <div class="custom-dropdown" style="position: relative; display: inline-block;">
-                                <!-- Hidden select to preserve event listeners and system integrations -->
-                                <select id="classSortSelect" style="display: none;">
-                                    <option value="name_az">الاسم أ-ي</option>
-                                    <option value="name_za">الاسم ي-أ</option>
-                                    <option value="age_asc">الأصغر سناً</option>
-                                    <option value="age_desc">الأكبر سناً</option>
-                                    <option value="class_az">الفصل</option>
-                                    <option value="coupons_desc">الأكثر كوبونات</option>
-                                    <option value="attendance_desc">الأكثر حضوراً</option>
-                                    <option value="top_desc">الأوائل</option>
-                                </select>
-                                <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
-                                    title="ترتيب"
-                                    style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
-                                    onmouseover="this.style.color='var(--brand)'"
-                                    onmouseout="this.style.color='var(--text-2)'">
-                                    <i class="fas fa-sort-amount-down"></i>
-                                </button>
-                                <div class="custom-dropdown-menu" id="customSortDropdownMenu"
-                                    style="right: auto; left: 0; top: 44px;">
-                                    <div class="custom-dropdown-item active" data-value="name_az"
-                                        onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                                    <div class="custom-dropdown-item" data-value="name_za"
-                                        onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                                    <div class="custom-dropdown-item" data-value="age_asc"
-                                        onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً
-                                    </div>
-                                    <div class="custom-dropdown-item" data-value="age_desc"
-                                        onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً
-                                    </div>
-                                    <div class="custom-dropdown-item" data-value="class_az"
-                                        onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                                    <div class="custom-dropdown-item" data-value="coupons_desc"
-                                        onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
-                                        كوبونات</div>
-                                    <div class="custom-dropdown-item" data-value="attendance_desc"
-                                        onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">
-                                        الأكثر
-                                        حضوراً</div>
-                                    <div class="custom-dropdown-item" data-value="top_desc"
-                                        onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
-                                </div>
-                            </div>
-
-                            <!-- Divider -->
-                            <div
-                                style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
-                            </div>
-
-                            <!-- Filter Button -->
-                            <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
-                                title="تصفية"
-                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                    <!-- Combined Filter & Sort Rectangle -->
+                    <div class="filter-sort-combine-box" id="filterSortCombineBox"
+                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                        <!-- Sort Button -->
+                        <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                            <!-- Hidden select to preserve event listeners and system integrations -->
+                            <select id="classSortSelect" style="display: none;">
+                                <option value="name_az">الاسم أ-ي</option>
+                                <option value="name_za">الاسم ي-أ</option>
+                                <option value="age_asc">الأصغر سناً</option>
+                                <option value="age_desc">الأكبر سناً</option>
+                                <option value="class_az">الفصل</option>
+                                <option value="coupons_desc">الأكثر كوبونات</option>
+                                <option value="attendance_desc">الأكثر حضوراً</option>
+                                <option value="top_desc">الأوائل</option>
+                            </select>
+                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)" title="ترتيب"
+                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
                                 onmouseover="this.style.color='var(--brand)'"
                                 onmouseout="this.style.color='var(--text-2)'">
-                                <i class="fas fa-filter"></i>
-                                <span id="activeFiltersBadge"
-                                    style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
+                                <i class="fas fa-sort-amount-down"></i>
                             </button>
+                            <div class="custom-dropdown-menu" id="customSortDropdownMenu"
+                                style="right: auto; left: 0; top: 44px;">
+                                <div class="custom-dropdown-item active" data-value="name_az"
+                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                <div class="custom-dropdown-item" data-value="name_za"
+                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                <div class="custom-dropdown-item" data-value="age_asc"
+                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً
+                                </div>
+                                <div class="custom-dropdown-item" data-value="age_desc"
+                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً
+                                </div>
+                                <div class="custom-dropdown-item" data-value="class_az"
+                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                <div class="custom-dropdown-item" data-value="coupons_desc"
+                                    onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
+                                    كوبونات</div>
+                                <div class="custom-dropdown-item" data-value="attendance_desc"
+                                    onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">
+                                    الأكثر
+                                    حضوراً</div>
+                                <div class="custom-dropdown-item" data-value="top_desc"
+                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                            </div>
                         </div>
 
-                        <!-- Add Kid Button (Last button at the end) -->
-                        <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
-                            <i class="fas fa-plus"></i>
+                        <!-- Divider -->
+                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
+                        </div>
+
+                        <!-- Filter Button -->
+                        <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
+                            title="تصفية"
+                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                            onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-2)'">
+                            <i class="fas fa-filter"></i>
+                            <span id="activeFiltersBadge"
+                                style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
                         </button>
                     </div>
+
+                    <!-- Add Kid Button (Last button at the end) -->
+                    <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
+                        style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
 
                 <!-- Pending registrations -->
                 <div class="pending-section" id="pendingRegistrationsSection">
