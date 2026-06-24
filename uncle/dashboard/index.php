@@ -1156,30 +1156,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             z-index: 100;
         }
 
-        .class-inline-search-wrap button:not(.btn),
-        .class-inline-search-wrap .filter-sort-combine-box {
+        .class-inline-search-wrap button:not(.btn) {
             border: none !important;
             box-shadow: none !important;
             transform: none !important;
         }
 
         .class-inline-search-wrap .btn,
-        .class-inline-search-wrap .btn:hover {
+        .class-inline-search-wrap .btn:hover,
+        .class-inline-search-wrap .inline-search-box,
+        .class-inline-search-wrap .filter-sort-combine-box {
             border: 1px solid var(--border-solid) !important;
             box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset !important;
         }
 
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
-            border-radius: 18px;
-            box-shadow: none;
-            border: none;
-            transition: background var(--t) var(--ease);
+            border-radius: var(--r-md) !important;
+            transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
         }
 
         .class-inline-search-wrap .inline-search-box:focus-within {
             background: var(--brand-bg);
-            box-shadow: none;
+            border-color: rgba(91, 108, 245, 0.4) !important;
         }
 
         .class-inline-search-wrap .inline-search-box input {
@@ -5064,18 +5063,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             user-select: none;
             transition: color var(--t) var(--ease);
         }
+
         .dashboard-section-toggle-btn:hover {
             color: var(--brand);
         }
+
         .dashboard-section-toggle-btn .icon {
             font-size: 0.88rem;
             color: var(--brand);
         }
+
         .dashboard-section-toggle-btn .chevron {
             font-size: 0.72rem;
             color: var(--text-3);
             transition: transform var(--t) var(--ease);
         }
+
         .dashboard-section-toggle-btn:hover .chevron {
             color: var(--brand);
         }
@@ -7149,6 +7152,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: rgba(16, 185, 129, 0.4);
             background: rgba(16, 185, 129, 0.04);
         }
+
         .bday-banner-chip.today:hover {
             border-color: #10b981;
             background: rgba(16, 185, 129, 0.08);
@@ -10026,11 +10030,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none; margin-bottom: 10px; margin-top: 8px;">
-                    <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()" class="dashboard-section-toggle-btn">
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; margin-bottom: 10px; margin-top: 8px;">
+                    <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
+                        class="dashboard-section-toggle-btn">
                         <i class="fas fa-map-marked-alt icon"></i>
                         <span class="section-title">الرحلات والمؤتمرات</span>
-                        <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon" style="transform: rotate(0deg);"></i>
+                        <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon"
+                            style="transform: rotate(0deg);"></i>
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 6px;"></div>
@@ -10041,7 +10048,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button type="button" onclick="toggleBdayCollapse()" class="dashboard-section-toggle-btn">
                             <i class="fas fa-birthday-cake icon"></i>
                             <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
-                            <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon" style="transform: rotate(0deg);"></i>
+                            <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon"
+                                style="transform: rotate(0deg);"></i>
                         </button>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
@@ -10094,8 +10102,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span class="uncles-bar-label"
                                 style="font-size: 0.8rem; color: var(--text-3) !important; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin: 0 !important;"><i
                                     class="fas fa-users"></i> الخدام:</span>
-                            <div class="uncles-list" id="unclesList"
-                                style="padding-right: 4px; margin: 0 !important;"></div>
+                            <div class="uncles-list" id="unclesList" style="padding-right: 4px; margin: 0 !important;">
+                            </div>
                         </div>
                     </div>
 
@@ -10115,7 +10123,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </button>
                             <!-- Date chip (clickable pill) -->
                             <div class="class-date-sub" id="dateChip" onclick="showPastFridaysModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--brand-bg); border: 1px solid rgba(91,108,245,.18); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
+                                style="display: inline-flex; align-items: center; gap: 6px; color: var(--brand); font-size: 0.78rem; font-weight: 700; cursor: pointer; background: var(--border); padding: 4px 10px; border-radius: var(--r-full); box-shadow: none; transition: background 0.15s, color 0.15s;"
                                 onmouseover="this.style.background='var(--brand)';this.style.color='#fff';this.querySelector('i').style.color='#fff'"
                                 onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
                                 <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
@@ -10195,7 +10203,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                    <div class="inline-search-box"
+                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); padding: 0 14px;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
@@ -10210,7 +10219,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Combined Filter & Sort Rectangle -->
                     <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                        style="display: flex; align-items: center; background-color: var(--surface-3); border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -10361,7 +10370,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- keep tbTotalVal in DOM (hidden) so JS doesn't break -->
                         <span id="tbTotalVal" style="display:none;">0</span>
                         <!-- Save button at RTL end (physical LEFT), grows on mobile -->
-                        <div class="save-row" style="margin-inline-start: auto; display: flex; align-items: center; flex: 1; max-width: 120px;">
+                        <div class="save-row"
+                            style="margin-inline-start: auto; display: flex; align-items: center; flex: 1; max-width: 120px;">
                             <button class="btn btn-ghost btn-sm save-btn" id="saveAllBtn" disabled title="التغييرات"
                                 onclick="showUnsavedModal()"
                                 style="width: 100%; height: 36px; padding: 0 12px; flex-direction: row !important;">
@@ -11063,7 +11073,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3 id="pastAttendanceModalTitle"><i class="fas fa-calendar-alt"></i> السجل التاريخي</h3>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <!-- Add Date Button -->
-                    <button class="btn btn-ghost btn-sm" id="toggleCustomDateSectionBtn" onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
+                    <button class="btn btn-ghost btn-sm" id="toggleCustomDateSectionBtn"
+                        onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
                         style="width: 34px; height: 34px; padding: 0;">
                         <i class="fas fa-plus" style="font-size: 0.9rem;"></i>
                     </button>
