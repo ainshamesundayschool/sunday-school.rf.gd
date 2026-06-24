@@ -6915,7 +6915,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex: 0 0 auto;
             background: rgba(255, 255, 255, .78);
             border: 0px solid var(--border-solid);
-            color: var(--text-2);
+            color: var(--text-3);
             font-family: inherit;
             cursor: pointer;
             display: inline-flex;
@@ -10317,17 +10317,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead"
-                    style="display:none; margin-bottom: 2px; margin-top: 4px;">
-                    <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
-                        class="dashboard-section-toggle-btn">
-                        <span class="section-title">الرحلات والمؤتمرات</span>
-                        <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon"
-                            style="transform: rotate(0deg);"></i>
-                    </button>
-                </div>
-                <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 4px;"></div>
-
                 <!-- Birthdays Container -->
                 <div id="mainStatsRow" style="display:none; margin-bottom: 6px;">
                     <div class="section-head" style="margin-bottom: 2px; margin-top: 4px;">
@@ -10339,6 +10328,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
+
+                <div class="section-head" id="tripsSectionHead"
+                    style="display:none; margin-bottom: 2px; margin-top: 4px;">
+                    <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
+                        class="dashboard-section-toggle-btn">
+                        <span class="section-title">الرحلات والمؤتمرات</span>
+                        <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon"
+                            style="transform: rotate(0deg);"></i>
+                    </button>
+                </div>
+                <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 4px;"></div>
                 <div class="classes-grid" id="classesGrid"></div>
 
                 <footer class="site-footer">
