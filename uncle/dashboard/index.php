@@ -7044,12 +7044,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-family: inherit;
             cursor: pointer;
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            aspect-ratio: 1 / 1;
-            border-radius: 50%;
+            gap: 1px;
+            padding: 10px 18px;
+            border-radius: var(--r-md, 10px);
             transition: all var(--t) var(--ease);
+            white-space: nowrap;
             box-shadow: var(--shadow-sm);
         }
 
@@ -9274,7 +9276,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .inline-search-wrap {
             position: relative;
             display: flex;
-            align-items: stretch;
+            align-items: center;
             width: 100%;
             max-width: 500px;
             margin: 0 auto 28px auto;
@@ -9467,8 +9469,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             .home-tools-link {
-                height: auto;
-                padding: 0;
+                height: 48px;
+                padding: 0 16px;
                 font-size: 1.05rem;
             }
         }
