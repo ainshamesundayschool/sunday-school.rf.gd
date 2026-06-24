@@ -5068,7 +5068,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 12px !important;
             margin-top: 8px !important;
             overflow: hidden !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
             transition: all 0.25s var(--ease) !important;
             padding: 0 !important;
             flex-direction: column;
@@ -10135,7 +10135,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <!-- Left: Kids count -->
                         <div id="classViewCount"
-                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; class-topbar">
+                            style="font-size: 0.72rem; color: var(--text-3); font-weight: 700; font-family: Cairo, sans-serif; line-height: 1; padding-inline-end: 10px;">
                         </div>
                     </div>
 
