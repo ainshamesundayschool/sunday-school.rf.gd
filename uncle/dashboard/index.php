@@ -9241,12 +9241,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         @media (max-width: 480px) {
             .inline-search-wrap {
-                margin-bottom: 6px;
-                gap: 5px;
+                width: 90%;
+                margin: 0 auto 6px auto;
+                gap: 6px;
+                padding: 4px 10px;
+                box-sizing: border-box;
             }
 
             .inline-search-box {
-                padding: 0 12px;
+                padding: 0 14px;
             }
 
             .inline-search-box input {
