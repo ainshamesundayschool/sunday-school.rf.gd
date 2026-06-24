@@ -15869,11 +15869,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-family: Cairo, sans-serif;">
                         <div style="padding: 10px 14px; border-radius: var(--r-md); background: var(--warning-bg); border: 1.5px solid rgba(245,158,11,.3); display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--warning-dark)">
                             <i class="fas fa-wifi" style="font-size: 1rem; flex-shrink: 0;"></i>
-                            <span>ستُرفع هذه التغييرات تلقائياً عند عودة الإنترنت</span>
+                            <span>أنت غير متصل بالإنترنت. سيتم حفظ التغييرات محلياً ومزامنتها تلقائياً عند عودة الاتصال.</span>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-ghost" style="flex: 2; height: 42px; font-weight: 700;" onclick="document.getElementById('unsavedModal').classList.remove('active')">
-                                إغلاق
+                            <button class="btn btn-success" style="flex: 2; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="saveAllData();document.getElementById('unsavedModal').classList.remove('active')">
+                                <i class="fas fa-save"></i> حفظ التغييرات
                             </button>
                             <button class="btn btn-danger" style="flex: 1; height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="_clearAllUnsaved()">
                                 <i class="fas fa-trash"></i> تراجع
