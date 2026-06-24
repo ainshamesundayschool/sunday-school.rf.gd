@@ -12442,7 +12442,7 @@
                 </div>
                 <div style="display:flex; gap:6px;">
                   <button type="button" class="btn btn-success btn-sm" onclick="saveDraftAllocations()" style="background:#10b981; border:none;"><i class="fas fa-check"></i> حفظ التوزيع</button>
-                  <button type="button" class="btn btn-outline btn-sm" onclick="discardDraftAllocations()" style="color:#fff; border-color:rgba(255,255,255,0.4);"><i class="fas fa-times"></i> تراجع</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="discardDraftAllocations()" style="color:#fff; border-color:rgba(255,255,255,0.4); background:transparent;"><i class="fas fa-times"></i> تراجع</button>
                 </div>
               </div>
 
@@ -14416,6 +14416,27 @@
 
         // Allocation Sub-Algorithm
         const allocateGenderGroup = (kids, gender) => {
+          // Calculate temporary even capacity limits dynamically for this gender
+          const availableRooms = roomState.filter(r => {
+            if (r.occupied >= r.capacity) return false;
+            if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
+            return true;
+          });
+          const totalRemaining = availableRooms.reduce((sum, r) => sum + Math.max(0, r.capacity - r.occupied), 0);
+          const kidsCount = kids.length;
+          
+          if (totalRemaining > 0 && kidsCount > 0) {
+            const ratio = Math.min(1, kidsCount / totalRemaining);
+            availableRooms.forEach(r => {
+              const rem = Math.max(0, r.capacity - r.occupied);
+              r.tempCapacity = r.occupied + Math.ceil(rem * ratio);
+            });
+          } else {
+            roomState.forEach(r => {
+              r.tempCapacity = r.capacity;
+            });
+          }
+
           const groupsMap = {};
           kids.forEach(k => {
             let key;
@@ -14490,7 +14511,8 @@
             const getMatchingRooms = (kid) => {
               const kidChurchName = String(kid.student_church_name || kid.church_name || '').trim();
               return roomState.filter(r => {
-                if (r.occupied >= r.capacity) return false;
+                const currentCap = r.tempCapacity !== undefined ? r.tempCapacity : r.capacity;
+                if (r.occupied >= currentCap) return false;
                 if (r.genderLimit && r.genderLimit !== 'all' && r.genderLimit !== gender) return false;
                 
                 // Validate church filters (can be array or string 'all' / legacy name)
@@ -14531,7 +14553,8 @@
               });
 
               const perfectRoom = matchingRooms.find(r => {
-                if ((r.capacity - r.occupied) < remainingKidsInGroup.length) return false;
+                const currentCap = r.tempCapacity !== undefined ? r.tempCapacity : r.capacity;
+                if ((currentCap - r.occupied) < remainingKidsInGroup.length) return false;
                 return remainingKidsInGroup.every(k => {
                   const kidChurchName = String(k.student_church_name || k.church_name || '').trim();
                   if (!r.churchLimit || r.churchLimit === 'all') return true;
