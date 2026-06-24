@@ -487,9 +487,15 @@ async function _maybeQueueRequest(req) {
         if (!QUEUEABLE_ACTIONS.includes(action)) return false;
 
         const db = await _openDB();
-        db.transaction('queue', 'readwrite').objectStore('queue').add({
-            url: req.url, method: req.method, body: bodyText,
-            headers: [...req.headers.entries()], ts: Date.now(), action
+        await new Promise((resolve, reject) => {
+            const tx = db.transaction('queue', 'readwrite');
+            const store = tx.objectStore('queue');
+            store.add({
+                url: req.url, method: req.method, body: bodyText,
+                headers: [...req.headers.entries()], ts: Date.now(), action
+            });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
         });
         if (self.registration.sync) self.registration.sync.register(SYNC_TAG).catch(() => {});
         return true;

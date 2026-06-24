@@ -16180,7 +16180,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function submitCoupons() {
             if (!currentClass || changedCouponStudents.size === 0) { showToast('لا توجد تغييرات', 'info'); return; }
             const btn = document.getElementById('submitCoupons');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
             const sourceList = isCombinedView ? combinedStudents : students;
             const records = [];
             changedCouponStudents.forEach(id => {
@@ -16200,7 +16200,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     setTimeout(loadData, 1200);
                 }
             }, e => showToast('فشل: ' + e, 'error'));
-            btn.disabled = false; updateSaveBtns();
+            if (btn) { btn.disabled = false; updateSaveBtns(); }
         }
 
 
@@ -16248,7 +16248,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function submitAttendance() {
             if (!currentClass || changedStudents.size === 0) { showToast('لا توجد تغييرات للحفظ', 'info'); return; }
             const btn = document.getElementById('submitAttendance');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
 
             let date = currentFriday;
             if (!date) { updateCurrentDateDisplay(); date = currentFriday; }
@@ -16275,7 +16275,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             if (done === classNames.length) {
                                 showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
                                 markAttendanceAsOfflineSaved(date);
-                                btn.disabled = false;
+                                if (btn) btn.disabled = false;
                                 updateSaveBtns();
                             }
                             return;
@@ -16290,7 +16290,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             _sendSyncCompletePush(totalSaved, 'attendance');
                             setTimeout(loadData, 1200);
                         }
-                    }, e => { showToast('فشل الحفظ: ' + e, 'error'); btn.disabled = false; updateSaveBtns(); });
+                    }, e => { showToast('فشل الحفظ: ' + e, 'error'); if (btn) btn.disabled = false; updateSaveBtns(); });
                 });
                 return;
             }
@@ -16304,13 +16304,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 // Include all changed students — 'pending' means "clear this record on server"
                 records.push({ studentName: s['الاسم'].trim(), status: st });
             });
-            if (!records.length) { btn.disabled = false; updateSaveBtns(); return; }
+            if (!records.length) { if (btn) btn.disabled = false; updateSaveBtns(); return; }
 
             makeApiCall({ action: 'submitAttendance', className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
                 if (r.offline) {
                     showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
                     markAttendanceAsOfflineSaved(date);
-                    btn.disabled = false;
+                    if (btn) btn.disabled = false;
                     updateSaveBtns();
                     return;
                 }
@@ -16322,7 +16322,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 updateAbsentData(); renderAttendanceList(currentClass); updateSaveBtns();
                 _sendSyncCompletePush(records.length, 'attendance');
                 setTimeout(loadData, 1200);
-            }, e => { showToast('فشل الحفظ: ' + e, 'error'); btn.disabled = false; updateSaveBtns(); });
+            }, e => { showToast('فشل الحفظ: ' + e, 'error'); if (btn) btn.disabled = false; updateSaveBtns(); });
         }
         function saveAllData() {
             const hA = changedStudents.size > 0, hC = changedCouponStudents.size > 0;
