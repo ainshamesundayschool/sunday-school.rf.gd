@@ -989,7 +989,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-card.highlighted {
-            border: 2px solid var(--cls-color, var(--brand)) !important;
             box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
             background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
             transform: scale(1.02);
