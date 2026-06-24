@@ -1156,29 +1156,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             z-index: 100;
         }
 
-        .class-inline-search-wrap button:not(.btn) {
+        .class-inline-search-wrap button,
+        .class-inline-search-wrap .filter-sort-combine-box {
             border: none !important;
             box-shadow: none !important;
             transform: none !important;
         }
 
-        .class-inline-search-wrap .btn,
-        .class-inline-search-wrap .btn:hover,
-        .class-inline-search-wrap .inline-search-box,
-        .class-inline-search-wrap .filter-sort-combine-box {
-            border: 1px solid var(--border-solid) !important;
-            box-shadow: 0 1px 0 rgba(255, 255, 255, .72) inset !important;
-        }
-
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
-            border-radius: var(--r-md) !important;
-            transition: background var(--t) var(--ease), border-color var(--t) var(--ease);
+            border-radius: 18px;
+            box-shadow: none;
+            border: none;
+            transition: background var(--t) var(--ease);
         }
 
         .class-inline-search-wrap .inline-search-box:focus-within {
             background: var(--brand-bg);
-            border-color: rgba(91, 108, 245, 0.4) !important;
+            box-shadow: none;
         }
 
         .class-inline-search-wrap .inline-search-box input {
@@ -10203,8 +10198,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box"
-                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); padding: 0 14px;">
+                    <div class="inline-search-box" style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
                         <input type="text" id="classSearchInput" placeholder="بحث ..."
                             oninput="performClassInlineSearch(this.value)" autocomplete="off"
                             style="padding: 9px 0; font-size: 0.88rem;">
@@ -10219,7 +10213,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Combined Filter & Sort Rectangle -->
                     <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--surface-3); border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0;">
+                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
                         <!-- Sort Button -->
                         <div class="custom-dropdown" style="position: relative; display: inline-block;">
                             <!-- Hidden select to preserve event listeners and system integrations -->
@@ -15596,7 +15590,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 un.innerHTML = `<i class="fas fa-save" style="font-size: 0.95rem;"></i>`
                     + `<span class="save-btn-bottom" style="display: flex; align-items: center; gap: 4px; line-height: 1;">`
                     + `<span class="save-btn-label" style="font-size: 0.85rem; font-weight: 700;">حفظ</span>`
-                    + `<span class="save-count" style="background:#fff; color:var(--success); border:none; font-size:0.75rem; padding:1px 6px; border-radius:20px; font-weight:800; line-height:1.5; margin-right:4px;">${tot}</span>`
+                    + `<span style="font-size: 0.85rem; font-weight: 700; margin-inline-start: 6px;">(${tot})</span>`
                     + `</span>`;
                 un.title = `التغييرات: يوجد ${tot} تعديل غير محفوظ`;
                 un.className = 'btn btn-success btn-sm save-btn';
