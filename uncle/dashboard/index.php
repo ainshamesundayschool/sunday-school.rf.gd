@@ -17323,30 +17323,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const cs = document.getElementById('editStudentClass');
             cs.innerHTML = '<option value="">اختر الفصل</option>';
             classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
-            document.getElementById('editStudentName').value = s['الاسم'] || '';
+            document.getElementById('editStudentName').value = s.name || s['الاسم'] || '';
             if (document.getElementById('editStudentGender')) {
-                document.getElementById('editStudentGender').value = s['النوع'] === 'female' || s['gender'] === 'female' ? 'female' : 'male';
+                document.getElementById('editStudentGender').value = s.gender === 'female' || s['النوع'] === 'female' ? 'female' : 'male';
             }
-            // Match student's class by arabic_name or code against الفصل
-            const studentClass = s['الفصل'] || '';
+            // Match student's class by arabic_name or code against class/الفصل
+            const studentClass = s.class || s['الفصل'] || '';
             const matchedOption = Array.from(cs.options).find(o =>
                 o.textContent === studentClass || o.value === studentClass
             );
             if (matchedOption) cs.value = matchedOption.value;
-            document.getElementById('editStudentAddress').value = s['العنوان'] || '';
-            document.getElementById('editStudentPhone').value = s['رقم التليفون'] || '';
+            document.getElementById('editStudentAddress').value = s.address || s['العنوان'] || '';
+            document.getElementById('editStudentPhone').value = s.phone || s['رقم التليفون'] || '';
             const emergEl = document.getElementById('editStudentEmergencyPhone');
             const medEl = document.getElementById('editStudentMedicalNotes');
-            if (emergEl) emergEl.value = s['تليفون الطوارئ'] || '';
-            if (medEl) medEl.value = s['ملاحظات طبية'] || '';
-            const bd = s['عيد الميلاد'] || '';
+            if (emergEl) emergEl.value = s.emergency_phone || s['تليفون الطوارئ'] || '';
+            if (medEl) medEl.value = s.medical_notes || s['ملاحظات طبية'] || '';
+            const bd = s.birthday || s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
-            document.getElementById('editStudentCommitmentCoupons').value = s['كوبونات الالتزام'] || '0';
+            document.getElementById('editStudentCommitmentCoupons').value = s.coupons !== undefined ? s.coupons : (s['كوبونات الالتزام'] || '0');
             // Populate circle photo preview
             const prev = document.getElementById('uploadPreview');
             const ph = document.getElementById('photoPlaceholder');
-            if (s['صورة'] && prev) {
-                prev.src = window.photoUrl(s['صورة']);
+            const photoVal = s.image_url || s['صورة'] || '';
+            if (photoVal && prev) {
+                prev.src = (typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal;
                 prev.style.display = 'block';
                 if (ph) ph.style.display = 'none';
             } else {
