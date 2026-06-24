@@ -9380,6 +9380,59 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 padding: 8px 10px;
                 vertical-align: middle;
             }
+
+            /* ── Desktop scaling (Make everything on desktop much bigger) ── */
+            @media (min-width: 1024px) {
+                html {
+                    font-size: 18px !important;
+                }
+                body {
+                    font-size: 16px !important;
+                }
+                .classes-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+                    gap: 16px !important;
+                }
+                .class-card {
+                    padding: 24px 18px !important;
+                }
+                .class-icon {
+                    width: 72px !important;
+                    height: 72px !important;
+                    font-size: 1.8rem !important;
+                }
+                .class-name {
+                    font-size: 1.15rem !important;
+                }
+                .topbar {
+                    height: 72px !important;
+                }
+                .topbar-brand {
+                    font-size: 1.25rem !important;
+                }
+                .topbar-btn {
+                    height: 38px !important;
+                    min-width: 38px !important;
+                    font-size: .95rem !important;
+                }
+                .data-table th, 
+                .data-table td {
+                    padding: 12px 16px !important;
+                    font-size: 0.95rem !important;
+                }
+                .kid-card {
+                    padding: 16px 20px !important;
+                }
+                .kid-name {
+                    font-size: 1.2rem !important;
+                }
+                .inline-search-wrap {
+                    max-width: 600px !important;
+                }
+                .class-inline-search-wrap {
+                    max-width: 550px !important;
+                }
+            }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
