@@ -1910,40 +1910,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .dropdown-menu {
-            display: none;
             position: absolute;
             top: calc(100% + 6px);
             right: 0;
             background: var(--surface);
-            border-radius: var(--r-lg);
+            border-radius: var(--r-md);
             box-shadow: var(--shadow-lg);
             z-index: 99999;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-solid);
             overflow: hidden;
-            animation: dropIn .15s var(--spring);
             min-width: 180px;
             width: max-content;
+            padding: 6px 0;
+            
+            /* Smooth transitions */
+            transform-origin: top center;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.2s;
         }
 
         .dropdown-menu.open {
-            display: block
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            visibility: visible;
         }
 
         .action-dropdown:last-child .dropdown-menu {
             left: auto;
-            right: 0
-        }
-
-        @keyframes dropIn {
-            from {
-                opacity: 0;
-                transform: translateY(-8px) scale(.97)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1)
-            }
+            right: 0;
         }
 
         .dropdown-divider {
@@ -5272,27 +5272,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             top: calc(100% + 4px);
             left: 0;
             z-index: 500;
-            background: var(--surface-2);
-            border: 1.5px solid var(--border-solid);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-md);
             min-width: 160px;
-            display: none;
-            box-shadow: var(--shadow-lg);
             overflow: hidden;
-            padding: 4px 0;
-            animation: dropdownFadeIn 0.15s ease-out;
+            padding: 6px 0;
+            box-shadow: var(--shadow-lg);
+            
+            /* Smooth transitions */
+            transform-origin: top center;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.2s;
         }
 
-        @keyframes dropdownFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-4px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .custom-dropdown-menu.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            visibility: visible;
         }
 
         .custom-dropdown-item {
@@ -12672,6 +12675,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.querySelectorAll('.action-strip-btn.open, .topbar-btn.open').forEach(b => b.classList.remove('open'));
             }
 
+            // Close custom-dropdown-menu when opening standard dropdowns
+            document.querySelectorAll('.custom-dropdown-menu.open').forEach(m => m.classList.remove('open'));
+
             const isOpen = menu.classList.toggle('open');
             if (btnEl) btnEl.classList.toggle('open', isOpen);
             activeDropdown = isOpen ? id : null;
@@ -12697,6 +12703,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+            document.querySelectorAll('.custom-dropdown-menu.open').forEach(m => m.classList.remove('open'));
             document.querySelectorAll('.action-strip-btn.open, .topbar-btn.open').forEach(b => b.classList.remove('open'));
             activeDropdown = null;
         }
@@ -13655,15 +13662,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             e.stopPropagation();
             const menu = document.getElementById('customSortDropdownMenu');
             if (!menu) return;
-            const isVisible = menu.style.display === 'block';
-            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.style.display = 'none');
-            menu.style.display = isVisible ? 'none' : 'block';
+            const isVisible = menu.classList.contains('open');
+            
+            // Close standard dropdowns
+            closeAllDropdowns();
+            
+            // Close other custom dropdowns
+            document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.remove('open'));
+            
+            if (!isVisible) {
+                menu.classList.add('open');
+            } else {
+                menu.classList.remove('open');
+            }
 
             // Toggle icon rotate
             const btn = document.getElementById('customSortDropdownBtn');
             const icon = btn?.querySelector('.fa-chevron-down');
             if (icon) {
-                icon.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
+                icon.style.transform = !isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
             }
         }
 
@@ -13693,7 +13710,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function selectCustomSortOption(el, value, label) {
             const menu = document.getElementById('customSortDropdownMenu');
             if (menu) {
-                menu.style.display = 'none';
+                menu.classList.remove('open');
             }
             syncSortControls(value, label);
 
