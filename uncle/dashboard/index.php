@@ -958,27 +958,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
         }
 
-        .class-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--brand), var(--coupon));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform .3s var(--spring);
-        }
-
         .class-card:hover {
             transform: translateY(-5px) scale(1.01);
             box-shadow: var(--shadow-lg);
             border-color: var(--brand)
-        }
-
-        .class-card:hover::before {
-            transform: scaleX(1)
         }
 
         .class-card:active {
@@ -2255,7 +2238,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 8px 12px;
+            padding: 14px 16px;
             margin-top: 8px;
             margin-bottom: 0;
             transition: background var(--t) var(--ease);
@@ -7487,93 +7470,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        /* ── PWA install modal ── */
-        #pwaInstallModal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .5);
-            backdrop-filter: blur(8px);
-            z-index: 9999997;
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-        }
 
-        #pwaInstallModal.show {
-            display: flex;
-        }
-
-        .pwa-install-sheet {
-            background: var(--surface);
-            border-radius: var(--r-2xl) var(--r-2xl) 0 0;
-            padding: 24px 20px 36px;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 -8px 40px rgba(0, 0, 0, .25);
-            animation: sheetUp .35s var(--spring);
-            text-align: center;
-        }
-
-        .pwa-icon-big {
-            width: 84px;
-            height: 84px;
-            border-radius: 22px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            background: linear-gradient(135deg, #5b6cf5, #8b5cf6);
-            box-shadow:
-                0 0 0 6px rgba(181, 190, 248, .22),
-                0 0 0 12px rgba(181, 190, 248, .08),
-                0 8px 28px rgba(181, 190, 248, .50);
-            animation: pwaIconPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pwaIconPulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 6px rgba(181, 190, 248, .25), 0 0 0 12px rgba(181, 190, 248, .10), 0 8px 28px rgba(181, 190, 248, .45);
-            }
-
-            50% {
-                box-shadow: 0 0 0 9px rgba(181, 190, 248, .30), 0 0 0 18px rgba(181, 190, 248, .08), 0 8px 36px rgba(181, 190, 248, .60);
-            }
-        }
-
-        .pwa-steps {
-            background: var(--surface-3);
-            border-radius: var(--r-lg);
-            padding: 14px;
-            margin: 16px 0;
-            text-align: right;
-        }
-
-        .pwa-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 6px 0;
-            font-size: .84rem;
-            color: var(--text-2);
-        }
-
-        .pwa-step-num {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--brand);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .7rem;
-            font-weight: 800;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
 
         /* ══ SWIPE MODE ══════════════════════════════════════════════ */
 
@@ -9663,7 +9560,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     bottom: auto !important;
                     background: var(--bg) !important;
                     z-index: 100 !important;
-                    padding: 10px 0 !important;
+                    padding: 16px 0 !important;
                     border-bottom: 1px solid var(--border-solid) !important;
                     margin: 0 0 16px 0 !important;
                     width: auto !important;
@@ -9718,6 +9615,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button onclick="toggleNotifPanel()" class="nps-close" title="إغلاق"><i
                         class="fas fa-times"></i></button>
             </div>
+            <div class="nps-settings-bar" style="padding: 10px 18px; background: var(--surface-2); border-bottom: 1.5px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; font-family: Cairo, sans-serif; font-size: 0.8rem; flex-shrink: 0;">
+                <span style="font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-mobile-alt"></i> إشعارات الهاتف
+                </span>
+                <button class="btn btn-secondary btn-sm" id="panelNotifToggleBtn" onclick="toggleNotificationsFromModal()" style="height: 32px; font-size: 0.75rem; padding: 0 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-bell"></i> <span>تفعيل الإشعارات</span>
+                </button>
+            </div>
             <div class="nps-body" id="notifPanelList">
                 <div class="nps-empty"><i class="fas fa-bell-slash"
                         style="font-size:1.8rem;display:block;margin-bottom:8px;opacity:.4;"></i>لا توجد إشعارات</div>
@@ -9735,31 +9640,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <button onclick="document.getElementById('offlineBanner').classList.remove('show')"
             style="background:rgba(255,255,255,.2);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i
                 class="fas fa-times"></i></button>
-    </div>
-
-    <!-- PWA INSTALL MODAL -->
-    <div id="pwaInstallModal" onclick="if(event.target===this)closePwaModal()">
-        <div class="pwa-install-sheet">
-            <div class="pwa-icon-big">
-                <img src="/logo.png" alt="مدارس الأحد" style="width:84px;height:84px;object-fit:cover;display:block"
-                    onerror="this.outerHTML='<i class=\\'fas fa-cross\\'style=\\'font-size:2rem;color:#fff\\'></i>'">
-            </div>
-            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:6px">تثبيت التطبيق</h3>
-            <p style="color:var(--text-3);font-size:.84rem;margin-bottom:4px">ثبّت Sunday School على شاشتك الرئيسية
-                للوصول السريع والعمل بدون إنترنت</p>
-            <div class="pwa-steps" id="pwaSteps">
-                <!-- filled by JS based on OS -->
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-                <button class="btn" id="pwaInstallNowBtn" onclick="doPwaInstall()"
-                    style="width:100%;justify-content:center"><i class="fas fa-download"></i> تثبيت الآن</button>
-                <button class="btn btn-secondary" id="pwaNotifBtn" onclick="toggleNotificationsFromModal()"
-                    style="width:100%;justify-content:center;display:none"><i class="fas fa-bell"></i> <span>السماح
-                        بالإشعارات</span></button>
-                <button class="btn btn-ghost" onclick="closePwaModal()" style="width:100%;justify-content:center">ليس
-                    الآن</button>
-            </div>
-        </div>
     </div>
 
     <!-- TOAST -->
@@ -9831,11 +9711,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
                         <i class="fas fa-moon theme-toggle-icon-moon"></i>
                         <i class="fas fa-sun theme-toggle-icon-sun"></i>
-                    </button>
-                    <button class="btn btn-secondary" id="pwaInstallBtn"
-                        onclick="hideAccountModal(); triggerPwaInstall()"
-                        style="padding:8px 14px;font-size:.82rem;display:none" title="تثبيت التطبيق">
-                        <i class="fas fa-download" style="color:var(--success)"></i> تثبيت التطبيق
                     </button>
                     <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary"
                         style="padding:8px 14px;font-size:.82rem;text-decoration:none">
@@ -10411,11 +10286,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="inline-search-dropdown" id="topbarSearchDropdown"></div>
             </div>
             <div class="topbar-actions">
-                <!-- Unified Download and Notifications Button -->
-                <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()"
-                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
-                    <i class="fas fa-download"></i>
-                </button>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
                     style="position:relative; overflow:visible;">
@@ -13807,9 +13677,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cs.forEach(s => {
                 const id = getStudentId(s), srv = getServerAttendanceStatus(s, dateKey);
                 originalAttendanceData[id] = srv;
-                if (changedStudents.has(id) && id in local) attendanceData[id] = local[id];
+                if (changedStudents.has(id) && id in local) {
+                    if (srv !== 'pending' && local[id] === srv) {
+                        changedStudents.delete(id);
+                        attendanceData[id] = srv;
+                        savedStudents.add(id);
+                    } else {
+                        attendanceData[id] = local[id];
+                    }
+                }
                 else if (srv !== 'pending') { attendanceData[id] = srv; savedStudents.add(id); }
-                else if (id in local) { attendanceData[id] = local[id]; if (local[id] !== 'pending') changedStudents.add(id); }
+                else if (id in local) {
+                    if (srv !== 'pending' && local[id] === srv) {
+                        attendanceData[id] = srv;
+                        savedStudents.add(id);
+                    } else {
+                        attendanceData[id] = local[id];
+                        if (local[id] !== 'pending') changedStudents.add(id);
+                    }
+                }
                 else attendanceData[id] = 'pending';
             });
             saveChangedStudentsToLocalStorage(className, dateKey);
@@ -16195,7 +16081,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     showToast(`تم حفظ كوبونات ${records.length} طفل`, 'success', { dur: 7000, refresh: true });
                     changedCouponStudents.forEach(id => { savedCouponStudents.add(id); });
                     changedCouponStudents.clear(); couponData = {};
-                    saveCouponDataForClass(currentClass); renderAttendanceList(currentClass); updateSaveBtns();
+                    saveCouponDataForClass(currentClass);
+                    const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+                    localStorage.removeItem(`offlineSavedCoupons_${cls}`);
+                    localStorage.removeItem(`offlineAccumulatedCoupons_${cls}`);
+                    renderAttendanceList(currentClass); updateSaveBtns();
                     _sendSyncCompletePush(records.length, 'coupons');
                     setTimeout(loadData, 1200);
                 }
@@ -16286,6 +16176,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             showToast(`تم حفظ ${totalSaved} طفل`, 'success', { dur: 7000, refresh: true });
                             changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
                             changedStudents.clear();
+                            const groupKey = combinedGroupLabel || currentClass;
+                            localStorage.removeItem(`offlineSavedAttendance_${groupKey}_${date}`);
                             renderAttendanceList(currentClass); updateSaveBtns();
                             _sendSyncCompletePush(totalSaved, 'attendance');
                             setTimeout(loadData, 1200);
@@ -16319,6 +16211,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 changedStudents.clear();
                 localStorage.removeItem(`changedStudents_${currentClass}_${date}`);
                 saveAttendanceDataForClass(currentClass, date);
+                localStorage.removeItem(`offlineSavedAttendance_${currentClass}_${date}`);
                 updateAbsentData(); renderAttendanceList(currentClass); updateSaveBtns();
                 _sendSyncCompletePush(records.length, 'attendance');
                 setTimeout(loadData, 1200);
@@ -19889,20 +19782,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 initSwipeToClose(overlay);
             });
 
-            // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
+             // Monitor modal overlays to toggle body class for scroll locking and overscroll containment
             const modalObserver = new MutationObserver(() => {
-                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
                 document.documentElement.classList.toggle('modal-open', hasActiveModal);
                 document.body.classList.toggle('modal-open', hasActiveModal);
             });
-            document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal').forEach(el => {
+            document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay').forEach(el => {
                 modalObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
             });
             // Sync initial state
             const syncModalOpenState = () => {
-                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay, #pwaInstallModal')).some(el => {
+                const hasActiveModal = Array.from(document.querySelectorAll('.modal-overlay, .image-modal, #swipeOverlay')).some(el => {
                     return el.classList.contains('active') || el.classList.contains('show') || el.style.display === 'flex' || el.style.display === 'block';
                 });
                 document.documentElement.classList.toggle('modal-open', hasActiveModal);
@@ -20974,45 +20867,47 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const offlineNotifBtn = document.getElementById('offlineNotifBtn');
             if (offlineNotifBtn) offlineNotifBtn.style.display = 'none';
 
-            const pwaNotifBtn = document.getElementById('pwaNotifBtn');
-            if (pwaNotifBtn) {
-                pwaNotifBtn.style.display = 'flex';
+            const panelNotifBtn = document.getElementById('panelNotifToggleBtn');
+            if (panelNotifBtn) {
+                panelNotifBtn.style.display = 'flex';
                 if (!pushSupported) {
-                    pwaNotifBtn.querySelector('span').textContent = 'الإشعارات غير مدعومة بالمتصفح';
-                    pwaNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
+                    panelNotifBtn.querySelector('span').textContent = 'غير مدعوم بالمتصفح';
+                    panelNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
+                    panelNotifBtn.disabled = true;
                 } else if (perm === 'denied') {
-                    pwaNotifBtn.querySelector('span').textContent = 'الإشعارات محظورة بالمتصفح';
-                    pwaNotifBtn.querySelector('i').className = 'fas fa-exclamation-triangle';
+                    panelNotifBtn.querySelector('span').textContent = 'محظورة بالمتصفح';
+                    panelNotifBtn.querySelector('i').className = 'fas fa-exclamation-triangle';
+                    panelNotifBtn.disabled = true;
                 } else if (perm === 'default') {
-                    pwaNotifBtn.querySelector('span').textContent = 'السماح بالإشعارات';
-                    pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
+                    panelNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                    panelNotifBtn.querySelector('i').className = 'fas fa-bell';
+                    panelNotifBtn.disabled = false;
+                    panelNotifBtn.style.background = '';
+                    panelNotifBtn.style.color = '';
+                    panelNotifBtn.style.borderColor = '';
                 } else if (perm === 'granted') {
                     navigator.serviceWorker.ready.then(async reg => {
                         const sub = await reg.pushManager.getSubscription();
                         if (sub) {
-                            pwaNotifBtn.querySelector('span').textContent = 'إيقاف الإشعارات';
-                            pwaNotifBtn.style.setProperty('background', 'var(--danger-bg)', 'important');
-                            pwaNotifBtn.style.setProperty('color', 'var(--danger)', 'important');
-                            pwaNotifBtn.style.setProperty('border-color', 'var(--danger)', 'important');
-                            pwaNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
+                            panelNotifBtn.querySelector('span').textContent = 'إيقاف الإشعارات';
+                            panelNotifBtn.style.setProperty('background', 'var(--danger-bg)', 'important');
+                            panelNotifBtn.style.setProperty('color', 'var(--danger)', 'important');
+                            panelNotifBtn.style.setProperty('border-color', 'var(--danger)', 'important');
+                            panelNotifBtn.querySelector('i').className = 'fas fa-bell-slash';
                         } else {
-                            pwaNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
-                            pwaNotifBtn.style.background = '';
-                            pwaNotifBtn.style.color = '';
-                            pwaNotifBtn.style.borderColor = '';
-                            pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
+                            panelNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                            panelNotifBtn.style.background = '';
+                            panelNotifBtn.style.color = '';
+                            panelNotifBtn.style.borderColor = '';
+                            panelNotifBtn.querySelector('i').className = 'fas fa-bell';
                         }
+                        panelNotifBtn.disabled = false;
                     }).catch(() => {
-                        pwaNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
-                        pwaNotifBtn.querySelector('i').className = 'fas fa-bell';
+                        panelNotifBtn.querySelector('span').textContent = 'تفعيل الإشعارات';
+                        panelNotifBtn.querySelector('i').className = 'fas fa-bell';
+                        panelNotifBtn.disabled = false;
                     });
                 }
-            }
-
-            // Dynamically update the unified topbarDownloadBtn title
-            const dlBtn = document.getElementById('topbarDownloadBtn');
-            if (dlBtn) {
-                dlBtn.title = "تنزيل التطبيق وضبط الإشعارات";
             }
         }
 
@@ -21051,81 +20946,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return;
         }
 
-        // Capture the install prompt
-        window.addEventListener('beforeinstallprompt', e => {
-            e.preventDefault();
-            _pwaPrompt = e;
-            const btn = document.getElementById('pwaInstallBtn');
-            if (btn) btn.style.display = 'flex';
-        });
 
-        // App installed
-        window.addEventListener('appinstalled', () => {
-            _pwaPrompt = null;
-            const btn = document.getElementById('pwaInstallBtn');
-            if (btn) btn.style.display = 'none';
-            closePwaModal();
-            showToast('✅ تم تثبيت التطبيق بنجاح!', 'success');
-        });
-
-        function triggerPwaInstall() {
-            // Detect OS for instructions
-            const ua = navigator.userAgent;
-            const isIOS = /iPad|iPhone|iPod/.test(ua);
-            const isAndroid = /Android/.test(ua);
-            const stepsEl = document.getElementById('pwaSteps');
-            const installBtn = document.getElementById('pwaInstallNowBtn');
-
-            if (_pwaPrompt) {
-                // Native prompt available (Android Chrome)
-                if (stepsEl) stepsEl.innerHTML = `
-            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط "تثبيت الآن" أدناه</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">2</div><div>وافق على طلب التثبيت</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">3</div><div>افتح التطبيق من الشاشة الرئيسية</div></div>`;
-                if (installBtn) installBtn.style.display = 'flex';
-            } else if (isIOS) {
-                if (stepsEl) stepsEl.innerHTML = `
-            <div style="font-weight:700;color:var(--brand);margin-bottom:8px;font-size:.84rem">على iPhone / iPad:</div>
-            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط زر المشاركة <i class="fas fa-share-square" style="color:var(--brand)"></i> في أسفل المتصفح</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "إضافة إلى الشاشة الرئيسية"</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">3</div><div>اضغط "إضافة" — سيظهر أيقونة التطبيق</div></div>`;
-                if (installBtn) installBtn.style.display = 'none';
-                const btn = document.getElementById('pwaInstallBtn');
-                if (btn) btn.style.display = 'flex';
-            } else {
-                if (stepsEl) stepsEl.innerHTML = `
-            <div class="pwa-step"><div class="pwa-step-num">1</div><div>اضغط قائمة المتصفح ⋮ أو ⋯</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">2</div><div>اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"</div></div>
-            <div class="pwa-step"><div class="pwa-step-num">3</div><div>وافق على التثبيت</div></div>`;
-                if (installBtn) installBtn.style.display = 'none';
-            }
-            document.getElementById('pwaInstallModal').classList.add('show');
-            // Update notification button visibility when modal opens
-            _updateNotifBtnVisibility();
-        }
-
-        async function doPwaInstall() {
-            if (!_pwaPrompt) return;
-            _pwaPrompt.prompt();
-            const { outcome } = await _pwaPrompt.userChoice;
-            if (outcome === 'accepted') {
-                _pwaPrompt = null;
-                closePwaModal();
-            }
-        }
-
-        function closePwaModal() {
-            document.getElementById('pwaInstallModal').classList.remove('show');
-        }
-
-        async function handleTopbarDownloadClick() {
-            // Only open the modal with instructions & settings. Do not toggle notifications.
-            triggerPwaInstall();
-        }
 
         async function toggleNotificationsFromModal() {
             if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-                showToast('المتصفح الحالي لا يدعم الإشعارات. يرجى تثبيت التطبيق (إضافته للشاشة الرئيسية) وتفعيله منه. 📲', 'warning', 6000);
+                showToast('المتصفح الحالي لا يدعم الإشعارات. يرجى إضافة التطبيق للشاشة الرئيسية وتفعيله منه. 📲', 'warning', 6000);
                 return;
             }
 
@@ -21293,6 +21118,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             keysToRemove.forEach(k => localStorage.removeItem(k));
             updateOfflineSyncIndicator();
+            if (currentClass) {
+                renderAttendanceList(currentClass);
+            }
         }
 
         function getIndexedDbQueueCount() {
@@ -21759,22 +21587,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (hints) hints.style.display = 'none';
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // PWA BUTTON — show on iOS automatically (no native prompt there)
-        // ══════════════════════════════════════════════════════════════
-        (function _initPwaBtn() {
-            document.addEventListener('DOMContentLoaded', () => {
-                const ua = navigator.userAgent;
-                const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-                // On iOS Safari, never gets beforeinstallprompt, but we still show the button
-                if (isIOS) {
-                    const btn = document.getElementById('pwaInstallBtn');
-                    // Only show if not already installed (standalone mode)
-                    if (btn && !window.navigator.standalone) btn.style.display = 'flex';
-                }
-                // On Android/desktop the beforeinstallprompt event handles it
-            });
-        })();
+
 
         // ── CLEAR ALL UNSAVED ─────────────────────────────────────────
         function _clearAllUnsaved() {
@@ -21841,8 +21654,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
             showAccountModal, hideAccountModal, showUncleHistory, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
-            // New
-            shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV, triggerPwaInstall, doPwaInstall, closePwaModal, handleTopbarDownloadClick,
+            shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV,
             toggleAbsentDropdown, executeAbsentAction,
             toggleCustomExportField, moveCustomExportField, renderCustomExportPreview,
             exportCustomAsCSV, exportCustomPreviewAsImage, exportCustomPreviewAsPdf,
