@@ -1276,7 +1276,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: background var(--t) var(--ease);
         }
 
-        .class-inline-search-wrap button,
+        #classToolsBtn,
+        .class-inline-search-wrap > button,
         .class-inline-search-wrap .filter-sort-combine-box {
             background: var(--surface);
             border: 1px solid var(--border-solid) !important;
@@ -1284,12 +1285,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
         }
 
+        [data-theme="light"] #classToolsBtn,
+        [data-theme="light"] .class-inline-search-wrap > button,
         [data-theme="light"] .class-inline-search-wrap .filter-sort-combine-box {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             border-color: rgba(91, 108, 245, 0.12) !important;
         }
 
+        [data-theme="dark"] #classToolsBtn,
+        [data-theme="dark"] .class-inline-search-wrap > button,
         [data-theme="dark"] .class-inline-search-wrap .filter-sort-combine-box {
             background: rgba(24, 27, 38, 0.9);
             backdrop-filter: blur(10px);
@@ -1298,7 +1303,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .class-inline-search-wrap .inline-search-box {
             padding: 0 14px;
-            border-radius: var(--r-md);
+            border-radius: 18px;
             background: var(--surface);
             border: 1px solid var(--border-solid);
             box-shadow: var(--shadow-sm);
@@ -1338,6 +1343,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-inline-search-wrap .inline-search-box button {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
             margin-right: 2px;
         }
 
@@ -11365,21 +11374,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
 
-                <!-- Scanner source selector (Camera vs. USB) -->
-                <div class="scanner-source-tabs"
-                    style="display:flex;background:var(--surface-3);padding:4px;border-radius:10px;margin-bottom:12px;gap:4px;">
-                    <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab"
-                        onclick="switchScannerSource('camera')"
-                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
-                        <i class="fas fa-camera"></i> الكاميرا
-                    </button>
-                    <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab"
-                        onclick="switchScannerSource('usb')"
-                        style="flex:1;padding:8px;border-radius:8px;border:none;background:none;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text-3);transition:all var(--t);">
-                        <i class="fas fa-barcode"></i> ماسح خارجي
-                    </button>
-                </div>
-
                 <div id="kidQrScannerNote"
                     style="background:var(--brand-bg);border:1px solid rgba(79,70,229,.16);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin-bottom:12px">
                     يمكنك طباعة QR الأطفال من صفحة الإدارة.
@@ -11401,7 +11395,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div id="kidQrReader"
                     style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
-                <div id="kidQrScanSummary" style="margin-top:12px"></div>
+
+                <!-- Scanner source selector (Camera vs. USB) — icon only, positioned under camera -->
+                <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 6px;">
+                    <div class="scanner-source-tabs"
+                        style="display: inline-flex; background: var(--surface-3); padding: 4px; border-radius: 8px; gap: 4px;">
+                        <button type="button" id="scannerSourceTab_camera" class="scanner-source-tab"
+                            onclick="switchScannerSource('camera')"
+                            title="الكاميرا"
+                            style="width: 38px; height: 32px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all var(--t);">
+                            <i class="fas fa-camera" style="font-size: 0.92rem;"></i>
+                        </button>
+                        <button type="button" id="scannerSourceTab_usb" class="scanner-source-tab"
+                            onclick="switchScannerSource('usb')"
+                            title="ماسح خارجي"
+                            style="width: 38px; height: 32px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all var(--t);">
+                            <i class="fas fa-barcode" style="font-size: 0.92rem;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="kidQrScanSummary" style="margin-top:8px"></div>
                 <div id="kidQrScanList"
                     style="margin-top:10px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:8px">
                 </div>
