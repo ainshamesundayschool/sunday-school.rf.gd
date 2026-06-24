@@ -686,11 +686,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             .topbar-search-wrap {
-                display: block;
+                display: none;
             }
 
             #classesView .inline-search-wrap {
-                display: none;
+                display: flex;
             }
         }
 
@@ -704,7 +704,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             gap: 5px;
             background: var(--surface-3);
-            border: 1px solid var(--border-solid);
+            border: none;
             color: var(--text-2);
             font-size: .85rem;
             cursor: pointer;
@@ -10205,20 +10205,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="topbar-actions">
                 <!-- Unified Download and Notifications Button -->
                 <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()"
-                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات"
-                    style="background:transparent; border:none; color:var(--text);">
+                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات">
                     <i class="fas fa-download"></i>
                 </button>
                 <!-- Unified notification bell (unread count + push permission) -->
                 <button class="topbar-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="الإشعارات"
-                    style="position:relative; overflow:visible; background:transparent; border:none; color:var(--text);">
+                    style="position:relative; overflow:visible;">
                     <i class="fas fa-bell"></i>
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Push permission button (only when not granted) -->
                 <button class="topbar-btn" id="notifPermBtn" onclick="requestNotifPermission()" title="تفعيل الإشعارات"
-                    style="display:none;position:relative; overflow:visible; background:transparent; border:none; color:var(--text);">
+                    style="display:none;position:relative; overflow:visible;">
                     <i class="fas fa-bell-slash"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
@@ -10226,7 +10225,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
-                        style="text-decoration:none; color:var(--text);">
+                        style="text-decoration:none;">
                         <i class="fa-solid fa-gear"></i>
                     </a>
                 <?php endif; ?>
