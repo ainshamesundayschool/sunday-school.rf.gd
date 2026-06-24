@@ -1011,7 +1011,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 22px;
             border-radius: 50%;
             border: 1.5px solid var(--surface);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
             margin-inline-start: -6px;
             transition: transform 0.2s ease, z-index 0s;
             cursor: pointer;
@@ -1021,7 +1021,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .uncle-avatar-wrap-tiny:hover {
             transform: scale(1.15) translateY(-1px);
             z-index: 10 !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
         }
 
         .uncle-avatar-img-tiny {
@@ -1048,7 +1048,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: opacity 0.15s ease, transform 0.15s ease;
             z-index: 100;
             font-family: Cairo, sans-serif;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
 
         .uncle-avatar-wrap-tiny:hover .uncle-tooltip-tiny {
@@ -1066,7 +1066,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 1px 5px;
             font-weight: 700;
             font-family: Cairo, sans-serif;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             z-index: 2;
         }
 
@@ -4337,7 +4337,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             padding: 6px 8px;
             border-radius: var(--r-md);
             background: var(--surface-2);
-            border: 1px solid var(--border-solid);
             transition: all var(--t) var(--ease);
             position: relative;
             overflow: hidden;
@@ -9384,50 +9383,63 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 html {
                     font-size: 18px !important;
                 }
+
                 body {
                     font-size: 16px !important;
                 }
+
                 .classes-grid {
                     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
                     gap: 16px !important;
                 }
+
                 .class-card {
                     padding: 24px 18px !important;
                 }
+
                 .class-icon {
                     width: 72px !important;
                     height: 72px !important;
                     font-size: 1.8rem !important;
                 }
+
                 .class-name {
                     font-size: 1.15rem !important;
                 }
+
                 .topbar {
                     height: 72px !important;
                 }
+
                 .topbar-brand {
                     font-size: 1.25rem !important;
                 }
+
                 .topbar-btn {
                     height: 42px !important;
                     min-width: 42px !important;
                     font-size: .95rem !important;
                     box-shadow: none !important;
                 }
-                .data-table th, 
+
+                .data-table th,
                 .data-table td {
                     padding: 12px 16px !important;
                     font-size: 0.95rem !important;
                 }
+
                 .kid-card {
                     padding: 16px 20px !important;
                 }
+
                 .kid-name {
                     font-size: 1.2rem !important;
                 }
+
                 .inline-search-wrap {
                     max-width: 600px !important;
                 }
+
                 .class-inline-search-wrap {
                     position: static !important;
                     background: transparent !important;
@@ -9436,6 +9448,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     max-width: none !important;
                     margin: 0 !important;
                 }
+
                 .class-header-sticky-wrap {
                     display: flex !important;
                     flex-direction: row !important;
@@ -9452,6 +9465,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     width: 100% !important;
                     box-sizing: border-box !important;
                 }
+
                 .class-header-sticky-wrap .class-topbar {
                     flex: 1 !important;
                     margin: 0 !important;
@@ -10173,7 +10187,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="topbar-actions">
                 <!-- Unified Download and Notifications Button -->
                 <button class="topbar-btn" id="topbarDownloadBtn" onclick="handleTopbarDownloadClick()"
-                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات" style="background:transparent; border:none; color:var(--text);">
+                    title="تنزيل التطبيق وتفعيل/إيقاف الإشعارات"
+                    style="background:transparent; border:none; color:var(--text);">
                     <i class="fas fa-download"></i>
                 </button>
                 <!-- Unified notification bell (unread count + push permission) -->
@@ -10192,13 +10207,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات" style="text-decoration:none; color:var(--text);">
+                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
+                        style="text-decoration:none; color:var(--text);">
                         <i class="fa-solid fa-gear"></i>
                     </a>
                 <?php endif; ?>
 
                 <div class="topbar-avatar-btn" id="uncleChip"
-                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>; cursor:pointer;" onclick="showAccountModal()">
+                    style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>; cursor:pointer;"
+                    onclick="showAccountModal()">
                     <img src="" alt="" id="uncleAvatar"
                         onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">
                     <span id="uncleInitials"
@@ -10345,120 +10362,127 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="class-inline-search-wrap"
                         style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
 
-                    <!-- 3 Vertical Dots Tools Button (Before Search) -->
-                    <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
-                        <button class="btn btn-ghost btn-sm" id="classToolsBtn"
-                            onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
-                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
-                            <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
-                        </button>
-                        <div class="dropdown-menu" id="classToolsDropdownMenu"
-                            style="left: 0; right: auto; min-width: 220px;">
-                            <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item"
-                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
-                                    class="fas fa-tasks"></i> مهام الفصل</button>
-                            <button class="dropdown-item coupon"
-                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
-                                تصدير مخصص</button>
-                            <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
-                                    class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
-                            <button class="dropdown-item success"
-                                onclick="showShareAttendanceModal();closeAllDropdowns()"><i
-                                    class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
-
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-group-label">خيارات إضافية</div>
-                            <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
-                                    class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
-                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
-                                    class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
-                            <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
-                                    class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
-                        </div>
-                    </div>
-
-                    <!-- Search Input (Taking the rest of the space) -->
-                    <div class="inline-search-box"
-                        style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
-                        <input type="text" id="classSearchInput" placeholder="بحث ..."
-                            oninput="performClassInlineSearch(this.value)" autocomplete="off"
-                            style="padding: 9px 0; font-size: 0.88rem;">
-                        <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
-                            title="مسح QR الطفل"
-                            style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
-                            <i class="fas fa-qrcode"></i>
-                        </button>
-                        <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
-                                class="fas fa-times"></i></button>
-                    </div>
-
-                    <!-- Combined Filter & Sort Rectangle -->
-                    <div class="filter-sort-combine-box" id="filterSortCombineBox"
-                        style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
-                        <!-- Sort Button -->
-                        <div class="custom-dropdown" style="position: relative; display: inline-block;">
-                            <!-- Hidden select to preserve event listeners and system integrations -->
-                            <select id="classSortSelect" style="display: none;">
-                                <option value="name_az">الاسم أ-ي</option>
-                                <option value="name_za">الاسم ي-أ</option>
-                                <option value="age_asc">الأصغر سناً</option>
-                                <option value="age_desc">الأكبر سناً</option>
-                                <option value="class_az">الفصل</option>
-                                <option value="coupons_desc">الأكثر كوبونات</option>
-                                <option value="attendance_desc">الأكثر حضوراً</option>
-                                <option value="top_desc">الأوائل</option>
-                            </select>
-                            <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)" title="ترتيب"
-                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
-                                onmouseover="this.style.color='var(--brand)'"
-                                onmouseout="this.style.color='var(--text-2)'">
-                                <i class="fas fa-sort-amount-down"></i>
+                        <!-- 3 Vertical Dots Tools Button (Before Search) -->
+                        <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
+                            <button class="btn btn-ghost btn-sm" id="classToolsBtn"
+                                onclick="toggleDropdown('classToolsDropdownMenu', this)" title="أدوات الفصل"
+                                style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                                <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.05rem;"></i>
                             </button>
-                            <div class="custom-dropdown-menu" id="customSortDropdownMenu"
-                                style="right: auto; left: 0; top: 44px;">
-                                <div class="custom-dropdown-item active" data-value="name_az"
-                                    onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
-                                <div class="custom-dropdown-item" data-value="name_za"
-                                    onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
-                                <div class="custom-dropdown-item" data-value="age_asc"
-                                    onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً</div>
-                                <div class="custom-dropdown-item" data-value="age_desc"
-                                    onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً</div>
-                                <div class="custom-dropdown-item" data-value="class_az"
-                                    onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
-                                <div class="custom-dropdown-item" data-value="coupons_desc"
-                                    onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
-                                    كوبونات</div>
-                                <div class="custom-dropdown-item" data-value="attendance_desc"
-                                    onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">الأكثر
-                                    حضوراً</div>
-                                <div class="custom-dropdown-item" data-value="top_desc"
-                                    onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                            <div class="dropdown-menu" id="classToolsDropdownMenu"
+                                style="left: 0; right: auto; min-width: 220px;">
+                                <div class="dropdown-group-label">الفصل</div>
+                                <button class="dropdown-item"
+                                    onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                        class="fas fa-tasks"></i> مهام الفصل</button>
+                                <button class="dropdown-item coupon"
+                                    onclick="showCustomExportModal();closeAllDropdowns()"><i
+                                        class="fas fa-sliders-h"></i>
+                                    تصدير مخصص</button>
+                                <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
+                                        class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                                <button class="dropdown-item success"
+                                    onclick="showShareAttendanceModal();closeAllDropdowns()"><i
+                                        class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
+
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-group-label">خيارات إضافية</div>
+                                <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
+                                        class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
+                                <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
+                                        class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                                <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
+                                        class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
                             </div>
                         </div>
 
-                        <!-- Divider -->
-                        <div style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
+                        <!-- Search Input (Taking the rest of the space) -->
+                        <div class="inline-search-box"
+                            style="flex: 1; border-radius: var(--r-md); background: var(--surface-3); box-shadow: none; padding: 0 14px;">
+                            <input type="text" id="classSearchInput" placeholder="بحث ..."
+                                oninput="performClassInlineSearch(this.value)" autocomplete="off"
+                                style="padding: 9px 0; font-size: 0.88rem;">
+                            <button type="button" id="classSearchQrBtn" onclick="startKidQrScan('profile-in-class')"
+                                title="مسح QR الطفل"
+                                style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:6px; font-size:0.95rem; display:flex; align-items:center; justify-content:center; border-radius:50%; margin-right:6px;">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                            <button id="clearClassSearchBtn" onclick="clearClassSearch()" style="display: none;"><i
+                                    class="fas fa-times"></i></button>
                         </div>
 
-                        <!-- Filter Button -->
-                        <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
-                            title="تصفية"
-                            style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
-                            onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-2)'">
-                            <i class="fas fa-filter"></i>
-                            <span id="activeFiltersBadge"
-                                style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
+                        <!-- Combined Filter & Sort Rectangle -->
+                        <div class="filter-sort-combine-box" id="filterSortCombineBox"
+                            style="display: flex; align-items: center; background-color: var(--surface-3); border: none !important; box-shadow: none !important; border-radius: var(--r-md); height: 42px; overflow: visible; flex-shrink: 0; position: relative; gap: 0; transition: border-radius 0.2s;">
+                            <!-- Sort Button -->
+                            <div class="custom-dropdown" style="position: relative; display: inline-block;">
+                                <!-- Hidden select to preserve event listeners and system integrations -->
+                                <select id="classSortSelect" style="display: none;">
+                                    <option value="name_az">الاسم أ-ي</option>
+                                    <option value="name_za">الاسم ي-أ</option>
+                                    <option value="age_asc">الأصغر سناً</option>
+                                    <option value="age_desc">الأكبر سناً</option>
+                                    <option value="class_az">الفصل</option>
+                                    <option value="coupons_desc">الأكثر كوبونات</option>
+                                    <option value="attendance_desc">الأكثر حضوراً</option>
+                                    <option value="top_desc">الأوائل</option>
+                                </select>
+                                <button id="customSortDropdownBtn" onclick="toggleCustomSortDropdown(event)"
+                                    title="ترتيب"
+                                    style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none;"
+                                    onmouseover="this.style.color='var(--brand)'"
+                                    onmouseout="this.style.color='var(--text-2)'">
+                                    <i class="fas fa-sort-amount-down"></i>
+                                </button>
+                                <div class="custom-dropdown-menu" id="customSortDropdownMenu"
+                                    style="right: auto; left: 0; top: 44px;">
+                                    <div class="custom-dropdown-item active" data-value="name_az"
+                                        onclick="selectCustomSortOption(this, 'name_az', 'الاسم أ-ي')">الاسم أ-ي</div>
+                                    <div class="custom-dropdown-item" data-value="name_za"
+                                        onclick="selectCustomSortOption(this, 'name_za', 'الاسم ي-أ')">الاسم ي-أ</div>
+                                    <div class="custom-dropdown-item" data-value="age_asc"
+                                        onclick="selectCustomSortOption(this, 'age_asc', 'الأصغر سناً')">الأصغر سناً
+                                    </div>
+                                    <div class="custom-dropdown-item" data-value="age_desc"
+                                        onclick="selectCustomSortOption(this, 'age_desc', 'الأكبر سناً')">الأكبر سناً
+                                    </div>
+                                    <div class="custom-dropdown-item" data-value="class_az"
+                                        onclick="selectCustomSortOption(this, 'class_az', 'الفصل')">الفصل</div>
+                                    <div class="custom-dropdown-item" data-value="coupons_desc"
+                                        onclick="selectCustomSortOption(this, 'coupons_desc', 'الأكثر كوبونات')">الأكثر
+                                        كوبونات</div>
+                                    <div class="custom-dropdown-item" data-value="attendance_desc"
+                                        onclick="selectCustomSortOption(this, 'attendance_desc', 'الأكثر حضوراً')">
+                                        الأكثر
+                                        حضوراً</div>
+                                    <div class="custom-dropdown-item" data-value="top_desc"
+                                        onclick="selectCustomSortOption(this, 'top_desc', 'الأوائل')">الأوائل</div>
+                                </div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div
+                                style="width: 1.5px; height: 22px; background-color: var(--border-solid); flex-shrink: 0;">
+                            </div>
+
+                            <!-- Filter Button -->
+                            <button type="button" id="classFiltersToggleBtn" onclick="toggleClassFiltersPanel()"
+                                title="تصفية"
+                                style="width: 42px; height: 39px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all 0.2s; outline: none; position: relative;"
+                                onmouseover="this.style.color='var(--brand)'"
+                                onmouseout="this.style.color='var(--text-2)'">
+                                <i class="fas fa-filter"></i>
+                                <span id="activeFiltersBadge"
+                                    style="display: none; background: var(--brand); color: white; border-radius: 50%; font-size: 0.62rem; width: 15px; height: 15px; align-items: center; justify-content: center; font-weight: 800; position: absolute; top: 2px; right: 2px; border: 1.5px solid var(--surface);">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Add Kid Button (Last button at the end) -->
+                        <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
+                            style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
+                            <i class="fas fa-plus"></i>
                         </button>
                     </div>
-
-                    <!-- Add Kid Button (Last button at the end) -->
-                    <button class="btn btn-ghost btn-sm" onclick="showAddPersonModal()" title="إضافة طفل جديد"
-                        style="width: 42px; height: 42px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; flex: none; padding: 0;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
                 </div>
 
                 <!-- Pending registrations -->
@@ -13058,7 +13082,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
                 if (Array.isArray(cached) && cached.includes(className)) return true;
-            } catch (e) {}
+            } catch (e) { }
             return false;
         }
 
