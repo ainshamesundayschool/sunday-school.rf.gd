@@ -373,7 +373,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 8px;
             background: rgba(124, 58, 237, 0.08);
             border: 1px solid rgba(124, 58, 237, 0.2);
-            padding: 4px 12px 4px 6px;
+            padding: 4px 12px;
             border-radius: 20px;
             margin-left: 8px;
             transition: all 0.2s ease;
@@ -10480,9 +10480,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <!-- Dev Switcher in Topbar Actions -->
                 <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" style="display:none; align-items:center; margin-inline-end: 8px;">
-                    <div class="dev-church-bar-icon">
-                        <i class="fas fa-code"></i>
-                    </div>
                     <div style="position:relative;display:flex;align-items:center;">
                         <select id="devChurchSelect" class="dev-church-select-input" onchange="devSwitchChurch(this.value)">
                             <option value="">كنيستي الافتراضية</option>
