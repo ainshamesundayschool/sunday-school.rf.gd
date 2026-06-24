@@ -4930,9 +4930,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trips-horizontal-scroll {
             display: flex;
             overflow-x: auto;
-            gap: 6px;
-            padding: 2px 0 7px;
-            margin-bottom: 8px;
+            gap: 10px;
+            padding: 4px 2px 10px;
+            margin-bottom: 12px;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -4941,56 +4941,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none;
         }
 
-        .trips-horizontal-scroll.expanded {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-            overflow-x: visible;
-            gap: 7px;
-            padding: 2px 0 7px;
-        }
-
         .trip-slim-card {
             flex: 0 0 auto;
-            width: 170px;
-            background: var(--surface-2);
-            border-radius: 13px;
-            border: 1px solid var(--border-solid);
-            padding: 7px 8px;
+            width: 220px;
+            background: var(--surface);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             cursor: pointer;
             transition: all var(--t) var(--ease);
             text-decoration: none;
-            letter-spacing: normal;
+            box-shadow: var(--shadow-sm);
         }
 
         .trip-slim-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
             border-color: var(--brand);
-        }
-
-        .trips-horizontal-scroll.expanded .trip-slim-card {
-            width: 100%;
+            background: var(--surface-2);
         }
 
         .trip-slim-img {
-            width: 31px;
-            height: 31px;
-            border-radius: 8px;
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r-md);
             object-fit: cover;
             background: var(--brand-bg);
             flex-shrink: 0;
-            transition: all var(--t) var(--ease);
+            border: 1px solid var(--border);
         }
 
         .trip-skeleton {
             flex: 0 0 auto;
-            width: 170px;
-            height: 40px;
+            width: 220px;
+            height: 58px;
             background: var(--surface-3);
-            border-radius: 13px;
+            border-radius: var(--r-lg);
             animation: skeleton-pulse 1.5s infinite;
         }
 
@@ -5011,57 +5000,78 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .trip-slim-info {
             flex: 1;
             min-width: 0;
-            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
         }
 
         .trip-slim-name {
-            font-size: 0.68rem;
+            font-size: 0.78rem;
             font-weight: 800;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 1px;
-            letter-spacing: normal;
         }
 
         .trip-slim-meta-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            width: 100%;
             gap: 6px;
-            flex-wrap: nowrap;
         }
 
         .trip-slim-date {
-            font-size: 0.66rem;
+            font-size: 0.68rem;
             color: var(--text-3);
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             white-space: nowrap;
-            letter-spacing: normal;
-            flex: 1 1 auto;
-            min-width: 0;
         }
 
         .trip-slim-kids-count {
-            font-size: 0.64rem;
+            font-size: 0.68rem;
             color: var(--brand);
             background: var(--brand-bg);
-            padding: 2px 6px;
+            padding: 1px 6px;
             border-radius: var(--r-full);
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 3px;
             white-space: nowrap;
-            letter-spacing: normal;
-            flex-shrink: 0;
+        }
+
+        .dashboard-section-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-2);
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            padding: 4px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: color var(--t) var(--ease);
+        }
+        .dashboard-section-toggle-btn:hover {
+            color: var(--brand);
+        }
+        .dashboard-section-toggle-btn .icon {
+            font-size: 0.88rem;
+            color: var(--brand);
+        }
+        .dashboard-section-toggle-btn .chevron {
+            font-size: 0.72rem;
+            color: var(--text-3);
+            transition: transform var(--t) var(--ease);
+        }
+        .dashboard-section-toggle-btn:hover .chevron {
+            color: var(--brand);
         }
 
         /* ── CUSTOM DROPDOWN ── */
@@ -7030,131 +7040,112 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Today's Birthday Banner (homepage) ── */
         #mainStatsRow {
             display: none;
-            padding: 10px 14px 12px;
-            margin-bottom: 10px;
-            background: var(--surface);
-            border: 1.5px solid var(--border-solid);
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow-sm);
-            flex-direction: column;
-            gap: 0;
-            animation: fadeSlideDown .35s var(--spring);
-        }
-
-        [data-theme="dark"] #mainStatsRow {
-            background: var(--surface-3);
-            border-color: var(--border-solid);
-        }
-
-        .bday-banner-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: .88rem;
-            font-weight: 800;
-            color: #9d174d;
-            margin-bottom: 10px;
-        }
-
-        [data-theme="dark"] .bday-banner-header {
-            color: #f9a8d4;
-        }
-
-        .bday-banner-header i {
-            font-size: 1.1rem;
+            background: none;
+            border: none;
+            padding: 0;
+            margin-bottom: 12px;
+            box-shadow: none;
         }
 
         .bday-banner-list {
             display: flex;
-            flex-wrap: nowrap;
             overflow-x: auto;
-            overflow-y: hidden;
-            gap: 8px;
-            padding-bottom: 6px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+            gap: 10px;
+            padding: 4px 2px 10px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         .bday-banner-list::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .bday-banner-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .bday-banner-list::-webkit-scrollbar-thumb {
-            background: var(--border-solid);
-            border-radius: var(--r-full);
-        }
-
-        .bday-banner-list.grid-view {
-            flex-wrap: wrap;
-            overflow-x: visible;
-            overflow-y: visible;
-            padding-bottom: 0;
+            display: none;
         }
 
         .bday-banner-chip {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             flex-shrink: 0;
-            background: var(--surface-3);
-            color: var(--text);
-            border: 1px solid var(--border-solid);
-            padding: 5px 10px 5px 6px;
-            border-radius: var(--r-md);
-            font-size: .77rem;
-            font-weight: 700;
+            width: 200px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: var(--r-lg);
             cursor: pointer;
             transition: all var(--t) var(--ease);
-        }
-
-        .bday-chip-img {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1.5px solid var(--border-solid);
-            background: var(--surface-3);
-        }
-
-        [data-theme="dark"] .bday-banner-chip {
-            background: var(--surface-2);
-            color: var(--text);
-            border-color: var(--border-solid);
+            box-shadow: var(--shadow-sm);
         }
 
         .bday-banner-chip:hover {
-            background: #db2777;
-            color: #fff;
             transform: translateY(-2px);
-            border-color: #db2777;
+            box-shadow: var(--shadow-md);
+            border-color: var(--brand);
+            background: var(--surface-2);
         }
 
-        .bday-banner-chip .bday-chip-class {
-            font-size: .68rem;
-            opacity: .75;
-            font-weight: 600;
+        .bday-chip-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--border);
+            background: var(--surface-3);
+            flex-shrink: 0;
+        }
+
+        .bday-chip-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bday-chip-name {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bday-chip-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .bday-chip-day {
+            font-size: 0.68rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .bday-chip-day.today {
+            color: #10b981;
+        }
+
+        .bday-chip-day.text-muted {
+            color: var(--text-3);
+        }
+
+        .bday-chip-class {
+            font-size: 0.68rem;
+            color: var(--text-3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .bday-banner-chip.today {
-            background: rgba(16, 185, 129, 0.08) !important;
-            color: #10b981 !important;
-            border-color: rgba(16, 185, 129, 0.3) !important;
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.04);
         }
-
-        [data-theme="dark"] .bday-banner-chip.today {
-            background: rgba(16, 185, 129, 0.15) !important;
-            color: #34d399 !important;
-            border-color: rgba(16, 185, 129, 0.4) !important;
-        }
-
         .bday-banner-chip.today:hover {
-            background: #10b981 !important;
-            color: #fff !important;
-            border-color: #10b981 !important;
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.08);
         }
 
         #syncToTodayBtn {
@@ -10029,31 +10020,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="inline-search-dropdown" id="inlineSearchDropdown" style="display: none;"></div>
                 </div>
 
-                <div class="section-head" id="tripsSectionHead" style="display:none; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <button id="toggleTripsViewBtn" onclick="toggleTripsCollapse()"
-                        style="background: none; border: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: inherit; padding: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <span class="section-title" style="margin-bottom: 0; font-size: 0.82rem;">الرحلات / المؤتمرات</span>
-                        <i class="fas fa-chevron-down" id="tripsCollapseIcon"
-                            style="color: var(--text-3); font-size: 0.75rem; transition: transform var(--t) var(--ease);"></i>
+                <div class="section-head" id="tripsSectionHead" style="display:none; margin-bottom: 10px; margin-top: 8px;">
+                    <button type="button" id="toggleTripsViewBtn" onclick="toggleTripsCollapse()" class="dashboard-section-toggle-btn">
+                        <i class="fas fa-map-marked-alt icon"></i>
+                        <span class="section-title">الرحلات والمؤتمرات</span>
+                        <i class="fas fa-chevron-down chevron" id="tripsCollapseIcon" style="transform: rotate(0deg);"></i>
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 6px;"></div>
 
-                <div class="section-head" style="margin-top:8px;">
-                    <span class="section-title">الفصول</span>
-                </div>
-
                 <!-- Birthdays Container -->
-                <div id="mainStatsRow" style="display:none;">
-                    <div class="bday-banner-header"
-                        onclick="toggleBdayCollapse()"
-                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; cursor: pointer; user-select: none;">
-                        <i class="fas fa-birthday-cake" style="font-size: 0.9rem;"></i>
-                        <span id="todayBirthdayTitle" style="flex: 1;">أعياد الميلاد</span>
-                        <i class="fas fa-chevron-down" id="bdayCollapseIcon"
-                            style="font-size: 0.72rem; color: var(--text-3); transition: transform 0.2s;"></i>
+                <div id="mainStatsRow" style="display:none; margin-bottom: 12px;">
+                    <div class="section-head" style="margin-bottom: 10px; margin-top: 8px;">
+                        <button type="button" onclick="toggleBdayCollapse()" class="dashboard-section-toggle-btn">
+                            <i class="fas fa-birthday-cake icon"></i>
+                            <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
+                            <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon" style="transform: rotate(0deg);"></i>
+                        </button>
                     </div>
-                    <div class="bday-banner-list" id="todayBirthdayList" style="margin-top: 10px;"></div>
+                    <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
                 <div class="classes-grid" id="classesGrid"></div>
 
@@ -12679,15 +12664,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // Collapse/expand the birthday list by clicking the header
-        let _bdayCollapsed = false;
         function toggleBdayCollapse() {
             const list = document.getElementById('todayBirthdayList');
             const icon = document.getElementById('bdayCollapseIcon');
             if (!list) return;
-            _bdayCollapsed = !_bdayCollapsed;
-            list.style.display = _bdayCollapsed ? 'none' : '';
-            list.style.marginTop = _bdayCollapsed ? '0' : '10px';
-            if (icon) icon.style.transform = _bdayCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+            const isCollapsed = list.style.display === 'none';
+            if (isCollapsed) {
+                list.style.display = '';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                localStorage.setItem('bdayCollapsed', 'false');
+            } else {
+                list.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
+                localStorage.setItem('bdayCollapsed', 'true');
+            }
         }
 
 
@@ -12695,6 +12685,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const banner = document.getElementById('mainStatsRow');
             const list = document.getElementById('todayBirthdayList');
             const title = document.getElementById('todayBirthdayTitle');
+            const icon = document.getElementById('bdayCollapseIcon');
 
             if (!banner || !list) return;
             const items = getWeekBirthdays();
@@ -12715,6 +12706,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 title.textContent = `أعياد ميلاد هذا الأسبوع`;
             }
 
+            // Restore collapsed state
+            const isCollapsed = localStorage.getItem('bdayCollapsed') === 'true';
+            if (isCollapsed) {
+                list.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
+            } else {
+                list.style.display = '';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
+
             list.innerHTML = items.map((item, index) => {
                 const s = item.student;
                 const name = s['الاسم'] || '---';
@@ -12722,11 +12723,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
                 const safe = name.replace(/'/g, "\\'");
                 const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=fdf4ff&color=db2777&bold=true`;
-                return `<div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${index}" onclick="showStudentDetails('${safe}')">
+                return `
+                <div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${index}" onclick="showStudentDetails('${safe}')">
                     <img src="${avatar}" class="bday-chip-img">
-                    <span>${name}</span>
-                    ${item.isToday ? `<span class="bday-chip-class" style="color:#10b981; font-weight:800;">اليوم!</span>` : `<span class="bday-chip-class" style="color:var(--text-2); font-weight:600;">(يوم ${item.dayName})</span>`}
-                    ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
+                    <div class="bday-chip-info">
+                        <div class="bday-chip-name">${name}</div>
+                        <div class="bday-chip-meta-row">
+                            ${item.isToday ? `<span class="bday-chip-day today">اليوم 🎉</span>` : `<span class="bday-chip-day text-muted">${item.dayName}</span>`}
+                            ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
+                        </div>
+                    </div>
                 </div>`;
             }).join('');
 
@@ -13084,21 +13090,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderDashboardTripsHtml(activeTrips) {
             const container = document.getElementById('tripsContainer');
             const head = document.getElementById('tripsSectionHead');
+            const icon = document.getElementById('tripsCollapseIcon');
             if (!container || !head) return;
 
             head.style.display = 'flex';
-            container.classList.add('expanded'); // Always grid view when shown
 
             // Restore collapsed state
             const isCollapsed = localStorage.getItem('tripsCollapsed') === 'true';
             if (isCollapsed) {
                 container.style.display = 'none';
-                const icon = document.getElementById('tripsCollapseIcon');
-                if (icon) icon.className = 'fas fa-chevron-down';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
             } else {
-                container.style.display = '';
-                const icon = document.getElementById('tripsCollapseIcon');
-                if (icon) icon.className = 'fas fa-chevron-up';
+                container.style.display = 'flex';
+                if (icon) icon.style.transform = 'rotate(0deg)';
             }
 
             container.innerHTML = activeTrips.map(t => {
@@ -13129,12 +13133,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!container || !icon) return;
             const isCollapsed = container.style.display === 'none';
             if (isCollapsed) {
-                container.style.display = '';
-                icon.className = 'fas fa-chevron-up';
+                container.style.display = 'flex';
+                if (icon) icon.style.transform = 'rotate(0deg)';
                 localStorage.setItem('tripsCollapsed', 'false');
             } else {
                 container.style.display = 'none';
-                icon.className = 'fas fa-chevron-down';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
                 localStorage.setItem('tripsCollapsed', 'true');
             }
         }
