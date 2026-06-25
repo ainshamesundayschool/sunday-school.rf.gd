@@ -7281,30 +7281,31 @@ function createStudentAndLinkTempId()
             $gender = detectGenderFromName($name);
         }
 
+        $addedByType = 'qr_assign';
         // Insert new student
         if ($formattedBirthday === null) {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
                 $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
-                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid
+                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid, $addedByType
             );
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
                 $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
-                $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid
+                $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid, $addedByType
             );
         }
 
@@ -7647,6 +7648,7 @@ function addStudent()
 
 
 
+        $addedByType = 'normal_add';
         // Insert student — phone stored as VARCHAR string, leading zero preserved
 
         if ($formattedBirthday === null) {
@@ -7657,9 +7659,9 @@ function addStudent()
 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
 
             ");
 
@@ -7691,7 +7693,9 @@ function addStudent()
 
                 $customInfoJson,
 
-                $gender
+                $gender,
+
+                $addedByType
 
             );
 
@@ -7703,9 +7707,9 @@ function addStudent()
 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
 
             ");
 
@@ -7739,7 +7743,9 @@ function addStudent()
 
                 $customInfoJson,
 
-                $gender
+                $gender,
+
+                $addedByType
 
             );
 
@@ -11225,6 +11231,7 @@ function approveRegistration()
 
 
 
+        $addedByType = 'registration';
         // ── Insert student ────────────────────────────────────────
 
         $insertStmt = $conn->prepare("
@@ -11235,15 +11242,15 @@ function approveRegistration()
 
              image_url, password_hash, custom_info, gender,
 
-             commitment_coupons, coupons, attendance_coupons, created_at)
+             commitment_coupons, coupons, attendance_coupons, created_at, added_by)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), ?)
 
         ");
 
         $insertStmt->bind_param(
 
-            "issssssssss",
+            "isssssssssss",
 
             $churchId,
 
@@ -11265,7 +11272,9 @@ function approveRegistration()
 
             $customInfo,
 
-            $gender
+            $gender,
+
+            $addedByType
 
         );
 
@@ -11953,19 +11962,20 @@ function updateRegistration()
 
 
 
+                $addedByType = 'registration';
                 $addStmt = $conn->prepare("
 
                     INSERT INTO students 
 
-                    (church_id, name, class_id, class, address, phone, birthday, commitment_coupons, coupons, attendance_coupons)
+                    (church_id, name, class_id, class, address, phone, birthday, commitment_coupons, coupons, attendance_coupons, added_by)
 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
 
                 ");
 
                 $addStmt->bind_param(
 
-                    "issssss",
+                    "isssssss",
 
                     $churchId,
 
@@ -11979,7 +11989,9 @@ function updateRegistration()
 
                     $phone,
 
-                    $birthday
+                    $birthday,
+
+                    $addedByType
 
                 );
 
@@ -12297,19 +12309,20 @@ function bulkUpdateRegistrations()
 
 
 
+                    $addedByType = 'registration';
                     $addStmt = $conn->prepare("
 
                         INSERT INTO students 
 
-                        (church_id, name, class_id, class, address, phone, birthday, commitment_coupons, coupons, attendance_coupons)
+                        (church_id, name, class_id, class, address, phone, birthday, commitment_coupons, coupons, attendance_coupons, added_by)
 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
 
                     ");
 
                     $addStmt->bind_param(
 
-                        "issssss",
+                        "isssssss",
 
                         $churchId,
 
@@ -12323,7 +12336,9 @@ function bulkUpdateRegistrations()
 
                         $phone,
 
-                        $birthday
+                        $birthday,
+
+                        $addedByType
 
                     );
 
@@ -14293,6 +14308,7 @@ function submitRegistrationRequest()
 
 
 
+            $addedByType = 'registration';
             $ins = $conn->prepare("
 
                 INSERT INTO students
@@ -14301,15 +14317,15 @@ function submitRegistrationRequest()
 
                  image_url, password_hash, custom_info, gender,
 
-                 commitment_coupons, coupons, attendance_coupons, created_at)
+                 commitment_coupons, coupons, attendance_coupons, created_at, added_by)
 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW())
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW(), ?)
 
             ");
 
             $ins->bind_param(
 
-                "isisssssssss",
+                "isissssssssss",
 
                 $churchId,
 
@@ -14333,7 +14349,9 @@ function submitRegistrationRequest()
 
                 $customInfo,
 
-                $gender
+                $gender,
+
+                $addedByType
 
             );
 
@@ -17856,6 +17874,7 @@ function bulkAddKids()
 
 
 
+            $addedByType = 'bulk_add';
             if ($formattedBirthday !== null) {
 
                 $stmt = $conn->prepare("
@@ -17864,15 +17883,15 @@ function bulkAddKids()
 
                     (church_id, name, class_id, class, address, phone, birthday,
 
-                     commitment_coupons, coupons, attendance_coupons, custom_info)
+                     commitment_coupons, coupons, attendance_coupons, custom_info, added_by)
 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?)
 
                 ");
 
-                // i=church_id, s=name, i=class_id, s=class, s=address, s=phone, s=birthday, s=custom_info
+                // i=church_id, s=name, i=class_id, s=class, s=address, s=phone, s=birthday, s=custom_info, s=added_by
 
-                $stmt->bind_param("isisssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $formattedBirthday, $customInfoJson);
+                $stmt->bind_param("isissssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $formattedBirthday, $customInfoJson, $addedByType);
 
             } else {
 
@@ -17882,15 +17901,15 @@ function bulkAddKids()
 
                     (church_id, name, class_id, class, address, phone,
 
-                     commitment_coupons, coupons, attendance_coupons, custom_info)
+                     commitment_coupons, coupons, attendance_coupons, custom_info, added_by)
 
-                    VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?)
 
                 ");
 
-                // i=church_id, s=name, i=class_id, s=class, s=address, s=phone, s=custom_info
+                // i=church_id, s=name, i=class_id, s=class, s=address, s=phone, s=custom_info, s=added_by
 
-                $stmt->bind_param("isissss", $churchId, $name, $classId, $className, $address, $cleanPhone, $customInfoJson);
+                $stmt->bind_param("isisssss", $churchId, $name, $classId, $className, $address, $cleanPhone, $customInfoJson, $addedByType);
 
             }
 
@@ -18235,12 +18254,13 @@ function bulkSaveImportedKids()
                     continue;
                 }
             } else {
+                $addedByType = 'bulk_add';
                 $insStmt = $conn->prepare("
                     INSERT INTO students 
-                    (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0)
+                    (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, gender, custom_info, commitment_coupons, coupons, attendance_coupons, added_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)
                 ");
-                $insStmt->bind_param("isissssssss", $targetChurchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $medicalNotes, $formattedBirthday, $gender, $customInfoJson);
+                $insStmt->bind_param("isisssssssss", $targetChurchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $medicalNotes, $formattedBirthday, $gender, $customInfoJson, $addedByType);
                 if ($insStmt->execute()) {
                     $studentId = $conn->insert_id;
                     $addedCount++;
@@ -35042,6 +35062,7 @@ function respondGraduateTransfer()
 
         $conn->begin_transaction();
 
+        $addedByType = 'transfer';
         $ins = $conn->prepare("
 
             INSERT INTO students
@@ -35050,15 +35071,15 @@ function respondGraduateTransfer()
 
                  medical_notes, birthday, coupons, attendance_coupons, commitment_coupons,
 
-                 task_coupons, image_url, custom_info, enrollment_status)
+                 task_coupons, image_url, custom_info, enrollment_status, added_by)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
 
         ");
 
         $ins->bind_param(
 
-            "ississssssiiiiss",
+            "ississssssiiiisss",
 
             $churchId,
 
@@ -35090,7 +35111,9 @@ function respondGraduateTransfer()
 
             $imageUrl,
 
-            $customInfo
+            $customInfo,
+
+            $addedByType
 
         );
 
@@ -36168,7 +36191,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         continue;
                     }
 
-                    $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
+                    $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
                     $fields = [];
                     $placeholders = [];
                     $types = '';
@@ -36694,7 +36717,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
                 // Re-insert using whitelisted columns + id + church_id
 
-                $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
+                $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
 
                 $fields = [];
 
@@ -45857,19 +45880,20 @@ function transferGuestToStudent()
 
 
 
+        $addedByType = 'guest_convert';
         $ins = $conn->prepare("
 
             INSERT INTO students
 
-                (church_id, name, gender, class_id, class, phone, emergency_phone, enrollment_status)
+                (church_id, name, gender, class_id, class, phone, emergency_phone, enrollment_status, added_by)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?)
 
         ");
 
         $ins->bind_param(
 
-            "ississs",
+            "ississss",
 
             $churchId,
 
@@ -45883,7 +45907,9 @@ function transferGuestToStudent()
 
             $phone,
 
-            $guardianName
+            $guardianName,
+
+            $addedByType
 
         );
 
