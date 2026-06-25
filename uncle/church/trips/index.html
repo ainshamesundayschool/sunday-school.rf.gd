@@ -10871,14 +10871,14 @@
           if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
             </div>
           `;
           } else {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
                 <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
             </div>
           `;
@@ -11025,7 +11025,6 @@
             <div style="display:flex; flex-direction:column; gap:${8 * scale}px; flex:1; direction:rtl; text-align:right; min-width:0; justify-content:center;">
               <!-- Church Name -->
               <div style="display:flex; align-items:center; gap:${4 * scale}px; font-weight:800; font-size:${fChurch * 1.15}px; color:${fontColor}; border-bottom:1.5px solid ${fontColor}22; padding-bottom:6px; margin-bottom:2px; flex-wrap:wrap;">
-                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo * 1.1}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
                 <span style="line-height:1.2; word-break:break-word;">${displayChurchName}</span>
               </div>
               <!-- Trip Title -->
@@ -11253,7 +11252,7 @@
             const displayChurchName = r._churchName || r.church_name || churchName;
             headerHtml = `
               <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                  <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                  ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
                   <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
               </div>
             `;
