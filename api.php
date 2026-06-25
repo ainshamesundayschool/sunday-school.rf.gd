@@ -110,6 +110,24 @@ function ensureChurchTypeColumn(mysqli $conn): void
 
 
 
+function ensureStudentsAddedByColumn(mysqli $conn): void
+
+{
+
+    $check = $conn->query("SHOW COLUMNS FROM students LIKE 'added_by'");
+
+    if ($check && $check->num_rows > 0) {
+
+        return;
+
+    }
+
+    $conn->query("ALTER TABLE students ADD COLUMN added_by VARCHAR(100) DEFAULT NULL");
+
+}
+
+
+
 // ── Safe deletion of uploaded files ─────────────────────────
 
 /**
