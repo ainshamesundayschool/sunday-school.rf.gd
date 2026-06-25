@@ -13583,16 +13583,25 @@
             <i class="fas fa-user-clock" style="color:var(--primary);"></i> غير المسكنين (${unassignedKids.length})
           </h4>
           <div style="display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1; padding-right:2px;">
-            ${kidsFiltered.map(k => `
-              <div class="ws-unassigned-card ${k.student_gender === 'female' ? 'girl' : 'boy'} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
-                   onclick="selectKidForAllocation(${k.id})">
-                <div class="ws-kid-name" style="font-size:0.75rem;">${escHtml(k.student_name)}</div>
-                <div class="ws-kid-sub" style="font-size:0.62rem; display:flex; justify-content:space-between; margin-top:2px;">
-                  <span>${escHtml(k.student_class)}</span>
-                  <span>${escHtml(k._churchName || '')}</span>
+            ${kidsFiltered.map(k => {
+              const cleanImg = k.student_image && k.student_image.trim() !== '' && !k.student_image.includes('placeholder.com') && !k.student_image.includes('via.placeholder')
+                ? k.student_image
+                : '/profile_default..webp';
+              return `
+                <div class="ws-unassigned-card ${k.student_gender === 'female' ? 'girl' : 'boy'} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
+                     onclick="selectKidForAllocation(${k.id})"
+                     style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+                  <img src="${cleanImg}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default..webp'">
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; text-align:right;">
+                    <div class="ws-kid-name" style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_name)}</div>
+                    <div class="ws-kid-sub" style="font-size:0.62rem; display:flex; justify-content:space-between; margin-top:2px;">
+                      <span>${escHtml(k.student_class)}</span>
+                      <span>${escHtml(k._churchName || '')}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
             ${kidsFiltered.length === 0 ? `<div style="text-align:center; font-size:0.75rem; color:var(--muted); padding:15px 0;">لا يوجد أطفال غير مسكنين</div>` : ''}
           </div>
         `;
