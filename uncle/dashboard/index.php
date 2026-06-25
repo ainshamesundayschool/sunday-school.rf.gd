@@ -15396,6 +15396,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!decodedText) return '';
             try {
                 const cleaned = String(decodedText).trim();
+
+                // Detect temp QR code and redirect immediately
+                let tempid = null;
+                if (cleaned.includes('tempid=')) {
+                    try {
+                        const url = new URL(cleaned.startsWith('/') || !cleaned.includes('://') ? window.location.origin + (cleaned.startsWith('/') ? '' : '/') + cleaned : cleaned);
+                        tempid = url.searchParams.get('tempid');
+                    } catch(e) {
+                        const match = cleaned.match(/[?&]tempid=([^&]+)/);
+                        if (match) tempid = match[1];
+                    }
+                } else if (cleaned.startsWith('tempid_')) {
+                    tempid = cleaned;
+                }
+                if (tempid) {
+                    window.location.href = `/user/profile/?tempid=${encodeURIComponent(tempid)}`;
+                    return '';
+                }
+
                 // If it's a URL
                 if (cleaned.includes('://') || cleaned.includes('?')) {
                     const url = new URL(cleaned, window.location.origin);

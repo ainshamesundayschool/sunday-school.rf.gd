@@ -4589,6 +4589,25 @@
                 if (!decodedText) return '';
                 try {
                     let cleaned = String(decodedText).trim();
+
+                    // Detect temp QR code and redirect immediately
+                    let tempid = null;
+                    if (cleaned.includes('tempid=')) {
+                        try {
+                            const url = new URL(cleaned.startsWith('/') || !cleaned.includes('://') ? window.location.origin + (cleaned.startsWith('/') ? '' : '/') + cleaned : cleaned);
+                            tempid = url.searchParams.get('tempid');
+                        } catch(e) {
+                            const match = cleaned.match(/[?&]tempid=([^&]+)/);
+                            if (match) tempid = match[1];
+                        }
+                    } else if (cleaned.startsWith('tempid_')) {
+                        tempid = cleaned;
+                    }
+                    if (tempid) {
+                        window.location.href = `/user/profile/?tempid=${encodeURIComponent(tempid)}`;
+                        return '';
+                    }
+
                     if (cleaned.includes('?') || cleaned.includes('/') || cleaned.includes('=')) {
                         if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
                             if (cleaned.startsWith('/')) {
