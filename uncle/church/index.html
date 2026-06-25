@@ -6653,10 +6653,15 @@
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-users"></i> قائمة الخُدام</div>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddUncleForm()">
-                            <i class="fas fa-plus" id="addUncleChevron"></i> <span id="addUncleToggleLbl">إضافة
-                                خادم</span>
-                        </button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-success btn-sm" type="button" onclick="showBulkAddUnclesModal()">
+                                <i class="fas fa-upload"></i> استيراد مجموعة
+                            </button>
+                            <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddUncleForm()">
+                                <i class="fas fa-plus" id="addUncleChevron"></i> <span id="addUncleToggleLbl">إضافة
+                                    خادم</span>
+                            </button>
+                        </div>
                     </div>
                     <div id="addUncleFormWrap" style="display:none;border-top:1px solid var(--border);">
                         <div class="card-body" style="background:var(--surface-2);">
@@ -8939,6 +8944,84 @@
                         <i class="fas fa-upload"></i> <span id="bulkSubmitLabel">رفع وإضافة</span>
                     </button>
                     <button class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkAddModal')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Add Uncles -->
+    <div id="bulkAddUnclesModal" class="modal">
+        <div class="modal-box wide" style="max-width: 95vw; width: 1000px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-file-import"></i> استيراد الخُدام (جماعي)</h2>
+                <button class="modal-close" onclick="closeModal('bulkAddUnclesModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Upload and template download section -->
+                <div id="unclesBulkUploadSection" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                    <div style="padding:16px;border-radius:12px;border:1.5px solid var(--success);background:var(--success-light);display:flex;flex-direction:column;justify-content:space-between;">
+                        <div>
+                            <div style="font-weight:800;font-size:0.9rem;color:#065f46;margin-bottom:6px;"><i class="fas fa-file-excel"></i> تحميل نموذج CSV للخُدام</div>
+                            <div style="font-size:0.78rem;color:#047857;line-height:1.5;">قم بتحميل النموذج الفارغ، واملأ بيانات الخدام (الاسم، اسم المستخدم، كلمة المرور، الهاتف، إلخ)، ثم ارفع الملف هنا.</div>
+                        </div>
+                        <button class="btn btn-sm" onclick="downloadUnclesTemplate()" style="margin-top:12px;width:100%;background:var(--success);color:white;border:none;font-weight:700;">
+                            <i class="fas fa-download"></i> تحميل النموذج الفارغ (.csv)
+                        </button>
+                    </div>
+                    <div style="padding:16px;border-radius:12px;border:1.5px solid var(--primary);background:var(--primary-light);display:flex;flex-direction:column;justify-content:center;">
+                        <label class="form-label" style="font-weight:800;color:var(--primary-dark);margin-bottom:8px;"><i class="fas fa-file-csv"></i> اختر ملف CSV للرفع</label>
+                        <input type="file" id="unclesCsvFile" accept=".csv" class="form-input" onchange="handleUnclesFileSelect(event)" style="background:var(--card);border-color:var(--primary-light);">
+                    </div>
+                </div>
+
+                <!-- Preview list table -->
+                <div id="unclesBulkPreviewContainer" style="display:none;margin-top:10px;">
+                    <h3 style="font-weight:800;font-size:0.95rem;margin-bottom:10px;color:var(--text);"><i class="fas fa-list-ul"></i> مراجعة الخدام قبل الحفظ</h3>
+                    
+                    <div class="table-wrap" style="max-height:350px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;">
+                        <table style="width:100%;border-collapse:collapse;text-align:right;font-size:0.82rem;" id="unclesBulkPreviewTable">
+                            <thead>
+                                <tr style="background:var(--bg-2);border-bottom:2px solid var(--border);">
+                                    <th style="padding:10px;width:40px;">#</th>
+                                    <th style="padding:10px;">الاسم الكامل *</th>
+                                    <th style="padding:10px;">اسم المستخدم *</th>
+                                    <th style="padding:10px;">كلمة المرور *</th>
+                                    <th style="padding:10px;width:70px;">النوع</th>
+                                    <th style="padding:10px;width:100px;">الهاتف</th>
+                                    <th style="padding:10px;width:70px;">الدور</th>
+                                    <th style="padding:10px;">الفصول</th>
+                                    <th style="padding:10px;width:120px;">الحالة</th>
+                                    <th style="padding:10px;width:50px;text-align:center;">استيراد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unclesBulkPreviewBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Statistics / Info under table -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);padding:10px 14px;border-radius:8px;font-size:0.8rem;margin-bottom:12px;border:1px solid var(--border);">
+                        <div>
+                            <span style="margin-left:12px;font-weight:700;" id="unclesBulkTotalCount">إجمالي الصفوف: 0</span>
+                            <span style="margin-left:12px;font-weight:700;color:var(--success);" id="unclesBulkValidCount">جاهز للاستيراد: 0</span>
+                            <span style="font-weight:700;color:var(--danger);" id="unclesBulkInvalidCount">يحتوي على أخطاء: 0</span>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-sm btn-outline" onclick="toggleAllUnclesBulkImport(true)" style="padding:4px 8px;font-size:0.75rem;">تحديد الكل</button>
+                            <button class="btn btn-sm btn-outline" onclick="toggleAllUnclesBulkImport(false)" style="padding:4px 8px;font-size:0.75rem;">إلغاء التحديد</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errors / warnings console -->
+                <div id="unclesBulkErrors" style="display:none;margin-top:10px;padding:12px;background:var(--danger-light);border-radius:8px;font-size:0.8rem;color:#991b1b;max-height:100px;overflow-y:auto;border:1px solid var(--danger-mid);"></div>
+
+                <!-- Action buttons -->
+                <div style="display:flex;gap:10px;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+                    <button class="btn btn-success" onclick="submitBulkUnclesImport()" style="flex:2;" id="unclesBulkAddBtn" disabled>
+                        <i class="fas fa-upload"></i> <span id="unclesBulkSubmitLabel">رفع وحفظ الخُدام</span>
+                    </button>
+                    <button class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkAddUnclesModal')">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -14557,6 +14640,240 @@
                 if (d.success) { showToast('تم الرفض', 'success'); loadPendingRegistrations(); }
                 else showToast(d.message || 'فشل', 'error');
             });
+        }
+
+        // ── Bulk Add Uncles ─────────────────────────────────────────
+        let currentUnclesReviewRows = [];
+
+        function showBulkAddUnclesModal() {
+            openModal('bulkAddUnclesModal');
+            document.getElementById('unclesBulkPreviewBody').innerHTML = '';
+            document.getElementById('unclesBulkErrors').style.display = 'none';
+            document.getElementById('unclesBulkPreviewContainer').style.display = 'none';
+            document.getElementById('unclesBulkUploadSection').style.display = 'grid';
+            document.getElementById('unclesBulkAddBtn').disabled = true;
+            document.getElementById('unclesCsvFile').value = '';
+            currentUnclesReviewRows = [];
+        }
+
+        function downloadUnclesTemplate() {
+            window.location.href = API_URL + '?action=generateUnclesTemplate';
+        }
+
+        function handleUnclesFileSelect(e) {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => parseUnclesCSV(ev.target.result);
+            r.readAsText(f, 'UTF-8');
+        }
+
+        function parseUnclesCSV(csv) {
+            csv = csv.replace(/^\uFEFF/, '');
+            const lines = csv.split(/\r?\n/);
+            if (!lines.length) { showToast('الملف فارغ', 'warning'); return; }
+
+            const headerCells = parseCSVLine(lines[0] || '');
+            
+            // Map headers to fields
+            // Standard columns: name, username, password, phone, gender, role, classes
+            const mapping = {
+                name: -1,
+                username: -1,
+                password: -1,
+                phone: -1,
+                gender: -1,
+                role: -1,
+                classes: -1
+            };
+
+            headerCells.forEach((h, idx) => {
+                const cleanH = h.replace(/"/g, '').trim().toLowerCase();
+                if (cleanH.includes('الاسم الكامل') || cleanH.includes('name')) mapping.name = idx;
+                else if (cleanH.includes('اسم المستخدم') || cleanH.includes('username')) mapping.username = idx;
+                else if (cleanH.includes('كلمة المرور') || cleanH.includes('password')) mapping.password = idx;
+                else if (cleanH.includes('الهاتف') || cleanH.includes('تليفون') || cleanH.includes('phone')) mapping.phone = idx;
+                else if (cleanH.includes('النوع') || cleanH.includes('جنس') || cleanH.includes('gender')) mapping.gender = idx;
+                else if (cleanH.includes('الدور') || cleanH.includes('الرتبة') || cleanH.includes('role')) mapping.role = idx;
+                else if (cleanH.includes('الفصول') || cleanH.includes('فصل') || cleanH.includes('classes')) mapping.classes = idx;
+            });
+
+            if (mapping.name === -1 || mapping.username === -1 || mapping.password === -1) {
+                showToast('الملف لا يحتوي على الأعمدة الأساسية المطلوبة (الاسم الكامل، اسم المستخدم، كلمة المرور)', 'error');
+                return;
+            }
+
+            const parsedRows = [];
+            const existingUsernames = new Set(allUncles.map(u => u.username.toLowerCase()));
+
+            for (let i = 1; i < lines.length; i++) {
+                const raw = lines[i].trim(); if (!raw) continue;
+                const v = parseCSVLine(raw);
+                const cell = idx => (idx !== -1 && v[idx] !== undefined) ? v[idx].replace(/"/g, '').trim() : '';
+
+                const name = cell(mapping.name);
+                if (!name || name.includes('مثال:')) continue; // Skip instructions/placeholder rows
+
+                const username = cell(mapping.username).replace(/\s/g, '');
+                const password = cell(mapping.password);
+                const phone = cell(mapping.phone);
+                
+                // Normalizing gender
+                const genderRaw = cell(mapping.gender).toLowerCase();
+                let gender = 'male';
+                if (genderRaw.includes('female') || genderRaw.includes('بنت') || genderRaw.includes('انثى') || genderRaw.includes('أنثى')) {
+                    gender = 'female';
+                }
+
+                // Normalizing role
+                const roleRaw = cell(mapping.role).toLowerCase();
+                let role = 'uncle';
+                if (roleRaw.includes('admin') || roleRaw.includes('مسؤول') || roleRaw.includes('مدير')) {
+                    role = 'admin';
+                }
+
+                const classes = cell(mapping.classes);
+
+                // Row validation
+                const errors = [];
+                if (!name) errors.push('الاسم مطلوب');
+                if (!username) {
+                    errors.push('اسم المستخدم مطلوب');
+                } else {
+                    if (username.length < 3) errors.push('اسم المستخدم قصير جداً');
+                    if (existingUsernames.has(username.toLowerCase())) errors.push('اسم المستخدم مسجل مسبقاً');
+                }
+                if (!password || password.length < 6) errors.push('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+
+                parsedRows.push({
+                    name,
+                    username,
+                    password,
+                    gender,
+                    phone,
+                    role,
+                    classes,
+                    errors,
+                    import: errors.length === 0
+                });
+            }
+
+            if (!parsedRows.length) {
+                showToast('لم يتم العثور على خُدام صالحين بالملف', 'warning');
+                return;
+            }
+
+            currentUnclesReviewRows = parsedRows;
+            renderUnclesPreviewTable();
+        }
+
+        function renderUnclesPreviewTable() {
+            const body = document.getElementById('unclesBulkPreviewBody');
+            let validCount = 0;
+            let invalidCount = 0;
+
+            let html = '';
+            currentUnclesReviewRows.forEach((r, idx) => {
+                const statusHtml = r.errors.length === 0 
+                    ? '<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;"><i class="fas fa-check"></i> جاهز</span>'
+                    : `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;" title="${r.errors.join(' | ')}"><i class="fas fa-exclamation-circle"></i> ${r.errors[0]}</span>`;
+
+                if (r.errors.length === 0) validCount++;
+                else invalidCount++;
+
+                html += `
+                <tr style="border-bottom:1px solid var(--border); ${!r.import ? 'opacity:0.6;background:#f9fafb;' : ''}">
+                    <td style="padding:10px;">${idx + 1}</td>
+                    <td style="padding:10px;font-weight:700;">${escHtml(r.name)}</td>
+                    <td style="padding:10px;font-family:monospace;">${escHtml(r.username)}</td>
+                    <td style="padding:10px;font-family:monospace;">••••••</td>
+                    <td style="padding:10px;">${r.gender === 'female' ? 'بنت' : 'ولد'}</td>
+                    <td style="padding:10px;color:var(--muted);">${escHtml(r.phone || '-')}</td>
+                    <td style="padding:10px;">${r.role === 'admin' ? 'مسؤول' : 'خادم'}</td>
+                    <td style="padding:10px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(r.classes)}">${escHtml(r.classes || '-')}</td>
+                    <td style="padding:10px;">${statusHtml}</td>
+                    <td style="padding:10px;text-align:center;">
+                        <input type="checkbox" ${r.import ? 'checked' : ''} ${r.errors.length > 0 ? 'disabled' : ''} onchange="toggleUncleRowImport(${idx}, this.checked)">
+                    </td>
+                </tr>
+                `;
+            });
+
+            body.innerHTML = html;
+            
+            document.getElementById('unclesBulkTotalCount').textContent = `إجمالي الصفوف: ${currentUnclesReviewRows.length}`;
+            document.getElementById('unclesBulkValidCount').textContent = `جاهز للاستيراد: ${validCount}`;
+            document.getElementById('unclesBulkInvalidCount').textContent = `يحتوي على أخطاء: ${invalidCount}`;
+            
+            document.getElementById('unclesBulkPreviewContainer').style.display = 'block';
+            document.getElementById('unclesBulkUploadSection').style.display = 'none';
+
+            // Enable import button if we have at least one valid row marked for import
+            const importableCount = currentUnclesReviewRows.filter(r => r.import).length;
+            document.getElementById('unclesBulkAddBtn').disabled = importableCount === 0;
+        }
+
+        function toggleUncleRowImport(idx, checked) {
+            if (currentUnclesReviewRows[idx].errors.length > 0) return;
+            currentUnclesReviewRows[idx].import = checked;
+            renderUnclesPreviewTable();
+        }
+
+        function toggleAllUnclesBulkImport(checked) {
+            currentUnclesReviewRows.forEach(r => {
+                if (r.errors.length === 0) {
+                    r.import = checked;
+                }
+            });
+            renderUnclesPreviewTable();
+        }
+
+        function submitBulkUnclesImport() {
+            const toImport = currentUnclesReviewRows.filter(r => r.import);
+            if (!toImport.length) {
+                showToast('يرجى تحديد خادم واحد على الأقل للاستيراد', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('unclesBulkAddBtn');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري استيراد وحفظ البيانات...';
+            btn.disabled = true;
+
+            const payload = toImport.map(r => ({
+                name: r.name,
+                username: r.username,
+                password: r.password,
+                gender: r.gender,
+                phone: r.phone,
+                role: r.role,
+                classes: r.classes
+            }));
+
+            const fd = new FormData();
+            fd.append('action', 'bulkSaveImportedUncles');
+            fd.append('uncles', JSON.stringify(payload));
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    if (d.success) {
+                        showToast(d.message, 'success');
+                        closeModal('bulkAddUnclesModal');
+                        loadUncles(); // reload list
+                    } else {
+                        showToast(d.message || 'فشل في الاستيراد', 'error');
+                        if (d.errors && d.errors.length) {
+                            alert(d.errors.join('\n'));
+                        }
+                    }
+                })
+                .catch(e => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    showToast('خطأ في الاتصال بالسيرفر', 'error');
+                });
         }
 
         // ── Bulk Add / Update ─────────────────────────────────────────

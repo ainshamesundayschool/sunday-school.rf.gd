@@ -15996,6 +15996,332 @@ function generateKidsTemplate()
 
 
 
+// ===== GENERATE UNCLES TEMPLATE =====
+
+function generateUnclesTemplate()
+
+{
+
+    try {
+
+        $churchId = getChurchId();
+
+        $churchClasses = [];
+
+        if ($churchId > 0) {
+
+            $churchClasses = getClassesForChurch($churchId);
+
+        }
+
+        if (empty($churchClasses)) {
+
+            $conn = getDBConnection();
+
+            $result = $conn->query("SELECT arabic_name FROM classes ORDER BY display_order");
+
+            while ($r = $result->fetch_assoc()) {
+
+                $churchClasses[] = ['arabic_name' => $r['arabic_name']];
+
+            }
+
+        }
+
+
+
+        $headerCols = "الاسم الكامل *,اسم المستخدم *,كلمة المرور *,النوع (ذكر/أنثى),رقم الهاتف,الدور (خادم/مسؤول),الفصول المسؤول عنها (مفصولة بفاصلة)\n";
+
+        $csvContent = $headerCols;
+
+        
+
+        // Add sample instructions row
+
+        $csvContent .= "\"مثال: بيتر فايز\",\"peterfayez\",\"123456\",\"ذكر\",\"01210868837\",\"خادم\",\"" . (!empty($churchClasses) ? $churchClasses[0]['arabic_name'] : "أولى ابتدائي") . "\"\n";
+
+
+
+        // Add blank rows with class templates to make it easy to fill
+
+        foreach ($churchClasses as $cls) {
+
+            $cn = $cls['arabic_name'];
+
+            $csvContent .= "\"\",\"\",\"\",\"\",\"\",\"\",\"$cn\"\n";
+
+        }
+
+
+
+        header('Content-Type: text/csv; charset=utf-8');
+
+        header('Content-Disposition: attachment; filename="uncles_template_' . date('Y-m-d') . '.csv"');
+
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+
+
+
+        // UTF-8 BOM for Excel Arabic support
+
+        echo chr(0xEF) . chr(0xBB) . chr(0xBF);
+
+        echo $csvContent;
+
+        exit;
+
+
+
+    } catch (Exception $e) {
+
+        error_log("generateUnclesTemplate error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في إنشاء قالب الخُدام']);
+
+    }
+
+}
+
+
+
+// ===== BULK SAVE IMPORTED UNCLES =====
+
+function bulkSaveImportedUncles()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $churchId = getChurchId();
+
+        $conn = getDBConnection();
+
+        $conn->begin_transaction();
+
+
+
+        $unclesJson = $_POST['uncles'] ?? '';
+
+        $uncles = json_decode($unclesJson, true);
+
+
+
+        if (!is_array($uncles)) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات الخُدام غير صالحة']);
+
+            return;
+
+        }
+
+
+
+        $addedCount = 0;
+
+        $errors = [];
+
+
+
+        foreach ($uncles as $u) {
+
+            $name = sanitize($u['name'] ?? '');
+
+            $username = sanitize($u['username'] ?? '');
+
+            $password = $u['password'] ?? '';
+
+            $gender = sanitize($u['gender'] ?? 'male');
+
+            $phone = sanitize($u['phone'] ?? '');
+
+            $role = sanitize($u['role'] ?? 'uncle');
+
+            $classesRaw = $u['classes'] ?? '';
+
+
+
+            if (empty($name) || empty($username) || empty($password)) {
+
+                $errors[] = "الاسم واسم المستخدم وكلمة المرور مطلوبة للخادم: " . ($name ?: $username ?: 'مجهول');
+
+                continue;
+
+            }
+
+
+
+            // Check if username already exists in database
+
+            $userCheck = $conn->prepare("SELECT id FROM uncles WHERE username = ?");
+
+            $userCheck->bind_param("s", $username);
+
+            $userCheck->execute();
+
+            if ($userCheck->get_result()->num_rows > 0) {
+
+                $errors[] = "اسم المستخدم '$username' مستخدم بالفعل";
+
+                continue;
+
+            }
+
+
+
+            $passwordHash = hash('sha256', $password);
+
+
+
+            // Normalize role
+
+            if ($role !== 'admin' && $role !== 'uncle' && $role !== 'developer') {
+
+                $role = 'uncle';
+
+            }
+
+
+
+            // Normalize gender
+
+            if ($gender !== 'male' && $gender !== 'female') {
+
+                $gender = 'male';
+
+            }
+
+
+
+            // Insert uncle
+
+            $stmt = $conn->prepare("
+
+                INSERT INTO uncles (church_id, name, username, password_hash, role, gender, phone)
+
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+
+            ");
+
+            $stmt->bind_param("issssss", $churchId, $name, $username, $passwordHash, $role, $gender, $phone);
+
+
+
+            if ($stmt->execute()) {
+
+                $newUncleId = $conn->insert_id;
+
+                $addedCount++;
+
+
+
+                // Process classes
+
+                $assignedClasses = [];
+
+                if (is_array($classesRaw)) {
+
+                    $assignedClasses = $classesRaw;
+
+                } elseif (!empty($classesRaw)) {
+
+                    // Split comma-separated classes
+
+                    $assignedClasses = array_map('trim', explode(',', $classesRaw));
+
+                }
+
+
+
+                $assignedClasses = array_filter(array_map('sanitize', $assignedClasses));
+
+
+
+                if (!empty($assignedClasses)) {
+
+                    saveUncleClasses($newUncleId, $churchId, $assignedClasses);
+
+                }
+
+
+
+                // Audit log for each uncle added
+
+                writeAuditLog('uncle_add', 'uncle', $newUncleId, $name, null, [
+
+                    'name' => $name,
+
+                    'username' => $username,
+
+                    'role' => $role,
+
+                    'church_id' => $churchId,
+
+                    'classes' => $assignedClasses,
+
+                    'gender' => $gender,
+
+                    'phone' => $phone,
+
+                    'imported' => true
+
+                ], 'إضافة خادم جديد عبر الاستيراد الجماعي');
+
+            } else {
+
+                $errors[] = "فشل إضافة الخادم '$name': " . $conn->error;
+
+            }
+
+        }
+
+
+
+        if (!empty($errors) && $addedCount === 0) {
+
+            $conn->rollback();
+
+            sendJSON(['success' => false, 'message' => 'فشل الاستيراد بالكامل', 'errors' => $errors]);
+
+        } else {
+
+            $conn->commit();
+
+            $msg = "تم استيراد $addedCount من الخدام بنجاح.";
+
+            if (!empty($errors)) {
+
+                $msg .= " ولكن حدثت بعض الأخطاء: " . count($errors);
+
+            }
+
+            sendJSON(['success' => true, 'message' => $msg, 'errors' => $errors]);
+
+        }
+
+
+
+    } catch (Exception $e) {
+
+        if (isset($conn)) {
+
+            $conn->rollback();
+
+        }
+
+        error_log("bulkSaveImportedUncles error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في السيرفر أثناء حفظ الخُدام: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+
+
 // ===== GENERATE EXCEL TEMPLATE =====
 
 function generateExcelTemplate()
@@ -30936,6 +31262,22 @@ try {
         case 'getAllUncles':
 
             getAllUncles();
+
+            break;
+
+
+
+        case 'generateUnclesTemplate':
+
+            generateUnclesTemplate();
+
+            break;
+
+
+
+        case 'bulkSaveImportedUncles':
+
+            bulkSaveImportedUncles();
 
             break;
 
