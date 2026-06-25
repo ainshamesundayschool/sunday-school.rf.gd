@@ -20119,10 +20119,17 @@
             extraFields = []
         }) {
             const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
-            const showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
-            const showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
-            const showClass = extraFields.some(f => f.key === 'class' && f.placement === 'front');
-            const showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+            let showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+            let showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+            let showClass = extraFields.some(f => f.key === 'class' && f.placement === 'front');
+            let showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+
+            if (s && s.is_empty_copy) {
+                showStudentImg = true;
+                showStudentName = true;
+                showClass = true;
+                showStudentId = true;
+            }
 
             const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
             const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
