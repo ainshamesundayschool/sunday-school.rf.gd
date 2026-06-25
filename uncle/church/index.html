@@ -7856,8 +7856,11 @@
             <div id="devChurches" class="tab-panel">
                 <!-- Add Church -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="card-title"><i class="fas fa-plus dev-icon"></i> إضافة كنيسة جديدة</div>
+                        <button class="btn btn-dev btn-sm" type="button" onclick="showBulkAddChurchesModal()">
+                            <i class="fas fa-upload"></i> استيراد مجموعة كنائس
+                        </button>
                     </div>
                     <div class="card-body">
                         <form id="addChurchForm" onsubmit="addChurch(event)">
@@ -9022,6 +9025,82 @@
                         <i class="fas fa-upload"></i> <span id="unclesBulkSubmitLabel">رفع وحفظ الخُدام</span>
                     </button>
                     <button class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkAddUnclesModal')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Add Churches -->
+    <div id="bulkAddChurchesModal" class="modal">
+        <div class="modal-box wide" style="max-width: 95vw; width: 1000px;">
+            <div class="modal-head">
+                <h2><i class="fas fa-file-import"></i> استيراد الكنائس (جماعي)</h2>
+                <button class="modal-close" onclick="closeModal('bulkAddChurchesModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Upload and template download section -->
+                <div id="churchesBulkUploadSection" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                    <div style="padding:16px;border-radius:12px;border:1.5px solid var(--success);background:var(--success-light);display:flex;flex-direction:column;justify-content:space-between;">
+                        <div>
+                            <div style="font-weight:800;font-size:0.9rem;color:#065f46;margin-bottom:6px;"><i class="fas fa-file-excel"></i> تحميل نموذج CSV للكنائس</div>
+                            <div style="font-size:0.78rem;color:#047857;line-height:1.5;">قم بتحميل النموذج الفارغ، واملأ بيانات الكنائس (الاسم، الرمز، كلمة المرور، البريد الإلكتروني للمسؤول، نوع الكنيسة)، ثم ارفع الملف هنا.</div>
+                        </div>
+                        <button class="btn btn-sm" onclick="downloadChurchesTemplate()" style="margin-top:12px;width:100%;background:var(--success);color:white;border:none;font-weight:700;">
+                            <i class="fas fa-download"></i> تحميل النموذج الفارغ (.csv)
+                        </button>
+                    </div>
+                    <div style="padding:16px;border-radius:12px;border:1.5px solid var(--primary);background:var(--primary-light);display:flex;flex-direction:column;justify-content:center;">
+                        <label class="form-label" style="font-weight:800;color:var(--primary-dark);margin-bottom:8px;"><i class="fas fa-file-csv"></i> اختر ملف CSV للرفع</label>
+                        <input type="file" id="churchesCsvFile" accept=".csv" class="form-input" onchange="handleChurchesFileSelect(event)" style="background:var(--card);border-color:var(--primary-light);">
+                    </div>
+                </div>
+
+                <!-- Preview list table -->
+                <div id="churchesBulkPreviewContainer" style="display:none;margin-top:10px;">
+                    <h3 style="font-weight:800;font-size:0.95rem;margin-bottom:10px;color:var(--text);"><i class="fas fa-list-ul"></i> مراجعة الكنائس قبل الحفظ</h3>
+                    
+                    <div class="table-wrap" style="max-height:350px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;">
+                        <table style="width:100%;border-collapse:collapse;text-align:right;font-size:0.82rem;" id="churchesBulkPreviewTable">
+                            <thead>
+                                <tr style="background:var(--bg-2);border-bottom:2px solid var(--border);">
+                                    <th style="padding:10px;width:40px;">#</th>
+                                    <th style="padding:10px;">اسم الكنيسة *</th>
+                                    <th style="padding:10px;">رمز الكنيسة (code) *</th>
+                                    <th style="padding:10px;">كلمة المرور *</th>
+                                    <th style="padding:10px;">بريد المسؤول</th>
+                                    <th style="padding:10px;width:80px;">النوع</th>
+                                    <th style="padding:10px;width:120px;">الحالة</th>
+                                    <th style="padding:10px;width:50px;text-align:center;">استيراد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="churchesBulkPreviewBody"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Statistics / Info under table -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);padding:10px 14px;border-radius:8px;font-size:0.8rem;margin-bottom:12px;border:1px solid var(--border);">
+                        <div>
+                            <span style="margin-left:12px;font-weight:700;" id="churchesBulkTotalCount">إجمالي الصفوف: 0</span>
+                            <span style="margin-left:12px;font-weight:700;color:var(--success);" id="churchesBulkValidCount">جاهز للاستيراد: 0</span>
+                            <span style="font-weight:700;color:var(--danger);" id="churchesBulkInvalidCount">يحتوي على أخطاء: 0</span>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-sm btn-outline" onclick="toggleAllChurchesBulkImport(true)" style="padding:4px 8px;font-size:0.75rem;">تحديد الكل</button>
+                            <button class="btn btn-sm btn-outline" onclick="toggleAllChurchesBulkImport(false)" style="padding:4px 8px;font-size:0.75rem;">إلغاء التحديد</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errors / warnings console -->
+                <div id="churchesBulkErrors" style="display:none;margin-top:10px;padding:12px;background:var(--danger-light);border-radius:8px;font-size:0.8rem;color:#991b1b;max-height:100px;overflow-y:auto;border:1px solid var(--danger-mid);"></div>
+
+                <!-- Action buttons -->
+                <div style="display:flex;gap:10px;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+                    <button class="btn btn-success" onclick="submitBulkChurchesImport()" style="flex:2;" id="churchesBulkAddBtn" disabled>
+                        <i class="fas fa-upload"></i> <span id="churchesBulkSubmitLabel">رفع وحفظ الكنائس</span>
+                    </button>
+                    <button class="btn btn-outline" style="flex:1;" onclick="closeModal('bulkAddChurchesModal')">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -14640,6 +14719,221 @@
                 if (d.success) { showToast('تم الرفض', 'success'); loadPendingRegistrations(); }
                 else showToast(d.message || 'فشل', 'error');
             });
+        }
+
+        // ── Bulk Add Churches ─────────────────────────────────────────
+        let currentChurchesReviewRows = [];
+
+        function showBulkAddChurchesModal() {
+            openModal('bulkAddChurchesModal');
+            document.getElementById('churchesBulkPreviewBody').innerHTML = '';
+            document.getElementById('churchesBulkErrors').style.display = 'none';
+            document.getElementById('churchesBulkPreviewContainer').style.display = 'none';
+            document.getElementById('churchesBulkUploadSection').style.display = 'grid';
+            document.getElementById('churchesBulkAddBtn').disabled = true;
+            document.getElementById('churchesCsvFile').value = '';
+            currentChurchesReviewRows = [];
+        }
+
+        function downloadChurchesTemplate() {
+            window.location.href = API_URL + '?action=generateChurchesTemplate';
+        }
+
+        function handleChurchesFileSelect(e) {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => parseChurchesCSV(ev.target.result);
+            r.readAsText(f, 'UTF-8');
+        }
+
+        function parseChurchesCSV(csv) {
+            csv = csv.replace(/^\uFEFF/, '');
+            const lines = csv.split(/\r?\n/);
+            if (!lines.length) { showToast('الملف فارغ', 'warning'); return; }
+
+            const headerCells = parseCSVLine(lines[0] || '');
+            
+            // Map headers to fields
+            // Columns: name, code, password, email, type
+            const mapping = {
+                name: -1,
+                code: -1,
+                password: -1,
+                email: -1,
+                type: -1
+            };
+
+            headerCells.forEach((h, idx) => {
+                const cleanH = h.replace(/"/g, '').trim().toLowerCase();
+                if (cleanH.includes('اسم الكنيسة') || cleanH.includes('name')) mapping.name = idx;
+                else if (cleanH.includes('رمز الكنيسة') || cleanH.includes('code')) mapping.code = idx;
+                else if (cleanH.includes('كلمة المرور') || cleanH.includes('password')) mapping.password = idx;
+                else if (cleanH.includes('البريد') || cleanH.includes('بريد') || cleanH.includes('email')) mapping.email = idx;
+                else if (cleanH.includes('نوع') || cleanH.includes('النوع') || cleanH.includes('type')) mapping.type = idx;
+            });
+
+            if (mapping.name === -1 || mapping.code === -1 || mapping.password === -1) {
+                showToast('الملف لا يحتوي على الأعمدة الأساسية المطلوبة (اسم الكنيسة، رمز الكنيسة، كلمة المرور)', 'error');
+                return;
+            }
+
+            const parsedRows = [];
+            const existingCodes = new Set(allChurchesCache.map(c => c.church_code.toLowerCase()));
+
+            for (let i = 1; i < lines.length; i++) {
+                const raw = lines[i].trim(); if (!raw) continue;
+                const v = parseCSVLine(raw);
+                const cell = idx => (idx !== -1 && v[idx] !== undefined) ? v[idx].replace(/"/g, '').trim() : '';
+
+                const name = cell(mapping.name);
+                if (!name || name.includes('مثال:')) continue; // Skip instructions/placeholder rows
+
+                const code = cell(mapping.code).replace(/\s/g, '').toLowerCase();
+                const password = cell(mapping.password);
+                const email = cell(mapping.email);
+                
+                // Normalizing type
+                const typeRaw = cell(mapping.type).toLowerCase();
+                let type = 'kids';
+                if (typeRaw.includes('youth') || typeRaw.includes('شباب')) {
+                    type = 'youth';
+                }
+
+                // Row validation
+                const errors = [];
+                if (!name) errors.push('اسم الكنيسة مطلوب');
+                if (!code) {
+                    errors.push('رمز الكنيسة مطلوب');
+                } else {
+                    if (!/^[a-z0-9_]+$/.test(code)) errors.push('رمز الكنيسة غير صالح (أحرف صغيرة وأرقام فقط)');
+                    if (existingCodes.has(code.toLowerCase())) errors.push('رمز الكنيسة مستخدم مسبقاً');
+                }
+                if (!password || password.length < 6) errors.push('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+
+                parsedRows.push({
+                    name,
+                    code,
+                    password,
+                    email,
+                    type,
+                    errors,
+                    import: errors.length === 0
+                });
+            }
+
+            if (!parsedRows.length) {
+                showToast('لم يتم العثور على كنائس صالحة بالملف', 'warning');
+                return;
+            }
+
+            currentChurchesReviewRows = parsedRows;
+            renderChurchesPreviewTable();
+        }
+
+        function renderChurchesPreviewTable() {
+            const body = document.getElementById('churchesBulkPreviewBody');
+            let validCount = 0;
+            let invalidCount = 0;
+
+            let html = '';
+            currentChurchesReviewRows.forEach((r, idx) => {
+                const statusHtml = r.errors.length === 0 
+                    ? '<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;"><i class="fas fa-check"></i> جاهز</span>'
+                    : `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;" title="${r.errors.join(' | ')}"><i class="fas fa-exclamation-circle"></i> ${r.errors[0]}</span>`;
+
+                if (r.errors.length === 0) validCount++;
+                else invalidCount++;
+
+                html += `
+                <tr style="border-bottom:1px solid var(--border); ${!r.import ? 'opacity:0.6;background:#f9fafb;' : ''}">
+                    <td style="padding:10px;">${idx + 1}</td>
+                    <td style="padding:10px;font-weight:700;">${escHtml(r.name)}</td>
+                    <td style="padding:10px;font-family:monospace;">${escHtml(r.code)}</td>
+                    <td style="padding:10px;font-family:monospace;">••••••</td>
+                    <td style="padding:10px;color:var(--muted);">${escHtml(r.email || '-')}</td>
+                    <td style="padding:10px;">${r.type === 'youth' ? 'شباب' : 'أطفال'}</td>
+                    <td style="padding:10px;">${statusHtml}</td>
+                    <td style="padding:10px;text-align:center;">
+                        <input type="checkbox" ${r.import ? 'checked' : ''} ${r.errors.length > 0 ? 'disabled' : ''} onchange="toggleChurchRowImport(${idx}, this.checked)">
+                    </td>
+                </tr>
+                `;
+            });
+
+            body.innerHTML = html;
+            
+            document.getElementById('churchesBulkTotalCount').textContent = `إجمالي الصفوف: ${currentChurchesReviewRows.length}`;
+            document.getElementById('churchesBulkValidCount').textContent = `جاهز للاستيراد: ${validCount}`;
+            document.getElementById('churchesBulkInvalidCount').textContent = `يحتوي على أخطاء: ${invalidCount}`;
+            
+            document.getElementById('churchesBulkPreviewContainer').style.display = 'block';
+            document.getElementById('churchesBulkUploadSection').style.display = 'none';
+
+            // Enable import button if we have at least one valid row marked for import
+            const importableCount = currentChurchesReviewRows.filter(r => r.import).length;
+            document.getElementById('churchesBulkAddBtn').disabled = importableCount === 0;
+        }
+
+        function toggleChurchRowImport(idx, checked) {
+            if (currentChurchesReviewRows[idx].errors.length > 0) return;
+            currentChurchesReviewRows[idx].import = checked;
+            renderChurchesPreviewTable();
+        }
+
+        function toggleAllChurchesBulkImport(checked) {
+            currentChurchesReviewRows.forEach(r => {
+                if (r.errors.length === 0) {
+                    r.import = checked;
+                }
+            });
+            renderChurchesPreviewTable();
+        }
+
+        function submitBulkChurchesImport() {
+            const toImport = currentChurchesReviewRows.filter(r => r.import);
+            if (!toImport.length) {
+                showToast('يرجى تحديد كنيسة واحدة على الأقل للاستيراد', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('churchesBulkAddBtn');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري استيراد وحفظ البيانات...';
+            btn.disabled = true;
+
+            const payload = toImport.map(r => ({
+                name: r.name,
+                code: r.code,
+                password: r.password,
+                email: r.email,
+                type: r.type
+            }));
+
+            const fd = new FormData();
+            fd.append('action', 'bulkSaveImportedChurches');
+            fd.append('churches', JSON.stringify(payload));
+
+            fetch(API_URL, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    if (d.success) {
+                        showToast(d.message, 'success');
+                        closeModal('bulkAddChurchesModal');
+                        loadAllChurches(); // reload list
+                    } else {
+                        showToast(d.message || 'فشل في الاستيراد', 'error');
+                        if (d.errors && d.errors.length) {
+                            alert(d.errors.join('\n'));
+                        }
+                    }
+                })
+                .catch(e => {
+                    btn.innerHTML = oldHtml;
+                    btn.disabled = false;
+                    showToast('خطأ في الاتصال بالسيرفر', 'error');
+                });
         }
 
         // ── Bulk Add Uncles ─────────────────────────────────────────

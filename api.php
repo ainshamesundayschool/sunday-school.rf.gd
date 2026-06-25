@@ -12731,6 +12731,8 @@ function addChurch()
 
         $password = $_POST['church_password'] ?? '';
 
+        $adminEmail = sanitize($_POST['admin_email'] ?? '');
+
         // church_type: 'kids' (default) or 'youth'
 
         $churchType = in_array($_POST['church_type'] ?? '', ['kids', 'youth']) ? $_POST['church_type'] : 'kids';
@@ -12787,9 +12789,9 @@ function addChurch()
 
 
 
-        $stmt = $conn->prepare("INSERT INTO churches (church_name, church_code, password_hash, church_type) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO churches (church_name, church_code, password_hash, church_type, admin_email) VALUES (?, ?, ?, ?, ?)");
 
-        $stmt->bind_param("ssss", $churchName, $churchCode, $passwordHash, $churchType);
+        $stmt->bind_param("sssss", $churchName, $churchCode, $passwordHash, $churchType, $adminEmail);
 
 
 
@@ -15993,6 +15995,282 @@ function generateKidsTemplate()
     }
 
 }
+
+
+
+// ===== GENERATE CHURCHES TEMPLATE =====
+
+function generateChurchesTemplate()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+
+        if ($role !== 'developer') {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح - فقط للمطورين']);
+
+            return;
+
+        }
+
+
+
+        $headerCols = "اسم الكنيسة *,رمز الكنيسة (أحرف إنجليزية صغيرة وأرقام فقط) *,كلمة المرور *,البريد الإلكتروني للمسؤول,نوع الكنيسة (kids/youth)\n";
+
+        $csvContent = $headerCols;
+
+        
+
+        // Add sample instructions row
+
+        $csvContent .= "\"كنيسة المعادي\",\"maadi\",\"123456\",\"maadi@example.com\",\"kids\"\n";
+
+
+
+        header('Content-Type: text/csv; charset=utf-8');
+
+        header('Content-Disposition: attachment; filename="churches_template_' . date('Y-m-d') . '.csv"');
+
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+
+
+
+        // UTF-8 BOM for Excel Arabic support
+
+        echo chr(0xEF) . chr(0xBB) . chr(0xBF);
+
+        echo $csvContent;
+
+        exit;
+
+
+
+    } catch (Exception $e) {
+
+        error_log("generateChurchesTemplate error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في إنشاء قالب الكنائس']);
+
+    }
+
+}
+
+
+
+// ===== BULK SAVE IMPORTED CHURCHES =====
+
+function bulkSaveImportedChurches()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+
+        if ($role !== 'developer') {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح - فقط للمطورين']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+        $conn->begin_transaction();
+
+
+
+        $churchesJson = $_POST['churches'] ?? '';
+
+        $churches = json_decode($churchesJson, true);
+
+
+
+        if (!is_array($churches)) {
+
+            sendJSON(['success' => false, 'message' => 'بيانات الكنائس غير صالحة']);
+
+            return;
+
+        }
+
+
+
+        $addedCount = 0;
+
+        $errors = [];
+
+
+
+        foreach ($churches as $c) {
+
+            $name = sanitize($c['name'] ?? '');
+
+            $code = sanitize($c['code'] ?? '');
+
+            $password = $c['password'] ?? '';
+
+            $email = sanitize($c['email'] ?? '');
+
+            $type = in_array($c['type'] ?? '', ['kids', 'youth']) ? $c['type'] : 'kids';
+
+
+
+            if (empty($name) || empty($code) || empty($password)) {
+
+                $errors[] = "الاسم والرمز وكلمة المرور مطلوبة للكنيسة: " . ($name ?: $code ?: 'مجهول');
+
+                continue;
+
+            }
+
+
+
+            if (!preg_match('/^[a-z0-9_]+$/', $code)) {
+
+                $errors[] = "رمز الكنيسة '$code' غير صالح (أحرف إنجليزية صغيرة وأرقام فقط)";
+
+                continue;
+
+            }
+
+
+
+            // Check if code exists
+
+            $checkStmt = $conn->prepare("SELECT id FROM churches WHERE church_code = ?");
+
+            $checkStmt->bind_param("s", $code);
+
+            $checkStmt->execute();
+
+            if ($checkStmt->get_result()->num_rows > 0) {
+
+                $errors[] = "رمز الكنيسة '$code' مستخدم بالفعل";
+
+                continue;
+
+            }
+
+
+
+            $passwordHash = hash('sha256', $password);
+
+
+
+            // Ensure church_type column exists
+
+            ensureChurchTypeColumn($conn);
+
+
+
+            $stmt = $conn->prepare("INSERT INTO churches (church_name, church_code, password_hash, church_type, admin_email) VALUES (?, ?, ?, ?, ?)");
+
+            $stmt->bind_param("sssss", $name, $code, $passwordHash, $type, $email);
+
+
+
+            if ($stmt->execute()) {
+
+                $newChurchId = $conn->insert_id;
+
+                $addedCount++;
+
+
+
+                // Seed default classes
+
+                if ($type === 'youth') {
+
+                    $youthClasses = [
+
+                        ['youth_prep', 'إعدادي', 1, '#4f46e5'],
+
+                        ['youth_sec', 'ثانوي', 2, '#10b981'],
+
+                        ['youth_uni', 'جامعة', 3, '#f59e0b'],
+
+                        ['youth_grad', 'خريجين', 4, '#8b5cf6'],
+
+                    ];
+
+                    $clsStmt = $conn->prepare(
+
+                        "INSERT INTO church_classes (church_id, code, arabic_name, display_order, color, is_active) VALUES (?, ?, ?, ?, ?, 1)"
+
+                    );
+
+                    foreach ($youthClasses as [$yCode, $yName, $yOrder, $yColor]) {
+
+                        $clsStmt->bind_param("issis", $newChurchId, $yCode, $yName, $yOrder, $yColor);
+
+                        $clsStmt->execute();
+
+                    }
+
+                }
+
+            } else {
+
+                $errors[] = "فشل إضافة الكنيسة '$name': " . $conn->error;
+
+            }
+
+        }
+
+
+
+        if (!empty($errors) && $addedCount === 0) {
+
+            $conn->rollback();
+
+            sendJSON(['success' => false, 'message' => 'فشل الاستيراد بالكامل', 'errors' => $errors]);
+
+        } else {
+
+            $conn->commit();
+
+            $msg = "تم استيراد $addedCount من الكنائس بنجاح.";
+
+            if (!empty($errors)) {
+
+                $msg .= " ولكن حدثت بعض الأخطاء: " . count($errors);
+
+            }
+
+            sendJSON(['success' => true, 'message' => $msg, 'errors' => $errors]);
+
+        }
+
+
+
+    } catch (Exception $e) {
+
+        if (isset($conn)) {
+
+            $conn->rollback();
+
+        }
+
+        error_log("bulkSaveImportedChurches error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في السيرفر أثناء حفظ الكنائس: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
 
 
 
@@ -31283,6 +31561,22 @@ try {
 
 
 
+        case 'generateChurchesTemplate':
+
+            generateChurchesTemplate();
+
+            break;
+
+
+
+        case 'bulkSaveImportedChurches':
+
+            bulkSaveImportedChurches();
+
+            break;
+
+
+
         case 'addUncle':
 
             addUncle();
@@ -41322,7 +41616,7 @@ function getPublicClassUncles()
 
             WHERE a.church_id = ? AND a.class_name = ?
 
-              AND (u.deleted IS NULL OR u.deleted = 0)
+              AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
 
             ORDER BY CASE u.role WHEN 'admin' THEN 1 WHEN 'developer' THEN 2 ELSE 3 END, u.name
 
