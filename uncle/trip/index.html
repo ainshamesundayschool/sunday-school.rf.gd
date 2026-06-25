@@ -2584,8 +2584,8 @@
                 const listEl = document.getElementById('kidsList');
 
                 const label = currentFilterValue
-                    ? (currentFilterField === '__class__' ? `فصل: ${currentFilterValue}` : `${currentFilterField.replace(/.*__sf__/, '')}: ${currentFilterValue}`)
-                    : (currentFilterField ? currentFilterField.replace(/.*__sf__/, '') : 'جميع الأطفال');
+                    ? (currentFilterField === '__class__' ? `فصل: ${currentFilterValue}` : (currentFilterField === '__church__' ? `كنيسة: ${currentFilterValue}` : `${currentFilterField.replace(/.*__sf__/, '')}: ${currentFilterValue}`))
+                    : (currentFilterField ? (currentFilterField === '__church__' ? 'الكنيسة' : currentFilterField.replace(/.*__sf__/, '')) : 'جميع الأطفال');
 
                 titleEl.textContent = label;
 
@@ -2594,6 +2594,9 @@
                     filteredKids = regsList.filter(r => {
                         if (currentFilterField === '__class__') {
                             return (r.student_class || 'بدون فصل') === currentFilterValue;
+                        }
+                        if (currentFilterField === '__church__') {
+                            return (r.church_name || r.student_church_name || 'بدون تحديد') === currentFilterValue;
                         }
                         if (!r.custom_data) {
                             return currentFilterValue === 'بدون تحديد';
@@ -2644,7 +2647,10 @@
                         ${avatarHtml}
                         <div class="kid-info">
                             <div class="kid-name">${name}</div>
-                            <div class="kid-meta">${k.student_class || 'بدون فصل'}</div>
+                            <div class="kid-meta">
+                                ${k.student_class || 'بدون فصل'}
+                                ${k.church_name || k.student_church_name ? ` | <i class="fas fa-church" style="font-size:0.68rem; margin-left:2px; margin-right:2px;"></i> ${k.church_name || k.student_church_name}` : ''}
+                            </div>
                         </div>
                         <div class="kid-points"><i class="fas fa-star" style="margin-left:4px;"></i>${pointsVal}</div>
                         <i class="fas fa-chevron-left kid-arrow"></i>
@@ -2676,7 +2682,8 @@
                 const img = studentData.student_image || '';
 
                 nameEl.textContent = name;
-                classEl.textContent = studentData.student_class || 'بدون فصل';
+                const chName = studentData.church_name || studentData.student_church_name || '';
+                classEl.innerHTML = `${studentData.student_class || 'بدون فصل'}${chName ? ` | <i class="fas fa-church" style="font-size:0.75rem; margin-left:3px; margin-right:3px;"></i> ${chName}` : ''}`;
 
                 if (img) {
                     avatarEl.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.innerHTML='${init}'">`;
@@ -4053,7 +4060,8 @@
                                 uncleId: currentUncleId,
                                 uncleName: 'أنا',
                                 actionNote: actionName,
-                                createdAt: new Date().toISOString()
+                                createdAt: new Date().toISOString(),
+                                churchName: localStudent ? (localStudent.church_name || localStudent.student_church_name || '') : ''
                             });
 
                             const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
@@ -4150,6 +4158,15 @@
                     ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(f => f && !JUNK.has(f.toLowerCase()))
                     : [];
 
+                const uniqueChurches = new Set();
+                regsList.forEach(r => {
+                    const c = r.church_name || r.student_church_name;
+                    if (c) uniqueChurches.add(c);
+                });
+                if (uniqueChurches.size > 1 && !fields.includes('الكنيسة')) {
+                    fields.unshift('الكنيسة');
+                }
+
                 if (fields.length === 0) {
                     renderByClass();
                     return;
@@ -4165,8 +4182,12 @@
                         };
 
                         let icon = 'fas fa-folder';
-                        const meta = currentTrip.custom_field_icons?.[field];
-                        if (meta) icon = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-folder');
+                        if (field === 'الكنيسة') {
+                            icon = 'fas fa-church';
+                        } else {
+                            const meta = currentTrip.custom_field_icons?.[field];
+                            if (meta) icon = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-folder');
+                        }
 
                         card.innerHTML = `
                         <div class="field-card-header">
@@ -4187,10 +4208,14 @@
                     const groups = {};
                     regsList.forEach(r => {
                         let val = 'بدون تحديد';
-                        try {
-                            const cd = JSON.parse(r.custom_data || '{}');
-                            val = cd[fieldName] || 'بدون تحديد';
-                        } catch (e) { }
+                        if (fieldName === 'الكنيسة') {
+                            val = r.church_name || r.student_church_name || 'بدون تحديد';
+                        } else {
+                            try {
+                                const cd = JSON.parse(r.custom_data || '{}');
+                                val = cd[fieldName] || 'بدون تحديد';
+                            } catch (e) { }
+                        }
                         if (!groups[val]) groups[val] = [];
                         groups[val].push(r);
                     });
@@ -4200,7 +4225,9 @@
                         const card = document.createElement('div');
                         card.className = 'field-card';
                         card.onclick = () => {
-                            if (meta.type === 'sub_group' && meta.sub_fields?.[val]) {
+                            if (fieldName === 'الكنيسة') {
+                                openFilterKids('__church__', val);
+                            } else if (meta.type === 'sub_group' && meta.sub_fields?.[val]) {
                                 filterPath.push({ type: 'choice', name: val, fieldName: fieldName, choiceVal: val });
                                 renderFieldCards();
                             } else {
@@ -4208,9 +4235,10 @@
                             }
                         };
 
+                        const subIcon = fieldName === 'الكنيسة' ? 'fas fa-church' : (meta.icon || 'fas fa-tag');
                         card.innerHTML = `
                         <div class="field-card-header">
-                            <div class="field-card-icon"><i class="${meta.icon || 'fas fa-tag'}"></i></div>
+                            <div class="field-card-icon"><i class="${subIcon}"></i></div>
                             <span class="field-card-title">${val}</span>
                             <span class="field-card-count" style="font-size:0.65rem; background:rgba(91,108,245,0.08); color:var(--brand); padding:2px 6px; border-radius:12px; font-weight:700; margin-right:4px; margin-left:2px;">${kids.length} طفل</span>
                         </div>
@@ -5059,7 +5087,8 @@
                                 uncleId: s.uncle_id,
                                 uncleName: s.uncle_name,
                                 actionNote: actionNote,
-                                createdAt: s.created_at
+                                createdAt: s.created_at,
+                                churchName: s.church_name || ''
                             };
                         });
                     }
@@ -5164,12 +5193,16 @@
                     }
                 }
 
+                const churchBadgeHtml = item.churchName
+                    ? `<span style="font-size:0.68rem;color:var(--brand);background:var(--brand-bg);padding:1px 5px;border-radius:var(--r-xs);margin-left:6px;"><i class="fas fa-church"></i> ${item.churchName}</span>`
+                    : '';
+
                 return `
                 <div class="scan-item" onclick="if(!event.target.closest('button')) navigateTo('student_profile', { student_id: '${item.studentId}' })" style="cursor: pointer;">
                     ${photoHtml}
                     <div class="scan-info">
                         <div class="scan-name">${item.studentName}</div>
-                        <div class="scan-status">${statusHtml}</div>
+                        <div class="scan-status">${churchBadgeHtml}${statusHtml}</div>
                     </div>
                     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
                         <div class="scan-badge ${badgeClass}">${formattedChange}</div>

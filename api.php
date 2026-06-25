@@ -316,7 +316,13 @@ function processGameQRCode()
 
         // Load student (don't restrict by church yet — collaboration may allow cross-church updates)
 
-        $stmt = $conn->prepare("SELECT id, name, church_id, trip_points, image_url FROM students WHERE id = ? LIMIT 1");
+        $stmt = $conn->prepare("
+            SELECT s.id, s.name, s.church_id, s.trip_points, s.image_url, c.church_name 
+            FROM students s
+            JOIN churches c ON s.church_id = c.id
+            WHERE s.id = ? 
+            LIMIT 1
+        ");
 
         $stmt->bind_param('i', $studentId);
 
@@ -688,7 +694,8 @@ function processGameQRCode()
             'points' => $new,
             'is_naughty' => $isNaughty,
             'change' => $changeAmount,
-            'profile_photo' => $student['image_url']
+            'profile_photo' => $student['image_url'],
+            'church_name' => $student['church_name'] ?? ''
         ]);
 
 
@@ -955,9 +962,11 @@ function getRecentTripPointsScans()
         $stmt = $conn->prepare("
             SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, cl.uncle_id,
                    s.name as student_name, s.image_url as profile_photo,
-                   u.name as uncle_name
+                   u.name as uncle_name,
+                   c.church_name
             FROM coupon_logs cl
             JOIN students s ON cl.student_id = s.id
+            JOIN churches c ON s.church_id = c.id
             LEFT JOIN uncles u ON cl.uncle_id = u.id
             WHERE cl.reason LIKE CONCAT('trip_points_scan:', ?, '%')
                OR cl.reason LIKE CONCAT('trip_points_normal:', ?, '%')
@@ -982,7 +991,8 @@ function getRecentTripPointsScans()
                 'reason' => $row['reason'],
                 'uncle_id' => $row['uncle_id'] !== null ? intval($row['uncle_id']) : null,
                 'uncle_name' => $row['uncle_name'] ?? 'أدمن الكنيسة',
-                'created_at' => $row['created_at']
+                'created_at' => $row['created_at'],
+                'church_name' => $row['church_name'] ?? ''
             ];
         }
 
