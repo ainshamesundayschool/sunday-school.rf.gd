@@ -11806,14 +11806,14 @@
 
       let printSelectedUncleIds = new Set();
 
-      function getUncleRoomAssignmentText(uncleId, roomsConfig) {
+      function getUncleRoomAssignmentText(uncleId, roomsConfig, showFloor = true) {
         if (!roomsConfig || !Array.isArray(roomsConfig)) return 'غير مسكن';
         for (const bld of roomsConfig) {
           if (bld.has_floors) {
             for (const fl of (bld.floors || [])) {
               for (const r of (fl.rooms || [])) {
                 if (r.uncles && r.uncles.some(u => String(u.id) === String(uncleId))) {
-                  return `${bld.name} - ${fl.name} - ${r.name}`;
+                  return showFloor ? `${bld.name} - ${fl.name} - ${r.name}` : `${bld.name} - ${r.name}`;
                 }
               }
             }
