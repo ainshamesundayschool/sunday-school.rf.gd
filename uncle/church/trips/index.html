@@ -7114,6 +7114,36 @@
       </div>
     </div>
 
+    <!-- Bulk Rooms Setup & Edit Modal -->
+    <div id="bulkRoomsModal" class="modal">
+      <div class="modal-box wide" style="max-width: 680px; width: 90%; font-family: 'Cairo';">
+        <div class="modal-head" style="direction: rtl; text-align: right; display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-weight: 800; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; margin: 0;">
+            <i class="fas fa-home"></i> تعديل وإضافة الغرف جماعياً (Bulk)
+          </h2>
+          <button class="modal-close" onclick="closeModal('bulkRoomsModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+          <div style="background: var(--surface-2); border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 12px; font-size: 0.8rem; line-height: 1.6; color: var(--text);">
+            <div style="font-weight: 800; margin-bottom: 6px; color: var(--primary);"><i class="fas fa-info-circle"></i> صيغة إدخال البيانات:</div>
+            • اكتب <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">مبنى: اسم المبنى</code> لإنشاء مبنى جديد.<br>
+            • اكتب <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">دور: اسم الدور</code> (اختياري) لتقسيم الغرف داخل المبنى.<br>
+            • لكل غرفة، اكتب سطر بالصيغة: <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">اسم الغرفة, السعة, الفئة, الخدام</code> (مفصولين بـ <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">|</code>).<br>
+            <span style="font-size: 0.72rem; opacity: 0.8;">الفئات المتاحة: أولاد / بنات. سيقوم النظام بمطابقة أسماء الخدام تلقائياً.</span>
+          </div>
+          
+          <textarea id="bulkRoomsTextarea" rows="12" class="form-input" style="width: 100%; font-family: monospace; font-size: 0.8rem; padding: 10px; direction: rtl; text-align: right; resize: vertical;" placeholder="مبنى: مبنى أ&#10;دور: الدور الأول&#10;101, 4, أولاد, جون | مينا&#10;102, 6, بنات, ماريا"></textarea>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+            <button type="button" class="btn btn-success" onclick="saveBulkRooms()" style="background: #10b981; border: none; padding: 6px 16px; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #fff;">
+              <i class="fas fa-save"></i> حفظ الهيكل الجديد
+            </button>
+            <button type="button" class="btn btn-outline" onclick="closeModal('bulkRoomsModal')" style="padding: 6px 16px;">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Bulk Add / Update -->
     <div id="bulkAddModal" class="modal">
       <div class="modal-box">
@@ -13184,6 +13214,7 @@
               <div class="rooms-actions-row">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
+                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="openBulkRoomsModal()"><i class="fas fa-edit"></i> تعديل وإضافة جماعية (Bulk)</button>
                   <button type="button" class="btn btn-success btn-sm" style="background:#10b981; color:#fff; border:none;" onclick="downloadTaskeenCSV()"><i class="fas fa-file-csv"></i> تحميل التسكين CSV</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
                   ${isDev ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
@@ -14589,6 +14620,250 @@
           document.querySelectorAll('.ws-room-card').forEach(c => c.classList.remove('active-search'));
         }
       });
+
+      // =========================================================================
+      // BULK ROOMS SETUP & EDIT LOGIC
+      // =========================================================================
+      window.openBulkRoomsModal = function() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        
+        const txt = roomsConfigToText(roomsConfig);
+        const textarea = document.getElementById('bulkRoomsTextarea');
+        if (textarea) textarea.value = txt;
+
+        document.getElementById('bulkRoomsModal').classList.add('open');
+      };
+
+      window.saveBulkRooms = async function() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const textarea = document.getElementById('bulkRoomsTextarea');
+        if (!textarea) return;
+
+        const txt = textarea.value;
+        const existingConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        
+        const newConfig = parseTextToRoomsConfig(txt, existingConfig);
+
+        const saveBtn = document.querySelector('#bulkRoomsModal .btn-success');
+        if (saveBtn) saveBtn.disabled = true;
+        
+        const success = await saveRoomsConfig(tripId, newConfig);
+        
+        if (saveBtn) saveBtn.disabled = false;
+
+        if (success) {
+          showToast('تم تحديث هيكل السكن بالكامل بنجاح!', 'success');
+          closeModal('bulkRoomsModal');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل تحديث هيكل السكن', 'error');
+        }
+      };
+
+      function roomsConfigToText(config) {
+        if (!Array.isArray(config)) return '';
+        let lines = [];
+        config.forEach(bld => {
+          lines.push(`مبنى: ${bld.name}`);
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => {
+              lines.push(`دور: ${fl.name}`);
+              (fl.rooms || []).forEach(r => {
+                let genderStr = '';
+                if (r.gender_filter === 'male') genderStr = 'أولاد';
+                else if (r.gender_filter === 'female') genderStr = 'بنات';
+                
+                if (r.uncles && r.uncles.length) {
+                  const unclesStr = r.uncles.map(u => u.name).join(' | ');
+                  lines.push(`${r.name}, ${r.capacity}, ${genderStr}, ${unclesStr}`);
+                } else {
+                  let line = `${r.name}, ${r.capacity}`;
+                  if (genderStr) line += `, ${genderStr}`;
+                  lines.push(line);
+                }
+              });
+            });
+          } else {
+            (bld.rooms || []).forEach(r => {
+              let genderStr = '';
+              if (r.gender_filter === 'male') genderStr = 'أولاد';
+              else if (r.gender_filter === 'female') genderStr = 'بنات';
+              
+              if (r.uncles && r.uncles.length) {
+                const unclesStr = r.uncles.map(u => u.name).join(' | ');
+                lines.push(`${r.name}, ${r.capacity}, ${genderStr}, ${unclesStr}`);
+              } else {
+                let line = `${r.name}, ${r.capacity}`;
+                if (genderStr) line += `, ${genderStr}`;
+                lines.push(line);
+              }
+            });
+          }
+          lines.push(''); // Empty line between buildings
+        });
+        return lines.join('\n').trim();
+      }
+
+      function parseTextToRoomsConfig(text, existingConfig = []) {
+        const lines = text.split('\n');
+        const config = [];
+        let currentBld = null;
+        let currentFloor = null;
+
+        // Build a map of existing uncles and exclusions by room key to preserve them
+        const existingRoomsMap = {};
+        existingConfig.forEach(bld => {
+          const cleanBldName = bld.name.trim();
+          const processRoom = (flName, r) => {
+            const key = `${cleanBldName}||${flName.trim()}||${r.name.trim()}`;
+            existingRoomsMap[key] = {
+              uncles: r.uncles || [],
+              is_excluded: !!r.is_excluded
+            };
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => {
+              (fl.rooms || []).forEach(r => processRoom(fl.name, r));
+            });
+          } else {
+            (bld.rooms || []).forEach(r => processRoom('', r));
+          }
+        });
+
+        for (let line of lines) {
+          line = line.trim();
+          if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+
+          if (line.startsWith('مبنى:') || line.startsWith('Building:')) {
+            const bldName = line.replace(/^(مبنى:|Building:)/i, '').trim();
+            currentBld = {
+              name: bldName,
+              has_floors: false,
+              rooms: [],
+              floors: []
+            };
+            config.push(currentBld);
+            currentFloor = null;
+          } else if (line.startsWith('دور:') || line.startsWith('Floor:')) {
+            const floorName = line.replace(/^(دور:|Floor:)/i, '').trim();
+            if (!currentBld) {
+              currentBld = {
+                name: 'مبنى افتراضي',
+                has_floors: true,
+                rooms: [],
+                floors: []
+              };
+              config.push(currentBld);
+            }
+            currentBld.has_floors = true;
+            currentFloor = {
+              name: floorName,
+              rooms: []
+            };
+            currentBld.floors.push(currentFloor);
+          } else {
+            const parts = line.split(',');
+            if (parts.length < 2) continue;
+
+            const roomName = parts[0].trim();
+            const capacity = parseInt(parts[1].trim());
+            if (isNaN(capacity) || capacity <= 0) continue;
+
+            let genderFilter = null;
+            if (parts[2]) {
+              const gText = parts[2].trim().toLowerCase();
+              if (gText === 'أولاد' || gText === 'boys' || gText === 'male' || gText === 'ولد') {
+                genderFilter = 'male';
+              } else if (gText === 'بنات' || gText === 'girls' || gText === 'female' || gText === 'بنت') {
+                genderFilter = 'female';
+              }
+            }
+
+            let roomUncles = [];
+            if (parts.length >= 4) {
+              const uncleNames = parts[3].split('|');
+              uncleNames.forEach(uName => {
+                const nameTrimmed = uName.trim();
+                if (nameTrimmed) {
+                  const matched = matchUncleByName(nameTrimmed);
+                  if (matched) {
+                    roomUncles.push({ id: String(matched.id), name: matched.name });
+                  } else {
+                    roomUncles.push({ id: `temp_${Math.random().toString(36).substring(2, 9)}`, name: nameTrimmed });
+                  }
+                }
+              });
+            } else {
+              const bldKeyName = currentBld ? currentBld.name.trim() : 'مبنى افتراضي';
+              const flKeyName = currentFloor ? currentFloor.name.trim() : '';
+              const lookupKey = `${bldKeyName}||${flKeyName}||${roomName}`;
+              const existing = existingRoomsMap[lookupKey] || {};
+              roomUncles = existing.uncles || [];
+            }
+
+            const bldKeyName = currentBld ? currentBld.name.trim() : 'مبنى افتراضي';
+            const flKeyName = currentFloor ? currentFloor.name.trim() : '';
+            const lookupKey = `${bldKeyName}||${flKeyName}||${roomName}`;
+            const existing = existingRoomsMap[lookupKey] || {};
+
+            const roomObj = {
+              name: roomName,
+              capacity: capacity,
+              gender_filter: genderFilter,
+              uncles: roomUncles,
+              is_excluded: existing.is_excluded || false
+            };
+
+            if (currentFloor) {
+              currentFloor.rooms.push(roomObj);
+            } else {
+              if (!currentBld) {
+                currentBld = {
+                  name: 'مبنى افتراضي',
+                  has_floors: false,
+                  rooms: [],
+                  floors: []
+                };
+                config.push(currentBld);
+              }
+              currentBld.rooms.push(roomObj);
+            }
+          }
+        }
+
+        return config.filter(bld => {
+          if (bld.has_floors) {
+            bld.floors = bld.floors.filter(fl => fl.rooms.length > 0);
+            return bld.floors.length > 0;
+          }
+          return bld.rooms.length > 0;
+        });
+      }
+
+      function matchUncleByName(name) {
+        const cleanName = name.trim();
+        if (!cleanName) return null;
+        
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        window.allUnclesCache.forEach(u => {
+          const score = getMatchScore(u, cleanName, [{ val: u.name || '', weight: 1.0 }]);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = u;
+          }
+        });
+        
+        return bestScore > 0.1 ? bestMatch : null;
+      }
 
       async function saveRoomsConfig(tripId, config) {
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
