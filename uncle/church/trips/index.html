@@ -14897,7 +14897,7 @@
         });
 
         const roomsMap = {};
-        const assignedKids = [];
+        window.bulkRoomsParsedResidents = [];
         let totalBeds = 0;
         
         for (let i = 1; i < rows.length; i++) {
@@ -14935,8 +14935,6 @@
               name: roomName,
               capacity,
               gender_filter: genderFilter,
-              uncles: [],
-              kids: [],
               is_excluded: !!existing.is_excluded
             };
             totalBeds += capacity;
@@ -14953,39 +14951,216 @@
             } else {
               matchedKid = matchStudentByName(nameText, regs);
               if (!matchedKid) {
-                // Smart fallback: try matching against uncles if no student matched
                 matchedUncle = matchUncleByName(nameText);
               }
             }
 
-            if (matchedUncle) {
-              if (!roomsMap[roomKey].uncles.some(u => u.id == matchedUncle.id)) {
-                roomsMap[roomKey].uncles.push({ id: String(matchedUncle.id), name: matchedUncle.name });
-              }
-            } else if (matchedKid) {
-              if (!assignedKids.some(k => k.kidId == matchedKid.id)) {
-                assignedKids.push({
-                  kidId: matchedKid.id,
-                  bldName,
-                  floorName,
-                  roomName
-                });
-                roomsMap[roomKey].kids.push({
-                  id: matchedKid.id,
-                  name: matchedKid.student_name,
-                  gender: matchedKid.student_gender
-                });
-              }
-            } else {
-              // Fallback: If role explicitly designates uncle, add as temp uncle. Otherwise treat as temp kid/log?
-              if (isUncle) {
-                roomsMap[roomKey].uncles.push({ id: `temp_${Math.random().toString(36).substring(2, 9)}`, name: nameText });
-              }
-            }
+            window.bulkRoomsParsedResidents.push({
+              originalName: nameText,
+              role: matchedUncle ? 'uncle' : 'kid',
+              matchedId: matchedUncle ? matchedUncle.id : (matchedKid ? matchedKid.id : null),
+              bldName: bldName,
+              floorName: floorName,
+              roomName: roomName
+            });
           }
         }
 
-        // Rebuild config array
+        // Save rooms template globally
+        window.bulkRoomsParsedRoomsList = Object.values(roomsMap).map(r => ({
+          bldName: r.bldName,
+          floorName: r.floorName,
+          name: r.name,
+          capacity: r.capacity,
+          gender_filter: r.gender_filter,
+          is_excluded: r.is_excluded
+        }));
+
+        // Render preview table
+        const tableBody = document.getElementById('bulkRoomsReviewTableBody');
+        if (tableBody) {
+          tableBody.innerHTML = Object.values(roomsMap).map(room => {
+            // Find all parsed residents for this room
+            const roomResidents = window.bulkRoomsParsedResidents.map((res, resIdx) => ({ res, resIdx }))
+              .filter(item => item.res.bldName === room.bldName && item.res.floorName === room.floorName && item.res.roomName === room.name);
+
+            const residentsHtml = roomResidents.map(item => {
+              const res = item.res;
+              const resIdx = item.resIdx;
+              const isUncle = res.role === 'uncle';
+
+              let dropdownOptions = '';
+              if (isUncle) {
+                dropdownOptions = (window.allUnclesCache || []).map(u => {
+                  return `<option value="${u.id}" ${u.id == res.matchedId ? 'selected' : ''}>${escHtml(u.name)} (خادم)</option>`;
+                }).join('');
+              } else {
+                dropdownOptions = regs.map(k => {
+                  return `<option value="${k.id}" ${k.id == res.matchedId ? 'selected' : ''}>${escHtml(k.student_name)} (${escHtml(k.student_class)})</option>`;
+                }).join('');
+              }
+
+              const warningStyle = !res.matchedId ? 'border-color:#ef4444; background:#fef2f2; color:#b91c1c;' : '';
+
+              return `
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; direction:rtl; text-align:right;">
+                  <span style="font-size:0.7rem; color:var(--muted); font-weight:700; white-space:nowrap; min-width:80px; text-overflow:ellipsis; overflow:hidden;" title="${escHtml(res.originalName)}">(${escHtml(res.originalName)})</span>
+                  <i class="fas fa-arrow-left" style="font-size:0.6rem; color:var(--muted);"></i>
+                  <select class="form-input" onchange="updateReviewResidentMatch(${resIdx}, this.value, event)" style="font-size:0.68rem; padding:2px 4px; height:24px; flex:1; font-family:'Cairo'; min-width:140px; ${warningStyle}">
+                    <option value="">-- غير مسجل بالرحلة (استبعاد) --</option>
+                    ${dropdownOptions}
+                  </select>
+                </div>
+              `;
+            }).join('');
+
+            const finalResidentsHtml = residentsHtml || '<span style="color:var(--muted); font-style:italic; font-size:0.7rem;">لا يوجد مسكنين</span>';
+            let genderLabel = 'مشترك';
+            if (room.gender_filter === 'male') genderLabel = 'أولاد';
+            else if (room.gender_filter === 'female') genderLabel = 'بنات';
+
+            return `
+              <tr style="border-bottom: 1px solid var(--border-light);">
+                <td style="padding: 8px 10px;">${escHtml(room.bldName)}</td>
+                <td style="padding: 8px 10px;">${escHtml(room.floorName || '-')}</td>
+                <td style="padding: 8px 10px; font-weight:700;">${escHtml(room.name)}</td>
+                <td style="padding: 8px 10px; text-align:center; font-weight:700;">${room.capacity}</td>
+                <td style="padding: 8px 10px; text-align:center;">${genderLabel}</td>
+                <td style="padding: 8px 10px; min-width:280px;">${finalResidentsHtml}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        // Update stats
+        const roomsCount = Object.keys(roomsMap).length;
+        const kidsCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'kid' && r.matchedId).length;
+        const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle' && r.matchedId).length;
+
+        document.getElementById('statRoomsCount').textContent = roomsCount;
+        document.getElementById('statBedsCount').textContent = totalBeds;
+        document.getElementById('statKidsCount').textContent = kidsCount;
+        document.getElementById('statUnclesCount').textContent = unclesCount;
+
+        // Transition UI
+        document.getElementById('bulkRoomsUploadSection').style.display = 'none';
+        document.getElementById('bulkRoomsReviewSection').style.display = 'flex';
+      };
+
+      window.updateReviewResidentMatch = function(resIdx, selectedValue, event) {
+        if (!window.bulkRoomsParsedResidents || !window.bulkRoomsParsedResidents[resIdx]) return;
+        
+        const res = window.bulkRoomsParsedResidents[resIdx];
+        res.matchedId = selectedValue ? parseInt(selectedValue) : null;
+        
+        // Recalculate stats
+        const assignedKidsCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'kid' && r.matchedId).length;
+        const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle' && r.matchedId).length;
+
+        document.getElementById('statKidsCount').textContent = assignedKidsCount;
+        document.getElementById('statUnclesCount').textContent = unclesCount;
+
+        // Toggle warning border style dynamically
+        const selectEl = event ? event.target : null;
+        if (selectEl) {
+          if (!selectedValue) {
+            selectEl.style.borderColor = '#ef4444';
+            selectEl.style.background = '#fef2f2';
+            selectEl.style.color = '#b91c1c';
+          } else {
+            selectEl.style.borderColor = '';
+            selectEl.style.background = '';
+            selectEl.style.color = '';
+          }
+        }
+      };
+
+      window.backToBulkUpload = function() {
+        document.getElementById('bulkRoomsReviewSection').style.display = 'none';
+        document.getElementById('bulkRoomsUploadSection').style.display = 'flex';
+
+        // Reset files
+        const fileInput = document.getElementById('bulkRoomsFileInput');
+        if (fileInput) fileInput.value = '';
+
+        const label = document.getElementById('bulkRoomsFileLabel');
+        if (label) label.textContent = '2. اختر ملف CSV المعدل لرفعه';
+
+        const sub = document.getElementById('bulkRoomsFileSub');
+        if (sub) sub.textContent = 'أو اسحب وأفلت الملف هنا مباشرة';
+
+        const previewBtn = document.getElementById('btnPreviewBulkRooms');
+        if (previewBtn) {
+          previewBtn.disabled = true;
+          previewBtn.style.opacity = '0.5';
+        }
+
+        window.uploadedRoomsCSVData = null;
+      };
+
+      window.importRoomsCSV = async function() {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const regs = tripRegistrationsCache[tripId] || [];
+        const residents = window.bulkRoomsParsedResidents || [];
+        const roomsList = window.bulkRoomsParsedRoomsList || [];
+
+        if (!roomsList.length) {
+          showToast('لا توجد غرف صالحة للحفظ', 'warning');
+          return;
+        }
+
+        const confirmBtn = document.getElementById('btnConfirmBulkRooms');
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        // Rebuild rooms layout configuration
+        const roomsMap = {};
+        roomsList.forEach(r => {
+          const roomKey = `${r.bldName}||${r.floorName}||${r.name}`;
+          roomsMap[roomKey] = {
+            bldName: r.bldName,
+            floorName: r.floorName,
+            name: r.name,
+            capacity: r.capacity,
+            gender_filter: r.gender_filter,
+            uncles: [],
+            is_excluded: r.is_excluded
+          };
+        });
+
+        // Collect and map assignments
+        const assignedKids = [];
+        residents.forEach(res => {
+          const roomKey = `${res.bldName}||${res.floorName}||${res.roomName}`;
+          const room = roomsMap[roomKey];
+          if (!room) return;
+
+          if (res.matchedId) {
+            if (res.role === 'uncle') {
+              const matchedUncle = window.allUnclesCache.find(u => u.id == res.matchedId);
+              if (matchedUncle) {
+                if (!room.uncles.some(u => u.id == matchedUncle.id)) {
+                  room.uncles.push({ id: String(matchedUncle.id), name: matchedUncle.name });
+                }
+              }
+            } else if (res.role === 'kid') {
+              const matchedKid = regs.find(k => k.id == res.matchedId);
+              if (matchedKid) {
+                if (!assignedKids.some(k => k.kidId == matchedKid.id)) {
+                  assignedKids.push({
+                    kidId: matchedKid.id,
+                    bldName: res.bldName,
+                    floorName: res.floorName,
+                    roomName: res.roomName
+                  });
+                }
+              }
+            }
+          }
+        });
+
         const buildingsTemp = {};
         Object.values(roomsMap).forEach(r => {
           if (!buildingsTemp[r.bldName]) {
@@ -15039,7 +15214,6 @@
           return finalBld;
         });
 
-        // Rebuild registrations custom_data payload
         const customDataPayload = [];
         const newAllocationsMap = {};
         assignedKids.forEach(ak => {
@@ -15066,101 +15240,11 @@
           }
         });
 
-        // Save parsed structures globally
-        window.bulkRoomsParsedRoomsConfig = newRoomsConfig;
-        window.bulkRoomsParsedCustomDataPayload = customDataPayload;
-
-        // Render preview table
-        const tableBody = document.getElementById('bulkRoomsReviewTableBody');
-        if (tableBody) {
-          tableBody.innerHTML = Object.values(roomsMap).map(r => {
-            const residents = [];
-            r.uncles.forEach(u => {
-              residents.push(`<span class="ws-uncle-tag" style="background:#fef3c7; color:#d97706; border:1px solid rgba(217,119,6,0.2); padding:2px 6px; border-radius:4px; margin-left:4px; font-size:0.68rem; font-weight:700;"><i class="fas fa-user-shield"></i> ${escHtml(u.name)}</span>`);
-            });
-            r.kids.forEach(k => {
-              const isFemale = k.gender === 'female';
-              const color = isFemale ? '#ec4899' : '#3b82f6';
-              const bg = isFemale ? '#fdf2f8' : '#eff6ff';
-              residents.push(`<span class="ws-kid-tag" style="background:${bg}; color:${color}; border:1px solid ${color}33; padding:2px 6px; border-radius:4px; margin-left:4px; font-size:0.68rem; font-weight:700;"><i class="fas ${isFemale ? 'fa-female' : 'fa-male'}"></i> ${escHtml(k.name)}</span>`);
-            });
-
-            const residentsHtml = residents.length ? residents.join('') : '<span style="color:var(--muted); font-style:italic; font-size:0.7rem;">لا يوجد مسكنين</span>';
-            let genderLabel = 'مشترك';
-            if (r.gender_filter === 'male') genderLabel = 'أولاد';
-            else if (r.gender_filter === 'female') genderLabel = 'بنات';
-
-            return `
-              <tr style="border-bottom: 1px solid var(--border-light);">
-                <td style="padding: 8px 10px;">${escHtml(r.bldName)}</td>
-                <td style="padding: 8px 10px;">${escHtml(r.floorName || '-')}</td>
-                <td style="padding: 8px 10px; font-weight:700;">${escHtml(r.name)}</td>
-                <td style="padding: 8px 10px; text-align:center; font-weight:700;">${r.capacity}</td>
-                <td style="padding: 8px 10px; text-align:center;">${genderLabel}</td>
-                <td style="padding: 8px 10px; direction:rtl; text-align:right;">${residentsHtml}</td>
-              </tr>
-            `;
-          }).join('');
-        }
-
-        // Update stats
-        const roomsCount = Object.keys(roomsMap).length;
-        const kidsCount = assignedKids.length;
-        let unclesCount = 0;
-        Object.values(roomsMap).forEach(r => unclesCount += r.uncles.length);
-
-        document.getElementById('statRoomsCount').textContent = roomsCount;
-        document.getElementById('statBedsCount').textContent = totalBeds;
-        document.getElementById('statKidsCount').textContent = kidsCount;
-        document.getElementById('statUnclesCount').textContent = unclesCount;
-
-        // Transition UI
-        document.getElementById('bulkRoomsUploadSection').style.display = 'none';
-        document.getElementById('bulkRoomsReviewSection').style.display = 'flex';
-      };
-
-      window.backToBulkUpload = function() {
-        document.getElementById('bulkRoomsReviewSection').style.display = 'none';
-        document.getElementById('bulkRoomsUploadSection').style.display = 'flex';
-
-        // Reset files
-        const fileInput = document.getElementById('bulkRoomsFileInput');
-        if (fileInput) fileInput.value = '';
-
-        const label = document.getElementById('bulkRoomsFileLabel');
-        if (label) label.textContent = '2. اختر ملف CSV المعدل لرفعه';
-
-        const sub = document.getElementById('bulkRoomsFileSub');
-        if (sub) sub.textContent = 'أو اسحب وأفلت الملف هنا مباشرة';
-
-        const previewBtn = document.getElementById('btnPreviewBulkRooms');
-        if (previewBtn) {
-          previewBtn.disabled = true;
-          previewBtn.style.opacity = '0.5';
-        }
-
-        window.uploadedRoomsCSVData = null;
-      };
-
-      window.importRoomsCSV = async function() {
-        const tripId = window.currentTripId;
-        const newRoomsConfig = window.bulkRoomsParsedRoomsConfig;
-        const customDataPayload = window.bulkRoomsParsedCustomDataPayload;
-
-        if (!newRoomsConfig) {
-          showToast('لا توجد بيانات صالحة للحفظ', 'warning');
-          return;
-        }
-
-        const confirmBtn = document.getElementById('btnConfirmBulkRooms');
-        if (confirmBtn) confirmBtn.disabled = true;
-
         const successRooms = await saveRoomsConfig(tripId, newRoomsConfig);
         let successKids = true;
         
         // Update local registrations custom data cache if successful
         if (successRooms) {
-          const regs = tripRegistrationsCache[tripId] || [];
           if (customDataPayload && customDataPayload.length > 0) {
             successKids = await saveCustomDataPayload(tripId, customDataPayload);
             if (successKids) {
