@@ -17780,7 +17780,7 @@ function bulkSaveImportedKids()
         foreach ($allowedChurches as $cId) {
             $churchClasses = getClassesForChurch($cId);
             foreach ($churchClasses as $cls) {
-                $key = mb_strtolower(trim($cls['arabic_name']));
+                $key = normalizeArabicClassName($cls['arabic_name']);
                 $classMap[$key] = ['id' => $cls['id'], 'arabic_name' => $cls['arabic_name']];
             }
         }
@@ -17810,7 +17810,7 @@ function bulkSaveImportedKids()
             $classId = 0;
             $className = $classRaw;
             if (!empty($classRaw)) {
-                $lookupKey = mb_strtolower(trim($classRaw));
+                $lookupKey = normalizeArabicClassName($classRaw);
                 if (isset($classMap[$lookupKey])) {
                     $classId = $classMap[$lookupKey]['id'];
                     $className = $classMap[$lookupKey]['arabic_name'];
@@ -18097,6 +18097,29 @@ function bulkSaveImportedKids()
         }
         sendJSON(['success' => false, 'message' => 'خطأ في الاستيراد: ' . $e->getMessage()]);
     }
+}
+
+function normalizeArabicClassName($name) {
+    if (empty($name)) return '';
+    $name = mb_strtolower(trim($name), 'UTF-8');
+    
+    // Normalize Alef, Hamza
+    $name = preg_replace('/[أإآا]/u', 'ا', $name);
+    // Normalize Teh Marbuta
+    $name = preg_replace('/ة/u', 'ه', $name);
+    // Normalize Yeh
+    $name = preg_replace('/[ىي]/u', 'ي', $name);
+    
+    // Replace standard grade spelling to colloquial base to ensure intersection matches
+    $name = str_replace('ثانيه', 'تانيه', $name);
+    $name = str_replace('ثالثه', 'تالته', $name);
+    
+    // Remove punctuation, slashes, dashes, spaces and the conjunction 'و' (and)
+    $name = preg_replace('/[[:punct:]]/u', '', $name);
+    $name = str_replace(' ', '', $name);
+    $name = str_replace('و', '', $name);
+    
+    return $name;
 }
 
 function normalizeArabicNamePHP($str) {
