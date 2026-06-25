@@ -31,7 +31,8 @@ $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
 $tempIdFromUrl = isset($_GET['tempid']) ? $_GET['tempid'] : null;
 
 if ($tempIdFromUrl && !$studentIdFromUrl) {
-  if (isset($conn)) {
+  try {
+    $conn = getDBConnection();
     $stmt = $conn->prepare("SELECT id FROM students WHERE tempid = ? LIMIT 1");
     $stmt->bind_param("s", $tempIdFromUrl);
     $stmt->execute();
@@ -40,6 +41,8 @@ if ($tempIdFromUrl && !$studentIdFromUrl) {
       header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $row['id']);
       exit;
     }
+  } catch (Exception $e) {
+    // Database connection or query failed
   }
 }
 $isUncleLoggedIn = isset($_SESSION['uncle_id']) || isset($_SESSION['church_id']);
