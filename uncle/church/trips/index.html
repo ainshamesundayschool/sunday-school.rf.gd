@@ -10687,9 +10687,16 @@
         const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
         const showTripImage = extraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
         const showTripTitle = extraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
-        const showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
-        const showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
-        const showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+        let showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+        let showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+        let showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+
+        const isEmp = !!r.isEmptyCopy;
+        if (isEmp) {
+          showStudentImg = true;
+          showStudentName = true;
+          showStudentId = true;
+        }
 
         const {
           isLandscape,
@@ -10706,7 +10713,6 @@
           fChurch
         } = calculateCardLayout(baseWidth || 260, baseHeight || 360, scale, padding);
 
-        const isEmp = !!r.isEmptyCopy;
         const sid = isEmp ? '................' : (r.student_id || r.guest_id || r.id || '');
         const hasRawImg = !isEmp && r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
         const imgUrl = hasRawImg ? r.student_image : '/profile_default..webp';
@@ -10714,7 +10720,13 @@
         const showAvatarFallback = !isEmp && showStudentImg && showAvatarWhenNoPhoto;
         let avatarHtml = '';
         if (showStudentImg) {
-          if (isEmp || showAvatarFallback) {
+          if (isEmp) {
+            avatarHtml = `
+            <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; border:2px dashed ${strokeColor}; background:rgba(255,255,255,0.7); display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; align-self:center; box-sizing:border-box;">
+              <i class="fas fa-camera" style="font-size:${sAvatar * 0.3}px; color:${fontColor}; opacity:0.6;"></i>
+              <span style="font-size:${Math.max(5, sAvatar * 0.12)}px; color:${fontColor}; font-weight:800; opacity:0.7; margin-top:2px;">ضع الصورة</span>
+            </div>`;
+          } else if (showAvatarFallback) {
             avatarHtml = `
             <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
@@ -10727,7 +10739,7 @@
           }
         }
 
-        const safeStudentName = (isEmp && !r.student_name) ? '....................................' : escHtml(r.student_name || r.guest_name || '؟');
+        const safeStudentName = isEmp ? 'الاسم: ................................................' : escHtml(r.student_name || r.guest_name || '؟');
         const safeTripTitle = escHtml(trip.title || '');
         const hasCustomContent = !isEmp && showCustom && !!String(customHtml || '').trim();
 
@@ -10843,7 +10855,7 @@
 
         // Student Avatar + Name + Custom Info Group
         let studentInfoGroupHtml = '';
-        if ((showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0)) && !isEmp) {
+        if (showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0) || isEmp) {
           const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
           const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
 
@@ -10855,8 +10867,11 @@
                 if (['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(field.key)) {
                   return '';
                 }
-                const val = getStudentFieldValue(r, field.key, trip);
-                if (val === null || val === undefined || String(val).trim() === '') return '';
+                let val = getStudentFieldValue(r, field.key, trip);
+                if (isEmp) {
+                  val = '.....................';
+                }
+                if (!isEmp && (val === null || val === undefined || String(val).trim() === '')) return '';
                 let iconClass = field.icon || 'fas fa-info-circle';
                 
                 if (field.key.startsWith('custom_field_') && trip && trip.custom_field_icons) {
@@ -11090,12 +11105,19 @@
         let innerContentHtml = '';
 
         if (extraFields && extraFields.length > 0 && r) {
+          const isEmp = r && !!r.isEmptyCopy;
           const showChurch = extraFields.some(f => f.key === 'church_header');
           const showTripImage = extraFields.some(f => f.key === 'trip_image');
           const showTripTitle = extraFields.some(f => f.key === 'trip_title');
-          const showStudentImg = extraFields.some(f => f.key === 'student_image');
-          const showStudentName = extraFields.some(f => f.key === 'student_name');
-          const showStudentId = extraFields.some(f => f.key === 'student_id');
+          let showStudentImg = extraFields.some(f => f.key === 'student_image');
+          let showStudentName = extraFields.some(f => f.key === 'student_name');
+          let showStudentId = extraFields.some(f => f.key === 'student_id');
+
+          if (isEmp) {
+            showStudentImg = true;
+            showStudentName = true;
+            showStudentId = true;
+          }
 
           let headerHtml = '';
           if (showChurch) {
@@ -11114,8 +11136,6 @@
             const titleHtml = (showTripTitle && trip && trip.title) ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${escHtml(trip.title)}</h3>` : '';
             tripHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${imgHtml}${titleHtml}</div>`;
           }
-
-          const isEmp = r && !!r.isEmptyCopy;
 
           let studentHtml = '';
           if (showStudentImg || showStudentName) {
