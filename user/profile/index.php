@@ -5267,6 +5267,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       return r.json();
     }
 
+    // NOTE: Standardized intelligent search helper functions.
+    // Centralized library can be found at /js/search_intelligent.js
     function normalizeArabic(text) {
       if (!text) return "";
       return String(text)
