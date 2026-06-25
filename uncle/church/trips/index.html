@@ -12043,11 +12043,13 @@
       async function printQRCards(tripId) {
         document.getElementById('printTripId').value = tripId;
         cardExtraFields = [
-          { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
           { key: 'trip_title', label: 'عنوان الرحلة', placement: 'front', icon: 'fas fa-route' },
           { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
           { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
-          { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' }
+          { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' },
+          { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
+          { key: 'student_class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
+          { key: 'custom_field_السكن', label: 'السكن', placement: 'front', icon: 'fas fa-tag' }
         ];
         renderPrintExtraFieldsList();
         openModal('printSettingsModal');
@@ -12087,12 +12089,16 @@
         printSelectedUncleIds = new Set();
         const unclesOption = document.getElementById('printUnclesOption');
         if (unclesOption) {
-          unclesOption.checked = false;
+          unclesOption.checked = true;
           togglePrintUnclesSection();
         }
         const roomAssignmentOption = document.getElementById('printShowFloorInRoom');
         if (roomAssignmentOption) {
-          roomAssignmentOption.checked = true;
+          roomAssignmentOption.checked = false;
+        }
+        const fillEmptyOption = document.getElementById('printFillEmptyCopies');
+        if (fillEmptyOption) {
+          fillEmptyOption.checked = true;
         }
         populatePrintUncles(trip);
 
@@ -17276,7 +17282,7 @@
               </h4>
               
               <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); font-weight:700;">
-                <input type="checkbox" id="printFillEmptyCopies" style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                <input type="checkbox" id="printFillEmptyCopies" style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()" checked>
                 <span>تعبئة المساحات الفارغة في الورقة بكروت فارغة</span>
               </label>
 
@@ -17295,7 +17301,7 @@
               </h4>
               
               <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); font-weight:700;">
-                <input type="checkbox" id="printUnclesOption" style="accent-color:var(--primary); width:16px; height:16px;" onchange="togglePrintUnclesSection(); updatePrintPreview();">
+                <input type="checkbox" id="printUnclesOption" style="accent-color:var(--primary); width:16px; height:16px;" onchange="togglePrintUnclesSection(); updatePrintPreview();" checked>
                 <span>طباعة كروت الخدام (بدون QR)</span>
               </label>
 
@@ -17485,7 +17491,7 @@
 
                 <label
                   style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); margin-top:4px;">
-                  <input type="checkbox" id="printShowFloorInRoom" checked
+                  <input type="checkbox" id="printShowFloorInRoom"
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>إظهار الدور في السكن (Show Floor in Room Assignment)</span>
                 </label>
