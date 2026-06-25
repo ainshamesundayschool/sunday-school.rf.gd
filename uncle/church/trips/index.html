@@ -10421,6 +10421,8 @@
       function getStudentFieldValue(s, key, trip = null) {
         if (!s) return '';
         if (key === 'السكن' || key === 'custom_field_السكن') {
+          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
+          if (!showRoomSetting) return '';
           const customData = typeof s.custom_data === 'string' ? JSON.parse(s.custom_data || '{}') : (s.custom_data || {});
           const bld = customData['السكن'] || '';
           const floor = customData['السكن__sf__الدور'] || '';
@@ -10912,11 +10914,12 @@
             ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
             : [];
           const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
-          const extraInfoHtml = `
+          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
+          const extraInfoHtml = (showRoomSetting && roomText && roomText !== 'غير مسكن') ? `
             <div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; direction:rtl; text-align:center;">
               <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> <strong>${escHtml(roomText)}</strong></span>
             </div>
-          `;
+          ` : '';
 
           if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
             studentInfoGroupHtml = `
@@ -10955,7 +10958,7 @@
                     iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
                   }
                 }
-                if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن') {
+                if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن' || field.key === 'class' || field.key === 'student_class' || field.label === 'الفصل') {
                   return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
                 }
                 return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
@@ -11010,6 +11013,7 @@
             : [];
           const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
           const displayChurchName = r._churchName || r.church_name || churchName;
+          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
 
           const leftColumnHtml = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.7}px;">
@@ -11032,11 +11036,13 @@
                 </div>
               ` : ''}
               <!-- Room Assignment (Sakan) -->
+              ${showRoomSetting && roomText && roomText !== 'غير مسكن' ? `
               <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
                 <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
                   <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> <strong>${escHtml(roomText)}</strong>
                 </span>
               </div>
+              ` : ''}
             </div>
           `;
 
@@ -11330,7 +11336,7 @@
               const val = getStudentFieldValue(r, field.key, trip);
               if (val === null || val === undefined || String(val).trim() === '') return '';
               const iconClass = field.icon || 'fas fa-info-circle';
-              if (field.key === 'church_name_only') {
+              if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن' || field.key === 'class' || field.key === 'student_class' || field.label === 'الفصل') {
                 return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
               }
               return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
@@ -11925,6 +11931,10 @@
         if (unclesOption) {
           unclesOption.checked = false;
           togglePrintUnclesSection();
+        }
+        const roomAssignmentOption = document.getElementById('printShowRoomAssignment');
+        if (roomAssignmentOption) {
+          roomAssignmentOption.checked = true;
         }
         populatePrintUncles(trip);
 
@@ -16003,6 +16013,13 @@
                   <input type="checkbox" id="printBackCard" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
                   <span>توليد ظهر الكارت (Generate Back Card)</span>
+                </label>
+
+                <label
+                  style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); margin-top:4px;">
+                  <input type="checkbox" id="printShowRoomAssignment" checked
+                    style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                  <span>إظهار السكن على الكروت (Show Room Assignment)</span>
                 </label>
 
                 <!-- Dynamic Card Fields Selection -->
