@@ -10628,13 +10628,14 @@
           fChurch
         } = calculateCardLayout(baseWidth || 260, baseHeight || 360, scale, padding);
 
-        const sid = r.student_id || r.guest_id || r.id || '';
-        const hasRawImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
+        const isEmp = !!r.isEmptyCopy;
+        const sid = isEmp ? '' : (r.student_id || r.guest_id || r.id || '');
+        const hasRawImg = !isEmp && r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
         const imgUrl = hasRawImg ? r.student_image : '/profile_default..webp';
         // showAvatarFallback: show avatar even if no photo (with a default icon avatar)
-        const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+        const showAvatarFallback = !isEmp && showStudentImg && showAvatarWhenNoPhoto;
         let avatarHtml = '';
-        if (showStudentImg) {
+        if (showStudentImg && !isEmp) {
           if (showAvatarFallback) {
             avatarHtml = `
             <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
@@ -10649,9 +10650,9 @@
           }
         }
 
-        const safeStudentName = escHtml(r.student_name || r.guest_name || '؟');
+        const safeStudentName = isEmp ? '' : escHtml(r.student_name || r.guest_name || '؟');
         const safeTripTitle = escHtml(trip.title || '');
-        const hasCustomContent = showCustom && !!String(customHtml || '').trim();
+        const hasCustomContent = !isEmp && showCustom && !!String(customHtml || '').trim();
 
         const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
         const readPadding = `${readabilityPadding * scale}px`;
@@ -10699,6 +10700,10 @@
         }
 
         const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
+
+        const qrContainerHtml = isEmp
+          ? `<div style="width:${qrSize}px; height:${qrSize}px; display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`
+          : `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
 
         // Card Background & Image Overlay HTML
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
@@ -10763,7 +10768,7 @@
 
         // Student Avatar + Name + Custom Info Group
         let studentInfoGroupHtml = '';
-        if (showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0)) {
+        if ((showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0)) && !isEmp) {
           const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
           const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
 
@@ -10859,7 +10864,7 @@
             qrHalfHtml = `
             <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                 <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                     ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                 </div>
             </div>
@@ -10868,7 +10873,7 @@
             qrHalfHtml = `
             <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                 <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                     ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                 </div>
             </div>
@@ -10877,7 +10882,7 @@
             qrHalfHtml = `
             <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                 <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                 </div>
                 ${showStudentIdHtml}
             </div>
@@ -10919,7 +10924,7 @@
             qrHalfHtml = `
             <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                 <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                     ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                 </div>
             </div>
@@ -10928,7 +10933,7 @@
             qrHalfHtml = `
             <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                 <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                     ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                 </div>
             </div>
@@ -10937,7 +10942,7 @@
             qrHalfHtml = `
             <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
                 <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                    <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                    ${qrContainerHtml}
                 </div>
                 ${showStudentIdHtml}
             </div>
@@ -11035,8 +11040,10 @@
             tripHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${imgHtml}${titleHtml}</div>`;
           }
 
+          const isEmp = r && !!r.isEmptyCopy;
+
           let studentHtml = '';
-          if (showStudentImg || showStudentName) {
+          if ((showStudentImg || showStudentName) && !isEmp) {
             let avatarHtml = '';
             if (showStudentImg) {
               const hasRawImg = r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
@@ -11060,13 +11067,13 @@
           }
 
           let idHtml = '';
-          if (showStudentId) {
+          if (showStudentId && !isEmp) {
             const sid = r.student_id || r.guest_id || r.id || '';
             idHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
           }
 
           let textFieldsHtml = '';
-          const textFields = extraFields.filter(f => !['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(f.key));
+          const textFields = isEmp ? [] : extraFields.filter(f => !['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(f.key));
           if (textFields.length > 0) {
             const itemsHtml = textFields.map(field => {
               const val = getStudentFieldValue(r, field.key, trip);
@@ -11150,7 +11157,50 @@
 
         let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         let rawRegs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
-        let regs = getSelectedPrintRegistrations(rawRegs);
+        let regs = [...getSelectedPrintRegistrations(rawRegs)];
+
+        const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
+        for (let k = 0; k < extraCount; k++) {
+          regs.push({
+            id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+            student_id: '',
+            student_name: '',
+            student_image: '',
+            custom_data: null,
+            isEmptyCopy: true
+          });
+        }
+
+        const fillWithEmptyCopies = document.getElementById('printFillEmptyCopies')?.checked || false;
+        if (fillWithEmptyCopies && regs.length > 0) {
+          const paperSize = document.getElementById('printPaperSize')?.value || 'a4-landscape';
+          let wValTmp = parseFloat(document.getElementById('printCardWidth')?.value || 7);
+          let hValTmp = parseFloat(document.getElementById('printCardHeight')?.value || 10);
+          if (wValTmp > 50) wValTmp = wValTmp / 37.795;
+          if (hValTmp > 50) hValTmp = hValTmp / 37.795;
+          const cardW = wValTmp * 37.795;
+          const cardH = hValTmp * 37.795;
+          const gapXVal = parseFloat(document.getElementById('printGapX')?.value || 0);
+          const gapYVal = parseFloat(document.getElementById('printGapY')?.value || 0);
+          const scaleVal = parseFloat(document.getElementById('printScale')?.value || 100) / 100;
+          const grid = getPageGridDimensions(paperSize, cardW, cardH, gapXVal, gapYVal, scaleVal);
+          const cardsPerPage = grid.cardsPerPage;
+
+          const rem = regs.length % cardsPerPage;
+          if (rem > 0) {
+            const padNeeded = cardsPerPage - rem;
+            for (let k = 0; k < padNeeded; k++) {
+              regs.push({
+                id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+                student_id: '',
+                student_name: '',
+                student_image: '',
+                custom_data: null,
+                isEmptyCopy: true
+              });
+            }
+          }
+        }
 
         const previewWrapper = document.getElementById('printPreviewContent');
         if (!trip || regs.length === 0) {
@@ -11196,14 +11246,26 @@
         const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked !== false;
 
         const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
-        const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => ({
-          ...sourceReg,
-          id: sourceReg.id || `preview_demo_${idx}`,
-          student_id: sourceReg.student_id || sourceReg.guest_id || `demo_${idx}`,
-          student_name: sourceReg.student_name || sourceReg.guest_name || sourceReg.name || `اسم الطفل ${idx + 1}`,
-          student_image: sourceReg.student_image || '',
-          custom_data: sourceReg.custom_data || null
-        }));
+        const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => {
+          if (sourceReg.isEmptyCopy) {
+            return {
+              ...sourceReg,
+              id: sourceReg.id || `preview_demo_${idx}`,
+              student_id: '',
+              student_name: '',
+              student_image: '',
+              custom_data: null
+            };
+          }
+          return {
+            ...sourceReg,
+            id: sourceReg.id || `preview_demo_${idx}`,
+            student_id: sourceReg.student_id || sourceReg.guest_id || `demo_${idx}`,
+            student_name: sourceReg.student_name || sourceReg.guest_name || sourceReg.name || `اسم الطفل ${idx + 1}`,
+            student_image: sourceReg.student_image || '',
+            custom_data: sourceReg.custom_data || null
+          };
+        });
 
         previewWrapper.style.display = 'flex';
         previewWrapper.style.flexWrap = 'wrap';
@@ -11245,9 +11307,11 @@
 
 
         previewRegs.forEach((_, idx) => {
+          const el = document.getElementById(`prev_qrcode_sample_${idx}`);
+          if (!el) return;
           const rawPreviewStudentId = previewRegs[idx].student_id || '';
           const previewStudentId = /^[0-9]+$/.test(String(rawPreviewStudentId)) ? rawPreviewStudentId : '1';
-          new QRCode(document.getElementById(`prev_qrcode_sample_${idx}`), {
+          new QRCode(el, {
             text: `${window.location.origin}/user/profile/?id=${encodeURIComponent(previewStudentId)}`,
             width: qrSize,
             height: qrSize,
@@ -11471,8 +11535,20 @@
             }
           } catch (e) { }
         }
-        let regs = getSelectedPrintRegistrations(rawRegs);
-        if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة', 'warning'); return; }
+        let regs = [...getSelectedPrintRegistrations(rawRegs)];
+
+        const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
+        for (let k = 0; k < extraCount; k++) {
+          regs.push({
+            id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+            student_id: '',
+            student_name: '',
+            student_image: '',
+            custom_data: null,
+            isEmptyCopy: true
+          });
+        }
+        if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة ولا توجد كروت فارغة مطلوبة', 'warning'); return; }
 
         // Get settings
         const scale = parseFloat(document.getElementById('printScale').value) / 100;
@@ -11523,11 +11599,23 @@
           pages.push(regs.slice(i, i + cardsPerPage));
         }
 
-        // Pad each page to cardsPerPage with null elements so page layouts match exactly
+        const fillWithEmptyCopies = document.getElementById('printFillEmptyCopies')?.checked || false;
+        // Pad each page to cardsPerPage
         const paddedPages = pages.map(pRegs => {
           const padded = [...pRegs];
           while (padded.length < cardsPerPage) {
-            padded.push(null);
+            if (fillWithEmptyCopies) {
+              padded.push({
+                id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+                student_id: '',
+                student_name: '',
+                student_image: '',
+                custom_data: null,
+                isEmptyCopy: true
+              });
+            } else {
+              padded.push(null);
+            }
           }
           return padded;
         });
@@ -11552,13 +11640,16 @@
         // Helper to render a front card
         function renderFrontCard(r) {
           if (!r) return placeholderHtml;
+          const isEmp = !!r.isEmptyCopy;
           const cardId = 'qrcode_' + r.id;
           const link = r.student_id
             ? `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`
             : `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&guest_id=${encodeURIComponent(r.guest_id || r.id)}`;
           const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
-          qrTasks.push({ id: cardId, text: link });
+          if (!isEmp) {
+            qrTasks.push({ id: cardId, text: link });
+          }
 
           return generateCardMarkup({
             trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
@@ -15153,6 +15244,24 @@
                 <div id="printChurchesList" style="display:flex; flex-direction:column; gap:6px; margin-right:12px; max-height:150px; overflow-y:auto; padding:4px;">
                   <!-- Dynamic checklists of churches -->
                 </div>
+              </div>
+            </div>
+
+            <!-- Section: Empty Copies Options -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-copy"></i> خيارات الكروت الفارغة الإضافية
+              </h4>
+              
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); font-weight:700;">
+                <input type="checkbox" id="printFillEmptyCopies" style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
+                <span>تعبئة المساحات الفارغة في الورقة بكروت فارغة</span>
+              </label>
+
+              <div class="form-group" style="margin-top:4px;">
+                <label class="form-label" style="font-weight:700;">عدد الكروت الفارغة الإضافية المطلوب طباعتها</label>
+                <input type="number" id="printExtraEmptyCopiesCount" class="form-input" value="0" min="0" max="200" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
               </div>
             </div>
 
