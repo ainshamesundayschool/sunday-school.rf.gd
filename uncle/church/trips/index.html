@@ -10969,7 +10969,49 @@
         }
 
         let innerContentHtml = '';
-        if (isLandscape) {
+        if (r.isUncle) {
+          const roomsConfig = trip && trip.rooms_config 
+            ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
+            : [];
+          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+          const displayChurchName = r._churchName || r.church_name || churchName;
+
+          const leftColumnHtml = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${6 * scale}px; flex-shrink:0; width:${sAvatar * 1.3}px;">
+              ${avatarHtml}
+              <h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-break:break-word; line-height:1.2;">${safeStudentName}</h2>
+            </div>
+          `;
+
+          const rightColumnHtml = `
+            <div style="display:flex; flex-direction:column; gap:${8 * scale}px; flex:1; direction:rtl; text-align:right; min-width:0; justify-content:center;">
+              <!-- Church Name -->
+              <div style="display:flex; align-items:center; gap:${4 * scale}px; font-weight:800; font-size:${fChurch * 1.15}px; color:${fontColor}; border-bottom:1.5px solid ${fontColor}22; padding-bottom:6px; margin-bottom:2px; flex-wrap:wrap;">
+                <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo * 1.1}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
+                <span style="line-height:1.2; word-break:break-word;">${displayChurchName}</span>
+              </div>
+              <!-- Trip Title -->
+              ${showTripTitle && safeTripTitle ? `
+                <div style="font-size:${fH3 * 1.1}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  <i class="fas fa-route" style="opacity:0.75; margin-left:4px;"></i> ${safeTripTitle}
+                </div>
+              ` : ''}
+              <!-- Room Assignment (Sakan) -->
+              <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
+                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
+                  <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> السكن: <strong>${escHtml(roomText)}</strong>
+                </span>
+              </div>
+            </div>
+          `;
+
+          innerContentHtml = `
+            <div style="position:relative; z-index:5; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${12 * scale}px; border-radius:${10 * scale}px; box-shadow:${boxShadowValue}; display:flex; flex-direction:row; align-items:center; width:100%; height:100%; box-sizing:border-box; gap:${16 * scale}px; direction:ltr; text-align:left;">
+              ${leftColumnHtml}
+              ${rightColumnHtml}
+            </div>
+          `;
+        } else if (isLandscape) {
           let detailsHtml = '';
           if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
             detailsHtml = `
