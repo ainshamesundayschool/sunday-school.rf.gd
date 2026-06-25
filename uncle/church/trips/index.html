@@ -3945,8 +3945,8 @@
       }
     }
 
-    .trip-shell-page #printSettingsModal .modal-box,
-    #printSettingsModal[data-shell-mounted="1"] .modal-box {
+    .trip-shell-page .print-settings-box,
+    #printSettingsModal[data-shell-mounted="1"] .print-settings-box {
       width: 100% !important;
       max-width: none !important;
       height: calc(100vh - 220px) !important;
@@ -3955,7 +3955,7 @@
       border-radius: 0 !important;
     }
 
-    .trip-shell-page #printSettingsModal .modal-body,
+    .trip-shell-page .print-settings-box .modal-body,
     #printSettingsModal[data-shell-mounted="1"] .modal-body {
       display: grid !important;
       grid-template-columns: 410px 1fr !important;
@@ -3967,7 +3967,7 @@
       padding: 20px 24px 24px !important;
     }
 
-    .trip-shell-page #printSettingsModal #printSettingsFormPanel,
+    .trip-shell-page .print-settings-box #printSettingsFormPanel,
     #printSettingsModal[data-shell-mounted="1"] #printSettingsFormPanel {
       grid-column: 1 !important;
       width: 100% !important;
@@ -3979,7 +3979,7 @@
       padding-left: 10px !important;
     }
 
-    .trip-shell-page #printSettingsModal #printPreviewPanel,
+    .trip-shell-page .print-settings-box #printPreviewPanel,
     #printSettingsModal[data-shell-mounted="1"] #printPreviewPanel {
       grid-column: 2 !important;
       width: 100% !important;
@@ -3996,7 +3996,7 @@
       margin: 0 !important;
     }
 
-    .trip-shell-page #printSettingsModal #printPreviewWrapper,
+    .trip-shell-page .print-settings-box #printPreviewWrapper,
     #printSettingsModal[data-shell-mounted="1"] #printPreviewWrapper {
       flex: 1 1 auto !important;
       min-height: 0 !important;
@@ -4004,8 +4004,8 @@
       overflow: auto !important;
     }
 
-    .trip-shell-page #registerStudentModal .modal-box,
-    #registerStudentModal[data-shell-mounted="1"] .modal-box {
+    .trip-shell-page .register-student-box,
+    #registerStudentModal[data-shell-mounted="1"] .register-student-box {
       width: 100% !important;
       max-width: none !important;
       height: calc(100vh - 220px) !important;
@@ -4013,14 +4013,14 @@
       margin: 0 !important;
     }
 
-    .trip-shell-page #registerStudentModal .modal-body,
+    .trip-shell-page .register-student-box .modal-body,
     #registerStudentModal[data-shell-mounted="1"] .modal-body {
       overflow: hidden !important;
       min-height: 0 !important;
       height: 100% !important;
     }
 
-    .trip-shell-page #registerStudentModal #registerStudentForm,
+    .trip-shell-page .register-student-box #registerStudentForm,
     #registerStudentModal[data-shell-mounted="1"] #registerStudentForm {
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) 320px;
@@ -4031,7 +4031,7 @@
       align-items: stretch;
     }
 
-    .trip-shell-page #registerStudentModal .register-main-column,
+    .trip-shell-page .register-student-box .register-main-column,
     #registerStudentModal[data-shell-mounted="1"] .register-main-column {
       min-height: 0 !important;
       overflow-y: auto !important;
@@ -4041,20 +4041,20 @@
       overscroll-behavior: contain;
     }
 
-    .trip-shell-page #registerStudentModal .kid-picker-panel,
+    .trip-shell-page .register-student-box .kid-picker-panel,
     #registerStudentModal[data-shell-mounted="1"] .kid-picker-panel {
       min-height: 0 !important;
       overflow: visible !important;
     }
 
-    .trip-shell-page #registerStudentModal .kid-grid,
+    .trip-shell-page .register-student-box .kid-grid,
     #registerStudentModal[data-shell-mounted="1"] .kid-grid {
       overflow: visible !important;
       min-height: unset !important;
       max-height: none !important;
     }
 
-    .trip-shell-page #registerStudentModal .register-sticky-footer,
+    .trip-shell-page .register-student-box .register-sticky-footer,
     #registerStudentModal[data-shell-mounted="1"] .register-sticky-footer {
       position: sticky !important;
       top: 0;
@@ -4068,32 +4068,32 @@
       background: white;
     }
 
-    .trip-shell-page #registerStudentModal .register-sticky-footer .register-fields,
+    .trip-shell-page .register-student-box .register-sticky-footer .register-fields,
     #registerStudentModal[data-shell-mounted="1"] .register-sticky-footer .register-fields {
       grid-template-columns: 1fr;
       gap: 10px;
       margin-bottom: 12px;
     }
 
-    .trip-shell-page #registerStudentModal .register-sticky-footer .register-actions,
+    .trip-shell-page .register-student-box .register-sticky-footer .register-actions,
     #registerStudentModal[data-shell-mounted="1"] .register-sticky-footer .register-actions {
       flex-direction: column;
     }
 
     @media (max-width: 960px) {
 
-      .trip-shell-page #registerStudentModal #registerStudentForm,
+      .trip-shell-page .register-student-box #registerStudentForm,
       #registerStudentModal[data-shell-mounted="1"] #registerStudentForm {
         grid-template-columns: 1fr;
       }
 
-      .trip-shell-page #registerStudentModal .register-main-column,
+      .trip-shell-page .register-student-box .register-main-column,
       #registerStudentModal[data-shell-mounted="1"] .register-main-column {
         overflow: visible !important;
         padding-left: 0;
       }
 
-      .trip-shell-page #registerStudentModal .register-sticky-footer,
+      .trip-shell-page .register-student-box .register-sticky-footer,
       #registerStudentModal[data-shell-mounted="1"] .register-sticky-footer {
         position: relative !important;
         top: auto;
@@ -6682,7 +6682,7 @@
 
     <!-- Register Student for Trip — with kid profile cards -->
     <div id="registerStudentModal" class="modal">
-      <div class="modal-box" style="max-width:620px;">
+      <div class="modal-box register-student-box" style="max-width:620px;">
         <div class="modal-head">
           <h2 id="regModalTitle"><i class="fas fa-user-plus"></i> تسجيل طفل</h2><button class="modal-close"
             onclick="closeModal('registerStudentModal')"><i class="fas fa-times"></i></button>
@@ -15696,7 +15696,7 @@
 
     <!-- Print Settings Modal -->
     <div id="printSettingsModal" class="modal">
-      <div class="modal-box wide">
+      <div class="modal-box wide print-settings-box">
         <div class="modal-head">
           <h2><i class="fas fa-print"></i> خيارات ومعاينة الطباعة</h2>
           <button class="modal-close" onclick="closeModal('printSettingsModal')"><i class="fas fa-times"></i></button>
