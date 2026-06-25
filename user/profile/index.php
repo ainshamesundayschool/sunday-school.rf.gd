@@ -5560,15 +5560,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <!-- Tab 2: Create New -->
           <div id="assignTabNew" style="display:none;">
             <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
-              <!-- Church Selector (Intelligent autocomplete) -->
-              <div style="position:relative;">
+              <!-- Church Selector (Select dropdown) -->
+              <div>
                 <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكنيسة *</label>
-                <div style="position:relative;">
-                  <input type="text" id="newStudentChurchInput" placeholder="اكتب اسم الكنيسة للبحث..." value="${esc(churchSettings?.church_name || '')}" style="width:100%; padding:12px 14px 12px 38px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="onNewStudentChurchSearchChange(this.value)">
-                  <i class="fas fa-church" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--t4);"></i>
-                </div>
-                <div id="newStudentChurchSuggestions" style="display:none; position:absolute; right:0; left:0; background:#fff; border:1.5px solid var(--bdr); border-radius:10px; margin-top:6px; max-height:200px; overflow-y:auto; box-shadow:var(--sh-md); z-index:999;"></div>
-                <input type="hidden" id="newStudentChurchId" value="${esc(churchSettings?.church_id || '')}">
+                <select id="newStudentChurchId" onchange="selectNewStudentChurch(this.value)" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
+                  <option value="">اختر الكنيسة</option>
+                  ${(window.allChurches || []).map(c => `<option value="${c.id}" ${c.id == churchSettings?.church_id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+                </select>
               </div>
 
               <!-- Photo Upload Section -->
@@ -5667,35 +5665,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       newStudentPhotoBlob = file;
     };
 
-    window.onNewStudentChurchSearchChange = function(q) {
-      const suggestionsDiv = document.getElementById('newStudentChurchSuggestions');
-      if (!q.trim()) {
-        suggestionsDiv.style.display = 'none';
+    window.selectNewStudentChurch = async function(id) {
+      if (!id) {
+        document.getElementById('newStudentClass').innerHTML = '<option value="">اختر الفصل</option>';
+        document.getElementById('newStudentCustomFieldsArea').innerHTML = '';
+        document.getElementById('newStudentCustomFieldsArea').style.display = 'none';
         return;
       }
-      const churches = window.allChurches || [];
-      const scored = churches.map(c => {
-        const score = getMatchScore({ name: c.name }, q);
-        return { ...c, _score: score };
-      }).filter(c => c._score > 0).sort((a, b) => b._score - a._score);
-
-      if (scored.length > 0) {
-        suggestionsDiv.innerHTML = scored.map(c => `
-          <div onclick="selectNewStudentChurch(${c.id}, '${esc(c.name)}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
-            <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(c.name)}</div>
-          </div>
-        `).join('');
-        suggestionsDiv.style.display = 'block';
-      } else {
-        suggestionsDiv.innerHTML = `<div style="padding:12px; color:var(--t4); text-align:center; font-size:0.85rem;">لم يتم العثور على كنائس</div>`;
-        suggestionsDiv.style.display = 'block';
-      }
-    };
-
-    window.selectNewStudentChurch = async function(id, name) {
-      document.getElementById('newStudentChurchInput').value = name;
-      document.getElementById('newStudentChurchId').value = id;
-      document.getElementById('newStudentChurchSuggestions').style.display = 'none';
 
       // Load classes and custom fields for selected church
       showLoad('تحميل فصول وبيانات الكنيسة المحددة...');
