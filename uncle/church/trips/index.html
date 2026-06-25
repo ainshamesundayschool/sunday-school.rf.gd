@@ -12243,6 +12243,10 @@
       }
 
       function applyRecommendedQRTemplate() {
+        // Paper Size: A3 Landscape
+        const paperSizeSelect = document.getElementById('printPaperSize');
+        if (paperSizeSelect) paperSizeSelect.value = 'a3-landscape';
+
         // Apply scale
         const scaleInput = document.getElementById('printScale');
         if (scaleInput) {
@@ -15281,9 +15285,9 @@
                   style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;"
                   onchange="updatePrintPreview()">
                   <option value="a4-portrait">A4 بالطول (21.0 × 29.7 سم)</option>
-                  <option value="a4-landscape" selected>A4 بالعرض (29.7 × 21.0 سم)</option>
+                  <option value="a4-landscape">A4 بالعرض (29.7 × 21.0 سم)</option>
                   <option value="a3-portrait">A3 بالطول (29.7 × 42.0 سم)</option>
-                  <option value="a3-landscape">A3 بالعرض (42.0 × 29.7 سم)</option>
+                  <option value="a3-landscape" selected>A3 بالعرض (42.0 × 29.7 سم)</option>
                 </select>
               </div>
 
