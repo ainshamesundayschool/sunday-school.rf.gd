@@ -3685,6 +3685,8 @@
       box-sizing: border-box;
       background: #fff;
       overflow: hidden !important;
+      print-color-adjust: exact !important;
+      -webkit-print-color-adjust: exact !important;
     }
 
     .print-card img.avatar {
@@ -10977,9 +10979,9 @@
           const displayChurchName = r._churchName || r.church_name || churchName;
 
           const leftColumnHtml = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${6 * scale}px; flex-shrink:0; width:${sAvatar * 1.3}px;">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.7}px;">
               ${avatarHtml}
-              <h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-break:break-word; line-height:1.2;">${safeStudentName}</h2>
+              <h2 style="font-size:${fH2 * 0.95}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-break:break-word; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; width:100%;">${safeStudentName}</h2>
             </div>
           `;
 
