@@ -380,9 +380,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0;
             box-sizing: border-box;
         }
+
         .dev-church-bar-pill:hover {
             background: rgba(124, 58, 237, 0.12);
         }
+
         .dev-church-bar-icon {
             width: 24px;
             height: 24px;
@@ -395,6 +397,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.7rem;
             flex-shrink: 0;
         }
+
         .dev-church-select-input {
             background: transparent;
             border: none;
@@ -412,6 +415,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-overflow: ellipsis;
             direction: rtl;
         }
+
         .dev-church-chevron {
             position: absolute;
             left: 0;
@@ -3176,6 +3180,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .attendance-item .bulk-check-wrap {
             display: none;
         }
+
         .attendance-list.bulk-active .attendance-item .bulk-check-wrap {
             display: flex;
         }
@@ -10312,9 +10317,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; direction: rtl; padding-bottom: 8px; border-bottom: 1px solid var(--border-solid);">
 
                 <!-- Right Side: Select All Checkbox + Label -->
-                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer;" onclick="toggleSelectAllBulk(event)" title="تحديد الكل">
-                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle" style="margin: 0;"><i class="fas fa-check"></i></div>
-                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد الكل</span>
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer;"
+                    onclick="toggleSelectAllBulk(event)" title="تحديد الكل">
+                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle" style="margin: 0;"><i
+                            class="fas fa-check"></i></div>
+                    <span
+                        style="font-size: 0.88rem; font-weight: 700; color: var(--text-2); font-family: Cairo, sans-serif;">تحديد
+                        الكل</span>
                 </div>
 
                 <!-- Left Side: Selection Actions + Close Button -->
@@ -10479,9 +10488,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
                 <!-- Dev Switcher in Topbar Actions -->
-                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" style="display:none; align-items:center; margin-inline-end: 8px;">
+                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
+                    style="display:none; align-items:center; margin-inline-end: 8px;">
                     <div style="position:relative;display:flex;align-items:center;">
-                        <select id="devChurchSelect" class="dev-church-select-input" onchange="devSwitchChurch(this.value)">
+                        <select id="devChurchSelect" class="dev-church-select-input"
+                            onchange="devSwitchChurch(this.value)">
                             <option value="">كنيستي الافتراضية</option>
                         </select>
                         <i class="fas fa-chevron-down dev-church-chevron"></i>
@@ -10641,7 +10652,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Class inline search wrap -->
                 <div class="class-inline-search-wrap"
-                    style="display: flex; gap: 2px; align-items: center; margin-bottom: 12px;">
+                    style="display: flex;gap: 2px;align-items: center;margin-bottom: 12px;padding: 4px;border-radius: 0 0 20px 20px;">
 
                     <!-- 3 Vertical Dots Tools Button (Before Search) -->
                     <div class="action-dropdown" style="position: relative; display: inline-block; flex: none;">
