@@ -1243,6 +1243,15 @@ if (file_exists($configRoot . '/' . $configName)) {
     require_once $configRoot . '/config.php';
 }
 
+// Run dynamic schema checks on startup
+try {
+    $conn = getDBConnection();
+    ensureStudentsAddedByColumn($conn);
+    ensureStudentTempIdColumn($conn);
+} catch (Exception $e) {
+    error_log("Failed to run startup migrations: " . $e->getMessage());
+}
+
 require_once 'audit.php';
 
 if (file_exists($configRoot . '/vendor/autoload.php')) {
