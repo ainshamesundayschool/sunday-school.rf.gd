@@ -5767,6 +5767,7 @@
         const fields = [
           { key: 'photo', label: 'الصورة الشخصية', type: 'photo', selected: false },
           { key: 'qrcode', label: 'كود QR', type: 'qrcode', selected: false },
+          { key: 'student_id', label: 'كود الطفل (ID)', type: 'student_id', selected: true },
           { key: 'name', label: 'الاسم', source: 'student_name', selected: true },
           { key: 'class', label: 'الفصل', source: 'student_class', selected: true },
           { key: 'gender', label: 'النوع', type: 'gender', selected: false },
@@ -5930,6 +5931,10 @@
 
       function getCustomExportCellValue(r, field, forCsv = false) {
         const isGuest = r.guest_id ? true : false;
+
+        if (field.type === 'student_id') {
+          return isGuest ? (r.guest_id || '') : getStudentDbId(r);
+        }
 
         if (field.type === 'qrcode') {
           if (isGuest) return '';

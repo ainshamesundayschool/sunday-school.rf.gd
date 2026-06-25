@@ -5273,6 +5273,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       container.style.display = 'block';
 
       if (!IS_UNCLE_LOGGED_IN) {
+        // Try restoring session
+        const cl = localStorage.getItem('loggedIn') === 'true';
+        const ul = localStorage.getItem('uncleLoggedIn') === 'true';
+        if (cl || ul) {
+          showLoad('استعادة الجلسة...');
+          try {
+            const fd = new FormData();
+            fd.append('action', 'restore_session');
+            if (cl) fd.append('church_code', localStorage.getItem('churchCode'));
+            else fd.append('username', localStorage.getItem('uncleUsername'));
+            
+            const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
+            if (r.success) {
+              location.reload();
+              return;
+            }
+          } catch(e) {}
+          hideLoad();
+        }
+
         container.innerHTML = `
           <div style="background:#fff; padding:24px; border-radius:16px; box-shadow:var(--sh-md); text-align:center; max-width:450px; margin:40px auto; border: 1.5px solid var(--bdr);">
             <div style="font-size:3.5rem; color:var(--brand); margin-bottom:16px;"><i class="fas fa-qrcode"></i></div>
@@ -5286,21 +5306,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         return;
       }
 
-      showLoad('تحميل الفصول...');
+      showLoad('تحميل البيانات...');
       let classes = [];
+      let churchSettings = null;
       try {
-        const d = await api({ action: 'listClasses' });
-        if (d.success) classes = d.data || d.classes || [];
+        const [dClasses, dSettings] = await Promise.all([
+          api({ action: 'listClasses' }),
+          api({ action: 'getChurchSettings' })
+        ]);
+        if (dClasses.success) classes = dClasses.data || dClasses.classes || [];
+        if (dSettings.success) churchSettings = dSettings.settings || {};
       } catch (e) {
         console.error(e);
       }
       hideLoad();
 
-      renderTempIdAssignmentUI(tempid, classes);
+      let churchCustomFields = [];
+      if (churchSettings && (churchSettings.custom_fields || churchSettings.custom_field)) {
+        const cf = churchSettings.custom_fields || churchSettings.custom_field;
+        churchCustomFields = Array.isArray(cf) ? cf : [cf];
+      }
+
+      renderTempIdAssignmentUI(tempid, classes, churchCustomFields);
     }
 
-    function renderTempIdAssignmentUI(tempid, classes) {
+    function renderTempIdAssignmentUI(tempid, classes, churchCustomFields) {
       const container = document.getElementById('tempIdAssignContainer');
+      
+      const cfHtml = (churchCustomFields || []).map((cf, idx) => {
+        const key = 'field_' + idx;
+        const icon = cf.icon || 'fa-tag';
+        return `
+          <div>
+            <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;"><i class="fas ${esc(icon)}"></i> ${esc(cf.name)}</label>
+            <input type="text" class="new-student-cf-input" data-cf-key="${key}" placeholder="${esc(cf.name)}..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+          </div>
+        `;
+      }).join('');
+
       container.innerHTML = `
         <div style="background:#fff; padding:24px; border-radius:20px; box-shadow:var(--sh-md); border:1.5px solid var(--bdr); margin:20px auto;">
           <div style="display:flex; align-items:center; gap:12px; border-bottom:2px dashed var(--bdr); padding-bottom:16px; margin-bottom:20px;">
@@ -5349,19 +5392,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div id="assignTabNew" style="display:none;">
             <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
               <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الاسم الكامل *</label>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الاسم الكامل للطفل *</label>
                 <input type="text" id="newStudentName" placeholder="الاسم الكامل للطفل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
               </div>
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الفصل *</label>
-                <select id="newStudentClass" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
-                  <option value="">اختر الفصل</option>
-                  ${classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
-                </select>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الفصل *</label>
+                  <select id="newStudentClass" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
+                    <option value="">اختر الفصل</option>
+                    ${classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">النوع</label>
+                  <select id="newStudentGender" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
+                    <option value="">تلقائي من الاسم</option>
+                    <option value="male">ولد</option>
+                    <option value="female">بنت</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">رقم الهاتف</label>
+                  <input type="tel" id="newStudentPhone" placeholder="رقم الهاتف (11 رقم)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">تليفون الطوارئ</label>
+                  <input type="tel" id="newStudentEmergencyPhone" placeholder="تليفون الطوارئ (11 رقم)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                </div>
               </div>
               <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">رقم الهاتف</label>
-                <input type="tel" id="newStudentPhone" placeholder="رقم الهاتف للتواصل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">العنوان بالتفصيل</label>
+                <input type="text" id="newStudentAddress" placeholder="المنطقة، الشارع، رقم الشقة..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+              </div>
+              <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:12px;">
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">تاريخ الميلاد</label>
+                  <input type="text" id="newStudentBirthday" placeholder="DD/MM/YYYY (مثال: 15/08/2012)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                </div>
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكوبونات الأولية</label>
+                  <input type="number" id="newStudentCoupons" value="0" min="0" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                </div>
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">ملاحظات طبية / خاصة</label>
+                <textarea id="newStudentMedicalNotes" placeholder="أمراض، حساسية، أو ملاحظات هامة..." rows="2" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
+              </div>
+
+              <!-- Dynamic Custom Fields Area -->
+              <div id="newStudentCustomFieldsArea" style="${cfHtml ? 'display:flex; flex-direction:column; gap:14px; border-top:1px dashed var(--bdr); padding-top:14px;' : 'display:none;'}">
+                ${cfHtml}
               </div>
             </div>
 
@@ -5414,7 +5496,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           resultsDiv.innerHTML = d.students.map(s => `
             <div onclick="selectAssignStudent(${s.id}, '${esc(s.name)}', '${esc(s.class || '')}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
               <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(s.name)}</div>
-              <div style="font-size:0.75rem; color:var(--t3); margin-top:2px;">الفصل: ${esc(s.class || '')}</div>
+              <div style="font-size:0.75rem; color:var(--t3); margin-top:2px;">الكنيسة: ${esc(s.church_name || '')} - الفصل: ${esc(s.class || '')}</div>
             </div>
           `).join('');
           resultsDiv.style.display = 'block';
@@ -5472,23 +5554,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     window.submitAssignNew = async function(tempid) {
       const name = document.getElementById('newStudentName').value.trim();
       const classId = document.getElementById('newStudentClass').value;
+      const gender = document.getElementById('newStudentGender').value;
+      const address = document.getElementById('newStudentAddress').value.trim();
       const phone = document.getElementById('newStudentPhone').value.trim();
+      const emergencyPhone = document.getElementById('newStudentEmergencyPhone').value.trim();
+      const birthday = document.getElementById('newStudentBirthday').value.trim();
+      const coupons = parseInt(document.getElementById('newStudentCoupons').value) || 0;
+      const medicalNotes = document.getElementById('newStudentMedicalNotes').value.trim();
 
       if (!name || !classId) {
         alert('يرجى إدخال الاسم والفصل');
         return;
       }
 
+      const customInfoObj = {};
+      const customInputs = document.querySelectorAll('.new-student-cf-input');
+      customInputs.forEach(inp => {
+        const key = inp.getAttribute('data-cf-key');
+        const val = inp.value.trim();
+        if (val) customInfoObj[key] = val;
+      });
+
       showLoad('جاري إضافة الطفل وربط الكارت...');
       try {
-        const d = await api({
+        const payload = {
           action: 'createStudentAndLinkTempId',
           name: name,
           class_id: classId,
+          gender: gender,
+          address: address,
           phone: phone,
+          emergency_phone: emergencyPhone,
+          birthday: birthday,
+          coupons: coupons,
+          medical_notes: medicalNotes,
           tempid: tempid,
           trip_id: TARGET_TRIP_ID
-        });
+        };
+        if (Object.keys(customInfoObj).length > 0) {
+          payload.custom_info = JSON.stringify(customInfoObj);
+        }
+
+        const d = await api(payload);
         hideLoad();
         if (d.success && d.student_id) {
           alert('تم إضافة الطفل وربط الكارت بنجاح!');

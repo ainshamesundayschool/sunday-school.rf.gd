@@ -7150,8 +7150,13 @@ function createStudentAndLinkTempId()
         ensureStudentTempIdColumn($conn);
 
         $name = sanitize($_POST['name'] ?? '');
-        $classId = intval($_POST['class_id'] ?? 0);
-        $phone = sanitize($_POST['phone'] ?? '');
+        $classId = intval($_POST['class_id'] ?? $_POST['classId'] ?? 0);
+        $address = sanitize($_POST['address'] ?? '');
+        $phone = $_POST['phone'] ?? '';
+        $emergencyPhone = $_POST['emergency_phone'] ?? '';
+        $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
+        $birthday = sanitize($_POST['birthday'] ?? '');
+        $coupons = max(0, isset($_POST['coupons']) ? intval($_POST['coupons']) : 0);
         $tempid = sanitize($_POST['tempid'] ?? '');
         $tripId = isset($_POST['trip_id']) && !empty($_POST['trip_id']) ? intval($_POST['trip_id']) : null;
 
@@ -7171,25 +7176,161 @@ function createStudentAndLinkTempId()
             return;
         }
 
-        // Insert new student
-        $ins = $conn->prepare("INSERT INTO students (church_id, name, class_id, phone, tempid) VALUES (?, ?, ?, ?, ?)");
-        $ins->bind_param("isiss", $churchId, $name, $classId, $phone, $tempid);
-        if (!$ins->execute()) {
-            sendJSON(['success' => false, 'message' => 'فشل إضافة الطفل: ' . $conn->error]);
+        // Phone cleaning
+        $cleanPhone = preg_replace('/\s+/', '', $phone);
+        $cleanPhone = preg_replace("/^'+/", '', $cleanPhone);
+        $cleanPhone = preg_replace('/[^\d]/', '', $cleanPhone);
+        if (!empty($cleanPhone) && substr($cleanPhone, 0, 1) !== '0') {
+            $cleanPhone = '0' . $cleanPhone;
+        }
+        if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
             return;
         }
 
-        $newStudentId = $conn->insert_id;
-
-        // If trip_id is supplied, register them in the trip
-        if ($tripId) {
-            $registeredBy = $_SESSION['uncle_id'] ?? ($_SESSION['church_id'] ?? 0);
-            $insReg = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type) VALUES (?, ?, ?, 'student')");
-            $insReg->bind_param("iii", $tripId, $newStudentId, $registeredBy);
-            $insReg->execute();
+        $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
+        $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
+        $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
+        if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
+            $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
+        }
+        if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
+            sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
+            return;
         }
 
-        sendJSON(['success' => true, 'message' => 'تم إضافة الطفل وربط الكارت بنجاح', 'student_id' => $newStudentId]);
+        // Check duplicate name in class
+        $checkStmt = $conn->prepare("
+            SELECT id FROM students 
+            WHERE church_id = ? 
+            AND LOWER(TRIM(name)) = LOWER(TRIM(?)) 
+            AND class_id = ?
+        ");
+        $normalizedName = trim($name);
+        $checkStmt->bind_param("isi", $churchId, $normalizedName, $classId);
+        $checkStmt->execute();
+        if ($checkStmt->get_result()->num_rows > 0) {
+            sendJSON(['success' => false, 'message' => 'الطفل موجود بالفعل في هذا الفصل']);
+            return;
+        }
+
+        // Format birthday
+        $formattedBirthday = null;
+        if (!empty($birthday)) {
+            $formattedBirthday = formatDateToDB($birthday);
+            if (!$formattedBirthday) {
+                sendJSON(['success' => false, 'message' => 'تاريخ الميلاد غير صحيح. استخدم DD/MM/YYYY']);
+                return;
+            }
+        }
+
+        // Get class name
+        $classStmt = $conn->prepare("
+            SELECT arabic_name FROM church_classes 
+            WHERE id = ? AND church_id = ? AND is_active = 1
+            UNION
+            SELECT arabic_name FROM classes 
+            WHERE id = ? 
+            LIMIT 1
+        ");
+        $classStmt->bind_param("iii", $classId, $churchId, $classId);
+        $classStmt->execute();
+        $classResult = $classStmt->get_result();
+        $classData = $classResult->fetch_assoc();
+        $className = $classData['arabic_name'] ?? '';
+
+        // Handle photo upload
+        $photoUrl = '';
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $photoFilename = !empty($cleanPhone)
+                ? "profile_{$cleanPhone}_" . time() . ".jpg"
+                : "profile_" . preg_replace('/[^a-zA-Z0-9]/', '_', $name) . "_" . time() . ".jpg";
+
+            $uploadDir = __DIR__ . '/uploads/students/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $uploadPath = $uploadDir . $photoFilename;
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            $fileType = mime_content_type($_FILES['photo']['tmp_name']);
+
+            if (in_array($fileType, $allowedTypes)) {
+                if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
+                    $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
+                }
+            }
+        }
+
+        $totalCoupons = $coupons;
+
+        // Custom info field
+        $customInfoRaw = $_POST['custom_info'] ?? '';
+        $customInfoJson = null;
+        if (!empty(trim($customInfoRaw))) {
+            $decoded = json_decode($customInfoRaw, true);
+            $customInfoJson = is_array($decoded)
+                ? json_encode($decoded, JSON_UNESCAPED_UNICODE)
+                : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
+        }
+
+        $gender = sanitize($_POST['gender'] ?? '');
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
+        // Insert new student
+        if ($formattedBirthday === null) {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
+                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
+                $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid
+            );
+        }
+
+        if ($stmt->execute()) {
+            $newStudentId = $conn->insert_id;
+
+            // Audit
+            auditStudentAdd($newStudentId, $name, [
+                'name' => $name,
+                'class' => $className,
+                'class_id' => $classId,
+                'phone' => $cleanPhone,
+                'address' => $address,
+                'birthday' => $formattedBirthday,
+                'coupons' => $coupons,
+            ]);
+
+            // Register in the trip if trip_id is supplied
+            if ($tripId) {
+                $registeredBy = $_SESSION['uncle_id'] ?? ($_SESSION['church_id'] ?? 0);
+                $insReg = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type) VALUES (?, ?, ?, 'student')");
+                $insReg->bind_param("iii", $tripId, $newStudentId, $registeredBy);
+                $insReg->execute();
+            }
+
+            sendJSON(['success' => true, 'message' => 'تم إضافة الطفل وربط الكارت بنجاح', 'student_id' => $newStudentId]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل إضافة الطفل: ' . $stmt->error]);
+        }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'حدث خطأ: ' . $e->getMessage()]);
     }
