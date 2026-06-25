@@ -426,6 +426,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
             pointer-events: none;
         }
 
+        @media (max-width: 600px) {
+            .dev-church-bar-pill {
+                width: 34px !important;
+                height: 34px !important;
+                border-radius: 50% !important;
+                padding: 0 !important;
+                justify-content: center !important;
+                background: rgba(124, 58, 237, 0.08) !important;
+                border: 1px solid rgba(124, 58, 237, 0.2) !important;
+                margin-left: 4px !important;
+                margin-right: 4px !important;
+                cursor: pointer !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            .dev-church-bar-pill:hover {
+                background: rgba(124, 58, 237, 0.15) !important;
+            }
+            .dev-church-bar-icon {
+                margin: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: transparent !important;
+                color: var(--brand) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 0.85rem !important;
+            }
+            .dev-church-select-input {
+                position: absolute !important;
+                inset: 0 !important;
+                opacity: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                cursor: pointer !important;
+                z-index: 10 !important;
+            }
+            .dev-church-chevron {
+                display: none !important;
+            }
+        }
+
         /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS  — Light & Dark
 ═══════════════════════════════════════════════════════════════ */
