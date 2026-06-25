@@ -4433,6 +4433,12 @@
             }
 
             function getMatchScore(student, query) {
+                const dbId = String(student.student_id || student.id || '');
+                const queryClean = query.trim();
+                if (dbId && queryClean && dbId === queryClean) {
+                    return 10000;
+                }
+
                 const qNormalized = normalizeArabic(query);
                 const qRaw = query.trim().toLowerCase();
                 const qFranco = francoToArabic(query);
@@ -4541,9 +4547,12 @@
                     const cls = r.student_class || '';
                     const img = r.student_image || '';
                     const chName = r.church_name || r.student_church_name || '';
+                    const id = r.student_id || 0;
                     const photo = img
                         ? `<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
                         : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
+
+                    const isExactIdMatch = String(id).trim() === searchTerm.trim();
 
                     let subtext = '';
                     if (cls && cls !== 'بدون فصل') {
@@ -4558,7 +4567,10 @@
                 <div class="search-result-item" onclick="openKidPoints('${tripId}', '${r.student_id}')" style="display:flex; align-items:center; gap:10px;">
                     ${photo}
                     <div style="flex:1; overflow:hidden;">
-                        <div style="font-weight:700; color:var(--text); font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-weight:700; color:var(--text); font-size:0.88rem; display:flex; align-items:center; gap:6px; overflow:hidden;">
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+                            ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:3px; font-weight:bold; white-space:nowrap; flex-shrink:0;">ID: ${id}</span>` : ''}
+                        </div>
                         <div style="font-size:0.75rem; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                             ${subtext}
                         </div>

@@ -5371,6 +5371,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     function getMatchScore(student, query) {
+      const dbId = String(student.id || student._studentId || '');
+      const queryClean = query.trim();
+      if (dbId && queryClean && dbId === queryClean) {
+        return 10000;
+      }
+
       const qNormalized = normalizeArabic(query);
       const qRaw = query.trim().toLowerCase();
       const qFranco = francoToArabic(query);
@@ -5667,12 +5673,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           students = students.map(s => ({ ...s, _score: getMatchScore(s, q) }))
                              .sort((a, b) => b._score - a._score);
 
-          resultsDiv.innerHTML = students.map(s => `
+          resultsDiv.innerHTML = students.map(s => {
+            const isExactIdMatch = String(s.id).trim() === q.trim();
+            return `
             <div onclick="selectAssignStudent(${s.id}, '${esc(s.name)}', '${esc(s.class || '')}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
-              <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(s.name)}</div>
+              <div style="font-weight:700; font-size:0.88rem; color:var(--t1); display:flex; align-items:center; gap:6px;">
+                <span>${esc(s.name)}</span>
+                ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:2px 6px; border-radius:4px; font-weight:bold; white-space:nowrap;">ID: ${s.id}</span>` : ''}
+              </div>
               <div style="font-size:0.75rem; color:var(--t3); margin-top:2px;">الكنيسة: ${esc(s.church_name || '')} - الفصل: ${esc(s.class || '')}</div>
-            </div>
-          `).join('');
+            </div>`;
+          }).join('');
           resultsDiv.style.display = 'block';
         } else {
           resultsDiv.innerHTML = `<div style="padding:12px; color:var(--t4); text-align:center; font-size:0.85rem;">لم يتم العثور على أطفال</div>`;
@@ -8483,6 +8494,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     function getMatchScore(friend, query) {
+      const dbId = String(friend.id || friend._studentId || friend['معرف'] || '');
+      const queryClean = query.trim();
+      if (dbId && queryClean && dbId === queryClean) {
+        return 10000;
+      }
+
       const qNormalized = normalizeArabic(query);
       const qRaw = query.trim().toLowerCase();
       const qFranco = francoToArabic(query);
@@ -8608,11 +8625,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             ? `<img src="${esc(k.image_url)}" alt="${esc(k.name)}">`
             : `<span>${k.name.charAt(0)}</span>`;
           const isSelf = student && k.id === student.id;
+          const isExactIdMatch = String(k.id).trim() === q.trim();
           return `
             <div class="friend-result-card" onclick="${isSelf ? 'window.scrollTo({top:0,behavior:\'smooth\'})' : 'openFriendProfile(' + k.id + ')'}" style="margin-bottom:0; width:100%;">
               <div class="friend-result-av">${av}</div>
               <div class="friend-result-info">
-                <div class="friend-result-name">${esc(k.name)}${isSelf ? ' <span style="font-size:.68rem;color:var(--cou);font-weight:700;">(أنت)</span>' : ''}</div>
+                <div class="friend-result-name" style="display:flex; align-items:center; gap:6px;">
+                  <span>${esc(k.name)}</span>
+                  ${isSelf ? '<span style="font-size:.68rem;color:var(--cou);font-weight:700;">(أنت)</span>' : ''}
+                  ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:3px; font-weight:bold; white-space:nowrap;">ID: ${k.id}</span>` : ''}
+                </div>
                 <div class="friend-result-meta">${esc(k.class || '—')}${k.church_name ? ' · ' + esc(k.church_name) : ''}</div>
               </div>
               <div class="friend-result-cou"><i class="fas fa-star" style="font-size:.72rem;margin-left:3px;"></i>${k.coupons}</div>
@@ -8816,17 +8838,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }).filter(k => k._score > 0);
         scored.sort((a, b) => b._score - a._score);
 
-        res.innerHTML = scored.map(k => `
+        res.innerHTML = scored.map(k => {
+          const isExactIdMatch = String(k.id).trim() === q.trim();
+          return `
           <div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--bdr2);cursor:pointer; color:var(--t1);" onclick="selectRecipient(${k.id}, '${esc(k.name)}')">
             <div style="width:30px;height:30px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.75rem;overflow:hidden;">
               ${k.image_url ? `<img src="${esc(k.image_url)}" style="width:100%;height:100%;object-fit:cover;">` : k.name.charAt(0)}
             </div>
             <div style="flex:1;min-width:0;text-align:right;">
-              <div style="font-size:.8rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(k.name)}</div>
+              <div style="font-size:.8rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;">
+                <span>${esc(k.name)}</span>
+                ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:3px; font-weight:bold; white-space:nowrap;">ID: ${k.id}</span>` : ''}
+              </div>
               <div style="font-size:.64rem;color:var(--t4);">${esc(k.class || '—')}</div>
             </div>
-          </div>
-        `).join('');
+          </div>`;
+        }).join('');
       } catch (e) {
         res.innerHTML = '<div style="padding:10px;text-align:center;color:var(--err);font-size:.78rem;">خطأ في البحث</div>';
       }

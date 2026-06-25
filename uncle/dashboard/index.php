@@ -12696,6 +12696,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const _bdParts2 = (s['عيد الميلاد'] || '').split('/');
                 const isBdayToday2 = _bdParts2.length >= 2 && parseInt(_bdParts2[0]) === _now2.getDate() && parseInt(_bdParts2[1]) - 1 === _now2.getMonth();
                 let badges = '';
+                const dbId = Number(getStudentDbId(s));
+                const isExactIdMatch = searchQuery && String(dbId).trim() === searchQuery.trim();
+                if (isExactIdMatch) {
+                    badges += `<span class="status-badge" style="background:var(--brand); color:#fff; font-weight:700;"><i class="fas fa-id-card"></i> ID: ${dbId}</span>`;
+                }
                 if (isBdayToday2) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
                 if (st === 'pending' && !isInChanged) badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
                 else if (st === 'pending' && isInChanged) badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
@@ -12713,7 +12718,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const fallback = `<div class="student-avatar ${gender}" ${s['صورة'] ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
                 const localClass = (isInChanged || isCouponChanged) ? ' has-local' : '';
                 const bdayClass2 = isBdayToday2 ? ' bday-row' : '';
-                const dbId = Number(getStudentDbId(s));
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass2}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
@@ -22481,6 +22485,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function getMatchScore(student, query) {
+            const dbId = String(getStudentDbId(student));
+            const queryClean = query.trim();
+            if (dbId && queryClean && dbId === queryClean) {
+                return 10000;
+            }
+
             const qNormalized = normalizeArabic(query);
             const qRaw = query.trim().toLowerCase();
             const qFranco = francoToArabic(query); // Franco → Arabic conversion
@@ -22600,12 +22610,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const photo = s['صورة']
                     ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
                     : `<div style="width:36px;height:36px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>`;
+                const isExactIdMatch = String(id).trim() === q.trim();
 
                 return `
                 <div style="background:var(--surface-2); padding:10px 14px; border-radius:10px; border:1px solid var(--border-solid); display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-3)'" onmouseout="this.style.background='var(--surface-2)'" onclick="selectStudentFromIntelligentSearch(${id})">
                     ${photo}
                     <div style="flex:1; overflow:hidden;">
-                        <div style="font-weight:700; color:var(--text); font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                        <div style="font-weight:700; color:var(--text); font-size:0.95rem; display:flex; align-items:center; gap:6px; overflow:hidden;">
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+                            ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px; font-weight:bold; white-space:nowrap; flex-shrink:0;">ID: ${id}</span>` : ''}
+                        </div>
                         <div style="font-size:0.75rem; color:var(--text-3);"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
                     </div>
                     <div style="font-size:0.8rem; color:var(--brand); font-weight:700;"><i class="fas fa-chevron-left"></i></div>
@@ -22706,12 +22720,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const photo = s['صورة']
                     ? `<img src="${window.photoUrl ? window.photoUrl(s['صورة']) : s['صورة']}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
                     : `<div style="width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.85rem;"><i class="fas fa-user"></i></div>`;
+                const isExactIdMatch = String(id).trim() === q.trim();
 
                 return `
                 <div class="inline-search-item" onclick="selectStudentFromIntelligentSearch(${id})">
                     ${photo}
                     <div class="inline-search-item-body">
-                        <div class="inline-search-item-name">${name}</div>
+                        <div class="inline-search-item-name" style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+                            ${isExactIdMatch ? `<span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:1px 5px; border-radius:3px; font-weight:bold; white-space:nowrap; flex-shrink:0;">ID: ${id}</span>` : ''}
+                        </div>
                         <div class="inline-search-item-class"><i class="fas fa-chalkboard-teacher"></i> ${cls}</div>
                     </div>
                     <div class="inline-search-item-arrow"><i class="fas fa-chevron-left"></i></div>
@@ -24046,9 +24064,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 let nameHtml = escHtml(student.name);
+                const isExactIdMatch = query && String(student.id).trim() === query.trim();
                 if (query) {
                     const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     nameHtml = nameHtml.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
+                }
+                if (isExactIdMatch) {
+                    nameHtml += ` <span style="background:var(--brand); color:#fff; font-size:0.6rem; padding:2px 6px; border-radius:4px; font-weight:bold; white-space:nowrap; display:inline-block; vertical-align:middle; margin-right:6px;">ID: ${student.id}</span>`;
                 }
 
                 return `
