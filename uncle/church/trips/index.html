@@ -5871,7 +5871,7 @@
 
       function getStudentDbId(student) {
         if (!student) return 0;
-        return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || student.student_id || 0) || 0;
+        return parseInt(student._studentId || student.student_id || student.studentId || student['معرف'] || student['id_student'] || student.id || 0) || 0;
       }
 
       function parseStudentCustomInfo(student) {

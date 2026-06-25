@@ -16630,7 +16630,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function getStudentDbId(student) {
             if (!student) return 0;
-            return parseInt(student._studentId || student.id || student.studentId || student['معرف'] || student['id_student'] || 0) || 0;
+            return parseInt(student._studentId || student.student_id || student.studentId || student['معرف'] || student['id_student'] || student.id || 0) || 0;
         }
 
         function parseStudentCustomInfo(student) {
@@ -18801,6 +18801,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function getCustomExportDefaultFields() {
             const fields = [
+                { key: 'id', label: 'كود الطفل (ID)', type: 'id', selected: true },
                 { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
                 { key: 'qrcode', label: 'كود QR', type: 'qrcode', selected: false },
                 { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
@@ -18912,6 +18913,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             catch (e) { return versioned; }
         }
         function getCustomExportCellValue(s, field, forCsv = false) {
+            if (field.type === 'id') return getStudentDbId(s) || '';
             if (field.type === 'qrcode') {
                 const studentId = getStudentDbId(s);
                 if (!studentId) return '';
