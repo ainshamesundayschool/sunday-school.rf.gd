@@ -10697,6 +10697,11 @@
           showStudentName = true;
           showStudentId = true;
         }
+        if (r.isUncle) {
+          showStudentImg = true;
+          showStudentName = true;
+          showStudentId = false;
+        }
 
         const {
           isLandscape,
@@ -10787,7 +10792,21 @@
 
         const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
 
-        const qrContainerHtml = `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
+        let qrContainerHtml = '';
+        if (r.isUncle) {
+          let roleLabel = 'خادم';
+          if (r.role === 'admin') roleLabel = 'أمين الخدمة';
+          else if (r.role === 'leader') roleLabel = 'قائد مجموعة';
+          
+          qrContainerHtml = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed ${strokeColor}; border-radius:${12 * scale}px; width:${qrSize}px; height:${qrSize}px; background:rgba(255,255,255,0.75); box-sizing:border-box; gap:4px; padding:4px; margin:0 auto;">
+              <i class="fas fa-user-shield" style="font-size:${qrSize * 0.35}px; color:var(--primary);"></i>
+              <span style="font-size:${fCustom * 1.1}px; font-weight:800; color:var(--primary); text-align:center;">${roleLabel}</span>
+            </div>
+          `;
+        } else {
+          qrContainerHtml = `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
+        }
 
         // Card Background & Image Overlay HTML
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
@@ -10812,18 +10831,19 @@
         // Church Header Group
         let churchHeaderHtml = '';
         if (showChurch) {
+          const displayChurchName = r.isUncle && r.church_name ? r.church_name : churchName;
           if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                 <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
             </div>
           `;
           } else {
             churchHeaderHtml = `
             <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
                 <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
             </div>
           `;
           }
@@ -10857,7 +10877,17 @@
           const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
 
           let extraInfoHtml = '';
-          if (extraFields && extraFields.length > 0) {
+          if (r.isUncle) {
+            const roomsConfig = trip && trip.rooms_config 
+              ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
+              : [];
+            const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+            extraInfoHtml = `
+              <div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px; direction:rtl; text-align:center;">
+                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+              </div>
+            `;
+          } else if (extraFields && extraFields.length > 0) {
             const frontFields = extraFields.filter(f => f.placement === 'front');
             if (frontFields.length > 0) {
               const itemsHtml = frontFields.map(field => {
@@ -11115,13 +11145,19 @@
             showStudentName = true;
             showStudentId = true;
           }
+          if (r.isUncle) {
+            showStudentImg = true;
+            showStudentName = true;
+            showStudentId = false;
+          }
 
           let headerHtml = '';
           if (showChurch) {
+            const displayChurchName = r.isUncle && r.church_name ? r.church_name : churchName;
             headerHtml = `
               <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
                   <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                  <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                  <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
               </div>
             `;
           }
@@ -11168,7 +11204,32 @@
 
           let textFieldsHtml = '';
           const textFields = extraFields.filter(f => !['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(f.key));
-          if (textFields.length > 0) {
+          if (r.isUncle) {
+            const roomsConfig = trip && trip.rooms_config 
+              ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
+              : [];
+            const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+            
+            const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
+            const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
+            const readPadding = `${readabilityPadding * scale}px`;
+            const readabilityBgShadow = opts.readabilityBgShadow !== false;
+            const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
+
+            if (textReadability === 'rect') {
+              textFieldsHtml = `
+                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+                </div>
+              `;
+            } else {
+              textFieldsHtml = `
+                <div style="display:flex; flex-direction:column; align-items:center; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${fH3}px; font-weight:bold;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+                </div>
+              `;
+            }
+          } else if (textFields.length > 0) {
             const itemsHtml = textFields.map(field => {
               if (isEmp) {
                 const iconClass = field.icon || 'fas fa-info-circle';
@@ -11256,6 +11317,15 @@
         let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         let rawRegs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
         let regs = [...getSelectedPrintRegistrations(rawRegs)];
+
+        const printUncles = document.getElementById('printUnclesOption')?.checked || false;
+        if (printUncles) {
+          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
+          selectedUncles.forEach(u => {
+            regs.push(mapUncleToReg(u, roomsConfig));
+          });
+        }
 
         const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
         if (!window.customExtraCardsData) window.customExtraCardsData = [];
@@ -11359,6 +11429,17 @@
 
         const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
         const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => {
+          if (sourceReg.isUncle) {
+            return {
+              ...sourceReg,
+              id: sourceReg.id || `preview_demo_${idx}`,
+              student_id: '',
+              student_name: sourceReg.name || sourceReg.student_name,
+              student_image: sourceReg.image_url || sourceReg.student_image || '',
+              custom_data: null,
+              isUncle: true
+            };
+          }
           if (sourceReg.isEmptyCopy) {
             return {
               ...sourceReg,
@@ -11418,10 +11499,9 @@
         previewWrapper.innerHTML = previewHtml;
 
 
-        previewRegs.forEach((_, idx) => {
+        previewRegs.forEach((r, idx) => {
           const el = document.getElementById(`prev_qrcode_sample_${idx}`);
-          if (!el) return;
-          const r = previewRegs[idx];
+          if (!el || r.isUncle) return;
           const text = r.isEmptyCopy
             ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(r.tempId || '')}&trip_id=${tripId}`
             : `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id || '1')}`;
@@ -11462,6 +11542,163 @@
         if (!window.customExtraCardsData) window.customExtraCardsData = [];
         if (!window.customExtraCardsData[idx]) window.customExtraCardsData[idx] = { name: '', phone: '' };
         window.customExtraCardsData[idx][field] = val;
+        updatePrintPreview();
+      };
+
+      let printSelectedUncleIds = new Set();
+
+      function getUncleRoomAssignmentText(uncleId, roomsConfig) {
+        if (!roomsConfig || !Array.isArray(roomsConfig)) return 'غير مسكن';
+        for (const bld of roomsConfig) {
+          if (bld.has_floors) {
+            for (const fl of (bld.floors || [])) {
+              for (const r of (fl.rooms || [])) {
+                if (r.uncles && r.uncles.some(u => String(u.id) === String(uncleId))) {
+                  return `${bld.name} - ${fl.name} - ${r.name}`;
+                }
+              }
+            }
+          } else {
+            for (const r of (bld.rooms || [])) {
+              if (r.uncles && r.uncles.some(u => String(u.id) === String(uncleId))) {
+                return `${bld.name} - ${r.name}`;
+              }
+            }
+          }
+        }
+        return 'غير مسكن';
+      }
+
+      function mapUncleToReg(u, roomsConfig) {
+        return {
+          id: 'uncle_' + u.id,
+          student_id: '',
+          student_name: u.name,
+          student_image: u.image_url,
+          custom_data: null,
+          isUncle: true,
+          role: u.role,
+          church_name: u.church_name
+        };
+      }
+
+      window.togglePrintUnclesSection = function() {
+        const sub = document.getElementById('printUnclesSubSection');
+        if (!sub) return;
+        const checked = document.getElementById('printUnclesOption').checked;
+        sub.style.display = checked ? 'flex' : 'none';
+      };
+
+      window.updatePrintUncleFilter = function() {
+        const listDiv = document.getElementById('printUnclesList');
+        if (!listDiv) return;
+
+        const tripId = document.getElementById('printTripId').value;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const search = (document.getElementById('printUncleSearchInput')?.value || '').toLowerCase().trim();
+        const scope = document.getElementById('printUncleScope')?.value || 'assigned';
+        const uncles = window.allUnclesCache || [];
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        const isUncleAssigned = (uid) => {
+          let assigned = false;
+          roomsConfig.forEach(bld => {
+            const check = (r) => {
+              if (r.uncles && r.uncles.some(u => String(u.id) === String(uid))) {
+                assigned = true;
+              }
+            };
+            if (bld.has_floors) {
+              (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(check));
+            } else {
+              (bld.rooms || []).forEach(check);
+            }
+          });
+          return assigned;
+        };
+
+        const filtered = uncles.filter(u => {
+          const matchSearch = u.name.toLowerCase().includes(search);
+          if (!matchSearch) return false;
+          if (scope === 'assigned') {
+            return isUncleAssigned(u.id);
+          }
+          return true;
+        });
+
+        // Initialize: if printSelectedUncleIds is empty, select all filtered ones by default
+        if (printSelectedUncleIds.size === 0) {
+          filtered.forEach(u => printSelectedUncleIds.add(String(u.id)));
+        }
+
+        listDiv.innerHTML = filtered.map(u => {
+          const isChecked = printSelectedUncleIds.has(String(u.id)) ? 'checked' : '';
+          const roomText = getUncleRoomAssignmentText(u.id, roomsConfig);
+          const roomBadge = roomText !== 'غير مسكن' 
+            ? `<span style="font-size:0.7rem; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px; font-weight:800; margin-right:8px;"><i class="fas fa-bed"></i> ${escHtml(roomText)}</span>`
+            : `<span style="font-size:0.7rem; background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:800; margin-right:8px;">غير مسكن</span>`;
+
+          return `
+            <label style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.03);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" class="print-uncle-cb" value="${u.id}" ${isChecked} style="accent-color:var(--primary); width:15px; height:15px;" onchange="onPrintUncleCheckboxChange('${u.id}', this.checked)">
+                <span>${escHtml(u.name)}</span>
+              </div>
+              ${roomBadge}
+            </label>
+          `;
+        }).join('');
+
+        if (filtered.length === 0) {
+          listDiv.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:10px;">لا توجد خدام متطابقة</div>`;
+        }
+
+        updatePrintSelectedUnclesCount();
+      };
+
+      window.populatePrintUncles = function(trip) {
+        updatePrintUncleFilter();
+      };
+
+      window.onPrintUncleCheckboxChange = function(uncleId, checked) {
+        if (checked) {
+          printSelectedUncleIds.add(String(uncleId));
+        } else {
+          printSelectedUncleIds.delete(String(uncleId));
+        }
+        updatePrintSelectedUnclesCount();
+        updatePrintPreview();
+      };
+
+      function updatePrintSelectedUnclesCount() {
+        const countSpan = document.getElementById('printSelectedUnclesCount');
+        if (countSpan) {
+          countSpan.textContent = printSelectedUncleIds.size;
+        }
+        
+        const checkboxes = document.querySelectorAll('.print-uncle-cb');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const allCb = document.getElementById('printSelectAllUncles');
+        if (allCb) {
+          allCb.checked = (checkboxes.length > 0 && checkedCount === checkboxes.length);
+          allCb.indeterminate = (checkedCount > 0 && checkedCount < checkboxes.length);
+        }
+      }
+
+      window.togglePrintSelectAllUncles = function(checked) {
+        const checkboxes = document.querySelectorAll('.print-uncle-cb');
+        checkboxes.forEach(cb => {
+          cb.checked = checked;
+          if (checked) {
+            printSelectedUncleIds.add(String(cb.value));
+          } else {
+            printSelectedUncleIds.delete(String(cb.value));
+          }
+        });
+        updatePrintSelectedUnclesCount();
         updatePrintPreview();
       };
 
@@ -11559,6 +11796,21 @@
 
         let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         let rawRegs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
+
+        // Fetch Uncles if not cached for this trip
+        if (!window.allUnclesCache || window.allUnclesCacheTripId !== tripId) {
+          try {
+            const fd = new FormData();
+            fd.append('action', 'getAllUncles');
+            fd.append('trip_id', tripId);
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            if (res.success) {
+              window.allUnclesCache = res.uncles || [];
+              window.allUnclesCacheTripId = tripId;
+            }
+          } catch (e) { }
+        }
+
         if (!trip || rawRegs.length === 0) {
           try {
             const fd = mkFd('getTripDetails'); fd.append('trip_id', tripId);
@@ -11572,6 +11824,14 @@
             }
           } catch (e) { }
         }
+
+        printSelectedUncleIds = new Set();
+        const unclesOption = document.getElementById('printUnclesOption');
+        if (unclesOption) {
+          unclesOption.checked = false;
+          togglePrintUnclesSection();
+        }
+        populatePrintUncles(trip);
 
         populatePrintChurches(rawRegs);
 
@@ -11679,6 +11939,15 @@
           } catch (e) { }
         }
         let regs = [...getSelectedPrintRegistrations(rawRegs)];
+
+        const printUncles = document.getElementById('printUnclesOption')?.checked || false;
+        if (printUncles) {
+          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
+          selectedUncles.forEach(u => {
+            regs.push(mapUncleToReg(u, roomsConfig));
+          });
+        }
 
         const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
         if (!window.customExtraCardsData) window.customExtraCardsData = [];
@@ -11800,7 +12069,9 @@
               );
           const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
-          qrTasks.push({ id: cardId, text: link });
+          if (!r.isUncle) {
+            qrTasks.push({ id: cardId, text: link });
+          }
 
           return generateCardMarkup({
             trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
@@ -15419,6 +15690,42 @@
                 <input type="number" id="printExtraEmptyCopiesCount" class="form-input" value="0" min="0" max="200" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
               </div>
               <div id="customCardsFieldsContainer" style="display:none; flex-direction:column; gap:8px; margin-top:8px;"></div>
+            </div>
+
+            <!-- Section: Uncles Printing Option -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-user-shield"></i> كروت الخدام (Uncles Cards)
+              </h4>
+              
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); font-weight:700;">
+                <input type="checkbox" id="printUnclesOption" style="accent-color:var(--primary); width:16px; height:16px;" onchange="togglePrintUnclesSection(); updatePrintPreview();">
+                <span>طباعة كروت الخدام (بدون QR)</span>
+              </label>
+
+              <div id="printUnclesSubSection" style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:10px; margin-top:4px;">
+                <div style="display:flex; gap:8px;">
+                  <input type="text" id="printUncleSearchInput" class="form-input" placeholder="بحث عن خادم..." style="flex:1; height:34px; font-size:0.8rem; padding:0 10px;" oninput="updatePrintUncleFilter()">
+                  <select id="printUncleScope" class="form-select" style="width:120px; height:34px; border:1px solid var(--border); padding:0 5px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;" onchange="updatePrintUncleFilter()">
+                    <option value="assigned" selected>المسكنين فقط</option>
+                    <option value="all">جميع الخدام</option>
+                  </select>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-3); font-weight:700; direction:rtl;">
+                  <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="printSelectAllUncles" checked style="accent-color:var(--primary);" onchange="togglePrintSelectAllUncles(this.checked)">
+                    <span>تحديد الكل</span>
+                  </label>
+                  <span>المحدد: <span id="printSelectedUnclesCount">0</span> خادم</span>
+                </div>
+
+                <!-- Uncles list scrollable box -->
+                <div id="printUnclesList" class="scrollbar" style="max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px; background:var(--bg, #f8fafc); text-align:right; direction:rtl;">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
             </div>
 
             <!-- Section 1: Dimensions & Layout -->
