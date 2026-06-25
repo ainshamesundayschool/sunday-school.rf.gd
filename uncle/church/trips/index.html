@@ -10398,6 +10398,17 @@
 
       function getStudentFieldValue(s, key, trip = null) {
         if (!s) return '';
+        if (key === 'السكن' || key === 'custom_field_السكن') {
+          const customData = typeof s.custom_data === 'string' ? JSON.parse(s.custom_data || '{}') : (s.custom_data || {});
+          const bld = customData['السكن'] || '';
+          const floor = customData['السكن__sf__الدور'] || '';
+          const room = customData['السكن__sf__الغرفة'] || '';
+          let parts = [];
+          if (bld) parts.push(bld);
+          if (floor) parts.push(floor);
+          if (room) parts.push(room);
+          return parts.join(' - ');
+        }
         if (key.startsWith('church_custom_')) {
           const customIdx = key.replace('church_custom_', '');
           const customInfo = typeof s.custom_info === 'string' ? JSON.parse(s.custom_info || '{}') : (s.custom_info || {});
@@ -10881,7 +10892,7 @@
           const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
           const extraInfoHtml = `
             <div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; direction:rtl; text-align:center;">
-              <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+              <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> <strong>${escHtml(roomText)}</strong></span>
             </div>
           `;
 
@@ -10922,7 +10933,7 @@
                     iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
                   }
                 }
-                if (field.key === 'church_name_only') {
+                if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن') {
                   return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
                 }
                 return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
@@ -11001,7 +11012,7 @@
               <!-- Room Assignment (Sakan) -->
               <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
                 <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
-                  <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> السكن: <strong>${escHtml(roomText)}</strong>
+                  <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> <strong>${escHtml(roomText)}</strong>
                 </span>
               </div>
             </div>
@@ -11278,13 +11289,13 @@
             if (textReadability === 'rect') {
               textFieldsHtml = `
                 <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
-                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> <strong>${escHtml(roomText)}</strong></span>
                 </div>
               `;
             } else {
               textFieldsHtml = `
                 <div style="display:flex; flex-direction:column; align-items:center; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${fH3}px; font-weight:bold;">
-                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> <strong>${escHtml(roomText)}</strong></span>
                 </div>
               `;
             }
