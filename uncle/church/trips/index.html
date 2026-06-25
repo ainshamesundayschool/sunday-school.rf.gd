@@ -10421,15 +10421,14 @@
       function getStudentFieldValue(s, key, trip = null) {
         if (!s) return '';
         if (key === 'السكن' || key === 'custom_field_السكن') {
-          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
-          if (!showRoomSetting) return '';
           const customData = typeof s.custom_data === 'string' ? JSON.parse(s.custom_data || '{}') : (s.custom_data || {});
           const bld = customData['السكن'] || '';
           const floor = customData['السكن__sf__الدور'] || '';
           const room = customData['السكن__sf__الغرفة'] || '';
+          const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
           let parts = [];
           if (bld) parts.push(bld);
-          if (floor) parts.push(floor);
+          if (floor && showFloorSetting) parts.push(floor);
           if (room) parts.push(room);
           return parts.join(' - ');
         }
@@ -10913,9 +10912,9 @@
           const roomsConfig = trip && trip.rooms_config 
             ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
             : [];
-          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
-          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
-          const extraInfoHtml = (showRoomSetting && roomText && roomText !== 'غير مسكن') ? `
+          const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
+          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
+          const extraInfoHtml = (roomText && roomText !== 'غير مسكن') ? `
             <div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; direction:rtl; text-align:center;">
               <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> <strong>${escHtml(roomText)}</strong></span>
             </div>
@@ -11011,9 +11010,9 @@
           const roomsConfig = trip && trip.rooms_config 
             ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
             : [];
-          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+          const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
+          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
           const displayChurchName = r._churchName || r.church_name || churchName;
-          const showRoomSetting = document.getElementById('printShowRoomAssignment')?.checked !== false;
 
           const leftColumnHtml = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.7}px;">
@@ -11035,14 +11034,14 @@
                   <i class="fas fa-route" style="opacity:0.75; margin-left:4px;"></i> ${safeTripTitle}
                 </div>
               ` : ''}
-              <!-- Room Assignment (Sakan) -->
-              ${showRoomSetting && roomText && roomText !== 'غير مسكن' ? `
-              <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
-                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
-                  <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> <strong>${escHtml(roomText)}</strong>
-                </span>
-              </div>
-              ` : ''}
+               <!-- Room Assignment (Sakan) -->
+               ${roomText && roomText !== 'غير مسكن' ? `
+               <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
+                 <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
+                   <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> <strong>${escHtml(roomText)}</strong>
+                 </span>
+               </div>
+               ` : ''}
             </div>
           `;
 
@@ -11306,7 +11305,8 @@
             const roomsConfig = trip && trip.rooms_config 
               ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
               : [];
-            const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+            const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
+            const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
             
             const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
             const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
@@ -11932,7 +11932,7 @@
           unclesOption.checked = false;
           togglePrintUnclesSection();
         }
-        const roomAssignmentOption = document.getElementById('printShowRoomAssignment');
+        const roomAssignmentOption = document.getElementById('printShowFloorInRoom');
         if (roomAssignmentOption) {
           roomAssignmentOption.checked = true;
         }
@@ -16017,9 +16017,9 @@
 
                 <label
                   style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); margin-top:4px;">
-                  <input type="checkbox" id="printShowRoomAssignment" checked
+                  <input type="checkbox" id="printShowFloorInRoom" checked
                     style="accent-color:var(--primary); width:16px; height:16px;" onchange="updatePrintPreview()">
-                  <span>إظهار السكن على الكروت (Show Room Assignment)</span>
+                  <span>إظهار الدور في السكن (Show Floor in Room Assignment)</span>
                 </label>
 
                 <!-- Dynamic Card Fields Selection -->
