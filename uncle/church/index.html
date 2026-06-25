@@ -535,10 +535,20 @@
         }
 
         .sidebar.collapsed .nav-item {
-            justify-content: center;
-            padding: 10px 0;
-            margin: 2px 8px;
-            gap: 0;
+            justify-content: center !important;
+            padding: 10px 0 !important;
+            margin: 2px 8px !important;
+            gap: 0 !important;
+        }
+
+        .sidebar.collapsed .submenu-arrow {
+            display: none !important;
+        }
+
+        .sidebar.collapsed .submenu {
+            padding-right: 0 !important;
+            border-right: none !important;
+            margin-inline: 0 !important;
         }
 
         /* Submenu styling in sidebar */
@@ -10705,7 +10715,11 @@
             const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
             if (isDev) {
                 document.querySelectorAll('.dev-only').forEach(el => {
-                    el.style.display = 'flex';
+                    if (el.classList.contains('nav-item')) {
+                        el.style.display = 'flex';
+                    } else {
+                        el.style.display = 'block';
+                    }
                 });
             }
             // 1. Get authoritative session from server
@@ -10761,7 +10775,13 @@
             // 5. Developer visibility
             isDeveloper = ['developer', 'dev'].includes(userRole);
             if (isDeveloper) {
-                document.querySelectorAll('.dev-only').forEach(el => { el.style.display = 'block'; });
+                document.querySelectorAll('.dev-only').forEach(el => {
+                    if (el.classList.contains('nav-item')) {
+                        el.style.display = 'flex';
+                    } else {
+                        el.style.display = 'block';
+                    }
+                });
                 const dbg = document.querySelector('.topbar-btn[onclick="showDebugInfo()"]');
                 if (dbg) dbg.style.display = 'flex';
                 buildDevChurchSwitcher();
