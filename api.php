@@ -3348,6 +3348,22 @@ try {
 
             break;
 
+        case 'linkTempIdToStudent':
+
+            checkAuth();
+
+            linkTempIdToStudent();
+
+            break;
+
+        case 'createStudentAndLinkTempId':
+
+            checkAuth();
+
+            createStudentAndLinkTempId();
+
+            break;
+
 
 
         case 'uncleLogin':
@@ -7051,6 +7067,132 @@ function submitAttendance()
 
     }
 
+}
+
+function ensureStudentTempIdColumn(mysqli $conn): void
+{
+    $check = $conn->query("SHOW COLUMNS FROM students LIKE 'tempid'");
+    if ($check && $check->num_rows > 0) {
+        return;
+    }
+    $conn->query("ALTER TABLE students ADD COLUMN tempid VARCHAR(50) DEFAULT NULL");
+    $conn->query("ALTER TABLE students ADD UNIQUE INDEX IF NOT EXISTS idx_students_tempid (tempid)");
+}
+
+function linkTempIdToStudent()
+{
+    global $conn;
+    try {
+        $churchId = getChurchId(); // checks auth automatically
+        ensureStudentTempIdColumn($conn);
+
+        $studentId = intval($_POST['student_id'] ?? 0);
+        $tempid = sanitize($_POST['tempid'] ?? '');
+        $tripId = isset($_POST['trip_id']) && !empty($_POST['trip_id']) ? intval($_POST['trip_id']) : null;
+
+        if (empty($tempid) || $studentId === 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+            return;
+        }
+
+        // Check if student belongs to this church
+        $checkStu = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ? LIMIT 1");
+        $checkStu->bind_param("ii", $studentId, $churchId);
+        $checkStu->execute();
+        if ($checkStu->get_result()->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'الطفل غير تابع لكنيستك']);
+            return;
+        }
+
+        // Check if this tempid is already linked to another child
+        $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? AND id != ? LIMIT 1");
+        $checkTemp->bind_param("si", $tempid, $studentId);
+        $checkTemp->execute();
+        $resTemp = $checkTemp->get_result();
+        if ($resTemp->num_rows > 0) {
+            $otherKid = $resTemp->fetch_assoc();
+            sendJSON(['success' => false, 'message' => 'هذا الكود مرتبط بالفعل بطفل آخر: ' . $otherKid['name']]);
+            return;
+        }
+
+        // Perform link
+        $upd = $conn->prepare("UPDATE students SET tempid = ? WHERE id = ?");
+        $upd->bind_param("si", $tempid, $studentId);
+        if (!$upd->execute()) {
+            sendJSON(['success' => false, 'message' => 'فشل ربط الكود: ' . $conn->error]);
+            return;
+        }
+
+        // If trip_id is supplied, register them in the trip
+        if ($tripId) {
+            $checkReg = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 0 LIMIT 1");
+            $checkReg->bind_param("ii", $tripId, $studentId);
+            $checkReg->execute();
+            if ($checkReg->get_result()->num_rows === 0) {
+                $registeredBy = $_SESSION['uncle_id'] ?? ($_SESSION['church_id'] ?? 0);
+                $insReg = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type) VALUES (?, ?, ?, 'student')");
+                $insReg->bind_param("iii", $tripId, $studentId, $registeredBy);
+                $insReg->execute();
+            }
+        }
+
+        sendJSON(['success' => true, 'message' => 'تم ربط الكارت بالطفل بنجاح']);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'حدث خطأ: ' . $e->getMessage()]);
+    }
+}
+
+function createStudentAndLinkTempId()
+{
+    global $conn;
+    try {
+        $churchId = getChurchId(); // checks auth automatically
+        ensureStudentTempIdColumn($conn);
+
+        $name = sanitize($_POST['name'] ?? '');
+        $classId = intval($_POST['class_id'] ?? 0);
+        $phone = sanitize($_POST['phone'] ?? '');
+        $tempid = sanitize($_POST['tempid'] ?? '');
+        $tripId = isset($_POST['trip_id']) && !empty($_POST['trip_id']) ? intval($_POST['trip_id']) : null;
+
+        if (empty($name) || $classId === 0 || empty($tempid)) {
+            sendJSON(['success' => false, 'message' => 'الاسم والفصل والكود مطلوبة']);
+            return;
+        }
+
+        // Check if this tempid is already linked to another child
+        $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? LIMIT 1");
+        $checkTemp->bind_param("s", $tempid);
+        $checkTemp->execute();
+        $resTemp = $checkTemp->get_result();
+        if ($resTemp->num_rows > 0) {
+            $otherKid = $resTemp->fetch_assoc();
+            sendJSON(['success' => false, 'message' => 'هذا الكود مرتبط بالفعل بطفل آخر: ' . $otherKid['name']]);
+            return;
+        }
+
+        // Insert new student
+        $ins = $conn->prepare("INSERT INTO students (church_id, name, class_id, phone, tempid) VALUES (?, ?, ?, ?, ?)");
+        $ins->bind_param("isiss", $churchId, $name, $classId, $phone, $tempid);
+        if (!$ins->execute()) {
+            sendJSON(['success' => false, 'message' => 'فشل إضافة الطفل: ' . $conn->error]);
+            return;
+        }
+
+        $newStudentId = $conn->insert_id;
+
+        // If trip_id is supplied, register them in the trip
+        if ($tripId) {
+            $registeredBy = $_SESSION['uncle_id'] ?? ($_SESSION['church_id'] ?? 0);
+            $insReg = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, registered_by, registration_type) VALUES (?, ?, ?, 'student')");
+            $insReg->bind_param("iii", $tripId, $newStudentId, $registeredBy);
+            $insReg->execute();
+        }
+
+        sendJSON(['success' => true, 'message' => 'تم إضافة الطفل وربط الكارت بنجاح', 'student_id' => $newStudentId]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'حدث خطأ: ' . $e->getMessage()]);
+    }
 }
 
 function addStudent()

@@ -10649,7 +10649,7 @@
           }
         }
 
-        const safeStudentName = isEmp ? '....................................' : escHtml(r.student_name || r.guest_name || '؟');
+        const safeStudentName = (isEmp && !r.student_name) ? '....................................' : escHtml(r.student_name || r.guest_name || '؟');
         const safeTripTitle = escHtml(trip.title || '');
         const hasCustomContent = !isEmp && showCustom && !!String(customHtml || '').trim();
 
@@ -11162,14 +11162,27 @@
         let regs = [...getSelectedPrintRegistrations(rawRegs)];
 
         const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
+        if (!window.customExtraCardsData) window.customExtraCardsData = [];
+        while (window.customExtraCardsData.length < extraCount) {
+          window.customExtraCardsData.push({ name: '', phone: '' });
+        }
+        while (window.customExtraCardsData.length > extraCount) {
+          window.customExtraCardsData.pop();
+        }
+        renderCustomCardsInputs(extraCount);
+
         for (let k = 0; k < extraCount; k++) {
+          const customData = window.customExtraCardsData[k] || { name: '', phone: '' };
+          const randId = 'PREV_' + (k + 1);
           regs.push({
-            id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+            id: 'empty_copy_' + randId,
             student_id: '',
-            student_name: '',
+            student_name: customData.name || '',
             student_image: '',
             custom_data: null,
-            isEmptyCopy: true
+            phone: customData.phone || '',
+            isEmptyCopy: true,
+            tempId: 'TEMP_' + randId
           });
         }
 
@@ -11193,12 +11206,13 @@
             const padNeeded = cardsPerPage - rem;
             for (let k = 0; k < padNeeded; k++) {
               regs.push({
-                id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+                id: 'empty_copy_PAD_' + (k + 1),
                 student_id: '',
                 student_name: '',
                 student_image: '',
                 custom_data: null,
-                isEmptyCopy: true
+                isEmptyCopy: true,
+                tempId: 'TEMP_PAD_' + (k + 1)
               });
             }
           }
@@ -11311,10 +11325,12 @@
         previewRegs.forEach((_, idx) => {
           const el = document.getElementById(`prev_qrcode_sample_${idx}`);
           if (!el) return;
-          const rawPreviewStudentId = previewRegs[idx].student_id || '';
-          const previewStudentId = /^[0-9]+$/.test(String(rawPreviewStudentId)) ? rawPreviewStudentId : '1';
+          const r = previewRegs[idx];
+          const text = r.isEmptyCopy
+            ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(r.tempId || '')}&trip_id=${tripId}`
+            : `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id || '1')}`;
           new QRCode(el, {
-            text: `${window.location.origin}/user/profile/?id=${encodeURIComponent(previewStudentId)}`,
+            text: text,
             width: qrSize,
             height: qrSize,
             colorDark: "#000000",
@@ -11323,6 +11339,35 @@
           });
         });
       }
+
+      function renderCustomCardsInputs(count) {
+        const parent = document.getElementById('customCardsFieldsContainer');
+        if (!parent) return;
+        if (count === 0) {
+          parent.style.display = 'none';
+          parent.innerHTML = '';
+          return;
+        }
+        parent.style.display = 'flex';
+        let html = '<label style="display:block; font-size:0.8rem; font-weight:800; color:var(--primary); margin-bottom:4px;">بيانات الكروت الإضافية:</label>';
+        for (let i = 0; i < count; i++) {
+          const val = window.customExtraCardsData[i] || { name: '', phone: '' };
+          html += `
+            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:8px; align-items:center; background:var(--surface); border:1px solid var(--border); padding:8px; border-radius:8px; margin-bottom:4px;">
+              <input type="text" placeholder="الاسم الكامل للكارت ${i + 1}" value="${escHtml(val.name)}" style="height:32px; border:1px solid var(--border); border-radius:4px; padding:0 8px; font-family:inherit; font-size:0.8rem;" oninput="onCustomCardDataChange(${i}, 'name', this.value)">
+              <input type="tel" placeholder="رقم الهاتف" value="${escHtml(val.phone)}" style="height:32px; border:1px solid var(--border); border-radius:4px; padding:0 8px; font-family:inherit; font-size:0.8rem;" oninput="onCustomCardDataChange(${i}, 'phone', this.value)">
+            </div>
+          `;
+        }
+        parent.innerHTML = html;
+      }
+
+      window.onCustomCardDataChange = function(idx, field, val) {
+        if (!window.customExtraCardsData) window.customExtraCardsData = [];
+        if (!window.customExtraCardsData[idx]) window.customExtraCardsData[idx] = { name: '', phone: '' };
+        window.customExtraCardsData[idx][field] = val;
+        updatePrintPreview();
+      };
 
       function populatePrintChurches(rawRegs) {
         const listDiv = document.getElementById('printChurchesList');
@@ -11540,14 +11585,19 @@
         let regs = [...getSelectedPrintRegistrations(rawRegs)];
 
         const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
+        if (!window.customExtraCardsData) window.customExtraCardsData = [];
         for (let k = 0; k < extraCount; k++) {
+          const customData = window.customExtraCardsData[k] || { name: '', phone: '' };
+          const randId = Math.random().toString(36).substr(2, 8).toUpperCase();
           regs.push({
-            id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+            id: 'empty_copy_' + randId,
             student_id: '',
-            student_name: '',
+            student_name: customData.name || '',
             student_image: '',
             custom_data: null,
-            isEmptyCopy: true
+            phone: customData.phone || '',
+            isEmptyCopy: true,
+            tempId: 'T_' + randId
           });
         }
         if (!trip || regs.length === 0) { showToast('لا يوجد أطفال مسجلين في هذه الرحلة ولا توجد كروت فارغة مطلوبة', 'warning'); return; }
@@ -11607,13 +11657,15 @@
           const padded = [...pRegs];
           while (padded.length < cardsPerPage) {
             if (fillWithEmptyCopies) {
+              const randId = Math.random().toString(36).substr(2, 8).toUpperCase();
               padded.push({
-                id: 'empty_copy_' + Math.random().toString(36).substr(2, 9),
+                id: 'empty_copy_PAD_' + randId,
                 student_id: '',
                 student_name: '',
                 student_image: '',
                 custom_data: null,
-                isEmptyCopy: true
+                isEmptyCopy: true,
+                tempId: 'T_PAD_' + randId
               });
             } else {
               padded.push(null);
@@ -11644,14 +11696,15 @@
           if (!r) return placeholderHtml;
           const isEmp = !!r.isEmptyCopy;
           const cardId = 'qrcode_' + r.id;
-          const link = r.student_id
-            ? `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`
-            : `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&guest_id=${encodeURIComponent(r.guest_id || r.id)}`;
+          const link = isEmp
+            ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(r.tempId || '')}&trip_id=${tripId}`
+            : (r.student_id
+                ? `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`
+                : `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&guest_id=${encodeURIComponent(r.guest_id || r.id)}`
+              );
           const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
 
-          if (!isEmp) {
-            qrTasks.push({ id: cardId, text: link });
-          }
+          qrTasks.push({ id: cardId, text: link });
 
           return generateCardMarkup({
             trip, r, scale, padding, showChurch, showTripImage, showTripTitle,
@@ -15269,6 +15322,7 @@
                 <label class="form-label" style="font-weight:700;">عدد الكروت الفارغة الإضافية المطلوب طباعتها</label>
                 <input type="number" id="printExtraEmptyCopiesCount" class="form-input" value="0" min="0" max="200" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
               </div>
+              <div id="customCardsFieldsContainer" style="display:none; flex-direction:column; gap:8px; margin-top:8px;"></div>
             </div>
 
             <!-- Section 1: Dimensions & Layout -->

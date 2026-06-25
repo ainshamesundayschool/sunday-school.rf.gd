@@ -28,6 +28,22 @@ if (file_exists($rootPath . '/config.php')) {
   require_once $rootPath . '/config.php';
 }
 $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
+$tempIdFromUrl = isset($_GET['tempid']) ? $_GET['tempid'] : null;
+
+if ($tempIdFromUrl && !$studentIdFromUrl) {
+  if (isset($conn)) {
+    $stmt = $conn->prepare("SELECT id FROM students WHERE tempid = ? LIMIT 1");
+    $stmt->bind_param("s", $tempIdFromUrl);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res && $row = $res->fetch_assoc()) {
+      header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $row['id']);
+      exit;
+    }
+  }
+}
+$isUncleLoggedIn = isset($_SESSION['uncle_id']) || isset($_SESSION['church_id']);
+$targetTripId = isset($_GET['trip_id']) ? intval($_GET['trip_id']) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
   session_destroy();
   echo '<script>["savedUsername","savedPassword","rememberMe","userPhone","loginType"].forEach(k=>localStorage.removeItem(k));window.location.href="/user/login";</script>';
@@ -4179,6 +4195,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <div class="spin"></div><span id="lt">جارٍ التحميل…</span>
   </div>
 
+  <div id="tempIdAssignContainer" style="display:none; padding:20px; max-width:600px; margin:0 auto; direction:rtl; text-align:right; font-family:'Baloo Bhaijaan 2', sans-serif;"></div>
+
   <!-- ══ HERO ══ -->
   <div class="hero" id="hero" style="display:none">
     <div class="hero-top">
@@ -5172,6 +5190,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     'use strict';
     // ── Config ────────────────────────────────────────────────────────
     const URL_ID = (() => { const m = location.search.match(/[?&]id=(\d+)/); return m ? parseInt(m[1]) : null; })();
+    const URL_TEMPID = (() => { const m = location.search.match(/[?&]tempid=([^&]+)/); return m ? decodeURIComponent(m[1]) : null; })();
+    const IS_UNCLE_LOGGED_IN = <?php echo json_encode($isUncleLoggedIn); ?>;
+    const TARGET_TRIP_ID = <?php echo json_encode($targetTripId); ?>;
     const _creds = localStorage.getItem('rememberMe') === 'true' && !!localStorage.getItem('savedUsername') && !!localStorage.getItem('savedPassword');
     const IS_PUBLIC = !!(URL_ID && !_creds);
     const API_URL = (() => {
@@ -5196,6 +5217,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     // ── Boot ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
+      if (URL_TEMPID) {
+        initTempIdAssignment(URL_TEMPID);
+        return;
+      }
       if (!IS_PUBLIC) {
         localStorage.setItem('lastVisitedPortal', 'kid');
       }
@@ -5241,6 +5266,241 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }
+
+    async function initTempIdAssignment(tempid) {
+      document.getElementById('ls').style.display = 'none'; // Hide loading screen
+      const container = document.getElementById('tempIdAssignContainer');
+      container.style.display = 'block';
+
+      if (!IS_UNCLE_LOGGED_IN) {
+        container.innerHTML = `
+          <div style="background:#fff; padding:24px; border-radius:16px; box-shadow:var(--sh-md); text-align:center; max-width:450px; margin:40px auto; border: 1.5px solid var(--bdr);">
+            <div style="font-size:3.5rem; color:var(--brand); margin-bottom:16px;"><i class="fas fa-qrcode"></i></div>
+            <h2 style="font-size:1.4rem; font-weight:800; color:var(--t1); margin-bottom:12px; font-family:'Baloo Bhaijaan 2', sans-serif;">كارت غير مسجل</h2>
+            <p style="font-size:0.95rem; color:var(--t3); line-height:1.6; margin-bottom:24px;">هذا الكود (ID: <strong>${esc(tempid)}</strong>) غير مرتبط بأي طفل حالياً. يرجى تسجيل الدخول كخادم للتمكن من ربطه بطفل.</p>
+            <a href="/login/?redirect=${encodeURIComponent(location.href)}" class="btn" style="display:inline-flex; align-items:center; gap:8px; width:100%; justify-content:center; padding:12px; background:var(--brand); color:#fff; border-radius:10px; text-decoration:none; font-weight:700; box-shadow:var(--sh-brand); font-family:inherit;">
+              <i class="fas fa-sign-in-alt"></i> تسجيل دخول الخادم
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      showLoad('تحميل الفصول...');
+      let classes = [];
+      try {
+        const d = await api({ action: 'listClasses' });
+        if (d.success) classes = d.data || d.classes || [];
+      } catch (e) {
+        console.error(e);
+      }
+      hideLoad();
+
+      renderTempIdAssignmentUI(tempid, classes);
+    }
+
+    function renderTempIdAssignmentUI(tempid, classes) {
+      const container = document.getElementById('tempIdAssignContainer');
+      container.innerHTML = `
+        <div style="background:#fff; padding:24px; border-radius:20px; box-shadow:var(--sh-md); border:1.5px solid var(--bdr); margin:20px auto;">
+          <div style="display:flex; align-items:center; gap:12px; border-bottom:2px dashed var(--bdr); padding-bottom:16px; margin-bottom:20px;">
+            <div style="font-size:2rem; color:var(--brand);"><i class="fas fa-qrcode"></i></div>
+            <div>
+              <h2 style="margin:0; font-size:1.25rem; font-weight:800; color:var(--t1);">ربط الكود بالكارت الذكي</h2>
+              <div style="font-size:0.8rem; color:var(--t3); margin-top:2px;">كود الكارت: <strong>${esc(tempid)}</strong></div>
+            </div>
+          </div>
+
+          <div style="display:flex; border-bottom:1px solid var(--bdr); margin-bottom:20px;">
+            <button class="tab-btn active" id="tabLinkExisting" onclick="switchAssignTab('existing')" style="flex:1; padding:12px; border:none; background:none; font-family:inherit; font-weight:800; font-size:0.95rem; border-bottom:3px solid var(--brand); color:var(--brand); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fas fa-user-check"></i> ربط بطفل موجود
+            </button>
+            <button class="tab-btn" id="tabCreateNew" onclick="switchAssignTab('new')" style="flex:1; padding:12px; border:none; background:none; font-family:inherit; font-weight:800; font-size:0.95rem; border-bottom:3px solid transparent; color:var(--t3); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fas fa-user-plus"></i> إضافة طفل جديد وربطه
+            </button>
+          </div>
+
+          <!-- Tab 1: Link Existing -->
+          <div id="assignTabExisting" style="display:block;">
+            <div style="margin-bottom:16px; position:relative;">
+              <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">ابحث عن اسم الطفل أو رقم الهاتف:</label>
+              <div style="position:relative;">
+                <input type="text" id="assignSearchInput" placeholder="اكتب اسم الطفل للبحث..." style="width:100%; padding:12px 14px 12px 38px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="onAssignSearchChange(this.value)">
+                <i class="fas fa-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--t4);"></i>
+              </div>
+              <div id="assignSearchResults" style="display:none; position:absolute; right:0; left:0; background:#fff; border:1.5px solid var(--bdr); border-radius:10px; margin-top:6px; max-height:220px; overflow-y:auto; box-shadow:var(--sh-md); z-index:99;"></div>
+            </div>
+            
+            <div id="selectedStudentInfo" style="display:none; background:var(--brand-bg); border:1px solid var(--brand-l); padding:14px; border-radius:12px; margin-bottom:20px; align-items:center; gap:12px;">
+              <div style="font-size:1.8rem; color:var(--brand);"><i class="fas fa-user"></i></div>
+              <div style="flex:1;">
+                <div id="selStudentName" style="font-weight:800; color:var(--t1); font-size:0.95rem;"></div>
+                <div id="selStudentDetails" style="font-size:0.8rem; color:var(--t3); margin-top:2px;"></div>
+              </div>
+              <button onclick="clearSelectedAssignStudent()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:1rem;"><i class="fas fa-times-circle"></i></button>
+            </div>
+
+            <button onclick="submitAssignExisting('${esc(tempid)}')" class="btn" style="width:100%; padding:12px; background:var(--brand); color:#fff; border:none; border-radius:10px; font-weight:800; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:var(--sh-brand);">
+              <i class="fas fa-link"></i> ربط الكارت بالطفل المختار
+            </button>
+          </div>
+
+          <!-- Tab 2: Create New -->
+          <div id="assignTabNew" style="display:none;">
+            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الاسم الكامل *</label>
+                <input type="text" id="newStudentName" placeholder="الاسم الكامل للطفل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الفصل *</label>
+                <select id="newStudentClass" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
+                  <option value="">اختر الفصل</option>
+                  ${classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">رقم الهاتف</label>
+                <input type="tel" id="newStudentPhone" placeholder="رقم الهاتف للتواصل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+              </div>
+            </div>
+
+            <button onclick="submitAssignNew('${esc(tempid)}')" class="btn" style="width:100%; padding:12px; background:var(--ok); color:#fff; border:none; border-radius:10px; font-weight:800; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
+              <i class="fas fa-user-plus"></i> إضافة الطفل وربط الكارت
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    window.switchAssignTab = function(tab) {
+      const btnLink = document.getElementById('tabLinkExisting');
+      const btnCreate = document.getElementById('tabCreateNew');
+      const viewLink = document.getElementById('assignTabExisting');
+      const viewCreate = document.getElementById('assignTabNew');
+
+      if (tab === 'existing') {
+        btnLink.classList.add('active');
+        btnLink.style.borderBottomColor = 'var(--brand)';
+        btnLink.style.color = 'var(--brand)';
+        btnCreate.classList.remove('active');
+        btnCreate.style.borderBottomColor = 'transparent';
+        btnCreate.style.color = 'var(--t3)';
+        viewLink.style.display = 'block';
+        viewCreate.style.display = 'none';
+      } else {
+        btnCreate.classList.add('active');
+        btnCreate.style.borderBottomColor = 'var(--ok)';
+        btnCreate.style.color = 'var(--ok)';
+        btnLink.classList.remove('active');
+        btnLink.style.borderBottomColor = 'transparent';
+        btnLink.style.color = 'var(--t3)';
+        viewLink.style.display = 'none';
+        viewCreate.style.display = 'block';
+      }
+    };
+
+    let selectedAssignStudentId = null;
+
+    window.onAssignSearchChange = async function(q) {
+      const resultsDiv = document.getElementById('assignSearchResults');
+      if (!q.trim()) {
+        resultsDiv.style.display = 'none';
+        return;
+      }
+      try {
+        const d = await api({ action: 'searchAllStudents', query: q });
+        if (d.success && d.students && d.students.length > 0) {
+          resultsDiv.innerHTML = d.students.map(s => `
+            <div onclick="selectAssignStudent(${s.id}, '${esc(s.name)}', '${esc(s.class || '')}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
+              <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(s.name)}</div>
+              <div style="font-size:0.75rem; color:var(--t3); margin-top:2px;">الفصل: ${esc(s.class || '')}</div>
+            </div>
+          `).join('');
+          resultsDiv.style.display = 'block';
+        } else {
+          resultsDiv.innerHTML = `<div style="padding:12px; color:var(--t4); text-align:center; font-size:0.85rem;">لم يتم العثور على أطفال</div>`;
+          resultsDiv.style.display = 'block';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.selectAssignStudent = function(id, name, className) {
+      selectedAssignStudentId = id;
+      document.getElementById('assignSearchResults').style.display = 'none';
+      document.getElementById('assignSearchInput').value = '';
+      
+      const infoBox = document.getElementById('selectedStudentInfo');
+      document.getElementById('selStudentName').textContent = name;
+      document.getElementById('selStudentDetails').textContent = className ? `الفصل: ${className}` : '';
+      infoBox.style.display = 'flex';
+    };
+
+    window.clearSelectedAssignStudent = function() {
+      selectedAssignStudentId = null;
+      document.getElementById('selectedStudentInfo').style.display = 'none';
+    };
+
+    window.submitAssignExisting = async function(tempid) {
+      if (!selectedAssignStudentId) {
+        alert('يرجى اختيار طفل أولاً');
+        return;
+      }
+      showLoad('جاري ربط الكارت بالطفل...');
+      try {
+        const d = await api({
+          action: 'linkTempIdToStudent',
+          student_id: selectedAssignStudentId,
+          tempid: tempid,
+          trip_id: TARGET_TRIP_ID
+        });
+        hideLoad();
+        if (d.success) {
+          alert('تم ربط الكارت بالطفل بنجاح!');
+          window.location.href = `/user/profile/?id=${selectedAssignStudentId}`;
+        } else {
+          alert(d.message || 'فشل في ربط الكارت');
+        }
+      } catch (e) {
+        hideLoad();
+        alert('حدث خطأ في الاتصال');
+      }
+    };
+
+    window.submitAssignNew = async function(tempid) {
+      const name = document.getElementById('newStudentName').value.trim();
+      const classId = document.getElementById('newStudentClass').value;
+      const phone = document.getElementById('newStudentPhone').value.trim();
+
+      if (!name || !classId) {
+        alert('يرجى إدخال الاسم والفصل');
+        return;
+      }
+
+      showLoad('جاري إضافة الطفل وربط الكارت...');
+      try {
+        const d = await api({
+          action: 'createStudentAndLinkTempId',
+          name: name,
+          class_id: classId,
+          phone: phone,
+          tempid: tempid,
+          trip_id: TARGET_TRIP_ID
+        });
+        hideLoad();
+        if (d.success && d.student_id) {
+          alert('تم إضافة الطفل وربط الكارت بنجاح!');
+          window.location.href = `/user/profile/?id=${d.student_id}`;
+        } else {
+          alert(d.message || 'فشل في ربط الكارت');
+        }
+      } catch (e) {
+        hideLoad();
+        alert('حدث خطأ في الاتصال');
+      }
+    };
 
     // ── Public init ───────────────────────────────────────────────────
     async function initPublic(id) {
