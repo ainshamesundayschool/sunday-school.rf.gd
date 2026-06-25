@@ -7114,29 +7114,48 @@
       </div>
     </div>
 
-    <!-- Bulk Rooms Setup & Edit Modal -->
+    <!-- Bulk Rooms Setup & Edit Modal (CSV) -->
     <div id="bulkRoomsModal" class="modal">
-      <div class="modal-box wide" style="max-width: 680px; width: 90%; font-family: 'Cairo';">
+      <div class="modal-box wide" style="max-width: 580px; width: 90%; font-family: 'Cairo';">
         <div class="modal-head" style="direction: rtl; text-align: right; display: flex; justify-content: space-between; align-items: center;">
           <h2 style="font-weight: 800; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; margin: 0;">
-            <i class="fas fa-home"></i> تعديل وإضافة الغرف جماعياً (Bulk)
+            <i class="fas fa-file-csv"></i> استيراد وتعديل السكن جماعياً (CSV)
           </h2>
           <button class="modal-close" onclick="closeModal('bulkRoomsModal')"><i class="fas fa-times"></i></button>
         </div>
-        <div class="modal-body" style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+        <div class="modal-body" style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 14px; padding: 20px;">
+          
+          <!-- Instructions -->
           <div style="background: var(--surface-2); border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 12px; font-size: 0.8rem; line-height: 1.6; color: var(--text);">
-            <div style="font-weight: 800; margin-bottom: 6px; color: var(--primary);"><i class="fas fa-info-circle"></i> صيغة إدخال البيانات:</div>
-            • اكتب <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">مبنى: اسم المبنى</code> لإنشاء مبنى جديد.<br>
-            • اكتب <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">دور: اسم الدور</code> (اختياري) لتقسيم الغرف داخل المبنى.<br>
-            • لكل غرفة، اكتب سطر بالصيغة: <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">اسم الغرفة, السعة, الفئة, الخدام</code> (مفصولين بـ <code style="background: var(--surface-3); padding: 2px 4px; border-radius: 4px;">|</code>).<br>
-            <span style="font-size: 0.72rem; opacity: 0.8;">الفئات المتاحة: أولاد / بنات. سيقوم النظام بمطابقة أسماء الخدام تلقائياً.</span>
+            <div style="font-weight: 800; margin-bottom: 6px; color: var(--primary);"><i class="fas fa-info-circle"></i> خطوات العمل:</div>
+            1. قم بتحميل ملف البيانات الحالي لغرف وتوزيع السكن بالرحلة.<br>
+            2. افتح الملف في برنامج Excel وقم بتعديل أو إضافة المباني، الغرف، السعات، وتوزيع الأطفال أو الخدام.<br>
+            3. احفظ الملف بصيغة CSV ثم أعد رفعه هنا ليقوم النظام بتحديث الهيكل والتوزيع تلقائياً.
           </div>
-          
-          <textarea id="bulkRoomsTextarea" rows="12" class="form-input" style="width: 100%; font-family: monospace; font-size: 0.8rem; padding: 10px; direction: rtl; text-align: right; resize: vertical;" placeholder="مبنى: مبنى أ&#10;دور: الدور الأول&#10;101, 4, أولاد, جون | مينا&#10;102, 6, بنات, ماريا"></textarea>
-          
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-            <button type="button" class="btn btn-success" onclick="saveBulkRooms()" style="background: #10b981; border: none; padding: 6px 16px; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #fff;">
-              <i class="fas fa-save"></i> حفظ الهيكل الجديد
+
+          <!-- Download Action -->
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-1); border:1px solid var(--border); border-radius:8px; padding:12px;">
+            <div>
+              <div style="font-weight:800; font-size:0.82rem;">1. تحميل البيانات الحالية</div>
+              <div style="font-size:0.7rem; color:var(--muted); margin-top:2px;">يحتوي على كافة الغرف والأشخاص المسكنين حالياً</div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="downloadRoomsCSV()" style="padding: 6px 12px; font-weight:800; display:flex; align-items:center; gap:6px;">
+              <i class="fas fa-file-download"></i> تحميل ملف السكن (CSV)
+            </button>
+          </div>
+
+          <!-- Upload Action -->
+          <div style="display:flex; flex-direction:column; gap:8px; background:var(--surface-1); border:1px dashed var(--border); border-radius:8px; padding:16px; align-items:center; justify-content:center; text-align:center; position:relative; cursor:pointer;" onclick="document.getElementById('bulkRoomsFileInput').click()">
+            <input type="file" id="bulkRoomsFileInput" accept=".csv" style="display:none;" onchange="handleBulkRoomsFileChange(this)">
+            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary); opacity:0.8;"></i>
+            <div style="font-weight:800; font-size:0.85rem; margin-top:4px;" id="bulkRoomsFileLabel">2. اختر ملف CSV المعدل لرفعه</div>
+            <div style="font-size:0.7rem; color:var(--muted);" id="bulkRoomsFileSub">أو اسحب وأفلت الملف هنا مباشرة</div>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; border-top:1.5px solid var(--border-solid); padding-top:14px;">
+            <button type="button" id="btnSaveBulkRooms" class="btn btn-success" onclick="importRoomsCSV()" style="background: #10b981; border: none; padding: 6px 20px; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #fff;" disabled>
+              <i class="fas fa-upload"></i> حفظ وتطبيق التعديلات
             </button>
             <button type="button" class="btn btn-outline" onclick="closeModal('bulkRoomsModal')" style="padding: 6px 16px;">إلغاء</button>
           </div>
@@ -14624,107 +14643,186 @@
       // =========================================================================
       // BULK ROOMS SETUP & EDIT LOGIC
       // =========================================================================
+      // =========================================================================
+      // BULK ROOMS SETUP & EDIT LOGIC (CSV BASED)
+      // =========================================================================
       window.openBulkRoomsModal = function() {
-        const tripId = window.currentTripId;
-        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-        if (!trip) return;
-
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        // Reset file input and save button
+        const fileInput = document.getElementById('bulkRoomsFileInput');
+        if (fileInput) fileInput.value = '';
         
-        const txt = roomsConfigToText(roomsConfig);
-        const textarea = document.getElementById('bulkRoomsTextarea');
-        if (textarea) textarea.value = txt;
+        const label = document.getElementById('bulkRoomsFileLabel');
+        if (label) label.textContent = '2. اختر ملف CSV المعدل لرفعه';
 
+        const sub = document.getElementById('bulkRoomsFileSub');
+        if (sub) sub.textContent = 'أو اسحب وأفلت الملف هنا مباشرة';
+
+        const saveBtn = document.getElementById('btnSaveBulkRooms');
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.style.opacity = '0.5';
+        }
+
+        window.uploadedRoomsCSVData = null;
         document.getElementById('bulkRoomsModal').classList.add('open');
       };
 
-      window.saveBulkRooms = async function() {
+      window.handleBulkRoomsFileChange = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const label = document.getElementById('bulkRoomsFileLabel');
+        const sub = document.getElementById('bulkRoomsFileSub');
+        const saveBtn = document.getElementById('btnSaveBulkRooms');
+
+        if (!file.name.endsWith('.csv')) {
+          showToast('يرجى اختيار ملف بصيغة CSV فقط', 'warning');
+          input.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          window.uploadedRoomsCSVData = e.target.result;
+          if (label) label.textContent = `تم تحميل الملف: ${file.name}`;
+          if (sub) sub.textContent = 'الملف جاهز للتطبيق والحفظ.';
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+          }
+          showToast('تم قراءة الملف بنجاح!', 'info');
+        };
+        reader.onerror = function() {
+          showToast('فشل قراءة ملف CSV', 'error');
+        };
+        reader.readAsText(file, 'utf-8');
+      };
+
+      window.downloadRoomsCSV = function() {
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const textarea = document.getElementById('bulkRoomsTextarea');
-        if (!textarea) return;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
 
-        const txt = textarea.value;
-        const existingConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
-        
-        const newConfig = parseTextToRoomsConfig(txt, existingConfig);
+        const allocatedMap = {};
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+          if (cData['السكن']) {
+            allocatedMap[r.id] = {
+              bldName: cData['السكن'],
+              floorName: cData['السكن__sf__الدور'] || '',
+              roomName: cData['السكن__sf__الغرفة'] || ''
+            };
+          }
+        });
 
-        const saveBtn = document.querySelector('#bulkRoomsModal .btn-success');
-        if (saveBtn) saveBtn.disabled = true;
-        
-        const success = await saveRoomsConfig(tripId, newConfig);
-        
-        if (saveBtn) saveBtn.disabled = false;
+        const csvRows = [
+          ['المبنى', 'الدور', 'الغرفة', 'السعة', 'الفئة', 'دور العضو', 'الاسم']
+        ];
 
-        if (success) {
-          showToast('تم تحديث هيكل السكن بالكامل بنجاح!', 'success');
-          closeModal('bulkRoomsModal');
-          renderRoomsWorkspaceData();
-        } else {
-          showToast('فشل تحديث هيكل السكن', 'error');
-        }
-      };
+        roomsConfig.forEach(bld => {
+          const processRoom = (flName, r) => {
+            const roomKids = regs.filter(k => {
+              const alloc = allocatedMap[k.id];
+              return alloc && alloc.bldName === bld.name && alloc.floorName === flName && alloc.roomName === r.name;
+            });
+            const roomUncles = r.uncles || [];
 
-      function roomsConfigToText(config) {
-        if (!Array.isArray(config)) return '';
-        let lines = [];
-        config.forEach(bld => {
-          lines.push(`مبنى: ${bld.name}`);
+            let genderText = '';
+            if (r.gender_filter === 'male') genderText = 'أولاد';
+            else if (r.gender_filter === 'female') genderText = 'بنات';
+
+            if (roomKids.length === 0 && roomUncles.length === 0) {
+              csvRows.push([bld.name, flName, r.name, r.capacity, genderText, '', '']);
+            } else {
+              roomKids.forEach(k => {
+                csvRows.push([bld.name, flName, r.name, r.capacity, genderText, 'طفل', k.student_name]);
+              });
+              roomUncles.forEach(u => {
+                csvRows.push([bld.name, flName, r.name, r.capacity, genderText, 'خادم', u.name]);
+              });
+            }
+          };
+
           if (bld.has_floors) {
             (bld.floors || []).forEach(fl => {
-              lines.push(`دور: ${fl.name}`);
-              (fl.rooms || []).forEach(r => {
-                let genderStr = '';
-                if (r.gender_filter === 'male') genderStr = 'أولاد';
-                else if (r.gender_filter === 'female') genderStr = 'بنات';
-                
-                if (r.uncles && r.uncles.length) {
-                  const unclesStr = r.uncles.map(u => u.name).join(' | ');
-                  lines.push(`${r.name}, ${r.capacity}, ${genderStr}, ${unclesStr}`);
-                } else {
-                  let line = `${r.name}, ${r.capacity}`;
-                  if (genderStr) line += `, ${genderStr}`;
-                  lines.push(line);
-                }
-              });
+              (fl.rooms || []).forEach(r => processRoom(fl.name, r));
             });
           } else {
-            (bld.rooms || []).forEach(r => {
-              let genderStr = '';
-              if (r.gender_filter === 'male') genderStr = 'أولاد';
-              else if (r.gender_filter === 'female') genderStr = 'بنات';
-              
-              if (r.uncles && r.uncles.length) {
-                const unclesStr = r.uncles.map(u => u.name).join(' | ');
-                lines.push(`${r.name}, ${r.capacity}, ${genderStr}, ${unclesStr}`);
-              } else {
-                let line = `${r.name}, ${r.capacity}`;
-                if (genderStr) line += `, ${genderStr}`;
-                lines.push(line);
-              }
-            });
+            (bld.rooms || []).forEach(r => processRoom('', r));
           }
-          lines.push(''); // Empty line between buildings
         });
-        return lines.join('\n').trim();
-      }
 
-      function parseTextToRoomsConfig(text, existingConfig = []) {
-        const lines = text.split('\n');
-        const config = [];
-        let currentBld = null;
-        let currentFloor = null;
+        let csvContent = '\uFEFF';
+        csvRows.forEach(row => {
+          const escapedRow = row.map(val => {
+            let stringVal = String(val ?? '');
+            if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
+              stringVal = '"' + stringVal.replace(/"/g, '""') + '"';
+            }
+            return stringVal;
+          });
+          csvContent += escapedRow.join(',') + '\n';
+        });
 
-        // Build a map of existing uncles and exclusions by room key to preserve them
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `سكن_رحلة_${trip.title.replace(/\s+/g, '_')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      window.importRoomsCSV = async function() {
+        const csvText = window.uploadedRoomsCSVData;
+        if (!csvText) {
+          showToast('يرجى اختيار ملف أولاً', 'warning');
+          return;
+        }
+
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const regs = tripRegistrationsCache[tripId] || [];
+        const existingConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        const saveBtn = document.getElementById('btnSaveBulkRooms');
+        if (saveBtn) saveBtn.disabled = true;
+
+        const rows = parseCSV(csvText);
+        if (rows.length <= 1) {
+          showToast('الملف فارغ أو غير صالح', 'warning');
+          if (saveBtn) saveBtn.disabled = false;
+          return;
+        }
+
+        const headers = rows[0].map(h => h.trim().toLowerCase());
+        const bldIdx = headers.findIndex(h => h.includes('مبنى') || h.includes('building'));
+        const flIdx = headers.findIndex(h => h.includes('دور') || h.includes('floor'));
+        const roomIdx = headers.findIndex(h => h.includes('غرفة') || h.includes('room'));
+        const capIdx = headers.findIndex(h => h.includes('سعة') || h.includes('capacity'));
+        const genIdx = headers.findIndex(h => h.includes('فئة') || h.includes('gender'));
+        const roleIdx = headers.findIndex(h => h.includes('دور') || h.includes('role'));
+        const nameIdx = headers.findIndex(h => h.includes('اسم') || h.includes('name'));
+
+        if (bldIdx === -1 || roomIdx === -1 || capIdx === -1) {
+          showToast('تنسيق الملف غير صالح. يجب أن يحتوي على أعمدة (المبنى، الغرفة، السعة)', 'error');
+          if (saveBtn) saveBtn.disabled = false;
+          return;
+        }
+
         const existingRoomsMap = {};
         existingConfig.forEach(bld => {
           const cleanBldName = bld.name.trim();
           const processRoom = (flName, r) => {
             const key = `${cleanBldName}||${flName.trim()}||${r.name.trim()}`;
             existingRoomsMap[key] = {
-              uncles: r.uncles || [],
               is_excluded: !!r.is_excluded
             };
           };
@@ -14737,114 +14835,224 @@
           }
         });
 
-        for (let line of lines) {
-          line = line.trim();
-          if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+        const roomsMap = {};
+        const assignedKids = [];
+        
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length <= Math.max(bldIdx, roomIdx, capIdx)) continue;
 
-          if (line.startsWith('مبنى:') || line.startsWith('Building:')) {
-            const bldName = line.replace(/^(مبنى:|Building:)/i, '').trim();
-            currentBld = {
-              name: bldName,
-              has_floors: false,
-              rooms: [],
-              floors: []
-            };
-            config.push(currentBld);
-            currentFloor = null;
-          } else if (line.startsWith('دور:') || line.startsWith('Floor:')) {
-            const floorName = line.replace(/^(دور:|Floor:)/i, '').trim();
-            if (!currentBld) {
-              currentBld = {
-                name: 'مبنى افتراضي',
-                has_floors: true,
-                rooms: [],
-                floors: []
-              };
-              config.push(currentBld);
+          const bldName = row[bldIdx]?.trim() || '';
+          const floorName = flIdx !== -1 ? row[flIdx]?.trim() || '' : '';
+          const roomName = row[roomIdx]?.trim() || '';
+          const capVal = parseInt(row[capIdx]?.trim() || '4');
+          const capacity = isNaN(capVal) || capVal <= 0 ? 4 : capVal;
+
+          if (!bldName || !roomName) continue;
+
+          const genderText = genIdx !== -1 ? row[genIdx]?.trim() || '' : '';
+          let genderFilter = null;
+          if (genderText) {
+            const gLower = genderText.toLowerCase();
+            if (gLower.includes('ولد') || gLower.includes('boys') || gLower.includes('male') || gLower.includes('أولاد')) {
+              genderFilter = 'male';
+            } else if (gLower.includes('بنت') || gLower.includes('girls') || gLower.includes('female') || gLower.includes('بنات')) {
+              genderFilter = 'female';
             }
-            currentBld.has_floors = true;
-            currentFloor = {
-              name: floorName,
-              rooms: []
-            };
-            currentBld.floors.push(currentFloor);
-          } else {
-            const parts = line.split(',');
-            if (parts.length < 2) continue;
+          }
 
-            const roomName = parts[0].trim();
-            const capacity = parseInt(parts[1].trim());
-            if (isNaN(capacity) || capacity <= 0) continue;
+          const roleText = roleIdx !== -1 ? row[roleIdx]?.trim().toLowerCase() || '' : '';
+          const nameText = nameIdx !== -1 ? row[nameIdx]?.trim() || '' : '';
 
-            let genderFilter = null;
-            if (parts[2]) {
-              const gText = parts[2].trim().toLowerCase();
-              if (gText === 'أولاد' || gText === 'boys' || gText === 'male' || gText === 'ولد') {
-                genderFilter = 'male';
-              } else if (gText === 'بنات' || gText === 'girls' || gText === 'female' || gText === 'بنت') {
-                genderFilter = 'female';
-              }
-            }
-
-            let roomUncles = [];
-            if (parts.length >= 4) {
-              const uncleNames = parts[3].split('|');
-              uncleNames.forEach(uName => {
-                const nameTrimmed = uName.trim();
-                if (nameTrimmed) {
-                  const matched = matchUncleByName(nameTrimmed);
-                  if (matched) {
-                    roomUncles.push({ id: String(matched.id), name: matched.name });
-                  } else {
-                    roomUncles.push({ id: `temp_${Math.random().toString(36).substring(2, 9)}`, name: nameTrimmed });
-                  }
-                }
-              });
-            } else {
-              const bldKeyName = currentBld ? currentBld.name.trim() : 'مبنى افتراضي';
-              const flKeyName = currentFloor ? currentFloor.name.trim() : '';
-              const lookupKey = `${bldKeyName}||${flKeyName}||${roomName}`;
-              const existing = existingRoomsMap[lookupKey] || {};
-              roomUncles = existing.uncles || [];
-            }
-
-            const bldKeyName = currentBld ? currentBld.name.trim() : 'مبنى افتراضي';
-            const flKeyName = currentFloor ? currentFloor.name.trim() : '';
-            const lookupKey = `${bldKeyName}||${flKeyName}||${roomName}`;
-            const existing = existingRoomsMap[lookupKey] || {};
-
-            const roomObj = {
+          const roomKey = `${bldName}||${floorName}||${roomName}`;
+          if (!roomsMap[roomKey]) {
+            const existing = existingRoomsMap[roomKey] || {};
+            roomsMap[roomKey] = {
+              bldName,
+              floorName,
               name: roomName,
-              capacity: capacity,
+              capacity,
               gender_filter: genderFilter,
-              uncles: roomUncles,
-              is_excluded: existing.is_excluded || false
+              uncles: [],
+              is_excluded: !!existing.is_excluded
             };
+          }
 
-            if (currentFloor) {
-              currentFloor.rooms.push(roomObj);
-            } else {
-              if (!currentBld) {
-                currentBld = {
-                  name: 'مبنى افتراضي',
-                  has_floors: false,
-                  rooms: [],
-                  floors: []
-                };
-                config.push(currentBld);
+          if (nameText) {
+            const isUncle = roleText.includes('خادم') || roleText.includes('خادمة') || roleText.includes('uncle') || roleText.includes('leader');
+            if (isUncle) {
+              const matchedUncle = matchUncleByName(nameText);
+              if (matchedUncle) {
+                if (!roomsMap[roomKey].uncles.some(u => u.id == matchedUncle.id)) {
+                  roomsMap[roomKey].uncles.push({ id: String(matchedUncle.id), name: matchedUncle.name });
+                }
+              } else {
+                roomsMap[roomKey].uncles.push({ id: `temp_${Math.random().toString(36).substring(2, 9)}`, name: nameText });
               }
-              currentBld.rooms.push(roomObj);
+            } else {
+              const matchedKid = matchStudentByName(nameText, regs);
+              if (matchedKid) {
+                if (!assignedKids.some(k => k.kidId == matchedKid.id)) {
+                  assignedKids.push({
+                    kidId: matchedKid.id,
+                    bldName,
+                    floorName,
+                    roomName
+                  });
+                }
+              }
             }
           }
         }
 
-        return config.filter(bld => {
-          if (bld.has_floors) {
-            bld.floors = bld.floors.filter(fl => fl.rooms.length > 0);
-            return bld.floors.length > 0;
+        const buildingsTemp = {};
+        Object.values(roomsMap).forEach(r => {
+          if (!buildingsTemp[r.bldName]) {
+            buildingsTemp[r.bldName] = {
+              name: r.bldName,
+              has_floors: false,
+              rooms: [],
+              floorsMap: {}
+            };
           }
-          return bld.rooms.length > 0;
+          const bld = buildingsTemp[r.bldName];
+          if (r.floorName) {
+            bld.has_floors = true;
+            if (!bld.floorsMap[r.floorName]) {
+              bld.floorsMap[r.floorName] = {
+                name: r.floorName,
+                rooms: []
+              };
+            }
+            bld.floorsMap[r.floorName].rooms.push({
+              name: r.name,
+              capacity: r.capacity,
+              gender_filter: r.gender_filter,
+              uncles: r.uncles,
+              is_excluded: r.is_excluded
+            });
+          } else {
+            bld.rooms.push({
+              name: r.name,
+              capacity: r.capacity,
+              gender_filter: r.gender_filter,
+              uncles: r.uncles,
+              is_excluded: r.is_excluded
+            });
+          }
         });
+
+        const newRoomsConfig = Object.values(buildingsTemp).map(bld => {
+          const floors = Object.values(bld.floorsMap);
+          const finalBld = {
+            name: bld.name,
+            has_floors: bld.has_floors
+          };
+          if (bld.has_floors) {
+            finalBld.floors = floors;
+            finalBld.rooms = [];
+          } else {
+            finalBld.rooms = bld.rooms;
+            finalBld.floors = [];
+          }
+          return finalBld;
+        });
+
+        const customDataPayload = [];
+        const newAllocationsMap = {};
+        assignedKids.forEach(ak => {
+          newAllocationsMap[ak.kidId] = {
+            'السكن': ak.bldName,
+            'السكن__sf__الدور': ak.floorName,
+            'السكن__sf__الغرفة': ak.roomName
+          };
+        });
+
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+
+          const hasNewAllocation = newAllocationsMap[r.id];
+          const hasOldAllocation = cData['السكن'];
+
+          if (hasNewAllocation) {
+            const merged = { ...cData, ...newAllocationsMap[r.id] };
+            customDataPayload.push({ registration_id: r.id, custom_data: merged });
+            r.custom_data = JSON.stringify(merged);
+          } else if (hasOldAllocation) {
+            const cleared = { ...cData, 'السكن': '', 'السكن__sf__الدور': '', 'السكن__sf__الغرفة': '' };
+            customDataPayload.push({ registration_id: r.id, custom_data: cleared });
+            r.custom_data = JSON.stringify(cleared);
+          }
+        });
+
+        const successRooms = await saveRoomsConfig(tripId, newRoomsConfig);
+        let successKids = true;
+        if (customDataPayload.length > 0) {
+          successKids = await saveCustomDataPayload(tripId, customDataPayload);
+        }
+
+        if (saveBtn) saveBtn.disabled = false;
+
+        if (successRooms && successKids) {
+          showToast('تم تحديث هيكل وتوزيع السكن بالكامل بنجاح! 🎉', 'success');
+          closeModal('bulkRoomsModal');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('حدث خطأ أثناء حفظ التعديلات', 'error');
+        }
+      };
+
+      function parseCSV(text) {
+        const lines = [];
+        let row = [""];
+        let inQuotes = false;
+        
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const nextChar = text[i + 1];
+          
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              row[row.length - 1] += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            row.push("");
+          } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            if (char === '\r' && nextChar === '\n') {
+              i++;
+            }
+            lines.push(row);
+            row = [""];
+          } else {
+            row[row.length - 1] += char;
+          }
+        }
+        if (row.length > 1 || row[0] !== "") {
+          lines.push(row);
+        }
+        return lines;
+      }
+
+      function matchStudentByName(name, regs) {
+        const cleanName = name.trim();
+        if (!cleanName) return null;
+
+        let bestMatch = null;
+        let bestScore = 0;
+
+        regs.forEach(k => {
+          const score = getMatchScore(k, cleanName, [{ val: k.student_name || '', weight: 1.0 }]);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = k;
+          }
+        });
+
+        return bestScore > 0.15 ? bestMatch : null;
       }
 
       function matchUncleByName(name) {
@@ -14862,7 +15070,7 @@
           }
         });
         
-        return bestScore > 0.1 ? bestMatch : null;
+        return bestScore > 0.15 ? bestMatch : null;
       }
 
       async function saveRoomsConfig(tripId, config) {
