@@ -9333,7 +9333,14 @@
                             <select id="printTargetScope" class="form-select" style="width:100%; height:38px; border:1px solid var(--border); padding:0 10px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif;" onchange="togglePrintTargetScope(); updatePrintPreview();">
                                 <option value="all" selected>طباعة جميع الأطفال</option>
                                 <option value="selected">طباعة أطفال محددين فقط</option>
+                                <option value="empty">طباعة كروت فارغة (برمز QR مؤقت)</option>
                             </select>
+                        </div>
+
+                        <!-- Empty copies count input -->
+                        <div id="printEmptyCountContainer" style="display:none; flex-direction:column; gap:6px;">
+                            <label class="form-label">عدد الكروت الفارغة المراد طباعتها</label>
+                            <input type="number" id="printEmptyCount" value="10" min="1" max="500" class="form-input" style="height:38px; width:100%; border:1px solid var(--border); padding:0 10px; border-radius:6px;" onchange="updatePrintPreview()" oninput="updatePrintPreview()">
                         </div>
 
                         <!-- Selected Kids Filter & List container -->
@@ -20128,7 +20135,13 @@
             
             let avatarHtml = '';
             if (showStudentImg) {
-                if (showAvatarFallback) {
+                if (s.is_empty_copy) {
+                    avatarHtml = `
+                    <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; border:2px dashed ${strokeColor}; background:rgba(255,255,255,0.7); display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; align-self:center; box-sizing:border-box;">
+                        <i class="fas fa-camera" style="font-size:${sAvatar * 0.3}px; color:${fontColor}; opacity:0.6;"></i>
+                        <span style="font-size:${Math.max(5, sAvatar * 0.12)}px; color:${fontColor}; font-weight:800; opacity:0.7; margin-top:2px;">ضع الصورة</span>
+                    </div>`;
+                } else if (showAvatarFallback) {
                     avatarHtml = `
                     <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
@@ -20142,8 +20155,12 @@
                 }
             }
 
-            const safeStudentName = escHtml(s['الاسم'] || s.name || 'طفل');
-            const cls = s['الفصل'] || s.class || '';
+            const safeStudentName = s.is_empty_copy 
+                ? 'الاسم: ................................................' 
+                : escHtml(s['الاسم'] || s.name || 'طفل');
+            const cls = s.is_empty_copy 
+                ? 'الفصل: ................................................' 
+                : (s['الفصل'] || s.class || '');
             const safeClass = escHtml(cls || '');
 
             const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
@@ -20245,8 +20262,11 @@
                             if (['church_header', 'student_image', 'student_name', 'class', 'student_id'].includes(field.key)) {
                                 return '';
                             }
-                            const val = getStudentFieldValue(s, field.key);
-                            if (val === null || val === undefined || String(val).trim() === '') return '';
+                            let val = getStudentFieldValue(s, field.key);
+                            if (s.is_empty_copy) {
+                                val = '.....................';
+                            }
+                            if (!s.is_empty_copy && (val === null || val === undefined || String(val).trim() === '')) return '';
                             let iconClass = field.icon || 'fas fa-info-circle';
                             
                             if (field.key.startsWith('church_custom_')) {
@@ -20287,14 +20307,15 @@
 
             let showStudentIdHtml = '';
             if (showStudentId) {
+                const displayId = s.is_empty_copy ? '.....................' : sid;
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     showStudentIdHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
-                        <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${sid}</span>
+                        <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${displayId}</span>
                     </div>
                     `;
                 } else {
-                    showStudentIdHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+                    showStudentIdHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${displayId}</div>`;
                 }
             }
 
@@ -20613,16 +20634,28 @@
             syncPrintSettingsUI();
 
             const previewWrapper = document.getElementById('printPreviewContent');
-            if (!Array.isArray(allStudents) || allStudents.length === 0) {
-                previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
+            const scope = document.getElementById('printTargetScope')?.value || 'all';
+            if (scope !== 'empty' && (!Array.isArray(allStudents) || allStudents.length === 0)) {
+                if (previewWrapper) previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
                 return;
             }
 
-            const allKids = allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id));
-            const scope = document.getElementById('printTargetScope')?.value || 'all';
-            const kids = scope === 'selected' 
-                ? allKids.filter(s => printSelectedStudentIds.has(s['_studentId'] || s.id || s.student_id))
-                : allKids;
+            let kids = [];
+            if (scope === 'empty') {
+                for (let idx = 0; idx < 4; idx++) {
+                    kids.push({
+                        is_empty_copy: true,
+                        id: 'tempid_SAMPLE' + (idx + 1),
+                        name: '',
+                        class: ''
+                    });
+                }
+            } else {
+                const allKids = allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id));
+                kids = scope === 'selected' 
+                    ? allKids.filter(s => printSelectedStudentIds.has(s['_studentId'] || s.id || s.student_id))
+                    : allKids;
+            }
             if (kids.length === 0) {
                 previewWrapper.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;">لا يوجد مسجلين للمعاينة</div>';
                 return;
@@ -20725,22 +20758,30 @@
         function togglePrintTargetScope() {
             const scope = document.getElementById('printTargetScope').value;
             const container = document.getElementById('printSelectedKidsContainer');
+            const emptyContainer = document.getElementById('printEmptyCountContainer');
             if (scope === 'selected') {
-                container.style.display = 'flex';
+                if (container) container.style.display = 'flex';
+                if (emptyContainer) emptyContainer.style.display = 'none';
                 // Initialize class filter options
                 const filterSelect = document.getElementById('printClassFilter');
-                filterSelect.innerHTML = '<option value="all">كل الفصول</option>';
-                const uniqueClasses = [...new Set(allStudents.map(s => s['الفصل']))].filter(Boolean);
-                uniqueClasses.sort((a,b)=>a.localeCompare(b, 'ar'));
-                uniqueClasses.forEach(cls => {
-                    const opt = document.createElement('option');
-                    opt.value = cls;
-                    opt.textContent = cls;
-                    filterSelect.appendChild(opt);
-                });
+                if (filterSelect) {
+                    filterSelect.innerHTML = '<option value="all">كل الفصول</option>';
+                    const uniqueClasses = [...new Set(allStudents.map(s => s['الفصل']))].filter(Boolean);
+                    uniqueClasses.sort((a,b)=>a.localeCompare(b, 'ar'));
+                    uniqueClasses.forEach(cls => {
+                        const opt = document.createElement('option');
+                        opt.value = cls;
+                        opt.textContent = cls;
+                        filterSelect.appendChild(opt);
+                    });
+                }
                 buildPrintKidsList();
+            } else if (scope === 'empty') {
+                if (container) container.style.display = 'none';
+                if (emptyContainer) emptyContainer.style.display = 'flex';
             } else {
-                container.style.display = 'none';
+                if (container) container.style.display = 'none';
+                if (emptyContainer) emptyContainer.style.display = 'none';
             }
         }
 
@@ -20955,11 +20996,25 @@
 
         async function executePrintQRCards(mode = 'combined', force = false) {
             currentPrintMode = mode;
-            const allKids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
             const scope = document.getElementById('printTargetScope')?.value || 'all';
-            const kids = scope === 'selected' 
-                ? allKids.filter(s => printSelectedStudentIds.has(s['_studentId'] || s.id || s.student_id))
-                : allKids;
+            let kids = [];
+            if (scope === 'empty') {
+                const emptyCount = parseInt(document.getElementById('printEmptyCount')?.value || 10);
+                for (let idx = 0; idx < emptyCount; idx++) {
+                    const randomId = 'tempid_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                    kids.push({
+                        is_empty_copy: true,
+                        id: randomId,
+                        name: '',
+                        class: ''
+                    });
+                }
+            } else {
+                const allKids = Array.isArray(allStudents) ? allStudents.filter(s => s && (s['_studentId'] || s.id || s.student_id)) : [];
+                kids = scope === 'selected' 
+                    ? allKids.filter(s => printSelectedStudentIds.has(s['_studentId'] || s.id || s.student_id))
+                    : allKids;
+            }
             if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
 
             const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
@@ -21062,7 +21117,9 @@
                 if (!s) return placeholderHtml;
                 const sid = s['_studentId'] || s.id || s.student_id;
                 const cardId = 'qrcode_kid_' + sid + '_' + idx;
-                const link = `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
+                const link = s.is_empty_copy
+                    ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(sid)}`
+                    : `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
 
                 qrTasks.push({ id: cardId, text: link });
 

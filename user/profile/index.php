@@ -5512,6 +5512,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             </div>
           </div>
 
+          <!-- Tab Switcher -->
+          <div style="display:flex; border-bottom:1px solid var(--bdr2); margin-bottom:20px;">
+            <button id="tabBtnExisting" onclick="switchAssignTab('existing')" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid var(--brand); color:var(--brand); font-weight:800; font-family:inherit; cursor:pointer; font-size:0.95rem;">ربط بطفل مسجل</button>
+            <button id="tabBtnNew" onclick="switchAssignTab('new')" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid transparent; color:var(--t3); font-weight:800; font-family:inherit; cursor:pointer; font-size:0.95rem;">إضافة طفل جديد</button>
+          </div>
+
           <!-- Tab 1: Link Existing -->
           <div id="assignTabExisting" style="display:block;">
             <div style="margin-bottom:16px; position:relative;">
@@ -5535,6 +5541,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <button onclick="submitAssignExisting('${esc(tempid)}')" class="btn" style="width:100%; padding:12px; background:var(--brand); color:#fff; border:none; border-radius:10px; font-weight:800; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:var(--sh-brand);">
               <i class="fas fa-link"></i> ربط الكارت بالطفل المختار
             </button>
+          </div>
+
+          <!-- Tab 2: Add New Kid -->
+          <div id="assignTabNew" style="display:none;">
+            <!-- Church Search Input -->
+            <div style="margin-bottom:12px; position:relative;">
+              <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكنيسة التابع لها الطفل *</label>
+              <div style="position:relative;">
+                <input type="text" id="newKidChurchSearchInput" placeholder="اكتب اسم الكنيسة للبحث..." style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="onNewKidChurchSearchChange(this.value)">
+                <i class="fas fa-church" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--t4);"></i>
+              </div>
+              <div id="newKidChurchSearchResults" style="display:none; position:absolute; right:0; left:0; background:#fff; border:1.5px solid var(--bdr); border-radius:10px; margin-top:6px; max-height:200px; overflow-y:auto; box-shadow:var(--sh-md); z-index:999;"></div>
+              <input type="hidden" id="newKidChurchId">
+            </div>
+
+            <!-- Form fields wrapper (initially hidden until church is selected) -->
+            <div id="newKidFormFields" style="display:none; flex-direction:column; gap:12px; border-top:1px dashed var(--bdr); padding-top:16px; margin-top:12px;">
+              <!-- Photo Upload Area -->
+              <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <label style="align-self:flex-start; font-size:0.85rem; font-weight:800; color:var(--t2);">الصورة الشخصية</label>
+                <div onclick="document.getElementById('newKidPhotoInput').click()" style="width:80px; height:80px; border-radius:50%; border:2px dashed var(--brand); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:#f9fafb; position:relative;">
+                  <img id="newKidPhotoPreview" style="display:none; width:100%; height:100%; object-fit:cover;">
+                  <div id="newKidPhotoPlaceholder" style="color:var(--brand); font-size:1.5rem;"><i class="fas fa-user-plus"></i></div>
+                </div>
+                <input type="file" id="newKidPhotoInput" accept="image/*" style="display:none;" onchange="handleNewKidPhotoChange(event)">
+              </div>
+
+              <!-- Name & Gender -->
+              <div style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">الاسم *</label>
+                  <input type="text" id="newKidName" placeholder="الاسم رباعي" style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                </div>
+                <div style="width:100px;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">النوع *</label>
+                  <select id="newKidGender" style="width:100%; padding:10px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none; background:#fff;">
+                    <option value="male">ولد</option>
+                    <option value="female">بنت</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Class Selection -->
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">الفصل *</label>
+                <select id="newKidClassId" style="width:100%; padding:10px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none; background:#fff;">
+                  <option value="">اختر الفصل</option>
+                </select>
+              </div>
+
+              <!-- Address & Phone & Emergency Phone -->
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">العنوان</label>
+                <input type="text" id="newKidAddress" placeholder="العنوان بالتفصيل" style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+              </div>
+
+              <div style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">رقم التليفون</label>
+                  <input type="tel" id="newKidPhone" placeholder="01........." style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                </div>
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">تليفون الطوارئ</label>
+                  <input type="tel" id="newKidEmergencyPhone" placeholder="01........." style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                </div>
+              </div>
+
+              <!-- Birthday & Coupons -->
+              <div style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">تاريخ الميلاد</label>
+                  <input type="text" id="newKidBirthday" placeholder="DD/MM/YYYY" style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                </div>
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">كوبونات ابتدائية</label>
+                  <input type="number" id="newKidCoupons" value="0" min="0" style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
+                </div>
+              </div>
+
+              <!-- Medical Notes -->
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">ملاحظات طبية</label>
+                <textarea id="newKidMedicalNotes" rows="2" placeholder="أي مشاكل صحية أو ملاحظات طبية..." style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none; resize:vertical;"></textarea>
+              </div>
+
+              <!-- Custom Info Fields Container according to selected church -->
+              <div id="newKidCustomFieldsContainer" style="display:none; flex-direction:column; gap:12px; background:var(--brand-bg); padding:12px; border-radius:12px; border:1px solid var(--brand-l);">
+                <div style="font-size:0.85rem; font-weight:800; color:var(--brand); border-bottom:1px solid var(--brand-l); padding-bottom:6px; margin-bottom:6px;"><i class="fas fa-list-ul"></i> بيانات إضافية خاصة بالكنيسة</div>
+                <div id="newKidCustomFieldsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+
+              <button onclick="submitCreateAndAssign('${esc(tempid)}')" class="btn" style="width:100%; padding:12px; background:var(--brand); color:#fff; border:none; border-radius:10px; font-weight:800; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:var(--sh-brand); margin-top:8px;">
+                <i class="fas fa-plus"></i> إضافة الطفل وربط الكارت
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -5618,6 +5719,223 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       } catch (e) {
         hideLoad();
         alert('حدث خطأ في الاتصال');
+      }
+    };
+
+    window.switchAssignTab = function(tab) {
+      const tabBtnExisting = document.getElementById('tabBtnExisting');
+      const tabBtnNew = document.getElementById('tabBtnNew');
+      const assignTabExisting = document.getElementById('assignTabExisting');
+      const assignTabNew = document.getElementById('assignTabNew');
+      if (tab === 'existing') {
+        tabBtnExisting.style.borderBottomColor = 'var(--brand)';
+        tabBtnExisting.style.color = 'var(--brand)';
+        tabBtnNew.style.borderBottomColor = 'transparent';
+        tabBtnNew.style.color = 'var(--t3)';
+        assignTabExisting.style.display = 'block';
+        assignTabNew.style.display = 'none';
+      } else {
+        tabBtnNew.style.borderBottomColor = 'var(--brand)';
+        tabBtnNew.style.color = 'var(--brand)';
+        tabBtnExisting.style.borderBottomColor = 'transparent';
+        tabBtnExisting.style.color = 'var(--t3)';
+        assignTabExisting.style.display = 'none';
+        assignTabNew.style.display = 'block';
+      }
+    };
+
+    let currentSelectedChurchCustomFields = [];
+
+    window.onNewKidChurchSearchChange = function(q) {
+      const resultsDiv = document.getElementById('newKidChurchSearchResults');
+      if (!q.trim()) {
+        resultsDiv.style.display = 'none';
+        return;
+      }
+      if (!window.allChurches || window.allChurches.length === 0) {
+        resultsDiv.innerHTML = `<div style="padding:10px; color:var(--t4); text-align:center; font-size:0.85rem;">لا توجد كنائس متاحة</div>`;
+        resultsDiv.style.display = 'block';
+        return;
+      }
+
+      let churches = window.allChurches.map(c => ({
+        ...c,
+        _score: getMatchScore({ name: c.name }, q, ['name'])
+      })).filter(c => c._score > 0).sort((a, b) => b._score - a._score);
+
+      if (churches.length > 0) {
+        resultsDiv.innerHTML = churches.map(c => `
+          <div onclick="selectNewKidChurch(${c.id}, '${esc(c.name)}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(c.name)}</div>
+          </div>
+        `).join('');
+        resultsDiv.style.display = 'block';
+      } else {
+        resultsDiv.innerHTML = `<div style="padding:10px; color:var(--t4); text-align:center; font-size:0.85rem;">لا توجد كنيسة مطابقة</div>`;
+        resultsDiv.style.display = 'block';
+      }
+    };
+
+    window.selectNewKidChurch = async function(churchId, churchName) {
+      document.getElementById('newKidChurchId').value = churchId;
+      document.getElementById('newKidChurchSearchInput').value = churchName;
+      document.getElementById('newKidChurchSearchResults').style.display = 'none';
+
+      showLoad('تحميل بيانات الكنيسة...');
+      try {
+        const [dClasses, dSettings] = await Promise.all([
+          api({ action: 'getChurchClasses', church_id: churchId }),
+          api({ action: 'getChurchSettings', church_id: churchId })
+        ]);
+
+        const classSelect = document.getElementById('newKidClassId');
+        classSelect.innerHTML = '<option value="">اختر الفصل</option>';
+        if (dClasses.success) {
+          const classesList = dClasses.data || dClasses.classes || [];
+          classesList.forEach(cls => {
+            const opt = document.createElement('option');
+            opt.value = cls.id;
+            opt.textContent = cls.arabic_name;
+            classSelect.appendChild(opt);
+          });
+        }
+
+        const customContainer = document.getElementById('newKidCustomFieldsContainer');
+        const customList = document.getElementById('newKidCustomFieldsList');
+        customList.innerHTML = '';
+        currentSelectedChurchCustomFields = [];
+
+        if (dSettings.success && dSettings.settings) {
+          const settings = dSettings.settings || {};
+          let cf = settings.custom_fields || settings.custom_field || [];
+          if (cf && !Array.isArray(cf)) cf = [cf];
+          
+          currentSelectedChurchCustomFields = cf;
+
+          if (cf.length > 0) {
+            cf.forEach((field, index) => {
+              const div = document.createElement('div');
+              div.style.display = 'flex';
+              div.style.flexDirection = 'column';
+              div.style.gap = '4px';
+
+              let iconHtml = '';
+              if (field.icon) {
+                const iconClass = field.icon.startsWith('fa-') ? 'fas ' + field.icon : field.icon;
+                iconHtml = `<i class="${iconClass}" style="opacity:0.7;"></i> `;
+              }
+
+              div.innerHTML = `
+                <label style="font-size:0.8rem; font-weight:700; color:var(--t2);">${iconHtml}${esc(field.label)}</label>
+                <input type="text" id="newKidCustom_${index}" placeholder="${esc(field.placeholder || '')}" style="width:100%; padding:8px 10px; border:1.5px solid var(--bdr); border-radius:8px; font-family:inherit; font-size:0.85rem; outline:none; background:#fff;">
+              `;
+              customList.appendChild(div);
+            });
+            customContainer.style.display = 'flex';
+          } else {
+            customContainer.style.display = 'none';
+          }
+        } else {
+          customContainer.style.display = 'none';
+        }
+
+        document.getElementById('newKidFormFields').style.display = 'flex';
+      } catch (e) {
+        console.error(e);
+      }
+      hideLoad();
+    };
+
+    window.handleNewKidPhotoChange = function(event) {
+      const file = event.target.files[0];
+      const preview = document.getElementById('newKidPhotoPreview');
+      const placeholder = document.getElementById('newKidPhotoPlaceholder');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+    };
+
+    window.submitCreateAndAssign = async function(tempid) {
+      const churchId = document.getElementById('newKidChurchId').value;
+      const name = document.getElementById('newKidName').value.trim();
+      const gender = document.getElementById('newKidGender').value;
+      const classId = document.getElementById('newKidClassId').value;
+      const address = document.getElementById('newKidAddress').value.trim();
+      const phone = document.getElementById('newKidPhone').value.trim();
+      const emergencyPhone = document.getElementById('newKidEmergencyPhone').value.trim();
+      const birthday = document.getElementById('newKidBirthday').value.trim();
+      const coupons = document.getElementById('newKidCoupons').value;
+      const medicalNotes = document.getElementById('newKidMedicalNotes').value.trim();
+      const photoFile = document.getElementById('newKidPhotoInput').files[0];
+
+      if (!churchId) {
+        alert('يرجى اختيار الكنيسة أولاً');
+        return;
+      }
+      if (!name) {
+        alert('الاسم مطلوب');
+        return;
+      }
+      if (!classId) {
+        alert('الفصل مطلوب');
+        return;
+      }
+
+      const customInfo = {};
+      currentSelectedChurchCustomFields.forEach((field, index) => {
+        const inputVal = document.getElementById(`newKidCustom_${index}`).value.trim();
+        customInfo[field.key || `church_custom_${index}`] = inputVal;
+      });
+
+      showLoad('جاري إضافة الطفل وربط الكارت...');
+      try {
+        const fd = new FormData();
+        fd.append('action', 'addStudent');
+        fd.append('church_id', churchId);
+        fd.append('name', name);
+        fd.append('gender', gender);
+        fd.append('classId', classId);
+        fd.append('address', address);
+        fd.append('phone', phone);
+        fd.append('emergency_phone', emergencyPhone);
+        fd.append('birthday', birthday);
+        fd.append('coupons', coupons);
+        fd.append('medical_notes', medicalNotes);
+        fd.append('tempid', tempid);
+        fd.append('custom_info', JSON.stringify(customInfo));
+        if (TARGET_TRIP_ID) {
+          fd.append('trip_id', TARGET_TRIP_ID);
+        }
+        if (photoFile) {
+          fd.append('photo', photoFile);
+        }
+
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: fd,
+          credentials: 'include'
+        }).then(r => r.json());
+
+        hideLoad();
+        if (res.success) {
+          alert('تم إضافة الطفل وربط الكارت بنجاح!');
+          window.location.href = `/user/profile/?id=${res.studentId}`;
+        } else {
+          alert(res.message || 'فشل في إضافة الطفل');
+        }
+      } catch (e) {
+        hideLoad();
+        console.error(e);
+        alert('حدث خطأ أثناء الاتصال بالخادم');
       }
     };
 

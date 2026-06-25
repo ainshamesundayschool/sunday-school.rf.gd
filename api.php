@@ -7651,158 +7651,112 @@ function addStudent()
 
 
         $addedByType = 'normal_add';
-        // Insert student — phone stored as VARCHAR string, leading zero preserved
+        
+        $tempid = sanitize($_POST['tempid'] ?? '');
+        $tripId = isset($_POST['trip_id']) && !empty($_POST['trip_id']) ? intval($_POST['trip_id']) : null;
 
-        if ($formattedBirthday === null) {
-
-            $stmt = $conn->prepare("
-
-                INSERT INTO students 
-
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
-
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
-
-            ");
-
-            safeBindParam(
-
-                $stmt,
-
-                $churchId,
-
-                $name,
-
-                $classId,
-
-                $className,
-
-                $address,
-
-                $cleanPhone,
-
-                $cleanEmergencyPhone,
-
-                $medicalNotes,
-
-                $coupons,
-
-                $totalCoupons,
-
-                $photoUrl,
-
-                $customInfoJson,
-
-                $gender,
-
-                $addedByType
-
-            );
-
-        } else {
-
-            $stmt = $conn->prepare("
-
-                INSERT INTO students 
-
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
-
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
-
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
-
-            ");
-
-            safeBindParam(
-
-                $stmt,
-
-                $churchId,
-
-                $name,
-
-                $classId,
-
-                $className,
-
-                $address,
-
-                $cleanPhone,
-
-                $cleanEmergencyPhone,
-
-                $medicalNotes,
-
-                $formattedBirthday,
-
-                $coupons,
-
-                $totalCoupons,
-
-                $photoUrl,
-
-                $customInfoJson,
-
-                $gender,
-
-                $addedByType
-
-            );
-
+        if (!empty($tempid)) {
+            $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? LIMIT 1");
+            $checkTemp->bind_param("s", $tempid);
+            $checkTemp->execute();
+            $resTemp = $checkTemp->get_result();
+            if ($resTemp->num_rows > 0) {
+                $otherKid = $resTemp->fetch_assoc();
+                sendJSON(['success' => false, 'message' => 'هذا الكود مرتبط بالفعل بطفل آخر: ' . $otherKid['name']]);
+                return;
+            }
         }
 
-
+        // Insert student — phone stored as VARCHAR string, leading zero preserved
+        if ($formattedBirthday === null) {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, tempid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId,
+                $name,
+                $classId,
+                $className,
+                $address,
+                $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
+                $coupons,
+                $totalCoupons,
+                $photoUrl,
+                $customInfoJson,
+                $gender,
+                $addedByType,
+                $tempid
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, tempid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId,
+                $name,
+                $classId,
+                $className,
+                $address,
+                $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
+                $formattedBirthday,
+                $coupons,
+                $totalCoupons,
+                $photoUrl,
+                $customInfoJson,
+                $gender,
+                $addedByType,
+                $tempid
+            );
+        }
 
         if ($stmt->execute()) {
-
             $studentId = $conn->insert_id;
 
-
-
             // ► AUDIT
-
             auditStudentAdd($studentId, $name, [
-
                 'name' => $name,
-
                 'class' => $className,
-
                 'class_id' => $classId,
-
                 'phone' => $cleanPhone,
-
                 'address' => $address,
-
                 'birthday' => $formattedBirthday,
-
                 'coupons' => $coupons,
-
             ]);
 
-
+            // Register in trip if trip_id is passed
+            if ($tripId) {
+                $checkReg = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 0 LIMIT 1");
+                $checkReg->bind_param("ii", $tripId, $studentId);
+                $checkReg->execute();
+                if ($checkReg->get_result()->num_rows === 0) {
+                    $ins = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, payment_status, notes) VALUES (?, ?, 'not_paid', 'Linked via QR card')");
+                    $ins->bind_param("ii", $tripId, $studentId);
+                    $ins->execute();
+                }
+            }
 
             sendJSON([
-
                 'success' => true,
-
                 'message' => 'تم إضافة الطفل بنجاح',
-
                 'studentId' => $studentId,
-
                 'photoUrl' => !empty($photoUrl) ? $photoUrl : null,
-
                 'phone' => $cleanPhone
-
             ]);
-
         } else {
-
             error_log("❌ SQL Error: " . $stmt->error);
-
             sendJSON(['success' => false, 'message' => 'فشل في إضافة الطفل: ' . $stmt->error]);
-
         }
 
 
