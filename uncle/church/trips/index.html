@@ -10926,9 +10926,9 @@
                   return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
                 }
                 return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-              }).filter(Boolean).join(' | ');
+              }).filter(Boolean).join('');
               if (itemsHtml) {
-                extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-direction:column; align-items:flex-start; gap:${4 * scale}px; width:100%; margin-top:${6 * scale}px; direction:rtl; text-align:right; padding:0 ${8 * scale}px; box-sizing:border-box;">${itemsHtml}</div>`;
               }
             }
           }
@@ -11301,7 +11301,7 @@
                 return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
               }
               return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-            }).filter(Boolean).join(' | ');
+            }).filter(Boolean).join('');
 
             if (itemsHtml) {
               const numItems = textFields.length;
@@ -11316,13 +11316,13 @@
 
               if (textReadability === 'rect') {
                 textFieldsHtml = `
-                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:flex-start; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:right; direction:rtl; padding-left:${10 * scale}px; padding-right:${10 * scale}px; box-sizing:border-box;">
                       ${itemsHtml}
                   </div>
                 `;
               } else {
                 textFieldsHtml = `
-                  <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
+                  <div style="display:flex; flex-direction:column; align-items:flex-start; gap:${dynamicGap}; width:100%; text-align:right; direction:rtl; padding-left:${10 * scale}px; padding-right:${10 * scale}px; box-sizing:border-box; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
                       ${itemsHtml}
                   </div>
                 `;
