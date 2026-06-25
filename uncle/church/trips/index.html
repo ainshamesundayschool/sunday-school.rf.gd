@@ -9042,6 +9042,7 @@
       }
     </script>
 
+    <script src="/js/search_intelligent.js"></script>
     <script src="/js/rooms_helpers.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -10798,10 +10799,19 @@
           if (r.role === 'admin') roleLabel = 'أمين الخدمة';
           else if (r.role === 'leader') roleLabel = 'قائد مجموعة';
           
+          const roomsConfig = trip && trip.rooms_config 
+            ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
+            : [];
+          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig);
+
           qrContainerHtml = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed ${strokeColor}; border-radius:${12 * scale}px; width:${qrSize}px; height:${qrSize}px; background:rgba(255,255,255,0.75); box-sizing:border-box; gap:4px; padding:4px; margin:0 auto;">
-              <i class="fas fa-user-shield" style="font-size:${qrSize * 0.35}px; color:var(--primary);"></i>
-              <span style="font-size:${fCustom * 1.1}px; font-weight:800; color:var(--primary); text-align:center;">${roleLabel}</span>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; gap:${6 * scale}px; padding:${4 * scale}px; margin:0 auto; width:100%;">
+              ${avatarHtml}
+              <h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>
+              <div style="font-size:${fCustom * 1.1}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${roleLabel}</div>
+              <div style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; direction:rtl; text-align:center; margin-top:2px;">
+                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> السكن: <strong>${escHtml(roomText)}</strong></span>
+              </div>
             </div>
           `;
         } else {
@@ -10872,7 +10882,7 @@
 
         // Student Avatar + Name + Custom Info Group
         let studentInfoGroupHtml = '';
-        if (showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0) || isEmp) {
+        if (!r.isUncle && (showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0) || isEmp)) {
           const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
           const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
 
@@ -13242,11 +13252,24 @@
         // Search highlight
         let isSearchMatch = false;
         if (query) {
-          const lQuery = query.toLowerCase();
-          if (room.name.toLowerCase().includes(lQuery)) isSearchMatch = true;
-          roomKids.forEach(k => {
-            if (k.student_name.toLowerCase().includes(lQuery)) isSearchMatch = true;
-          });
+          const qNormalized = normalizeArabic(query);
+          const rNormalized = normalizeArabic(room.name);
+          if (rNormalized.includes(qNormalized) || room.name.toLowerCase().includes(query.toLowerCase())) {
+            isSearchMatch = true;
+          } else {
+            isSearchMatch = roomKids.some(k => {
+              const score = getMatchScore(k, query, [
+                { val: k.student_name || '', weight: 1.0 },
+                { val: k.student_class || '', weight: 0.8 }
+              ]);
+              return score > 0;
+            }) || (room.uncles || []).some(u => {
+              const score = getMatchScore(u, query, [
+                { val: u.name || '', weight: 1.0 }
+              ]);
+              return score > 0;
+            });
+          }
         }
 
         // Uncles rendering (with profile picture lookup)
@@ -13264,7 +13287,9 @@
           `;
         }).join('');
 
-        const availableUncles = window.allUnclesCache.filter(u => !assignedUncleIds.has(String(u.id)));
+        const availableUncles = window.allUnclesCache
+          .filter(u => !assignedUncleIds.has(String(u.id)))
+          .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
 
         return `
           <div class="ws-room-card ${genderClass} ${isOverCapacity ? 'rooms-over-capacity' : ''} ${isSwapActive ? 'rooms-swap-active' : ''} ${isSearchMatch ? 'search-match' : ''}" 
@@ -13336,8 +13361,15 @@
 
         let kidsFiltered = unassignedKids;
         if (query) {
-          const lQuery = query.toLowerCase();
-          kidsFiltered = unassignedKids.filter(k => k.student_name.toLowerCase().includes(lQuery) || k.student_class.toLowerCase().includes(lQuery));
+          kidsFiltered = unassignedKids.map(k => {
+            const score = getMatchScore(k, query, [
+              { val: k.student_name || '', weight: 1.0 },
+              { val: k.student_class || '', weight: 0.8 },
+              { val: k._churchName || '', weight: 0.6 }
+            ]);
+            return { ...k, _score: score };
+          }).filter(k => k._score > 0)
+            .sort((a, b) => b._score - a._score);
         }
 
         sidebar.innerHTML = `
