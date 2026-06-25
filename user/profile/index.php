@@ -5501,17 +5501,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     function renderTempIdAssignmentUI(tempid, classes, churchCustomFields, churchSettings) {
       const container = document.getElementById('tempIdAssignContainer');
-      
-      const cfHtml = (churchCustomFields || []).map((cf, idx) => {
-        const key = 'field_' + idx;
-        const icon = cf.icon || 'fa-tag';
-        return `
-          <div>
-            <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;"><i class="fas ${esc(icon)}"></i> ${esc(cf.name)}</label>
-            <input type="text" class="new-student-cf-input" data-cf-key="${key}" placeholder="${esc(cf.name)}..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-          </div>
-        `;
-      }).join('');
 
       container.innerHTML = `
         <div style="background:#fff; padding:24px; border-radius:20px; box-shadow:var(--sh-md); border:1.5px solid var(--bdr); margin:20px auto;">
@@ -5521,15 +5510,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               <h2 style="margin:0; font-size:1.25rem; font-weight:800; color:var(--t1);">ربط الكود بالكارت الذكي</h2>
               <div style="font-size:0.8rem; color:var(--t3); margin-top:2px;">كود الكارت: <strong>${esc(tempid)}</strong></div>
             </div>
-          </div>
-
-          <div style="display:flex; border-bottom:1px solid var(--bdr); margin-bottom:20px;">
-            <button class="tab-btn active" id="tabLinkExisting" onclick="switchAssignTab('existing')" style="flex:1; padding:12px; border:none; background:none; font-family:inherit; font-weight:800; font-size:0.95rem; border-bottom:3px solid var(--brand); color:var(--brand); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-              <i class="fas fa-user-check"></i> ربط بطفل موجود
-            </button>
-            <button class="tab-btn" id="tabCreateNew" onclick="switchAssignTab('new')" style="flex:1; padding:12px; border:none; background:none; font-family:inherit; font-weight:800; font-size:0.95rem; border-bottom:3px solid transparent; color:var(--t3); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-              <i class="fas fa-user-plus"></i> إضافة طفل جديد وربطه
-            </button>
           </div>
 
           <!-- Tab 1: Link Existing -->
@@ -5556,198 +5536,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               <i class="fas fa-link"></i> ربط الكارت بالطفل المختار
             </button>
           </div>
-
-          <!-- Tab 2: Create New -->
-          <div id="assignTabNew" style="display:none;">
-            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
-              <!-- Church Selector (Select dropdown) -->
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكنيسة *</label>
-                <select id="newStudentChurchId" onchange="selectNewStudentChurch(this.value)" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
-                  <option value="">اختر الكنيسة</option>
-                  ${(window.allChurches || []).map(c => `<option value="${c.id}" ${c.id == churchSettings?.church_id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
-                </select>
-              </div>
-
-              <!-- Photo Upload Section -->
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الصورة الشخصية</label>
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <div id="newStudentPhotoArea" onclick="document.getElementById('newStudentPhotoInput').click()" style="width:60px; height:60px; border-radius:50%; border:2px dashed var(--bdr); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:var(--s2); position:relative;">
-                    <img id="newStudentPhotoPreview" style="width:100%; height:100%; object-fit:cover; display:none;">
-                    <i id="newStudentPhotoIcon" class="fas fa-camera" style="color:var(--t4); font-size:1.2rem;"></i>
-                  </div>
-                  <div style="font-size:0.8rem; color:var(--t3);">اضغط لاختيار صورة شخصية للطفل</div>
-                  <input type="file" id="newStudentPhotoInput" accept="image/*" style="display:none;" onchange="onNewStudentPhotoSelected(event)">
-                </div>
-              </div>
-
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الاسم الكامل للطفل *</label>
-                <input type="text" id="newStudentName" placeholder="الاسم الكامل للطفل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الفصل *</label>
-                  <select id="newStudentClass" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
-                    <option value="">اختر الفصل</option>
-                    ${classes.map(c => `<option value="${c.id}">${esc(c.name || c.arabic_name)}</option>`).join('')}
-                  </select>
-                </div>
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">النوع</label>
-                  <select id="newStudentGender" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
-                    <option value="">تلقائي من الاسم</option>
-                    <option value="male">ولد</option>
-                    <option value="female">بنت</option>
-                  </select>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">رقم الهاتف</label>
-                  <input type="tel" id="newStudentPhone" placeholder="رقم الهاتف (11 رقم)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-                </div>
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">تليفون الطوارئ</label>
-                  <input type="tel" id="newStudentEmergencyPhone" placeholder="تليفون الطوارئ (11 رقم)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">العنوان بالتفصيل</label>
-                <input type="text" id="newStudentAddress" placeholder="المنطقة، الشارع، رقم الشقة..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-              </div>
-              <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:12px;">
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">تاريخ الميلاد</label>
-                  <input type="text" id="newStudentBirthday" placeholder="DD/MM/YYYY (مثال: 15/08/2012)" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-                </div>
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكوبونات الأولية</label>
-                  <input type="number" id="newStudentCoupons" value="0" min="0" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">ملاحظات طبية / خاصة</label>
-                <textarea id="newStudentMedicalNotes" placeholder="أمراض، حساسية، أو ملاحظات هامة..." rows="2" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
-              </div>
-
-              <!-- Dynamic Custom Fields Area -->
-              <div id="newStudentCustomFieldsArea" style="${cfHtml ? 'display:flex; flex-direction:column; gap:14px; border-top:1px dashed var(--bdr); padding-top:14px;' : 'display:none;'}">
-                ${cfHtml}
-              </div>
-            </div>
-
-            <button onclick="submitAssignNew('${esc(tempid)}')" class="btn" style="width:100%; padding:12px; background:var(--ok); color:#fff; border:none; border-radius:10px; font-weight:800; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
-              <i class="fas fa-user-plus"></i> إضافة الطفل وربط الكارت
-            </button>
-          </div>
         </div>
       `;
     }
 
-    let newStudentPhotoBlob = null;
-    window.onNewStudentPhotoSelected = function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const previewImg = document.getElementById('newStudentPhotoPreview');
-        const previewIcon = document.getElementById('newStudentPhotoIcon');
-        if (previewImg) {
-          previewImg.src = ev.target.result;
-          previewImg.style.display = 'block';
-        }
-        if (previewIcon) previewIcon.style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-      newStudentPhotoBlob = file;
-    };
 
-    window.selectNewStudentChurch = async function(id) {
-      if (!id) {
-        document.getElementById('newStudentClass').innerHTML = '<option value="">اختر الفصل</option>';
-        document.getElementById('newStudentCustomFieldsArea').innerHTML = '';
-        document.getElementById('newStudentCustomFieldsArea').style.display = 'none';
-        return;
-      }
-
-      // Load classes and custom fields for selected church
-      showLoad('تحميل فصول وبيانات الكنيسة المحددة...');
-      const classSelect = document.getElementById('newStudentClass');
-      const cfArea = document.getElementById('newStudentCustomFieldsArea');
-      
-      classSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-      cfArea.innerHTML = '';
-      cfArea.style.display = 'none';
-
-      try {
-        const [dClasses, dSettings] = await Promise.all([
-          api({ action: 'getPublicChurchClasses', church_id: id }),
-          api({ action: 'getPublicChurchSettings', church_id: id })
-        ]);
-        
-        if (dClasses.success) {
-          const list = dClasses.data || dClasses.classes || [];
-          classSelect.innerHTML = '<option value="">اختر الفصل</option>' + list.map(c => `<option value="${c.id}">${esc(c.name || c.arabic_name)}</option>`).join('');
-        } else {
-          classSelect.innerHTML = '<option value="">اختر الفصل</option>';
-        }
-
-        if (dSettings.success) {
-          const cf = dSettings.custom_fields || dSettings.custom_field;
-          const customFields = Array.isArray(cf) ? cf : (cf ? [cf] : []);
-          if (customFields.length > 0) {
-            cfArea.innerHTML = customFields.map((field, idx) => {
-              const key = 'field_' + idx;
-              const icon = field.icon || 'fa-tag';
-              return `
-                <div>
-                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;"><i class="fas ${esc(icon)}"></i> ${esc(field.name)}</label>
-                  <input type="text" class="new-student-cf-input" data-cf-key="${key}" placeholder="${esc(field.name)}..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
-                </div>
-              `;
-            }).join('');
-            cfArea.style.display = 'flex';
-          } else {
-            cfArea.innerHTML = '';
-            cfArea.style.display = 'none';
-          }
-        }
-      } catch (e) {
-        console.error(e);
-        classSelect.innerHTML = '<option value="">حدث خطأ</option>';
-      }
-      hideLoad();
-    };
-
-    window.switchAssignTab = function(tab) {
-      const btnLink = document.getElementById('tabLinkExisting');
-      const btnCreate = document.getElementById('tabCreateNew');
-      const viewLink = document.getElementById('assignTabExisting');
-      const viewCreate = document.getElementById('assignTabNew');
-
-      if (tab === 'existing') {
-        btnLink.classList.add('active');
-        btnLink.style.borderBottomColor = 'var(--brand)';
-        btnLink.style.color = 'var(--brand)';
-        btnCreate.classList.remove('active');
-        btnCreate.style.borderBottomColor = 'transparent';
-        btnCreate.style.color = 'var(--t3)';
-        viewLink.style.display = 'block';
-        viewCreate.style.display = 'none';
-      } else {
-        btnCreate.classList.add('active');
-        btnCreate.style.borderBottomColor = 'var(--ok)';
-        btnCreate.style.color = 'var(--ok)';
-        btnLink.classList.remove('active');
-        btnLink.style.borderBottomColor = 'transparent';
-        btnLink.style.color = 'var(--t3)';
-        viewLink.style.display = 'none';
-        viewCreate.style.display = 'block';
-      }
-    };
 
     let selectedAssignStudentId = null;
 
@@ -5828,71 +5621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     };
 
-    window.submitAssignNew = async function(tempid) {
-      const churchId = document.getElementById('newStudentChurchId').value;
-      const name = document.getElementById('newStudentName').value.trim();
-      const classId = document.getElementById('newStudentClass').value;
-      const gender = document.getElementById('newStudentGender').value;
-      const address = document.getElementById('newStudentAddress').value.trim();
-      const phone = document.getElementById('newStudentPhone').value.trim();
-      const emergencyPhone = document.getElementById('newStudentEmergencyPhone').value.trim();
-      const birthday = document.getElementById('newStudentBirthday').value.trim();
-      const coupons = parseInt(document.getElementById('newStudentCoupons').value) || 0;
-      const medicalNotes = document.getElementById('newStudentMedicalNotes').value.trim();
 
-      if (!churchId) {
-        alert('يرجى اختيار الكنيسة');
-        return;
-      }
-
-      if (!name || !classId) {
-        alert('يرجى إدخال الاسم والفصل');
-        return;
-      }
-
-      const customInfoObj = {};
-      const customInputs = document.querySelectorAll('.new-student-cf-input');
-      customInputs.forEach(inp => {
-        const key = inp.getAttribute('data-cf-key');
-        const val = inp.value.trim();
-        if (val) customInfoObj[key] = val;
-      });
-
-      showLoad('جاري إضافة الطفل وربط الكارت...');
-      try {
-        const payload = {
-          action: 'createStudentAndLinkTempId',
-          church_id: churchId,
-          name: name,
-          class_id: classId,
-          gender: gender,
-          address: address,
-          phone: phone,
-          emergency_phone: emergencyPhone,
-          birthday: birthday,
-          coupons: coupons,
-          medical_notes: medicalNotes,
-          tempid: tempid,
-          trip_id: TARGET_TRIP_ID,
-          photo: newStudentPhotoBlob
-        };
-        if (Object.keys(customInfoObj).length > 0) {
-          payload.custom_info = JSON.stringify(customInfoObj);
-        }
-
-        const d = await api(payload);
-        hideLoad();
-        if (d.success && d.student_id) {
-          alert('تم إضافة الطفل وربط الكارت بنجاح!');
-          window.location.href = `/user/profile/?id=${d.student_id}`;
-        } else {
-          alert(d.message || 'فشل في ربط الكارت');
-        }
-      } catch (e) {
-        hideLoad();
-        alert('حدث خطأ في الاتصال');
-      }
-    };
 
     // ── Public init ───────────────────────────────────────────────────
     async function initPublic(id) {

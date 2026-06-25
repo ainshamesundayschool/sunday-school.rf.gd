@@ -7082,6 +7082,7 @@ function ensureStudentTempIdColumn(mysqli $conn): void
 function linkTempIdToStudent()
 {
     global $conn;
+    $conn = $conn ?? getDBConnection();
     try {
         $churchId = getChurchId(); // checks auth automatically
         ensureStudentTempIdColumn($conn);
@@ -7145,6 +7146,7 @@ function linkTempIdToStudent()
 function createStudentAndLinkTempId()
 {
     global $conn;
+    $conn = $conn ?? getDBConnection();
     try {
         $churchId = getChurchId();
         if (isset($_POST['church_id']) && intval($_POST['church_id']) > 0) {
