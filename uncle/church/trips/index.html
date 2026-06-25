@@ -10773,9 +10773,7 @@
 
         const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
 
-        const qrContainerHtml = isEmp
-          ? `<div style="width:${qrSize}px; height:${qrSize}px; border:2px dashed ${strokeColor}; border-radius:${8 * scale}px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.75); box-sizing:border-box;"><i class="fas fa-qrcode" style="font-size:${qrSize * 0.45}px; color:${fontColor}; opacity:0.35;"></i></div>`
-          : `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
+        const qrContainerHtml = `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
 
         // Card Background & Image Overlay HTML
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
