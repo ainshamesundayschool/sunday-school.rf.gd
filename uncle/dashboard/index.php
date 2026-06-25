@@ -441,6 +441,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 overflow: hidden !important;
                 position: relative !important;
             }
+            .dev-church-bar-pill > div {
+                width: 100% !important;
+                height: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
             .dev-church-bar-pill:hover {
                 background: rgba(124, 58, 237, 0.15) !important;
             }
@@ -10535,7 +10542,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Dev Switcher in Topbar Actions -->
                 <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
                     style="display:none; align-items:center; margin-inline-end: 8px;">
-                    <div style="position:relative;display:flex;align-items:center;">
+                    <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;">
+                        <i class="fas fa-church dev-church-bar-icon"></i>
                         <select id="devChurchSelect" class="dev-church-select-input"
                             onchange="devSwitchChurch(this.value)">
                             <option value="">كنيستي الافتراضية</option>
