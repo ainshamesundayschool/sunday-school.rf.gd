@@ -5005,8 +5005,11 @@
 
       function openModal(id) {
         if (id !== 'tripDetailsModal' && isDesktopShellMode() && document.getElementById('tripDetailsModal')?.classList.contains('open')) {
-          openShellPage(id);
-          return;
+          const modal = document.getElementById(id);
+          if (modal && !modal.classList.contains('app-dialog') && id !== 'printWarningModal') {
+            openShellPage(id);
+            return;
+          }
         }
         document.getElementById(id).classList.add('open');
       }
@@ -9229,27 +9232,46 @@
               let roomsConfig = [];
               try { roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config; } catch (e) { }
               const bld = (roomsConfig || []).find(b => b.name === bldName);
-              if (bld && bld.has_floors) {
-                const updateRooms = () => {
-                  const floorVal = floorSelect.value;
+              if (bld) {
+                if (bld.has_floors) {
+                  const updateRooms = () => {
+                    const floorVal = floorSelect.value;
+                    const currentRoomVal = roomSelect.value || allValues['السكن__sf__الغرفة'] || '';
+                    roomSelect.innerHTML = '<option value="">— اختر —</option>';
+                    if (!floorVal) return;
+                    const fl = bld.floors.find(f => f.name === floorVal);
+                    if (fl) {
+                      fl.rooms.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.name;
+                        opt.textContent = r.name;
+                        if (currentRoomVal === r.name) {
+                          opt.selected = true;
+                        }
+                        roomSelect.appendChild(opt);
+                      });
+                    }
+                  };
+                  floorSelect.addEventListener('change', updateRooms);
+                  updateRooms();
+                } else {
+                  // Hide the floor select row since this building has no floors (floor is optional/unused)
+                  const floorRow = floorSelect.closest('.sub-field-row');
+                  if (floorRow) floorRow.style.display = 'none';
+
+                  // Populate the room select directly
                   const currentRoomVal = roomSelect.value || allValues['السكن__sf__الغرفة'] || '';
                   roomSelect.innerHTML = '<option value="">— اختر —</option>';
-                  if (!floorVal) return;
-                  const fl = bld.floors.find(f => f.name === floorVal);
-                  if (fl) {
-                    fl.rooms.forEach(r => {
-                      const opt = document.createElement('option');
-                      opt.value = r.name;
-                      opt.textContent = r.name;
-                      if (currentRoomVal === r.name) {
-                        opt.selected = true;
-                      }
-                      roomSelect.appendChild(opt);
-                    });
-                  }
-                };
-                floorSelect.addEventListener('change', updateRooms);
-                updateRooms();
+                  (bld.rooms || []).forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.name;
+                    opt.textContent = r.name;
+                    if (currentRoomVal === r.name) {
+                      opt.selected = true;
+                    }
+                    roomSelect.appendChild(opt);
+                  });
+                }
               }
             }
           }, 0);
