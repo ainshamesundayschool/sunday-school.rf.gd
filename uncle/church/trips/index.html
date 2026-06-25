@@ -13035,6 +13035,65 @@
           .ws-uncle-tag i:hover { color: #ef4444; }
           .ws-room-assign-uncle { width: 100%; border: 1px dashed var(--border); background: none; border-radius: 4px; padding: 3px; font-size: 0.65rem; font-family: 'Cairo'; color: var(--muted); cursor: pointer; transition: all 0.2s; }
           .ws-room-assign-uncle:hover { border-color: var(--primary); color: var(--primary); }
+          .ws-room-card.active-search { z-index: 1000 !important; }
+          .ws-room-search-popover {
+            position: absolute;
+            bottom: 105%;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border: 1.5px solid var(--border-solid);
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px;
+            max-height: 250px;
+            text-align: right;
+            direction: rtl;
+          }
+          .ws-popover-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.72rem;
+            border-bottom: 1px solid var(--border-light);
+          }
+          .ws-popover-item:last-child {
+            border-bottom: none;
+          }
+          .ws-popover-item:hover {
+            background: var(--surface-2);
+          }
+          .ws-popover-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+          }
+          .ws-room-filter-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .ws-room-filter-btn:hover {
+            color: var(--primary);
+          }
           @keyframes roomsPulse {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
@@ -13435,12 +13494,59 @@
             </div>
             
             <!-- Uncles section -->
-            <div class="ws-room-uncles">
-              <div style="display:flex; flex-wrap:wrap; gap:4px;">${unclesHtml}</div>
-              <select class="ws-room-assign-uncle" onchange="onUncleAssignSelect(this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
-                <option value="">+ تعيين انكل / طنط...</option>
-                ${availableUncles.map(u => `<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
-              </select>
+            <div class="ws-room-uncles" style="border-top:1px solid var(--border); padding-top:6px; margin-top:4px;">
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">${unclesHtml}</div>
+            </div>
+
+            <!-- Unified Search & Assignment section -->
+            <div class="ws-room-assign-section" style="margin-top:2px; position:relative;">
+              <div style="display:flex; gap:4px; align-items:center;">
+                <input type="text" 
+                       placeholder="+ إضافة للغرفة..." 
+                       class="form-input ws-room-search-input" 
+                       style="font-size:0.68rem; padding:3px 6px; height:24px; flex:1; direction:rtl; text-align:right; border-radius:4px; font-family:'Cairo'; border:1px dashed var(--border);" 
+                       onfocus="onRoomSearchFocus(event, this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')" 
+                       oninput="onRoomSearchInput(event, this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')"
+                       onclick="event.stopPropagation()">
+                <button type="button" 
+                        class="ws-room-filter-btn" 
+                        title="خيارات الفلترة" 
+                        onclick="toggleRoomSearchPopoverFilters(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                  <i class="fas fa-filter" style="font-size:0.65rem;"></i>
+                </button>
+              </div>
+              
+              <!-- Floating popover for results and filters -->
+              <div class="ws-room-search-popover" 
+                   id="popover_${escHtml(bldName.replace(/\s+/g, '_'))}_${escHtml(floorName.replace(/\s+/g, '_'))}_${escHtml(room.name.replace(/\s+/g, '_'))}" 
+                   onclick="event.stopPropagation()">
+                
+                <!-- Filters UI inside popover (initially hidden) -->
+                <div class="ws-popover-filters" style="display:none; flex-direction:column; gap:4px; border-bottom:1px solid var(--border-solid); padding-bottom:6px; margin-bottom:4px;">
+                  <div style="display:flex; gap:4px;">
+                    <!-- Church Filter -->
+                    <select class="form-input ws-popover-church-filter" style="font-size:0.65rem; padding:2px; height:22px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                      <option value="">كل الكنائس</option>
+                    </select>
+                    <!-- Gender/Role Filter -->
+                    <select class="form-input ws-popover-role-filter" style="font-size:0.65rem; padding:2px; height:22px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                      <option value="">كل الفئات</option>
+                      <option value="boys">الأولاد</option>
+                      <option value="girls">البنات</option>
+                      <option value="uncles">الخدام/الخادمات</option>
+                    </select>
+                  </div>
+                  <!-- Class/Stage Filter -->
+                  <select class="form-input ws-popover-class-filter" style="font-size:0.65rem; padding:2px; height:22px; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                    <option value="">كل المراحل</option>
+                  </select>
+                </div>
+                
+                <!-- Results List -->
+                <div class="ws-popover-results" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:4px; max-height:160px;">
+                  <!-- Will populate dynamically -->
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -14092,6 +14198,382 @@
           showToast('فشل إزالة انكل / طنط', 'error');
         }
       }
+
+      // Unified Room Search inside Container functions
+      window.onRoomSearchFocus = function(event, inputEl, bldName, floorName, roomName) {
+        event.stopPropagation();
+        
+        // Hide all other popovers
+        document.querySelectorAll('.ws-room-search-popover').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ws-room-card').forEach(c => c.classList.remove('active-search'));
+        
+        const popoverId = `popover_${bldName.replace(/\s+/g, '_')}_${floorName.replace(/\s+/g, '_')}_${roomName.replace(/\s+/g, '_')}`;
+        const popover = document.getElementById(popoverId);
+        if (!popover) return;
+        
+        popover.style.display = 'flex';
+        const card = inputEl.closest('.ws-room-card');
+        if (card) card.classList.add('active-search');
+        
+        // Load data
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const roomsConfig = trip && trip.rooms_config ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config) : [];
+        
+        const allocatedMap = {};
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+          if (cData['السكن']) {
+            allocatedMap[r.id] = true;
+          }
+        });
+        if (window.roomsDraftAllocations) {
+          Object.keys(window.roomsDraftAllocations).forEach(kidId => {
+            allocatedMap[kidId] = true;
+          });
+        }
+        
+        const assignedUncleIds = new Set();
+        const scanUncles = (rm) => {
+          (rm.uncles || []).forEach(unc => assignedUncleIds.add(String(unc.id)));
+        };
+        roomsConfig.forEach(bld => {
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(scanUncles));
+          } else {
+            (bld.rooms || []).forEach(scanUncles);
+          }
+        });
+        
+        const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
+        const availableUncles = window.allUnclesCache.filter(u => !assignedUncleIds.has(String(u.id)));
+        
+        // Build filters
+        const churches = new Set();
+        unassignedKids.forEach(k => { 
+          const c = k._churchName || k.church_name;
+          if (c) churches.add(c); 
+        });
+        availableUncles.forEach(u => { 
+          if (u.church_name) churches.add(u.church_name); 
+        });
+        
+        const churchSelect = popover.querySelector('.ws-popover-church-filter');
+        if (churchSelect && churchSelect.options.length <= 1) {
+          churchSelect.innerHTML = '<option value="">كل الكنائس</option>' + 
+            Array.from(churches).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        
+        const classes = new Set();
+        unassignedKids.forEach(k => { if (k.student_class) classes.add(k.student_class); });
+        
+        const classSelect = popover.querySelector('.ws-popover-class-filter');
+        if (classSelect && classSelect.options.length <= 1) {
+          classSelect.innerHTML = '<option value="">كل المراحل</option>' + 
+            Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        
+        // Render
+        filterAndRenderRoomSearch(popover, inputEl.value, bldName, floorName, roomName, unassignedKids, availableUncles);
+      };
+      
+      window.onRoomSearchInput = function(event, inputEl, bldName, floorName, roomName) {
+        const popoverId = `popover_${bldName.replace(/\s+/g, '_')}_${floorName.replace(/\s+/g, '_')}_${roomName.replace(/\s+/g, '_')}`;
+        const popover = document.getElementById(popoverId);
+        if (!popover) return;
+        
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const roomsConfig = trip && trip.rooms_config ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config) : [];
+        
+        const allocatedMap = {};
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+          if (cData['السكن']) {
+            allocatedMap[r.id] = true;
+          }
+        });
+        if (window.roomsDraftAllocations) {
+          Object.keys(window.roomsDraftAllocations).forEach(kidId => {
+            allocatedMap[kidId] = true;
+          });
+        }
+        
+        const assignedUncleIds = new Set();
+        const scanUncles = (rm) => {
+          (rm.uncles || []).forEach(unc => assignedUncleIds.add(String(unc.id)));
+        };
+        roomsConfig.forEach(bld => {
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(scanUncles));
+          } else {
+            (bld.rooms || []).forEach(scanUncles);
+          }
+        });
+        
+        const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
+        const availableUncles = window.allUnclesCache.filter(u => !assignedUncleIds.has(String(u.id)));
+        
+        filterAndRenderRoomSearch(popover, inputEl.value, bldName, floorName, roomName, unassignedKids, availableUncles);
+      };
+      
+      window.toggleRoomSearchPopoverFilters = function(event, bldName, floorName, roomName) {
+        event.stopPropagation();
+        const popoverId = `popover_${bldName.replace(/\s+/g, '_')}_${floorName.replace(/\s+/g, '_')}_${roomName.replace(/\s+/g, '_')}`;
+        const popover = document.getElementById(popoverId);
+        if (!popover) return;
+        
+        const filtersDiv = popover.querySelector('.ws-popover-filters');
+        if (filtersDiv) {
+          const isHidden = filtersDiv.style.display === 'none';
+          filtersDiv.style.display = isHidden ? 'flex' : 'none';
+        }
+      };
+      
+      window.onPopoverFilterChange = function(event, bldName, floorName, roomName) {
+        event.stopPropagation();
+        const popoverId = `popover_${bldName.replace(/\s+/g, '_')}_${floorName.replace(/\s+/g, '_')}_${roomName.replace(/\s+/g, '_')}`;
+        const popover = document.getElementById(popoverId);
+        if (!popover) return;
+        
+        const inputEl = popover.closest('.ws-room-assign-section').querySelector('.ws-room-search-input');
+        const query = inputEl ? inputEl.value : '';
+        
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        const roomsConfig = trip && trip.rooms_config ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config) : [];
+        
+        const allocatedMap = {};
+        regs.forEach(r => {
+          let cData = {};
+          try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+          if (cData['السكن']) {
+            allocatedMap[r.id] = true;
+          }
+        });
+        if (window.roomsDraftAllocations) {
+          Object.keys(window.roomsDraftAllocations).forEach(kidId => {
+            allocatedMap[kidId] = true;
+          });
+        }
+        
+        const assignedUncleIds = new Set();
+        const scanUncles = (rm) => {
+          (rm.uncles || []).forEach(unc => assignedUncleIds.add(String(unc.id)));
+        };
+        roomsConfig.forEach(bld => {
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(scanUncles));
+          } else {
+            (bld.rooms || []).forEach(scanUncles);
+          }
+        });
+        
+        const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
+        const availableUncles = window.allUnclesCache.filter(u => !assignedUncleIds.has(String(u.id)));
+        
+        filterAndRenderRoomSearch(popover, query, bldName, floorName, roomName, unassignedKids, availableUncles);
+      };
+      
+      function filterAndRenderRoomSearch(popover, query, bldName, floorName, roomName, unassignedKids, availableUncles) {
+        const churchVal = popover.querySelector('.ws-popover-church-filter')?.value || '';
+        const roleVal = popover.querySelector('.ws-popover-role-filter')?.value || '';
+        const classVal = popover.querySelector('.ws-popover-class-filter')?.value || '';
+        
+        let kidsFiltered = [];
+        let unclesFiltered = [];
+        
+        // 1. Filter kids
+        if (roleVal !== 'uncles') {
+          kidsFiltered = unassignedKids.filter(k => {
+            // Role filter
+            if (roleVal === 'boys' && k.student_gender === 'female') return false;
+            if (roleVal === 'girls' && k.student_gender !== 'female') return false;
+            // Church filter
+            const cName = k._churchName || k.church_name || '';
+            if (churchVal && cName !== churchVal) return false;
+            // Class filter
+            if (classVal && k.student_class !== classVal) return false;
+            return true;
+          });
+          
+          if (query) {
+            kidsFiltered = kidsFiltered.map(k => {
+              const score = getMatchScore(k, query, [
+                { val: k.student_name || '', weight: 1.0 },
+                { val: k.student_class || '', weight: 0.8 },
+                { val: k._churchName || '', weight: 0.6 }
+              ]);
+              return { ...k, _score: score };
+            }).filter(k => k._score > 0);
+          } else {
+            kidsFiltered = kidsFiltered.map(k => ({ ...k, _score: 1 }));
+          }
+        }
+        
+        // 2. Filter uncles
+        if (!roleVal || roleVal === 'uncles') {
+          if (!classVal) { // Uncles don't have student class
+            unclesFiltered = availableUncles.filter(u => {
+              if (churchVal && u.church_name !== churchVal) return false;
+              return true;
+            });
+            
+            if (query) {
+              unclesFiltered = unclesFiltered.map(u => {
+                const score = getMatchScore(u, query, [
+                  { val: u.name || '', weight: 1.0 },
+                  { val: u.church_name || '', weight: 0.6 }
+                ]);
+                return { ...u, _score: score };
+              }).filter(u => u._score > 0);
+            } else {
+              unclesFiltered = unclesFiltered.map(u => ({ ...u, _score: 1 }));
+            }
+          }
+        }
+        
+        // Combine results
+        const allResults = [];
+        kidsFiltered.forEach(k => {
+          allResults.push({
+            type: 'kid',
+            id: k.id,
+            name: k.student_name,
+            sub: k.student_class,
+            church: k._churchName || k.church_name || '',
+            image: k.student_image,
+            gender: k.student_gender,
+            _score: k._score
+          });
+        });
+        unclesFiltered.forEach(u => {
+          allResults.push({
+            type: 'uncle',
+            id: u.id,
+            name: u.name,
+            sub: 'خادم / خادمة',
+            church: u.church_name || '',
+            image: u.image_url,
+            gender: u.gender || 'male',
+            _score: u._score
+          });
+        });
+        
+        // Sort by match score
+        allResults.sort((a, b) => b._score - a._score);
+        
+        // Render
+        const resultsDiv = popover.querySelector('.ws-popover-results');
+        if (!resultsDiv) return;
+        
+        if (allResults.length === 0) {
+          resultsDiv.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:var(--muted); padding:10px 0;">لا توجد نتائج مطابقة</div>';
+          return;
+        }
+        
+        resultsDiv.innerHTML = allResults.map(item => {
+          const cleanImg = item.image && item.image.trim() !== '' && !item.image.includes('placeholder.com') && !item.image.includes('via.placeholder')
+            ? item.image
+            : '/profile_default..webp';
+          const icon = item.type === 'uncle' ? '<i class="fas fa-user-shield" style="color:var(--warning); font-size:0.6rem;"></i> ' : '';
+          return `
+            <div class="ws-popover-item" onclick="onPopoverItemClick('${item.type}', ${item.id}, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(roomName)}')">
+              <img src="${cleanImg}" class="ws-popover-avatar" onerror="this.src='/profile_default..webp'">
+              <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
+                <div style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${icon}${escHtml(item.name)}</div>
+                <div style="font-size:0.6rem; color:var(--muted); display:flex; gap:6px;">
+                  <span>${escHtml(item.sub)}</span>
+                  ${item.church ? `<span style="color:var(--primary); font-weight:700;">(${escHtml(item.church)})</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      window.onPopoverItemClick = async function(type, id, bldName, floorName, roomName) {
+        // Clear popover
+        document.querySelectorAll('.ws-room-search-popover').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.ws-room-card').forEach(c => c.classList.remove('active-search'));
+        
+        if (type === 'kid') {
+          await executeDirectMove(id, { bldName, floorName, roomName });
+        } else if (type === 'uncle') {
+          await executeUncleDirectMove(id, bldName, floorName, roomName);
+        }
+      };
+      
+      window.executeUncleDirectMove = async function(uncleId, bldName, floorName, roomName) {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+
+        let assignedName = '';
+        const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
+        if (selectedUncle) assignedName = selectedUncle.name;
+
+        // Prevent duplicate uncle assignments
+        roomsConfig.forEach(bld => {
+          const cleanRoom = (r) => {
+            if (r.uncles) {
+              r.uncles = r.uncles.filter(u => u.id != uncleId);
+            }
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(cleanRoom));
+          } else {
+            (bld.rooms || []).forEach(cleanRoom);
+          }
+        });
+
+        roomsConfig.forEach(bld => {
+          if (bld.name === bldName) {
+            if (bld.has_floors) {
+              bld.floors.forEach(fl => {
+                if (fl.name === floorName) {
+                  fl.rooms.forEach(r => {
+                    if (r.name === roomName) {
+                      if (!r.uncles) r.uncles = [];
+                      r.uncles.push({ id: uncleId, name: assignedName });
+                    }
+                  });
+                }
+              });
+            } else {
+              bld.rooms.forEach(r => {
+                if (r.name === roomName) {
+                  if (!r.uncles) r.uncles = [];
+                  r.uncles.push({ id: uncleId, name: assignedName });
+                }
+              });
+            }
+          }
+        });
+
+        const success = await saveRoomsConfig(tripId, roomsConfig);
+        if (success) {
+          showToast('تم تعيين انكل / طنط بنجاح! 👮', 'success');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل تعيين انكل / طنط', 'error');
+        }
+      };
+
+      // Global click outside listener to close popovers
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.ws-room-assign-section')) {
+          document.querySelectorAll('.ws-room-search-popover').forEach(p => p.style.display = 'none');
+          document.querySelectorAll('.ws-room-card').forEach(c => c.classList.remove('active-search'));
+        }
+      });
 
       async function saveRoomsConfig(tripId, config) {
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
