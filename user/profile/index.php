@@ -5267,6 +5267,168 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       return r.json();
     }
 
+    function normalizeArabic(text) {
+      if (!text) return "";
+      return String(text)
+        .replace(/[أإآٱ]/g, "ا")
+        .replace(/[ىئ]/g, "ي")
+        .replace(/ة/g, "ه")
+        .replace(/ؤ/g, "و")
+        .replace(/[\u064B-\u0652]/g, "") // Remove Harakat
+        .toLowerCase()
+        .trim();
+    }
+
+    function francoToArabic(text) {
+      if (!text) return "";
+      let s = text.toLowerCase().trim();
+      if (!/[a-z0-9]/.test(s)) return "";
+      const multiMap = [
+        ['sh', 'ش'], ['ch', 'تش'], ['kh', 'خ'], ['gh', 'غ'],
+        ['th', 'ث'], ['dh', 'ذ'], ['zh', 'ج'],
+        ['ph', 'ف'],
+        ['ou', 'و'], ['oo', 'و'], ['ee', 'ي'], ['ei', 'اي'],
+        ['aa', 'ا'], ['ii', 'ي'],
+      ];
+      for (const [from, to] of multiMap) {
+        s = s.split(from).join(to);
+      }
+      const singleMap = {
+        'a': 'ا', 'b': 'ب', 't': 'ت', 'g': 'ج', 'j': 'ج',
+        'h': 'ح', 'd': 'د', 'r': 'ر', 'z': 'ز', 's': 'س',
+        'c': 'ك',
+        'f': 'ف', 'q': 'ق', 'k': 'ك', 'l': 'ل', 'm': 'م',
+        'n': 'ن', 'w': 'و', 'u': 'و', 'o': 'و',
+        'y': 'ي', 'i': 'ي', 'e': 'ي',
+        'x': 'اكس', 'v': 'ف', 'p': 'ب',
+        '2': 'ء', '3': 'ع', '4': 'ش', '5': 'خ',
+        '6': 'ط', '7': 'ح', '8': 'غ', '9': 'ق',
+      };
+      let result = '';
+      for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (singleMap[ch]) {
+          result += singleMap[ch];
+        } else if (ch === ' ' || ch === '-' || ch === '_') {
+          result += ' ';
+        } else {
+          result += ch;
+        }
+      }
+      return normalizeArabic(result);
+    }
+
+    function arabicToLatin(text) {
+      if (!text) return "";
+      let s = text.toLowerCase().trim();
+      if (!/[\u0600-\u06FF]/.test(s)) return "";
+      s = normalizeArabic(s);
+      const multiMap = [
+        ['ش', 'sh'], ['خ', 'kh'], ['غ', 'gh'], ['ث', 'th'],
+        ['ذ', 'dh'], ['ج', 'g'], ['ف', 'f'], ['ع', '3'],
+        ['ط', '6'], ['ح', '7']
+      ];
+      for (const [from, to] of multiMap) {
+        s = s.split(from).join(to);
+      }
+      const singleMap = {
+        'ا': 'a', 'ب': 'b', 'ت': 't', 'ة': 'a',
+        'د': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ص': 's', 'ض': 'd',
+        'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+        'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'y', 'ئ': 'e', 'ء': '2', 'ؤ': 'o'
+      };
+      let result = '';
+      for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (singleMap[ch]) {
+          result += singleMap[ch];
+        } else if (ch === ' ' || ch === '-' || ch === '_') {
+          result += ' ';
+        } else {
+          result += ch;
+        }
+      }
+      return result;
+    }
+
+    function phoneticClean(str) {
+      if (!str) return "";
+      let s = str.toLowerCase().trim();
+      s = s.replace(/p/g, 'b');
+      s = s.replace(/v/g, 'f');
+      s = s.replace(/c/g, 'k');
+      s = s.replace(/q/g, 'k');
+      s = s.replace(/j/g, 'g');
+      s = s.replace(/z/g, 's');
+      s = s.replace(/x/g, 'ks');
+      s = s.replace(/[aeiouywh]/g, '');
+      return s;
+    }
+
+    function getMatchScore(student, query) {
+      const qNormalized = normalizeArabic(query);
+      const qRaw = query.trim().toLowerCase();
+      const qFranco = francoToArabic(query);
+      const qLatin = arabicToLatin(query);
+      const qPhonetic = phoneticClean(query.includes(' ') ? query : (qLatin || qRaw));
+
+      let maxScore = 0;
+      const fields = [
+        { val: student.name, weight: 1.0 },
+        { val: student.class, weight: 0.7 },
+        { val: student.id, weight: 1.1 },
+        { val: student.phone, weight: 1.1 }
+      ];
+
+      fields.forEach(field => {
+        if (!field.val) return;
+        const target = String(field.val);
+        const tNormalized = normalizeArabic(target);
+        const tRaw = target.toLowerCase();
+        const tLatin = arabicToLatin(target);
+        const tPhonetic = phoneticClean(tLatin || tRaw);
+        let currentScore = 0;
+
+        if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
+        else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
+        else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
+        else if (qFranco && tNormalized === qFranco) currentScore = 92;
+        else if (qFranco && tNormalized.startsWith(qFranco)) currentScore = 72;
+        else if (qFranco && tNormalized.includes(qFranco)) currentScore = 52;
+        else if (qLatin && tRaw === qLatin) currentScore = 92;
+        else if (qLatin && tRaw.startsWith(qLatin)) currentScore = 72;
+        else if (qLatin && tRaw.includes(qLatin)) currentScore = 52;
+        else if (tLatin && tLatin === qRaw) currentScore = 90;
+        else if (tLatin && tLatin.startsWith(qRaw)) currentScore = 70;
+        else if (tLatin && tLatin.includes(qRaw)) currentScore = 50;
+        else if (qPhonetic && tPhonetic && tPhonetic === qPhonetic) currentScore = 88;
+        else if (qPhonetic && tPhonetic && tPhonetic.startsWith(qPhonetic)) currentScore = 68;
+        else if (qPhonetic && tPhonetic && tPhonetic.includes(qPhonetic)) currentScore = 48;
+        else {
+          let score = 0, queryIdx = 0;
+          for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
+            if (tNormalized[i] === qNormalized[queryIdx]) { queryIdx++; score++; }
+          }
+          if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
+
+          if (qFranco) {
+            let fScore = 0, fIdx = 0;
+            for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
+              if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
+            }
+            if (fIdx === qFranco.length) {
+              currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
+            }
+          }
+        }
+
+        const weighted = currentScore * field.weight;
+        if (weighted > maxScore) maxScore = weighted;
+      });
+
+      return maxScore;
+    }
+
     async function initTempIdAssignment(tempid) {
       document.getElementById('ls').style.display = 'none'; // Hide loading screen
       const container = document.getElementById('tempIdAssignContainer');
@@ -5309,17 +5471,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       showLoad('تحميل البيانات...');
       let classes = [];
       let churchSettings = null;
+      let allChurches = [];
       try {
-        const [dClasses, dSettings] = await Promise.all([
-          api({ action: 'listClasses' }),
-          api({ action: 'getChurchSettings' })
+        const [dClasses, dSettings, dChurches] = await Promise.all([
+          api({ action: 'getChurchClasses' }),
+          api({ action: 'getChurchSettings' }),
+          api({ action: 'getAllChurches' })
         ]);
         if (dClasses.success) classes = dClasses.data || dClasses.classes || [];
         if (dSettings.success) churchSettings = dSettings.settings || {};
+        if (dChurches.success) allChurches = dChurches.churches || [];
       } catch (e) {
         console.error(e);
       }
       hideLoad();
+
+      window.allChurches = allChurches;
 
       let churchCustomFields = [];
       if (churchSettings && (churchSettings.custom_fields || churchSettings.custom_field)) {
@@ -5327,10 +5494,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         churchCustomFields = Array.isArray(cf) ? cf : [cf];
       }
 
-      renderTempIdAssignmentUI(tempid, classes, churchCustomFields);
+      renderTempIdAssignmentUI(tempid, classes, churchCustomFields, churchSettings);
     }
 
-    function renderTempIdAssignmentUI(tempid, classes, churchCustomFields) {
+    function renderTempIdAssignmentUI(tempid, classes, churchCustomFields, churchSettings) {
       const container = document.getElementById('tempIdAssignContainer');
       
       const cfHtml = (churchCustomFields || []).map((cf, idx) => {
@@ -5391,6 +5558,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <!-- Tab 2: Create New -->
           <div id="assignTabNew" style="display:none;">
             <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+              <!-- Church Selector (Intelligent autocomplete) -->
+              <div style="position:relative;">
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الكنيسة *</label>
+                <div style="position:relative;">
+                  <input type="text" id="newStudentChurchInput" placeholder="اكتب اسم الكنيسة للبحث..." value="${esc(churchSettings?.church_name || '')}" style="width:100%; padding:12px 14px 12px 38px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="onNewStudentChurchSearchChange(this.value)">
+                  <i class="fas fa-church" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--t4);"></i>
+                </div>
+                <div id="newStudentChurchSuggestions" style="display:none; position:absolute; right:0; left:0; background:#fff; border:1.5px solid var(--bdr); border-radius:10px; margin-top:6px; max-height:200px; overflow-y:auto; box-shadow:var(--sh-md); z-index:999;"></div>
+                <input type="hidden" id="newStudentChurchId" value="${esc(churchSettings?.church_id || '')}">
+              </div>
+
+              <!-- Photo Upload Section -->
+              <div>
+                <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الصورة الشخصية</label>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div id="newStudentPhotoArea" onclick="document.getElementById('newStudentPhotoInput').click()" style="width:60px; height:60px; border-radius:50%; border:2px dashed var(--bdr); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:var(--s2); position:relative;">
+                    <img id="newStudentPhotoPreview" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <i id="newStudentPhotoIcon" class="fas fa-camera" style="color:var(--t4); font-size:1.2rem;"></i>
+                  </div>
+                  <div style="font-size:0.8rem; color:var(--t3);">اضغط لاختيار صورة شخصية للطفل</div>
+                  <input type="file" id="newStudentPhotoInput" accept="image/*" style="display:none;" onchange="onNewStudentPhotoSelected(event)">
+                </div>
+              </div>
+
               <div>
                 <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الاسم الكامل للطفل *</label>
                 <input type="text" id="newStudentName" placeholder="الاسم الكامل للطفل" style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
@@ -5400,7 +5591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                   <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;">الفصل *</label>
                   <select id="newStudentClass" style="width:100%; height:44px; padding:0 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; background:#fff;">
                     <option value="">اختر الفصل</option>
-                    ${classes.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+                    ${classes.map(c => `<option value="${c.id}">${esc(c.name || c.arabic_name)}</option>`).join('')}
                   </select>
                 </div>
                 <div>
@@ -5455,6 +5646,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       `;
     }
 
+    let newStudentPhotoBlob = null;
+    window.onNewStudentPhotoSelected = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const previewImg = document.getElementById('newStudentPhotoPreview');
+        const previewIcon = document.getElementById('newStudentPhotoIcon');
+        if (previewImg) {
+          previewImg.src = ev.target.result;
+          previewImg.style.display = 'block';
+        }
+        if (previewIcon) previewIcon.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+      newStudentPhotoBlob = file;
+    };
+
+    window.onNewStudentChurchSearchChange = function(q) {
+      const suggestionsDiv = document.getElementById('newStudentChurchSuggestions');
+      if (!q.trim()) {
+        suggestionsDiv.style.display = 'none';
+        return;
+      }
+      const churches = window.allChurches || [];
+      const scored = churches.map(c => {
+        const score = getMatchScore({ name: c.name }, q);
+        return { ...c, _score: score };
+      }).filter(c => c._score > 0).sort((a, b) => b._score - a._score);
+
+      if (scored.length > 0) {
+        suggestionsDiv.innerHTML = scored.map(c => `
+          <div onclick="selectNewStudentChurch(${c.id}, '${esc(c.name)}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(c.name)}</div>
+          </div>
+        `).join('');
+        suggestionsDiv.style.display = 'block';
+      } else {
+        suggestionsDiv.innerHTML = `<div style="padding:12px; color:var(--t4); text-align:center; font-size:0.85rem;">لم يتم العثور على كنائس</div>`;
+        suggestionsDiv.style.display = 'block';
+      }
+    };
+
+    window.selectNewStudentChurch = async function(id, name) {
+      document.getElementById('newStudentChurchInput').value = name;
+      document.getElementById('newStudentChurchId').value = id;
+      document.getElementById('newStudentChurchSuggestions').style.display = 'none';
+
+      // Load classes and custom fields for selected church
+      showLoad('تحميل فصول وبيانات الكنيسة المحددة...');
+      const classSelect = document.getElementById('newStudentClass');
+      const cfArea = document.getElementById('newStudentCustomFieldsArea');
+      
+      classSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+      cfArea.innerHTML = '';
+      cfArea.style.display = 'none';
+
+      try {
+        const [dClasses, dSettings] = await Promise.all([
+          api({ action: 'getPublicChurchClasses', church_id: id }),
+          api({ action: 'getPublicChurchSettings', church_id: id })
+        ]);
+        
+        if (dClasses.success) {
+          const list = dClasses.data || dClasses.classes || [];
+          classSelect.innerHTML = '<option value="">اختر الفصل</option>' + list.map(c => `<option value="${c.id}">${esc(c.name || c.arabic_name)}</option>`).join('');
+        } else {
+          classSelect.innerHTML = '<option value="">اختر الفصل</option>';
+        }
+
+        if (dSettings.success) {
+          const cf = dSettings.custom_fields || dSettings.custom_field;
+          const customFields = Array.isArray(cf) ? cf : (cf ? [cf] : []);
+          if (customFields.length > 0) {
+            cfArea.innerHTML = customFields.map((field, idx) => {
+              const key = 'field_' + idx;
+              const icon = field.icon || 'fa-tag';
+              return `
+                <div>
+                  <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:6px;"><i class="fas ${esc(icon)}"></i> ${esc(field.name)}</label>
+                  <input type="text" class="new-student-cf-input" data-cf-key="${key}" placeholder="${esc(field.name)}..." style="width:100%; padding:12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem;">
+                </div>
+              `;
+            }).join('');
+            cfArea.style.display = 'flex';
+          } else {
+            cfArea.innerHTML = '';
+            cfArea.style.display = 'none';
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        classSelect.innerHTML = '<option value="">حدث خطأ</option>';
+      }
+      hideLoad();
+    };
+
     window.switchAssignTab = function(tab) {
       const btnLink = document.getElementById('tabLinkExisting');
       const btnCreate = document.getElementById('tabCreateNew');
@@ -5491,9 +5780,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         return;
       }
       try {
-        const d = await api({ action: 'searchAllStudents', query: q });
+        const payload = { action: 'searchAllStudents', query: q };
+        const queryAr = francoToArabic(q);
+        if (queryAr) {
+          payload.query_ar = queryAr;
+        }
+
+        const d = await api(payload);
         if (d.success && d.students && d.students.length > 0) {
-          resultsDiv.innerHTML = d.students.map(s => `
+          let students = d.students || [];
+          students = students.map(s => ({ ...s, _score: getMatchScore(s, q) }))
+                             .sort((a, b) => b._score - a._score);
+
+          resultsDiv.innerHTML = students.map(s => `
             <div onclick="selectAssignStudent(${s.id}, '${esc(s.name)}', '${esc(s.class || '')}')" style="padding:10px 12px; border-bottom:1px solid var(--bdr2); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--brand-bg)'" onmouseout="this.style.background='none'">
               <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">${esc(s.name)}</div>
               <div style="font-size:0.75rem; color:var(--t3); margin-top:2px;">الكنيسة: ${esc(s.church_name || '')} - الفصل: ${esc(s.class || '')}</div>
@@ -5552,6 +5851,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     };
 
     window.submitAssignNew = async function(tempid) {
+      const churchId = document.getElementById('newStudentChurchId').value;
       const name = document.getElementById('newStudentName').value.trim();
       const classId = document.getElementById('newStudentClass').value;
       const gender = document.getElementById('newStudentGender').value;
@@ -5561,6 +5861,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const birthday = document.getElementById('newStudentBirthday').value.trim();
       const coupons = parseInt(document.getElementById('newStudentCoupons').value) || 0;
       const medicalNotes = document.getElementById('newStudentMedicalNotes').value.trim();
+
+      if (!churchId) {
+        alert('يرجى اختيار الكنيسة');
+        return;
+      }
 
       if (!name || !classId) {
         alert('يرجى إدخال الاسم والفصل');
@@ -5579,6 +5884,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const payload = {
           action: 'createStudentAndLinkTempId',
+          church_id: churchId,
           name: name,
           class_id: classId,
           gender: gender,
@@ -5589,7 +5895,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           coupons: coupons,
           medical_notes: medicalNotes,
           tempid: tempid,
-          trip_id: TARGET_TRIP_ID
+          trip_id: TARGET_TRIP_ID,
+          photo: newStudentPhotoBlob
         };
         if (Object.keys(customInfoObj).length > 0) {
           payload.custom_info = JSON.stringify(customInfoObj);

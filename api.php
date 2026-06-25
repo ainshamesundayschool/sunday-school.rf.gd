@@ -7146,7 +7146,10 @@ function createStudentAndLinkTempId()
 {
     global $conn;
     try {
-        $churchId = getChurchId(); // checks auth automatically
+        $churchId = getChurchId();
+        if (isset($_POST['church_id']) && intval($_POST['church_id']) > 0) {
+            $churchId = intval($_POST['church_id']);
+        }
         ensureStudentTempIdColumn($conn);
 
         $name = sanitize($_POST['name'] ?? '');
@@ -35337,7 +35340,12 @@ function getChurchSettings()
 
         }
 
-
+        $settings['church_id'] = $churchId;
+        $nameStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
+        $nameStmt->bind_param("i", $churchId);
+        $nameStmt->execute();
+        $nameRow = $nameStmt->get_result()->fetch_assoc();
+        $settings['church_name'] = $nameRow['church_name'] ?? '';
 
         sendJSON(['success' => true, 'settings' => $settings]);
 
@@ -45289,71 +45297,42 @@ function ensureGuestTripColumns($conn)
 
 
 function searchAllStudents()
-
 {
-
     try {
-
         checkAuth();
 
         $query = trim($_POST['query'] ?? $_GET['query'] ?? '');
+        $queryAr = trim($_POST['query_ar'] ?? $_GET['query_ar'] ?? '');
 
-        if (mb_strlen($query) < 2) {
-
+        if (mb_strlen($query) < 2 && mb_strlen($queryAr) < 2) {
             sendJSON(['success' => true, 'students' => []]);
-
             return;
-
         }
 
-
-
         $conn = getDBConnection();
-
         $searchTerm = "%" . $query . "%";
-
-
+        $searchTermAr = !empty($queryAr) ? "%" . $queryAr . "%" : "";
 
         // Query students across all churches
-
         $stmt = $conn->prepare("
-
             SELECT 
-
                 s.id, 
-
                 s.name, 
-
                 s.phone, 
-
                 s.gender, 
-
                 COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
-
                 c.id as church_id,
-
                 c.church_name
-
             FROM students s
-
             LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id
-
             LEFT JOIN classes gc ON s.class_id = gc.id
-
             LEFT JOIN churches c ON s.church_id = c.id
-
-            WHERE (s.name LIKE ? OR s.phone LIKE ?) AND COALESCE(s.enrollment_status, 'active') = 'active'
-
+            WHERE (s.name LIKE ? OR s.phone LIKE ? OR (? != '' AND s.name LIKE ?)) AND COALESCE(s.enrollment_status, 'active') = 'active'
             ORDER BY s.name ASC
-
             LIMIT 50
-
         ");
-
-        $stmt->bind_param("ss", $searchTerm, $searchTerm);
-
+        $stmt->bind_param("ssss", $searchTerm, $searchTerm, $queryAr, $searchTermAr);
         $stmt->execute();
-
         $result = $stmt->get_result();
 
 
