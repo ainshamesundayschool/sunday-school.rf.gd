@@ -13038,31 +13038,31 @@
           .ws-room-card.active-search { z-index: 1000 !important; }
           .ws-room-search-popover {
             position: absolute;
-            bottom: 105%;
-            left: 0;
+            bottom: 108%;
             right: 0;
+            width: 295px;
             background: var(--bg);
             border: 1.5px solid var(--border-solid);
-            border-radius: 8px;
+            border-radius: 10px;
             z-index: 10000;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            box-shadow: 0 12px 20px -3px rgba(0,0,0,0.12), 0 5px 8px -2px rgba(0,0,0,0.06);
             display: none;
             flex-direction: column;
-            gap: 6px;
-            padding: 8px;
-            max-height: 250px;
+            gap: 8px;
+            padding: 10px;
+            max-height: 320px;
             text-align: right;
             direction: rtl;
           }
           .ws-popover-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px;
+            gap: 10px;
+            padding: 8px 6px;
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
-            font-size: 0.72rem;
+            font-size: 0.78rem;
             border-bottom: 1px solid var(--border-light);
           }
           .ws-popover-item:last-child {
@@ -13072,8 +13072,8 @@
             background: var(--surface-2);
           }
           .ws-popover-avatar {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
@@ -13504,15 +13504,16 @@
                 <input type="text" 
                        placeholder="+ إضافة للغرفة..." 
                        class="form-input ws-room-search-input" 
-                       style="font-size:0.68rem; padding:3px 6px; height:24px; flex:1; direction:rtl; text-align:right; border-radius:4px; font-family:'Cairo'; border:1px dashed var(--border);" 
+                       style="font-size:0.78rem; padding:4px 8px; height:28px; flex:1; direction:rtl; text-align:right; border-radius:4px; font-family:'Cairo'; border:1px dashed var(--border);" 
                        onfocus="onRoomSearchFocus(event, this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')" 
                        oninput="onRoomSearchInput(event, this, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')"
                        onclick="event.stopPropagation()">
                 <button type="button" 
                         class="ws-room-filter-btn" 
                         title="خيارات الفلترة" 
+                        style="padding: 6px; font-size: 0.8rem;"
                         onclick="toggleRoomSearchPopoverFilters(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
-                  <i class="fas fa-filter" style="font-size:0.65rem;"></i>
+                  <i class="fas fa-filter"></i>
                 </button>
               </div>
               
@@ -13522,14 +13523,14 @@
                    onclick="event.stopPropagation()">
                 
                 <!-- Filters UI inside popover (initially hidden) -->
-                <div class="ws-popover-filters" style="display:none; flex-direction:column; gap:4px; border-bottom:1px solid var(--border-solid); padding-bottom:6px; margin-bottom:4px;">
-                  <div style="display:flex; gap:4px;">
+                <div class="ws-popover-filters" style="display:none; flex-direction:column; gap:6px; border-bottom:1px solid var(--border-solid); padding-bottom:8px; margin-bottom:6px;">
+                  <div style="display:flex; gap:6px;">
                     <!-- Church Filter -->
-                    <select class="form-input ws-popover-church-filter" style="font-size:0.65rem; padding:2px; height:22px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                    <select class="form-input ws-popover-church-filter" style="font-size:0.72rem; padding:4px; height:28px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
                       <option value="">كل الكنائس</option>
                     </select>
                     <!-- Gender/Role Filter -->
-                    <select class="form-input ws-popover-role-filter" style="font-size:0.65rem; padding:2px; height:22px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                    <select class="form-input ws-popover-role-filter" style="font-size:0.72rem; padding:4px; height:28px; flex:1; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
                       <option value="">كل الفئات</option>
                       <option value="boys">الأولاد</option>
                       <option value="girls">البنات</option>
@@ -13537,7 +13538,7 @@
                     </select>
                   </div>
                   <!-- Class/Stage Filter -->
-                  <select class="form-input ws-popover-class-filter" style="font-size:0.65rem; padding:2px; height:22px; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
+                  <select class="form-input ws-popover-class-filter" style="font-size:0.72rem; padding:4px; height:28px; font-family:'Cairo';" onchange="onPopoverFilterChange(event, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(room.name)}')">
                     <option value="">كل المراحل</option>
                   </select>
                 </div>
