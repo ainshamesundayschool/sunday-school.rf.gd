@@ -7220,6 +7220,58 @@
           </div>
 
         </div>
+      </div>
+    </div>
+
+    <!-- Bulk Rooms Match Picker Modal -->
+    <div id="bulkRoomsMatchPickerModal" class="modal" style="z-index: 2100;">
+      <div class="modal-box" style="max-width: 480px; width: 90%; font-family: 'Cairo';">
+        <div class="modal-head" style="direction: rtl; text-align: right; display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-weight: 800; font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 8px; margin: 0;">
+            <i class="fas fa-user-check"></i> اختيار العضو المطابق للسكن
+          </h2>
+          <button class="modal-close" onclick="closeModal('bulkRoomsMatchPickerModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 12px; padding: 16px;">
+          
+          <div style="background: var(--surface-2); padding: 10px; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--border); line-height: 1.5;">
+            • الاسم في الملف: <strong id="pickerOriginalName" style="color: var(--primary);"></strong><br>
+            • الفئة المقترحة: <span id="pickerSuggestedRole" class="badge" style="font-size:0.65rem; padding:2px 8px; font-weight:700;"></span>
+          </div>
+
+          <!-- Search Input -->
+          <input type="text" id="pickerSearchQuery" class="form-input" placeholder="بحث بالاسم..." oninput="onPickerSearchChange()" style="width: 100%; font-size: 0.85rem; padding: 8px 12px;">
+
+          <!-- Filters Row -->
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 6px;">
+            <select id="pickerTypeFilter" class="form-input" onchange="onPickerSearchChange()" style="font-size: 0.72rem; padding: 4px; height: 32px;">
+              <option value="">كل الفئات</option>
+              <option value="kid">أطفال</option>
+              <option value="uncle">خدام/قادة</option>
+            </select>
+            <select id="pickerChurchFilter" class="form-input" onchange="onPickerSearchChange()" style="font-size: 0.72rem; padding: 4px; height: 32px;">
+              <option value="">كل الكنائس</option>
+            </select>
+            <select id="pickerClassFilter" class="form-input" onchange="onPickerSearchChange()" style="font-size: 0.72rem; padding: 4px; height: 32px;">
+              <option value="">كل المراحل</option>
+            </select>
+          </div>
+
+          <!-- Candidates List -->
+          <div id="pickerCandidatesList" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 6px; background: var(--surface-1);">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; border-top: 1px solid var(--border-solid); padding-top: 12px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="selectPickerCandidate(null)" style="color: var(--danger); border-color: var(--danger); font-size: 0.78rem; padding: 4px 10px;">
+              <i class="fas fa-user-slash"></i> استبعاد من التسكين
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('bulkRoomsMatchPickerModal')" style="font-size: 0.78rem; padding: 4px 10px;">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Bulk Add / Update -->
     <div id="bulkAddModal" class="modal">
@@ -14976,11 +15028,191 @@
           is_excluded: r.is_excluded
         }));
 
-        // Render preview table
+        // Render preview table and stats
+        renderReviewTableAndStats();
+
+        // Transition UI
+        document.getElementById('bulkRoomsUploadSection').style.display = 'none';
+        document.getElementById('bulkRoomsReviewSection').style.display = 'flex';
+      };
+
+      window.openReviewResidentMatchPicker = function(resIdx) {
+        window.activePickerResidentIdx = resIdx;
+        const res = window.bulkRoomsParsedResidents[resIdx];
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const uncles = window.allUnclesCache || [];
+
+        document.getElementById('pickerOriginalName').textContent = res.originalName;
+        document.getElementById('pickerSuggestedRole').textContent = res.role === 'uncle' ? 'خادم' : 'طفل';
+        document.getElementById('pickerSuggestedRole').className = 'badge ' + (res.role === 'uncle' ? 'uncle' : 'kid');
+        if (res.role === 'uncle') {
+          document.getElementById('pickerSuggestedRole').style.background = '#fef3c7';
+          document.getElementById('pickerSuggestedRole').style.color = '#d97706';
+        } else {
+          document.getElementById('pickerSuggestedRole').style.background = '#eff6ff';
+          document.getElementById('pickerSuggestedRole').style.color = '#3b82f6';
+        }
+        
+        // Reset query
+        document.getElementById('pickerSearchQuery').value = '';
+        
+        // Set type filter dropdown to match suggestion by default
+        document.getElementById('pickerTypeFilter').value = res.role;
+
+        // Build filter options
+        const churches = new Set();
+        const classes = new Set();
+
+        uncles.forEach(u => {
+          if (u.church_name) churches.add(u.church_name);
+          if (u.role) classes.add(u.role);
+        });
+        regs.forEach(k => {
+          const c = k._churchName || k.church_name;
+          if (c) churches.add(c);
+          if (k.student_class) classes.add(k.student_class);
+        });
+
+        const churchSelect = document.getElementById('pickerChurchFilter');
+        if (churchSelect) {
+          churchSelect.innerHTML = '<option value="">كل الكنائس</option>' + 
+            Array.from(churches).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        const classSelect = document.getElementById('pickerClassFilter');
+        if (classSelect) {
+          classSelect.innerHTML = '<option value="">كل المراحل/الأدوار</option>' + 
+            Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        // Render candidates list
+        onPickerSearchChange();
+
+        // Show picker modal
+        document.getElementById('bulkRoomsMatchPickerModal').classList.add('open');
+      };
+
+      window.onPickerSearchChange = function() {
+        const resIdx = window.activePickerResidentIdx;
+        if (resIdx === undefined || !window.bulkRoomsParsedResidents) return;
+
+        const res = window.bulkRoomsParsedResidents[resIdx];
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
+        const uncles = window.allUnclesCache || [];
+
+        const query = document.getElementById('pickerSearchQuery').value || '';
+        const typeFilter = document.getElementById('pickerTypeFilter').value || '';
+        const churchFilter = document.getElementById('pickerChurchFilter').value || '';
+        const classFilter = document.getElementById('pickerClassFilter').value || '';
+
+        let uncleCandidates = [];
+        let kidCandidates = [];
+
+        // 1. Gather Uncles
+        if (!typeFilter || typeFilter === 'uncle') {
+          uncleCandidates = uncles.map(u => {
+            const score = getMatchScore(u, query || res.originalName, [{ val: u.name || '', weight: 1.0 }]);
+            return {
+              id: u.id,
+              name: u.name,
+              avatar: u.image || u.avatar || '',
+              sub: u.role || 'خادم',
+              church: u.church_name || '',
+              type: 'uncle',
+              _score: query ? score : (score > 0 ? score + 10 : 0)
+            };
+          });
+        }
+
+        // 2. Gather Kids
+        if (!typeFilter || typeFilter === 'kid') {
+          kidCandidates = regs.map(k => {
+            const score = getMatchScore(k, query || res.originalName, [{ val: k.student_name || '', weight: 1.0 }]);
+            return {
+              id: k.id,
+              name: k.student_name,
+              avatar: k.student_image || '',
+              sub: k.student_class || '',
+              church: k._churchName || k.church_name || '',
+              type: 'kid',
+              _score: query ? score : (score > 0 ? score + 10 : 0)
+            };
+          });
+        }
+
+        let candidates = [...uncleCandidates, ...kidCandidates];
+
+        // Apply filters
+        if (churchFilter) {
+          candidates = candidates.filter(c => c.church === churchFilter);
+        }
+        if (classFilter) {
+          candidates = candidates.filter(c => c.sub === classFilter);
+        }
+
+        // Sort by score
+        candidates.sort((a, b) => b._score - a._score);
+
+        // Render candidates
+        const listDiv = document.getElementById('pickerCandidatesList');
+        if (listDiv) {
+          listDiv.innerHTML = candidates.map(c => {
+            const cleanImg = c.avatar && c.avatar.trim() !== '' && !c.avatar.includes('placeholder.com') && !c.avatar.includes('via.placeholder')
+              ? c.avatar
+              : '/profile_default..webp';
+
+            const isSelected = c.id == res.matchedId && c.type === res.role;
+            const isUncle = c.type === 'uncle';
+
+            return `
+              <div class="ws-picker-candidate-row" onclick="selectPickerCandidate(${c.id}, '${c.type}')" style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:6px; cursor:pointer; transition:all 0.2s; border:1px solid ${isSelected ? 'var(--primary)' : 'transparent'}; background:${isSelected ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent'};">
+                <img src="${cleanImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default..webp'">
+                <div style="flex:1; min-width:0; text-align:right;">
+                  <div style="font-weight:700; font-size:0.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);">${escHtml(c.name)}</div>
+                  <div style="font-size:0.62rem; color:var(--muted); display:flex; gap:6px; margin-top:2px;">
+                    <span class="badge ${isUncle ? 'warning' : 'info'}" style="font-size:0.55rem; padding:1px 4px; font-weight:700;">${isUncle ? 'خادم' : 'طفل'}</span>
+                    <span>${escHtml(c.sub)}</span>
+                    ${c.church ? `<span>•</span> <span>${escHtml(c.church)}</span>` : ''}
+                  </div>
+                </div>
+                ${isSelected ? `<i class="fas fa-check-circle" style="color:var(--primary); font-size:1rem;"></i>` : ''}
+              </div>
+            `;
+          }).join('');
+
+          if (candidates.length === 0) {
+            listDiv.innerHTML = `<div style="text-align:center; font-size:0.75rem; color:var(--muted); padding:20px 0;">لا توجد نتائج مطابقة</div>`;
+          }
+        }
+      };
+
+      window.selectPickerCandidate = function(candidateId, candidateType) {
+        const resIdx = window.activePickerResidentIdx;
+        if (resIdx === undefined || !window.bulkRoomsParsedResidents) return;
+
+        const res = window.bulkRoomsParsedResidents[resIdx];
+        if (candidateId === null) {
+          res.matchedId = null;
+          res.role = 'kid';
+        } else {
+          res.matchedId = parseInt(candidateId);
+          res.role = candidateType;
+        }
+
+        renderReviewTableAndStats();
+        closeModal('bulkRoomsMatchPickerModal');
+      };
+
+      function renderReviewTableAndStats() {
+        const tripId = window.currentTripId;
+        const regs = tripRegistrationsCache[tripId] || [];
         const tableBody = document.getElementById('bulkRoomsReviewTableBody');
-        if (tableBody) {
-          tableBody.innerHTML = Object.values(roomsMap).map(room => {
-            // Find all parsed residents for this room
+        const roomsList = window.bulkRoomsParsedRoomsList || [];
+
+        if (tableBody && roomsList.length) {
+          tableBody.innerHTML = roomsList.map(room => {
             const roomResidents = window.bulkRoomsParsedResidents.map((res, resIdx) => ({ res, resIdx }))
               .filter(item => item.res.bldName === room.bldName && item.res.floorName === room.floorName && item.res.roomName === room.name);
 
@@ -14989,27 +15221,51 @@
               const resIdx = item.resIdx;
               const isUncle = res.role === 'uncle';
 
-              let dropdownOptions = '';
-              if (isUncle) {
-                dropdownOptions = (window.allUnclesCache || []).map(u => {
-                  return `<option value="${u.id}" ${u.id == res.matchedId ? 'selected' : ''}>${escHtml(u.name)} (خادم)</option>`;
-                }).join('');
-              } else {
-                dropdownOptions = regs.map(k => {
-                  return `<option value="${k.id}" ${k.id == res.matchedId ? 'selected' : ''}>${escHtml(k.student_name)} (${escHtml(k.student_class)})</option>`;
-                }).join('');
+              let matchedName = 'غير مسجل بالرحلة (استبعاد)';
+              let avatarImg = '/profile_default..webp';
+              let subText = isUncle ? 'خادم' : 'طفل';
+              let isMatched = false;
+
+              if (res.matchedId) {
+                if (isUncle) {
+                  const u = window.allUnclesCache.find(x => x.id == res.matchedId);
+                  if (u) {
+                    matchedName = u.name;
+                    avatarImg = u.image || u.avatar || '';
+                    subText = `${u.role || 'خادم'}${u.church_name ? ` • ${u.church_name}` : ''}`;
+                    isMatched = true;
+                  }
+                } else {
+                  const k = regs.find(x => x.id == res.matchedId);
+                  if (k) {
+                    matchedName = k.student_name;
+                    avatarImg = k.student_image || '';
+                    subText = `${k.student_class || 'طفل'}${k._churchName || k.church_name ? ` • ${k._churchName || k.church_name}` : ''}`;
+                    isMatched = true;
+                  }
+                }
               }
 
-              const warningStyle = !res.matchedId ? 'border-color:#ef4444; background:#fef2f2; color:#b91c1c;' : '';
+              const cleanImg = avatarImg && avatarImg.trim() !== '' && !avatarImg.includes('placeholder.com') && !avatarImg.includes('via.placeholder')
+                ? avatarImg
+                : '/profile_default..webp';
+
+              const borderCol = isMatched ? 'var(--border)' : '#fca5a5';
+              const bgCol = isMatched ? 'var(--surface-1)' : '#fef2f2';
 
               return `
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; direction:rtl; text-align:right;">
-                  <span style="font-size:0.7rem; color:var(--muted); font-weight:700; white-space:nowrap; min-width:80px; text-overflow:ellipsis; overflow:hidden;" title="${escHtml(res.originalName)}">(${escHtml(res.originalName)})</span>
-                  <i class="fas fa-arrow-left" style="font-size:0.6rem; color:var(--muted);"></i>
-                  <select class="form-input" onchange="updateReviewResidentMatch(${resIdx}, this.value, event)" style="font-size:0.68rem; padding:2px 4px; height:24px; flex:1; font-family:'Cairo'; min-width:140px; ${warningStyle}">
-                    <option value="">-- غير مسجل بالرحلة (استبعاد) --</option>
-                    ${dropdownOptions}
-                  </select>
+                <div class="ws-review-resident-badge" onclick="openReviewResidentMatchPicker(${resIdx})" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid ${borderCol}; border-radius:6px; padding:6px 10px; background:${bgCol}; margin-bottom:4px; transition: all 0.2s;">
+                  <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+                    <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; border:1px solid var(--border); flex-shrink:0;" onerror="this.src='/profile_default..webp'">
+                    <div style="display:flex; flex-direction:column; text-align:right; min-width:0; flex:1;">
+                      <div style="font-size:0.75rem; font-weight:700; color:${isMatched ? 'var(--text)' : '#991b1b'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(matchedName)}</div>
+                      <div style="font-size:0.6rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(subText)}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                    <span style="font-size:0.6rem; color:var(--muted); font-style:italic;">من ملف: ${escHtml(res.originalName)}</span>
+                    <i class="fas fa-edit" style="font-size:0.7rem; color:var(--primary); opacity:0.8;"></i>
+                  </div>
                 </div>
               `;
             }).join('');
@@ -15026,54 +15282,21 @@
                 <td style="padding: 8px 10px; font-weight:700;">${escHtml(room.name)}</td>
                 <td style="padding: 8px 10px; text-align:center; font-weight:700;">${room.capacity}</td>
                 <td style="padding: 8px 10px; text-align:center;">${genderLabel}</td>
-                <td style="padding: 8px 10px; min-width:280px;">${finalResidentsHtml}</td>
+                <td style="padding: 8px 10px; min-width:320px;">${finalResidentsHtml}</td>
               </tr>
             `;
           }).join('');
         }
 
         // Update stats
-        const roomsCount = Object.keys(roomsMap).length;
+        const roomsCount = roomsList.length;
         const kidsCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'kid' && r.matchedId).length;
         const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle' && r.matchedId).length;
 
         document.getElementById('statRoomsCount').textContent = roomsCount;
-        document.getElementById('statBedsCount').textContent = totalBeds;
         document.getElementById('statKidsCount').textContent = kidsCount;
         document.getElementById('statUnclesCount').textContent = unclesCount;
-
-        // Transition UI
-        document.getElementById('bulkRoomsUploadSection').style.display = 'none';
-        document.getElementById('bulkRoomsReviewSection').style.display = 'flex';
-      };
-
-      window.updateReviewResidentMatch = function(resIdx, selectedValue, event) {
-        if (!window.bulkRoomsParsedResidents || !window.bulkRoomsParsedResidents[resIdx]) return;
-        
-        const res = window.bulkRoomsParsedResidents[resIdx];
-        res.matchedId = selectedValue ? parseInt(selectedValue) : null;
-        
-        // Recalculate stats
-        const assignedKidsCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'kid' && r.matchedId).length;
-        const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle' && r.matchedId).length;
-
-        document.getElementById('statKidsCount').textContent = assignedKidsCount;
-        document.getElementById('statUnclesCount').textContent = unclesCount;
-
-        // Toggle warning border style dynamically
-        const selectEl = event ? event.target : null;
-        if (selectEl) {
-          if (!selectedValue) {
-            selectEl.style.borderColor = '#ef4444';
-            selectEl.style.background = '#fef2f2';
-            selectEl.style.color = '#b91c1c';
-          } else {
-            selectEl.style.borderColor = '';
-            selectEl.style.background = '';
-            selectEl.style.color = '';
-          }
-        }
-      };
+      }
 
       window.backToBulkUpload = function() {
         document.getElementById('bulkRoomsReviewSection').style.display = 'none';
