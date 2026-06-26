@@ -170,7 +170,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // View routing pre-boot block to prevent classesView flash
             try {
                 var h = location.hash.replace('#', '');
-                var hasClass = h.startsWith('class=') || h.startsWith('combined=') || localStorage.getItem('currentClass');
+                var hasClass = h.startsWith('class=') || h.startsWith('combined=') || h === 'account' || localStorage.getItem('currentClass');
                 if (hasClass) {
                     var s2 = document.createElement('style');
                     s2.id = 'pre-boot-hide';
@@ -9755,6 +9755,74 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     box-sizing: border-box !important;
                 }
             }
+
+        /* ═══ UNCLE ACCOUNT PAGE STYLE ═══ */
+        .uncle-acc-container {
+            display: flex;
+            gap: 20px;
+            direction: rtl;
+        }
+        .uncle-acc-sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+        .uncle-acc-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .uncle-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-2);
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--t) var(--spring);
+            text-align: right;
+            width: 100%;
+        }
+        .uncle-nav-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .uncle-nav-btn.active {
+            background: var(--brand-bg);
+            color: var(--brand);
+            border-color: var(--brand-glow);
+        }
+        .uncle-tab-panel {
+            animation: fadeSlideDown .25s var(--ease);
+        }
+        @media (max-width: 768px) {
+            .uncle-acc-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .uncle-acc-sidebar {
+                width: 100%;
+            }
+            .uncle-acc-nav-list {
+                flex-direction: row !important;
+                overflow-x: auto;
+                padding-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .uncle-nav-btn {
+                white-space: nowrap;
+                width: auto !important;
+                padding: 8px 14px;
+                font-size: 0.82rem;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -9875,175 +9943,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- ACCOUNT MODAL -->
-    <div class="modal-overlay" id="accountModal">
-        <div class="modal" style="max-width:460px">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-circle"></i> الملف الشخصي</h3>
-                <button class="close-btn" onclick="hideAccountModal()">&times;</button>
-            </div>
-            <div class="account-avatar-section">
-                <div style="position:relative; display:inline-block;">
-                    <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()">
-                        <img src="" alt="" class="account-big-avatar" id="accountBigAvatar">
-                        <div class="account-avatar-plus"><i class="fas fa-plus"></i></div>
-                    </div>
-                    <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
-                </div>
-                <div class="account-name" id="accountDisplayName">---</div>
-                <div class="account-role" id="accountDisplayRole">---</div>
-                <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
-                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
-                    <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()"
-                        style="padding:8px 14px;font-size:.82rem" title="تبديل الوضع">
-                        <i class="fas fa-moon theme-toggle-icon-moon"></i>
-                        <i class="fas fa-sun theme-toggle-icon-sun"></i>
-                    </button>
-                    <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary"
-                        style="padding:8px 14px;font-size:.82rem;text-decoration:none">
-                        <i class="fas fa-crown"></i> الأوائل
-                    </a>
-                </div>
-            </div>
-            <div id="accountInfoView" style="margin-bottom:14px">
-                <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-user"></i> الاسم</span>
-                    <span class="account-info-value copy-holdable" id="aiName">---</span>
-                </div>
-                <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-at"></i> المستخدم</span>
-                    <span class="account-info-value copy-holdable" id="aiUsername">---</span>
-                </div>
-                <div class="account-info-row">
-                    <span class="account-info-label"><i class="fas fa-shield-alt"></i> الدور</span>
-                    <span class="account-info-value copy-holdable" id="aiRole">---</span>
-                </div>
-            </div>
-            <!-- Assigned Service Fees for the logged-in Uncle -->
-            <div id="uncleOwnFeesSection" style="display:none; margin-bottom:14px; border-top:1px solid var(--border); padding-top:14px;">
-                <h4 style="font-size:0.9rem; font-weight:700; color:var(--primary); margin:0 0 10px 0; display:flex; align-items:center; gap:6px; direction:rtl;">
-                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة
-                </h4>
-                <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:8px; max-height:180px; overflow-y:auto; padding-inline-end:4px;">
-                    <!-- Dynamically populated -->
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;margin-bottom:12px">
-                <button class="btn" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="showAccountEditForm()"><i
-                        class="fas fa-edit"></i> تعديل</button>
-                <button class="btn btn-secondary" style="flex:1;padding:10px 12px;font-size:.82rem"
-                    onclick="showUncleHistory()"><i class="fas fa-history"></i> السجل</button>
-                <button class="btn btn-danger" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="logout()"><i
-                        class="fas fa-sign-out-alt"></i> خروج</button>
-            </div>
-
-            <div class="account-edit-form" id="accountEditForm">
-                <form id="uncleProfileForm">
-                    <div class="form-group">
-                        <label class="form-label">الاسم</label>
-                        <div class="input-icon-wrap"><i class="fas fa-user input-icon"></i><input type="text"
-                                class="form-input" id="uncleProfileName" required></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">اسم المستخدم</label>
-                        <div class="input-icon-wrap"><i class="fas fa-at input-icon"></i><input type="text"
-                                class="form-input" id="uncleProfileUsername" required></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
-                                class="form-input" id="uncleProfileEmail"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">الهاتف</label>
-                        <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
-                                class="form-input" id="uncleProfilePhone"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">النوع</label>
-                        <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i>
-                            <select class="form-input" id="uncleProfileGender">
-                                <option value="male">ذكر</option>
-                                <option value="female">أنثى</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">كلمة المرور الحالية</label>
-                        <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
-                                class="form-input" id="uncleProfileCurrentPassword"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة
-                                للإبقاء)</small></label>
-                        <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
-                                class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                        <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
-                                class="form-input" id="uncleProfileConfirmPassword" minlength="6"></div>
-                    </div>
-                    <div style="display:flex;gap:8px">
-                        <button type="submit" class="btn btn-success" style="flex:1"><i class="fas fa-save"></i>
-                            حفظ</button>
-                        <button type="button" class="btn btn-secondary" style="flex:1"
-                            onclick="hideAccountEditForm()"><i class="fas fa-times"></i> إلغاء</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Uncle Activity History Modal -->
-    <div class="modal-overlay" id="uncleHistoryModal">
-        <div class="modal modal-lg" style="max-width:640px">
-            <div class="modal-header">
-                <h3><i class="fas fa-history" style="color:var(--brand)"></i> سجل نشاطي</h3>
-                <button class="close-btn"
-                    onclick="document.getElementById('uncleHistoryModal').classList.remove('active');startAutoRefresh()">&times;</button>
-            </div>
-
-            <!-- Search + filter bar -->
-            <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;">
-                <div
-                    style="flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--r-md);padding:6px 10px;border:1.5px solid var(--border-solid)">
-                    <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
-                    <input id="historySearch" type="text" placeholder="بحث في السجل..."
-                        style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.82rem;color:var(--text);width:100%;outline:none"
-                        oninput="filterHistory()">
-                </div>
-                <select id="historyFilter" onchange="filterHistory()"
-                    style="border:1.5px solid var(--border-solid);border-radius:var(--r-md);padding:6px 10px;font-family:Cairo,sans-serif;font-size:.82rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
-                    <option value="">كل الأنشطة</option>
-                    <option value="attendance">الحضور</option>
-                    <option value="student">الأطفال</option>
-                    <option value="coupon">الكوبونات</option>
-                    <option value="login">تسجيل الدخول</option>
-                    <option value="other">أخرى</option>
-                </select>
-            </div>
-
-            <!-- Summary chips (filled dynamically) -->
-            <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-
-            <!-- Log list -->
-            <div id="uncleHistoryContent" style="max-height:55vh;overflow-y:auto;margin:0 -4px;padding:0 4px">
-                <div style="text-align:center;padding:2rem;color:var(--text-3)">
-                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
-                    <p style="margin-top:8px">جاري التحميل...</p>
-                </div>
-            </div>
-
-            <!-- Empty / no-match state (hidden initially) -->
-            <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
-                <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                لا توجد نتائج
-            </div>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="allToolsModal">
         <div class="modal" style="max-width:760px">
             <div class="modal-header">
@@ -10098,6 +9997,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-icon"><i class="fas fa-upload"></i></span>
                     <span class="tool-card-name">إضافة مجموعة</span>
                     <span class="tool-card-desc">أضف أطفال كثيرين مرة واحدة من ملف.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showUncleFees()">
+                    <span class="tool-card-icon" style="color:#10b981;"><i class="fas fa-money-bill-wave"></i></span>
+                    <span class="tool-card-name">اشتراكاتي المالية</span>
+                    <span class="tool-card-desc">عرض وتتبع اشتراكاتك المالية والمدفوعات للخدمة.</span>
+                </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showUncleHistory()">
+                    <span class="tool-card-icon" style="color:#f59e0b;"><i class="fas fa-history"></i></span>
+                    <span class="tool-card-name">سجل نشاطاتي</span>
+                    <span class="tool-card-desc">سجل الأنشطة والعمليات التي قمت بها في لوحة التحكم.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showHelpModal()">
                     <span class="tool-card-icon" style="color:var(--brand);"><i
@@ -10933,6 +10842,211 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             </div>
             <!-- end classView -->
+
+            <!-- ═══ UNCLE ACCOUNT VIEW ═══ -->
+            <div id="uncleAccountView" style="display:none; flex-direction:column; gap:16px; width: 100%;">
+                <!-- Header with Back Button and Title -->
+                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
+                        <button class="btn btn-ghost btn-sm" onclick="showClassesView()"
+                            style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
+                    </div>
+                </div>
+
+                <div class="uncle-acc-container">
+                    <!-- Sidebar Navigation (Right side in RTL) -->
+                    <div class="uncle-acc-sidebar">
+                        <!-- Profile Card inside Sidebar -->
+                        <div class="glass-card" style="padding: 16px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                            <div style="position:relative; display:inline-block;">
+                                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()">
+                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar">
+                                    <div class="account-avatar-plus"><i class="fas fa-plus"></i></div>
+                                </div>
+                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
+                            </div>
+                            <div class="account-name" id="accountDisplayName" style="font-size:1.1rem; font-weight:800; margin-top:8px;">---</div>
+                            <div class="account-role" id="accountDisplayRole" style="font-size:0.82rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
+                            <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
+                            
+                            <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap; width:100%;">
+                                <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleTheme()"
+                                    style="flex: 1; padding:6px 10px;font-size:.78rem" title="تبديل الوضع">
+                                    <i class="fas fa-moon theme-toggle-icon-moon"></i>
+                                    <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                                </button>
+                                <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary btn-sm"
+                                    style="flex: 1; padding:6px 10px;font-size:.78rem;text-decoration:none; display:flex; align-items:center; justify-content:center; gap:4px;">
+                                    <i class="fas fa-crown"></i> الأوائل
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Tabs -->
+                        <div class="uncle-acc-nav-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; width: 100%;">
+                            <button id="uncleTabBtn_profile" class="uncle-nav-btn active" onclick="switchUncleAccountTab('profile')">
+                                <i class="fas fa-user-circle"></i> البيانات الشخصية
+                            </button>
+                            <button id="uncleTabBtn_fees" class="uncle-nav-btn" onclick="switchUncleAccountTab('fees')">
+                                <i class="fas fa-money-bill-wave"></i> الاشتراكات المالية
+                            </button>
+                            <button id="uncleTabBtn_logs" class="uncle-nav-btn" onclick="switchUncleAccountTab('logs')">
+                                <i class="fas fa-history"></i> سجل النشاطات
+                            </button>
+                        </div>
+
+                        <!-- Logout button at bottom of sidebar on desktop -->
+                        <button class="btn btn-danger" style="margin-top: auto; padding: 10px; font-size: 0.85rem; justify-content: center; border-radius: 10px; width: 100%;" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> خروج
+                        </button>
+                    </div>
+
+                    <!-- Main Content Panel (Left side in RTL) -->
+                    <div class="uncle-acc-content">
+                        <!-- PANEL: Profile -->
+                        <div id="uncleTabPanel_profile" class="uncle-tab-panel active">
+                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-user-circle" style="color: var(--brand)"></i> الملف الشخصي
+                                </h3>
+                                
+                                <div id="accountInfoView" style="margin-bottom:14px">
+                                    <div class="account-info-row">
+                                        <span class="account-info-label"><i class="fas fa-user"></i> الاسم</span>
+                                        <span class="account-info-value copy-holdable" id="aiName">---</span>
+                                    </div>
+                                    <div class="account-info-row">
+                                        <span class="account-info-label"><i class="fas fa-at"></i> المستخدم</span>
+                                        <span class="account-info-value copy-holdable" id="aiUsername">---</span>
+                                    </div>
+                                    <div class="account-info-row">
+                                        <span class="account-info-label"><i class="fas fa-shield-alt"></i> الدور</span>
+                                        <span class="account-info-value copy-holdable" id="aiRole">---</span>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex;gap:8px;margin-bottom:12px" class="profile-actions-row">
+                                    <button class="btn" style="flex:1;padding:10px 12px;font-size:.82rem; justify-content:center;" onclick="showAccountEditForm()"><i class="fas fa-edit"></i> تعديل البيانات</button>
+                                </div>
+
+                                <div class="account-edit-form" id="accountEditForm">
+                                    <form id="uncleProfileForm">
+                                        <div class="form-group">
+                                            <label class="form-label">الاسم</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-user input-icon"></i><input type="text"
+                                                    class="form-input" id="uncleProfileName" required></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">اسم المستخدم</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-at input-icon"></i><input type="text"
+                                                    class="form-input" id="uncleProfileUsername" required></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">البريد الإلكتروني</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
+                                                    class="form-input" id="uncleProfileEmail"></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">الهاتف</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
+                                                    class="form-input" id="uncleProfilePhone"></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">النوع</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i>
+                                                <select class="form-input" id="uncleProfileGender">
+                                                    <option value="male">ذكر</option>
+                                                    <option value="female">أنثى</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">كلمة المرور الحالية</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
+                                                    class="form-input" id="uncleProfileCurrentPassword"></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة للإبقاء)</small></label>
+                                            <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
+                                                    class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                            <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
+                                                    class="form-input" id="uncleProfileConfirmPassword" minlength="6"></div>
+                                        </div>
+                                        <div style="display:flex;gap:8px">
+                                            <button type="submit" class="btn btn-success" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> حفظ</button>
+                                            <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="hideAccountEditForm()"><i class="fas fa-times"></i> إلغاء</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL: Fees -->
+                        <div id="uncleTabPanel_fees" class="uncle-tab-panel" style="display:none;">
+                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-money-bill-wave" style="color: #10b981"></i> الاشتراكات المالية للخدمة
+                                </h3>
+                                <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height: 50vh; overflow-y:auto; padding-inline-end:4px;">
+                                    <!-- Dynamically populated -->
+                                </div>
+                                <div id="uncleOwnFeesSection" style="display:none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL: Logs -->
+                        <div id="uncleTabPanel_logs" class="uncle-tab-panel" style="display:none;">
+                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-history" style="color: #f59e0b"></i> سجل نشاطي
+                                </h3>
+                                
+                                <!-- Search + filter bar -->
+                                <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;">
+                                    <div style="flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--r-md);padding:6px 10px;border:1.5px solid var(--border-solid)">
+                                        <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
+                                        <input id="historySearch" type="text" placeholder="بحث في السجل..."
+                                            style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.82rem;color:var(--text);width:100%;outline:none"
+                                            oninput="filterHistory()">
+                                    </div>
+                                    <select id="historyFilter" onchange="filterHistory()"
+                                        style="border:1.5px solid var(--border-solid);border-radius:var(--r-md);padding:6px 10px;font-family:Cairo,sans-serif;font-size:.82rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
+                                        <option value="">كل الأنشطة</option>
+                                        <option value="attendance">الحضور</option>
+                                        <option value="student">الأطفال</option>
+                                        <option value="coupon">الكوبونات</option>
+                                        <option value="login">تسجيل الدخول</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+
+                                <!-- Summary chips (filled dynamically) -->
+                                <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+
+                                <!-- Log list -->
+                                <div id="uncleHistoryContent" style="max-height:50vh;overflow-y:auto;margin:0 -4px;padding:0 4px">
+                                    <div style="text-align:center;padding:2rem;color:var(--text-3)">
+                                        <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
+                                        <p style="margin-top:8px">جاري التحميل...</p>
+                                    </div>
+                                </div>
+
+                                <!-- Empty / no-match state (hidden initially) -->
+                                <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
+                                    <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                                    لا توجد نتائج
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div><!-- end page-wrap -->
     </div><!-- end mainContainer -->
@@ -12578,6 +12692,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else if (view === 'combined' && param) {
                 location.hash = 'combined=' + encodeURIComponent(param);
                 document.title = param + ' - Sunday School';
+            } else if (view === 'account') {
+                location.hash = 'account';
+                document.title = 'حسابي - Sunday School';
             } else {
                 location.hash = '';
                 document.title = 'Sunday School — <?php echo htmlspecialchars($churchName); ?>';
@@ -12591,6 +12708,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } else if (h.startsWith('combined=')) {
                 const gl = decodeURIComponent(h.replace('combined=', ''));
                 if (gl) showCombinedClassView(gl);
+            } else if (h === 'account') {
+                showAccountModalInternal();
             } else {
                 showClassesViewInternal();
             }
@@ -12622,6 +12741,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             currentClass = className;
             localStorage.setItem('currentClass', className);
             document.getElementById('classesView').style.display = 'none';
+            if (document.getElementById('uncleAccountView')) document.getElementById('uncleAccountView').style.display = 'none';
             document.getElementById('classView').classList.add('active');
             document.getElementById('className').textContent = className;
             clearSearch();
@@ -12699,6 +12819,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             currentClass = groupLabel; // used as the key for local storage
             localStorage.setItem('currentClass', groupLabel);
             document.getElementById('classesView').style.display = 'none';
+            if (document.getElementById('uncleAccountView')) document.getElementById('uncleAccountView').style.display = 'none';
             document.getElementById('classView').classList.add('active');
             clearSearch();
 
@@ -12863,13 +12984,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             localStorage.removeItem('currentClass'); // Clear so home screen reopens to classes grid
             document.getElementById('classesView').style.display = 'flex';
             document.getElementById('classView').classList.remove('active');
+            if (document.getElementById('uncleAccountView')) document.getElementById('uncleAccountView').style.display = 'none';
             currentClass = '';
             location.hash = ''; // Clear hash so next open goes to classes grid
             updateSaveBtns();
             displayClasses();
+            startAutoRefresh();
         }
 
         function showAccountModal() {
+            updateHash('account');
+            showAccountModalInternal();
+        }
+
+        function showAccountModalInternal() {
             // Allow opening even if currentUncle is not yet loaded from API.
             const u = window.currentUncle || {
                 name: localStorage.getItem('uncleName') || '',
@@ -12889,14 +13017,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('uncleProfileUsername').value = u.username || '';
             document.getElementById('uncleProfileNewPassword').value = '';
             const av = document.getElementById('accountBigAvatar');
-            av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
+            if (av) {
+                av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
+            }
             const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
             if (deleteBtn) {
                 deleteBtn.style.display = u.image_url ? 'flex' : 'none';
             }
-            const ownFeesSection = document.getElementById('uncleOwnFeesSection');
             const ownFeesList = document.getElementById('uncleOwnFeesList');
-            if (ownFeesSection && ownFeesList) {
+            if (ownFeesList) {
                 let fees = [];
                 try {
                     const info = u._customInfo || (u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {});
@@ -12905,7 +13034,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
                 if (isUncleLoggedIn && fees.length > 0) {
-                    ownFeesSection.style.display = 'block';
                     ownFeesList.innerHTML = fees.map(fee => `
                         <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01); direction:rtl; text-align:right;">
                             <div style="flex:1;">
@@ -12924,16 +13052,102 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     `).reverse().join('');
                 } else {
-                    ownFeesSection.style.display = 'none';
-                    ownFeesList.innerHTML = '';
+                    ownFeesList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
                 }
             }
 
             hideAccountEditForm();
-            document.getElementById('accountModal').classList.add('active');
+
+            // Hide other main views
+            document.getElementById('classesView').style.display = 'none';
+            document.getElementById('classView').classList.remove('active');
+
+            // Show the uncleAccountView container
+            document.getElementById('uncleAccountView').style.display = 'flex';
+
+            // Default to profile tab
+            switchUncleAccountTab('profile');
             stopAutoRefresh();
         }
-        function hideAccountModal() { document.getElementById('accountModal').classList.remove('active'); startAutoRefresh(); }
+
+        function hideAccountModal() { showClassesView(); }
+
+        function switchUncleAccountTab(tabId) {
+            const tabs = ['profile', 'fees', 'logs'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('uncleTabBtn_' + t);
+                const panel = document.getElementById('uncleTabPanel_' + t);
+                if (btn) {
+                    if (t === tabId) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+                if (panel) {
+                    if (t === tabId) panel.style.display = 'block';
+                    else panel.style.display = 'none';
+                }
+            });
+
+            // If switching to logs, trigger the log loading logic (except the modal display part)
+            if (tabId === 'logs') {
+                const content = document.getElementById('uncleHistoryContent');
+                const empty = document.getElementById('historyEmpty');
+
+                // Reset state
+                _historyLogs = [];
+                _historyFilter = '';
+                _historySearch = '';
+                if (document.getElementById('historyFilter')) document.getElementById('historyFilter').value = '';
+                if (document.getElementById('historySearch')) document.getElementById('historySearch').value = '';
+                if (document.getElementById('historySummary')) document.getElementById('historySummary').innerHTML = '';
+                if (empty) empty.style.display = 'none';
+                if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">
+                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
+                    <p style="margin-top:8px">جاري التحميل...</p>
+                </div>`;
+
+                stopAutoRefresh();
+
+                const fd = new FormData();
+                fd.append('action', 'getUncleActivityLogs');
+                fd.append('limit', '300');
+                fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (!d.success) {
+                            if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
+                                <i class="fas fa-exclamation-circle" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                                <div style="font-size:.88rem">${d.message || 'فشل في تحميل السجل'}</div>
+                            </div>`;
+                            return;
+                        }
+                        if (!d.logs || !d.logs.length) {
+                            if (content) content.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-3)">
+                                <i class="fas fa-scroll" style="font-size:2rem;display:block;margin-bottom:10px"></i>
+                                لا يوجد نشاط مسجل بعد
+                            </div>`;
+                            return;
+                        }
+                        _historyLogs = d.logs;
+                        renderHistorySummary(_historyLogs);
+                        renderHistoryList();
+                    })
+                    .catch(e => {
+                        if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
+                            <i class="fas fa-wifi" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                            <div style="font-size:.88rem">خطأ في الاتصال: ${e.message}</div>
+                        </div>`;
+                    });
+            }
+        }
+
+        function showUncleFees() {
+            if (location.hash !== '#account') {
+                updateHash('account');
+            }
+            showAccountModalInternal();
+            switchUncleAccountTab('fees');
+        }
+
         function dismissProfilePicSuggestion() {
             try {
                 localStorage.setItem('dismissProfilePicSuggestion', 'true');
@@ -13084,6 +13298,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 window._pendingHashRestore = { type: 'class', value: decodeURIComponent(h.replace('class=', '')) };
             } else if (h.startsWith('combined=')) {
                 window._pendingHashRestore = { type: 'combined', value: decodeURIComponent(h.replace('combined=', '')) };
+            } else if (h === 'account') {
+                window._pendingHashRestore = { type: 'account', value: '' };
             } else {
                 // No hash — check if user had a class open last time (e.g. opened from home screen icon)
                 const savedClass = localStorage.getItem('currentClass');
@@ -13191,6 +13407,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             else if (value) showClassViewInternal(value);
                         } else if (type === 'combined' && value) {
                             showCombinedClassView(value);
+                        } else if (type === 'account') {
+                            showAccountModalInternal();
                         }
                     }
                     setTimeout(updateSaveBtns, 300);
@@ -13299,6 +13517,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     } else if (type === 'combined' && value) {
                         showCombinedClassView(value);
+                    } else if (type === 'account') {
+                        showAccountModalInternal();
                     }
                 }
                 setTimeout(updateSaveBtns, 300);
@@ -13348,6 +13568,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             else if (value) showClassViewInternal(value); // try anyway with cached data
                         } else if (type === 'combined' && value) {
                             showCombinedClassView(value);
+                        } else if (type === 'account') {
+                            showAccountModalInternal();
                         }
                     }
                     if (!silent) showToast('تعمل بدون إنترنت — البيانات من الذاكرة المحلية', 'warning');
@@ -21295,57 +21517,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function showUncleHistory() {
-            document.getElementById('accountModal').classList.remove('active');
-            const modal = document.getElementById('uncleHistoryModal');
-            const content = document.getElementById('uncleHistoryContent');
-            const empty = document.getElementById('historyEmpty');
-
-            // Reset state
-            _historyLogs = [];
-            _historyFilter = '';
-            _historySearch = '';
-            if (document.getElementById('historyFilter')) document.getElementById('historyFilter').value = '';
-            if (document.getElementById('historySearch')) document.getElementById('historySearch').value = '';
-            if (document.getElementById('historySummary')) document.getElementById('historySummary').innerHTML = '';
-            if (empty) empty.style.display = 'none';
-            content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">
-        <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
-        <p style="margin-top:8px">جاري التحميل...</p>
-    </div>`;
-
-            modal.classList.add('active');
-            stopAutoRefresh();
-
-            const fd = new FormData();
-            fd.append('action', 'getUncleActivityLogs');
-            fd.append('limit', '300');
-            fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
-                .then(r => r.json())
-                .then(d => {
-                    if (!d.success) {
-                        content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
-                    <i class="fas fa-exclamation-circle" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                    <div style="font-size:.88rem">${d.message || 'فشل في تحميل السجل'}</div>
-                </div>`;
-                        return;
-                    }
-                    if (!d.logs || !d.logs.length) {
-                        content.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-3)">
-                    <i class="fas fa-scroll" style="font-size:2rem;display:block;margin-bottom:10px"></i>
-                    لا يوجد نشاط مسجل بعد
-                </div>`;
-                        return;
-                    }
-                    _historyLogs = d.logs;
-                    renderHistorySummary(_historyLogs);
-                    renderHistoryList();
-                })
-                .catch(e => {
-                    content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
-                <i class="fas fa-wifi" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                <div style="font-size:.88rem">خطأ في الاتصال: ${e.message}</div>
-            </div>`;
-                });
+            if (location.hash !== '#account') {
+                updateHash('account');
+            }
+            showAccountModalInternal();
+            switchUncleAccountTab('logs');
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -22992,7 +23168,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
             clearAllStudentsSearch, performAllStudentsSearch, showAnnouncementsModal, toggleAnnouncementStatus,
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
-            showAccountModal, hideAccountModal, showUncleHistory, retryConnection: () => { },
+            showAccountModal, hideAccountModal, showUncleHistory, showUncleFees, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV,
             toggleAbsentDropdown, executeAbsentAction,
